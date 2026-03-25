@@ -72,7 +72,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             var lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
             x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
 
-            TextureGenerateImageOperands(lod, o, s, out var imask, out var imParams);
+            TextureGenerateImageOperands(context, builder, lod, o, s, out var imask, out var imParams);
             var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
             if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
             return new(loadResult.ResultId, loadResult.ResultType);
@@ -80,7 +80,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         else
         {
             // No LOD component (e.g. RWTexture): use coord directly
-            TextureGenerateImageOperands(null, o, s, out var imask, out var imParams);
+            TextureGenerateImageOperands(context, builder, null, o, s, out var imask, out var imParams);
             var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
             if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
             return new(loadResult.ResultId, loadResult.ResultType);
@@ -98,7 +98,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
@@ -116,7 +116,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, bias: bias);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, bias: bias);
         var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
@@ -134,7 +134,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(lod, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, lod, o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
@@ -152,7 +152,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, ddx, ddy);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, ddx, ddy);
         var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
@@ -169,7 +169,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -185,7 +185,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, bias: bias);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, bias: bias);
         var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -201,7 +201,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, ddx, ddy);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, ddx, ddy);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -217,7 +217,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(lod, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, lod, o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue!.Value.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -233,7 +233,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context.CompileConstant(0.0f), o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, context.CompileConstant(0.0f), o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -452,7 +452,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         var componentConstant = context.CompileConstant(component);
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
         var gather = builder.Insert(new OpImageGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, imask, imParams));
         return new(gather.ResultId, gather.ResultType);
     }
@@ -461,21 +461,42 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
-
         var componentConstant = context.CompileConstant(component);
+        var resultTypeId = context.GetOrRegister(functionType.ReturnType);
 
-        // Build ConstOffsets: array of 4 vec2<int> constant
-        var int2Type = new VectorType(ScalarType.Int, 2);
-        var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
-        var constOffsetsId = context.Bound++;
-        builder.InsertData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
+        // Try to promote all 4 offsets to constants (handles inline int2(x,y) constructors)
+        var co1 = TryPromoteToConstant(context, builder, o1.Id);
+        var co2 = TryPromoteToConstant(context, builder, o2.Id);
+        var co3 = TryPromoteToConstant(context, builder, o3.Id);
+        var co4 = TryPromoteToConstant(context, builder, o4.Id);
+        if (co1 >= 0 && co2 >= 0 && co3 >= 0 && co4 >= 0)
+        {
+            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+            var int2Type = new VectorType(ScalarType.Int, 2);
+            var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
+            var constOffsetsId = context.Bound++;
+            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [co1, co2, co3, co4]));
 
-        Span<int> operands = [constOffsetsId];
-        var imask = ImageOperandsMask.ConstOffsets;
-        var imParams = new EnumerantParameters(operands);
-        var gather = builder.Insert(new OpImageGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, imask, imParams));
-        return new(gather.ResultId, gather.ResultType);
+            Span<int> operands = [constOffsetsId];
+            var gather = builder.Insert(new OpImageGather(resultTypeId, context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, ImageOperandsMask.ConstOffsets, new EnumerantParameters(operands)));
+            return new(gather.ResultId, gather.ResultType);
+        }
+
+        // Fallback: 4 separate gathers with Offset, extract component 3 from each
+        var float4TypeId = resultTypeId;
+        var floatTypeId = context.GetOrRegister(ScalarType.Float);
+        var int3 = context.CompileConstant(3).Id;
+        Span<int> components = stackalloc int[4];
+        foreach (var (offset, i) in new[] { (o1, 0), (o2, 1), (o3, 2), (o4, 3) })
+        {
+            var si = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+            Span<int> ops = [offset.Id];
+            var gather = builder.Insert(new OpImageGather(float4TypeId, context.Bound++, si.ResultId, x.Id, componentConstant.Id, ImageOperandsMask.Offset, new EnumerantParameters(ops)));
+            // Extract component 3: the texel at the exact offset location
+            components[i] = builder.Insert(new OpCompositeExtract(floatTypeId, context.Bound++, gather.ResultId, [3])).ResultId;
+        }
+        var result = builder.Insert(new OpCompositeConstruct(float4TypeId, context.Bound++, [components[0], components[1], components[2], components[3]]));
+        return new(result.ResultId, result.ResultType);
     }
 
     private SpirvValue CompileGatherDref(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o)
@@ -484,7 +505,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
         var gather = builder.Insert(new OpImageDrefGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
         return new(gather.ResultId, gather.ResultType);
     }
@@ -493,19 +514,84 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+        var resultTypeId = context.GetOrRegister(functionType.ReturnType);
 
-        // Build ConstOffsets: array of 4 vec2<int> constant
-        var int2Type = new VectorType(ScalarType.Int, 2);
-        var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
-        var constOffsetsId = context.Bound++;
-        builder.InsertData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
+        // Try to promote all 4 offsets to constants (handles inline int2(x,y) constructors)
+        var co1 = TryPromoteToConstant(context, builder, o1.Id);
+        var co2 = TryPromoteToConstant(context, builder, o2.Id);
+        var co3 = TryPromoteToConstant(context, builder, o3.Id);
+        var co4 = TryPromoteToConstant(context, builder, o4.Id);
+        if (co1 >= 0 && co2 >= 0 && co3 >= 0 && co4 >= 0)
+        {
+            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+            var int2Type = new VectorType(ScalarType.Int, 2);
+            var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
+            var constOffsetsId = context.Bound++;
+            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [co1, co2, co3, co4]));
 
-        Span<int> operands = [constOffsetsId];
-        var imask = ImageOperandsMask.ConstOffsets;
-        var imParams = new EnumerantParameters(operands);
-        var gather = builder.Insert(new OpImageDrefGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
-        return new(gather.ResultId, gather.ResultType);
+            Span<int> operands = [constOffsetsId];
+            var gather = builder.Insert(new OpImageDrefGather(resultTypeId, context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, ImageOperandsMask.ConstOffsets, new EnumerantParameters(operands)));
+            return new(gather.ResultId, gather.ResultType);
+        }
+
+        // Fallback: 4 separate gathers with Offset, extract component 3 from each
+        var float4TypeId = resultTypeId;
+        var floatTypeId = context.GetOrRegister(ScalarType.Float);
+        Span<int> components = stackalloc int[4];
+        foreach (var (offset, i) in new[] { (o1, 0), (o2, 1), (o3, 2), (o4, 3) })
+        {
+            var si = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+            Span<int> ops = [offset.Id];
+            var gather = builder.Insert(new OpImageDrefGather(float4TypeId, context.Bound++, si.ResultId, x.Id, compareValue.Id, ImageOperandsMask.Offset, new EnumerantParameters(ops)));
+            components[i] = builder.Insert(new OpCompositeExtract(floatTypeId, context.Bound++, gather.ResultId, [3])).ResultId;
+        }
+        var result = builder.Insert(new OpCompositeConstruct(float4TypeId, context.Bound++, [components[0], components[1], components[2], components[3]]));
+        return new(result.ResultId, result.ResultType);
+    }
+
+    /// <summary>
+    /// Returns true if the given ID refers to a constant instruction (OpConstant, OpConstantComposite, etc.) in context.
+    /// </summary>
+    private static bool IsConstantInContext(SpirvContext context, int id)
+    {
+        if (!context.GetBuffer().TryGetInstructionById(id, out var inst))
+            return false;
+        return inst.Op is Op.OpConstant or Op.OpConstantTrue or Op.OpConstantFalse
+            or Op.OpConstantComposite or Op.OpConstantNull
+            or Op.OpSpecConstantComposite;
+    }
+
+    /// <summary>
+    /// Tries to promote a value to a constant in context for use as ConstOffset.
+    /// Handles the simple case: OpCompositeConstruct in builder where all constituents are already constants in context.
+    /// Also handles scalar constants already in context.
+    /// Returns the constant ID if successful, or -1 if the value cannot be promoted.
+    /// </summary>
+    private static int TryPromoteToConstant(SpirvContext context, SpirvBuilder builder, int id)
+    {
+        // Already a constant in context
+        if (IsConstantInContext(context, id))
+            return id;
+
+        // Check builder buffer for OpCompositeConstruct with all-constant constituents
+        var buf = builder.GetBuffer();
+        if (!buf.TryGetInstructionById(id, out var inst) || inst.Op != Op.OpCompositeConstruct)
+            return -1;
+
+        var span = inst.Data.Memory.Span;
+        for (int j = 3; j < span.Length; j++)
+        {
+            if (!IsConstantInContext(context, span[j]))
+                return -1;
+        }
+
+        // All constituents are constants — emit OpConstantComposite in context
+        var resultType = span[1];
+        var constId = context.Bound++;
+        Span<int> constituents = stackalloc int[span.Length - 3];
+        span[3..].CopyTo(constituents);
+        context.AddData(new OpConstantComposite(resultType, constId, new(constituents)));
+        return constId;
     }
 
     private static void StoreQueryComponent(SpirvContext context, SpirvBuilder builder, int uintTypeId, int sizeResultId, int sizeComponents, int componentIndex, SpirvValue outParam)
@@ -542,13 +628,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
     }
 
-    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null, SpirvValue? bias = null)
+    private void TextureGenerateImageOperands(SpirvContext context, SpirvBuilder builder, SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null, SpirvValue? bias = null)
     {
         imask = ImageOperandsMask.None;
         // Allocate for worst case (6 operands: bias + grad(2) + lod + offset + sample)
         Span<int> operands = stackalloc int[6];
         int operandCount = 0;
-        // Operands must appear in bit-order: Bias(0x1) < Lod(0x2) < Grad(0x4) < Offset(0x10) < Sample(0x40)
+        // Operands must appear in bit-order: Bias(0x1) < Lod(0x2) < Grad(0x4) < ConstOffset(0x8) < Offset(0x10) < Sample(0x40)
         if (bias != null)
         {
             imask |= ImageOperandsMask.Bias;
@@ -567,8 +653,18 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
         if (offset != null)
         {
-            imask |= ImageOperandsMask.Offset;
-            operands[operandCount++] = offset.Value.Id;
+            // Try to promote to constant (handles int2(1,3) style inline constructors)
+            var constId = TryPromoteToConstant(context, builder, offset.Value.Id);
+            if (constId >= 0)
+            {
+                imask |= ImageOperandsMask.ConstOffset;
+                operands[operandCount++] = constId;
+            }
+            else
+            {
+                imask |= ImageOperandsMask.Offset;
+                operands[operandCount++] = offset.Value.Id;
+            }
         }
         if (sampleIndex != null)
         {
