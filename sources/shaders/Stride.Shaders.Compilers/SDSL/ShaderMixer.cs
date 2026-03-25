@@ -150,6 +150,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         foreach (var i in context)
         {
+            if (i.Op == Op.OpTypeFloat && ((OpTypeFloat)i).Width == 16)
+            {
+                context.Add(new OpCapability(Capability.Float16));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
             if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 0 or 1)
             {
                 context.Add(new OpCapability(Capability.SampledBuffer));
