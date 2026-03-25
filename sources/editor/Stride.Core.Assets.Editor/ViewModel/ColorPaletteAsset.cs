@@ -58,8 +58,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var runtime = new ColorPalette { Colors = colors };
                 assetManager.Save(Url, runtime);
 
-                commandContext.Logger.Info($"ColorPaletteAsset compiled: {Url} ({colors.Count} colors)");
-
                 return Task.FromResult(ResultStatus.Successful);
             }
         }

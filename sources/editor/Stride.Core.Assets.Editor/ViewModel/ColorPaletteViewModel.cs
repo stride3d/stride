@@ -18,7 +18,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             { "Nickel",    new Color3(0.827766422f, 0.797984931f, 0.74652364f)  },
             { "Titanium",  new Color3(0.756946965f, 0.727607463f, 0.695207239f) },
             { "Cobalt",    new Color3(0.829103572f, 0.824958926f, 0.812750243f) },
-            { "Platinum",  new Color3(0.834934076f, 0.814845027f, 0.783999116f) }, // Fixed typo: platimium
+            { "Platinum",  new Color3(0.834934076f, 0.814845027f, 0.783999116f) },
         };
 
         private static Dictionary<string, Color3>? _colors;
