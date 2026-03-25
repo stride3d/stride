@@ -1,7 +1,18 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 18.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Build", "00-Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
+	ProjectSection(SolutionItems) = preProject
+		Stride.build = Stride.build
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Build.Sdk", "..\sources\sdk\Stride.Build.Sdk\Stride.Build.Sdk.csproj", "{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Build.Sdk.Editor", "..\sources\sdk\Stride.Build.Sdk.Editor\Stride.Build.Sdk.Editor.csproj", "{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Build.Sdk.Tests", "..\sources\sdk\Stride.Build.Sdk.Tests\Stride.Build.Sdk.Tests.csproj", "{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90-Tools", "90-Tools", "{1AE1AC60-5D2F-4CA7-AE20-888F44551185}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{2E93E2B5-4500-4E47-9B65-E705218AB578}"
@@ -47,16 +58,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "51-Presentation.Tests", "51-Presentation.Tests", "{52AE329E-B588-40D0-A578-8D0DB1BD83E5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "70-StrideAssets", "70-StrideAssets", "{F765035E-F4F4-4CFA-BA02-755DC677AA97}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
-	ProjectSection(SolutionItems) = preProject
-		Stride.build = Stride.build
-		Stride.Build.props = Stride.Build.props
-		Stride.Build.targets = Stride.Build.targets
-		Stride.Core.Build.props = Stride.Core.Build.props
-		Stride.Core.Build.targets = Stride.Core.Build.targets
-		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"
 EndProject
@@ -332,6 +333,42 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Debug|Win32.Build.0 = Debug|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Win32.ActiveCfg = Release|Any CPU
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B}.Release|Win32.Build.0 = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Debug|Win32.Build.0 = Debug|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Win32.ActiveCfg = Release|Any CPU
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE}.Release|Win32.Build.0 = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Debug|Win32.Build.0 = Debug|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Win32.ActiveCfg = Release|Any CPU
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D}.Release|Win32.Build.0 = Release|Any CPU
 		{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1514,6 +1551,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{BCCD316A-93DE-CBB9-5DB1-A806FE94CE3B} = {0B81090E-4066-4723-A658-8AEDBEADE619}
+		{8539B9E2-0E7F-2F8C-8831-20F8BA163ACE} = {0B81090E-4066-4723-A658-8AEDBEADE619}
+		{EC66CA33-E0D2-1B75-4A4E-4959A3DEB13D} = {0B81090E-4066-4723-A658-8AEDBEADE619}
 		{860946E4-CC77-4FDA-A4FD-3DB2A502A696} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{4A15BAAD-AA37-4754-A2BF-8D4049211E36} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
