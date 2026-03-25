@@ -99,7 +99,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     }
     
     /// <summary>
-    /// Gets or sets the collection of tags associated to this asset.
+    /// The collection of tags associated to this asset.
     /// </summary>
     public ObservableList<string> Tags { get; } = [];
 

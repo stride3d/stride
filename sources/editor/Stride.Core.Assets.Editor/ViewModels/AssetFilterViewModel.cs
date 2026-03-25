@@ -97,8 +97,7 @@ public sealed class AssetFilterViewModel : DispatcherViewModel, IEquatable<Asset
     public override bool Equals(object? obj) => obj is AssetFilterViewModel other && Equals(other);
 
     /// <inheritdoc/>
-    public override int GetHashCode() =>
-        unchecked(((int)Category * 397) ^ StringComparer.OrdinalIgnoreCase.GetHashCode(Filter));
+    public override int GetHashCode() => HashCode.Combine(Category, Filter);
 
     /// <summary>
     /// See <see cref="Equals(Stride.Core.Assets.Editor.ViewModels.AssetFilterViewModel?)"/>.

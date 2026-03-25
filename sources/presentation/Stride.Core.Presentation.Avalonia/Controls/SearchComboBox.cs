@@ -99,7 +99,7 @@ public class SearchComboBox : SelectingItemsControl
         TextBox.WatermarkProperty.AddOwner<SearchComboBox>();
 
     /// <summary>
-    /// Gets or sets the command invoked on selection when <see cref="AlternativeModifiers"/> are active.
+    /// The command invoked on selection when <see cref="AlternativeModifiers"/> are active.
     /// The command parameter is the current <see cref="SelectingItemsControl.SelectedItem"/>.
     /// </summary>
     public ICommand? AlternativeCommand
@@ -108,14 +108,18 @@ public class SearchComboBox : SelectingItemsControl
         set => SetValue(AlternativeCommandProperty, value);
     }
 
-    /// <summary>Gets or sets the modifier keys that activate the alternative command.</summary>
+    /// <summary>
+    /// The modifier keys that activate the alternative command.
+    /// </summary>
     public KeyModifiers AlternativeModifiers
     {
         get => GetValue(AlternativeModifiersProperty);
         set => SetValue(AlternativeModifiersProperty, value);
     }
 
-    /// <summary>Gets or sets whether to clear the search text after a selection is committed.</summary>
+    /// <summary>
+    /// Whether to clear the search text after a selection is committed.
+    /// </summary>
     public bool ClearTextAfterSelection
     {
         get => GetValue(ClearTextAfterSelectionProperty);
@@ -123,7 +127,7 @@ public class SearchComboBox : SelectingItemsControl
     }
 
     /// <summary>
-    /// Gets or sets the command invoked once a selection has been committed.
+    /// The command invoked once a selection has been committed.
     /// The command parameter is the current <see cref="SelectingItemsControl.SelectedItem"/>.
     /// </summary>
     public ICommand? Command
@@ -132,35 +136,45 @@ public class SearchComboBox : SelectingItemsControl
         set => SetValue(CommandProperty, value);
     }
 
-    /// <summary>Gets or sets whether the alternative modifier is currently active.</summary>
+    /// <summary>
+    /// Whether the alternative modifier is currently active.
+    /// </summary>
     public bool IsAlternative
     {
         get => GetValue(IsAlternativeProperty);
         set => SetValue(IsAlternativeProperty, value);
     }
 
-    /// <summary>Gets or sets whether the suggestion dropdown is open.</summary>
+    /// <summary>
+    /// Whether the suggestion dropdown is open.
+    /// </summary>
     public bool IsDropDownOpen
     {
         get => GetValue(IsDropDownOpenProperty);
         set => SetValue(IsDropDownOpenProperty, value);
     }
 
-    /// <summary>Gets or sets whether to open the dropdown when the control receives focus.</summary>
+    /// <summary>
+    /// Whether to open the dropdown when the control receives focus.
+    /// </summary>
     public bool OpenDropDownOnFocus
     {
         get => GetValue(OpenDropDownOnFocusProperty);
         set => SetValue(OpenDropDownOnFocusProperty, value);
     }
 
-    /// <summary>Gets or sets the current search text typed by the user.</summary>
+    /// <summary>
+    /// The current search text typed by the user.
+    /// </summary>
     public string? SearchText
     {
         get => GetValue(SearchTextProperty);
         set => SetValue(SearchTextProperty, value);
     }
 
-    /// <summary>Gets or sets the placeholder text displayed when the search box is empty.</summary>
+    /// <summary>
+    /// The placeholder text displayed when the search box is empty.
+    /// </summary>
     public string? Watermark
     {
         get => GetValue(WatermarkProperty);

@@ -48,6 +48,7 @@
     </FluentTheme>
     <!-- FIXME xplat-editor aggregate all custom styles into a single style/theme -->
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"/>
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/SearchComboBoxStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/TextLogViewerStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/ToolBarStyle.axaml"/>

@@ -192,6 +192,16 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         set => SetValue(ref sortRule, value, RefreshFilters);
     }
     
+    /// <summary>
+    /// Removes an asset filter.
+    /// </summary>
+    /// <param name="filter"></param>
+    public void RemoveAssetFilter(AssetFilterViewModel filter)
+    {
+        filter.IsActive = false;
+        currentAssetFilters.Remove(filter);
+    }
+    
     private void AddAssetFilter(AssetFilterViewModel filter)
     {
         filter.IsActive = true;
@@ -210,17 +220,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
             RemoveAssetFilter(f);
         AddAssetFilter(filter);
     }
-
-    /// <summary>
-    /// Removes an asset filter.
-    /// </summary>
-    /// <param name="filter"></param>
-    public void RemoveAssetFilter(AssetFilterViewModel filter)
-    {
-        filter.IsActive = false;
-        currentAssetFilters.Remove(filter);
-    }
-
+    
     private void UpdateAvailableAssetFilters(string? filterText)
     {
         availableAssetFilters.Clear();
