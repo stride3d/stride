@@ -18,7 +18,6 @@ namespace Stride.Shaders.Spirv.Processing;
 
 /// <summary>
 /// Remove duplicate simple types.
-/// Should be applied after the IdRefOffsetter.
 /// </summary>
 public class TypeDuplicateHelper
 {
