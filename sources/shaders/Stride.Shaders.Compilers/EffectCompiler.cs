@@ -261,9 +261,6 @@ namespace Stride.Shaders.Compiler
                         if (shaderStage == ShaderStage.Compute)
                             break;
                     }
-
-                    // Remove unused reflection data, as it is entirely resolved at compile time.
-                    //CleanupReflection(bytecode.Reflection);
                 }
                 // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
                 else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
@@ -528,74 +525,6 @@ namespace Stride.Shaders.Compiler
 #endif
 
             return new EffectBytecodeCompilerResult(bytecode, log);
-        }
-
-        private static void CleanupReflection(EffectReflection reflection)
-        {
-            // TODO GRAPHICS REFACTOR we hardcode several resource group we want to preserve or optimize completly
-            // Somehow this should be handled some other place (or probably we shouldn't cleanup reflection at all?)
-            bool hasMaterialGroup = false;
-            bool hasLightingGroup = false;
-
-            foreach (var resourceBinding in reflection.ResourceBindings)
-            {
-                if (resourceBinding.Stage != ShaderStage.None)
-                {
-                    if (!hasLightingGroup && resourceBinding.ResourceGroup == "PerLighting")
-                        hasLightingGroup = true;
-                    else if (!hasMaterialGroup && resourceBinding.ResourceGroup == "PerMaterial")
-                        hasMaterialGroup = true;
-                }
-            }
-
-            var usedConstantBuffers = new HashSet<string>();
-
-            for (int i = reflection.ResourceBindings.Count - 1; i >= 0; i--)
-            {
-                var resourceBinding = reflection.ResourceBindings[i];
-
-                // Do not touch anything if there is logical groups
-                // TODO: We can do better than that: remove only if the full group can be optimized away
-                if (resourceBinding.LogicalGroup != null)
-                    continue;
-
-                if (resourceBinding.Stage == ShaderStage.None && !(hasMaterialGroup && resourceBinding.ResourceGroup == "PerMaterial") && !(hasLightingGroup && resourceBinding.ResourceGroup == "PerLighting"))
-                {
-                    reflection.ResourceBindings.RemoveAt(i);
-                }
-                else if (resourceBinding.Class == EffectParameterClass.ConstantBuffer
-                    || resourceBinding.Class == EffectParameterClass.TextureBuffer)
-                {
-                    // Mark associated cbuffer/tbuffer as used
-                    usedConstantBuffers.Add(resourceBinding.RawName);
-                }
-            }
-
-            // Remove unused cbuffer
-            for (int i = reflection.ConstantBuffers.Count - 1; i >= 0; i--)
-            {
-                var cbuffer = reflection.ConstantBuffers[i];
-
-                // Do not touch anything if there is logical groups
-                // TODO: We can do better than that: remove only if the full group can be optimized away
-                var hasLogicalGroup = false;
-                foreach (var member in cbuffer.Members)
-                {
-                    if (member.LogicalGroup != null)
-                    {
-                        hasLogicalGroup = true;
-                        break;
-                    }
-                }
-
-                if (hasLogicalGroup)
-                    continue;
-
-                if (!usedConstantBuffers.Contains(cbuffer.Name))
-                {
-                    reflection.ConstantBuffers.RemoveAt(i);
-                }
-            }
         }
 
 #if STRIDE_PLATFORM_DESKTOP

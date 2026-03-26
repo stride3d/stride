@@ -328,7 +328,6 @@ public partial class SpirvContext
 
     public void Sort() { ThrowIfFrozen(); Buffer.Sort(); }
 
-    [Obsolete("Use the insert method instead")]
     public SpirvBuffer GetBuffer() => Buffer;
 
     public SpirvBuffer.Enumerator GetEnumerator() => Buffer.GetEnumerator();

@@ -37,7 +37,6 @@ public class CompilerUnit
         context = Context;
     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
     public SpirvBuffer ToBuffer()
     {
         Context.Sort();
@@ -49,15 +48,9 @@ public class CompilerUnit
         Context.Sort();
         return new(Context, Builder.GetBuffer());
     }
-    // public override string ToString()
-    // {
-    //     var builder = new StringBuilder();
-    //     builder
-    //         .AppendLine("Context : ")
-    //         .AppendLine(Spv.Dis(Context.GetBuffer()))
-    //         .AppendLine("Functions : ")
-    //         .AppendLine(Spv.Dis(Builder.GetBuffer()));
-    //     return builder.ToString();
-    // }
-#pragma warning restore CS0618 // Type or member is obsolete
+
+    public override string ToString()
+    {
+        return ToBuffer().GetDebuggerDisplay();
+    }
 }
