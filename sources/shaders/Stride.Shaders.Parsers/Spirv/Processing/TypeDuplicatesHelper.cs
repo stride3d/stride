@@ -375,7 +375,16 @@ public class TypeDuplicateHelper
                     // OpName mismatches are harmless — just adopt the remove-side name onto keepId
                     var clone = new OpData(rInst.Data.Memory.Span);
                     clone.Memory.Span[1] = keepId;
-                    namesByOp.Add(new InstructionSortHelper { Op = clone.Op, Index = -1, Data = clone });
+                    var insertIndex = keepStart < namesByOp.Count ? namesByOp[keepStart].Index : 0;
+                    namesByOp.Insert(keepEnd, new InstructionSortHelper { Op = clone.Op, Index = insertIndex, Data = clone });
+                    keepEnd++;
+                    // Inserting before the remove range shifts its indices
+                    if (keepEnd <= removeStart + 1) // +1 because keepEnd was just incremented
+                    {
+                        removeStart++;
+                        removeEnd++;
+                        r++;
+                    }
                     span = CollectionsMarshal.AsSpan(namesByOp); // re-acquire after mutation
                 }
                 else
@@ -461,6 +470,11 @@ public class TypeDuplicateHelper
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
     }
 
+    /// <summary>
+    /// Finds all instructions in the [startOp..endOp] range using binary search on the sorted list,
+    /// optionally re-sorts them (needed after previous ReplaceRefs may have changed operand values),
+    /// then delegates to ProcessSortedInstructions for dedup.
+    /// </summary>
     private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
     {
         var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = startOp, Index = -1 }, comparer);
@@ -475,6 +489,13 @@ public class TypeDuplicateHelper
         ProcessSortedInstructions(buffer, instructionsByOp, start, end, comparer, additionalBuffers);
     }
 
+    /// <summary>
+    /// Walks a sorted range of instructions, groups consecutive duplicates (same opcode and operands),
+    /// keeps the first of each group, NOPs the rest, and rewrites all IdRef references in the buffer
+    /// (and any additionalBuffers) to point to the kept instruction's IdResult.
+    /// For decoration ops (OpName, OpDecorate, etc.), duplicates are simply NOPed without ref replacement
+    /// since they use Target rather than IdResult.
+    /// </summary>
     private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
     {
         for (var firstIndex = start; firstIndex < end;)
