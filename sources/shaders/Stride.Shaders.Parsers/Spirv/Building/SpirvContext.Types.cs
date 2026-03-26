@@ -52,7 +52,7 @@ public partial class SpirvContext
             var emittedArgs = new int[ss.GenericArguments.Length];
             for (int i = 0; i < emittedArgs.Length; i++)
                 emittedArgs[i] = ss.GenericArguments[i].Emit(this);
-            Add(new OpSDSLImportShader(id, new(ss.Name), new(emittedArgs.AsSpan())));
+            Add(new OpImportShaderSDSL(id, new(ss.Name), new(emittedArgs.AsSpan())));
             AddName(id, ss.Name);
             shaderImportIds[ss.Name] = id;
             return id;
@@ -63,7 +63,7 @@ public partial class SpirvContext
     }
 
     /// <summary>
-    /// Returns the SPIR-V import ID for a shader definition, creating an OpSDSLImportShader
+    /// Returns the SPIR-V import ID for a shader definition, creating an OpImportShaderSDSL
     /// instruction if this is the first time this shader is imported in this context.
     /// Struct types from the shader are registered in Types/ReverseTypes (they are real SPIR-V types).
     /// </summary>
@@ -254,7 +254,7 @@ public partial class SpirvContext
         var emittedArgs = new int[shaderSymbol.GenericArguments.Length];
         for (int i = 0; i < emittedArgs.Length; i++)
             emittedArgs[i] = shaderSymbol.GenericArguments[i].Emit(this);
-        Add(new OpSDSLImportShader(id, new(shaderSymbol.Name), new(emittedArgs.AsSpan())));
+        Add(new OpImportShaderSDSL(id, new(shaderSymbol.Name), new(emittedArgs.AsSpan())));
         AddName(id, shaderSymbol.Name);
         shaderImportIds[key] = id;
 
@@ -272,7 +272,7 @@ public partial class SpirvContext
 
     private void ImportShaderStruct(int shaderId, StructuredType structType, out int structImportedId)
     {
-        var @struct = Add(new OpSDSLImportStruct(Bound++, structType.ToId(), shaderId));
+        var @struct = Add(new OpImportStructSDSL(Bound++, structType.ToId(), shaderId));
         AddName(@struct.ResultId, structType.Name);
 
         // Fill the ID
@@ -286,7 +286,7 @@ public partial class SpirvContext
     public void ImportShaderVariable(int shaderId, ref Symbol symbol, Specification.VariableFlagsMask flags)
     {
         symbol.IdRef = Bound++;
-        Add(new OpSDSLImportVariable(symbol.IdRef, GetOrRegister(symbol.Type), symbol.Id.Name, shaderId, flags));
+        Add(new OpImportVariableSDSL(symbol.IdRef, GetOrRegister(symbol.Type), symbol.Id.Name, shaderId, flags));
         AddName(symbol.IdRef, symbol.Id.Name);
     }
 
@@ -296,7 +296,7 @@ public partial class SpirvContext
         var functionTypeId = GetOrRegister(functionType);
 
         symbol.IdRef = Bound++;
-        Add(new OpSDSLImportFunction(symbol.IdRef, functionTypeId, symbol.Id.Name, shaderId, flags));
+        Add(new OpImportFunctionSDSL(symbol.IdRef, functionTypeId, symbol.Id.Name, shaderId, flags));
         AddName(symbol.IdRef, symbol.Id.Name);
     }
 

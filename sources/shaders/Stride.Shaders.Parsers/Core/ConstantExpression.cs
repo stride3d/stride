@@ -135,10 +135,10 @@ public abstract record ConstantExpression
                 return new StringConstExpr(operand.ToLiteral<string>());
             }
 
-            case Op.OpSDSLGenericParameter:
-            case Op.OpSDSLGenericReference:
+            case Op.OpGenericParameterSDSL:
+            case Op.OpGenericReferenceSDSL:
             {
-                var genParam = (OpSDSLGenericParameter)inst;
+                var genParam = (OpGenericParameterSDSL)inst;
                 return new GenericParamExpr(genParam.Index, genParam.DeclaringClass);
             }
 
@@ -321,7 +321,7 @@ public sealed record StringConstExpr(string Value) : ConstantExpression
 
 /// <summary>
 /// Reference to a generic parameter from a (possibly ancestor) shader.
-/// Replaces both OpSDSLGenericParameter and OpSDSLGenericReference —
+/// Replaces both OpGenericParameterSDSL and OpGenericReferenceSDSL —
 /// the distinction disappears at the expression level.
 /// </summary>
 public sealed record GenericParamExpr(int Index, string DeclaringClass) : ConstantExpression
@@ -332,7 +332,7 @@ public sealed record GenericParamExpr(int Index, string DeclaringClass) : Consta
         // it references the parent's generic parameter
         var typeId = context.GetOrRegister(ScalarType.Int);
         var id = context.Bound++;
-        context.Add(new OpSDSLGenericReference(typeId, id, Index, DeclaringClass));
+        context.Add(new OpGenericReferenceSDSL(typeId, id, Index, DeclaringClass));
         return id;
     }
 

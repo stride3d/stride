@@ -125,10 +125,10 @@ public partial class SpirvContext
     /// <returns>True if the instruction is a generic-like instruction that participates in dedup.</returns>
     private static bool NormalizeGenericForDedup(ref OpData iData, out bool isGenericReference)
     {
-        isGenericReference = iData.Op == Specification.Op.OpSDSLGenericReference;
-        var isRawGenericParameter = !isGenericReference && iData.Op == Specification.Op.OpSDSLGenericParameter;
+        isGenericReference = iData.Op == Specification.Op.OpGenericReferenceSDSL;
+        var isRawGenericParameter = !isGenericReference && iData.Op == Specification.Op.OpGenericParameterSDSL;
         if (isGenericReference)
-            iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericParameter;
+            iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpGenericParameterSDSL;
         return isGenericReference || isRawGenericParameter;
     }
 
@@ -138,7 +138,7 @@ public partial class SpirvContext
     /// </summary>
     private static void RestoreGenericReference(ref OpData iData)
     {
-        iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericReference;
+        iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpGenericReferenceSDSL;
     }
 
     /// <summary>

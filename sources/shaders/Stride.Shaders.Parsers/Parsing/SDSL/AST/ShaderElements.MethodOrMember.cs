@@ -564,7 +564,7 @@ public partial class ShaderMethod(
         table.Push(SymbolFrame);
         builder.BeginFunction(context, function);
 
-        var functionInfo = new OpSDSLFunctionInfo(Specification.FunctionFlagsMask.None, 0);
+        var functionInfo = new OpFunctionMetadataSDSL(Specification.FunctionFlagsMask.None, 0);
 
         if (IsOverride)
         {

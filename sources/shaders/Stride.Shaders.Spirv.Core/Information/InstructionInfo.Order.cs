@@ -25,10 +25,9 @@ public partial class InstructionInfo
         int group = 0;
         Span<Op> initSDSL = [
             Op.OpNop,
-            Op.OpSDSLShader,
+            Op.OpShaderSDSL,
             Op.OpEffectSDFX,
-            Op.OpCapability,
-            Op.OpSDSLCompose
+            Op.OpCapability
         ];
         foreach (var e in initSDSL)
             OrderGroup[(e, null)] = group;
@@ -69,11 +68,11 @@ public partial class InstructionInfo
             OrderGroup[(e, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec") || x.ToString().StartsWith("OpSDSLImport") || x == Op.OpSDSLGenericParameter || x == Op.OpSDSLGenericReference))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec") || x.ToString().StartsWith("OpImport") || x == Op.OpGenericParameterSDSL || x == Op.OpGenericReferenceSDSL))
             OrderGroup[(e, null)] = group;
 
         group++;
-        OrderGroup[(Op.OpSDSLMixinInherit, null)] = group;
+        OrderGroup[(Op.OpMixinInheritSDSL, null)] = group;
 
         group++;
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
@@ -92,8 +91,6 @@ public partial class InstructionInfo
         foreach (var e in Enum.GetValues<Op>().Except(OrderGroup.Keys.Select(x => x.Item1)))
             OrderGroup[(e, null)] = group;
         OrderGroup[(Op.OpVariable, StorageClass.Function)] = group;
-        group++;
-        OrderGroup[(Op.OpSDSLShaderEnd, null)] = group;
     }
     /// <summary>
     /// Gets the order group for a given instruction, useful for sorting instructions according to the specification.

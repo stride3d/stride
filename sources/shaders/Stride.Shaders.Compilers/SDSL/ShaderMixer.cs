@@ -287,7 +287,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         // We emit OPSDSLEffect for any non-root composition
         if (currentCompositionPath != null)
-            buffer.Add(new OpSDSLComposition(currentCompositionPath));
+            buffer.Add(new OpCompositionSDSL(currentCompositionPath));
 
         var mixinNode = new MixinNode(stage, currentCompositionPath);
         var contextStart = context.Count;
@@ -334,7 +334,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ProcessMemberAccessAndForeach(globalContext, context, buffer, mixinNode);
 
         if (currentCompositionPath != null)
-            buffer.Add(new OpSDSLCompositionEnd());
+            buffer.Add(new OpCompositionEndSDSL());
 
         return mixinNode;
     }
@@ -454,7 +454,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (i.Op == Op.OpSourceHashSDSL)
                         include = false;
 
-                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
+                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)shader[index + 1] is { } functionInfo)
                     {
                         var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
                         // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
@@ -528,7 +528,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 SpirvBuilder.RemapIds(remapIds, ref i2);
 
                 // Detect when we switch from context to main buffer
-                if (i2.Op == Op.OpSDSLShader)
+                if (i2.Op == Op.OpShaderSDSL)
                 {
                     isContext = false;
                 }
@@ -538,7 +538,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i2.Op))
                 {
                     // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
-                    if (i2.Op == Op.OpSDSLImportStruct && new OpSDSLImportStruct(ref i2) is { } importStruct)
+                    if (i2.Op == Op.OpImportStructSDSL && new OpImportStructSDSL(ref i2) is { } importStruct)
                     {
                         var shaderName = globalContext.ExternalShaders[importStruct.Shader];
                         var shader2 = mixinNode.ShadersByName[shaderName];
@@ -592,7 +592,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         structId = typeStruct2.ResultId;
                     structTypes.Add(structName, structId);
                     // Also add an entry using ToId()-style name for structured buffer types,
-                    // since OpSDSLImportStruct.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
+                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
                     // while OpName uses "type.StructuredBuffer.X" format
                     if (structName.StartsWith("type.StructuredBuffer."))
                         structTypes.TryAdd($"StructuredBuffer<{structName.Substring("type.StructuredBuffer.".Length)}>", structId);
@@ -600,7 +600,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         structTypes.TryAdd($"RWStructuredBuffer<{structName.Substring("type.RWStructuredBuffer.".Length)}>", structId);
                 }
 
-                // Process OpSDSLImport
+                // Process OpImport*SDSL
                 ProcessImportInfo(globalContext, mixinNode, ref i2, context);
 
                 if (addToContext)
@@ -666,20 +666,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
-            if (i.Data.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
+            if (i.Data.Op == Op.OpShaderSDSL && (OpShaderSDSL)i is { } shaderInstruction)
             {
                 //currentShader = mixinNode.ShadersByName[shaderInstruction.ShaderName];
                 // TODO: better way to find ShaderInfo
                 currentShader = mixinNode.Shaders.First(x => index >= x.StartInstruction && index < x.EndInstruction);
             }
-            else if (i.Data.Op == Op.OpSDSLShaderEnd)
-            {
-                currentShader = null;
-            }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                if (temp[index + 1].Op == Op.OpSDSLFunctionInfo &&
-                    (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
+                if (temp[index + 1].Op == Op.OpFunctionMetadataSDSL &&
+                    (OpFunctionMetadataSDSL)temp[index + 1] is { } functionInfo)
                 {
                     var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
@@ -692,7 +688,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
                         methodMixinGroup = methodMixinGroup.Stage;
 
-                    // If OpSDSLFunctionInfo.Parent is coming from a OpSDSLImportFunction, find the real ID
+                    // If OpFunctionMetadataSDSL.Parent is coming from a OpImportFunctionSDSL, find the real ID
                     if (functionInfo.Parent != 0)
                     {
                         if (globalContext.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
@@ -732,7 +728,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                     else
                     {
-                        // Remove the OpSDSLFunctionInfo
+                        // Remove the OpFunctionMetadataSDSL
                         //SetOpNop(temp[index + 1].Data.Memory.Span);
                     }
                 }
@@ -862,7 +858,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var memberAccesses = new Dictionary<int, int>();
         var thisInstructions = new HashSet<int>();
         var baseInstructions = new HashSet<int>();
-        var stageInstructions = new HashSet<int>();
         var compositionArrayAccesses = new Dictionary<int, MixinNode>();
         ShaderInfo? currentShader = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
@@ -886,11 +881,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Data.Op == Op.OpBaseSDSL && (OpBaseSDSL)i is { } baseInstruction)
             {
                 baseInstructions.Add(baseInstruction.ResultId);
-                SetOpNop(i.Data.Memory.Span);
-            }
-            else if (i.Data.Op == Op.OpStageSDSL && (OpStageSDSL)i is { } stageInstruction)
-            {
-                stageInstructions.Add(stageInstruction.ResultId);
                 SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Data.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
@@ -998,7 +988,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
+            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)temp[index + 1] is { } functionInfo)
             {
                 if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
                     throw new InvalidOperationException($"Can't find method group info for {context.Names[function.ResultId]}");
@@ -1179,17 +1169,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (i.Op == Op.OpNop)
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
-            if (i.Op == Op.OpSDSLShader
-                || i.Op == Op.OpSDSLShaderEnd
-                || i.Op == Op.OpSDSLComposition
-                || i.Op == Op.OpSDSLCompositionEnd
-                || i.Op == Op.OpSDSLMixinInherit
+            if (i.Op == Op.OpShaderSDSL
+
+                || i.Op == Op.OpCompositionSDSL
+                || i.Op == Op.OpCompositionEndSDSL
+                || i.Op == Op.OpMixinInheritSDSL
                 || i.Op == Op.OpConstantStringSDSL
                 || i.Op == Op.OpTypeGenericSDSL
-                || i.Op == Op.OpSDSLImportShader
-                || i.Op == Op.OpSDSLImportFunction
-                || i.Op == Op.OpSDSLImportVariable
-                || i.Op == Op.OpSDSLFunctionInfo
+                || i.Op == Op.OpImportShaderSDSL
+                || i.Op == Op.OpImportFunctionSDSL
+                || i.Op == Op.OpImportVariableSDSL
+                || i.Op == Op.OpFunctionMetadataSDSL
                 || i.Op == Op.OpSourceHashSDSL)
                 return true;
             if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Data.Memory.Span[2] is

@@ -286,13 +286,13 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             }
             // Import placeholders — registered here with EmptyShaderImporter during generic instantiation.
             // When called with allowReplace=true from CreateShaderType, these get upgraded to real ShaderDefinition.
-            else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
+            else if (instruction.Op == Op.OpImportShaderSDSL && (OpImportShaderSDSL)instruction is { } importShader)
             {
                 var classSource = SpirvBuilder.ConvertToShaderClassSource(context, importShader);
                 var shaderSymbol = realShaderImporter.Import(classSource, context);
                 RegisterType(importShader.ResultId, shaderSymbol);
             }
-            else if (instruction.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)instruction is { } importStruct)
+            else if (instruction.Op == Op.OpImportStructSDSL && (OpImportStructSDSL)instruction is { } importStruct)
             {
                 // Register an empty placeholder struct — the real StructuredType is resolved
                 // later via ImportShaderStruct when the shader is imported into the main context.
@@ -319,7 +319,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     }
 
     /// <summary>
-    /// Resolves OpSDSLImportShader/OpSDSLImportStruct into SymbolTable.loadedShaders
+    /// Resolves OpImportShaderSDSL/OpImportStructSDSL into SymbolTable.loadedShaders
     /// without mutating the cached shader context.
     /// </summary>
     private static void ResolveImportsIntoTable(SymbolTable table, SpirvContext mainContext, SpirvContext shaderContext)
@@ -327,7 +327,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         for (var i = 0; i < shaderContext.Count; i++)
         {
             var instruction = shaderContext[i];
-            if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
+            if (instruction.Op == Op.OpImportShaderSDSL && (OpImportShaderSDSL)instruction is { } importShader)
             {
                 var classSource = SpirvBuilder.ConvertToShaderClassSource(shaderContext, importShader);
 
@@ -452,7 +452,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             if (instruction.Op == Op.OpFunction)
             {
                 var functionFlags = FunctionFlagsMask.None;
-                if (shaderBuffers.Buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shaderBuffers.Buffer[index + 1] is { } functionInfo)
+                if (shaderBuffers.Buffer[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)shaderBuffers.Buffer[index + 1] is { } functionInfo)
                     functionFlags = functionInfo.Flags;
 
                 OpFunction functionInstruction = instruction;
@@ -483,7 +483,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        builder.Insert(new OpSDSLShader(name));
+        builder.Insert(new OpShaderSDSL(name));
 
         var openGenerics = new ConstantExpression[Generics != null ? Generics.Parameters.Count : 0];
         var currentShader = new ShaderDefinition(Name, openGenerics);
@@ -642,7 +642,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
         var genericParameterTypeId = context.GetOrRegister(genericParameterType);
-        context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, index, Name.Name));
+        context.Add(new OpGenericParameterSDSL(genericParameterTypeId, context.Bound, index, Name.Name));
         context.AddName(context.Bound, genericParameter.Name);
 
         // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
@@ -653,7 +653,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     }
 
     // If multiple cbuffer with same name, they will be merged
-    // Still, we rename them internally to avoid name clashes (in HLSL name is skipped so it's OK, but for example OpSDSLImportStruct/OpSDSLImportVariable would be ambiguous)
+    // Still, we rename them internally to avoid name clashes (in HLSL name is skipped so it's OK, but for example OpImportStructSDSL/OpImportVariableSDSL would be ambiguous)
     private void RenameCBufferVariables()
     {
         var cbuffersByNames = Elements.OfType<CBuffer>().GroupBy(x => x.Name);
@@ -698,7 +698,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             table.CurrentShader.InheritedShaders.Add(shaderType);
 
         // Mark inherit
-        context.Add(new OpSDSLMixinInherit(shaderId, Spirv.Specification.MixinInheritFlagsMask.None));
+        context.Add(new OpMixinInheritSDSL(shaderId, Spirv.Specification.MixinInheritFlagsMask.None));
     }
 
     public static ShaderDefinition LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)

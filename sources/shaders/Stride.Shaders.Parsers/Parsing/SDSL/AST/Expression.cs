@@ -238,10 +238,10 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 var calleeOwner = functionSymbol.OwnerType;
                 if (calleeOwner != null && calleeOwner != table.CurrentShader)
                 {
-                    // Parent shader: mark its OpSDSLMixinInherit with NeedsFullImport
+                    // Parent shader: mark its OpMixinInheritSDSL with NeedsFullImport
                     foreach (var inst in context)
                     {
-                        if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
+                        if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
                             && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == calleeOwner.Name)
                         {
                             inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;

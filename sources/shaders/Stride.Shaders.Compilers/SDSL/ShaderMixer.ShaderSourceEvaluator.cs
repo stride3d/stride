@@ -44,7 +44,7 @@ public partial class ShaderMixer
             // Copy back updated shader name (in case it had generic parameters)
             foreach (var i in shaderBuffer.Buffer)
             {
-                if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
+                if (i.Op == Op.OpShaderSDSL && (OpShaderSDSL)i is { } shaderInstruction)
                 {
                     mixinToMerge2.ClassName = shaderInstruction.ShaderName;
                     break;
@@ -77,8 +77,8 @@ public partial class ShaderMixer
     {
         // --- Step 1: Pre-scan for shaders needing full import ---
         // Two sources:
-        //   - OpSDSLMixinInherit with NeedsFullImport: parent shader whose non-stage members are called by a child's stage method
-        //   - OpSDSLFunctionInfo with ReferencesNonStage: shader's own non-stage members are called by its own stage method
+        //   - OpMixinInheritSDSL with NeedsFullImport: parent shader whose non-stage members are called by a child's stage method
+        //   - OpFunctionMetadataSDSL with ReferencesNonStage: shader's own non-stage members are called by its own stage method
         // The set is shared across root and composition calls so that compositions can contribute.
         needsFullImport ??= new HashSet<string>();
         foreach (var shader in mixinList)
@@ -186,7 +186,7 @@ public partial class ShaderMixer
         var buf = shader.Buffer.Value;
         foreach (var i in buf.Context)
         {
-            if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit
+            if (i.Op == Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)i is { } inherit
                 && (inherit.Flags & MixinInheritFlagsMask.NeedsFullImport) != 0
                 && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is ShaderSymbol lss)
             {
@@ -195,7 +195,7 @@ public partial class ShaderMixer
         }
         foreach (var i in buf.Buffer)
         {
-            if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } fi
+            if (i.Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)i is { } fi
                 && (fi.Flags & FunctionFlagsMask.ReferencesNonStage) != 0)
             {
                 needsFullImport.Add(shader.ClassName);
@@ -226,7 +226,7 @@ public partial class ShaderMixer
                 hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
             }
 
-            if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } functionInfo)
+            if (i.Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)i is { } functionInfo)
             {
                 hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
             }

@@ -181,15 +181,15 @@ namespace Stride.Shaders.Compilers.SDSL
                 return linkName.LogicalGroup;
             }
 
-            // OpSDSLEffect is emitted for any non-root composition
+            // OpCompositionSDSL is emitted for any non-root composition
             var compositionNodes = buffer
-                .Where(x => x.Op == Op.OpSDSLComposition)
-                .Select(x => (StartIndex: x.Index, CompositionPath: ((OpSDSLComposition)x).CompositionPath))
+                .Where(x => x.Op == Op.OpCompositionSDSL)
+                .Select(x => (StartIndex: x.Index, CompositionPath: ((OpCompositionSDSL)x).CompositionPath))
                 .ToList();
 
             var shaders = buffer
-                .Where(x => x.Op == Op.OpSDSLShader)
-                .Select(x => (StartIndex: x.Index, ShaderName: ((OpSDSLShader)x).ShaderName))
+                .Where(x => x.Op == Op.OpShaderSDSL)
+                .Select(x => (StartIndex: x.Index, ShaderName: ((OpShaderSDSL)x).ShaderName))
                 .ToList();
 
             var cbuffersByNames = buffer

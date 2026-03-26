@@ -68,7 +68,7 @@ public partial class SpirvContext
         value = null;
 
         // Check for unresolved values
-        if (i.Op == Specification.Op.OpSDSLGenericParameter || i.Op == Specification.Op.OpSDSLGenericReference)
+        if (i.Op == Specification.Op.OpGenericParameterSDSL || i.Op == Specification.Op.OpGenericReferenceSDSL)
         {
             return false;
         }

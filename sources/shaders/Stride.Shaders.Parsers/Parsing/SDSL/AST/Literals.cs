@@ -442,7 +442,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
             {
                 foreach (var inst in context)
                 {
-                    if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
+                    if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
                         && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
                     {
                         inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;

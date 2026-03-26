@@ -95,16 +95,16 @@ public partial class ShaderMixer
         // Collect variable infos
         foreach (var i in buffer)
         {
-            if (i.Op == Specification.Op.OpSDSLComposition && (OpSDSLComposition)i is { } composition)
+            if (i.Op == Specification.Op.OpCompositionSDSL && (OpCompositionSDSL)i is { } composition)
             {
                 compositionPath = composition.CompositionPath;
             }
-            else if (i.Op == Specification.Op.OpSDSLCompositionEnd)
+            else if (i.Op == Specification.Op.OpCompositionEndSDSL)
             {
                 compositionPath = null;
                 shaderName = null;
             }
-            else if (i.Op == Specification.Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
+            else if (i.Op == Specification.Op.OpShaderSDSL && (OpShaderSDSL)i is { } shader)
             {
                 shaderName = shader.ShaderName;
             }
@@ -156,15 +156,15 @@ public partial class ShaderMixer
         Dictionary<int, string> prefixes = new();
         foreach (var i in temp)
         {
-            if (i.Op == Specification.Op.OpSDSLComposition && (OpSDSLComposition)i is { } composition)
+            if (i.Op == Specification.Op.OpCompositionSDSL && (OpCompositionSDSL)i is { } composition)
             {
                 compositionPath = composition.CompositionPath;
             }
-            else if (i.Op == Specification.Op.OpSDSLCompositionEnd)
+            else if (i.Op == Specification.Op.OpCompositionEndSDSL)
             {
                 compositionPath = null;
             }
-            else if (i.Op == Specification.Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
+            else if (i.Op == Specification.Op.OpShaderSDSL && (OpShaderSDSL)i is { } shader)
             {
                 shaderNameWithComposition = compositionPath != null
                     ? $"{compositionPath}.{shader.ShaderName}"
@@ -247,7 +247,7 @@ public partial class ShaderMixer
         string currentShaderName = string.Empty;
         foreach (var i in buffer)
         {
-            if (i.Op == Specification.Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
+            if (i.Op == Specification.Op.OpShaderSDSL && (OpShaderSDSL)i is { } shader)
             {
                 currentShaderName = shader.ShaderName;
             }

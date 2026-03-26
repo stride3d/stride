@@ -1,8 +1,8 @@
 {
   "instructions": [
     {
-      "opname": "OpSDSLShader",
-      "opcode" : 8000,
+      "opname": "OpShaderSDSL",
+      "opcode": 8000,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -12,11 +12,8 @@
       ]
     },
     {
-      "opname": "OpSDSLShaderEnd",
-      "class": "Miscellaneous"
-    },
-    {
-      "opname": "OpSDSLComposition",
+      "opname": "OpCompositionSDSL",
+      "opcode": 8002,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -26,11 +23,13 @@
       ]
     },
     {
-      "opname": "OpSDSLCompositionEnd",
+      "opname": "OpCompositionEndSDSL",
+      "opcode": 8003,
       "class": "Miscellaneous"
     },
     {
-      "opname": "OpSDSLMixinInherit",
+      "opname": "OpMixinInheritSDSL",
+      "opcode": 8004,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -44,31 +43,8 @@
       ]
     },
     {
-      "opname": "OpSDSLCompose",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralString",
-          "name": "mixin"
-        },
-        {
-          "kind": "LiteralString",
-          "name": "name"
-        }
-      ]
-    },
-    {
-      "opname": "OpSDSLStage",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "IdRef",
-          "name": "stagedElement"
-        }
-      ]
-    },
-    {
-      "opname": "OpSDSLImportShader",
+      "opname": "OpImportShaderSDSL",
+      "opcode": 8007,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -86,7 +62,8 @@
       ]
     },
     {
-      "opname": "OpSDSLImportFunction",
+      "opname": "OpImportFunctionSDSL",
+      "opcode": 8008,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -109,7 +86,8 @@
       ]
     },
     {
-      "opname": "OpSDSLImportVariable",
+      "opname": "OpImportVariableSDSL",
+      "opcode": 8009,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -129,7 +107,8 @@
       ]
     },
     {
-      "opname": "OpSDSLImportStruct",
+      "opname": "OpImportStructSDSL",
+      "opcode": 8010,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -145,6 +124,7 @@
     },
     {
       "opname": "OpVariableSDSL",
+      "opcode": 8011,
       "class": "Memory",
       "operands": [
         { "kind": "IdResultType" },
@@ -163,6 +143,7 @@
     },
     {
       "opname": "OpMemberAccessSDSL",
+      "opcode": 8012,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
@@ -179,6 +160,7 @@
     },
     {
       "opname": "OpTypeFunctionSDSL",
+      "opcode": 8013,
       "class": "Type-Declaration",
       "operands": [
         { "kind": "IdResult" },
@@ -194,7 +176,8 @@
       ]
     },
     {
-      "opname": "OpSDSLFunctionInfo",
+      "opname": "OpFunctionMetadataSDSL",
+      "opcode": 8014,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -209,6 +192,7 @@
     },
     {
       "opname": "OpBaseSDSL",
+      "opcode": 8015,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" }
@@ -216,13 +200,7 @@
     },
     {
       "opname": "OpThisSDSL",
-      "class": "Miscellaneous",
-      "operands": [
-        { "kind": "IdResult" }
-      ]
-    },
-    {
-      "opname": "OpStageSDSL",
+      "opcode": 8016,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" }
@@ -230,13 +208,15 @@
     },
     {
       "opname": "OpStreamsSDSL",
+      "opcode": 8018,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" }
       ]
     },
     {
-      "opname": "OpSDSLGenericParameter",
+      "opname": "OpGenericParameterSDSL",
+      "opcode": 8019,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
@@ -252,7 +232,8 @@
       ]
     },
     {
-      "opname": "OpSDSLGenericReference",
+      "opname": "OpGenericReferenceSDSL",
+      "opcode": 8020,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
@@ -269,6 +250,7 @@
     },
     {
       "opname": "OpConstantStringSDSL",
+      "opcode": 8021,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -280,6 +262,7 @@
     },
     {
       "opname": "OpTypeGenericSDSL",
+      "opcode": 8022,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -291,6 +274,7 @@
     },
     {
       "opname": "OpTypeStreamsSDSL",
+      "opcode": 8023,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -302,6 +286,7 @@
     },
     {
       "opname": "OpTypeGeometryStreamOutputSDSL",
+      "opcode": 8024,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -314,6 +299,7 @@
     },
     {
       "opname": "OpTypePatchSDSL",
+      "opcode": 8025,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
@@ -330,6 +316,7 @@
     },
     {
       "opname": "OpForeachSDSL",
+      "opcode": 8026,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
@@ -342,10 +329,12 @@
     },
     {
       "opname": "OpForeachEndSDSL",
+      "opcode": 8027,
       "class": "Miscellaneous"
     },
     {
       "opname": "OpUnresolvableShaderSDSL",
+      "opcode": 8028,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -360,6 +349,7 @@
     },
     {
       "opname": "OpEmitVertexSDSL",
+      "opcode": 8029,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -370,6 +360,7 @@
     },
     {
       "opname": "OpBinaryOperationSDSL",
+      "opcode": 8030,
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
@@ -381,6 +372,7 @@
     },
     {
       "opname": "OpSourceHashSDSL",
+      "opcode": 8031,
       "class": "Miscellaneous",
       "operands": [
         { "kind" : "IdRef",          "name" : "'File'" },
@@ -392,7 +384,7 @@
     },
     {
       "opname": "OpEffectSDFX",
-      "opcode" : 9000,
+      "opcode": 9000,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -403,6 +395,7 @@
     },
     {
       "opname": "OpParamsUseSDFX",
+      "opcode": 9001,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -413,6 +406,7 @@
     },
     {
       "opname": "OpParamsSDFX",
+      "opcode": 9002,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -423,6 +417,7 @@
     },
     {
       "opname": "OpParamsFieldSDFX",
+      "opcode": 9003,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -437,6 +432,7 @@
     },
     {
       "opname": "OpMixinSDFX",
+      "opcode": 9004,
       "class": "Miscellaneous",
       "operands": [
         {

@@ -102,7 +102,7 @@ public class TypeDuplicateHelper
                     return comparison;
             }
             // Standard ResultType/ResultId instructions: ignore ResultId (Span[2]) and compare the rest
-            else if (x.Op == Op.OpSDSLGenericParameter || OpCheckDuplicateForConstant(x.Op))
+            else if (x.Op == Op.OpGenericParameterSDSL || OpCheckDuplicateForConstant(x.Op))
             {
                 comparison = x.Data.Memory.Span[1].CompareTo(y.Data.Memory.Span[1]);
                 if (comparison != 0)
@@ -292,10 +292,10 @@ public class TypeDuplicateHelper
             || op == Op.OpTypeStreamsSDSL
             || op == Op.OpTypeGeometryStreamOutputSDSL
             || op == Op.OpTypePatchSDSL
-            || op == Op.OpSDSLImportShader
-            || op == Op.OpSDSLImportVariable
-            || op == Op.OpSDSLImportFunction
-            || op == Op.OpSDSLImportStruct
+            || op == Op.OpImportShaderSDSL
+            || op == Op.OpImportVariableSDSL
+            || op == Op.OpImportFunctionSDSL
+            || op == Op.OpImportStructSDSL
             || op == Op.OpExtInstImport;
     }
 
