@@ -35,7 +35,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         entryPoints = default;
 
         // Create new buffer for the merged result
-        var temp = new SpirvBuffer();
+        using var temp = new SpirvBuffer();
 
         // This is the global context for this merge operation
         var context = new SpirvContext();
