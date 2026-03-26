@@ -55,14 +55,13 @@ public abstract record SymbolType()
         {
             case "StructuredBuffer":
             case "RWStructuredBuffer":
-                var templateType = templateTypeName!.Type;
-                result = new StructuredBufferType(templateType, name.StartsWith("RW"));
+                result = new StructuredBufferType(templateTypeName!.Type!, name.StartsWith("RW"));
                 return true;
             case "AppendStructuredBuffer":
-                result = new AppendStructuredBufferType(templateTypeName!.Type);
+                result = new AppendStructuredBufferType(templateTypeName!.Type!);
                 return true;
             case "ConsumeStructuredBuffer":
-                result = new ConsumeStructuredBufferType(templateTypeName!.Type);
+                result = new ConsumeStructuredBufferType(templateTypeName!.Type!);
                 return true;
         }
 
@@ -70,7 +69,7 @@ public abstract record SymbolType()
 
         // Preserves the full vector/scalar type (e.g. float2 stays float2). Defaults to float4 when no template given (HLSL default).
         static SymbolType ResolveReturnType(TypeName? templateTypeName)
-            => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type;
+            => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!;
 
         // Returns only the scalar element type — required for OpTypeImage sampled type and intrinsic base-type matching.
         static ScalarType ResolveScalarType(TypeName? templateTypeName)
@@ -80,6 +79,7 @@ public abstract record SymbolType()
             {
                 VectorType v => v.BaseType,
                 ScalarType s => s,
+                _ => throw new NotSupportedException($"Unsupported template type {templateType} for scalar resolution"),
             };
         }
 
@@ -608,7 +608,7 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
     /// <param name="id"></param>
     /// <param name="symbol"></param>
     /// <returns></returns>
-    internal bool TryResolveSymbol(int id, out Symbol symbol)
+    internal bool TryResolveSymbol(int id, [MaybeNullWhen(false)] out Symbol symbol)
     {
         if (TryResolveSymbolNoRecursion(id, out symbol))
             return true;
@@ -630,7 +630,7 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
     /// <param name="name"></param>
     /// <param name="symbol"></param>
     /// <returns></returns>
-    internal bool TryResolveSymbol(string name, out Symbol symbol)
+    internal bool TryResolveSymbol(string name, [MaybeNullWhen(false)] out Symbol symbol)
     {
         if (TryResolveSymbolNoRecursion(name, out symbol))
             return true;
@@ -644,7 +644,7 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
         return false;
     }
 
-    private bool TryResolveSymbolNoRecursion(int id, out Symbol symbol)
+    private bool TryResolveSymbolNoRecursion(int id, [MaybeNullWhen(false)] out Symbol symbol)
     {
         var methods = CollectionsMarshal.AsSpan(Methods);
         foreach (ref var c in methods)
@@ -670,18 +670,19 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
         return false;
     }
 
-    private bool TryResolveSymbolNoRecursion(string name, out Symbol symbol)
+    private bool TryResolveSymbolNoRecursion(string name, [MaybeNullWhen(false)] out Symbol symbol)
     {
         symbol = default;
 
-        var found = BuildMethodGroup(name, ref symbol);
-        if (found)
+        TryBuildMethodGroup(name, ref symbol);
+        if (symbol != null)
         {
             // If any method is found, let's process inherited classes too: we need all method groups to find proper override
             foreach (var inheritedClass in InheritedShaders)
             {
-                inheritedClass.BuildMethodGroup(name, ref symbol);
+                inheritedClass.TryBuildMethodGroup(name, ref symbol!);
             }
+
             return true;
         }
 
@@ -733,7 +734,7 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
         return false;
     }
 
-    private bool BuildMethodGroup(string name, ref Symbol symbol)
+    private bool TryBuildMethodGroup(string name, ref Symbol? symbol)
     {
         var found = false;
         var methods = CollectionsMarshal.AsSpan(Methods);
@@ -753,6 +754,7 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
                     FunctionType => new Symbol(new(name, SymbolKind.MethodGroup, IsStage: symbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [symbol, methodSymbol]),
                     // Third time and later: complete method group
                     FunctionGroupType => symbol with { GroupMembers = symbol.GroupMembers.Add(methodSymbol) },
+                    _ => throw new NotSupportedException($"Unexpected symbol type {symbol?.Type} when building method group for '{name}'"),
                 };
 
                 found = true;

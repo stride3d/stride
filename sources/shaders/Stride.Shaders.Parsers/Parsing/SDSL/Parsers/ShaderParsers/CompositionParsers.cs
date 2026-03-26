@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -6,7 +7,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct CompositionParser() : IParser<ShaderCompose>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
@@ -23,7 +24,7 @@ public record struct CompositionParser() : IParser<ShaderCompose>
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[position], scanner.Memory));
                 parsed = new(name, typeName, typeName.ArraySize is { Count: > 0 }, scanner[position..])
                 {
-                    Attributes = hasAttributes ? attributes.Attributes : null!,
+                    Attributes = hasAttributes ? attributes!.Attributes : null!,
                     IsStaged = isStaged
                 };
                 return true;

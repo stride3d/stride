@@ -29,7 +29,7 @@ internal class LiveAnalysis
 
     public MethodInfo GetOrCreateMethodInfo(int functionId)
     {
-        if (!ReferencedMethods.TryGetValue(functionId, out MethodInfo methodInfo))
+        if (!ReferencedMethods.TryGetValue(functionId, out var methodInfo))
             ReferencedMethods.Add(functionId, methodInfo = new MethodInfo());
 
         return methodInfo;

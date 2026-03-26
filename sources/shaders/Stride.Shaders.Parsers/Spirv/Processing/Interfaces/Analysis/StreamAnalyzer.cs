@@ -130,53 +130,55 @@ internal static class StreamAnalyzer
             }
         }
 
-        // Process ResourceGroupId and build ResourceGroups
-        Dictionary<int, ResourceGroup> resourceGroups = new();
+        // Collect decoration strings and group IDs by target
+        Dictionary<int, string> resourceGroupNamesByTarget = new();
+        Dictionary<int, string> logicalGroupNamesByTarget = new();
+        Dictionary<int, int> groupIdByTarget = new();
         foreach (var i in context)
         {
-            if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
-            {
-                var n = m.To<DecorationParams.ResourceGroupIdSDSL>();
-
-                if (!resourceGroups.TryGetValue(n.ResourceGroup, out var resourceGroup))
-                    resourceGroups.Add(n.ResourceGroup, resourceGroup = new());
-
-                if (resources.TryGetValue(resourceGroupIdDecorate.Target, out var resourceInfo))
-                {
-                    resourceGroup.Resources.Add(resourceInfo);
-                    resourceInfo.ResourceGroup = resourceGroup;
-                }
-                else if (cbuffers.TryGetValue(resourceGroupIdDecorate.Target, out var cbufferInfo))
-                {
-                    cbufferInfo.ResourceGroup = resourceGroup;
-                }
-            }
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string groupName } resourceGroupDecorate)
+                resourceGroupNamesByTarget.TryAdd(resourceGroupDecorate.Target, groupName);
+            else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.LogicalGroupSDSL, Value: string logicalName } logicalGroupDecorate)
+                logicalGroupNamesByTarget.TryAdd(logicalGroupDecorate.Target, logicalName);
+            else if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
+                groupIdByTarget.TryAdd(resourceGroupIdDecorate.Target, m.To<DecorationParams.ResourceGroupIdSDSL>().ResourceGroup);
         }
 
-        // Process ResourceGroup and LogicalGroup decorations
-        foreach (var i in context)
+        // Resolve group ID → name (first target with both a group ID and a ResourceGroupSDSL name wins)
+        Dictionary<int, string> groupNames = new();
+        foreach (var (target, groupId) in groupIdByTarget)
         {
-            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string m2 } resourceGroupDecorate)
+            if (!groupNames.ContainsKey(groupId) && resourceGroupNamesByTarget.TryGetValue(target, out var name))
+                groupNames.Add(groupId, name);
+        }
+
+        // Build ResourceGroups and assign resources/cbuffers
+        Dictionary<int, ResourceGroup> resourceGroups = new();
+        foreach (var (target, groupId) in groupIdByTarget)
+        {
+            if (!resourceGroups.TryGetValue(groupId, out var resourceGroup))
             {
-                if (resources.TryGetValue(resourceGroupDecorate.Target, out var resourceInfo)
-                    // Note: ResourceGroup should not be null if set
-                    && resourceInfo.ResourceGroup.Name == null)
-                {
-                    resourceInfo.ResourceGroup.Name = m2;
-                }
+                if (!groupNames.TryGetValue(groupId, out var name))
+                    throw new InvalidOperationException($"ResourceGroup {groupId} has no ResourceGroupSDSL name decoration");
+                resourceGroups.Add(groupId, resourceGroup = new(name));
             }
-            else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.LogicalGroupSDSL, Value: string m3 } logicalGroupDecorate)
+
+            if (resources.TryGetValue(target, out var resourceInfo))
             {
-                if (resources.TryGetValue(logicalGroupDecorate.Target, out var resourceInfo)
-                    // Note: ResourceGroup should not be null if this decoration is set
-                    && resourceInfo.ResourceGroup.LogicalGroup == null)
-                {
-                    resourceInfo.ResourceGroup.LogicalGroup = m3;
-                }
-                else if (cbuffers.TryGetValue(logicalGroupDecorate.Target, out var cbufferInfo))
-                {
-                    cbufferInfo.LogicalGroup = m3;
-                }
+                resourceGroup.Resources.Add(resourceInfo);
+                resourceInfo.ResourceGroup = resourceGroup;
+            }
+            else if (cbuffers.TryGetValue(target, out var cbufferInfo))
+            {
+                cbufferInfo.ResourceGroup = resourceGroup;
+            }
+
+            // Apply LogicalGroup if present
+            if (logicalGroupNamesByTarget.TryGetValue(target, out var logicalGroup))
+            {
+                resourceGroup.LogicalGroup ??= logicalGroup;
+                if (cbuffers.TryGetValue(target, out var ci))
+                    ci.LogicalGroup ??= logicalGroup;
             }
         }
 

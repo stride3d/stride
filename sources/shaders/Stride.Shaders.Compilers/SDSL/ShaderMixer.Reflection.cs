@@ -110,6 +110,9 @@ public partial class ShaderMixer
             }
             else if (i.Op == Specification.Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
             {
+                if (shaderName is null)
+                    throw new InvalidOperationException($"{nameof(OpVariableSDSL)} {context.Names[variableInstruction.ResultId]} without {nameof(OpShaderSDSL)}, can't figure out owner type");
+
                 bool isStage = (variableInstruction.Flags & Specification.VariableFlagsMask.Stage) != 0;
                 var variablePointerType = (PointerType)context.ReverseTypes[variableInstruction.ResultType];
                 var variableType = variablePointerType.BaseType;
@@ -287,6 +290,7 @@ public partial class ShaderMixer
                             BufferType b1 => b1.WriteAllowed,
                             StructuredBufferType sb1 => sb1.WriteAllowed,
                             ByteAddressBufferType bab1 => bab1.WriteAllowed,
+                            _ => throw new NotSupportedException($"Unsupported variable type: {variableType}"),
                         };
                         ref var slot = ref (isUAV ? ref uavSlot : ref srvSlot);
                         effectResourceBinding.Class = isUAV ? EffectParameterClass.UnorderedAccessView : EffectParameterClass.ShaderResourceView;
@@ -312,6 +316,7 @@ public partial class ShaderMixer
                                     (Texture1DType, false, true) => EffectParameterType.RWTexture1D,
                                     (Texture2DType, false, true) => EffectParameterType.RWTexture2D,
                                     (Texture3DType, false, true) => EffectParameterType.RWTexture3D,
+                                    _ => throw new NotSupportedException($"Unsupported texture type combination: {t}"),
                                 },
                             };
                             globalContext.Reflection.ResourceBindings.Add(resolved);

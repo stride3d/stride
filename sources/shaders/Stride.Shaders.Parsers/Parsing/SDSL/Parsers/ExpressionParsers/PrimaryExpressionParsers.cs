@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.AccessControl;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -8,12 +9,12 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct PrimaryParsers : IParser<Expression>
 {
-    public static bool Primary<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Primary<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
             => new PrimaryParsers().Match(ref scanner, result, out parsed, in orError);
 
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         return Parsers.Alternatives(
@@ -26,7 +27,7 @@ public record struct PrimaryParsers : IParser<Expression>
         );
     }
 
-    public static bool Literal<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Literal<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -39,7 +40,7 @@ public record struct PrimaryParsers : IParser<Expression>
     }
 
 
-    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -61,7 +62,7 @@ public record struct PrimaryParsers : IParser<Expression>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Parenthesis<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Parenthesis<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -79,26 +80,26 @@ public record struct PrimaryParsers : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool ArrayLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool ArrayLiteral<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
             Tokens.Char('{', ref scanner, advance: true)
-            && Parsers.FollowedByDel(ref scanner, result, ParameterParsers.Values, out ShaderExpressionList values, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ParameterParsers.Values, out ShaderExpressionList? values, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
         )
         {
             parsed = new ArrayLiteral(scanner[position..scanner.Position])
             {
-                Values = values.Values
+                Values = values!.Values
             };
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
 
-    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

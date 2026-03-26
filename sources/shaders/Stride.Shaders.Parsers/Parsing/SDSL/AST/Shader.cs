@@ -1,3 +1,7 @@
+using System;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Core;
@@ -8,10 +12,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
-using System;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
+using static Stride.Core.Storage.BundleOdbBackend;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -90,22 +91,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 context.Names.TryAdd(target, name);
         }
 
-        static SymbolType? ParseReturnType(string s) => s switch
-        {
-            "float"  => ScalarType.Float,
-            "float2" => new VectorType(ScalarType.Float, 2),
-            "float3" => new VectorType(ScalarType.Float, 3),
-            "float4" => new VectorType(ScalarType.Float, 4),
-            "int"    => ScalarType.Int,
-            "int2"   => new VectorType(ScalarType.Int, 2),
-            "int3"   => new VectorType(ScalarType.Int, 3),
-            "int4"   => new VectorType(ScalarType.Int, 4),
-            "uint"   => ScalarType.UInt,
-            "uint2"  => new VectorType(ScalarType.UInt, 2),
-            "uint3"  => new VectorType(ScalarType.UInt, 3),
-            "uint4"  => new VectorType(ScalarType.UInt, 4),
-            _        => null,
-        };
+
 
         var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
         var importedShaders = new Dictionary<int, ShaderSymbol>();
@@ -154,6 +140,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     (32, false) => ScalarType.UInt,
                     (64, true) => ScalarType.Int64,
                     (64, false) => ScalarType.UInt64,
+                    _ => throw new NotSupportedException($"Unsupported integer type: width={intInstruction.Width}, signed={intInstruction.Signedness == 1}"),
                 });
             }
             else if (instruction.Op == Op.OpTypeBool)
@@ -388,7 +375,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         // Load all the inherited shaders
         List<ShaderDefinition> inheritedShaderSymbols = new();
         foreach (var inheritedClass in inheritanceList)
-            inheritedShaderSymbols.Add(LoadAndCacheExternalShaderType(table, context, inheritedClass));
+            inheritedShaderSymbols.Add(LoadAndCacheExternalShaderDefinition(table, context, inheritedClass));
 
         var shaderType = new ShaderDefinition(classSource.ClassName, classSource.GenericArguments)
         {
@@ -428,7 +415,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             {
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
                     throw new InvalidOperationException();
-                var resultType = typeInstruction.Data.IdResultType.Value;
+                var resultType = typeInstruction.Data.IdResultType!.Value;
                 var constExpr = ConstantExpression.ParseFromBuffer(target2, shaderBuffers.Context.GetBuffer(), shaderBuffers.Context);
                 var symbol = new Symbol(new(constName, SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(constExpr), OwnerType: shaderType);
                 variables.Add((symbol, VariableFlagsMask.None));
@@ -483,7 +470,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        builder.Insert(new OpShaderSDSL(name));
+        builder.Insert(new OpShaderSDSL(Name));
 
         var openGenerics = new ConstantExpression[Generics != null ? Generics.Parameters.Count : 0];
         var currentShader = new ShaderDefinition(Name, openGenerics);
@@ -510,7 +497,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             }
         }
 
-        var inheritanceList = new List<ShaderClassInstantiation>();
+        table.InheritedShaders.Clear();
         foreach (var mixin in Mixins)
         {
             var mixinGenerics = (mixin as GenericIdentifier)?.Generics;
@@ -552,18 +539,17 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
-            SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
+            SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
         }
 
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
-        table.InheritedShaders = inheritanceList;
 
         var shaderSymbols = new List<ShaderDefinition>();
-        foreach (var mixin in inheritanceList)
+        foreach (var mixin in table.InheritedShaders)
         {
-            shaderSymbols.Add(mixin.Symbol = LoadAndCacheExternalShaderType(table, context, mixin));
+            shaderSymbols.Add(mixin.Symbol = LoadAndCacheExternalShaderDefinition(table, context, mixin));
         }
 
         foreach (var shaderType in shaderSymbols)
@@ -623,7 +609,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             builder.Insert(new OpUnresolvableShaderSDSL(Info.Text.ToString(), endOfNameIndex));
         }
 
-        table.InheritedShaders = null;
+        table.InheritedShaders.Clear();
         table.CurrentShader = null;
         table.Pop();
     }
@@ -631,7 +617,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public int ProcessGenericSymbol(SymbolTable table, SpirvContext context, int index, ShaderParameter genericParameter)
     {
         genericParameter.TypeName.ProcessSymbol(table);
-        var genericParameterType = genericParameter.TypeName.Type;
+        var genericParameterType = genericParameter.TypeName.Type!;
 
         // Wrap resource types in pointer (same as member variables)
         if (genericParameterType is TextureType or BufferType)
@@ -695,20 +681,17 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
 
         if (addToRoot)
-            table.CurrentShader.InheritedShaders.Add(shaderType);
+            table.CurrentShader!.InheritedShaders.Add(shaderType);
 
         // Mark inherit
         context.Add(new OpMixinInheritSDSL(shaderId, Spirv.Specification.MixinInheritFlagsMask.None));
     }
 
-    public static ShaderDefinition LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
+    public static ShaderDefinition LoadAndCacheExternalShaderDefinition(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
     {
         // Already processed?
         if (table.DeclaredShaders.TryGetValue(classSource.ToClassNameWithGenerics(), out var cachedShader))
             return cachedShader;
-
-        if (classSource.Buffer == null)
-            throw new InvalidOperationException($"{nameof(classSource)}.{nameof(classSource.Buffer)} need to be set");
 
         var shaderType = LoadExternalShaderType(table, context, classSource);
         return shaderType;
@@ -731,9 +714,9 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
     public static ShaderDefinition LoadExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
     {
-        var shaderBuffer = classSource.Buffer;
+        var shaderBuffers = classSource.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {classSource.ClassName}");
 
-        var shaderType = CreateShaderType(table, context, shaderBuffer.Value, classSource);
+        var shaderType = CreateShaderType(table, context, shaderBuffers, classSource);
 
         RegisterShaderType(table, shaderType);
 

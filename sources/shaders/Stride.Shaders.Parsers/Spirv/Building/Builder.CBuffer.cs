@@ -24,6 +24,7 @@ partial class SpirvBuilder
             // HLSL array size: last element is not padded to stride
             AlignmentRules.CBuffer => ((current.Size + 15) / 16 * 16 * (count - 1) + current.Size, 16),
             AlignmentRules.StructuredBuffer => (current.Size * count, current.Alignment),
+            _ => throw new NotSupportedException($"Unsupported AlignmentRules value: {alignmentRules}"),
         };
         return (symbol) switch
         {
@@ -40,6 +41,7 @@ partial class SpirvBuilder
             // Round up to 16 bytes (size of float4)
             ArrayType a => Array(TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules), a.Size, alignmentRules),
             // TODO: StructureType
+            _ => throw new NotSupportedException($"Unsupported type for buffer layout: {symbol}"),
         };
     }
 
@@ -63,6 +65,7 @@ partial class SpirvBuilder
         {
             AlignmentRules.CBuffer => 16,
             AlignmentRules.StructuredBuffer => maxAlignment,
+            _ => throw new NotSupportedException($"Unsupported AlignmentRules value: {alignmentRules}"),
         };
 
         return (offset, alignment);

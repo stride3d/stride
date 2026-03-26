@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using System.Globalization;
 
@@ -6,7 +7,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public struct NumberParser : IParser<Literal>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         return Parsers.Alternatives(
@@ -21,7 +22,7 @@ public struct NumberParser : IParser<Literal>
         );
     }
 
-    public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -50,7 +51,7 @@ public struct NumberParser : IParser<Literal>
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    public static bool Float<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool Float<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -107,7 +108,7 @@ public struct NumberParser : IParser<Literal>
             parsed = new FloatLiteral(new(32, true, true), value, exponent, scanner[position..scanner.Position]);
         return true;
     }
-    public static bool Hex<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool Hex<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;

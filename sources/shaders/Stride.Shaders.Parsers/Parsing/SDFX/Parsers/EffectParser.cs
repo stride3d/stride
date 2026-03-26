@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -7,7 +8,7 @@ namespace Stride.Shaders.Parsing.SDFX;
 
 public record struct EffectParser : IParser<ShaderEffect>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
@@ -33,6 +34,6 @@ public record struct EffectParser : IParser<ShaderEffect>
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Effect<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Effect<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
             => new EffectParser().Match(ref scanner, result, out parsed, orError);
 }

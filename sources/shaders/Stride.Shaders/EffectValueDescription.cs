@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
@@ -24,7 +25,7 @@ public struct EffectValueDescription
 
     public int Size;
 
-    public object DefaultValue;
+    public object? DefaultValue;
 
-    public string LogicalGroup;
+    public string? LogicalGroup;
 }

@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
@@ -37,7 +38,7 @@ public static class Tokens
     public static bool Literal<TScanner>(string c, ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
         => new LiteralTokenParser(c).Match(ref scanner, advance);
-    public static bool AnyOf<TScanner>(ReadOnlySpan<string> literals, ref TScanner scanner, out string matched, bool advance = false)
+    public static bool AnyOf<TScanner>(ReadOnlySpan<string> literals, ref TScanner scanner, [MaybeNullWhen(false)] out string matched, bool advance = false)
         where TScanner : struct, IScanner
     {
         matched = null!;

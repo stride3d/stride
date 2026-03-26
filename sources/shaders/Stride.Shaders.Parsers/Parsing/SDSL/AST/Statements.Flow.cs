@@ -59,7 +59,7 @@ public partial class ForEach(TypeName typename, Identifier variable, Expression 
     public Expression Collection { get; set; } = collection;
     public Statement Body { get; set; } = body;
 
-    public SymbolFrame SymbolFrame { get; set; }
+    public SymbolFrame? SymbolFrame { get; set; }
 
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -99,8 +99,8 @@ public partial class ForEach(TypeName typename, Identifier variable, Expression 
         // Since foreach need to be processed and expanded later, we use custom opcode
         // (we could emit a "For" loop statement, but it would be too complex to write a general decompiler for a "for" loop when processing it later)
         var variableId = builder.Insert(new OpForeachSDSL(context.GetOrRegister(variableType), context.Bound++, collection.Id));
-        table.Push(SymbolFrame);
-        SymbolFrame.UpdateId(Variable.Name, variableId);
+        table.Push(SymbolFrame!);
+        SymbolFrame!.UpdateId(Variable.Name, variableId);
         Body.Compile(table, compiler);
         table.Pop();
         builder.Insert(new OpForeachEndSDSL());
@@ -192,7 +192,7 @@ public partial class For(Statement initializer, Expression cond, List<Statement>
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute = attribute;
     public List<ForAnnotation> Annotations { get; set; } = [];
-    public SymbolFrame SymbolFrame { get; set; }
+    public SymbolFrame? SymbolFrame { get; set; }
 
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -209,7 +209,7 @@ public partial class For(Statement initializer, Expression cond, List<Statement>
     {
         var (builder, context) = compiler;
 
-        table.Push(SymbolFrame);
+        table.Push(SymbolFrame!);
         Initializer.Compile(table, compiler);
 
         // Prepare blocks ids

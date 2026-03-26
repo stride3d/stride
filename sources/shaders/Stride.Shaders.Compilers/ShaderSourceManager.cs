@@ -115,7 +115,7 @@ namespace Stride.Shaders.Compilers
         /// <param name="shaderSourceCode">Optional shader source code. Can be use for shaders that don't have a source file</param>
         /// <returns>ShaderSourceWithHash.</returns>
         /// <exception cref="System.IO.FileNotFoundException">If the file was not found</exception>
-        public ShaderSourceWithHash LoadShaderSource(string type, string shaderSourceCode = null)
+        public ShaderSourceWithHash LoadShaderSource(string type, string? shaderSourceCode = null)
         {
             lock (locker)
             {
@@ -131,7 +131,7 @@ namespace Stride.Shaders.Compilers
                     if (sourceUrl != null)
                     {
                         shaderSource = new ShaderSourceWithHash();
-                        if (!UrlToFilePath.TryGetValue(sourceUrl, out shaderSource.Path))
+                        if (!UrlToFilePath.TryGetValue(sourceUrl, out shaderSource.Path!))
                         {
                             shaderSource.Path = sourceUrl;
                         }
@@ -151,7 +151,7 @@ namespace Stride.Shaders.Compilers
 
                                     if (File.Exists(shaderSourcePath))
                                     {
-                                        byte[] fileData = null;
+                                        byte[]? fileData = null;
                                         for (int tries = 10; tries >= 0; --tries)
                                         {
                                             try
@@ -194,7 +194,7 @@ namespace Stride.Shaders.Compilers
                                     {
                                         sourceStream.Position = 0;
                                         var data = new byte[sourceStream.Length];
-                                        sourceStream.Read(data, 0, (int)sourceStream.Length);
+                                        sourceStream.ReadExactly(data, 0, (int)sourceStream.Length);
                                         shaderSource.Hash = ObjectId.FromBytes(data);
                                     }
                                     else
@@ -231,14 +231,14 @@ namespace Stride.Shaders.Compilers
             return FindFilePath(typeName) != null;
         }
 
-        public string FindFilePath(string type)
+        public string? FindFilePath(string type)
         {
             lock (locker)
             {
                 if (LookupDirectoryList == null)
                     return null;
 
-                string path = null;
+                string? path = null;
                 if (classNameToPath.TryGetValue(type, out path))
                     return path;
 
@@ -267,22 +267,9 @@ namespace Stride.Shaders.Compilers
             if (UseFileSystem && Platform.Type == PlatformType.Windows)
             {
                 var fileInfo = new FileInfo(path);
-                if (fileInfo.Exists)
-                {
-                    var shaderName = Path.GetFileNameWithoutExtension(path);
-                    var realPath = GetWindowsPhysicalPath(path);
-                    if (!string.IsNullOrWhiteSpace(realPath))
-                    {
-                        var shaderNameOnDisk = Path.GetFileNameWithoutExtension(realPath);
-                        return string.CompareOrdinal(shaderName, shaderNameOnDisk) == 0;
-                    }
-                }
+                return fileInfo.Exists;
             }
-            else
-            {
-                return fileProvider.FileExists(path);
-            }
-            return false;
+            return fileProvider.FileExists(path);
         }
 
         private Stream OpenStream(string path)
@@ -305,44 +292,6 @@ namespace Stride.Shaders.Compilers
             }
 
             return fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
-        }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetLongPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
-        static extern uint GetLongPathName(string shortPath, StringBuilder sb, int buffer);
-
-        [DllImport("kernel32.dll", EntryPoint = "GetShortPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
-        static extern uint GetShortPathName(string longpath, StringBuilder sb, int buffer);
-
-        private static string GetWindowsPhysicalPath(string path)
-        {
-            var builder = new StringBuilder(255);
-
-            // names with long extension can cause the short name to be actually larger than
-            // the long name.
-            GetShortPathName(path, builder, builder.Capacity);
-
-            path = builder.ToString();
-
-            uint result = GetLongPathName(path, builder, builder.Capacity);
-
-            if (result > 0 && result < builder.Capacity)
-            {
-                //Success retrieved long file name
-                builder[0] = char.ToLower(builder[0]);
-                return builder.ToString(0, (int)result);
-            }
-
-            if (result > 0)
-            {
-                //Need more capacity in the buffer
-                //specified in the result variable
-                builder = new StringBuilder((int)result);
-                result = GetLongPathName(path, builder, builder.Capacity);
-                builder[0] = char.ToLower(builder[0]);
-                return builder.ToString(0, (int)result);
-            }
-
-            return null;
         }
 
         public struct ShaderSourceWithHash

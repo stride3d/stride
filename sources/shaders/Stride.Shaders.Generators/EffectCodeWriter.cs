@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDFX.AST;
@@ -13,9 +14,7 @@ public class EffectCodeWriter : ShaderWriter
 
     private readonly List<(string Message, TextLocation Location)> logging = new();
     private Stack<ShaderBlockContext> contextStack = new();
-    private Dictionary<BlockStatement, ShaderBlockContext> blockContexts = new();
-    private BlockStatement currentBlock;
-    private SymbolTable table = new(new()) { ResolveArraySizes = false, ResolveExternalTypes = false };
+    private SymbolTable table = new(new(), null!) { ResolveArraySizes = false, ResolveExternalTypes = false };
 
     private bool isProcessingColor = false;
 
@@ -88,13 +87,11 @@ public class EffectCodeWriter : ShaderWriter
     protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes)
     {
         isProcessingColor = attributes.OfType<AnyShaderAttribute>().Any(x => x.Name == "Color");
-        var isArray = false;
-
         var variableType = attributes.OfType<AnyShaderAttribute>().Where(x => x.Name == "Type").Select(x => ((StringLiteral)x.Parameters[0]).Value).FirstOrDefault();
         var variableMap = attributes.OfType<AnyShaderAttribute>().Where(x => x.Name == "Map").Select(x => ((StringLiteral)x.Parameters[0]).Value).FirstOrDefault();
 
         typeName.ProcessSymbol(table);
-        var type = typeName.Type;
+        var type = typeName.Type!;
 
         // ParameterKey shouldn't contain only the underlying type in case of arrays (we use slots)
         var parameterType = type;
@@ -140,7 +137,7 @@ public class EffectCodeWriter : ShaderWriter
             Write(">(");
             if (initialValue != null)
             {
-                var initialValueString = initialValue.ToString();
+                var initialValueString = initialValue.ToString()!;
 
                 if (initialValueString != "null")
                 {
@@ -205,7 +202,7 @@ public class EffectCodeWriter : ShaderWriter
                 // Generate the main generate method for each shader block
                 WriteLine("public void Generate(ShaderMixinSource mixin, ShaderMixinContext context)");
                 {
-                    VisitNode(shaderEffect.Block);
+                    VisitNode(shaderEffect.Block!);
                 }
 
                 WriteLine();
@@ -325,7 +322,7 @@ public class EffectCodeWriter : ShaderWriter
         }
     }
 
-    private bool TryParameters(Expression expression, out string type, out string member, out string? extraPath)
+    private bool TryParameters(Expression expression, [MaybeNullWhen(false)] out string type, [MaybeNullWhen(false)] out string member, out string? extraPath)
     {
         type = null;
         member = null;
@@ -334,7 +331,7 @@ public class EffectCodeWriter : ShaderWriter
         if (accessorChainExpression == null || accessorChainExpression.Accessors[0] is not IdentifierBase accessMember)
             return false;
 
-        var name = accessorChainExpression.Source.ToString();
+        var name = accessorChainExpression.Source.ToString()!;
 
         bool foundDeclaredParameters = false;
         if (IsParameterDeclaredInContext(name))
@@ -409,7 +406,7 @@ public class EffectCodeWriter : ShaderWriter
         }
         else if (VectorType.Types.TryGetValue(typeName.Name, out var v2) && v2 is { BaseType.Type: Scalar.Int or Scalar.UInt })
         {
-            Write($"Int{v.Size}");
+            Write($"Int{v2.Size}");
         }
         else if (MatrixType.Types.TryGetValue(typeName.Name, out var m) && m is { Columns: 4, Rows: 4, BaseType.Type: Scalar.Float })
         {
@@ -700,8 +697,6 @@ public class EffectCodeWriter : ShaderWriter
     /// </summary>
     private sealed class ShaderBlockVisitor : NodeWalker
     {
-        private ShaderBlockContext currentContext;
-
         private readonly EffectCodeWriter parent;
 
         public ShaderBlockVisitor(EffectCodeWriter parent)

@@ -62,22 +62,23 @@ public partial class SymbolTable : ISymbolProvider
 
     // Only valid during compilation (not during ShaderMixin phase)
     public ShaderDefinition? CurrentShader { get; set; }
-    public List<ShaderMacro> CurrentMacros { get; set; }
+    public List<ShaderMacro> CurrentMacros { get; set; } = new();
     // Only valid during compilation (not during ShaderMixin phase)
-    public List<ShaderClassInstantiation> InheritedShaders { get; set; }
+    public List<ShaderClassInstantiation> InheritedShaders { get; } = new();
 
-    public SymbolTable(SpirvContext context)
+    public SymbolTable(SpirvContext context, IExternalShaderLoader shaderLoader)
     {
         Context = context;
         RootSymbols = new();
         Push(RootSymbols);
+        ShaderLoader = shaderLoader;
     }
 
     public void Push() => CurrentSymbols.Add(new());
 
     public void Push(SymbolFrame symbolFrame) => CurrentSymbols.Add(symbolFrame);
 
-    public IExternalShaderLoader ShaderLoader { get; set; }
+    public IExternalShaderLoader ShaderLoader { get; }
 
     public SymbolFrame Pop()
     {

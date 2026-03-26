@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,21 +6,21 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ParameterParsers : IParser<ParameterListNode>
 {
-    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ParameterListNode parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ParameterListNode parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         throw new NotImplementedException();
     }
-    public static bool Declarations<TScanner>(ref TScanner scanner, ParseResult result, out ShaderParameterDeclarations parsed, in ParseError? orError = null)
+    public static bool Declarations<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderParameterDeclarations parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ParameterDeclarationsParser().Match(ref scanner, result, out parsed, in orError);
     public static bool Values<TScanner>(ref TScanner scanner, ParseResult result, out ShaderExpressionList parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ParameterListParser().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool GenericsList<TScanner>(ref TScanner scanner, ParseResult result, out ShaderExpressionList parsed, in ParseError? orError = null)
+    public static bool GenericsList<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderExpressionList parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new GenericsListParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool GenericsValue<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool GenericsValue<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new GenericsValueParser().Match(ref scanner, result, out parsed, in orError);
 }
@@ -27,7 +28,7 @@ public record struct ParameterParsers : IParser<ParameterListNode>
 
 public record struct ParameterDeclarationsParser : IParser<ShaderParameterDeclarations>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderParameterDeclarations parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderParameterDeclarations parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         List<ShaderParameter> parameters = [];
@@ -35,13 +36,13 @@ public record struct ParameterDeclarationsParser : IParser<ShaderParameterDeclar
         do
         {
             if (
-                Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typename, withSpaces: true, advance: true)
+                Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName? typename, withSpaces: true, advance: true)
                 && Parsers.Spaces1(ref scanner, result, out _)
                 && LiteralsParser.Identifier(ref scanner, result, out var name)
                 && Parsers.Spaces0(ref scanner, result, out _)
             )
             {
-                parameters.Add(new(typename, name));
+                parameters.Add(new(typename!, name));
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
         }
@@ -79,7 +80,7 @@ public record struct ParameterListParser : IParser<ShaderExpressionList>
 
 public record struct GenericsListParser : IParser<ShaderExpressionList>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderExpressionList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderExpressionList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (ParameterParsers.GenericsValue(ref scanner, result, out var parameter))
@@ -104,7 +105,7 @@ public record struct GenericsListParser : IParser<ShaderExpressionList>
 
 public record struct GenericsValueParser : IParser<Expression>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (LiteralsParser.Number(ref scanner, result, out var number))

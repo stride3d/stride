@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 
@@ -68,11 +68,11 @@ public partial class ShaderMixer
         }
     }
 
-    class MethodGroup
+    class MethodGroup(string name, FunctionType functionType, ShaderInfo shader)
     {
-        public string Name;
-        public ShaderInfo Shader;
-        public FunctionType FunctionType;
+        public string Name { get; } = name;
+        public FunctionType FunctionType { get; } = functionType;
+        public ShaderInfo Shader { get; } = shader;
         public List<(ShaderInfo Shader, int MethodId, Spirv.Specification.FunctionFlagsMask Flags)> Methods { get; } = new();
 
         public override string ToString() => $"{Name} (shader: {Shader}, function Id: {string.Join(", ", Methods.Select(x => $"{x.Shader.ShaderName} {x.MethodId}"))})";

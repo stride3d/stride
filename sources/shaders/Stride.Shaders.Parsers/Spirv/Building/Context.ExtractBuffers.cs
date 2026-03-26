@@ -57,7 +57,7 @@ public partial class SpirvContext
                     typeDuplicateInserter.RemoveInstructionAt(existingData.Index, false);
                     existingData = typeDuplicateInserter.InsertInstruction(instructionIndex++, existingDataCopy);
                 }
-                remapIds.Add(iData.IdResult.Value, existingData.Data.IdResult.Value);
+                remapIds.Add(iData.IdResult!.Value, existingData.Data.IdResult!.Value);
                 lastResultId = existingData.Data.IdResult.Value;
             }
             else

@@ -148,6 +148,7 @@ public static class ShaderVariableInformationExtensions
             "lineadj" => ParameterModifiers.LineAdjacency,
             "triangle" => ParameterModifiers.Triangle,
             "triangleadj" => ParameterModifiers.TriangleAdjacency,
+            _ => throw new NotSupportedException($"Unsupported parameter modifier '{str}'"),
         };
     }
 }
@@ -182,7 +183,7 @@ public abstract class ShaderBuffer : ShaderElement
         foreach (var smem in Members)
         {
             smem.TypeName.ProcessSymbol(table);
-            smem.Type = smem.TypeName.Type;
+            smem.Type = smem.TypeName.Type!;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
@@ -234,7 +235,7 @@ public partial class ShaderStruct(Identifier typename, TextLocation info) : Shad
         {
             smem.TypeName.ProcessSymbol(table);
             smem.Type = smem.TypeName.Type;
-            table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
+            table.DeclaredTypes.TryAdd(smem.Type!.ToString(), smem.Type);
 
             fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
         }
@@ -260,12 +261,12 @@ public partial class ShaderStruct(Identifier typename, TextLocation info) : Shad
 
 public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
-    public Symbol Symbol { get; private set; }
+    public Symbol? Symbol { get; private set; }
     private bool? isStaged;
 
     public record struct AttributeAnalysisResult(string? LinkName = null, int? LinkId = null, bool Color = false);
 
-    public static AttributeAnalysisResult ProcessAttributes(SymbolTable table, SpirvContext context, TextLocation info, List<ShaderAttribute> attributes)
+    public static AttributeAnalysisResult ProcessAttributes(SymbolTable table, SpirvContext context, TextLocation info, List<ShaderAttribute>? attributes)
     {
         var result = new AttributeAnalysisResult();
         if (attributes != null)
@@ -328,7 +329,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             cbMember.Type = cbMember.TypeName.Type;
         }
 
-        var pointerType = new PointerType(Type, Specification.StorageClass.Uniform);
+        var pointerType = new PointerType(Type!, Specification.StorageClass.Uniform);
 
         isStaged = null;
         for (var index = 0; index < Members.Count; index++)
@@ -343,13 +344,13 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                 throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
         }
 
-        var constantBufferType = (ConstantBufferSymbol)Type;
+        var constantBufferType = (ConstantBufferSymbol)Type!;
 
         // We try to avoid clash in case multiple cbuffer TYPE with same name
         // The variable itself is handled by adding a .0 .1 etc. in Shader.RenameCBufferVariables()
         int tryCount = 0;
         var typeName = constantBufferType.Name;
-        while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type))
+        while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type!))
         {
             typeName = $"{typeName}_{++tryCount}";
             Type = constantBufferType = constantBufferType with { Name = typeName };
@@ -359,13 +360,13 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
 
         var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
         Symbol = new Symbol(sid, pointerType, context.Bound++, OwnerType: table.CurrentShader);
-        table.CurrentShader.Variables.Add((Symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+        table.CurrentShader!.Variables.Add((Symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var variable = Symbol.IdRef;
+        var variable = Symbol!.IdRef;
 
         context.AddName(variable, Name);
         if (LogicalGroup != null)
@@ -387,7 +388,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             }
         }
 
-        var pointerType = new PointerType(Type, Specification.StorageClass.Uniform);
+        var pointerType = new PointerType(Type!, Specification.StorageClass.Uniform);
         builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
     }
 }
@@ -415,7 +416,7 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
             var type = new PointerType(member.Type, storageClass);
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, 0, OwnerType: table.CurrentShader);
-            table.CurrentShader.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+            table.CurrentShader!.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
             Symbols.Add(symbol);
         }
     }
@@ -448,7 +449,7 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
         }
     }
 
-    internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute> attributes, int variableId)
+    internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute>? attributes, int variableId)
     {
         var attributesInfo = CBuffer.ProcessAttributes(table, context, info, attributes);
         if (attributesInfo.LinkId is int linkId)

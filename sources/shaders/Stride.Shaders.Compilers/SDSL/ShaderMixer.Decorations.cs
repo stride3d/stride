@@ -52,6 +52,7 @@ public partial class ShaderMixer
         {
             SpirvBuilder.AlignmentRules.CBuffer => (elementSize + 15) / 16 * 16,
             SpirvBuilder.AlignmentRules.StructuredBuffer => elementSize,
+            _ => throw new NotSupportedException($"Unsupported alignment rules: {alignmentRules}"),
         };
         context.Add(new OpDecorate(typeId, Specification.Decoration.ArrayStride, [arrayStride]));
 

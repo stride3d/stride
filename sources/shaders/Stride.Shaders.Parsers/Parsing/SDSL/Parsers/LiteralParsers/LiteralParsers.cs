@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -6,13 +7,13 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public interface ILiteralParser<TResult>
 {
-    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, out TResult literal, in ParseError? error = null)
+    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TResult literal, in ParseError? error = null)
         where TScanner : struct, IScanner;
 }
 
 public record struct LiteralsParser : IParser<Literal>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Literal literal, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal literal, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -48,16 +49,16 @@ public record struct LiteralsParser : IParser<Literal>
         }
         else return Parsers.Exit(ref scanner, result, out literal, position, orError);
     }
-    public static bool Literal<TScanner>(ref TScanner scanner, ParseResult result, out Literal literal, in ParseError? orError = null)
+    public static bool Literal<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal literal, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new LiteralsParser().Match(ref scanner, result, out literal, in orError);
-    public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, in ParseError? orError = null)
+    public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Identifier identifier, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new IdentifierParser().Match(ref scanner, result, out identifier, orError);
-    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null)
+    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out GenericIdentifier parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new GenericIdentifierParser().Match(ref scanner, result, out parsed, orError);
-    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, out IdentifierBase parsed, in ParseError? orError = null)
+    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IdentifierBase parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -72,11 +73,10 @@ public record struct LiteralsParser : IParser<Literal>
             return true;
         }
 
-        parsed = default;
-        return Parsers.Exit(ref scanner, result, out parsed, position, orError); ;
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool TypeNameLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool TypeNameLiteral<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
@@ -87,7 +87,7 @@ public record struct LiteralsParser : IParser<Literal>
         }
         else return false;
     }
-    public static bool TypeName<TScanner>(ref TScanner scanner, ParseResult result, out TypeName name, in ParseError? orError = null)
+    public static bool TypeName<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TypeName name, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         name = null!;
@@ -105,11 +105,12 @@ public record struct LiteralsParser : IParser<Literal>
             if (Parsers.FollowedBy(ref scanner, Tokens.Char('<'), withSpaces: true, advance: true))
             {
                 Parsers.Spaces0(ref scanner, result, out _);
-                Parsers.Repeat(ref scanner, result, TypeNameOrNumber, out List<Literal> generics, 1, withSpaces: true, separator: ",");
+                Parsers.Repeat(ref scanner, result, TypeNameOrNumber, out List<Literal>? generics, 1, withSpaces: true, separator: ",");
                 if (!Parsers.FollowedBy(ref scanner, Tokens.Char('>'), withSpaces: true, advance: true))
                     return Parsers.Exit(ref scanner, result, out name, position);
                 name.Info = scanner[position..scanner.Position];
-                name.Generics = generics;
+                if (generics != null)
+                    name.Generics = generics;
                 intermediate = scanner.Position;
             }
             else
@@ -117,7 +118,7 @@ public record struct LiteralsParser : IParser<Literal>
                 scanner.Position = intermediate;
             }
 
-            if (Parsers.FollowedByDelList(ref scanner, result, Parsers.ArraySizes, out List<Expression> arraySize, withSpaces: true, advance: true))
+            if (Parsers.FollowedByDelList(ref scanner, result, Parsers.ArraySizes, out List<Expression>? arraySize, withSpaces: true, advance: true))
             {
                 name.Info = scanner[position..scanner.Position];
                 name.ArraySize = arraySize;
@@ -132,7 +133,7 @@ public record struct LiteralsParser : IParser<Literal>
         else return Parsers.Exit(ref scanner, result, out name, position, orError);
     }
 
-    public static bool TypeNameOrNumber<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool TypeNameOrNumber<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (TypeName(ref scanner, result, out var typename))
@@ -148,7 +149,7 @@ public record struct LiteralsParser : IParser<Literal>
         else return Parsers.Exit(ref scanner, result, out parsed, scanner.Position, orError);
     }
 
-    public static bool Boolean<TScanner>(ref TScanner scanner, ParseResult result, out BoolLiteral number, in ParseError? orError = null)
+    public static bool Boolean<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out BoolLiteral number, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -159,11 +160,11 @@ public record struct LiteralsParser : IParser<Literal>
         }
         else return Parsers.Exit(ref scanner, result, out number, scanner.Position, orError);
     }
-    public static bool Number<TScanner>(ref TScanner scanner, ParseResult result, out Literal number, in ParseError? orError = null)
+    public static bool Number<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal number, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new NumberParser().Match(ref scanner, result, out number, in orError);
 
-    public static bool Vector<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
+    public static bool Vector<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -206,11 +207,11 @@ public record struct LiteralsParser : IParser<Literal>
             }
             else if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
-                && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
+                && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? value, withSpaces: true, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
             )
             {
-                parsed = new ExpressionLiteral(value, new TypeName(baseType, scanner[position..tnPos]), scanner[position..scanner.Position]);
+                parsed = new ExpressionLiteral(value!, new TypeName(baseType, scanner[position..tnPos]), scanner[position..scanner.Position]);
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
@@ -218,14 +219,14 @@ public record struct LiteralsParser : IParser<Literal>
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    public static bool Matrix<TScanner>(ref TScanner scanner, ParseResult result, out MatrixLiteral parsed, in ParseError? orError = null)
+    public static bool Matrix<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out MatrixLiteral parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new MatrixParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, out Literal number, in ParseError? orError = null)
+    public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal number, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => NumberParser.Integer(ref scanner, result, out number, in orError);
 
-    public static bool StringLiteral<TScanner>(ref TScanner scanner, ParseResult result, out StringLiteral parsed, in ParseError? orError = null)
+    public static bool StringLiteral<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out StringLiteral parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -371,10 +372,10 @@ public readonly record struct IntegerSuffixParser() : ILiteralParser<Suffix>
 
 public record struct IdentifierParser() : ILiteralParser<Identifier>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Identifier literal, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Identifier literal, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
-        literal = null!;
+        literal = null;
         var position = scanner.Position;
         if (Tokens.Char('_', ref scanner) || Tokens.Letter(ref scanner))
         {
@@ -395,7 +396,7 @@ public record struct IdentifierParser() : ILiteralParser<Identifier>
 public record struct MatrixParser : IParser<MatrixLiteral>
 {
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out MatrixLiteral parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out MatrixLiteral parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (

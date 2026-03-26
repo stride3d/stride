@@ -4,7 +4,7 @@ internal class ResourceInfo(string name)
 {
     public string Name { get; } = name;
 
-    public ResourceGroup ResourceGroup { get; set; }
+    public ResourceGroup? ResourceGroup { get; set; }
 
     /// <summary>
     /// Used during current stage being processed?
@@ -16,10 +16,9 @@ internal class ResourceInfo(string name)
     public bool UsedAnyStage { get; private set; }
 }
 
-internal record class ResourceGroup
+internal record class ResourceGroup(string Name)
 {
     public bool Used { get; set; }
-    public string Name { get; set; }
     public string? LogicalGroup { get; set; }
     public List<ResourceInfo> Resources { get; } = new();
 }
@@ -28,7 +27,7 @@ internal record class CBufferInfo(string name)
 {
     public string Name { get; } = name;
 
-    public ResourceGroup ResourceGroup { get; set; }
+    public ResourceGroup? ResourceGroup { get; set; }
     public string? LogicalGroup { get; set; }
 
     /// <summary>

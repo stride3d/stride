@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
@@ -10,7 +11,7 @@ namespace Stride.Shaders.Parsing.SDFX;
 
 public record struct EffectStatementParsers : IParser<Statement>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (EffectBlock(ref scanner, result, out var block))
@@ -59,23 +60,23 @@ public record struct EffectStatementParsers : IParser<Statement>
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new EffectStatementParsers().Match(ref scanner, result, out parsed, orError);
-    public static bool UsingParams<TScanner>(ref TScanner scanner, ParseResult result, out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool UsingParams<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new UsingParamsParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new MixinParser().Match(ref scanner, result, out parsed, orError);
 
-    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out BlockStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out BlockStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
         if (Tokens.Char('{', ref scanner, advance: true))
         {
             List<Statement> statements = [];
-            while (SDSL.Parsers.FollowedByDel(ref scanner, result, Statement, out Statement statement, withSpaces: true, advance: true))
+            while (SDSL.Parsers.FollowedByDel(ref scanner, result, Statement, out Statement? statement, withSpaces: true, advance: true))
             {
-                statements.Add(statement);
+                statements.Add(statement!);
             }
             if (!SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true))
                 return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
@@ -84,7 +85,7 @@ public record struct EffectStatementParsers : IParser<Statement>
         }
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position);
     }
-    public static bool ShaderSourceDeclaration<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSourceDeclaration parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool ShaderSourceDeclaration<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderSourceDeclaration parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
@@ -104,7 +105,7 @@ public record struct EffectStatementParsers : IParser<Statement>
 
 public record struct UsingParamsParser : IParser<UsingParams>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (SDSL.Parsers.SequenceOf(ref scanner, ["using", "params"], advance: true))
@@ -122,7 +123,7 @@ public record struct UsingParamsParser : IParser<UsingParams>
 
 public record struct MixinParser : IParser<Mixin>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         var mixinType = Specification.MixinKindSDFX.Default;
@@ -165,7 +166,7 @@ public record struct MixinParser : IParser<Mixin>
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
+    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

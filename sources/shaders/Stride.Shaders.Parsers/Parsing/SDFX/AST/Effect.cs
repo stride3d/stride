@@ -14,17 +14,17 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
 {
     public TypeName Name { get; set; } = name;
 
-    public BlockStatement Block { get; set; }
+    public BlockStatement? Block { get; set; }
     public bool IsPartial { get; set; } = isPartial;
 
-    public override string ToString() => Block.ToString();
+    public override string ToString() => Block?.ToString() ?? "(empty)";
 
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
         builder.Insert(new OpEffectSDFX(Name.Name));
-        Block.Compile(table, compiler);
+        Block?.Compile(table, compiler);
     }
 
     internal static ConstantExpression[] CompileGenerics(SymbolTable table, SpirvContext context, ShaderExpressionList? generics)
@@ -34,7 +34,7 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
         if (genericCount > 0)
         {
             int genericIndex = 0;
-            foreach (var generic in generics)
+            foreach (var generic in generics!)
             {
                 if (generic is not Literal literal)
                     throw new InvalidOperationException($"Generic value {generic} is not a literal");

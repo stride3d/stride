@@ -101,6 +101,7 @@ public partial class SpirvContext
                         Specification.Op.OpConvertFToU => (uint)(float)convertOperand,
                         Specification.Op.OpConvertSToF => (float)(int)convertOperand,
                         Specification.Op.OpConvertUToF => (float)(uint)convertOperand,
+                        _ => throw new NotSupportedException($"Unsupported conversion op: {op}"),
                     };
                     break;
                 // Unary operations
@@ -115,6 +116,7 @@ public partial class SpirvContext
                         // Note: first cast to object is important, otherwise int/float will be cast as float
                         Specification.Op.OpSNegate => (object)(-(int)unaryOperand),
                         Specification.Op.OpFNegate => -(float)unaryOperand,
+                        _ => throw new NotSupportedException($"Unsupported unary op: {op}"),
                     };
                     break;
                 // Binary operations
@@ -141,6 +143,7 @@ public partial class SpirvContext
                         Specification.Op.OpFSub => (float)left - (float)right,
                         Specification.Op.OpFMul => (float)left * (float)right,
                         Specification.Op.OpFDiv => (float)left / (float)right,
+                        _ => throw new NotSupportedException($"Unsupported binary op: {op}"),
                     };
                     break;
                 default:
@@ -157,7 +160,7 @@ public partial class SpirvContext
             var constants = new object[values.WordCount];
             for (int j = 0; j < values.WordCount; ++j)
             {
-                if (!TryGetConstantValue(values.Elements.Span[j], out constants[j], out _))
+                if (!TryGetConstantValue(values.Elements.Span[j], out constants[j]!, out _))
                     return false;
             }
 
@@ -258,6 +261,7 @@ public partial class SpirvContext
             ulong i => new IntegerLiteral(new(64, false, false), (long)i, location),
             float i => new FloatLiteral(new(32, true, true), i, null, location),
             double i => new FloatLiteral(new(64, true, true), i, null, location),
+            _ => throw new NotSupportedException($"Unsupported literal type: {value.GetType()}"),
         };
     }
 
@@ -351,6 +355,7 @@ public partial class SpirvContext
                 64 => ScalarType.Double,
                 _ => throw new NotImplementedException("Unsupported float")
             },
+            _ => throw new NotSupportedException($"Unsupported literal type: {literal.GetType()}"),
         };
     }
 }

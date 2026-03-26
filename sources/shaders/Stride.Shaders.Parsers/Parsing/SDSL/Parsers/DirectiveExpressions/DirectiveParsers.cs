@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualBasic;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -5,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct PreprocessorParser : IParser<PreProcessableCode>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out PreProcessableCode parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out PreProcessableCode parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -17,14 +18,14 @@ public record struct PreprocessorParser : IParser<PreProcessableCode>
         return true;
     }
 
-    public static bool PreCode<TScanner>(ref TScanner scanner, ParseResult result, out PreProcessableCode parsed, in ParseError? orError = null)
+    public static bool PreCode<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out PreProcessableCode parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new PreprocessorParser().Match(ref scanner, result, out parsed, orError);
 }
 
 public record struct DirectiveStatementParsers : IParser<DirectiveStatement>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out DirectiveStatement parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out DirectiveStatement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
@@ -51,7 +52,7 @@ public record struct DirectiveStatementParsers : IParser<DirectiveStatement>
         else return false;
     }
 
-    public static bool AnyIf<TScanner>(ref TScanner scanner, ParseResult result, out IfDirective parsed, in ParseError? orError = null)
+    public static bool AnyIf<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (If(ref scanner, result, out var ifDirective))
@@ -72,44 +73,44 @@ public record struct DirectiveStatementParsers : IParser<DirectiveStatement>
         parsed = null!;
         return false;
     }
-    public static bool Define<TScanner>(ref TScanner scanner, ParseResult result, out ObjectDefineDirective parsed, in ParseError? orError = null)
+    public static bool Define<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ObjectDefineDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ObjectDefineDirectiveParser().Match(ref scanner, result, out parsed, orError);
-    public static bool DefineFunc<TScanner>(ref TScanner scanner, ParseResult result, out FunctionDefineDirective parsed, in ParseError? orError = null)
+    public static bool DefineFunc<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out FunctionDefineDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new FunctionDefineDirectiveParser().Match(ref scanner, result, out parsed, orError);
-    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out IfDirective parsed, in ParseError? orError = null)
+    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalIfDirectivesParser().Match(ref scanner, result, out parsed, orError);
-    public static bool IfDef<TScanner>(ref TScanner scanner, ParseResult result, out IfDefDirective parsed, in ParseError? orError = null)
+    public static bool IfDef<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDefDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalIfDefDirectivesParser().Match(ref scanner, result, out parsed, orError);
-    public static bool IfNDef<TScanner>(ref TScanner scanner, ParseResult result, out IfNDefDirective parsed, in ParseError? orError = null)
+    public static bool IfNDef<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfNDefDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalIfNDefDirectivesParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Elif<TScanner>(ref TScanner scanner, ParseResult result, out IfDirective parsed, in ParseError? orError = null)
+    public static bool Elif<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalElifDirectivesParser().Match(ref scanner, result, out parsed, orError);
     public static bool Endif<TScanner>(ref TScanner scanner, ParseResult result, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new EndifDirectiveParser().Match(ref scanner, result, out _, orError);
-    public static bool Code<TScanner>(ref TScanner scanner, ParseResult result, out DirectiveCode parsed, in ParseError? orError = null)
+    public static bool Code<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out DirectiveCode parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DirectiveCodeParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out ElseDirective parsed, in ParseError? orError = null)
+    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ElseDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalElseDirectivesParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Conditional<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalDirectives parsed, in ParseError? orError = null)
+    public static bool Conditional<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ConditionalDirectives parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ConditionalDirectivesParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out DirectiveStatement parsed, in ParseError? orError = null)
+    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out DirectiveStatement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DirectiveStatementParsers().Match(ref scanner, result, out parsed, orError);
 }
 
 public struct ConditionalDirectivesParser : IParser<ConditionalDirectives>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalDirectives parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ConditionalDirectives parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -157,7 +158,7 @@ public struct ConditionalDirectivesParser : IParser<ConditionalDirectives>
 
 public record struct DirectiveCodeParser : IParser<DirectiveCode>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out DirectiveCode parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out DirectiveCode parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -197,7 +198,7 @@ public record struct DirectiveCodeParser : IParser<DirectiveCode>
 
 public record struct ConditionalIfDefDirectivesParser : IParser<IfDefDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out IfDefDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDefDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -223,7 +224,7 @@ public record struct ConditionalIfDefDirectivesParser : IParser<IfDefDirective>
 }
 public record struct ConditionalIfNDefDirectivesParser : IParser<IfNDefDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out IfNDefDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfNDefDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -250,7 +251,7 @@ public record struct ConditionalIfNDefDirectivesParser : IParser<IfNDefDirective
 
 public record struct ConditionalIfDirectivesParser : IParser<IfDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out IfDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -278,7 +279,7 @@ public record struct ConditionalIfDirectivesParser : IParser<IfDirective>
 
 public record struct ConditionalElifDirectivesParser : IParser<IfDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out IfDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out IfDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -304,7 +305,7 @@ public record struct ConditionalElifDirectivesParser : IParser<IfDirective>
 }
 public record struct ConditionalElseDirectivesParser : IParser<ElseDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ElseDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ElseDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -329,7 +330,7 @@ public record struct ConditionalElseDirectivesParser : IParser<ElseDirective>
 
 public record struct EndifDirectiveParser : IParser<NoNode>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out NoNode parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out NoNode parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -355,7 +356,7 @@ public record struct EndifDirectiveParser : IParser<NoNode>
 
 public record struct ObjectDefineDirectiveParser : IParser<ObjectDefineDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ObjectDefineDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ObjectDefineDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -399,7 +400,7 @@ public record struct ObjectDefineDirectiveParser : IParser<ObjectDefineDirective
 
 public record struct FunctionDefineDirectiveParser : IParser<FunctionDefineDirective>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out FunctionDefineDirective parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out FunctionDefineDirective parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

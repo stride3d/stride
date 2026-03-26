@@ -40,7 +40,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
     record SizePermutation(int Size, SizePermutationGenerator Generator);
     record BaseTypePermutation(SymbolType Type, BaseTypePermutationGenerator Generator);
 
-    record struct SizeValue(int Value, SizePermutationGenerator Generator);
+    record struct SizeValue(int Value, SizePermutationGenerator? Generator);
 
     public record struct IntrinsicOverload(FunctionType Type, List<(int SourceArgument, int TemplateIndex)>? AutoMatrixLoopLocations, int AutoMatrixLoopSize);
     Dictionary<string, List<IntrinsicOverload>> intrinsicDefinitionsCache = new();
@@ -68,7 +68,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
 
                 void AddVectorSizePermutation(int argument, int templateIndex, string name)
                 {
-                    SizePermutationGenerator permutation;
+                    SizePermutationGenerator? permutation;
 
                     // name can be either a value (1,2,3,4,any) or a name (when multiple slots adjusted with same permutation, in which case value is [1,2,3,4]).
                     switch (name)
@@ -80,6 +80,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 "2" => [2],
                                 "3" => [3],
                                 "4" => [4],
+                                _ => throw new NotSupportedException($"Unsupported size permutation value '{name}'"),
                             }, new());
                             sizePermutationGenerators.Add(permutation);
                             break;
@@ -287,6 +288,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                     AppendStructuredBufferType b => new(b.BaseType, new(1, null), default),
                                     ConsumeStructuredBufferType b => new(b.BaseType, new(1, null), default),
                                     StructuredBufferType b => new(b.BaseType, new(1, null), default),
+                                    _ => throw new NotSupportedException($"Unsupported this-type {thisType} for parameter info"),
                                 };
                             }
                             if (index == -3)
@@ -328,9 +330,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
 
                         firstIteration = false;
 
-                        List<int>? autoMatrixLoopArguments = null;
                         SizePermutationGenerator? autoMatrixLoop = null;
-                        FunctionType? autoMatrixLoopType = null;
                         int autoMatrixLoopSize = 0;
 
                         // Generate real types using sizes
@@ -340,14 +340,14 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
 
                             if (resolvedBaseType.Size1.Value > 1 && resolvedBaseType.Size2.Value > 1)
                             {
-                                if (resolvedBaseType.Size1.Generator.Name == null || resolvedBaseType.Size1.Generator.Name.StartsWith("__any"))
+                                if (resolvedBaseType.Size1.Generator is { } gen1 && (gen1.Name == null || gen1.Name.StartsWith("__any")))
                                 {
                                     // If matrix types are generated from a <> size generator (without a specific row/column pattern like in mul()),
                                     // we can automatically convert a call to multiple calls on each inner vector.
                                     // So we try to remember this info here
-                                    if (autoMatrixLoop != null && autoMatrixLoop != resolvedBaseType.Size1.Generator)
+                                    if (autoMatrixLoop != null && autoMatrixLoop != gen1)
                                         throw new InvalidOperationException("Multiple matrix with different generators");
-                                    autoMatrixLoop = resolvedBaseType.Size1.Generator;
+                                    autoMatrixLoop = gen1;
                                     autoMatrixLoopSize = resolvedBaseType.Size1.Value;
                                 }
                                 parameterTypes[index] = new MatrixType((ScalarType)resolvedBaseType.BaseType, resolvedBaseType.Size2.Value, resolvedBaseType.Size1.Value);
@@ -381,6 +381,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 Qualifier.InOut => ParameterModifiers.InOut,
                                 Qualifier.Ref => ParameterModifiers.Ref,
                                 null => ParameterModifiers.None,
+                                _ => throw new NotSupportedException($"Unsupported qualifier value: {intrinsicDefinition.Parameters[i].Qualifier}"),
                             };
 
                             // Wrap out/inout/ref parameters in PointerType, matching user-defined function convention

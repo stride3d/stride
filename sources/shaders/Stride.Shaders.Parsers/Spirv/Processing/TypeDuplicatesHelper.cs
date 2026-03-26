@@ -49,7 +49,7 @@ public class TypeDuplicateHelper
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
     }
 
-    class OperationComparer(SpirvContext Context, bool UseIndices, TypeDuplicateHelper? Helper = null) : IComparer<InstructionSortHelper>
+    class OperationComparer(SpirvContext Context, bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -172,11 +172,11 @@ public class TypeDuplicateHelper
             GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
         }
 
-        comparerSort = new OperationComparer(context, true, this);
+        comparerSort = new OperationComparer(context, true);
         namesByOp.Sort(comparerSort);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(context, false, this);
+        comparerInsert = new OperationComparer(context, false);
     }
 
     public OpDataIndex InsertInstruction(int index, OpData data)

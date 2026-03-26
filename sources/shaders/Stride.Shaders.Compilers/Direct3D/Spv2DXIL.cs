@@ -102,13 +102,10 @@ public struct RuntimeConf
     public dxil_shader_model shader_model_max;
 }
 
-[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public unsafe delegate void MSGCallback(void* priv, string msg);
-
 public unsafe struct DXILSpirvLogger
 {
     public void* priv;
-    public nint log;
+    public delegate* unmanaged[Cdecl]<void*, byte*, void> log;
 }
 
 public unsafe struct DXILSpirvObject
@@ -126,12 +123,14 @@ public unsafe struct DXILSpirvObject
     public void* buffer;
     public nint size;
 }
+#pragma warning disable CS0169 // Field is never used (interop layout fields)
 public unsafe struct Specialization
 {
     ushort id;
     void* value;
     bool defined_on_module;
 }
+#pragma warning restore CS0169
 
 public enum ValidatorVersion
 {

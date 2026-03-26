@@ -19,7 +19,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileAsuint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue? d = null, SpirvValue? x = null, SpirvValue? y = null)
     {
         if (d == null && y == null)
-            return CompileBitcastCall(context, builder, functionType, x.Value);
+            return CompileBitcastCall(context, builder, functionType, x!.Value);
         throw new NotImplementedException();
     }
 
@@ -94,6 +94,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         {
             ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFAbs(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
             ScalarType { Type: Scalar.UInt or Scalar.Int } => builder.InsertData(new GLSLSAbs(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for abs: {context.ReverseTypes[x.TypeId].GetElementType()}"),
         };
         return new(instruction);
     }
@@ -107,6 +108,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFMin(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMin(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
             ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSMin(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for min: {context.ReverseTypes[a.TypeId].GetElementType()}"),
         };
         return new(instruction);
     }
@@ -118,6 +120,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFMax(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMax(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
             ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSMax(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), a.Id, b.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for max: {context.ReverseTypes[a.TypeId].GetElementType()}"),
         };
         return new(instruction);
     }
@@ -129,6 +132,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, min.Id, max.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, min.Id, max.Id)),
             ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, min.Id, max.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for clamp: {context.ReverseTypes[x.TypeId].GetElementType()}"),
         };
         return new(instruction);
     }
@@ -194,6 +198,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             //float2x3 = OpTypeMatrix vec3 x2 = MatrixType(Rows: 3, Columns: 2)
             // mul(float2x4,float4x3) => float2x3
             (MatrixType type1, MatrixType type2) when type1.Rows == type2.Columns => builder.InsertData(new OpMatrixTimesMatrix(context.GetOrRegister(new MatrixType(type1.BaseType, type2.Rows, type1.Columns)), context.Bound++, b.Id, a.Id)),
+            _ => throw new NotSupportedException($"Unsupported mul operand types: {context.ReverseTypes[a.TypeId]} and {context.ReverseTypes[b.TypeId]}"),
         };
 
         return new SpirvValue(result);
@@ -231,6 +236,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, constant0.Id, constant1.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, constant0.Id, constant1.Id)),
             ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSClamp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, constant0.Id, constant1.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for saturate: {functionType.ReturnType.GetElementType()}"),
         };
         return new(instruction);
     }
@@ -241,6 +247,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         {
             ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFSign(x.TypeId, context.Bound++, context.GetGLSL(), x.Id)),
             ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.UInt64 or Scalar.Int64 } => builder.InsertData(new GLSLSSign(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
+            _ => throw new NotSupportedException($"Unsupported element type for sign: {sourceType.GetElementType()}"),
         };
         // FSign return float whereas HLSL sign() expects int
         return builder.Convert(context, new(instruction), functionType.ReturnType);
@@ -633,7 +640,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
                 context.CompileConstant((int)Specification.Scope.Device).Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
-                compare.Value.Id,
+                compare!.Value.Id,
                 value.Id));
             originalValue = new SpirvValue(instruction.ResultId, instruction.ResultType);
         }
@@ -653,6 +660,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
                 InterlockedOp.Max => s.IsSigned() ? Specification.Op.OpAtomicSMax : Specification.Op.OpAtomicUMax,
                 InterlockedOp.Min => s.IsSigned() ? Specification.Op.OpAtomicSMin : Specification.Op.OpAtomicUMin,
                 InterlockedOp.Exchange => Specification.Op.OpAtomicExchange,
+                _ => throw new NotSupportedException($"Unsupported interlocked operation: {op}"),
             });
             originalValue = new SpirvValue(instruction.ResultId, instruction.ResultType);
         }

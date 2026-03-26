@@ -50,7 +50,7 @@ public record struct ExternalConstant(ConstantExpression Expression);
 /// Defines a symbol.
 /// </summary>
 /// <param name="GroupMembers">Only used for specific <see cref="Type"/> such as <see cref="FunctionGroupType"/></param>
-public record Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null, ExternalConstant? ExternalConstant = null, ShaderDefinition? OwnerType = null)
+public record Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType? MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null, ExternalConstant? ExternalConstant = null, ShaderDefinition? OwnerType = null)
 {
     public int IdRef { get; set; } = IdRef;
     public SymbolType Type { get; set; } = Type;

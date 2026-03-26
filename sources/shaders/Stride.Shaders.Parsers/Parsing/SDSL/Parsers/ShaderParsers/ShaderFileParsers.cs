@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDFX;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -8,7 +9,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderFileParser : IParser<ShaderFile>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderFile parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderFile parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -62,14 +63,14 @@ public record struct ShaderFileParser : IParser<ShaderFile>
         parsed = file;
         return true;
     }
-    public static bool UsingNamespace<TScanner>(ref TScanner scanner, ParseResult result, out UsingShaderNamespace parsed, in ParseError? orError = null)
+    public static bool UsingNamespace<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out UsingShaderNamespace parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new UsingNamespaceParser().Match(ref scanner, result, out parsed, orError);
 }
 
 public record struct UsingNamespaceParser : IParser<UsingShaderNamespace>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out UsingShaderNamespace parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out UsingShaderNamespace parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -78,9 +79,9 @@ public record struct UsingNamespaceParser : IParser<UsingShaderNamespace>
             parsed = new(scanner[..]);
             do
             {
-                if (Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out Identifier identifier, withSpaces: true, advance: true))
+                if (Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true))
                 {
-                    parsed.NamespacePath.Add(identifier);
+                    parsed.NamespacePath.Add(identifier!);
                 }
                 else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
             }
@@ -104,7 +105,7 @@ public record struct UsingNamespaceParser : IParser<UsingShaderNamespace>
 
 public record struct NamespaceParsers : IParser<ShaderNamespace>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderNamespace parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderNamespace parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -168,7 +169,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Namespace<TScanner>(ref TScanner scanner, ParseResult result, out ShaderNamespace parsed, in ParseError? orError = null)
+    public static bool Namespace<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderNamespace parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new NamespaceParsers().Match(ref scanner, result, out parsed, orError);
 }

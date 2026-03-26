@@ -17,7 +17,7 @@ namespace Stride.Shaders.Compiler
             compositionComparer = new CompositionComparer(this);
         }
 
-        public override bool Equals(ShaderSource x, ShaderSource y)
+        public override bool Equals(ShaderSource? x, ShaderSource? y)
         {
             if (x == null && y == null)
                 return true;
@@ -52,7 +52,7 @@ namespace Stride.Shaders.Compiler
             throw new InvalidOperationException("Invalid ShaderSource comparison.");
         }
 
-        public override int GetHashCode(ShaderSource obj)
+        public override int GetHashCode(ShaderSource? obj)
         {
             if (obj == null)
                 return 0;

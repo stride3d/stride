@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct DirectivePrimaryParsers : IParser<Expression>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (Parenthesis(ref scanner, result, out parsed))
@@ -27,13 +28,13 @@ public record struct DirectivePrimaryParsers : IParser<Expression>
             return false;
         }
     }
-    public static bool Primary<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Primary<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
             => new DirectivePrimaryParsers().Match(ref scanner, result, out parsed, in orError);
-    public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, out Identifier parsed)
+    public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Identifier parsed)
         where TScanner : struct, IScanner
             => new IdentifierParser().Match(ref scanner, result, out parsed);
-    public static bool Parenthesis<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Parenthesis<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DirectiveParenthesisExpressionParser().Match(ref scanner, result, out parsed, in orError);
 }
@@ -41,7 +42,7 @@ public record struct DirectivePrimaryParsers : IParser<Expression>
 
 public record struct DirectiveParenthesisExpressionParser : IParser<Expression>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -66,7 +67,7 @@ public record struct DirectiveParenthesisExpressionParser : IParser<Expression>
 
 public record struct DirectiveMethodCallParser : IParser<Expression>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

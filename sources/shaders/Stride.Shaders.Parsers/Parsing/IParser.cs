@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing;
@@ -23,6 +24,6 @@ public interface IParser<TResult> : IParser
     /// <param name="orError">The error to use in case of a parse error</param>
     /// <typeparam name="TScanner">Type of the scanner</typeparam>
     /// <returns></returns>
-    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null)
+    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TResult parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner;
 }

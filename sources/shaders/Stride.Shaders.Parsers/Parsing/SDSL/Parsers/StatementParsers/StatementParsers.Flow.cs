@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -7,11 +8,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct FlowParsers : IParser<Flow>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Flow parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => Flow(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Flow parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -40,11 +41,11 @@ public record struct FlowParsers : IParser<Flow>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, ParseError? orError = null)
+    public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Flow parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => Flow(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool While<TScanner>(ref TScanner scanner, ParseResult result, out While parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool While<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out While parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -70,11 +71,11 @@ public record struct FlowParsers : IParser<Flow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool While<TScanner>(ref TScanner scanner, ParseResult result, out While parsed, ParseError? orError = null)
+    public static bool While<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out While parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => While(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool For<TScanner>(ref TScanner scanner, ParseResult result, out For parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool For<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out For parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -124,11 +125,11 @@ public record struct FlowParsers : IParser<Flow>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool For<TScanner>(ref TScanner scanner, ParseResult result, out For parsed, ParseError? orError = null)
+    public static bool For<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out For parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => For(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool ForEach<TScanner>(ref TScanner scanner, ParseResult result, out ForEach parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool ForEach<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ForEach parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -169,11 +170,11 @@ public record struct FlowParsers : IParser<Flow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool ForEach<TScanner>(ref TScanner scanner, ParseResult result, out ForEach parsed, ParseError? orError = null)
+    public static bool ForEach<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ForEach parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => ForEach(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
+    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

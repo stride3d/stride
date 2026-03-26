@@ -37,7 +37,7 @@ namespace Stride.Shaders.Compiler
         private bool d3dCompilerLoaded = false;
         private static readonly Object WriterLock = new Object();
 
-        private FileShaderLoader shaderLoader;
+        private FileShaderLoader? shaderLoader;
 
         private readonly object shaderMixinParserLock = new object();
 
@@ -143,7 +143,8 @@ namespace Stride.Shaders.Compiler
             shaderMixinSource.AddMacro("class", "shader");
 
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
-            shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
+            if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+                return new EffectBytecodeCompilerResult(null, log);
 
             // -------------------------------------------------------
             // Prepare DynamicCache folder for debug files
@@ -166,7 +167,7 @@ namespace Stride.Shaders.Compiler
             }
 
             // Select the correct backend compiler
-            IShaderCompiler compiler;
+            IShaderCompiler? compiler;
             // Set to null if translator is not needed
             Backend? translatorBackend = null;
             switch (effectParameters.Platform)
@@ -219,6 +220,7 @@ namespace Stride.Shaders.Compiler
                             ExecutionModel.Geometry => ShaderStage.Geometry,
                             ExecutionModel.Fragment => ShaderStage.Pixel,
                             ExecutionModel.GLCompute => ShaderStage.Compute,
+                            _ => throw new NotSupportedException($"Unsupported execution model: {entryPoint.ExecutionModel}"),
                         };
 
 #if STRIDE_PLATFORM_DESKTOP
@@ -230,13 +232,14 @@ namespace Stride.Shaders.Compiler
                             ShaderStage.Geometry => "gs",
                             ShaderStage.Pixel => "ps",
                             ShaderStage.Compute => "cs",
+                            _ => throw new NotSupportedException($"Unsupported shader stage: {shaderStage}"),
                         };
                         stageHlslSources.Add((stageSuffix, code));
-                        string stageFilename = null;
+                        string? stageFilename = null;
 #else
-                        string stageFilename = null;
+                        string? stageFilename = null;
 #endif
-                        var result = compiler.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
+                        var result = compiler!.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
                         result.CopyTo(log);
 
                         if (result.HasErrors)
@@ -247,7 +250,7 @@ namespace Stride.Shaders.Compiler
                         // -------------------------------------------------------
                         // Append bytecode id to shader log
 #if STRIDE_PLATFORM_DESKTOP
-                        stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(shaderStage, result.Bytecode.Id));
+                        stageStringBuilder.AppendLine($"@G    {shaderStage} => {result.Bytecode!.Id}");
                         if (result.DisassembleText != null)
                         {
                             stageStringBuilder.Append(result.DisassembleText);
@@ -292,6 +295,7 @@ namespace Stride.Shaders.Compiler
                                         ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
                                         ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
                                         ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
+                                        _ => throw new NotSupportedException($"Unsupported shader stage: {entryPoint.Stage}"),
                                     },
                                     entryPoint.Name,
                                     ValidatorVersion.DXIL_VALIDATOR_1_4,
@@ -360,8 +364,7 @@ namespace Stride.Shaders.Compiler
                     builder.AppendLine("/**************************");
                     builder.AppendLine("***** Compiler Parameters *****");
                     builder.AppendLine("***************************");
-                    builder.Append("@P EffectName: ");
-                    builder.AppendLine(fullEffectName ?? "");
+                    builder.AppendLine($"@P EffectName: {fullEffectName ?? "(none)"}");
                     builder.Append(compilerParameters?.ToStringPermutationsDetailed());
                     builder.AppendLine("***************************");
                     builder.AppendLine("****   Shader Source   ****");
@@ -382,7 +385,7 @@ namespace Stride.Shaders.Compiler
                             builder.AppendLine($"cbuffer {cBuffer.Name} [Size: {cBuffer.Size}]");
                             foreach (var parameter in cBuffer.Members)
                             {
-                                builder.AppendLine($"@C    {parameter.RawName} => {parameter.KeyInfo.KeyName} [LogicalGroup: {parameter.LogicalGroup}]");
+                                builder.AppendLine($"@C    {parameter.RawName} => {parameter.KeyInfo.KeyName} [LogicalGroup: {parameter.LogicalGroup ?? "(none)"}]");
                             }
                         }
                         builder.AppendLine("***************************");

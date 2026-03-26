@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,11 +6,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct BufferParsers : IParser<ShaderBuffer>
 {
-    public static bool Buffer<TScanner>(ref TScanner scanner, ParseResult result, out ShaderBuffer parsed, in ParseError? orError = null)
+    public static bool Buffer<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderBuffer parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new BufferParsers().Match(ref scanner, result, out parsed, orError);
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderBuffer parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderBuffer parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         return Parsers.Alternatives(
             ref scanner, result, out parsed, in orError,
@@ -19,7 +20,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         );
     }
 
-    public static bool TBuffer<TScanner>(ref TScanner scanner, ParseResult result, out ShaderBuffer parsed, in ParseError? orError = null)
+    public static bool TBuffer<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderBuffer parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -55,7 +56,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError); ;
     }
 
-    public static bool CBuffer<TScanner>(ref TScanner scanner, ParseResult result, out ShaderBuffer parsed, in ParseError? orError = null)
+    public static bool CBuffer<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderBuffer parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -94,7 +95,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool RGroup<TScanner>(ref TScanner scanner, ParseResult result, out ShaderBuffer parsed, in ParseError? orError = null)
+    public static bool RGroup<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderBuffer parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -133,7 +134,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Member<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMember parsed, in ParseError? orError = null)
+    public static bool Member<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMember parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         Parsers.Spaces0(ref scanner, result, out _);
@@ -156,17 +157,17 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         {
             parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind);
             if (hasAttributes)
-                parsed.Attributes = attributes.Attributes;
+                parsed.Attributes = attributes!.Attributes;
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool BufferName<TScanner>(ref TScanner scanner, ParseResult result, out Identifier parsed, in ParseError? orError = null)
+    public static bool BufferName<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Identifier parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
-        if (Parsers.Repeat(ref scanner, result, LiteralsParser.Identifier, out List<Identifier> identifiers, 1, true, ".", orError))
+        if (Parsers.Repeat(ref scanner, result, LiteralsParser.Identifier, out List<Identifier>? identifiers, 1, true, ".", orError))
         {
             parsed = new Identifier(string.Join(".", identifiers.Select(i => i.Name)), scanner[identifiers[0].Info.Range.Start..identifiers[^1].Info.Range.End]);
             return true;

@@ -73,7 +73,8 @@ namespace Stride
                     RedirectStandardOutput = true,
                 }))
             {
-                process.OutputDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputLines, args);
+                // non null (can only happen when opening documents)
+                process!.OutputDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputLines, args);
                 process.ErrorDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputErrors, args);
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
@@ -99,7 +100,7 @@ namespace Stride
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
-                });
+                })!; // non null (can only happen when opening documents)
         }
         public static int RunProcessAndRedirectToLogger(string command, string parameters, string workingDirectory, LoggerResult logger)
         {

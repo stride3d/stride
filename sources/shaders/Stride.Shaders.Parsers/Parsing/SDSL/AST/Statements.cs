@@ -102,13 +102,16 @@ public partial class DeclaredVariableAssign(Identifier variable, bool isConst, T
         {
             Value?.ProcessSymbol(table);
             if (Value == null)
+            {
                 table.Errors.Add(new(Info, "can't infer `var` type without a value"));
-            valueType = Value.ValueType;
+                return;
+            }
+            valueType = Value.ValueType!;
         }
         else
         {
             TypeName.ProcessSymbol(table);
-            valueType = TypeName.Type;
+            valueType = TypeName.Type!;
             Value?.ProcessSymbol(table, TypeName.Type);
             // If type was unsized array (e.g. int2[]) and initializer inferred the size, use that
             if (valueType is ArrayType { Size: -1 } && Value?.ValueType is ArrayType { Size: > 0 } inferred)
@@ -161,10 +164,10 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
         for (var index = 0; index < Variables.Count; index++)
         {
             var declaration = Variables[index];
-            declaration.TypeName = new TypeName(TypeName.Name, info) { ArraySize = declaration.ArraySizes };
+            declaration.TypeName = new TypeName(TypeName.Name, Info) { ArraySize = declaration.ArraySizes };
             declaration.ProcessSymbol(table);
 
-            var variableSymbol = new Symbol(new(declaration.Variable, SymbolKind.Variable), declaration.Type, 0, OwnerType: table.CurrentShader);
+            var variableSymbol = new Symbol(new(declaration.Variable, SymbolKind.Variable), declaration.Type!, 0, OwnerType: table.CurrentShader);
             table.CurrentFrame.Add(declaration.Variable, variableSymbol);
             VariableSymbols.Add(variableSymbol);
         }
@@ -181,7 +184,7 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
             var d = Variables[index];
 
             var variable = context.Bound++;
-            var variableType = (PointerType)d.Type;
+            var variableType = (PointerType)d.Type!;
             var variableValueType = variableType.BaseType;
             var variableTypeId = context.GetOrRegister(variableType);
             builder.AddFunctionVariable(variableTypeId, variable);
@@ -214,7 +217,7 @@ public partial class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
 
-    public SymbolFrame SymbolFrame;
+    public SymbolFrame? SymbolFrame;
 
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -226,7 +229,7 @@ public partial class BlockStatement(TextLocation info) : Statement(info)
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        table.Push(SymbolFrame);
+        table.Push(SymbolFrame!);
         var (builder, context) = compiler;
         foreach (var s in Statements)
         {

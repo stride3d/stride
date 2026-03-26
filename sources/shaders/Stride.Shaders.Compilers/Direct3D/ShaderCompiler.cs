@@ -205,9 +205,11 @@ namespace Stride.Shaders.Compiler.Direct3D
             static void ProcessCompilerErrors(ComPtr<ID3D10Blob> compileErrors, ShaderBytecodeResult bytecodeResult)
             {
                 var compileErrorsStr = GetTextFromBlob(compileErrors);
+                if (compileErrorsStr is null)
+                    return;
                 using (StringReader reader = new StringReader(compileErrorsStr))
                 {
-                    string line;
+                    string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
                         if (line.Contains(": error"))
@@ -232,7 +234,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                 d3dCompiler.Disassemble(bytecode.GetBufferPointer(), bytecode.GetBufferSize(), Flags: 0,
                                         in noComments, ref disassembly);
 
-                string shaderDisassembly = GetTextFromBlob(disassembly);
+                string shaderDisassembly = GetTextFromBlob(disassembly)!;
                 disassembly.Dispose();
 
                 return shaderDisassembly;
@@ -287,7 +289,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                     if (constantBufferDesc.Type == D3DCBufferType.D3DCTResourceBindInfo)
                         continue;
 
-                    string constantBufferName = GetUtf8Span(constantBufferDesc.Name).GetString();
+                    string constantBufferName = GetUtf8Span(constantBufferDesc.Name).GetString()!;
                     var linkBuffer = effectReflection.ConstantBuffers.First(buffer => buffer.Name == constantBufferName);
 
                     ValidateConstantBufferReflection(constantBuffer, ref constantBufferDesc, linkBuffer, log);
@@ -305,12 +307,12 @@ namespace Stride.Shaders.Compiler.Direct3D
                     SkipInit(out ShaderInputBindDesc boundResourceDesc);
                     shaderReflection.GetResourceBindingDesc(i, ref boundResourceDesc);
 
-                    string linkKeyName = null;
-                    string resourceGroup = null;
-                    string logicalGroup = null;
+                    string? linkKeyName = null;
+                    string? resourceGroup = null;
+                    string? logicalGroup = null;
                     var elementType = default(EffectTypeDescription);
 
-                    var resourceName = GetUtf8Span(boundResourceDesc.Name).GetString();
+                    string resourceName = GetUtf8Span(boundResourceDesc.Name).GetString()!;
 
                     foreach (var linkResource in effectReflection.ResourceBindings)
                     {
@@ -439,7 +441,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                         SkipInit(out ShaderTypeDesc variableTypeDescription);
                         variableType.GetDesc(ref variableTypeDescription);
 
-                        var variableName = GetUtf8Span(variableDescription.Name).GetString();
+                        var variableName = GetUtf8Span(variableDescription.Name).GetString()!;
                         if (variableTypeDescription.Offset != 0)
                         {
                             log.Error($"Unexpected offset [{variableTypeDescription.Offset}] for variable [{variableName}] in Constant Buffer [{constantBuffer.Name}]");
@@ -722,7 +724,7 @@ namespace Stride.Shaders.Compiler.Direct3D
             //
             // Gets text data from a ID3D10Blob as a string.
             //
-            static string GetTextFromBlob(ComPtr<ID3D10Blob> blob)
+            static string? GetTextFromBlob(ComPtr<ID3D10Blob> blob)
             {
                 if (blob.Handle is null)
                     return null;

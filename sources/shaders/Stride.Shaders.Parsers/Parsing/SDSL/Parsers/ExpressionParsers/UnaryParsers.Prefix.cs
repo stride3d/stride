@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -6,12 +7,12 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct PrefixParser : IParser<Expression>
 {
-    public static bool Prefix<TScanner>(ref TScanner scanner, ParseResult result, out Expression prefix, in ParseError? orError = null)
+    public static bool Prefix<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression prefix, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new PrefixParser().Match(ref scanner, result, out prefix, in orError);
 
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         return Parsers.Alternatives(
@@ -27,7 +28,7 @@ public record struct PrefixParser : IParser<Expression>
         );
     }
 
-    public static bool Not<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Not<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -47,7 +48,7 @@ public record struct PrefixParser : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Signed<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Signed<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -66,7 +67,7 @@ public record struct PrefixParser : IParser<Expression>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool PrefixIncrement<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool PrefixIncrement<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -95,22 +96,22 @@ public record struct PrefixParser : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Cast<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Cast<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         var s1 = Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true);
         if (!s1) { return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
-        var s2 = Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typeName, withSpaces: true, advance: true);
+        var s2 = Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName? typeName, withSpaces: true, advance: true);
         if (!s2) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
         var s3 = Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true);
         if (!s3) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
-        var s4 = Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression expression, withSpaces: true, advance: true);
+        var s4 = Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression? expression, withSpaces: true, advance: true);
         if (!s4) {
             scanner.Position = position;
             return Parsers.Exit(ref scanner, result, out parsed, position, orError);
         }
-        parsed = new CastExpression(typeName, Operator.Cast, expression, scanner[position..scanner.Position]);
+        parsed = new CastExpression(typeName!, Operator.Cast, expression!, scanner[position..scanner.Position]);
         return true;
     }
 }

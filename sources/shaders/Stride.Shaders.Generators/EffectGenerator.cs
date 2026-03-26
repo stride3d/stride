@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Parsing.SDFX;
 
@@ -24,7 +25,7 @@ public class EffectGenerator : IIncrementalGenerator
 
         try
         {
-            var preprocessedText = MonoGamePreProcessor.Run(arg2.GetText().ToString(), arg2.Path);
+            var preprocessedText = MonoGamePreProcessor.Run(arg2.GetText()?.ToString() ?? throw new InvalidOperationException($"Could not read file content for {arg2.Path}"), arg2.Path);
             var parsed = SDSLParser.Parse(preprocessedText);
             if (parsed.Errors.Count > 0)
             {
@@ -32,6 +33,11 @@ public class EffectGenerator : IIncrementalGenerator
                 foreach (var error in parsed.Errors)
                     sb.AppendLine($"#error Parse error: {error}");
                 arg1.AddSource(filename, sb.ToString());
+                return;
+            }
+            else if (parsed.AST == null)
+            {
+                arg1.AddSource(filename, "#error No AST parsed");
                 return;
             }
 

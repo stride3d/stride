@@ -1,4 +1,4 @@
-﻿using Silk.NET.SPIRV.Cross;
+using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
@@ -26,7 +26,7 @@ public partial class ShaderMixer
         /// </summary>
         public ShaderInfo? Stage { get; set; }
 
-        public ShaderDefinition Symbol { get; set; }
+        public ShaderDefinition? Symbol { get; set; }
 
         /// <summary>
         /// Kept for debug purpose.

@@ -48,10 +48,7 @@ namespace Stride.Shaders
         {
             lock (generatorLock)
             {
-                if (generator == null)
-                {
-                    generator = new ShaderMixinObjectId();
-                }
+                generator ??= new ShaderMixinObjectId();
                 return generator.ComputeInternal(mixin, effectCompilerParameters);
             }
         }
@@ -68,10 +65,7 @@ namespace Stride.Shaders
         {
             lock (generatorLock)
             {
-                if (generator == null)
-                {
-                    generator = new ShaderMixinObjectId();
-                }
+                generator ??= new ShaderMixinObjectId();
                 return generator.ComputeInternal(effectName, compilerParameters);
             }
         }
@@ -90,7 +84,7 @@ namespace Stride.Shaders
 
             // Compute hash
             objectIdBuilder.Reset();
-            objectIdBuilder.Write((byte*)buffer, (int)memStream.Position);
+            objectIdBuilder.Write(new ReadOnlySpan<byte>((void*)buffer, (int)memStream.Position));
 
             return objectIdBuilder.ComputeHash();
         }
@@ -111,7 +105,7 @@ namespace Stride.Shaders
 
             // Compute hash
             objectIdBuilder.Reset();
-            objectIdBuilder.Write((byte*)buffer, (int)memStream.Position);
+            objectIdBuilder.Write(new ReadOnlySpan<byte>((void*)buffer, (int)memStream.Position));
 
             return objectIdBuilder.ComputeHash();
         }

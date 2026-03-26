@@ -27,6 +27,7 @@ internal static class StreamAccessPatcher
                 StreamsKindSDSL.Input => inputReplacement,
                 StreamsKindSDSL.Output => outputReplacement,
                 StreamsKindSDSL.Constants => constantsReplacement ?? throw new InvalidOperationException(),
+                _ => throw new NotSupportedException($"Unsupported StreamsKindSDSL value: {streamsType.Kind}"),
             };
         }
 
@@ -91,7 +92,6 @@ internal static class StreamAccessPatcher
             }
         }
 
-        int parameterIndex = 0;
         Span<int> tempIdsForStreamCopy = stackalloc int[streams.Values.Count];
         for (int index = methodStart; ; ++index)
         {
@@ -135,8 +135,9 @@ internal static class StreamAccessPatcher
                     var streamStructMemberIndex = streamAccessInfo.Kind switch
                     {
                         StreamsKindSDSL.Streams or StreamsKindSDSL.Constants => streamInfo.StreamStructFieldIndex,
-                        StreamsKindSDSL.Input => streamInfo.InputStructFieldIndex.Value,
-                        StreamsKindSDSL.Output => streamInfo.OutputStructFieldIndex.Value,
+                        StreamsKindSDSL.Input => streamInfo.InputStructFieldIndex!.Value,
+                        StreamsKindSDSL.Output => streamInfo.OutputStructFieldIndex!.Value,
+                        _ => throw new NotSupportedException($"Unsupported StreamsKindSDSL value: {streamAccessInfo.Kind}"),
                     };
 
                     // TODO: this won't update accessChain.Memory yet but setting accessChain.Base later will fix that

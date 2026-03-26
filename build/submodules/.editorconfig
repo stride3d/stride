@@ -1,0 +1,13 @@
+# disable diagnostics for CppNet8 files
+[CppNet8/**.cs]
+dotnet_diagnostic.CS0114.severity = none
+dotnet_diagnostic.CS0164.severity = none
+dotnet_diagnostic.CS0219.severity = none
+dotnet_diagnostic.CS0472.severity = none
+dotnet_diagnostic.CS0642.severity = none
+dotnet_diagnostic.CS8600.severity = none
+dotnet_diagnostic.CS8602.severity = none
+dotnet_diagnostic.CS8603.severity = none
+dotnet_diagnostic.CS8604.severity = none
+dotnet_diagnostic.CS8618.severity = none
+dotnet_diagnostic.CS8625.severity = none

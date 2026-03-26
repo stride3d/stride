@@ -1,12 +1,13 @@
-using Stride.Shaders.Parsing.SDSL;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDFX.AST;
+using Stride.Shaders.Parsing.SDSL;
 
 namespace Stride.Shaders.Parsing.SDFX;
 
 
 public record struct ParamsParsers : IParser<EffectParameters>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameters parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out EffectParameters parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (Tokens.Literal("params", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
@@ -29,7 +30,7 @@ public record struct ParamsParsers : IParser<EffectParameters>
                             return true;
                         }
                         else
-                            SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0012, scanner[scanner.Position], scanner.Memory));
+                            return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0012, scanner[scanner.Position], scanner.Memory));
                         SDSL.Parsers.Spaces0(ref scanner, result, out _);
                     }
                 }
@@ -37,15 +38,15 @@ public record struct ParamsParsers : IParser<EffectParameters>
         }
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    public static bool Params<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameters parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Params<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out EffectParameters parsed, in ParseError? orError = null) where TScanner : struct, IScanner
             => new ParamsParsers().Match(ref scanner, result, out parsed, orError);
-    public static bool Parameter<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameter parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Parameter<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out EffectParameter parsed, in ParseError? orError = null) where TScanner : struct, IScanner
             => new ParameterParser().Match(ref scanner, result, out parsed, orError);
 }
 
 public record struct ParameterParser : IParser<EffectParameter>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameter parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out EffectParameter parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 

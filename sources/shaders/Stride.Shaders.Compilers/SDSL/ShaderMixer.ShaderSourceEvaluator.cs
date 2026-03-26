@@ -30,6 +30,7 @@ public partial class ShaderMixer
         {
             ShaderMixinSource mixinSource2 => mixinSource2,
             ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource } },
+            _ => throw new NotSupportedException($"Unsupported shader source type: {shaderSource.GetType().Name}"),
         };
 
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
@@ -146,12 +147,12 @@ public partial class ShaderMixer
             if (result.Mixins.Contains(shaderName))
                 continue;
 
-            var shader = shaderName.Buffer.Value;
+            var shaderBuffers = shaderName.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shaderName.ClassName}");
 
-            bool hasStage = HasStageMembersOrCompositions(shader);
+            bool hasStage = HasStageMembersOrCompositions(shaderBuffers);
 
             // Discover and recursively process compositions
-            ProcessCompositions(shaderLoader, context, shader, shaderMixinSource, compositions, promoteToParentForCompositions, needsFullImport);
+            ProcessCompositions(shaderLoader, context, shaderBuffers, shaderMixinSource, compositions, promoteToParentForCompositions, needsFullImport);
 
             // Promote to parent level if this shader has stage members or needs full import
             if (hasStage || needsFullImport.Contains(shaderName.ClassName))
@@ -183,17 +184,17 @@ public partial class ShaderMixer
     /// </summary>
     private static void ScanNeedsFullImport(ShaderClassInstantiation shader, HashSet<string> needsFullImport)
     {
-        var buf = shader.Buffer.Value;
-        foreach (var i in buf.Context)
+        var shaderBuffers = shader.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shader.ClassName}");
+        foreach (var i in shaderBuffers.Context)
         {
             if (i.Op == Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)i is { } inherit
                 && (inherit.Flags & MixinInheritFlagsMask.NeedsFullImport) != 0
-                && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is ShaderSymbol lss)
+                && shaderBuffers.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is ShaderSymbol lss)
             {
                 needsFullImport.Add(lss.Name);
             }
         }
-        foreach (var i in buf.Buffer)
+        foreach (var i in shaderBuffers.Buffer)
         {
             if (i.Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)i is { } fi
                 && (fi.Flags & FunctionFlagsMask.ReferencesNonStage) != 0)

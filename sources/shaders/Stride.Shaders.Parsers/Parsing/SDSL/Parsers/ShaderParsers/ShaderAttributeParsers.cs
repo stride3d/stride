@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 
@@ -7,7 +8,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderAttributeListParser : IParser<ShaderAttributeList>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderAttributeList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderAttributeList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
@@ -29,15 +30,15 @@ public record struct ShaderAttributeListParser : IParser<ShaderAttributeList>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
 
     }
-    public static bool AttributeList<TScanner>(ref TScanner scanner, ParseResult result, out ShaderAttributeList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool AttributeList<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderAttributeList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new ShaderAttributeListParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Attribute<TScanner>(ref TScanner scanner, ParseResult result, out ShaderAttribute parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Attribute<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderAttribute parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new AttributeParser().Match(ref scanner, result, out parsed, orError);
 }
 
 public record struct AttributeParser : IParser<ShaderAttribute>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderAttribute parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderAttribute parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (Tokens.Char('[', ref scanner, advance: true))

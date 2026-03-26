@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -6,7 +7,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderClassParsers : IParser<ShaderClass>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (ComplexClass(ref scanner, result, out parsed, in orError))
@@ -14,17 +15,17 @@ public record struct ShaderClassParsers : IParser<ShaderClass>
         else
             return false;
     }
-    public static bool Class<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public static bool Class<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParsers().Match(ref scanner, result, out parsed, in orError);
-    public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParser().Match(ref scanner, result, out parsed, in orError);
 }
 
 public record struct SimpleShaderClassParser : IParser<ShaderClass>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -59,7 +60,7 @@ public record struct SimpleShaderClassParser : IParser<ShaderClass>
 
 public record struct ShaderClassParser : IParser<ShaderClass>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -139,7 +140,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
 
 public record struct GenericIdentifierParser : IParser<GenericIdentifier>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out GenericIdentifier parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (LiteralsParser.Identifier(ref scanner, result, out var typename)
@@ -177,7 +178,7 @@ public record struct GenericIdentifierParser : IParser<GenericIdentifier>
 
 public record struct ShaderGenericsDefinitionParser : IParser<ShaderGenerics>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderGenerics parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderGenerics parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

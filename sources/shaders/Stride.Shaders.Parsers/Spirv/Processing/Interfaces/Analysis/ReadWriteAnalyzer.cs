@@ -87,7 +87,7 @@ internal static class ReadWriteAnalyzer
                     accessChain.Base = load.Pointer;
                 if (streams.TryGetValue(accessChain.Base, out var streamInfo))
                 {
-                    var streamKind = accessChain.StreamKind.Value;
+                    var streamKind = accessChain.StreamKind!.Value;
 
                     // If read on input/output stream, we force it to be emitted in the input/output struct
                     if (streamKind == StreamsKindSDSL.Output)
@@ -121,7 +121,7 @@ internal static class ReadWriteAnalyzer
 
                 if (streams.TryGetValue(accessChain.Base, out var streamInfo))
                 {
-                    var streamKind = accessChain.StreamKind.Value;
+                    var streamKind = accessChain.StreamKind!.Value;
                     // Write on input/output stream are not allowed
                     if (streamKind is StreamsKindSDSL.Input or StreamsKindSDSL.Output)
                         throw new InvalidOperationException("Can't write value on input or output struct");

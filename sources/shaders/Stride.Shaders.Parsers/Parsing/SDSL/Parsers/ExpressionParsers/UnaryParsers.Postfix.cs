@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -5,11 +6,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct PostfixParser : IParser<Expression>
 {
-    public static bool Postfix<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool Postfix<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new PostfixParser().Match(ref scanner, result, out parsed, in orError);
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -22,25 +23,25 @@ public record struct PostfixParser : IParser<Expression>
                 {
                     if (
                         matched == "["
-                        && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression indexer, withSpaces: true, advance: true)
+                        && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? indexer, withSpaces: true, advance: true)
                         && Parsers.FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true)
                     )
                     {
-                        ((AccessorChainExpression)parsed).Accessors.Add(new IndexerExpression(indexer, indexer.Info));
+                        ((AccessorChainExpression)parsed).Accessors.Add(new IndexerExpression(indexer!, indexer!.Info));
                     }
                     else if (
                         matched == "."
-                        && Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Method, out Expression call, withSpaces: true, advance: true)
+                        && Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Method, out Expression? call, withSpaces: true, advance: true)
                     )
                     {
-                        ((AccessorChainExpression)parsed).Accessors.Add(call);
+                        ((AccessorChainExpression)parsed).Accessors.Add(call!);
                     }
                     else if (
                         matched == "."
-                        && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.IdentifierBase, out IdentifierBase accessor, withSpaces: true, advance: true)
+                        && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.IdentifierBase, out IdentifierBase? accessor, withSpaces: true, advance: true)
                     )
                     {
-                        ((AccessorChainExpression)parsed).Accessors.Add(accessor);
+                        ((AccessorChainExpression)parsed).Accessors.Add(accessor!);
                     }
                     else if (matched == "++" || matched == "--")
                     {

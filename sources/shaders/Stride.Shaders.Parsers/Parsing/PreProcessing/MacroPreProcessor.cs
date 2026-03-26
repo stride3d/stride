@@ -9,7 +9,7 @@ public static class MonoGamePreProcessor
     {
         return Run(File.ReadAllText(filepath), Path.GetFileName(filepath), defines);
     }
-    public static string Run(string content, string filename, params ReadOnlySpan<(string Name, string Definition)> defines)
+    public static string Run(string content, string? filename, params ReadOnlySpan<(string Name, string Definition)> defines)
     {
         var cpp = new Preprocessor();
         cpp.addFeature(Feature.DIGRAPHS);
@@ -28,7 +28,8 @@ public static class MonoGamePreProcessor
                 }
             }
         }
-        var inputSource = new StringLexerSource(content, true, filename);
+        // Note: CppNet is compiled in this project but doesn't support nullable
+        var inputSource = new StringLexerSource(content, true, filename!);
 
         cpp.addInput(inputSource);
 

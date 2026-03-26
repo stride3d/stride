@@ -184,7 +184,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         if (entryPoint.Item1 == ExecutionModel.TessellationControl)
                         {
                             var dsEntryPoint = entryPoints.FirstOrDefault(ep => ep.Model == ExecutionModel.TessellationEvaluation);
-                            if (dsEntryPoint.InterfaceVariables != null)
+                            if (dsEntryPoint?.InterfaceVariables != null)
                             {
                                 foreach (var stream in streams)
                                 {
@@ -399,7 +399,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             context.DeclareStructuredType(outputType, context.Bound++);
             context.DeclareStructuredType(streamsType, context.Bound++);
             if (hasConstants)
-                context.DeclareStructuredType(constantsType, context.Bound++);
+                context.DeclareStructuredType(constantsType!, context.Bound++);
         }
 
         private static void GenerateStreamVariables(SpirvContext context, ExecutionModel executionModel, Dictionary<int, StreamVariableInfo> streams, int? arrayInputSize, int? arrayOutputSize, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> inputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams)
@@ -432,6 +432,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         ScalarType or VectorType => 1,
                         MatrixType m => m.Columns,
                         ArrayType a => a.Size,
+                        _ => throw new NotSupportedException($"Unsupported type for location counting: {type}"),
                     };
                 }
 

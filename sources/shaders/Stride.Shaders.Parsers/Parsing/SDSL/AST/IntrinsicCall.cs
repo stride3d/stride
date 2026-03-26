@@ -92,6 +92,9 @@ public class IntrinsicCallHelper
         if (bestOverloadScore == int.MaxValue)
             return false;
 
+        if (intrinsicCompiler == null)
+            return false;
+
         resolvedIntrinsic = (intrinsicCompiler, templateExpander.Namespace, bestOverload);
         return true;
     }

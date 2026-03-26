@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderElementParsers : IParser<ShaderElement>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -51,15 +52,15 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         }
 
     }
-    public static bool Compose<TScanner>(ref TScanner scanner, ParseResult result, out ShaderCompose parsed, in ParseError? orError = null)
+    public static bool Compose<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderCompose parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new CompositionParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool Struct<TScanner>(ref TScanner scanner, ParseResult result, out ShaderStruct parsed, in ParseError? orError = null)
+    public static bool Struct<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderStruct parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderStructParser().Match(ref scanner, result, out parsed, in orError);
 
 
-    public static bool AnySamplers<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+    public static bool AnySamplers<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -79,21 +80,21 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
-    public static bool SamplerState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerState parsed, in ParseError? orError = null)
+    public static bool SamplerState<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderSamplerState parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderSamplerStateParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool SamplerComparisonState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerComparisonState parsed, in ParseError? orError = null)
+    public static bool SamplerComparisonState<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderSamplerComparisonState parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderSamplerComparisonStateParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool ShaderElement<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+    public static bool ShaderElement<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderElementParsers().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderMethodParsers().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+    public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

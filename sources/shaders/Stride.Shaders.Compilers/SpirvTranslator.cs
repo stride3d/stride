@@ -36,7 +36,6 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         var result = new List<(string RealName, string TranslatedName, ExecutionModel ExecutionModel)>();
         EntryPoint* entry_points = null;
         nuint num_entry_points = 0;
-        bool entryPointFound = false;
         cross.CompilerGetEntryPoints(compiler, &entry_points, &num_entry_points);
         for (int i = 0; i < (int)num_entry_points; ++i)
         {
@@ -102,7 +101,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             for (uint i = 0; i < resourcesCount; ++i)
             {
                 var resource = resourcesList[i];
-                var cbufferName = Marshal.PtrToStringAnsi((IntPtr)resource.Name);
+                var cbufferName = Marshal.PtrToStringAnsi((IntPtr)resource.Name)!;
                 if (cbufferName.StartsWith("type."))
                 {
                     cbufferName = cbufferName.Substring("type.".Length);

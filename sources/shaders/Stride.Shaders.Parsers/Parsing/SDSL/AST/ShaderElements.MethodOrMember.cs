@@ -37,7 +37,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
     public Identifier Name { get; set; } = name;
     public List<SamplerStateParameter> Parameters { get; set; } = [];
 
-    public Symbol Symbol { get; private set; }
+    public Symbol? Symbol { get; private set; }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
@@ -47,7 +47,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
 
         var sid = new SymbolID(Name, SymbolKind.SamplerState);
         Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
-        table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+        table.CurrentShader!.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -123,7 +123,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
 
         var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
         context.AddName(variable.ResultId, Name);
-        Symbol.IdRef = variableId;
+        Symbol!.IdRef = variableId;
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
@@ -174,7 +174,7 @@ public sealed partial class ShaderMember(
     public StorageClass StorageClass { get; set; } = storageClass;
     public InterpolationModifier Interpolation { get; set; } = interpolation;
 
-    public Symbol Symbol { get; private set; }
+    public Symbol? Symbol { get; private set; }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
@@ -188,11 +188,11 @@ public sealed partial class ShaderMember(
             var classSource = new ShaderClassInstantiation(TypeName.Name, []);
             var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context);
             classSource.Buffer = shader;
-            var shaderType = ShaderClass.LoadAndCacheExternalShaderType(table, context, classSource);
+            var shaderType = ShaderClass.LoadAndCacheExternalShaderDefinition(table, context, classSource);
 
             // Resolve again (we don't use shaderType directly, because it might lack info such as ArrayType)
             TypeName.ProcessSymbol(table);
-            memberType = TypeName.Type;
+            memberType = TypeName.Type!;
         }
 
         if (memberType is AppendStructuredBufferType or ConsumeStructuredBufferType)
@@ -245,8 +245,8 @@ public sealed partial class ShaderMember(
                 },
                 IsStage: IsStaged
             );
-        Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
-        table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+        Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader!);
+        table.CurrentShader!.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
 
         Value?.ProcessSymbol(table, memberType);
     }
@@ -257,7 +257,7 @@ public sealed partial class ShaderMember(
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
 
-        var pointerType = (PointerType)Type;
+        var pointerType = (PointerType)Type!;
 
         var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
         if (StreamKind == StreamKind.Stream || StreamKind == StreamKind.PatchStream)
@@ -300,7 +300,7 @@ public sealed partial class ShaderMember(
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);
 
-        Symbol.IdRef = variable;
+        Symbol!.IdRef = variable;
 
         if (StreamKind == StreamKind.PatchStream)
             context.Add(new OpDecorate(variable, Specification.Decoration.Patch, []));
@@ -382,13 +382,13 @@ public partial class ShaderMethod(
 
     public BlockStatement? Body { get; set; }
 
-    public SymbolFrame SymbolFrame { get; private set; }
+    public SymbolFrame? SymbolFrame { get; private set; }
     public List<Symbol> ParameterSymbols { get; private set; } = new();
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         ReturnTypeName.ProcessSymbol(table);
-        var ftype = new FunctionType(ReturnTypeName.Type, []);
+        var ftype = new FunctionType(ReturnTypeName.Type!, []);
         function = SpirvBuilder.DeclareFunction(context, Name, ftype, IsStaged);
 
         var functionFlags = Specification.FunctionFlagsMask.None;
@@ -406,7 +406,7 @@ public partial class ShaderMethod(
         foreach (var p in Parameters)
         {
             p.TypeName.ProcessSymbol(table);
-            var argSym = p.TypeName.Type;
+            var argSym = p.TypeName.Type!;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             p.Type = argSym;
             var parameterType = GenerateParameterType(p);
@@ -458,19 +458,19 @@ public partial class ShaderMethod(
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
 
         SymbolFrame = table.Pop();
-        table.CurrentShader.Methods.Add((symbol, functionFlags));
+        table.CurrentShader!.Methods.Add((symbol, functionFlags));
     }
 
     private static PointerType GenerateParameterType(MethodParameter p)
     {
         // Default: wrap everything in Function pointer
         // TODO: what happens if we want to pass texture/sampler around as parameters?
-        return new PointerType(p.Type, Specification.StorageClass.Function);
+        return new PointerType(p.Type!, Specification.StorageClass.Function);
     }
 
     public void ProcessSymbolBody(SymbolTable table, SpirvContext context)
     {
-        table.Push(SymbolFrame);
+        table.Push(SymbolFrame!);
         Body?.ProcessSymbol(table);
         table.Pop();
     }
@@ -481,13 +481,14 @@ public partial class ShaderMethod(
 
         if (Attributes != null)
         {
+            Span<int> attrParamBuffer = stackalloc int[8]; // max attribute parameters
             foreach (var attribute in Attributes)
             {
                 if (attribute is AnyShaderAttribute anyAttribute)
                 {
                     if (anyAttribute.Name == "numthreads")
                     {
-                        Span<int> parameters = stackalloc int[anyAttribute.Parameters.Count];
+                        var parameters = attrParamBuffer[..anyAttribute.Parameters.Count];
                         for (var index = 0; index < anyAttribute.Parameters.Count; index++)
                         {
                             var compiled = anyAttribute.Parameters[index].CompileConstantValue(table, context);
@@ -526,6 +527,7 @@ public partial class ShaderMethod(
                             "tri" => Specification.ExecutionMode.Triangles,
                             "quad" => Specification.ExecutionMode.Quads,
                             "isolined" => Specification.ExecutionMode.Isolines,
+                            _ => throw new NotSupportedException($"Unsupported domain value '{((StringLiteral)anyAttribute.Parameters[0]).Value}'"),
                         }, []));
                     }
                     else if (anyAttribute.Name == "partitioning")
@@ -536,6 +538,7 @@ public partial class ShaderMethod(
                             "fractional_even" => Specification.ExecutionMode.SpacingFractionalEven,
                             "integer" => Specification.ExecutionMode.SpacingEqual,
                             "pow2" => throw new NotSupportedException("partitioning pow2 is not supported in SPIR-V"),
+                            _ => throw new NotSupportedException($"Unsupported partitioning value '{((StringLiteral)anyAttribute.Parameters[0]).Value}'"),
                         }, []));
                     }
                     else if (anyAttribute.Name == "outputtopology")
@@ -547,6 +550,7 @@ public partial class ShaderMethod(
                             {
                                 "triangle_cw" => Specification.ExecutionMode.VertexOrderCw,
                                 "triangle_ccw" => Specification.ExecutionMode.VertexOrderCcw,
+                                _ => throw new NotSupportedException($"Unsupported output topology value '{((StringLiteral)anyAttribute.Parameters[0]).Value}'"),
                             }, []));
                         }
                     }
@@ -561,7 +565,7 @@ public partial class ShaderMethod(
         if (Type is not FunctionType ftype)
             throw new InvalidOperationException();
 
-        table.Push(SymbolFrame);
+        table.Push(SymbolFrame!);
         builder.BeginFunction(context, function);
 
         var functionInfo = new OpFunctionMetadataSDSL(Specification.FunctionFlagsMask.None, 0);

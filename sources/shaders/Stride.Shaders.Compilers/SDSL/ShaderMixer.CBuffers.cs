@@ -194,7 +194,8 @@ namespace Stride.Shaders.Compilers.SDSL
 
             var cbuffersByNames = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)
-                .Select(x => (Index: x.Index, Variable: x))
+                .Select(x => (Index: x.Index, Variable: x, StructType: context.ReverseTypes[x.Data.IdResultType!.Value] is PointerType { StorageClass: Specification.StorageClass.Uniform, BaseType: ConstantBufferSymbol s } ? s : null))
+                .Where(x => x.StructType != null)
                 // Note: MemberIndexOffset is simply a shift in Members index, not something like a byte offset
                 .Select(x => (
                     Variable: x.Variable,
@@ -202,7 +203,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     CompositionPath: compositionNodes.LastOrDefault(mixinNode => x.Index >= mixinNode.StartIndex).CompositionPath,
                     ShaderName: shaders.LastOrDefault(shader => x.Index >= shader.StartIndex).ShaderName,
                     StructTypePtrId: x.Variable.Data.IdResultType!.Value,
-                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType { StorageClass: Specification.StorageClass.Uniform, BaseType: ConstantBufferSymbol s } ? s : null,
+                    StructType: x.StructType!,
                     MemberIndexOffset: 0,
                     LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
@@ -210,7 +211,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.VariableId]));
 
             // This helper method will transfer decorations from the old structure to the new merged structure
-            void ProcessDecorations(Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
+            void ProcessDecorations(Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
             {
                 var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
@@ -234,7 +235,7 @@ namespace Stride.Shaders.Compilers.SDSL
             }
 
             // Transfer cbufferMemberLinks to new structure
-            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
+            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
             {
                 int mergedMemberIndex = 0;
                 var links = new CBufferMemberMetadata[cbufferStruct.Members.Count];
@@ -400,6 +401,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
                 MatrixType m when typeModifier == TypeModifier.RowMajor
                     => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
+                _ => throw new NotSupportedException($"Unsupported symbol type: {symbolType}"),
             };
         }
 
@@ -420,7 +422,7 @@ namespace Stride.Shaders.Compilers.SDSL
             foreach (var cbuffer in cbuffers)
             {
                 int constantBufferOffset = 0;
-                var cb = cbuffer.StructType;
+                var cb = cbuffer.StructType!;
                 var structTypeId = context.Types[cb];
 
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
@@ -605,7 +607,7 @@ namespace Stride.Shaders.Compilers.SDSL
         /// that the engine expects (Vector2/3/4, Int2/3/4, etc.).
         /// Scalars (float, int, uint, bool) pass through unchanged.
         /// </summary>
-        private static object ConvertDefaultValue(object value)
+        private static object? ConvertDefaultValue(object? value)
         {
             if (value is not ConstantVector cv)
                 return value;

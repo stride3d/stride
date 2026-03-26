@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -6,11 +7,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ControlsParser : IParser<ConditionalFlow>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ConditionalFlow parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => Control(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ConditionalFlow parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -34,11 +35,11 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParseError? orError = null)
+    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ConditionalFlow parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => Control(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out If parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -63,11 +64,11 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, ParseError? orError = null)
+    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out If parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => If(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ElseIf parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -95,11 +96,11 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, ParseError? orError = null)
+    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ElseIf parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => ElseIf(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Else parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -115,7 +116,7 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, ParseError? orError = null)
+    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Else parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => Else(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 }

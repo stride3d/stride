@@ -215,7 +215,7 @@ internal static class EntryPointWrapperGenerator
                             case StreamsType t when t.Kind is StreamsKindSDSL.Constants && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
                                 {
                                     // Parameter is "HS_CONSTANTS constants"
-                                    var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(streamLayout.ConstantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                    var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(streamLayout.ConstantsType!, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                     arguments[i] = constantVariable;
                                     // Copy back values from semantic/builtin variables to Constants struct
                                     foreach (var stream in streamLayout.PatchInputStreams)
@@ -233,7 +233,8 @@ internal static class EntryPointWrapperGenerator
                                     var structType = t.Kind switch
                                     {
                                         StreamsKindSDSL.Output => streamLayout.OutputType,
-                                        StreamsKindSDSL.Constants => streamLayout.ConstantsType,
+                                        StreamsKindSDSL.Constants => streamLayout.ConstantsType!,
+                                        _ => throw new NotSupportedException($"Unsupported StreamsKindSDSL for output parameter: {t.Kind}"),
                                     };
                                     var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(structType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                     arguments[i] = outVariable;
@@ -271,7 +272,7 @@ internal static class EntryPointWrapperGenerator
                                         var outputTargetPtr = streamLayout.ArrayOutputSize != null
                                             ? buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
                                                 context.Bound++, stream.Id,
-                                                [invocationIdValue.Value])).ResultId
+                                                [invocationIdValue!.Value])).ResultId
                                             : stream.Id;
                                         buffer.Add(new OpStore(outputTargetPtr, outputResult, null, []));
                                     }
@@ -367,12 +368,14 @@ internal static class EntryPointWrapperGenerator
                     ParameterModifiers.LineAdjacency => ExecutionMode.InputLinesAdjacency,
                     ParameterModifiers.Triangle => ExecutionMode.Triangles,
                     ParameterModifiers.TriangleAdjacency => ExecutionMode.InputTrianglesAdjacency,
+                    _ => throw new NotSupportedException($"Unsupported geometry input execution mode: {executionMode}"),
                 }, []));
                 context.Add(new OpExecutionMode(entryPoint.IdRef, outputStreamType.Kind switch
                 {
                     GeometryStreamOutputKindSDSL.Point => ExecutionMode.OutputPoints,
                     GeometryStreamOutputKindSDSL.Line => ExecutionMode.OutputLineStrip,
                     GeometryStreamOutputKindSDSL.Triangle => ExecutionMode.OutputTriangleStrip,
+                    _ => throw new NotSupportedException($"Unsupported geometry stream output kind: {outputStreamType.Kind}"),
                 }, []));
 
                 arguments[0] = inputsVariable;

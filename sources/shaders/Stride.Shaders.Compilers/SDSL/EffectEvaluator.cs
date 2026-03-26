@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.HighPerformance;
+﻿#pragma warning disable CS0162 // Unreachable code detected
+using CommunityToolkit.HighPerformance;
 using Stride.Rendering;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;

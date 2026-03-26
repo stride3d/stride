@@ -258,13 +258,14 @@ public static partial class Spv
 
         }
 
-        private DisWriter AppendPairLiteralIntegerIdRefs(SpvOperand operand)
+        private readonly DisWriter AppendPairLiteralIntegerIdRefs(SpvOperand operand)
         {
             var count = operand.Quantifier switch
             {
                 OperandQuantifier.One => 1,
                 OperandQuantifier.ZeroOrMore => operand.Words.Length / 2,
                 OperandQuantifier.ZeroOrOne => operand.Words.Length == 0 ? 0 : 1,
+                _ => throw new NotSupportedException($"Unsupported operand quantifier: {operand.Quantifier}"),
             };
 
             for (int i = 0; i < count; ++i)
@@ -275,13 +276,14 @@ public static partial class Spv
             return this;
         }
 
-        private DisWriter AppendPairIdRefLiteralIntegers(SpvOperand operand)
+        private readonly DisWriter AppendPairIdRefLiteralIntegers(SpvOperand operand)
         {
             var count = operand.Quantifier switch
             {
                 OperandQuantifier.One => 1,
                 OperandQuantifier.ZeroOrMore => operand.Words.Length / 2,
                 OperandQuantifier.ZeroOrOne => operand.Words.Length == 0 ? 0 : 1,
+                _ => throw new NotSupportedException($"Unsupported operand quantifier: {operand.Quantifier}"),
             };
 
             for (int i = 0; i < count; ++i)
@@ -387,6 +389,7 @@ public static partial class Spv
                         },
                         OperandKind.PairIdRefLiteralInteger => AppendPairIdRefLiteralIntegers(operand),
                         OperandKind.PairLiteralIntegerIdRef => AppendPairLiteralIntegerIdRefs(operand),
+                        _ => throw new NotImplementedException("Unsupported operand kind " + operand.Kind),
                     };
                 }
                 AppendLine("");

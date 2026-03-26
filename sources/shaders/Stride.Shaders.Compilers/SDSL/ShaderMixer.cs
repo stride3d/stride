@@ -14,6 +14,7 @@ using static Stride.Shaders.Spirv.Specification;
 using EntryPoint = Stride.Shaders.Core.EntryPoint;
 using Stride.Core.Diagnostics;
 using Stride.Core.UnsafeExtensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -27,7 +28,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
-    public void MergeSDSL(ShaderSource shaderSource, Options options, ILogger log, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<InterfaceProcessor.EntryPointInfo> entryPoints)
+    public bool MergeSDSL(ShaderSource shaderSource, Options options, ILogger log, out Span<byte> bytecode, [MaybeNullWhen(false)] out EffectReflection effectReflection, [MaybeNullWhen(false)] out HashSourceCollection usedHashSources, [MaybeNullWhen(false)] out List<InterfaceProcessor.EntryPointInfo> entryPoints)
     {
         bytecode = default;
         effectReflection = default;
@@ -45,7 +46,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (ShaderLoader is ShaderLoaderBase shaderLoaderBase)
             shaderLoaderBase.Log = log;
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
-        var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
+        var table = new SymbolTable(context, shaderLoader);
 
         //var effectEvaluator = new EffectEvaluator(shaderLoader);
         // We basically put the shader we want to merge through the EffectEvaluator to resolve all mixins/compositions first
@@ -74,7 +75,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         catch (Exception e)
         {
             log.Error(e.Message, e);
-            return;
+            return false;
         }
 
         // If any semantic errors were collected during shader compilation, stop mixing
@@ -82,7 +83,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             foreach (var error in table.Errors)
                 log.Error(error.Message);
-            return;
+            return false;
         }
 
         // Process streams and remove unused code/cbuffer/variable/resources
@@ -149,6 +150,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
+        return true;
     }
 
     private static void AddRequiredCapabilities(SpirvContext context, SpirvBuffer temp)
@@ -385,7 +387,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
         }
 
-        var shaderBuffers = shaderClass.Buffer.Value;
+        var shaderBuffers = shaderClass.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shaderClass.ClassName}");
         var offset = context.Bound;
         var resourceGroupOffset = context.ResourceGroupBound;
 
@@ -415,7 +417,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
             if (isStage && !isRootMixin)
             {
-                var stageShader = mixinNode.Stage.ShadersByName[shaderClass.ToClassNameWithGenerics()];
+                var stageShader = mixinNode.Stage!.ShadersByName[shaderClass.ToClassNameWithGenerics()];
                 var memberOrTypeName = names[memberId];
                 var stageMemberOrTypeId = stageShader.StructTypes.TryGetValue(memberOrTypeName, out var structTypeId)
                     ? structTypeId
@@ -553,15 +555,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // Check if type already exists in context (deduplicate them)
                         if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
                         {
-                            if (i2.IdResult is int id)
+                            if (i2.IdResult is int duplicateId)
                             {
-                                remapIds.Add(id, existingInstruction.Data.IdResult.Value);
-                                var mismatches = typeDuplicateInserter.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, id);
+                                remapIds.Add(duplicateId, existingInstruction.Data.IdResult!.Value);
+                                var mismatches = typeDuplicateInserter.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, duplicateId);
                                 if (mismatches != null)
                                 {
                                     var details = string.Join("; ", mismatches.Select(m =>
                                         $"{m.Data} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
-                                    globalContext.Log.Warning($"Mismatched decorations when merging type {id} into {existingInstruction.Data.IdResult.Value}: {details}");
+                                    globalContext.Log.Warning($"Mismatched decorations when merging type {duplicateId} into {existingInstruction.Data.IdResult.Value}: {details}");
                                     foreach (var entry in mismatches)
                                         if (!entry.OnKeepOnly) entry.Data.Dispose();
                                 }
@@ -680,13 +682,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
 
+                    if (currentShader is null)
+                        throw new InvalidOperationException($"{nameof(OpFunction)} {functionName} without {nameof(OpShaderSDSL)}, can't figure out owner type");
+
                     // Add symbol for each method in current type (equivalent to implicit this pointer)
                     var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId, OwnerType: currentShader.Symbol);
                     globalContext.Table.CurrentFrame.Add(functionName, symbol);
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
-                        methodMixinGroup = methodMixinGroup.Stage;
+                        methodMixinGroup = methodMixinGroup.Stage ?? throw new InvalidOperationException("Can't find stage mixin");
 
                     // If OpFunctionMetadataSDSL.Parent is coming from a OpImportFunctionSDSL, find the real ID
                     if (functionInfo.Parent != 0)
@@ -701,9 +706,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     // Check if it has a parent (and if yes, share the MethodGroup)
                     if (!methodMixinGroup.MethodGroups.TryGetValue(functionInfo.Parent, out var methodGroup))
-                        methodGroup = new MethodGroup { Name = functionName, FunctionType = functionType };
+                        methodGroup = new MethodGroup(functionName, functionType, currentShader);
 
-                    methodGroup.Shader = currentShader;
                     methodGroup.Methods.Add((Shader: currentShader, MethodId: function.ResultId, Flags: functionInfo.Flags));
 
                     methodMixinGroup.MethodGroups[function.ResultId] = methodGroup;
@@ -904,8 +908,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     instanceMixinGroup = mixinNode;
                 else
                 {
-                    if (!compositionArrayAccesses.TryGetValue(memberAccess.Instance, out instanceMixinGroup)
-                        && !mixinNode.Compositions.TryGetValue(memberAccess.Instance, out instanceMixinGroup))
+                    if (!compositionArrayAccesses.TryGetValue(memberAccess.Instance, out instanceMixinGroup!)
+                        && !mixinNode.Compositions.TryGetValue(memberAccess.Instance, out instanceMixinGroup!))
                         throw new InvalidOperationException();
                 }
 
@@ -1141,13 +1145,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
             if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
             {
-                Span<int> parameterTypes = stackalloc int[functionType.ParameterTypes.Elements.Span.Length];
+                var parameterTypes = new int[functionType.ParameterTypes.Elements.Span.Length];
                 for (int j = 0; j < functionType.ParameterTypes.Elements.Span.Length; ++j)
                     parameterTypes[j] = functionType.ParameterTypes.Elements.Span[j].Item1;
 
                 // Make sure to unify same types: they might have different OpTypeFunctionSDSL due to modifiers but end up having the same OpTypeFunction once modifiers info is removed
                 // If two duplicate OpTypeFunction exists, this causes SPIR-V validation errors
-                var functionTypeWithIds = new FunctionTypeWithIds(functionType.ReturnType, parameterTypes.ToArray());
+                var functionTypeWithIds = new FunctionTypeWithIds(functionType.ReturnType, parameterTypes);
                 if (functionTypes.TryGetValue(functionTypeWithIds, out var functionTypeId))
                 {
                     remapIds.Add(functionType.ResultId, functionTypeId);

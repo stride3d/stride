@@ -94,7 +94,7 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         // If expectedType is float, handle it:
         if (Type is ScalarType { Type: Scalar.Float })
         {
-            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), value, null, info));
+            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, null, Info));
         }
 
         return compiler.Context.CompileConstantLiteral(this);
@@ -158,7 +158,7 @@ public partial class ExpressionLiteral(Expression value, TypeName typeName, Text
         var (builder, context) = compiler;
         var value = Value.CompileAsValue(table, compiler);
 
-        return builder.Convert(context, value, Type);
+        return builder.Convert(context, value, Type!);
     }
 }
 
@@ -169,7 +169,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
     public bool IsConstant()
     {
         foreach (var v in Values)
-            if (v is not NumberLiteral or BoolLiteral)
+            if (v is not (NumberLiteral or BoolLiteral))
                 return false;
         return true;
     }
@@ -183,6 +183,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
             VectorType v => (v.Size, v.Size, v.BaseType),
             MatrixType m => (m.Columns, m.Columns * m.Rows, m.BaseType),
             ArrayType t => (t.Size, t.Size, t.BaseType),
+            _ => throw new NotSupportedException($"Unsupported composite type {Type}"),
         };
 
         Span<int> values = stackalloc int[totalCount];
@@ -201,14 +202,15 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
             // We expand elements, because float4 can be created from (float, float2, float), or (float2x2)
             if (Type is ScalarType or VectorType or MatrixType)
             {
-                var sourceElementType = valueType.GetElementType();
-                for (int j = 0; j < valueType.GetElementCount(); ++j)
+                var sourceElementType = valueType!.GetElementType();
+                for (int j = 0; j < valueType!.GetElementCount(); ++j)
                 {
                     SpirvValue extractedValue = valueType switch
                     {
                         MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, value.Id, [j / m.Columns, j % m.Rows]))),
                         VectorType v => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, value.Id, [j]))),
                         ScalarType s => value,
+                        _ => throw new NotSupportedException($"Unsupported element type {valueType} in composite extraction"),
                     };
                     // If too many elments, keep counting so that exception is still thrown a bit later, with total count
                     var currentElementIndex = elementIndex++;
@@ -243,6 +245,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
                 MatrixType m => builder.Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m.BaseType, compositeSize)), context.Bound++, [.. values.Slice(i * compositeSize, compositeSize)])).ResultId,
                 VectorType v => values[i],
                 ArrayType => values[i],
+                _ => throw new NotSupportedException($"Unsupported composite type {Type} during regrouping"),
             };
         }
 
@@ -257,14 +260,14 @@ public partial class VectorLiteral(TypeName typeName, TextLocation info) : Compo
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         TypeName.ProcessSymbol(table);
-        var elementType = TypeName.Type.GetElementType();
+        var elementType = TypeName.Type!.GetElementType();
 
         foreach (var value in Values)
         {
             value.ProcessSymbol(table);
-            if (value.Type is not PointerType && value.Type.GetElementType() != elementType)
+            if (value.Type is not PointerType && value.Type!.GetElementType() != elementType)
             {
-                var expectedTypeForItem = value.Type.WithElementType(elementType);
+                var expectedTypeForItem = value.Type!.WithElementType(elementType);
                 value.ProcessSymbol(table, expectedTypeForItem);
             }
         }
@@ -289,14 +292,14 @@ public partial class MatrixLiteral(TypeName typeName, int rows, int cols, TextLo
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         TypeName.ProcessSymbol(table);
-        var elementType = TypeName.Type.GetElementType();
+        var elementType = TypeName.Type!.GetElementType();
 
         foreach (var value in Values)
         {
             value.ProcessSymbol(table);
-            if (value.Type is not PointerType && value.ValueType.GetElementType() != elementType)
+            if (value.Type is not PointerType && value.ValueType!.GetElementType() != elementType)
             {
-                var expectedTypeForItem = value.Type.WithElementType(elementType);
+                var expectedTypeForItem = value.Type!.WithElementType(elementType);
                 value.ProcessSymbol(table, expectedTypeForItem);
             }
         }
@@ -332,7 +335,7 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
             return;
 
         if (Type == null && Values.Count > 0)
-            Type = new ArrayType(Values[0].ValueType, Values.Count);
+            Type = new ArrayType(Values[0].ValueType!, Values.Count);
 
         if (Type != null)
         {
@@ -341,7 +344,7 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
         }
         else
         {
-            table.AddError(new(info, "Can't figure out type of array"));
+            table.AddError(new(Info, "Can't figure out type of array"));
             return;
         }
 
@@ -361,7 +364,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 {
     public string Name { get; set; } = name;
 
-    public Symbol ResolvedSymbol { get; set; }
+    public Symbol? ResolvedSymbol { get; set; }
 
     public static SpirvValue EmitSymbol(SpirvBuilder builder, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
     {
@@ -415,8 +418,11 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         var target = CompileSymbol(table, builder, context, false);
 
         if (Type is not PointerType)
+        {
             // Throw exception (default behavior)
             base.SetValue(table, compiler, rvalue);
+            return;
+        }
 
         rvalue = builder.Convert(context, rvalue, ((PointerType)Type).BaseType);
         builder.Insert(new OpStore(target.Id, rvalue.Id, null, []));
@@ -431,6 +437,9 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
     protected virtual SpirvValue CompileSymbol(SymbolTable table, SpirvBuilder builder, SpirvContext context, bool constantOnly)
     {
+        if (ResolvedSymbol is null)
+            throw new InvalidOperationException($"{this} could not resolve symbol");
+
         var symbol = ShaderDefinition.ImportSymbol(table, context, ResolvedSymbol);
 
         // Track when a stage method accesses a non-stage variable (without composition qualifier).
@@ -454,7 +463,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
             {
                 builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
             }
-            table.AddWarning(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+            table.AddWarning(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
         }
 
         return EmitSymbol(builder, context, symbol, constantOnly);
@@ -477,13 +486,13 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
         {
             if (!table.TryResolveSymbol(Name, out var symbol))
             {
-                symbol = GenericIdentifier.ResolveExternalShader(table, table.Context, info, Name, null);
+                symbol = GenericIdentifier.ResolveExternalShader(table, table.Context, Info, Name, null);
             }
 
             if (symbol != null)
             {
                 if (symbol.Id.Storage == Storage.Stream && !AllowStreamVariables)
-                    table.AddError(new(info, $"Streams member {Name} used without an object"));
+                    table.AddError(new(Info, $"Streams member {Name} used without an object"));
 
                 ResolvedSymbol = symbol;
                 Type = symbol.Type;
@@ -600,14 +609,14 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
 
 public partial class GenericIdentifier(Identifier name, ShaderExpressionList? generics, TextLocation info) : IdentifierBase(name, info)
 {
-    public Identifier Name { get; } = name;
+    public new Identifier Name { get; } = name;
     public ShaderExpressionList? Generics { get; } = generics;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         var context = table.Context;
 
-        var symbol = ResolveExternalShader(table, context, info, Name, Generics);
+        var symbol = ResolveExternalShader(table, context, Info, Name, Generics);
 
         if (symbol != null)
         {
@@ -643,13 +652,14 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
             classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
-                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);
-                ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
+                var shaderDefinition = ShaderClass.LoadAndCacheExternalShaderDefinition(table, context, table.InheritedShaders[i]);
+                table.InheritedShaders[i].Symbol = shaderDefinition;
+                ShaderClass.Inherit(table, context, shaderDefinition, false);
             }
 
             // We add the typename as a symbol (similar to static access in C#)
-            var shaderId = context.GetOrImportShader(classSource.Symbol);
-            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(new ShaderSymbol(classSource.Symbol.Name, classSource.Symbol.GenericArguments), Specification.StorageClass.Private), shaderId);
+            var shaderId = context.GetOrImportShader(classSource.Symbol!);
+            symbol = new Symbol(new(classSource.Symbol!.Name, SymbolKind.Shader), new PointerType(new ShaderSymbol(classSource.Symbol.Name, classSource.Symbol.GenericArguments), Specification.StorageClass.Private), shaderId);
             table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
         }
 
@@ -715,6 +725,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                     "PointStream" => Specification.GeometryStreamOutputKindSDSL.Point,
                     "LineStream" => Specification.GeometryStreamOutputKindSDSL.Line,
                     "TriangleStream" => Specification.GeometryStreamOutputKindSDSL.Triangle,
+                    _ => throw new NotSupportedException($"Unsupported geometry stream type '{Name}'"),
                 });
             }
             else if (Name == "InputPatch" || Name == "OutputPatch")
@@ -723,6 +734,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                 {
                     "InputPatch" => Specification.PatchTypeKindSDSL.Input,
                     "OutputPatch" => Specification.PatchTypeKindSDSL.Output,
+                    _ => throw new NotSupportedException($"Unsupported patch type '{Name}'"),
                 }, ((NumberLiteral)Generics[1]).IntValue);
             }
             else if (SymbolType.TryGetNumeric(Name, out var numeric))
@@ -797,7 +809,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
         {
             if (!table.ResolveExternalTypes)
             {
-                return new ExternalType(name, null);
+                return new ExternalType(Name, null);
             }
             throw new InvalidOperationException($"Could not resolve type [{Name}]");
         }

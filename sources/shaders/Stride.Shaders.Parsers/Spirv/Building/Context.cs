@@ -209,7 +209,7 @@ public partial class SpirvContext
         if (GLSLSet == null)
             ImportGLSL();
 
-        return GLSLSet.Value;
+        return GLSLSet!.Value;
     }
 
     /// <summary>

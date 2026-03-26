@@ -38,9 +38,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
             if (declaration is ShaderClass shader)
             {
                 var compiler = new CompilerUnit();
-                SymbolTable table = new(compiler.Context)
+                SymbolTable table = new(compiler.Context, ShaderLoader)
                 {
-                    ShaderLoader = ShaderLoader,
                     CurrentMacros = [.. macros],
                 };
 

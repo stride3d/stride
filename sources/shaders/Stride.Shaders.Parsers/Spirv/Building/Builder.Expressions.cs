@@ -31,6 +31,7 @@ public partial class SpirvBuilder
         {
             ScalarType s => ApplyScalarSwizzles(context, value, s, swizzleIndices),
             VectorType v => ApplyVectorSwizzles(context, value, v, swizzleIndices),
+            _ => throw new NotSupportedException($"Unsupported type for swizzle: {valueType}"),
         };
     }
 
@@ -239,6 +240,7 @@ public partial class SpirvBuilder
                     StructType otherStructType when otherStructType == structType
                         => Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(member.Type), context.Bound++, otherValue.Id, [i])).ToValue(),
                     ScalarType => otherValue,
+                    _ => throw new NotSupportedException($"Unsupported type in struct binary operation: {otherType}"),
                 };
                 memberValue = leftType is StructType
                     ? BinaryOperation(table, context, memberValue, op, otherMemberValue, info, name)
@@ -267,6 +269,7 @@ public partial class SpirvBuilder
                     ArrayType otherArrayType when otherArrayType == arrayType
                         => Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(arrayType.BaseType), context.Bound++, otherValue.Id, [i])).ToValue(),
                     ScalarType => otherValue,
+                    _ => throw new NotSupportedException($"Unsupported type in array binary operation: {otherType}"),
                 };
                 arrayValues[i] = leftType is StructType
                     ? BinaryOperation(table, context, memberValue, op, otherMemberValue, info, name).Id
@@ -568,14 +571,14 @@ public partial class SpirvBuilder
                 throw new InvalidOperationException($"Can't cast from {m1} to {m2} (larger matrix)");
             case (MatrixType m1, MatrixType m2) when m1.Rows >= m2.Rows && m1.Columns >= m2.Columns:
                 {
+                    Span<int> shuffleIndices = stackalloc int[m2.Columns];
+                    for (int j = 0; j < m2.Columns; ++j)
+                        shuffleIndices[j] = j;
                     for (int i = 0; i < m2.Rows; ++i)
                     {
                         values[i] = Insert(new OpCompositeExtract(context.GetOrRegister(new VectorType(m1.BaseType, m1.Columns)), context.Bound++, valueId, [i])).ResultId;
                         if (m1.Columns != m2.Columns)
                         {
-                            Span<int> shuffleIndices = stackalloc int[m2.Columns];
-                            for (int j = 0; j < m2.Columns; ++j)
-                                shuffleIndices[j] = j;
                             values[i] = Insert(new OpVectorShuffle(context.GetOrRegister(new VectorType(m1.BaseType, m2.Columns)), context.Bound++, values[i], values[i], new(shuffleIndices))).ResultId;
                         }
                     }
@@ -592,6 +595,7 @@ public partial class SpirvBuilder
             {
                 ScalarType s => (1, (SymbolType)castType.GetElementType()),
                 VectorType s => (s.Size, new VectorType(castType.GetElementType(), s.Size)),
+                _ => throw new NotSupportedException($"Unsupported type for element-wise cast: {valueType}"),
             };
             for (int i = 0; i < values.Length; ++i)
             {
@@ -636,6 +640,7 @@ public partial class SpirvBuilder
                     // Bitcast (int=>uint or uint=>int)
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: var from }, ScalarType { Type: var to }) => throw new NotSupportedException($"Unsupported type cast: {from} to {to}"),
                 };
                 values[i] = typeCasting.IdResult!.Value;
 
@@ -710,18 +715,21 @@ internal static class SymbolExtensions
         ScalarType s => 1,
         VectorType v => v.Size,
         MatrixType m => m.Rows * m.Columns,
+        _ => throw new NotSupportedException($"Unsupported type for GetElementCount: {symbol}"),
     };
     public static ScalarType GetElementType(this SymbolType symbol) => symbol switch
     {
         ScalarType s => s,
         VectorType v => v.BaseType,
         MatrixType m => m.BaseType,
+        _ => throw new NotSupportedException($"Unsupported type for GetElementType: {symbol}"),
     };
     public static SymbolType WithElementType(this SymbolType symbol, ScalarType elementType) => symbol switch
     {
         ScalarType s => elementType,
         VectorType v => v.BaseType == elementType ? v : v with { BaseType = elementType },
         MatrixType m => m.BaseType == elementType ? m : m with { BaseType = elementType },
+        _ => throw new NotSupportedException($"Unsupported type for WithElementType: {symbol}"),
     };
     public static bool IsSignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Int or Scalar.Int64 };
     public static bool IsUnsignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.UInt or Scalar.UInt64 };

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct SwitchStatementParser : IParser<SwitchStatement>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out SwitchStatement parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out SwitchStatement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -40,7 +41,7 @@ public record struct SwitchStatementParser : IParser<SwitchStatement>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool SwitchSection<TScanner>(ref TScanner scanner, ParseResult result, out SwitchSection parsed, ParseError? orError = null)
+    public static bool SwitchSection<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out SwitchSection parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
@@ -78,7 +79,7 @@ public record struct SwitchStatementParser : IParser<SwitchStatement>
         return true;
     }
 
-    public static bool SwitchLabel<TScanner>(ref TScanner scanner, ParseResult result, out SwitchLabel parsed, ParseError? orError = null)
+    public static bool SwitchLabel<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out SwitchLabel parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;

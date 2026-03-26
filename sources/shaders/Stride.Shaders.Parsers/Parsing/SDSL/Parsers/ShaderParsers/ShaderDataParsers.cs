@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -7,11 +8,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderMemberParser : IParser<ShaderMember>
 {
-    public static bool Member<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMember parsed, in ParseError? orError = null)
+    public static bool Member<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMember parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderMemberParser().Match(ref scanner, result, out parsed, in orError);
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMember parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMember parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         parsed = null!;
         var position = scanner.Position;
@@ -37,7 +38,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                 parsed = new(typeName, identifier, value, scanner[position..scanner.Position])
                 {
                     Semantic = semantic,
-                    Attributes = hasAttributes ? attributes.Attributes : null!,
+                    Attributes = hasAttributes ? attributes!.Attributes : null!,
                     IsStaged = isStaged,
                     IsCompose = isCompose,
                     Interpolation = interpolation,
@@ -54,7 +55,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
 }
 public record struct ShaderStructParser : IParser<ShaderStruct>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderStruct parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderStruct parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
@@ -68,7 +69,8 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
             parsed = new ShaderStruct(identifier, scanner[position..]);
             Parsers.Repeat<TScanner, ShaderStructMemberParser, ShaderStructMember>(ref scanner, new ShaderStructMemberParser(), result, out var members, 0, withSpaces: true, separator: ";");
             Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
-            parsed.Members = members;
+            if (members is not null)
+                parsed.Members = members;
             if (Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true))
             {
                 Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
@@ -83,7 +85,7 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
 
 public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerState parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderSamplerState parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
@@ -96,7 +98,7 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
-                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter> assignments, 0, withSpaces: true)
+                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter>? assignments, 0, withSpaces: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
             )
@@ -117,18 +119,18 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateParameter parsed, in ParseError? orError = null)
+    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out SamplerStateParameter parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
-            Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier identifier, withSpaces: true, advance: true)
+            Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
-            && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression expression, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? expression, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
-            parsed = new SamplerStateParameter(identifier, expression, scanner[position..scanner.Position]);
+            parsed = new SamplerStateParameter(identifier!, expression!, scanner[position..scanner.Position]);
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -137,7 +139,7 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
 
 public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerComparisonState>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerComparisonState parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderSamplerComparisonState parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
@@ -150,7 +152,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
-                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter> assignments, 0, withSpaces: true)
+                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter>? assignments, 0, withSpaces: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
             )
@@ -171,18 +173,18 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateParameter parsed, in ParseError? orError = null)
+    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out SamplerStateParameter parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
-            Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier identifier, withSpaces: true, advance: true)
+            Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
-            && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression expression, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? expression, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
-            parsed = new SamplerStateParameter(identifier, expression, scanner[position..scanner.Position]);
+            parsed = new SamplerStateParameter(identifier!, expression!, scanner[position..scanner.Position]);
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -191,7 +193,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
 public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
 {
 
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderStructMember parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderStructMember parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes);
@@ -206,17 +208,17 @@ public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
             ;
 
         if (
-            Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typename, withSpaces: true, advance: true)
+            Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName? typename, withSpaces: true, advance: true)
             && Parsers.Spaces1(ref scanner, result, out _)
-            && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier identifier, withSpaces: true, advance: true)
+            && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true)
         )
         {
-            parsed = new ShaderStructMember(typename, identifier, scanner[position..scanner.Position]);
+            parsed = new ShaderStructMember(typename!, identifier!, scanner[position..scanner.Position]);
             if (hasAttributes)
-                parsed.Attributes = attributes.Attributes;
+                parsed.Attributes = attributes!.Attributes;
             if (hasTypeModifier)
-                parsed.TypeModifier = typemodifier.ToTypeModifier();
+                parsed.TypeModifier = typemodifier!.ToTypeModifier();
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);

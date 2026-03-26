@@ -1,6 +1,7 @@
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
@@ -47,7 +48,7 @@ public class SymbolFrame
         => symbols.Remove(name);
     public bool ContainsKey(string name) => symbols.ContainsKey(name);
     public bool ContainsValue(Symbol symbol) => symbols.ContainsValue(symbol);
-    public bool TryGetValue(string name, out Symbol symbol)
+    public bool TryGetValue(string name, [MaybeNullWhen(false)] out Symbol symbol)
     {
         if (symbols.TryGetValue(name, out symbol))
             return true;

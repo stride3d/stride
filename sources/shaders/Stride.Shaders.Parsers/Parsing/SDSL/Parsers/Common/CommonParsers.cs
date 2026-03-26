@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Stride.Shaders.Parsing.SDSL.AST;
 
@@ -8,7 +9,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public static class Parsers
 {
-    public static bool Exit<TScanner, TNode>(ref TScanner scanner, ParseResult result, out TNode parsed, int beginningPosition, in ParseError? orError = null)
+    public static bool Exit<TScanner, TNode>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TNode parsed, int beginningPosition, in ParseError? orError = null)
         where TScanner : struct, IScanner
         where TNode : class
     {
@@ -16,25 +17,25 @@ public static class Parsers
         {
             result.Errors.Add(orError.Value);
             scanner.Position = scanner.End;
-            parsed = null!;
+            parsed = null;
             return false;
         }
         scanner.Position = beginningPosition;
-        parsed = null!;
+        parsed = null;
         return false;
     }
 
-    public static bool Spaces0<TScanner>(ref TScanner scanner, ParseResult result, out NoNode node, in ParseError? orError = null, bool onlyWhiteSpace = false)
+    public static bool Spaces0<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out NoNode node, in ParseError? orError = null, bool onlyWhiteSpace = false)
         where TScanner : struct, IScanner
         => new Space0(onlyWhiteSpace).Match(ref scanner, result, out node, in orError);
-    public static bool Spaces1<TScanner>(ref TScanner scanner, ParseResult result, out NoNode node, in ParseError? orError = null, bool onlyWhiteSpace = false)
+    public static bool Spaces1<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out NoNode node, in ParseError? orError = null, bool onlyWhiteSpace = false)
        where TScanner : struct, IScanner
         => new Space1(onlyWhiteSpace).Match(ref scanner, result, out node, in orError);
 
 
 
 
-    public static bool Alternatives<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
+    public static bool Alternatives<TScanner, TResult>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TResult parsed, in ParseError? orError = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
         where TScanner : struct, IScanner
         where TResult : Node
     {
@@ -44,7 +45,7 @@ public static class Parsers
                 return true;
         return Exit(ref scanner, result, out parsed, position, orError);
     }
-    public static bool Sequences<TScanner, TResult>(ref TScanner scanner, ParseResult result, out List<TResult> parsed, in ParseError? orError = null, bool withSPaces = false, string? separator = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
+    public static bool Sequences<TScanner, TResult>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out List<TResult> parsed, in ParseError? orError = null, bool withSPaces = false, string? separator = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
         where TScanner : struct, IScanner
         where TResult : Node
     {
@@ -96,7 +97,7 @@ public static class Parsers
                     "static"
                 ],
                 ref scanner,
-                out string match,
+                out string? match,
                 advance: true)
             && Spaces1(ref scanner, result, out _))
         {
@@ -155,7 +156,7 @@ public static class Parsers
                     "columnmajor"
                 ],
                 ref scanner,
-                out string match,
+                out string? match,
                 advance: true)
             && Spaces1(ref scanner, result, out _))
         {
@@ -208,7 +209,7 @@ public static class Parsers
     }
 
 
-    public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out List<Expression> arraySizes, out Expression? value, bool advance = true)
+    public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Identifier identifier, out List<Expression>? arraySizes, [MaybeNullWhen(false)] out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -248,7 +249,7 @@ public static class Parsers
             return false;
         }
     }
-    public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Identifier identifier, out Expression? value, bool advance = true)
+    public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TypeName typeName, [MaybeNullWhen(false)] out Identifier identifier, [MaybeNullWhen(false)] out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -261,7 +262,7 @@ public static class Parsers
         {
             var tmp = scanner.Position;
             Spaces0(ref scanner, result, out _);
-            if (FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression> arraySize, withSpaces: true, advance: true))
+            if (FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression>? arraySize, withSpaces: true, advance: true))
                 typeName.ArraySize = arraySize;
             else
                 scanner.Position = tmp;
@@ -284,7 +285,7 @@ public static class Parsers
             scanner.Position = position;
             if (
                 LiteralsParser.TypeName(ref scanner, result, out typeName)
-                && FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression> sizes, withSpaces: true, advance: true)
+                && FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression>? sizes, withSpaces: true, advance: true)
                 && Spaces1(ref scanner, result, out _)
                 && LiteralsParser.Identifier(ref scanner, result, out identifier))
             {
@@ -311,7 +312,7 @@ public static class Parsers
         return false;
     }
 
-    public static bool ArraySizes<TScanner>(ref TScanner scanner, ParseResult result, out List<Expression> arraySizes, in ParseError? orError = null)
+    public static bool ArraySizes<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out List<Expression> arraySizes, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         arraySizes = [];
@@ -323,9 +324,9 @@ public static class Parsers
                 {
                     arraySizes.Add(new EmptyExpression(scanner[(scanner.Position - 1)..(scanner.Position - 1)]));
                 }
-                else if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
+                else if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? arraySize, withSpaces: true, advance: true))
                 {
-                    arraySizes.Add(arraySize);
+                    arraySizes.Add(arraySize!);
                     if (!FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
                         return Exit(ref scanner, result, out arraySizes, scanner.Position);
                 }
@@ -368,7 +369,7 @@ public static class Parsers
         scanner.Position = position;
         return false;
     }
-    public static bool FollowedByAny<TScanner>(ref TScanner scanner, ReadOnlySpan<string> literals, out string matched, bool withSpaces = false, bool advance = false)
+    public static bool FollowedByAny<TScanner>(ref TScanner scanner, ReadOnlySpan<string> literals, [MaybeNullWhen(false)] out string matched, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -384,7 +385,7 @@ public static class Parsers
                 return true;
             }
         }
-        matched = null!;
+        matched = null;
         scanner.Position = position;
         return false;
     }
@@ -423,7 +424,7 @@ public static class Parsers
         scanner.Position = position;
         return false;
     }
-    public static bool FollowedByDel<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TResult> func, out TResult parsed, bool withSpaces = false, bool advance = false)
+    public static bool FollowedByDel<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TResult> func, [MaybeNullWhen(false)] out TResult parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -438,7 +439,7 @@ public static class Parsers
         scanner.Position = position;
         return false;
     }
-    public static bool FollowedByDelList<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserListDelegate<TScanner, TResult> func, out List<TResult> parsed, bool withSpaces = false, bool advance = false)
+    public static bool FollowedByDelList<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserListDelegate<TScanner, TResult> func, [MaybeNullWhen(false)] out List<TResult> parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -453,7 +454,7 @@ public static class Parsers
         scanner.Position = position;
         return false;
     }
-    public static bool FollowedBy<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TResult> func, out TResult parsed, bool withSpaces = false, bool advance = false)
+    public static bool FollowedBy<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TResult> func, [MaybeNullWhen(false)] out TResult parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -469,7 +470,7 @@ public static class Parsers
         return false;
     }
 
-    public static bool FollowedBy<TScanner, TParser, TResult>(ref TScanner scanner, TParser parser, ParseResult result, out TResult parsed, bool withSpaces = false, bool advance = false)
+    public static bool FollowedBy<TScanner, TParser, TResult>(ref TScanner scanner, TParser parser, ParseResult result, [MaybeNullWhen(false)] out TResult parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
         where TParser : struct, IParser<TResult>
         where TResult : Node
@@ -548,14 +549,14 @@ public static class Parsers
     }
 
 
-    public static bool Repeat<TScanner, TParser, TNode>(ref TScanner scanner, TParser parser, ParseResult result, out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
+    public static bool Repeat<TScanner, TParser, TNode>(ref TScanner scanner, TParser parser, ParseResult result, [MaybeNullWhen(false)] out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
         where TScanner : struct, IScanner
         where TParser : struct, IParser<TNode>
         where TNode : Node
     {
-        return Repeat(ref scanner, result, (ref TScanner s, ParseResult r, out TNode node, in ParseError? orError) => new TParser().Match(ref s, r, out node, orError), out nodes, minimum, withSpaces, separator, orError);
+        return Repeat(ref scanner, result, (ref TScanner s, ParseResult r, [MaybeNullWhen(false)] out TNode node, in ParseError? orError) => new TParser().Match(ref s, r, out node, orError), out nodes, minimum, withSpaces, separator, orError);
     }
-    public static bool Repeat<TScanner, TNode>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TNode> parser, out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
+    public static bool Repeat<TScanner, TNode>(ref TScanner scanner, ParseResult result, ParserDelegate<TScanner, TNode> parser, [MaybeNullWhen(false)] out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
         where TScanner : struct, IScanner
         where TNode : Node
     {

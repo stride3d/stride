@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -5,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct ShaderMethodParsers : IParser<ShaderMethod>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (Method(ref scanner, result, out var method, in orError))
@@ -20,20 +21,20 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         }
     }
 
-    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new MethodParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool Simple<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public static bool Simple<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new SimpleMethodParser().Match(ref scanner, result, out parsed, in orError);
 
 
 
-    public static bool MethodParameters<TScanner>(ref TScanner scanner, ParseResult result, out List<MethodParameter> parsed, in ParseError? orError = null)
+    public static bool MethodParameters<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out List<MethodParameter> parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-#warning We should not allow void to be a parameter, this is legacy C code
+        // HLSL compat: accept `(void)` as empty parameter list (legacy C convention)
         if (
             Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true)
             ||
@@ -48,7 +49,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         }
         else
 
-            if (Parsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
+            if (Parsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter>? parameters, 0, withSpaces: true, separator: ","))
             {
                 parsed = parameters;
                 return true;
@@ -56,7 +57,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
             else return Parsers.Exit(ref scanner, result, out parsed, position);
 
     }
-    public static bool MethodParameter<TScanner>(ref TScanner scanner, ParseResult result, out MethodParameter parsed, in ParseError? orError = null)
+    public static bool MethodParameter<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out MethodParameter parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -75,7 +76,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         {
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true)
-                && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier semantic, withSpaces: true, advance: true)
+                && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? semantic, withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -95,7 +96,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
 
 public record struct SimpleMethodParser : IParser<ShaderMethod>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -104,7 +105,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
             && Parsers.Spaces1(ref scanner, result, out _, new(SDSLErrorMessages.SDSL0016, scanner[scanner.Position], scanner.Memory))
             && LiteralsParser.Identifier(ref scanner, result, out var methodName)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
-            && Parsers.FollowedByDel(ref scanner, result, ShaderMethodParsers.MethodParameters, out List<MethodParameter> parameters, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ShaderMethodParsers.MethodParameters, out List<MethodParameter>? parameters, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _)
             && StatementParsers.Block(ref scanner, result, out var body, new(SDSLErrorMessages.SDSL0040, scanner[scanner.Position], scanner.Memory))
@@ -112,7 +113,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
         {
             parsed = new ShaderMethod(typename, methodName, scanner[position..scanner.Position])
             {
-                Parameters = parameters,
+                Parameters = parameters!,
                 Body = (BlockStatement)body
             };
             return true;
@@ -124,7 +125,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
 
 public record struct MethodParser : IParser<ShaderMethod>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
@@ -158,10 +159,9 @@ public record struct MethodParser : IParser<ShaderMethod>
                     }
                     else
                     {
-                        parsed = new(typename, methodName, scanner[position..scanner.Position], isAbstract: true)
-                        {
-                            Parameters = parameters
-                        };
+                        parsed = new(typename, methodName, scanner[position..scanner.Position], isAbstract: true);
+                        if (parameters is not null)
+                            parsed.Parameters = parameters;
                         return true;
                     }
                 }
@@ -173,7 +173,7 @@ public record struct MethodParser : IParser<ShaderMethod>
             if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
             {
                 if (hasAttributes)
-                    parsed.Attributes = attributes.Attributes;
+                    parsed.Attributes = attributes!.Attributes;
                 parsed.IsStaged = isStaged;
                 parsed.IsClone = isClone;
                 parsed.IsOverride = isOverride;

@@ -97,7 +97,6 @@ public partial class SpirvBuilder()
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.InsertData(Position++, value);
 
-    [Obsolete("Use the insert method instead")]
     public SpirvBuffer GetBuffer() => Buffer;
 
     public Op GetLastInstructionType()

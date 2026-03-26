@@ -28,6 +28,9 @@ public partial class SpirvBuilder
 
     public void EndFunction()
     {
+        if (CurrentFunction is null)
+            throw new InvalidOperationException("Trying to end a function which was not started");
+
         // If there was no explicit return, add one
         var lastInstruction = Buffer[Position - 1];
         if (!IsBlockTermination(lastInstruction.Op))

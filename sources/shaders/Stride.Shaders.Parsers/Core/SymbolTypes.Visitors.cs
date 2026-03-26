@@ -41,7 +41,9 @@ public abstract partial class TypeVisitor<TResult>
 {
     public virtual TResult DefaultVisit(SymbolType node)
     {
-        return default;
+        if (default(TResult) is null)
+            return default!;
+        throw new NotImplementedException($"{GetType().Name}.{nameof(DefaultVisit)} must be overridden for non-nullable TResult ({typeof(TResult).Name})");
     }
 
     public virtual bool DefaultVisit<T>(ref T item) where T : struct, ISymbolTypeItem
