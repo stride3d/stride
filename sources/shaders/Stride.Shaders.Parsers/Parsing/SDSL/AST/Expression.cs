@@ -1435,6 +1435,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
             'y' or 'g' => 1,
             'z' or 'b' => 2,
             'w' or 'a' => 3,
+            _ => throw new InvalidOperationException($"Invalid swizzle character '{c}'"),
         };
 
     public override string ToString() => ToString(Accessors.Count);
