@@ -18,6 +18,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 {
     public IShaderCache Cache => fileCache;
     public GenericShaderCache GenericCache { get; } = new();
+    public bool SuppressSourceHash { get; set; }
 
     /// <summary>
     /// Ensures only one thread compiles a given shader at a time. Other threads wait for the result.
@@ -175,7 +176,9 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
         // Use provided logger, or a temporary one that throws on errors
         var log = Log ?? new LoggerResult();
-        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, registerInCache))
+        var emitSourceHash = !SuppressSourceHash;
+        SuppressSourceHash = false; // Reset after use
+        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, EmitSourceHash = emitSourceHash, OriginalCode = code }))
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
                 throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.ToString())));

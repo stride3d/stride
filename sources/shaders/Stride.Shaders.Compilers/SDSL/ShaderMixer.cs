@@ -279,6 +279,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public Dictionary<int, string> ExternalShaders { get; } = new();
         public Dictionary<int, (int ShaderId, string Name, int FunctionType)> ExternalFunctions { get; } = new();
         public Dictionary<int, (int ShaderId, string Name)> ExternalVariables { get; } = new();
+
+        /// <summary>Maps source filename to merged OpString ID, used to deduplicate OpString/OpSource during merge.</summary>
+        public Dictionary<string, int> SourceFileStrings { get; } = new();
     }
 
     class MixinNodeContext
@@ -436,6 +439,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         var structTypes = new Dictionary<string, int>();
+        OpData? pendingOpLine = null; // Defer OpLine until the next included instruction
 
         // Copy instructions to main buffer
         foreach (var shader in new[] { shaderBuffers.Context.GetBuffer(), shaderBuffers.Buffer })
@@ -456,6 +460,34 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore)
                     if (i.Op == Op.OpSourceHashSDSL)
                         include = false;
+
+                    // Deduplicate OpString/OpSource: keep only one per unique filename
+                    if (i.Op == Op.OpString)
+                    {
+                        var opString = (OpString)i;
+                        var offsetId = opString.ResultId + offset;
+                        if (globalContext.SourceFileStrings.TryGetValue(opString.Value, out var existingId))
+                        {
+                            remapIds[offsetId] = existingId;
+                            include = false;
+                        }
+                        else
+                        {
+                            globalContext.SourceFileStrings[opString.Value] = offsetId;
+                        }
+                    }
+                    if (i.Op == Op.OpSource)
+                    {
+                        // OpSource references an OpString via file ID; skip if that OpString was deduplicated
+                        var fileOperand = i.Data.Memory.Span;
+                        // OpSource layout: [wordcount|op, sourcelanguage, version, file?, source?]
+                        if (fileOperand.Length > 3)
+                        {
+                            var fileId = fileOperand[3] + offset;
+                            if (remapIds.ContainsKey(fileId))
+                                include = false;
+                        }
+                    }
 
                     if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)shader[index + 1] is { } functionInfo)
                     {
@@ -504,6 +536,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                                     removedIds.Add(offset + id2);
                             }
                         }
+
+                        // Discard pending OpLine — the instruction it was meant for was skipped
+                        pendingOpLine?.Dispose();
+                        pendingOpLine = null;
 
                         // Go to next instruction
                         continue;
@@ -575,14 +611,32 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             addToContext = true;
                         }
                     }
+                    // Instruction goes to context or is deduplicated — discard any pending OpLine
+                    pendingOpLine?.Dispose();
+                    pendingOpLine = null;
                 }
                 // Does this belong in context or buffer?
                 else if (isContext)
                 {
                     addToContext = true;
+                    // Instruction goes to context — discard any pending OpLine (OpLine belongs in function bodies only)
+                    pendingOpLine?.Dispose();
+                    pendingOpLine = null;
+                }
+                else if (i2.Op == Op.OpLine)
+                {
+                    // Defer OpLine — only emit when the next non-OpLine instruction is actually included
+                    pendingOpLine?.Dispose();
+                    pendingOpLine = i2;
                 }
                 else
                 {
+                    // Flush pending OpLine before emitting a real instruction
+                    if (pendingOpLine is { } pending)
+                    {
+                        buffer.Add(pending);
+                        pendingOpLine = null;
+                    }
                     buffer.Add(i2);
                 }
 
@@ -1316,4 +1370,6 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
 
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
         => inner.LoadExternalBuffer(name, filename, code, defines, out bytecode, out hash, out isFromCache);
+
+    public bool SuppressSourceHash { get => inner.SuppressSourceHash; set => inner.SuppressSourceHash = value; }
 }

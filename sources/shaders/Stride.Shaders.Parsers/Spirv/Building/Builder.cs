@@ -14,12 +14,21 @@ namespace Stride.Shaders.Spirv.Building;
 public partial class SpirvBuilder()
 {
     private int position;
+    private (int FileId, int Line)? lastEmittedLine;
 
     SpirvBuffer buffer = new();
     SpirvBuffer Buffer { get => buffer; init => buffer = value; }
     public SpirvFunction? CurrentFunction { get; internal set; }
     public SpirvBlock? CurrentBlock { get; internal set; }
     public ref int Position => ref position;
+
+    public void EmitLine(int fileId, int line, int column)
+    {
+        if (lastEmittedLine == (fileId, line))
+            return;
+        lastEmittedLine = (fileId, line);
+        Insert(new OpLine(fileId, line, column));
+    }
 
     public int AddFunctionVariable(int paramType, int paramVariable)
     {

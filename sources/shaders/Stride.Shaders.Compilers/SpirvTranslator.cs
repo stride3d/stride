@@ -73,12 +73,18 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
             throw new Exception($"{cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler)} : could not create compiler");
 
-        if (backend == Backend.Hlsl)
         {
             CompilerOptions* compilerOptions = null;
             cross.CompilerCreateCompilerOptions(compiler, ref compilerOptions);
-            cross.CompilerOptionsSetUint(compilerOptions, CompilerOption.HlslShaderModel, 50);
-            cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.HlslPreserveStructuredBuffers, 1);
+            // Don't emit #line directives — they reference original .sdsl files which confuse
+            // RenderDoc's shader viewer when displaying the cross-compiled HLSL/GLSL.
+            // OpLine in the SPIR-V is preserved for Vulkan/RenderDoc callstacks.
+            cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.EmitLineDirectives, 0);
+            if (backend == Backend.Hlsl)
+            {
+                cross.CompilerOptionsSetUint(compilerOptions, CompilerOption.HlslShaderModel, 50);
+                cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.HlslPreserveStructuredBuffers, 1);
+            }
             cross.CompilerInstallCompilerOptions(compiler, compilerOptions);
         }
 

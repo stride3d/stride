@@ -168,14 +168,34 @@ public static partial class Spv
 
         readonly DisWriter AppendLiteralString(LiteralValue<string> value, bool dispose = true)
         {
-            Append('"', ConsoleColor.Green).Append(value.Value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
+            AppendLiteralString(value.Value);
             if (dispose)
                 value.Dispose();
             return this;
         }
         readonly DisWriter AppendLiteralString(string value)
         {
-            Append('"', ConsoleColor.Green).Append(value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
+            const int maxLength = 80;
+            var newlineIndex = value.IndexOf('\n');
+            if (newlineIndex >= 0 || value.Length > maxLength)
+            {
+                var truncateAt = newlineIndex >= 0 ? Math.Min(newlineIndex, maxLength) : maxLength;
+                var preview = value[..truncateAt].TrimEnd('\r');
+                var remaining = value.Length - truncateAt;
+                var lines = 0;
+                foreach (var c in value.AsSpan(truncateAt))
+                    if (c == '\n') lines++;
+                Append('"', ConsoleColor.Green).Append(preview, ConsoleColor.Green);
+                Append($"... ({remaining} more chars", ConsoleColor.DarkGray);
+                if (lines > 0)
+                    Append($", {lines} more lines", ConsoleColor.DarkGray);
+                Append(")", ConsoleColor.DarkGray);
+                Append('"', ConsoleColor.Green).Append(' ');
+            }
+            else
+            {
+                Append('"', ConsoleColor.Green).Append(value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
+            }
             return this;
         }
 

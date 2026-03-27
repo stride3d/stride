@@ -591,14 +591,28 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         {
             if (member.TypeModifier == TypeModifier.Const)
                 continue;
+            if (compiler.SourceFileId is int fid1)
+                builder.EmitLine(fid1, member.Info.Line, member.Info.Column);
             member.Compile(table, this, compiler);
         }
         foreach (var member in Elements.OfType<ShaderBuffer>())
+        {
+            if (compiler.SourceFileId is int fid2)
+                builder.EmitLine(fid2, member.Info.Line, member.Info.Column);
             member.Compile(table, this, compiler);
+        }
         foreach (var member in Elements.OfType<ShaderSamplerState>())
+        {
+            if (compiler.SourceFileId is int fid3)
+                builder.EmitLine(fid3, member.Info.Line, member.Info.Column);
             member.Compile(table, this, compiler);
+        }
         foreach (var method in Elements.OfType<ShaderMethod>())
+        {
+            if (compiler.SourceFileId is int fid4)
+                builder.EmitLine(fid4, method.Info.Line, method.Info.Column);
             method.Compile(table, this, compiler, hasUnresolvableGenerics);
+        }
 
         if (hasUnresolvableGenerics)
         {

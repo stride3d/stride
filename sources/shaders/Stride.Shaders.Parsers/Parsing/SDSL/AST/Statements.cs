@@ -233,6 +233,8 @@ public partial class BlockStatement(TextLocation info) : Statement(info)
         var (builder, context) = compiler;
         foreach (var s in Statements)
         {
+            if (compiler.SourceFileId is int fileId && s is not EmptyStatement)
+                builder.EmitLine(fileId, s.Info.Line, s.Info.Column);
             s.Compile(table, compiler);
             if (SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
                 break;

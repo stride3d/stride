@@ -15,9 +15,19 @@ using Stride.Shaders.Parsing.SDFX.AST;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
+public record struct CompileOptions()
+{
+    /// <summary>Whether to register the compiled shader in the cache.</summary>
+    public bool RegisterInCache { get; init; } = true;
+    /// <summary>Whether to emit OpSourceHashSDSL for cache validation.</summary>
+    public bool EmitSourceHash { get; init; } = true;
+    /// <summary>Original source code before preprocessing, used for OpSource debug info. Falls back to preprocessed code if null.</summary>
+    public string? OriginalCode { get; init; }
+}
+
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, ILogger log, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer, bool registerInCache = true)
+    public readonly bool Compile(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, ILogger log, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer, CompileOptions options = default)
     {
         lastBuffer = default;
 
@@ -43,13 +53,15 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     CurrentMacros = [.. macros],
                 };
 
-                // Add OpSource (skip for MemberName recompilations that have no real file)
+                // Add debug source info (OpString/OpSource for debug mapping, OpSourceHashSDSL for cache validation)
                 if (filename != null)
                 {
                     var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
                     // TODO: Add SourceLanguage.SDSL
-                    compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
-                    compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                    compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, options.OriginalCode ?? code));
+                    if (options.EmitSourceHash)
+                        compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                    compiler.SourceFileId = filenameId;
                 }
                 // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)
 
@@ -100,7 +112,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 // (e.g. names for imported IDs, or types from InsertWithoutDuplicates).
                 ShaderClass.ProcessNameAndTypes(lastBuffer.Context);
 
-                if (registerInCache)
+                if (options.RegisterInCache)
                     ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
             }
             else if (declaration is ShaderEffect or EffectParameters)

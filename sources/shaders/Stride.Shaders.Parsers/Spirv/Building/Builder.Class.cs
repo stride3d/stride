@@ -559,6 +559,17 @@ public partial class SpirvBuilder
         if (!hasUnresolvableShader)
             return;
 
+        // Extract original filename from context (for debug info in recompiled shader)
+        string? originalFilename = null;
+        foreach (var i in shaderBuffers.Context)
+        {
+            if (i.Op == Specification.Op.OpString)
+            {
+                originalFilename = ((OpString)i).Value;
+                break;
+            }
+        }
+
         var instantiatedGenericsMacros = new List<(string Name, string Definition)>();
         var genericParameterIndex = 0;
         foreach (var i in shaderBuffers.Context)
@@ -593,9 +604,10 @@ public partial class SpirvBuilder
                     shaderName = cacheKey;
                 }
 
-                // filename: null — no OpSource emitted (this is a MemberName recompilation, not a real file)
-                // registerInCache: false — we register under the cache key ourselves
-                if (!shaderLoader.LoadExternalBuffer(shaderName, null, code, macros, out shaderBuffers, out var compiledHash, out _))
+                // Use original filename for debug info (OpString/OpSource) but skip OpSourceHashSDSL
+                // since the hash would be of the macro-expanded code, not the original file
+                shaderLoader.SuppressSourceHash = true;
+                if (!shaderLoader.LoadExternalBuffer(shaderName, originalFilename, code, macros, out shaderBuffers, out var compiledHash, out _))
                     throw new InvalidOperationException();
 
                 // Register under the MemberName cache key (e.g. "Foo_PerMaterial")

@@ -133,6 +133,9 @@ public interface IExternalShaderLoader
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
+
+    /// <summary>When set to true, suppresses OpSourceHashSDSL emission for the next compilation (used by MemberName recompilations).</summary>
+    bool SuppressSourceHash { get; set; }
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

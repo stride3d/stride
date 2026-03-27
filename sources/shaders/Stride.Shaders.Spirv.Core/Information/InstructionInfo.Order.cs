@@ -83,11 +83,6 @@ public partial class InstructionInfo
         OrderGroup[(Op.OpUndef, null)] = group;
 
         group++;
-        OrderGroup[(Op.OpLine, null)] = group;
-        OrderGroup[(Op.OpNoLine, null)] = group;
-
-        group++;
-        group++;
         foreach (var e in Enum.GetValues<Op>().Except(OrderGroup.Keys.Select(x => x.Item1)))
             OrderGroup[(e, null)] = group;
         OrderGroup[(Op.OpVariable, StorageClass.Function)] = group;

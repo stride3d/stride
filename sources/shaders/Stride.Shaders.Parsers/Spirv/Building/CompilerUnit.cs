@@ -15,6 +15,7 @@ public class CompilerUnit
     public SpirvBuilder Builder { get; }
     public List<CompilerArgument> Arguments { get; }
 
+    public int? SourceFileId { get; set; }
     public List<ShaderMacro> Macros { get; } = [];
 
     public CompilerUnit()
