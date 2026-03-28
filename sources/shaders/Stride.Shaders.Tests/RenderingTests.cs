@@ -22,6 +22,7 @@ using Spv = Stride.Shaders.Spirv.Tools.Spv;
 
 namespace Stride.Shaders.Parsers.Tests;
 
+[Collection("D3D11")]
 public partial class RenderingTests
 {
     static int width = 1;
