@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -48,7 +49,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
     }
 
-    public override SpirvValue CompileLoad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? s = null)
+    public override SpirvValue CompileLoad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? s = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
@@ -74,7 +75,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
         }
 
-        TextureGenerateImageOperands(context, builder, lod, o, s, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, lod, o, s, out var imask, out var imParams, location: location);
 
         // Storage images (RWTexture, Sampled=2) use OpImageRead; sampled images use OpImageFetch
         int loadResultId;
@@ -87,7 +88,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(loadResultId, vec4TypeId);
     }
 
-    public override SpirvValue CompileSample(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSample(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -98,14 +99,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, location: location);
         var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleBias(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleBias(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -116,14 +117,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, bias: bias);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, bias: bias, location: location);
         var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleLevel(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue lod, SpirvValue? o = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleLevel(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue lod, SpirvValue? o = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
@@ -134,14 +135,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, lod, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, lod, o, null, out var imask, out var imParams, location: location);
         var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleGrad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleGrad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -152,14 +153,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, ddx, ddy);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, ddx, ddy, location: location);
         var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
         if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleCmp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleCmp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -169,13 +170,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, location: location);
         var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleCmpBias(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleCmpBias(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -185,13 +186,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, bias: bias);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, bias: bias, location: location);
         var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleCmpGrad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleCmpGrad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
@@ -201,13 +202,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams, ddx, ddy);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, ddx, ddy, location: location);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleCmpLevel(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? compareValue = null, SpirvValue? lod = null, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? c = null)
+    public override SpirvValue CompileSampleCmpLevel(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? compareValue = null, SpirvValue? lod = null, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? c = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
@@ -217,13 +218,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, lod, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, lod, o, null, out var imask, out var imParams, location: location);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue!.Value.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileSampleCmpLevelZero(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null)
+    public override SpirvValue CompileSampleCmpLevelZero(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
@@ -233,13 +234,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, context.CompileConstant(0.0f), o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, context.CompileConstant(0.0f), o, null, out var imask, out var imParams, location: location);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
 
-    public override SpirvValue CompileCalculateLevelOfDetail(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x)
+    public override SpirvValue CompileCalculateLevelOfDetail(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
 
@@ -255,7 +256,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(result.ResultId, result.ResultType);
     }
 
-    public override SpirvValue CompileCalculateLevelOfDetailUnclamped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x)
+    public override SpirvValue CompileCalculateLevelOfDetailUnclamped(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
 
@@ -272,93 +273,93 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
     }
 
     // Gather: component 0 (same as GatherRed)
-    public override SpirvValue CompileGather(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null)
+    public override SpirvValue CompileGather(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
-        return CompileGatherComponent(context, builder, functionType, texture, s, x, 0, o);
+        return CompileGatherComponent(table, context, builder, functionType, texture, s, x, 0, o, location);
     }
 
-    public override SpirvValue CompileGatherRed(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
-    {
-        if (status != null)
-            throw new NotImplementedException();
-        if (o1 != null)
-            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 0, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherComponent(context, builder, functionType, texture, s, x, 0, o);
-    }
-
-    public override SpirvValue CompileGatherGreen(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherRed(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 1, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherComponent(context, builder, functionType, texture, s, x, 1, o);
+            return CompileGatherComponentConstOffsets(table, context, builder, functionType, texture, s, x, 0, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherComponent(table, context, builder, functionType, texture, s, x, 0, o, location);
     }
 
-    public override SpirvValue CompileGatherBlue(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherGreen(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 2, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherComponent(context, builder, functionType, texture, s, x, 2, o);
+            return CompileGatherComponentConstOffsets(table, context, builder, functionType, texture, s, x, 1, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherComponent(table, context, builder, functionType, texture, s, x, 1, o, location);
     }
 
-    public override SpirvValue CompileGatherAlpha(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherBlue(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 3, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherComponent(context, builder, functionType, texture, s, x, 3, o);
+            return CompileGatherComponentConstOffsets(table, context, builder, functionType, texture, s, x, 2, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherComponent(table, context, builder, functionType, texture, s, x, 2, o, location);
     }
 
-    public override SpirvValue CompileGatherCmp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null)
-    {
-        if (status != null)
-            throw new NotImplementedException();
-        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
-    }
-
-    public override SpirvValue CompileGatherCmpRed(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherAlpha(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+            return CompileGatherComponentConstOffsets(table, context, builder, functionType, texture, s, x, 3, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherComponent(table, context, builder, functionType, texture, s, x, 3, o, location);
     }
 
-    public override SpirvValue CompileGatherCmpGreen(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherCmp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null, TextLocation location = default)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        return CompileGatherDref(table, context, builder, functionType, texture, s, x, compareValue, o, location);
+    }
+
+    public override SpirvValue CompileGatherCmpRed(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+            return CompileGatherDrefConstOffsets(table, context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherDref(table, context, builder, functionType, texture, s, x, compareValue, o, location);
     }
 
-    public override SpirvValue CompileGatherCmpBlue(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherCmpGreen(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+            return CompileGatherDrefConstOffsets(table, context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherDref(table, context, builder, functionType, texture, s, x, compareValue, o, location);
     }
 
-    public override SpirvValue CompileGatherCmpAlpha(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    public override SpirvValue CompileGatherCmpBlue(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException();
         if (o1 != null)
-            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
-        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+            return CompileGatherDrefConstOffsets(table, context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherDref(table, context, builder, functionType, texture, s, x, compareValue, o, location);
     }
 
-    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue? x = null, SpirvValue? width = null, SpirvValue? levels = null, SpirvValue? elements = null, SpirvValue? height = null, SpirvValue? samples = null, SpirvValue? depth = null)
+    public override SpirvValue CompileGatherCmpAlpha(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null, TextLocation location = default)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherDrefConstOffsets(table, context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value, location);
+        return CompileGatherDref(table, context, builder, functionType, texture, s, x, compareValue, o, location);
+    }
+
+    public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue? x = null, SpirvValue? width = null, SpirvValue? levels = null, SpirvValue? elements = null, SpirvValue? height = null, SpirvValue? samples = null, SpirvValue? depth = null, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var uintType = context.GetOrRegister(ScalarType.UInt);
@@ -445,19 +446,19 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return default;
     }
 
-    private SpirvValue CompileGatherComponent(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue? o)
+    private SpirvValue CompileGatherComponent(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue? o, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         var componentConstant = context.CompileConstant(component);
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, location: location);
         var gather = builder.Insert(new OpImageGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, imask, imParams));
         return new(gather.ResultId, gather.ResultType);
     }
 
-    private SpirvValue CompileGatherComponentConstOffsets(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4)
+    private SpirvValue CompileGatherComponentConstOffsets(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
@@ -499,18 +500,18 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(result.ResultId, result.ResultType);
     }
 
-    private SpirvValue CompileGatherDref(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o)
+    private SpirvValue CompileGatherDref(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
-        TextureGenerateImageOperands(context, builder, null, o, null, out var imask, out var imParams);
+        TextureGenerateImageOperands(table, context, builder, null, o, null, out var imask, out var imParams, location: location);
         var gather = builder.Insert(new OpImageDrefGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
         return new(gather.ResultId, gather.ResultType);
     }
 
-    private SpirvValue CompileGatherDrefConstOffsets(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4)
+    private SpirvValue CompileGatherDrefConstOffsets(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4, TextLocation location = default)
     {
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
@@ -573,25 +574,31 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         if (IsConstantInContext(context, id))
             return id;
 
-        // Check builder buffer for OpCompositeConstruct with all-constant constituents
         var buf = builder.GetBuffer();
-        if (!buf.TryGetInstructionById(id, out var inst) || inst.Op != Op.OpCompositeConstruct)
+        if (!buf.TryGetInstructionById(id, out var inst))
             return -1;
 
-        var span = inst.Data.Memory.Span;
-        for (int j = 3; j < span.Length; j++)
+        // OpCompositeConstruct with all-constant constituents
+        if (inst.Op == Op.OpCompositeConstruct)
         {
-            if (!IsConstantInContext(context, span[j]))
-                return -1;
+            var cspan = inst.Data.Memory.Span;
+            Span<int> constituents = stackalloc int[cspan.Length - 3];
+            for (int j = 3; j < cspan.Length; j++)
+            {
+                var promoted = TryPromoteToConstant(context, builder, cspan[j]);
+                if (promoted < 0)
+                    return -1;
+                constituents[j - 3] = promoted;
+            }
+
+            // All constituents are constants — emit OpConstantComposite in context
+            var cResultType = cspan[1];
+            var cConstId = context.Bound++;
+            context.AddData(new OpConstantComposite(cResultType, cConstId, new(constituents)));
+            return cConstId;
         }
 
-        // All constituents are constants — emit OpConstantComposite in context
-        var resultType = span[1];
-        var constId = context.Bound++;
-        Span<int> constituents = stackalloc int[span.Length - 3];
-        span[3..].CopyTo(constituents);
-        context.AddData(new OpConstantComposite(resultType, constId, new(constituents)));
-        return constId;
+        return -1;
     }
 
     private static void StoreQueryComponent(SpirvContext context, SpirvBuilder builder, int uintTypeId, int sizeResultId, int sizeComponents, int componentIndex, SpirvValue outParam)
@@ -628,7 +635,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
     }
 
-    private void TextureGenerateImageOperands(SpirvContext context, SpirvBuilder builder, SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null, SpirvValue? bias = null)
+    private void TextureGenerateImageOperands(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null, SpirvValue? bias = null, TextLocation location = default)
     {
         imask = ImageOperandsMask.None;
         // Allocate for worst case (6 operands: bias + grad(2) + lod + offset + sample)
@@ -662,8 +669,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             }
             else
             {
-                imask |= ImageOperandsMask.Offset;
-                operands[operandCount++] = offset.Value.Id;
+                table.AddError(new(location, "Texture sample offset must be a constant expression (non-constant Offset requires Vulkan maintenance8)"));
             }
         }
         if (sampleIndex != null)

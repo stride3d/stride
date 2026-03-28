@@ -99,7 +99,7 @@ public class IntrinsicCallHelper
         return true;
     }
 
-    public static SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, IIntrinsicCompiler intrinsicCompiler, string @namespace, string name, IntrinsicTemplateExpander.IntrinsicOverload bestOverload, SpirvValue? thisValue, Span<int> compiledParams)
+    public static SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, IIntrinsicCompiler intrinsicCompiler, string @namespace, string name, IntrinsicTemplateExpander.IntrinsicOverload bestOverload, SpirvValue? thisValue, Span<int> compiledParams, TextLocation location)
     {
         var functionType = bestOverload.Type;
 
@@ -116,13 +116,13 @@ public class IntrinsicCallHelper
             Span<int> vectorValues = stackalloc int[bestOverload.AutoMatrixLoopLocations.Count * bestOverload.AutoMatrixLoopSize];
             for (var index = 0; index < bestOverload.AutoMatrixLoopLocations.Count; index++)
             {
-                var location = bestOverload.AutoMatrixLoopLocations[index];
+                var loopLocation = bestOverload.AutoMatrixLoopLocations[index];
 
-                if (location.TemplateIndex != 0)
+                if (loopLocation.TemplateIndex != 0)
                     throw new InvalidOperationException("Matrix loop should only be generated for HLSL row parameter");
 
                 // Skip return type for now
-                if (location.SourceArgument == 0)
+                if (loopLocation.SourceArgument == 0)
                 {
                     var returnType = (MatrixType)functionType.ReturnType;
                     innerFunctionType = innerFunctionType with
@@ -133,14 +133,14 @@ public class IntrinsicCallHelper
                     continue;
                 }
 
-                var parameterType = (MatrixType)functionType.ParameterTypes[location.SourceArgument - 1].Type;
+                var parameterType = (MatrixType)functionType.ParameterTypes[loopLocation.SourceArgument - 1].Type;
                 var vectorType = new VectorType(parameterType.BaseType, parameterType.Rows);
                 for (int col = 0; col < bestOverload.AutoMatrixLoopSize; col++)
                 {
-                    vectorValues[index * bestOverload.AutoMatrixLoopSize + col] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(vectorType), context.Bound++, compiledParams[location.SourceArgument - 1], [col])).ResultId;
+                    vectorValues[index * bestOverload.AutoMatrixLoopSize + col] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(vectorType), context.Bound++, compiledParams[loopLocation.SourceArgument - 1], [col])).ResultId;
                 }
 
-                innerFunctionType.ParameterTypes[location.SourceArgument - 1] = innerFunctionType.ParameterTypes[location.SourceArgument - 1] with { Type = vectorType };
+                innerFunctionType.ParameterTypes[loopLocation.SourceArgument - 1] = innerFunctionType.ParameterTypes[loopLocation.SourceArgument - 1] with { Type = vectorType };
             }
 
             // Call core function
@@ -149,13 +149,13 @@ public class IntrinsicCallHelper
             {
                 for (var index = 0; index < bestOverload.AutoMatrixLoopLocations.Count; index++)
                 {
-                    var location = bestOverload.AutoMatrixLoopLocations[index];
-                    if (location.SourceArgument == 0)
+                    var loopLocation = bestOverload.AutoMatrixLoopLocations[index];
+                    if (loopLocation.SourceArgument == 0)
                         continue;
-                    compiledParams[location.SourceArgument - 1] = vectorValues[index * bestOverload.AutoMatrixLoopSize + col];
+                    compiledParams[loopLocation.SourceArgument - 1] = vectorValues[index * bestOverload.AutoMatrixLoopSize + col];
                 }
 
-                results[col] = intrinsicCompiler.CompileIntrinsic(table, compiler, @namespace, name, innerFunctionType, thisValue, compiledParams).Id;
+                results[col] = intrinsicCompiler.CompileIntrinsic(table, compiler, @namespace, name, innerFunctionType, thisValue, compiledParams, location).Id;
             }
 
             // Rebuild return value
@@ -174,7 +174,7 @@ public class IntrinsicCallHelper
         else
         {
             // No auto matrix loop
-            result = intrinsicCompiler.CompileIntrinsic(table, compiler, @namespace, name, functionType, thisValue, compiledParams);
+            result = intrinsicCompiler.CompileIntrinsic(table, compiler, @namespace, name, functionType, thisValue, compiledParams, location);
         }
 
         return result;

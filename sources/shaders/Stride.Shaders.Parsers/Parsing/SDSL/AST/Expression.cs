@@ -215,7 +215,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             SpirvValue? @this = MemberCall != null
                 ? (MemberCallBaseType is ByteAddressBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
                 : null;
-            result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler!, resolvedIntrinsicNamespace!, Name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams);
+            result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler!, resolvedIntrinsicNamespace!, Name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams, Info);
         }
         else
         {
@@ -953,7 +953,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             indexValue = builder.Convert(context, indexValue, texcoordType);
                         }
 
-                        result = resolvedIntrinsic.Compiler.CompileIntrinsic(table, compiler, resolvedIntrinsic.Namespace, "Load", resolvedIntrinsic.Overload.Type, builder.AsValue(context, result), [indexValue.Id]);
+                        result = resolvedIntrinsic.Compiler.CompileIntrinsic(table, compiler, resolvedIntrinsic.Namespace, "Load", resolvedIntrinsic.Overload.Type, builder.AsValue(context, result), [indexValue.Id], Info);
                         accessor.Type = resolvedIntrinsic.Overload.Type.ReturnType;
 
                         break;
@@ -1414,7 +1414,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
         }
         if (offset != null)
         {
-            imask |= ImageOperandsMask.Offset;
+            imask |= ImageOperandsMask.ConstOffset;
             operands[operandCount++] = offset.Value.Id;
         }
         if (sampleIndex != null)

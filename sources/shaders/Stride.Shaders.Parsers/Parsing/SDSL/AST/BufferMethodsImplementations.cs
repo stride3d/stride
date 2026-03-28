@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 
@@ -8,7 +9,7 @@ public class BufferMethodsImplementations : BufferMethodsDeclarations
 {
     public static BufferMethodsImplementations Instance { get; } = new();
 
-    public override SpirvValue CompileLoad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue x, SpirvValue? status = null)
+    public override SpirvValue CompileLoad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue x, SpirvValue? status = null, TextLocation location = default)
     {
         var bufferType = (BufferType)context.ReverseTypes[buffer.TypeId];
         var resultTypeId = context.GetOrRegister(functionType.ReturnType);
@@ -24,7 +25,7 @@ public class BufferMethodsImplementations : BufferMethodsDeclarations
         }
     }
 
-    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue width)
+    public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue width, TextLocation location = default)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var sizeResult = builder.Insert(new OpImageQuerySize(uintType, context.Bound++, buffer.Id));

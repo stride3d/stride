@@ -59,6 +59,18 @@ public record struct PrefixParser : IParser<Expression>
             Parsers.Spaces0(ref scanner, result, out _);
             if (Prefix(ref scanner, result, out var lit))
             {
+                // Fold -literal at parse time into a negated literal
+                if (op == Operator.Minus && lit is IntegerLiteral intLit)
+                {
+                    parsed = new IntegerLiteral(intLit.Suffix, -intLit.Value, scanner[position..scanner.Position]);
+                    return true;
+                }
+                if (op == Operator.Minus && lit is FloatLiteral floatLit)
+                {
+                    parsed = new FloatLiteral(floatLit.Suffix, -floatLit.DoubleValue, floatLit.Exponent, scanner[position..scanner.Position]);
+                    return true;
+                }
+
                 parsed = new PrefixExpression(op, lit, scanner[position..scanner.Position]);
                 return true;
             }

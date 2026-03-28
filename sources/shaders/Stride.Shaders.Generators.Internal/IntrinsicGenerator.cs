@@ -150,12 +150,12 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                            using Stride.Shaders.Spirv.Building;
                            using Stride.Shaders.Spirv.Core;
                            using Stride.Shaders.Parsing.Analysis;
-                           
+
                            """);
 
         builder.AppendLine("public interface IIntrinsicCompiler");
         builder.AppendLine("{");
-        builder.AppendLine("    SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams);");
+        builder.AppendLine("    SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams, TextLocation location);");
         builder.AppendLine("}");
 
         static string IntrinsicDeclarationKey(NamespaceDeclaration arg)
@@ -245,10 +245,10 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                 var mandatoryParameters = intrinsicGroup.Value.MandatoryParameters;
 
                 var optionalParameters = intrinsicGroup.Value.OptionalParameters;
-                builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SpirvContext context, SpirvBuilder builder, FunctionType functionType{thisParam}{GenerateParameters(mandatoryParameters)}{GenerateParameters(optionalParameters, true)}) => throw new NotImplementedException();");
+                builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType{thisParam}{GenerateParameters(mandatoryParameters)}{GenerateParameters(optionalParameters, true)}, TextLocation location = default) => throw new NotImplementedException();");
             }
 
-            builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams) {");
+            builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams, TextLocation location) {");
             builder.AppendLine("var (builder, context) = compiler;");
             builder.AppendLine("return (@namespace, name, compiledParams.Length) switch {");
             foreach (var intrinsicGroup in intrinsicGroups)
@@ -290,7 +290,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                                 builder.Append(" ScalarType");
                             }
 
-                            builder.AppendLine($" => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}),");
+                            builder.AppendLine($" => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(table, context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}, location: location),");
                         }
                     }
                 }

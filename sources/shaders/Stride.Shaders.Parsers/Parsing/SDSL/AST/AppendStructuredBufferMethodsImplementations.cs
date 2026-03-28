@@ -12,7 +12,7 @@ public class AppendStructuredBufferMethodsImplementations : AppendStructuredBuff
 {
     public static AppendStructuredBufferMethodsImplementations Instance { get; } = new();
 
-    public override SpirvValue CompileAppend(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue appendStructuredBuffer, SpirvValue value)
+    public override SpirvValue CompileAppend(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue appendStructuredBuffer, SpirvValue value, TextLocation location = default)
     {
         // Buffer struct is { T[] }, member 0 is the runtime array
         // We write to element 0 as a placeholder (no atomic counter implemented)
@@ -24,7 +24,7 @@ public class AppendStructuredBufferMethodsImplementations : AppendStructuredBuff
         return default;
     }
 
-    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue appendStructuredBuffer, SpirvValue count, SpirvValue stride)
+    public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue appendStructuredBuffer, SpirvValue count, SpirvValue stride, TextLocation location = default)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var arrayLen = builder.Insert(new OpArrayLength(uintType, context.Bound++, appendStructuredBuffer.Id, 0));
@@ -41,7 +41,7 @@ public class ConsumeStructuredBufferMethodsImplementations : ConsumeStructuredBu
 {
     public static ConsumeStructuredBufferMethodsImplementations Instance { get; } = new();
 
-    public override SpirvValue CompileConsume(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue consumeStructuredBuffer)
+    public override SpirvValue CompileConsume(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue consumeStructuredBuffer, TextLocation location = default)
     {
         // Read from element 0 as a placeholder (no atomic counter implemented)
         var const0 = context.CompileConstant((int)0);
@@ -52,7 +52,7 @@ public class ConsumeStructuredBufferMethodsImplementations : ConsumeStructuredBu
         return new(loadResult.ResultId, loadResult.ResultType);
     }
 
-    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue consumeStructuredBuffer, SpirvValue count, SpirvValue stride)
+    public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue consumeStructuredBuffer, SpirvValue count, SpirvValue stride, TextLocation location = default)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var arrayLen = builder.Insert(new OpArrayLength(uintType, context.Bound++, consumeStructuredBuffer.Id, 0));

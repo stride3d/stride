@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using static Stride.Shaders.Spirv.Specification;
@@ -49,7 +50,7 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // Load(uint byteOffset) -> uint
-    public override SpirvValue CompileLoad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null)
+    public override SpirvValue CompileLoad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException("Load with status is not yet supported for ByteAddressBuffer");
@@ -70,33 +71,33 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // Load2(uint byteOffset) -> uint2
-    public override SpirvValue CompileLoad2(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null)
+    public override SpirvValue CompileLoad2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException("Load with status is not yet supported for ByteAddressBuffer");
 
-        return LoadN(context, builder, functionType, byteAddressBuffer, byteOffset, 2);
+        return LoadN(table, context, builder, functionType, byteAddressBuffer, byteOffset, 2);
     }
 
     // Load3(uint byteOffset) -> uint3
-    public override SpirvValue CompileLoad3(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null)
+    public override SpirvValue CompileLoad3(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException("Load with status is not yet supported for ByteAddressBuffer");
 
-        return LoadN(context, builder, functionType, byteAddressBuffer, byteOffset, 3);
+        return LoadN(table, context, builder, functionType, byteAddressBuffer, byteOffset, 3);
     }
 
     // Load4(uint byteOffset) -> uint4
-    public override SpirvValue CompileLoad4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null)
+    public override SpirvValue CompileLoad4(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue? status = null, TextLocation location = default)
     {
         if (status != null)
             throw new NotImplementedException("Load with status is not yet supported for ByteAddressBuffer");
 
-        return LoadN(context, builder, functionType, byteAddressBuffer, byteOffset, 4);
+        return LoadN(table, context, builder, functionType, byteAddressBuffer, byteOffset, 4);
     }
 
-    private SpirvValue LoadN(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue bufferPtr, SpirvValue byteOffset, int count)
+    private SpirvValue LoadN(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue bufferPtr, SpirvValue byteOffset, int count)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         Span<int> values = stackalloc int[count];
@@ -112,7 +113,7 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // Store(uint byteOffset, T value)
-    public override SpirvValue CompileStore(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value)
+    public override SpirvValue CompileStore(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, TextLocation location = default)
     {
         // If the value is not uint, bitcast to uint first
         var valueType = context.ReverseTypes[value.TypeId];
@@ -128,27 +129,27 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // Store2(uint byteOffset, uint2 value)
-    public override SpirvValue CompileStore2(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value)
+    public override SpirvValue CompileStore2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, TextLocation location = default)
     {
-        StoreN(context, builder, byteAddressBuffer, byteOffset, value, 2);
+        StoreN(table, context, builder, byteAddressBuffer, byteOffset, value, 2);
         return default;
     }
 
     // Store3(uint byteOffset, uint3 value)
-    public override SpirvValue CompileStore3(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value)
+    public override SpirvValue CompileStore3(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, TextLocation location = default)
     {
-        StoreN(context, builder, byteAddressBuffer, byteOffset, value, 3);
+        StoreN(table, context, builder, byteAddressBuffer, byteOffset, value, 3);
         return default;
     }
 
     // Store4(uint byteOffset, uint4 value)
-    public override SpirvValue CompileStore4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value)
+    public override SpirvValue CompileStore4(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, TextLocation location = default)
     {
-        StoreN(context, builder, byteAddressBuffer, byteOffset, value, 4);
+        StoreN(table, context, builder, byteAddressBuffer, byteOffset, value, 4);
         return default;
     }
 
-    private void StoreN(SpirvContext context, SpirvBuilder builder, SpirvValue bufferPtr, SpirvValue byteOffset, SpirvValue value, int count)
+    private void StoreN(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue bufferPtr, SpirvValue byteOffset, SpirvValue value, int count)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         for (int i = 0; i < count; i++)
@@ -160,7 +161,7 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // GetDimensions(out uint width) - returns buffer size in bytes
-    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue width)
+    public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue width, TextLocation location = default)
     {
         var uintType = context.GetOrRegister(ScalarType.UInt);
         // OpArrayLength returns number of elements in the runtime array (member 0)
@@ -174,49 +175,49 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // InterlockedAdd(uint byteOffset, uint value [, out uint original])
-    public override SpirvValue CompileInterlockedAdd(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedAdd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.Add);
     }
 
     // InterlockedMin(uint byteOffset, uint/int value [, out uint original])
-    public override SpirvValue CompileInterlockedMin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedMin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.UMin);
     }
 
     // InterlockedMax(uint byteOffset, uint/int value [, out uint original])
-    public override SpirvValue CompileInterlockedMax(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedMax(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.UMax);
     }
 
     // InterlockedAnd(uint byteOffset, uint value [, out uint original])
-    public override SpirvValue CompileInterlockedAnd(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedAnd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.And);
     }
 
     // InterlockedOr(uint byteOffset, uint value [, out uint original])
-    public override SpirvValue CompileInterlockedOr(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedOr(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.Or);
     }
 
     // InterlockedXor(uint byteOffset, uint value [, out uint original])
-    public override SpirvValue CompileInterlockedXor(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null)
+    public override SpirvValue CompileInterlockedXor(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.Xor);
     }
 
     // InterlockedExchange(uint byteOffset, uint value, out uint original)
-    public override SpirvValue CompileInterlockedExchange(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue original)
+    public override SpirvValue CompileInterlockedExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue original, TextLocation location = default)
     {
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.Exchange);
     }
 
     // InterlockedCompareStore(uint byteOffset, uint compare, uint value)
-    public override SpirvValue CompileInterlockedCompareStore(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue compare, SpirvValue value)
+    public override SpirvValue CompileInterlockedCompareStore(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue compare, SpirvValue value, TextLocation location = default)
     {
         var ptr = AccessChainAtByteOffset(context, builder, byteAddressBuffer, byteOffset);
         var uintType = context.GetOrRegister(ScalarType.UInt);
@@ -228,7 +229,7 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
     }
 
     // InterlockedCompareExchange(uint byteOffset, uint compare, uint value, out uint original)
-    public override SpirvValue CompileInterlockedCompareExchange(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue compare, SpirvValue value, SpirvValue original)
+    public override SpirvValue CompileInterlockedCompareExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue compare, SpirvValue value, SpirvValue original, TextLocation location = default)
     {
         var ptr = AccessChainAtByteOffset(context, builder, byteAddressBuffer, byteOffset);
         var uintType = context.GetOrRegister(ScalarType.UInt);
