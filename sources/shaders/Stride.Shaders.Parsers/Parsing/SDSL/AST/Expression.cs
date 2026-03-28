@@ -1330,8 +1330,10 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
                         // We need to load as a variable to use OpAccessChain
                         var (builder, context) = compiler;
-                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(new PointerType(currentValueType, Specification.StorageClass.Function)), context.Bound++);
+                        var ptrType = context.GetOrRegister(new PointerType(currentValueType, Specification.StorageClass.Function));
+                        var functionVariable = builder.AddFunctionVariable(ptrType, context.Bound++);
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
+                        result = new SpirvValue(functionVariable, ptrType);
                         // Process again the same item with new type
                         var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
