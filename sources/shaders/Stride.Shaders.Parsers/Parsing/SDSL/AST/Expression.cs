@@ -285,12 +285,15 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             // Note: "in" is implicit, so we match in all cases except if out
             var inOutFlags = paramDefinition.Modifiers & ParameterModifiers.InOut;
 
-            if (paramDefinition.Type is PointerType)
+            if (paramDefinition.Type is PointerType pointerParamType)
             {
-                // For ref params, pass the original pointer directly.
-                // Required for atomic intrinsics (InterlockedAdd, etc.) that need
-                // the actual memory pointer (Workgroup, StorageBuffer, etc.).
-                if (paramDefinition.Modifiers == ParameterModifiers.Ref)
+                // For ref params or opaque types (image/sampler), pass the original pointer directly.
+                // - ref: required for atomic intrinsics (InterlockedAdd, etc.) that need
+                //   the actual memory pointer (Workgroup, StorageBuffer, etc.).
+                // - opaque types: Vulkan forbids OpStore to these types (VUID-StandaloneSpirv-OpTypeImage-06924),
+                //   so they cannot be copied into Function-storage variables.
+                if (paramDefinition.Modifiers == ParameterModifiers.Ref
+                    || pointerParamType.BaseType is TextureType or SamplerType)
                 {
                     var paramPointer = Arguments.Values[i].Compile(table, compiler);
                     if (context.ReverseTypes[paramPointer.TypeId] is not PointerType)

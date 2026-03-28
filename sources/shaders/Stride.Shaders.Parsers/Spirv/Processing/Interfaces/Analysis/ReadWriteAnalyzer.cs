@@ -208,6 +208,20 @@ internal static class ReadWriteAnalyzer
             }
             else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(ref i) is { } call)
             {
+                // Mark any resource/variable/cbuffer passed as function argument as used
+                // (e.g. texture/sampler passed by UniformConstant pointer)
+                var argSpan = i.Memory.Span;
+                for (int argIdx = 4; argIdx < argSpan.Length; argIdx++)
+                {
+                    var argId = argSpan[argIdx];
+                    if (analysisResult.Resources.TryGetValue(argId, out var argResourceInfo))
+                        argResourceInfo.UsedThisStage = true;
+                    if (variables.TryGetValue(argId, out var argVariableInfo))
+                        argVariableInfo.UsedThisStage = true;
+                    if (analysisResult.CBuffers.TryGetValue(argId, out var argCBufferInfo))
+                        argCBufferInfo.UsedThisStage = true;
+                }
+
                 // Process call
                 methodInfo.HasStreamAccess |= AnalyzeStreamReadWrites(buffer, context, call.Function, analysisResult, liveAnalysis);
             }

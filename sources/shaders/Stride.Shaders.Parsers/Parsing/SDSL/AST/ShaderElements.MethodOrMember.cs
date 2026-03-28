@@ -463,8 +463,12 @@ public partial class ShaderMethod(
 
     private static PointerType GenerateParameterType(MethodParameter p)
     {
-        // Default: wrap everything in Function pointer
-        // TODO: what happens if we want to pass texture/sampler around as parameters?
+        // Opaque types (image/sampler) must use UniformConstant storage class —
+        // Vulkan forbids OpStore to these types (VUID-StandaloneSpirv-OpTypeImage-06924),
+        // so they cannot be copied into Function-storage variables.
+        if (p.Type is TextureType or SamplerType)
+            return new PointerType(p.Type!, Specification.StorageClass.UniformConstant);
+
         return new PointerType(p.Type!, Specification.StorageClass.Function);
     }
 
