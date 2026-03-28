@@ -460,7 +460,9 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamInputType), variableId, Specification.StorageClass.Input, null));
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
 
-                    if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
+                    // Flat is required for non-floating-point interpolation, but not valid on vertex shader inputs
+                    if (executionModel != ExecutionModel.Vertex
+                        && stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
                     if (stream.Value.Patch)
@@ -496,7 +498,9 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamOutputType), variableId, Specification.StorageClass.Output, null));
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
 
-                    if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
+                    // Flat is required for non-floating-point interpolation, but not valid on fragment shader outputs
+                    if (executionModel != ExecutionModel.Fragment
+                        && stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
                     if (stream.Value.Patch)
