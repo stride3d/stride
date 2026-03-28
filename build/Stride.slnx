@@ -292,10 +292,7 @@
     <Project Path="../sources/tools/Stride.Graphics.RenderDocPlugin/Stride.Graphics.RenderDocPlugin.csproj">
       <Build Solution="*|Win32" Project="false" />
     </Project>
-    <Project Path="../sources/tools/Stride.ProjectGenerator/Stride.ProjectGenerator.csproj">
-      <Build Solution="*|Win32" Project="false" />
-    </Project>
-    <Project Path="../sources/tools/Stride.StorageTool/Stride.StorageTool.csproj">
+<Project Path="../sources/tools/Stride.StorageTool/Stride.StorageTool.csproj">
       <Build Solution="*|Win32" Project="false" />
     </Project>
   </Folder>
