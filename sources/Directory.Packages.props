@@ -4,7 +4,7 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
-    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.25" />
+    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.27" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast" Version="2025.2.1" />

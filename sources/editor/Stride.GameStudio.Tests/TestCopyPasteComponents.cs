@@ -64,7 +64,7 @@ namespace Stride.GameStudio.Tests
             var result = service.DeserializeCopiedData(copiedText, asset, expectedType);
             Assert.NotNull(result);
             Assert.NotNull(result.Items);
-            Assert.Equal(1, result.Items.Count);
+            Assert.Single(result.Items);
 
             var item = result.Items[0];
             Assert.NotNull(item);

@@ -194,7 +194,7 @@ namespace Stride.Shaders.Parser.Mixins
                                     {
                                         sourceStream.Position = 0;
                                         var data = new byte[sourceStream.Length];
-                                        sourceStream.Read(data, 0, (int)sourceStream.Length);
+                                        sourceStream.ReadExactly(data, 0, (int)sourceStream.Length);
                                         shaderSource.Hash = ObjectId.FromBytes(data);
                                     }
                                     else

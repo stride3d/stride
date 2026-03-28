@@ -86,7 +86,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override Quaternion? UpateValueFromFloat(float value)
+        protected override Quaternion? UpdateValueFromFloat(float value)
         {
             var radian = MathUtil.DegreesToRadians(value);
             decomposedRotation = new Vector3(radian);

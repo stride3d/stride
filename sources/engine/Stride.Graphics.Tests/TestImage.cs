@@ -183,9 +183,9 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void TestLoadAndSave()
         {
-            foreach (ImageFileType sourceFormat in Enum.GetValues(typeof(ImageFileType)))
+            foreach (ImageFileType sourceFormat in Enum.GetValues<ImageFileType>())
             {
-                foreach (ImageFileType intermediateFormat in Enum.GetValues(typeof(ImageFileType)))
+                foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
                 {
                     if (sourceFormat == ImageFileType.Wmp) // no input image of this format.
                         continue;
@@ -230,7 +230,7 @@ namespace Stride.Graphics.Tests
                     {
                         var bufferSize = inStream.Length;
                         buffer = new byte[bufferSize];
-                        inStream.Read(buffer, 0, (int)bufferSize);
+                        inStream.ReadExactly(buffer, 0, (int)bufferSize);
                     }
 
                     using (image = Image.Load(buffer))
@@ -271,7 +271,7 @@ namespace Stride.Graphics.Tests
             {
                 var bufferSize = inStream.Length;
                 buffer = new byte[bufferSize];
-                inStream.Read(buffer, 0, (int)bufferSize);
+                inStream.ReadExactly(buffer, 0, (int)bufferSize);
             }
 
             using (image = Image.Load(buffer))
