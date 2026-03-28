@@ -30,18 +30,6 @@ Example of use:
   </Target>
 
   <!--
-  Build Stride MSBuild SDK packages (Stride.Build.Sdk, Stride.Build.Sdk.Editor, Stride.Build.Sdk.Tests)
-  into the local NuGet cache. Required before any project using Sdk="Stride.Build.Sdk" can build.
-  -->
-  <Target Name="BuildSdk">
-    <PropertyGroup>
-      <StrideSdkSolution>$(StrideRoot)sources\sdk\Stride.Build.Sdk.slnx</StrideSdkSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(StrideSdkSolution)" />
-    <MSBuild Targets="Build" Projects="$(StrideSdkSolution)" />
-  </Target>
-  
-  <!--
   VSIX Stride plugin
   Don't forget to build for VS2013 by using MSBuild 12.0, 
   or if you're using a newer version of MSBuild, pass the flag /p:VisualStudioVersion=12.0 when calling MSBuild in the command line.
@@ -155,12 +143,12 @@ Example of use:
     <CallTarget Targets="RestoreInternal" />
   </Target>
 
-  <Target Name="Build" DependsOnTargets="BuildSdk">
+  <Target Name="Build">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
-  <Target Name="BuildRuntime" DependsOnTargets="BuildSdk">
+  <Target Name="BuildRuntime">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -168,12 +156,12 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>
   </Target>
 
-  <Target Name="BuildWindows" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindows">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target>
 
-  <Target Name="BuildWindowsDirect3D11" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindowsDirect3D11">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -181,7 +169,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildWindowsDirect3D12" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindowsDirect3D12">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -189,7 +177,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildWindowsOpenGL" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindowsOpenGL">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -197,7 +185,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildWindowsOpenGLES" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindowsOpenGLES">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -205,7 +193,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildAndroid" DependsOnTargets="BuildSdk">
+  <Target Name="BuildAndroid">
     <PropertyGroup>
       <StrideAndroidSolution>$(StrideRoot)build\Stride.Android.slnf</StrideAndroidSolution>
     </PropertyGroup>
@@ -213,7 +201,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideAndroidSolution)" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildiOS" DependsOnTargets="BuildSdk">
+  <Target Name="BuildiOS">
     <PropertyGroup>
       <StrideiOSSolution>$(StrideRoot)build\Stride.iOS.slnf</StrideiOSSolution>
     </PropertyGroup>
@@ -221,7 +209,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideiOSSolution)" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildUWP" DependsOnTargets="BuildSdk">
+  <Target Name="BuildUWP">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>UWP</StridePlatforms>
@@ -230,7 +218,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildWindowsVulkan" DependsOnTargets="BuildSdk">
+  <Target Name="BuildWindowsVulkan">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
@@ -238,7 +226,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildLinux" DependsOnTargets="BuildSdk">
+  <Target Name="BuildLinux">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>Linux</StridePlatforms>
@@ -247,7 +235,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target>
 
-  <Target Name="BuildLinuxVulkan" DependsOnTargets="BuildSdk">
+  <Target Name="BuildLinuxVulkan">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>Linux</StridePlatforms>
@@ -256,7 +244,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildmacOS" DependsOnTargets="BuildSdk">
+  <Target Name="BuildmacOS">
     <PropertyGroup>
       <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.sln</StridemacOSSolution>
     </PropertyGroup>
@@ -274,7 +262,7 @@ Example of use:
     <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
   </Target>
   
-  <Target Name="RunTestsWindows" DependsOnTargets="BuildSdk;DownloadXunitRunnerConsole">
+  <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
     <!-- Remove artifacts generated during previous run -->
     <Delete Files="$(MSBuildThisFileDirectory)..\tests\local\**\*.*" />
     <!-- By default, enable all known categories -->
@@ -316,7 +304,7 @@ Example of use:
     <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Particles.Tests\Stride.Particles.Tests-Signed.apk"/>
   </ItemGroup>
   
-  <Target Name="RunTestsMobile" DependsOnTargets="BuildSdk;DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
+  <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
     <PropertyGroup>
       <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
       <StridePlatform></StridePlatform>
@@ -396,7 +384,7 @@ Example of use:
     <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
   </Target>
   
-  <Target Name="BuildLauncher" DependsOnTargets="BuildSdk;SignCredentialsCheck">
+  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
     <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
   </Target>

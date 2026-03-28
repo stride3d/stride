@@ -1,4 +1,5 @@
-<Project Sdk="Stride.Build.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
@@ -28,4 +29,5 @@
     <None Include="Native\OpenSLES.cpp" />
     <None Include="Native\XAudio2.cpp" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

@@ -1,6 +1,6 @@
 # Stride Build System (SDK)
 
-The Stride build system is implemented as a set of MSBuild SDK packages under `sources/sdk/`. All projects use `<Project Sdk="Stride.Build.Sdk">` (or `Stride.Build.Sdk.Editor` / `Stride.Build.Sdk.Tests`), following .NET SDK conventions.
+The Stride build system is implemented as a set of MSBuild SDK packages under `sources/sdk/`. All projects import the SDK files directly from source using `$(StrideRoot)`-relative paths (see [How Projects Import the SDK](#how-projects-import-the-sdk)).
 
 ## SDK Packages
 
@@ -38,12 +38,139 @@ Only one version of each SDK can be active during a build.
 
 ---
 
+## How Projects Import the SDK
+
+All Stride projects import the SDK files directly from source:
+
+```xml
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>
+```
+
+The **props import** uses `GetDirectoryNameOfFileAbove` — a static MSBuild function that locates the nearest `Directory.Build.props` without relying on any pre-set property (see [How $(StrideRoot) is set](#how-strideroot-is-set) for why this is necessary).
+
+The **targets import** uses `$(StrideRoot)` because `Directory.Build.props` has already been evaluated by that point.
+
+This replaces the earlier `<Project Sdk="Stride.Build.Sdk">` style which required the SDK packages to be pre-built and cached in `~/.nuget/packages/` before any project could load.
+
+### Why direct imports?
+
+The `Sdk="..."` attribute triggers MSBuild SDK resolution before any target runs, so a missing package prevents the solution from opening in Visual Studio. With direct imports, `.props` and `.targets` files are loaded from their source location — edits take effect immediately with no rebuild or cache clear.
+
+### How $(StrideRoot) is set
+
+`sources/Directory.Build.props` defines:
+
+```xml
+<StrideRoot>$(MSBuildThisFileDirectory)../</StrideRoot>
+```
+
+`$(MSBuildThisFileDirectory)` evaluates to the directory of `Directory.Build.props` itself — i.e., `sources/`. So `$(StrideRoot)` becomes the repo root.
+
+**Bootstrap constraint:** `Directory.Build.props` is auto-discovered during `Microsoft.Common.props` evaluation, which happens inside `Microsoft.NET.Sdk/Sdk.props` — which is itself imported inside `Stride.Build.Sdk/Sdk/Sdk.props`. This means `$(StrideRoot)` is **not yet set** when MSBuild evaluates the opening props `<Import>` in a project file, because loading `Sdk.props` is precisely what triggers `Directory.Build.props` discovery.
+
+The props import therefore uses a static MSBuild function that needs no pre-set property:
+
+```xml
+<Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+```
+
+By the time the project file reaches the closing targets `<Import>`, `Directory.Build.props` has been evaluated and `$(StrideRoot)` is available:
+
+```xml
+<Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+```
+
+### Reverting to full-SDK style
+
+To go back to `<Project Sdk="Stride.Build.Sdk">`:
+
+**Step 1 — Restore SDK internal cross-references (4 files):**
+
+`sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props` — replace:
+```xml
+<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk/Sdk/Sdk.props" />
+```
+with:
+```xml
+<Import Project="Sdk.props" Sdk="Stride.Build.Sdk" />
+```
+
+`sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets` — replace:
+```xml
+<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk/Sdk/Sdk.targets" />
+```
+with:
+```xml
+<Import Project="Sdk.targets" Sdk="Stride.Build.Sdk" />
+```
+
+`sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props` — replace:
+```xml
+<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+```
+with:
+```xml
+<Import Project="Sdk.props" Sdk="Stride.Build.Sdk.Editor" />
+```
+
+`sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets` — replace:
+```xml
+<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+```
+with:
+```xml
+<Import Project="Sdk.targets" Sdk="Stride.Build.Sdk.Editor" />
+```
+
+**Step 2 — Restore project files:**
+
+Use `git` to revert the project file changes (all 125 `.csproj` files). The direct-import form was introduced in one commit, so a targeted revert or checkout is the most reliable approach.
+
+**Step 3 — Uncomment `global.json` `msbuild-sdks` entries.**
+
+**Step 4 — Uncomment `nuget.config` `packageSourceMapping` entry and re-add the `stride-sdks` source.**
+
+**Step 5 — Re-add `BuildSdk` target to `build/Stride.build`:**
+
+Restore the target and add `DependsOnTargets="BuildSdk"` (or `BuildSdk;` prefix where multiple dependencies exist) to: `Build`, `BuildRuntime`, `BuildWindows`, `BuildWindowsDirect3D11`, `BuildWindowsDirect3D12`, `BuildWindowsOpenGL`, `BuildWindowsOpenGLES`, `BuildAndroid`, `BuildiOS`, `BuildUWP`, `BuildWindowsVulkan`, `BuildLinux`, `BuildLinuxVulkan`, `BuildmacOS`, `BuildLauncher`, `RunTestsWindows`, `RunTestsMobile`.
+
+```xml
+<!--
+Build Stride MSBuild SDK packages (Stride.Build.Sdk, Stride.Build.Sdk.Editor, Stride.Build.Sdk.Tests)
+into the local NuGet cache. Required before any project using Sdk="Stride.Build.Sdk" can build.
+-->
+<Target Name="BuildSdk">
+  <PropertyGroup>
+    <StrideSdkSolution>$(StrideRoot)sources\sdk\Stride.Build.Sdk.slnx</StrideSdkSolution>
+  </PropertyGroup>
+  <MSBuild Targets="Restore" Projects="$(StrideSdkSolution)" />
+  <MSBuild Targets="Build" Projects="$(StrideSdkSolution)" />
+</Target>
+```
+
+**Step 6 — Build the SDK packages:**
+
+```bash
+dotnet build sources/sdk/Stride.Build.Sdk.slnx
+```
+
+---
+
 ## Project Examples
 
 ### Runtime library
 
 ```xml
-<Project Sdk="Stride.Build.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -51,26 +178,31 @@ Only one version of each SDK can be active during a build.
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
 ```
 
 ### Editor / tool project
 
 ```xml
-<Project Sdk="Stride.Build.Sdk.Editor">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
 ```
 
 ### Test project
 
 ```xml
-<Project Sdk="Stride.Build.Sdk.Tests">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>
 ```
 
@@ -342,7 +474,9 @@ The `.ssdeps` system (`Stride.Dependencies.targets`) handles native library dist
 
 ### Building the SDK
 
-After modifying SDK source, rebuild and clear the NuGet cache:
+The SDK packages don't need to be built for day-to-day development — projects now import SDK files directly from source. Rebuild the SDK packages only when preparing a NuGet release or when testing the full-SDK (`Sdk="Stride.Build.Sdk"`) mode.
+
+If you do need to build the packages (e.g. for a NuGet release), rebuild and clear the NuGet cache:
 
 ```bash
 # 1. Kill any running MSBuild/dotnet processes
@@ -446,15 +580,7 @@ NuGet's `build/` convention auto-imports `.props` and `.targets` files even for 
 
 ### Build fails after SDK changes
 
-Kill dotnet processes and clear NuGet cache:
-
-```bash
-taskkill /F /IM dotnet.exe 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk.editor" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk.tests" 2>nul
-dotnet build sources\sdk\Stride.Build.Sdk.slnx
-```
+SDK files are imported directly from source — changes take effect on the next build with no cache clear needed. If you are testing the NuGet package mode (`Sdk="Stride.Build.Sdk"`), then after SDK changes you still need to kill dotnet processes, clear the cache, and rebuild the packages. See "Building the SDK" above.
 
 ### Configuration is empty (`bin\net10.0\` instead of `bin\Debug\net10.0\`)
 

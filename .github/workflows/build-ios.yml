@@ -54,7 +54,6 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Install .NET iOS Workload
         run: dotnet workload install ios
-      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
           dotnet build build\Stride.iOS.slnf `

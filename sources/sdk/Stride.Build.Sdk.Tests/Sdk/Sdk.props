@@ -3,7 +3,7 @@
   <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
-  <Import Project="Sdk.props" Sdk="Stride.Build.Sdk.Editor" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor\Sdk\Sdk.props" />
 
   <!-- ================================================================ -->
   <!-- Test Project Properties -->

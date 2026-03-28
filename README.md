@@ -59,22 +59,13 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```bash
    git lfs clone https://github.com/stride3d/stride.git
    ```
-2. **Build the SDK packages** (required once, before opening any solution):
-   ```bash
-   dotnet build sources/sdk/Stride.Build.Sdk.slnx
-   ```
-   This produces the MSBuild SDK packages that all Stride projects depend on. You only need to rebuild the SDK when its files change (under `sources/sdk/`).
-
-3. **Open the solution:**
+2. **Open the solution:**
    - Open `<StrideDir>\build\Stride.slnx` with Visual Studio 2026.
    - Build the `Stride.GameStudio` project in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
    - _Optionally_, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
 > [!WARNING]
 > **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
-
-> [!IMPORTANT]
-> **You must build the SDK packages (step 2) before opening `Stride.slnx` in Visual Studio.** All projects use `<Project Sdk="Stride.Build.Sdk">`, and MSBuild resolves SDK packages before loading projects. If the SDK is missing from your NuGet cache, Visual Studio will fail to load the solution. When building from the command line with `Stride.build`, the SDK is built automatically as a dependency.
 
 ### Build Stride without Visual Studio
 
@@ -90,7 +81,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```bash
    msbuild /t:Build Stride.build
    ```
-   This automatically builds the SDK packages first, then restores and builds the full solution.
+   This restores and builds the full solution.
 
 ### If Building Fails
 

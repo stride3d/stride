@@ -1,4 +1,5 @@
-<Project Sdk="Stride.Build.Sdk.Tests">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>net10.0-android</TargetFramework>
     <AssemblyName>Stride.UI.Tests</AssemblyName>
@@ -130,4 +131,5 @@
   <ItemGroup>
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

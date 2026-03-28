@@ -3,15 +3,9 @@ Stride Sources
 
 ## Build System
 
-All Stride projects use SDK-style `.csproj` files with a custom MSBuild SDK:
+All Stride projects import the MSBuild SDK files directly from source. The props import uses `GetDirectoryNameOfFileAbove` to locate `Directory.Build.props` without relying on any pre-set property; the targets import uses `$(StrideRoot)` (set by `sources/Directory.Build.props`, available by that point in the evaluation). See [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md) for details.
 
-```xml
-<Project Sdk="Stride.Build.Sdk">
-```
-
-The SDK packages are defined in `sources/sdk/` and must be built before any other project can be loaded or built. See the [root README](../README.md#build-stride) for build instructions.
-
-Three SDK packages exist:
+Three SDK packages are defined in `sources/sdk/`:
 
 | Package | Purpose |
 |---------|---------|
@@ -70,26 +64,30 @@ There are two options to integrate this repository in your own repository:
 
 ### Basic use ###
 
-Projects should reference the Stride MSBuild SDK instead of importing targets manually:
+Projects import the Stride MSBuild SDK files directly from source:
 
 ```xml
-<Project Sdk="Stride.Build.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
 ```
 
-Make sure your `global.json` includes the SDK version mapping and your `nuget.config` points to the `build/packages/` folder where the SDK `.nupkg` files are produced. See the [root README](../README.md#build-stride) for full setup instructions.
+The props import uses `GetDirectoryNameOfFileAbove` because `$(StrideRoot)` is not yet available at that point (it is set by `sources/Directory.Build.props`, which is discovered during the SDK initialization triggered by the props import itself). The targets import at the bottom uses `$(StrideRoot)` because `Directory.Build.props` has been evaluated by then.
 
 ### Optional: Activate assembly processor ###
 
 If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, enable the assembly processor in your project file:
 
 ```xml
-<Project Sdk="Stride.Build.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
 ```

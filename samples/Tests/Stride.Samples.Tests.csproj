@@ -1,6 +1,9 @@
-<Project Sdk="Stride.Build.Sdk.Tests">
+<Project>
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\..\</StrideRoot>
+  </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -37,4 +40,5 @@
   </ItemGroup>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

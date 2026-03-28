@@ -1,4 +1,5 @@
-<Project Sdk="Stride.Build.Sdk.Tests">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -97,4 +98,5 @@
     <Folder Include="Stride.Assets.Tests\Projects\MaterialDeps\subfolder\" />
     <Folder Include="Stride.Assets.Tests\Projects\TextureDeps\" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

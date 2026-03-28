@@ -1,4 +1,5 @@
-<Project Sdk="Stride.Build.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -16,4 +17,5 @@
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

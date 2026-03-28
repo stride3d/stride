@@ -76,7 +76,6 @@ jobs:
           echo "ANDROID_NDK_ROOT=$ndkPath" >> $env:GITHUB_ENV
           echo "ANDROID_NDK_HOME=$ndkPath" >> $env:GITHUB_ENV
           echo "Using NDK at: $ndkPath"
-      - uses: ./.github/actions/build-sdk
       - name: Debug NDK Configuration
         shell: pwsh
         run: |
