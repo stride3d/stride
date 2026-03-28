@@ -33,16 +33,21 @@ public static partial class Spv
     /// Validates a SPIR-V file using the spirv-val tool from the Vulkan SDK.
     /// </summary>
     /// <param name="filePath">Path to a .spv file.</param>
+    /// <param name="targetVulkan">When true, validates against Vulkan 1.4 with relaxed layout rules.</param>
     /// <returns>A <see cref="ValidationResult"/> indicating whether the bytecode is valid.</returns>
-    public static ValidationResult ValidateFile(string filePath)
+    public static ValidationResult ValidateFile(string filePath, bool targetVulkan = false)
     {
         var exe = FindSpirvVal();
+
+        var args = targetVulkan
+            ? $"--target-env vulkan1.4 --relax-block-layout --uniform-buffer-standard-layout {filePath}"
+            : filePath;
 
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
             FileName = exe,
-            Arguments = filePath,
+            Arguments = args,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -68,14 +73,15 @@ public static partial class Spv
     /// Validates SPIR-V bytecode using the spirv-val tool from the Vulkan SDK.
     /// </summary>
     /// <param name="spirvBytes">Raw SPIR-V bytecode as a byte span.</param>
+    /// <param name="targetVulkan">When true, validates against Vulkan 1.4 with relaxed layout rules.</param>
     /// <returns>A <see cref="ValidationResult"/> indicating whether the bytecode is valid.</returns>
-    public static ValidationResult ValidateBinary(ReadOnlySpan<byte> spirvBytes)
+    public static ValidationResult ValidateBinary(ReadOnlySpan<byte> spirvBytes, bool targetVulkan = false)
     {
         var tempFile = Path.GetTempFileName();
         try
         {
             File.WriteAllBytes(tempFile, spirvBytes.ToArray());
-            return ValidateFile(tempFile);
+            return ValidateFile(tempFile, targetVulkan);
         }
         finally
         {

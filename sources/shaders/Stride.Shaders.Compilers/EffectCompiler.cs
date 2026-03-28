@@ -48,6 +48,12 @@ namespace Stride.Shaders.Compiler
         public override IVirtualFileProvider FileProvider { get; set; }
         public bool UseFileSystem { get; set; }
 
+        /// <summary>
+        /// When true, runs spirv-val on the SPIR-V bytecode after MergeSDSL.
+        /// Validation errors are logged as warnings (they do not block compilation).
+        /// </summary>
+        public bool ValidateSpirv { get; set; }
+
         public EffectCompiler(IVirtualFileProvider fileProvider)
         {
             FileProvider = fileProvider;
@@ -145,6 +151,14 @@ namespace Stride.Shaders.Compiler
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
             if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
+
+            // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
+            if (ValidateSpirv && spirvBytecode is { Length: > 0 })
+            {
+                var validationResult = Spirv.Tools.Spv.ValidateBinary(spirvBytecode, targetVulkan: effectParameters.Platform is GraphicsPlatform.Vulkan);
+                if (!validationResult.IsValid)
+                    log.Error($"SPIR-V validation failed for effect {fullEffectName} (id: {mixinObjectId}): {validationResult.Output}");
+            }
 
             // -------------------------------------------------------
             // Prepare DynamicCache folder for debug files

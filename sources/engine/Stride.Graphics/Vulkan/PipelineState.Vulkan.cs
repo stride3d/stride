@@ -47,8 +47,16 @@ namespace Stride.Graphics
         private unsafe void Recreate()
         {
             // Note: important to pin this so that stages[x].Name is valid during this whole function
-            fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
-                RecreateInner();
+            try
+            {
+                fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
+                    RecreateInner();
+            }
+            catch (InvalidOperationException ex) when (Description.EffectBytecode?.Stages is { Length: > 0 } stages)
+            {
+                var entryPoints = string.Join(", ", stages.Select(s => $"{s.Stage}:{Encoding.UTF8.GetString(s.EntryPoint).TrimEnd('\0')}"));
+                throw new InvalidOperationException($"{ex.Message} (bytecode {stages[0].Id} [{entryPoints}])", ex);
+            }
         }
 
         private unsafe void RecreateInner()
