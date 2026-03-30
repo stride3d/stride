@@ -1063,7 +1063,9 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     {
                         streamVar.AllowStreamVariables = true;
                         streamVar.ProcessSymbol(table);
-                        accessor.Type = (PointerType)streamVar.Type! with { StorageClass = p.StorageClass };
+                        if (streamVar.Type is not PointerType)
+                            throw new InvalidOperationException($"Use of undeclared stream variable '{streamVar.Name}'");
+                        accessor.Type = (PointerType)streamVar.Type with { StorageClass = p.StorageClass };
                         break;
                     }
 
