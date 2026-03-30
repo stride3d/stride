@@ -725,8 +725,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             var i = temp[index];
             if (i.Data.Op == Op.OpShaderSDSL && (OpShaderSDSL)i is { } shaderInstruction)
             {
-                //currentShader = mixinNode.ShadersByName[shaderInstruction.ShaderName];
-                // TODO: better way to find ShaderInfo
                 currentShader = mixinNode.Shaders.First(x => index >= x.StartInstruction && index < x.EndInstruction);
             }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)

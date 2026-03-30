@@ -71,7 +71,6 @@ internal static class MethodDuplicator
 
             liveAnalysis.ExtraReferencedMethods.Add(methodInfo.ThisStageMethodId.Value);
 
-            // TODO: adjust mixin instructions ranges
             buffer.InsertRange(methodEnd, CollectionsMarshal.AsSpan(copiedInstructions));
             codeInserted?.Invoke(methodEnd, copiedInstructions.Count);
         }

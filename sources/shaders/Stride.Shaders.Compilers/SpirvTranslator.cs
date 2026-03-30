@@ -1,6 +1,7 @@
 using Silk.NET.Core.Native;
 using Silk.NET.SPIRV;
 using Silk.NET.SPIRV.Cross;
+using Stride.Core.Diagnostics;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +13,7 @@ using Compiler = Silk.NET.SPIRV.Cross.Compiler;
 public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 {
     static readonly Cross cross = Cross.GetApi();
+    static readonly Logger Log = GlobalLogger.GetLogger("SpirvTranslator");
 
     public List<(string RealName, string TranslatedName, ExecutionModel ExecutionModel)> GetEntryPoints(Backend backend = Backend.Hlsl)
     {
@@ -27,7 +29,8 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         cross.ContextSetErrorCallback(context, new((void* userData, byte* errorData) =>
         {
             var error = Marshal.PtrToStringAnsi((IntPtr)errorData);
-            Console.WriteLine(error);
+            if (error != null)
+                Log.Error(error);
         }), null);
 
         if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
@@ -67,7 +70,8 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         cross.ContextSetErrorCallback(context, new((void* userData, byte* errorData) =>
         {
             var error = Marshal.PtrToStringAnsi((IntPtr)errorData);
-            Console.WriteLine(error);
+            if (error != null)
+                Log.Error(error);
         }), null);
 
         if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
