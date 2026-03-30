@@ -230,7 +230,7 @@ namespace Stride.Graphics
 
             // Since Vulkan 1.1, we can use negative viewport instead of doing gl_Position.y = -gl_Position.y in the shader
             // Note: we mutate viewportCopy _after_ vkCmdSetScissor has been called
-            viewportCopy.Y = viewportCopy.Height - viewportCopy.Y;
+            viewportCopy.Y = viewportCopy.Y + viewportCopy.Height;
             viewportCopy.Height = -viewportCopy.Height;
             if (viewportDirty)
             {
