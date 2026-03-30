@@ -327,6 +327,7 @@ public partial class ShaderMixer
                             var resolved = effectResourceBinding with
                             {
                                 Type = bufferType.WriteAllowed ? EffectParameterType.RWBuffer : EffectParameterType.Buffer,
+                                ElementType = new EffectTypeDescription { Type = ScalarToEffectParameterType(bufferType.BaseType) },
                             };
                             globalContext.Reflection.ResourceBindings.Add(resolved);
                             EmitResourceEntry(globalContext, resolved);
@@ -417,4 +418,15 @@ public partial class ShaderMixer
         var group = globalContext.Reflection.GetOrCreateGroup(groupName);
         group.Entries.Add(new EffectResourceEntry(binding, samplerState));
     }
+
+    private static EffectParameterType ScalarToEffectParameterType(ScalarType scalarType) => scalarType.Type switch
+    {
+        Scalar.Float => EffectParameterType.Float,
+        Scalar.Half => EffectParameterType.Float,
+        Scalar.Double => EffectParameterType.Double,
+        Scalar.Int => EffectParameterType.Int,
+        Scalar.UInt => EffectParameterType.UInt,
+        Scalar.Boolean => EffectParameterType.Bool,
+        _ => EffectParameterType.Void,
+    };
 }
