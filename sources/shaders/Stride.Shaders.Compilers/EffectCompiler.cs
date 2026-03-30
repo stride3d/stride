@@ -149,7 +149,9 @@ namespace Stride.Shaders.Compiler
             shaderMixinSource.AddMacro("class", "shader");
 
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
-            if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+            if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(
+                ResourcesRegisterSeparate: effectParameters.Platform is not GraphicsPlatform.Vulkan,
+                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
             // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
@@ -326,7 +328,7 @@ namespace Stride.Shaders.Compiler
                 else
                 {
                     var spirvBytecodeArray = spirvBytecode.ToArray();
-                    var spirvBytecodeId = ObjectId.FromBytes(spirvBytecode);
+                    var spirvBytecodeId = ObjectId.FromBytes(spirvBytecodeArray);
                     foreach (var entryPoint in entryPoints)
                     {
                         var entryPointName = new byte[Encoding.UTF8.GetByteCount(entryPoint.Name) + 1];

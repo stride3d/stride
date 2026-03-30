@@ -24,7 +24,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// 
     /// </summary>
     /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
-    public record struct Options(bool ResourcesRegisterSeparate);
+    /// <param name="StripGoogleUserType">Strip SPV_GOOGLE_user_type extension and UserTypeGOOGLE decorations (needed for Vulkan, which rejects the extension unless VK_GOOGLE_user_type is supported).</param>
+    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false);
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
@@ -142,7 +143,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var inst in context)
             temp.Add(inst.Data);
 
-        CleanupUnnecessaryInstructions(globalContext, context, temp);
+        CleanupUnnecessaryInstructions(globalContext, context, temp, options);
 
         temp.Sort();
 
@@ -1135,7 +1136,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
     }
 
-    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp)
+    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, Options options)
     {
         // Process OpTypeFunctionSDSL
         var functionTypes = new Dictionary<FunctionTypeWithIds, int>();
@@ -1195,6 +1196,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 return true;
             if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;
+
+            // Strip SPV_GOOGLE_user_type for Vulkan (requires VK_GOOGLE_user_type which most drivers don't support)
+            if (options.StripGoogleUserType)
+            {
+                if (i.Op == Op.OpExtension && ((OpExtension)i).Name == "SPV_GOOGLE_user_type")
+                    return true;
+                if (i.Op == Op.OpDecorateString && (Decoration)i.Data.Memory.Span[2] is Decoration.UserTypeGOOGLE)
+                    return true;
+                if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] is Decoration.UserTypeGOOGLE)
+                    return true;
+            }
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
             if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
