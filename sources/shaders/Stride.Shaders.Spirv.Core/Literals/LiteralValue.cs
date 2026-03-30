@@ -168,12 +168,12 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
         }
         else if (Value is string s)
         {
-            for (int i = 0; i < s.Length; i++)
+            var utf8 = Encoding.UTF8.GetBytes(s);
+            for (int i = 0; i < utf8.Length; i++)
             {
                 var pos = i / 4;
                 var shift = 8 * (i % 4);
-                var value = i < s.Length ? s[i] : '\0';
-                MemoryOwner.Span[pos] |= value << shift;
+                MemoryOwner.Span[pos] |= utf8[i] << shift;
             }
         }
     }
