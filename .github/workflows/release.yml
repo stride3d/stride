@@ -85,6 +85,17 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v2
 
+      - name: Install Advanced Installer
+        if: ${{ inputs.build-prerequisites-installer }}
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile advinst.msi
+          msiexec /i advinst.msi /qn ADDLOCAL=ALL | Out-Null
+          # Register license if provided
+          if ("${{ secrets.ADVINST_LICENSE_KEY }}" -ne "") {
+            & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
+          }
+
       - name: Build Package
         run: |
           $platforms = "Windows"
