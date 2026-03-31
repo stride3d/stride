@@ -15,6 +15,7 @@
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -35,6 +36,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="System.Resources.Extensions" />
     <PackageReference Include="NuGet.Commands" />
 	<PackageReference Include="Polysharp" />
 
