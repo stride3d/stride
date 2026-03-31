@@ -15,7 +15,8 @@
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <!-- VSSDK CTO merger requires legacy resource format, not the preserialized one -->
+    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -36,7 +37,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
-    <PackageReference Include="System.Resources.Extensions" />
     <PackageReference Include="NuGet.Commands" />
 	<PackageReference Include="Polysharp" />
 

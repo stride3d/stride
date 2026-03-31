@@ -74,7 +74,6 @@
     <PackageVersion Include="System.Management" Version="10.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
-    <PackageVersion Include="System.Resources.Extensions" Version="10.0.5" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
   </ItemGroup>
   <!-- Visual Studio dependencies -->
