@@ -752,7 +752,12 @@ namespace Stride.Graphics.Regression
         private string GetPlatformSpecificDirectory()
         {
             if (Platform.Type == PlatformType.Windows)
-                return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+            {
+                var deviceName = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
+                    ? "WARP"
+                    : GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+                return $"Windows.{GraphicsDevice.Platform}\\{deviceName}";
+            }
             else
                 throw new NotImplementedException();
         }
