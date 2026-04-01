@@ -859,6 +859,11 @@ namespace Stride.Graphics.Regression
             Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been skipped");
         }
 
+        public static void SkipTestForGraphicPlatform(GraphicsPlatform platform, string reason)
+        {
+            Skip.If(GraphicsDevice.Platform == platform, $"{platform}: {reason}");
+        }
+
         /// <summary>
         ///   Skips the test on any other graphics platform than the provided one.
         /// </summary>

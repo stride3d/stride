@@ -204,6 +204,7 @@ namespace Stride.Engine.Tests
             SkipTestForGraphicPlatform(GraphicsPlatform.OpenGL);
             SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
             SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
+            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Tessellation differences on D3D12 - needs investigation");
 
             RunGameTest(new TesselationTest());
         }

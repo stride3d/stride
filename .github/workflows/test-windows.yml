@@ -114,7 +114,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: [Direct3D11] # TODO: Add Direct3D12 once gold images are generated
+        graphics-api: [Direct3D11, Direct3D12]
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
     steps:

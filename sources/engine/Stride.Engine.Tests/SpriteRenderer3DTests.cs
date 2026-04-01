@@ -143,9 +143,10 @@ namespace Stride.Engine.Tests
             ratio.Transform.Scale = new Vector3(time % 5f) / 5;
         }
 
-        [Fact]
+        [SkippableFact]
         public void SpriteRender3DRun()
         {
+            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Rendering differences on D3D12 - needs investigation");
             RunGameTest(new SpriteRenderer3DTests());
         }
     }

@@ -492,13 +492,16 @@ namespace Stride.Graphics.Tests
                 GraphicsProfile.Level_9_1);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestGetData(GraphicsProfile profile, GraphicsResourceUsage usage)
         {
+            if (usage == GraphicsResourceUsage.Staging)
+                SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Staging Textures can't be created with initial data");
+
             // TODO: Modify this when when supported on OpenGL
             var testArray = profile >= GraphicsProfile.Level_10_0;
             // TODO: Remove this limitation when GetData is fixed on OpenGL ES for mip-levels other than 0
@@ -527,13 +530,16 @@ namespace Stride.Graphics.Tests
                 profile);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestCopy(GraphicsProfile profile, GraphicsResourceUsage usageSource)
         {
+            if (usageSource == GraphicsResourceUsage.Staging)
+                SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Staging Textures can't be created with initial data");
+
             // TODO: Modify this when when supported on OpenGL
             var testArray = profile >= GraphicsProfile.Level_10_0;
             // TODO: Remove this limitation when GetData is fixed on OpenGL ES for mip-levels other than 0
