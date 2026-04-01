@@ -1,5 +1,6 @@
 *.suo
 *.csproj.user
+/Directory.Build.props
 *.vcxproj.user
 *.ReSharper.user
 *.DotSettings.user
