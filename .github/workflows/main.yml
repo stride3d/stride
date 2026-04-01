@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         build-type: [Release]
-        test-category: [Simple]
+        test-category: [Simple, Game]
     uses: ./.github/workflows/test-windows.yml
     secrets: inherit
     with:
