@@ -65,6 +65,7 @@ Cache/
 /package/
 /tools/
 **/Properties/launchSettings.json
+!**/*Tests*/Properties/launchSettings.json
 launch-android.bat
 sources/tests/framework/Stride.Framework.Audio.Tests/Resources/Resource.Designer.cs
 Win32
