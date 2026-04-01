@@ -54,7 +54,7 @@ namespace Stride.Core.Presentation.Tests
             HideBlocking,
         }
 
-        [Theory(Skip = "The teamcity agent is currently running as a service, it cannot handle windowing operations. Will need to set it up as users before enabling this one again")]
+        [Theory]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking)]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal)]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideBlocking, Step.HideModal)]
