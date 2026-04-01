@@ -198,6 +198,7 @@ public static partial class NuGetAssemblyResolver
                 var aname = new AssemblyName(eventArgs.Name);
                 if (aname.Name!.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                     return null;
+
                 if (assemblyNameToPath.TryGetValue(aname.Name, out var assemblyPath))
                 {
                     return Assembly.LoadFrom(assemblyPath);

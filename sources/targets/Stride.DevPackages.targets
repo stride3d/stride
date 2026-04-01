@@ -1,0 +1,85 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Dev Packages Mode: when StrideDevPackages=true, skip NuGet auto-packing and use
+    redirect packages that point to dev-built DLLs. Generated automatically on first build.
+
+    Set StrideDevPackages=true in your repo-root Directory.Build.props (gitignored).
+  -->
+
+  <PropertyGroup Condition="'$(StrideDevPackages)' == 'true'">
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+  </PropertyGroup>
+
+  <!-- Fail the build if stubs are missing or stale. Two signals trip the staleness check:
+       (1) the script itself was updated (logic changed), (2) any engine csproj's mtime is
+       newer than the stamp (catches new projects, PackageReference changes, AssemblyName
+       changes — anything that would change a stub's nuspec or redirect path). Doesn't catch
+       runtimes/<rid>/native/ or contentFiles/ changes — those still require manual re-run.
+       Stamp path is recomputed inside the target so it picks up the worktree-suffixed
+       PackageVersion (StrideAppendWorktreeVersion mutates it BeforeTargets the BeforeCompile
+       chain, but eval-time PropertyGroups would have the un-suffixed value). -->
+  <Target Name="_StrideCheckDevPackages"
+          BeforeTargets="CoreCompile"
+          DependsOnTargets="StrideAppendWorktreeVersion"
+          Condition="'$(StrideDevPackages)' == 'true' And '$(DesignTimeBuild)' != 'true'">
+
+    <PropertyGroup>
+      <_StrideDevPackagesStamp>$(LocalAppData)/Stride/NugetDev/.devpackages-$(PackageVersion)</_StrideDevPackagesStamp>
+    </PropertyGroup>
+
+    <Error Text="StrideDevPackages=true but stubs are missing. Run: dotnet run --file build/GenerateDevPackages.cs"
+           Condition="!Exists('$(_StrideDevPackagesStamp)')" />
+
+    <PropertyGroup Condition="Exists('$(_StrideDevPackagesStamp)')">
+      <_StrideStampTicks>$([System.IO.File]::GetLastWriteTime('$(_StrideDevPackagesStamp)').Ticks)</_StrideStampTicks>
+    </PropertyGroup>
+
+    <!-- Read the script's inputs manifest (absolute csproj paths it scanned) so we track
+         exactly the projects that contributed to stub generation — no glob heuristics.
+         Solution-file mtime catches new/removed projects (which only show up in the manifest
+         after the script re-scans). -->
+    <ReadLinesFromFile File="$(_StrideDevPackagesStamp).inputs" Condition="Exists('$(_StrideDevPackagesStamp).inputs')">
+      <Output TaskParameter="Lines" ItemName="_StrideStubManifestCsprojs" />
+    </ReadLinesFromFile>
+
+    <ItemGroup Condition="'$(_StrideStampTicks)' != ''">
+      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.sln" />
+      <_StrideStubInputs Include="@(_StrideStubManifestCsprojs)" />
+      <_StrideStaleStubInputs Include="@(_StrideStubInputs)"
+                              Condition="$([System.IO.File]::GetLastWriteTime('%(_StrideStubInputs.FullPath)').Ticks) &gt; $(_StrideStampTicks)" />
+    </ItemGroup>
+
+    <Error Text="StrideDevPackages stubs are stale (e.g. %(_StrideStaleStubInputs.Filename)%(_StrideStaleStubInputs.Extension) modified since the last script run). Re-run: dotnet run --file build/GenerateDevPackages.cs"
+           Condition="'@(_StrideStaleStubInputs)' != ''" />
+  </Target>
+
+  <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
+       Stamp file is a manifest of stub nupkg filenames written by GenerateDevPackages.cs,
+       so we delete only those — leaving real packages (e.g. Stride.Templates.*) intact. -->
+  <Target Name="_StrideCleanDevPackages"
+          BeforeTargets="CoreCompile"
+          Condition="'$(StrideDevPackages)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+
+    <PropertyGroup>
+      <_StrideDevPackagesStampCheck>$(LocalAppData)/Stride/NugetDev/.devpackages-$(PackageVersion)</_StrideDevPackagesStampCheck>
+      <_StrideDevPackagesStampExisted Condition="Exists('$(_StrideDevPackagesStampCheck)')">true</_StrideDevPackagesStampExisted>
+    </PropertyGroup>
+
+    <ReadLinesFromFile File="$(_StrideDevPackagesStampCheck)" Condition="'$(_StrideDevPackagesStampExisted)' == 'true'">
+      <Output TaskParameter="Lines" ItemName="_StrideDevPackagesStubManifest" />
+    </ReadLinesFromFile>
+
+    <ItemGroup>
+      <_StrideDevPackagesToDelete Include="$(LocalAppData)/Stride/NugetDev/%(_StrideDevPackagesStubManifest.Identity)"
+                                  Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
+    </ItemGroup>
+
+    <Delete Files="@(_StrideDevPackagesToDelete)" />
+    <Delete Files="$(_StrideDevPackagesStampCheck)" Condition="'$(_StrideDevPackagesStampExisted)' == 'true'" />
+
+    <Message Importance="High" Text="Cleaned dev-redirect packages. Next build will generate real packages."
+             Condition="'$(_StrideDevPackagesStampExisted)' == 'true'" />
+  </Target>
+
+</Project>

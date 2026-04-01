@@ -233,6 +233,9 @@
     <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
                Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
+  <!-- Dev packages mode: skip packing and use redirect packages (must be before GeneratePackageOnBuild) -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.DevPackages.targets" />
+
   <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
        race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
        (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
