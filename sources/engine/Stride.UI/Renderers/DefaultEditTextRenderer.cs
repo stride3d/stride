@@ -90,7 +90,8 @@ namespace Stride.UI.Renderers
 
             caretHeight = lineHeight;
             caret = worldMatrix;
-            caret.TranslationVector += caret.Right * selectionStart.X + caret.Up * selectionStart.Y;
+            var caretPos = editText.CaretPosition <= start ? selectionStart : selectionEnd;
+            caret.TranslationVector += caret.Right * caretPos.X + caret.Up * caretPos.Y;
         }
 
         private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix worldMatrix, Vector2 start, Vector2 end, float lineHeight)
