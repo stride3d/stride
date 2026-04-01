@@ -34,7 +34,7 @@ Example of use:
   Don't forget to build for VS2013 by using MSBuild 12.0, 
   or if you're using a newer version of MSBuild, pass the flag /p:VisualStudioVersion=12.0 when calling MSBuild in the command line.
   -->
-  <Target Name="VSIXPlugin" DependsOnTargets="Restore">
+  <Target Name="VSIXPlugin" DependsOnTargets="PreparePackageBuild;Restore">
     <ItemGroup>
       <FilesToDeleteVSIX Include="$(StrideRoot)bin\vsix\*.nupkg"/>
     </ItemGroup>
@@ -133,7 +133,7 @@ Example of use:
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage;VSIXPlugin"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage"/>
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />

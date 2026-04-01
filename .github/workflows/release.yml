@@ -140,13 +140,6 @@ jobs:
           path: bin/packages/*.nupkg
           if-no-files-found: error
 
-      - name: Upload VSIX packages
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: vsix
-          path: bin/vsix/*.nupkg
-          if-no-files-found: ignore
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
@@ -181,13 +174,6 @@ jobs:
         with:
           name: packages
           path: bin/packages
-
-      - name: Download VSIX
-        uses: actions/download-artifact@v4
-        with:
-          name: vsix
-          path: bin/vsix
-        continue-on-error: true  # VSIX may not exist
 
       - name: List packages
         shell: pwsh
@@ -228,17 +214,6 @@ jobs:
               dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
             }
             echo "::endgroup::"
-          }
-        env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
-
-      - name: Push VSIX packages
-        if: ${{ hashFiles('bin/vsix/*.nupkg') != '' }}
-        shell: pwsh
-        run: |
-          Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | ForEach-Object {
-            echo "Pushing $($_.Name)..."
-            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
           }
         env:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
