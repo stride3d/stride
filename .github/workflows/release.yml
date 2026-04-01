@@ -17,11 +17,11 @@ on:
         type: boolean
       sign:
         description: Code sign packages
-        default: false
+        default: true
         type: boolean
       build-prerequisites-installer:
-        description: Build prerequisites installer (requires Advanced Installer)
-        default: false
+        description: Build prerequisites installer
+        default: true
         type: boolean
       deploy:
         description: Deploy to NuGet.org and create GitHub Release
@@ -34,11 +34,40 @@ concurrency:
 
 jobs:
   #
+  # Validate inputs and permissions
+  #
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
+          if [ "$STATUS" = "fail" ]; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  #
   # Build and package
   #
   Package:
     name: Package
+    needs: Validate
     runs-on: windows-2025-vs2026
+    environment: production
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -121,7 +150,7 @@ jobs:
   #
   Deploy:
     name: Deploy ${{ needs.Package.outputs.version }}
-    if: ${{ inputs.deploy }}
+    if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
     runs-on: ubuntu-latest  # NuGet push doesn't need Windows
     environment: production  # Requires manual approval in GitHub settings
@@ -170,14 +199,14 @@ jobs:
           echo "::group::Pushing main packages ($($main.Count))"
           foreach ($pkg in $main) {
             echo "Pushing $($pkg.Name)..."
-            dotnet nuget push $pkg.FullName --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
           }
           echo "::endgroup::"
 
           if ($samples) {
             echo "::group::Pushing Samples.Templates"
             foreach ($pkg in $samples) {
-              dotnet nuget push $pkg.FullName --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
             }
             echo "::endgroup::"
           }
@@ -185,12 +214,12 @@ jobs:
           if ($gameStudio) {
             echo "::group::Pushing GameStudio (last, so dependencies are already available)"
             foreach ($pkg in $gameStudio) {
-              dotnet nuget push $pkg.FullName --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
             }
             echo "::endgroup::"
           }
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
 
       - name: Push VSIX packages
         if: ${{ hashFiles('bin/vsix/*.nupkg') != '' }}
@@ -198,10 +227,10 @@ jobs:
         run: |
           Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | ForEach-Object {
             echo "Pushing $($_.Name)..."
-            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
           }
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
 
       - name: Tag release
         run: |
@@ -219,4 +248,4 @@ jobs:
             --generate-notes \
             bin/packages/*.nupkg
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
