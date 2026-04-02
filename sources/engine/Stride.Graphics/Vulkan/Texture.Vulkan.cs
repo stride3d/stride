@@ -23,7 +23,17 @@ namespace Stride.Graphics
         internal VkImageSubresourceRange NativeResourceRange;
 
         private bool isNotOwningResources;
-        internal bool IsInitialized;
+        internal bool IsInitialized
+        {
+            get => ParentTexture?.IsInitialized ?? field;
+            set
+            {
+                if (ParentTexture != null)
+                    ParentTexture.IsInitialized = value;
+                else
+                    field = value;
+            }
+        }
 
         internal VkFormat NativeFormat;
         internal bool HasStencil;
