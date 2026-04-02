@@ -114,11 +114,7 @@ namespace Stride.Graphics.Regression
         /// </summary>
         /// <remarks>Enabling this feature may cause an Out-of-Memory exception on 32-bit processes.</remarks>
         public static bool CaptureRenderDocOnError =
-  #if STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR
-            true;
-  #else
-            string.Equals(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase);
-  #endif
+            Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR") == "1";
 
         private RenderDocManager renderDocManager;
 #endif
@@ -443,6 +439,27 @@ namespace Stride.Graphics.Regression
             renderDocManager?.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
         }
 
+        /// <summary>
+        ///   Ends or discards the RenderDoc capture based on test results.
+        ///   Must be called while the graphics device is still alive.
+        /// </summary>
+        internal void EndOrDiscardRenderDocCapture()
+        {
+            if (renderDocManager is null || !CaptureRenderDocOnError)
+                return;
+
+            if (comparisonFailedMessages.Count == 0 &&
+                comparisonMissingMessages.Count == 0 &&
+                !ForceCaptureRenderDocOnSuccess)
+            {
+                DiscardFrameCapture();
+            }
+            else
+            {
+                EndFrameCapture();
+            }
+        }
+
         /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
         {
@@ -593,34 +610,7 @@ namespace Stride.Graphics.Regression
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            ExceptionDispatchInfo exceptionOrFailedAssert = null;
-
-            try
-            {
-                GameTester.RunGameTest(game);
-            }
-            catch (Exception ex)
-            {
-                // This catches both errors in the test execution and assertion failures
-                exceptionOrFailedAssert = ExceptionDispatchInfo.Capture(ex);
-            }
-
-#if STRIDE_PLATFORM_DESKTOP
-            if (CaptureRenderDocOnError)
-            {
-                // If no comparison errors, and no test errors, discard the capture
-                if (game.comparisonFailedMessages.Count == 0 &&
-                    game.comparisonMissingMessages.Count == 0 &&
-                    exceptionOrFailedAssert is null &&
-                    !ForceCaptureRenderDocOnSuccess)
-                {
-                    game.DiscardFrameCapture();
-                }
-                else game.EndFrameCapture();
-            }
-#endif
-            // If there was an exception, rethrow it now
-            exceptionOrFailedAssert?.Throw();
+            GameTester.RunGameTest(game);
 
             // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)

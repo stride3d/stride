@@ -16,6 +16,7 @@ namespace Stride.Graphics
         private const string LibraryName = "renderdoc.dll";
 
         private bool isCaptureStarted;
+        private GraphicsDevice captureDevice;
         private unsafe IntPtr* apiPointers;
 
         public unsafe bool IsInitialized
@@ -66,6 +67,9 @@ namespace Stride.Graphics
             GetMethod<RENDERDOC_SetFocusToggleKeys>(RenderDocAPIFunction.SetFocusToggleKeys)(ref focusToggleKey, 1);
             var captureKey = KeyButton.eRENDERDOC_Key_F12;
             GetMethod<RENDERDOC_SetCaptureKeys>(RenderDocAPIFunction.SetCaptureKeys)(ref captureKey, 1);
+
+            // Allow debug/validation output even when RenderDoc is attached
+            GetMethod<RENDERDOC_SetCaptureOptionU32>(RenderDocAPIFunction.SetCaptureOptionU32)(CaptureOption.DebugOutputMute, 0);
         }
 
         public void RemoveHooks()
@@ -78,6 +82,10 @@ namespace Stride.Graphics
 
         public void StartFrameCapture(GraphicsDevice graphicsDevice, IntPtr hwndPtr)
         {
+            if (captureDevice is not null)
+                throw new InvalidOperationException("A RenderDoc capture is already in progress. End or discard the current capture before starting a new one.");
+
+            captureDevice = graphicsDevice;
             GetMethod<RENDERDOC_StartFrameCapture>(RenderDocAPIFunction.StartFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
             isCaptureStarted = true;
         }
@@ -87,8 +95,12 @@ namespace Stride.Graphics
             if (!isCaptureStarted)
                 return;
 
+            if (graphicsDevice != captureDevice)
+                throw new InvalidOperationException("RenderDoc EndFrameCapture called with a different device than StartFrameCapture.");
+
             GetMethod<RENDERDOC_EndFrameCapture>(RenderDocAPIFunction.EndFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
             isCaptureStarted = false;
+            captureDevice = null;
         }
 
         public void DiscardFrameCapture(GraphicsDevice graphicsDevice, IntPtr hwndPtr)
@@ -96,8 +108,12 @@ namespace Stride.Graphics
             if (!isCaptureStarted)
                 return;
 
+            if (graphicsDevice != captureDevice)
+                throw new InvalidOperationException("RenderDoc DiscardFrameCapture called with a different device than StartFrameCapture.");
+
             GetMethod<RENDERDOC_DiscardFrameCapture>(RenderDocAPIFunction.DiscardFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
             isCaptureStarted = false;
+            captureDevice = null;
         }
 
         private static unsafe nint GetDevicePointer(GraphicsDevice graphicsDevice)
@@ -107,6 +123,9 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
             if (graphicsDevice is not null)
                 devicePointer = (nint) GraphicsMarshal.GetNativeDevice(graphicsDevice).Handle;
+#elif STRIDE_GRAPHICS_API_VULKAN
+            // RenderDoc Vulkan capture uses NULL (wildcard) for the device pointer.
+            // Passing VkInstance.Handle crashes with some ICDs (e.g. SwiftShader).
 #endif
             return devicePointer;
         }
@@ -232,6 +251,24 @@ namespace Stride.Graphics
         // Version 1 -> 2 - strings changed from wchar_t* to char* (UTF-8)
         private const int RENDERDOC_API_VERSION = 10400;
 
+        private enum CaptureOption : uint
+        {
+            AllowVSync = 0,
+            AllowFullscreen = 1,
+            APIValidation = 2,
+            CaptureCallstacks = 3,
+            CaptureCallstacksOnlyDraws = 4,
+            DelayForDebugger = 5,
+            VerifyBufferAccess = 6,
+            HookIntoChildren = 7,
+            RefAllResources = 8,
+            SaveAllInitials = 9,
+            CaptureAllCmdLists = 10,
+            DebugOutputMute = 11,
+            AllowUnsupportedVendorExtensions = 12,
+            SoftMemoryLimit = 13,
+        }
+
         private enum RenderDocAPIFunction
         {
             GetAPIVersion,
@@ -278,6 +315,9 @@ namespace Stride.Graphics
         //////////////////////////////////////////////////////////////////////////
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private unsafe delegate bool RENDERDOC_GetAPI(int version, ref IntPtr* apiPointers);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate bool RENDERDOC_SetCaptureOptionU32(CaptureOption option, uint value);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private delegate void RENDERDOC_RemoveHooks();

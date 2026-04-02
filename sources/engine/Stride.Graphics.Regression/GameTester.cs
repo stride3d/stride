@@ -54,7 +54,16 @@ namespace Stride.Graphics.Regression
 
             using (game)
             {
-                game.Run();
+                try
+                {
+                    game.Run();
+                }
+                finally
+                {
+                    // End/Discard RenderDoc capture while the device is still alive (before Dispose/Destroy)
+                    if (game is GameTestBase testGame)
+                        testGame.EndOrDiscardRenderDocCapture();
+                }
             }
 
 #elif STRIDE_PLATFORM_UWP
