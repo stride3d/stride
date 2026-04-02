@@ -834,33 +834,52 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">texture</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, Vector4 value)
+        public unsafe void ClearReadWrite(Texture texture, Vector4 value)
         {
-            throw new NotImplementedException();
+            var clearValue = new VkClearColorValue(value.X, value.Y, value.Z, value.W);
+            ClearReadWriteImpl(texture, clearValue);
         }
 
-        /// <summary>
-        /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
-        /// </summary>
-        /// <param name="texture">The texture.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="ArgumentNullException">texture</exception>
-        /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, Int4 value)
+        public unsafe void ClearReadWrite(Texture texture, Int4 value)
         {
-            throw new NotImplementedException();
+            // D3D11 ClearUnorderedAccessViewUint writes raw integer values.
+            // Vulkan vkCmdClearColorImage expects float values for UNORM/SNORM formats, not raw integers.
+            // Convert to float to match D3D11 behavior.
+            if (texture.ViewFormat.IsUNorm)
+            {
+                float scale = 1.0f / texture.ViewFormat.UNormMaxValue;
+                ClearReadWrite(texture, new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale));
+                return;
+            }
+            var clearValue = new VkClearColorValue(*(uint*)&value.X, *(uint*)&value.Y, *(uint*)&value.Z, *(uint*)&value.W);
+            ClearReadWriteImpl(texture, clearValue);
         }
 
-        /// <summary>
-        /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
-        /// </summary>
-        /// <param name="texture">The texture.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="ArgumentNullException">texture</exception>
-        /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, UInt4 value)
+        public unsafe void ClearReadWrite(Texture texture, UInt4 value)
         {
-            throw new NotImplementedException();
+            if (texture.ViewFormat.IsUNorm)
+            {
+                float scale = 1.0f / texture.ViewFormat.UNormMaxValue;
+                ClearReadWrite(texture, new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale));
+                return;
+            }
+            var clearValue = new VkClearColorValue(value.X, value.Y, value.Z, value.W);
+            ClearReadWriteImpl(texture, clearValue);
+        }
+
+        private unsafe void ClearReadWriteImpl(Texture texture, VkClearColorValue clearValue)
+        {
+            ArgumentNullException.ThrowIfNull(texture);
+            CleanupRenderPass();
+
+            var clearRange = texture.NativeResourceRange;
+            var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.General);
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+
+            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.General, &clearValue, 1, &clearRange);
+
+            memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.General, texture.NativeLayout);
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
         }
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
