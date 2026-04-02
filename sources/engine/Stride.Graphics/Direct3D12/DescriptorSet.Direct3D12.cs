@@ -98,6 +98,18 @@ namespace Stride.Graphics
             // TODO: D3D12: Thread safety?
             pool.SrvOffset += layout.SrvCount;
             pool.SamplerOffset += layout.SamplerCount;
+
+            // Initialize all sampler slots with LinearClamp as a default fallback.
+            // Unlike D3D11, D3D12 has no default sampler — uninitialized sampler descriptors cause undefined behavior.
+            if (layout.SamplerCount > 0)
+            {
+                var defaultSampler = graphicsDevice.SamplerStates.LinearClamp.NativeSampler;
+                for (int i = 0; i < layout.SamplerCount; i++)
+                {
+                    var dest = new CpuDescriptorHandle(SamplerStart.Ptr + (nuint)(i * graphicsDevice.SamplerHandleIncrementSize));
+                    nativeDevice.CopyDescriptorsSimple(1, dest, defaultSampler, DescriptorHeapType.Sampler);
+                }
+            }
         }
 
 

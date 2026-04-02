@@ -66,7 +66,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void RunCustomEffect()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Rendering differences on D3D12 - needs investigation");
             RunGameTest(new TestCustomEffect());
         }
     }

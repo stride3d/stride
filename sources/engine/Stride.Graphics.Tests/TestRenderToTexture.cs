@@ -133,7 +133,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void RunRenderToTexture()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Sampler/rendering differences on D3D12 - needs investigation");
             RunGameTest(new TestRenderToTexture());
         }
     }
