@@ -82,7 +82,7 @@ jobs:
     runs-on: windows-2025-vs2026
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
-      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -127,7 +127,7 @@ jobs:
         graphics-api: [Direct3D11, Direct3D12, Vulkan]
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
-      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
     steps:
       - uses: actions/checkout@v4
         with:

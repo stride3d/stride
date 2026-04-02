@@ -104,17 +104,18 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        /// Forces render doc capture even if test didn't fail. This can be used only when <see cref="CaptureRenderDocOnError"/> is set.
+        ///   Controls RenderDoc capture behavior for tests.
+        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   <list type="bullet">
+        ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
+        ///     <item><c>always</c> — capture frames for all tests</item>
+        ///   </list>
         /// </summary>
-        public static bool ForceCaptureRenderDocOnSuccess = false;
+        private static readonly string RenderDocMode =
+            Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
-        /// <summary>
-        ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs
-        ///   or a test fails.
-        /// </summary>
-        /// <remarks>Enabling this feature may cause an Out-of-Memory exception on 32-bit processes.</remarks>
-        public static bool CaptureRenderDocOnError =
-            Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR") == "1";
+        private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
+        private static bool ForceCaptureRenderDocOnSuccess => RenderDocMode is "always";
 
         private RenderDocManager renderDocManager;
 #endif
