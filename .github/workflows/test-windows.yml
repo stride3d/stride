@@ -82,6 +82,7 @@ jobs:
     runs-on: windows-2025-vs2026
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,6 +90,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Disable WER dialogs
+        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.slnf `
@@ -103,6 +106,13 @@ jobs:
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-common
+          path: tests/local/
+          if-no-files-found: ignore
 
   #
   # Game tests - Graphics API-dependent projects (run per API)
@@ -114,9 +124,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: [Direct3D11, Direct3D12]
+        graphics-api: [Direct3D11, Direct3D12, Vulkan]
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,6 +135,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Disable WER dialogs
+        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+      - name: Setup SwiftShader
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          git submodule update --init build/submodules/deps
+          $icdPath = (Resolve-Path "build\submodules\deps\swiftshader\vk_swiftshader_icd.json").Path
+          echo "VK_ICD_FILENAMES=$icdPath" >> $env:GITHUB_ENV
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
@@ -139,3 +159,10 @@ jobs:
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-${{ matrix.graphics-api }}
+          path: tests/local/
+          if-no-files-found: ignore

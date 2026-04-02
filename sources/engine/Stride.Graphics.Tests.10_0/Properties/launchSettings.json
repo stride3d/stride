@@ -1,13 +1,15 @@
 {
   "profiles": {
-    "WARP": {
+    "Software": {
       "commandName": "Project",
       "environmentVariables": {
         "STRIDE_GRAPHICS_SOFTWARE_RENDERING": "1"
-      }
+      },
+      "nativeDebugging": true
     },
     "GPU": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "nativeDebugging": true
     }
   }
 }

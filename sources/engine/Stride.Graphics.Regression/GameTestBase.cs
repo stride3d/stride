@@ -743,9 +743,19 @@ namespace Stride.Graphics.Regression
         {
             if (Platform.Type == PlatformType.Windows)
             {
-                var deviceName = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
-                    ? "WARP"
-                    : GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+                string deviceName;
+                if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+                {
+                    deviceName = GraphicsDevice.Platform switch
+                    {
+                        GraphicsPlatform.Vulkan => "SwiftShader",
+                        _ => "WARP"
+                    };
+                }
+                else
+                {
+                    deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+                }
                 return $"Windows.{GraphicsDevice.Platform}\\{deviceName}";
             }
             else

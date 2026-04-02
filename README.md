@@ -58,7 +58,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 1. **Clone the repository** using a Git UI client or from the command line:
    ```bash
-   git lfs clone https://github.com/stride3d/stride.git
+   git clone https://github.com/stride3d/stride.git
    ```
 2. **Open the solution:**
    - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2026. 
