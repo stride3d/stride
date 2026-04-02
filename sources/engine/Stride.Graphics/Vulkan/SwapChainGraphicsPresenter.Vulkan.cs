@@ -406,15 +406,27 @@ namespace Stride.Graphics
                 .Select((properties, index) => index).First();
 
             // Surface format
-            var backBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(Description.BackBufferFormat);
-
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint surfaceFormatCount);
             Span<VkSurfaceFormatKHR> surfaceFormats = stackalloc VkSurfaceFormatKHR[(int)surfaceFormatCount];
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, surfaceFormats);
+            var backBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(Description.BackBufferFormat);
             if ((surfaceFormats.Length != 1 || surfaceFormats[0].format != VkFormat.Undefined) &&
                 !surfaceFormats.ToArray().Any(x => x.format == backBufferFormat))
             {
-                backBufferFormat = surfaceFormats[0].format;
+                // Requested format not available as a surface format (e.g. R8G8B8A8 requested but only B8G8R8A8 available).
+                // Try the RGB<->BGR swapped equivalent before falling back to the first available format.
+                var swappedFormat = backBufferFormat switch
+                {
+                    VkFormat.R8G8B8A8Unorm => VkFormat.B8G8R8A8Unorm,
+                    VkFormat.B8G8R8A8Unorm => VkFormat.R8G8B8A8Unorm,
+                    VkFormat.R8G8B8A8Srgb => VkFormat.B8G8R8A8Srgb,
+                    VkFormat.B8G8R8A8Srgb => VkFormat.R8G8B8A8Srgb,
+                    _ => backBufferFormat,
+                };
+                backBufferFormat = surfaceFormats.ToArray().Any(x => x.format == swappedFormat)
+                    ? swappedFormat
+                    : surfaceFormats[0].format;
+                Description.BackBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(backBufferFormat);
             }
 
             // Create swapchain
