@@ -502,11 +502,11 @@ namespace Stride.Graphics
             if (IsMultiSampled)
                 throw new NotImplementedException();
 
-            if (this.ArraySize > 1)
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D Textures");
+            if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
+                throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
+            if (layerCount > 1)
+            {
                 if (Dimension == TextureDimension.Texture3D)
                     throw new NotSupportedException("Texture Array is not supported for Texture3D");
 
@@ -519,26 +519,21 @@ namespace Stride.Graphics
                         createInfo.viewType = VkImageViewType.Image2DArray;
                         break;
                     case TextureDimension.TextureCube:
-                        if (ArraySize % 6 != 0) throw new NotSupportedException("Texture cubes require an ArraySize which is a multiple of 6");
+                        if (layerCount % 6 != 0) throw new NotSupportedException("Texture cube views require a layerCount which is a multiple of 6");
 
-                        createInfo.viewType = ArraySize > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
+                        createInfo.viewType = layerCount > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
                         break;
                 }
             }
             else
             {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
-
-                if (Dimension == TextureDimension.TextureCube)
-                    throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
-
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
                         createInfo.viewType = VkImageViewType.Image1D;
                         break;
                     case TextureDimension.Texture2D:
+                    case TextureDimension.TextureCube:
                         createInfo.viewType = VkImageViewType.Image2D;
                         break;
                     case TextureDimension.Texture3D:
