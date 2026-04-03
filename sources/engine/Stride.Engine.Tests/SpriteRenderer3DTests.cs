@@ -146,7 +146,7 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void SpriteRender3DRun()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Rendering differences on D3D12 - needs investigation");
+            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "Missing D3D12/WARP gold images");
             RunGameTest(new SpriteRenderer3DTests());
         }
     }
