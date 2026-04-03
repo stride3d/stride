@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="../sources/tools/Stride.VisualStudio.Commands.Interfaces/Stride.VisualStudio.Commands.Interfaces.csproj" />
-  <Project Path="../sources/tools/Stride.VisualStudio.Commands/Stride.VisualStudio.Commands.csproj" />
-  <Project Path="../sources/tools/Stride.VisualStudio.Package.Tests/Stride.VisualStudio.Package.Tests.csproj" />
-  <Project Path="../sources/tools/Stride.VisualStudio.Package/Stride.VisualStudio.Package.csproj" />
-  <Project Path="../sources/tools/Stride.VisualStudio.PackageInstall/Stride.VisualStudio.PackageInstall.csproj" />
-</Solution>

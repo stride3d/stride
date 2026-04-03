@@ -8,7 +8,7 @@ namespace Stride.Core.Assets;
 /// </summary>
 public static class DirectoryHelper
 {
-    private const string StrideSolution = @"build\Stride.slnx";
+    private const string StrideSolution = @"build\Stride.sln";
 
     /// <summary>
     /// Gets the path to the file corresponding to the given package name in the given directory.

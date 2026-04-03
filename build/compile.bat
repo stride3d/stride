@@ -8,7 +8,7 @@ set __BuildType=Debug
 set __BuildVerbosity=n
 set __BuildDoc=0
 set __ContinueOnError=false
-set __SelectedProject=Stride.slnx
+set __SelectedProject=Stride.sln
 
 :Arg_Loop
 rem This does not check for duplicate arguments, the last one will take precedence
@@ -63,7 +63,7 @@ set _platform_target=Mixed Platforms
 
 rem Compiling the various solutions
 
-set Project=Stride.slnx
+set Project=Stride.sln
 rem We always compile tests for the main solution
 set __OldSkipTestBuild=%__SkipTestBuild%
 set __SkipTestBuild=false

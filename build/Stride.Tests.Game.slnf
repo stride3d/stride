@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Stride.slnx",
+    "path": "Stride.sln",
     "projects": [
       "..\\sources\\engine\\Stride.Assets.Tests\\Stride.Assets.Tests.csproj",
       "..\\sources\\engine\\Stride.Audio.Tests\\Stride.Audio.Tests.Windows.csproj",

@@ -656,7 +656,7 @@ namespace Stride.Graphics.Regression
             var dir = PlatformFolders.ApplicationBinaryDirectory;
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir, @"build\Stride.slnx")))
+                if (File.Exists(Path.Combine(dir, @"build\Stride.sln")))
                     return dir;
 
                 dir = Path.GetDirectoryName(dir);
