@@ -175,7 +175,8 @@ jobs:
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
+            -- RunConfiguration.MaxCpuCount=1
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
