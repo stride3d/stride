@@ -98,7 +98,7 @@ jobs:
     needs: Windows-Runtime
     strategy:
       matrix:
-        build-type: [Release]
+        build-type: [Debug]
         test-category: [Simple, Game]
     uses: ./.github/workflows/test-windows.yml
     secrets: inherit
