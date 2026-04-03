@@ -107,7 +107,7 @@ namespace Stride.Graphics
             var applicationInfo = new VkApplicationInfo
             {
                 pEngineName = pEngineName,
-                apiVersion = new VkVersion(1, 4, 304)
+                apiVersion = new VkVersion(1, 3, 0)
             };
 
             Span<VkUtf8String> validationLayerNames = stackalloc VkUtf8String[]
