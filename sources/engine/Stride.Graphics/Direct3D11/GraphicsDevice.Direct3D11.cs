@@ -13,6 +13,7 @@ using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
 
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.UnsafeExtensions;
 
 using static Stride.Graphics.ComPtrHelpers;
@@ -22,6 +23,8 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D11;
@@ -443,14 +446,25 @@ namespace Stride.Graphics
         /// <param name="message">The message received from the InfoQueue.</param>
         private void OnDeviceInfoQueueMessage(ref readonly Message message)
         {
-            var eventHandler = DeviceInfoQueueMessage;
-            if (eventHandler is null)
-                return;
-
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            eventHandler(in message, description);
+            // Log directly to Stride logger
+            switch (message.Severity)
+            {
+                case MessageSeverity.Corruption:
+                case MessageSeverity.Error:
+                    Log.Error($"[D3D11] {message.Severity}: {description}");
+                    break;
+                case MessageSeverity.Warning:
+                    Log.Warning($"[D3D11] {description}");
+                    break;
+                default:
+                    Log.Info($"[D3D11] {description}");
+                    break;
+            }
+
+            DeviceInfoQueueMessage?.Invoke(in message, description);
         }
 
         /// <summary>
@@ -464,14 +478,6 @@ namespace Stride.Graphics
             var numMessages = nativeInfoQueue->GetNumStoredMessages();
             if (numMessages == 0)
                 return;
-
-            // If no event handler is registered, just clear the messages
-            var eventHandler = DeviceInfoQueueMessage;
-            if (eventHandler is null)
-            {
-                nativeInfoQueue->ClearStoredMessages();
-                return;
-            }
 
             for (var i = 0ul; i < numMessages; i++)
             {

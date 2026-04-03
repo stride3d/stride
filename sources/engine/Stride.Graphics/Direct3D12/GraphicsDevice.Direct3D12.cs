@@ -6,11 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
 
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 
 using static System.Runtime.CompilerServices.Unsafe;
@@ -20,6 +22,8 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+
         internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
@@ -27,6 +31,8 @@ namespace Stride.Graphics
         // Lock to ensure the Debug Layer is only initialized once
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
+
+        private ID3D12InfoQueue* nativeInfoQueue;
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -212,7 +218,7 @@ namespace Stride.Graphics
 
                 var result = (DxgiConstants.DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
-                return result switch
+                var status = result switch
                 {
                     DxgiConstants.DeviceRemoveReason.DeviceRemoved => GraphicsDeviceStatus.Removed,
                     DxgiConstants.DeviceRemoveReason.DeviceReset => GraphicsDeviceStatus.Reset,
@@ -223,6 +229,15 @@ namespace Stride.Graphics
                     < 0 => GraphicsDeviceStatus.Reset,
                     _ => GraphicsDeviceStatus.Normal
                 };
+
+                if (status != GraphicsDeviceStatus.Normal && IsDebugMode)
+                {
+                    Log.Error($"[D3D12] Device removed! Reason: {result} (status: {status})");
+                    FlushDebugMessages();
+                    LogDredData();
+                }
+
+                return status;
             }
         }
 
@@ -299,6 +314,9 @@ namespace Stride.Graphics
             nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
 
             CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+
+            if (IsDebugMode)
+                FlushDebugMessages();
 
             ReleaseTemporaryResources();
         }
@@ -457,7 +475,8 @@ namespace Stride.Graphics
                         //infoQueue.SetBreakOnSeverity(Silk.NET.Direct3D12.MessageSeverity.Error, true);
                         //infoQueue.SetBreakOnSeverity(Silk.NET.Direct3D12.MessageSeverity.Warning, true);
 
-                        infoQueue.Release();
+                        // Keep reference to drain messages to log
+                        nativeInfoQueue = infoQueue;
                     }
                     debugDevice.Release();
                 }
@@ -519,6 +538,16 @@ namespace Stride.Graphics
                         debug1.Release();
                     }
                     debugInterface.Release();
+                }
+
+                // Enable DRED (Device Removed Extended Data) for GPU crash diagnostics
+                result = d3d12.GetDebugInterface(out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
+                if (result.IsSuccess && dredSettings.IsNotNull())
+                {
+                    dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
+                    dredSettings.SetPageFaultEnablement(DredEnablement.ForcedOn);
+                    dredSettings.Release();
+                    Log.Info("D3D12 DRED enabled");
                 }
             }
         }
@@ -717,6 +746,8 @@ namespace Stride.Graphics
 
             if (IsDebugMode)
             {
+                FlushDebugMessages();
+
                 HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
 
                 if (result.IsSuccess && debugDevice.IsNotNull())
@@ -724,6 +755,8 @@ namespace Stride.Graphics
                     debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
                     debugDevice.Release();
                 }
+
+                SafeRelease(ref nativeInfoQueue);
             }
 
             SafeRelease(ref nativeDevice);
@@ -739,6 +772,96 @@ namespace Stride.Graphics
         /// </param>
         internal void OnDestroyed(bool immediately = false)
         {
+        }
+
+        /// <summary>
+        ///   Drains all pending D3D12 debug messages from the InfoQueue and logs them.
+        /// </summary>
+        internal void FlushDebugMessages()
+        {
+            if (nativeInfoQueue is null)
+                return;
+
+            var numMessages = nativeInfoQueue->GetNumStoredMessages();
+            for (ulong i = 0; i < numMessages; i++)
+            {
+                nuint messageLength = 0;
+                nativeInfoQueue->GetMessageA(i, null, ref messageLength);
+
+                if (messageLength == 0)
+                    continue;
+
+                var messageBytes = new byte[(int) messageLength];
+                fixed (byte* pMessage = messageBytes)
+                {
+                    var message = (Silk.NET.Direct3D12.Message*) pMessage;
+                    nativeInfoQueue->GetMessageA(i, message, ref messageLength);
+
+                    var description = Marshal.PtrToStringAnsi((nint) message->PDescription) ?? "(no description)";
+
+                    switch (message->Severity)
+                    {
+                        case MessageSeverity.Corruption:
+                        case MessageSeverity.Error:
+                            Log.Error($"[D3D12] {message->Severity}: {description}");
+                            break;
+                        case MessageSeverity.Warning:
+                            Log.Warning($"[D3D12] {description}");
+                            break;
+                        default:
+                            Log.Info($"[D3D12] {description}");
+                            break;
+                    }
+                }
+            }
+
+            nativeInfoQueue->ClearStoredMessages();
+        }
+
+        /// <summary>
+        ///   Logs DRED (Device Removed Extended Data) information after a device removal event.
+        /// </summary>
+        internal void LogDredData()
+        {
+            if (nativeDevice is null)
+                return;
+
+            HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DeviceRemovedExtendedData> dred);
+            if (result.IsFailure || dred.IsNull())
+                return;
+
+            DredAutoBreadcrumbsOutput breadcrumbsOutput = default;
+            result = dred.GetAutoBreadcrumbsOutput(ref breadcrumbsOutput);
+            if (result.IsSuccess && breadcrumbsOutput.PHeadAutoBreadcrumbNode is not null)
+            {
+                Log.Error("[DRED] Auto-breadcrumbs:");
+                var node = breadcrumbsOutput.PHeadAutoBreadcrumbNode;
+                while (node is not null)
+                {
+                    var cmdListName = Marshal.PtrToStringUni((nint) node->PCommandListDebugNameW) ?? "(unnamed)";
+                    var cmdQueueName = Marshal.PtrToStringUni((nint) node->PCommandQueueDebugNameW) ?? "(unnamed)";
+                    Log.Error($"[DRED]   CmdList={cmdListName}, CmdQueue={cmdQueueName}, BreadcrumbCount={node->BreadcrumbCount}, LastCompleted={*node->PLastBreadcrumbValue}");
+
+                    // Log the breadcrumb operations
+                    for (uint i = 0; i < node->BreadcrumbCount && i < 64; i++)
+                    {
+                        var op = node->PCommandHistory[i];
+                        var marker = i < *node->PLastBreadcrumbValue ? "DONE" : (i == *node->PLastBreadcrumbValue ? ">>LAST>>" : "pending");
+                        Log.Error($"[DRED]     [{marker}] {i}: {op}");
+                    }
+
+                    node = node->PNext;
+                }
+            }
+
+            DredPageFaultOutput pageFaultOutput = default;
+            result = dred.GetPageFaultAllocationOutput(ref pageFaultOutput);
+            if (result.IsSuccess)
+            {
+                Log.Error($"[DRED] Page fault at VA: 0x{pageFaultOutput.PageFaultVA:X16}");
+            }
+
+            dred.Release();
         }
 
 
