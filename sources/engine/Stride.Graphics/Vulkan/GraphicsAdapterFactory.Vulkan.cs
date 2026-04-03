@@ -281,22 +281,14 @@ namespace Stride.Graphics
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
             Debug.WriteLine($"Vulkan: {severity} {message}");
 
-            // Redirect to log
+            // Redirect warnings and errors to log
             if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
             {
-                Log.Error(message);
+                Log.Error($"[Vulkan] {message}");
             }
             else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
             {
-                Log.Warning(message);
-            }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Info)
-            {
-                Log.Info(message);
-            }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Verbose)
-            {
-                Log.Verbose(message);
+                Log.Warning($"[Vulkan] {message}");
             }
 
             return VK_FALSE;

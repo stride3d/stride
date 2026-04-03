@@ -449,7 +449,9 @@ namespace Stride.Graphics
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            // Log directly to Stride logger
+            Debug.WriteLine($"D3D11: {message.Severity} {description}");
+
+            // Log warnings and errors to Stride logger
             switch (message.Severity)
             {
                 case MessageSeverity.Corruption:
@@ -458,9 +460,6 @@ namespace Stride.Graphics
                     break;
                 case MessageSeverity.Warning:
                     Log.Warning($"[D3D11] {description}");
-                    break;
-                default:
-                    Log.Info($"[D3D11] {description}");
                     break;
             }
 

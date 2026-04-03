@@ -547,7 +547,6 @@ namespace Stride.Graphics
                     dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
                     dredSettings.SetPageFaultEnablement(DredEnablement.ForcedOn);
                     dredSettings.Release();
-                    Log.Info("D3D12 DRED enabled");
                 }
             }
         }
@@ -799,6 +798,8 @@ namespace Stride.Graphics
 
                     var description = Marshal.PtrToStringAnsi((nint) message->PDescription) ?? "(no description)";
 
+                    Debug.WriteLine($"D3D12: {message->Severity} {description}");
+
                     switch (message->Severity)
                     {
                         case MessageSeverity.Corruption:
@@ -807,9 +808,6 @@ namespace Stride.Graphics
                             break;
                         case MessageSeverity.Warning:
                             Log.Warning($"[D3D12] {description}");
-                            break;
-                        default:
-                            Log.Info($"[D3D12] {description}");
                             break;
                     }
                 }
