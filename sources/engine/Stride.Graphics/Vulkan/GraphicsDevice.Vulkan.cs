@@ -1085,6 +1085,26 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.QueryPool, *(ulong*)&handle);
         }
 
+        public static unsafe implicit operator NativeResource(VkPipeline handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.Pipeline, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkPipelineLayout handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.PipelineLayout, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkRenderPass handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.RenderPass, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkDescriptorSetLayout handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.DescriptorSetLayout, *(ulong*)&handle);
+        }
+
         public unsafe void Destroy(GraphicsDevice device)
         {
             var handleCopy = handle;
@@ -1120,6 +1140,18 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.QueryPool:
                     device.NativeDeviceApi.vkDestroyQueryPool(device.NativeDevice, *(VkQueryPool*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.Pipeline:
+                    device.NativeDeviceApi.vkDestroyPipeline(device.NativeDevice, *(VkPipeline*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.PipelineLayout:
+                    device.NativeDeviceApi.vkDestroyPipelineLayout(device.NativeDevice, *(VkPipelineLayout*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.RenderPass:
+                    device.NativeDeviceApi.vkDestroyRenderPass(device.NativeDevice, *(VkRenderPass*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
+                    device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);
                     break;
             }
         }
