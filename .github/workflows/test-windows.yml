@@ -139,13 +139,6 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
-      - name: Setup SwiftShader
-        if: matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          git submodule update --init build/submodules/deps
-          $icdPath = (Resolve-Path "build\submodules\deps\swiftshader\vk_swiftshader_icd.json").Path
-          echo "VK_ICD_FILENAMES=$icdPath" >> $env:GITHUB_ENV
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
@@ -155,6 +148,20 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+      - name: Register SwiftShader ICD
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          # Find the ICD JSON in the build output (restored from NuGet package)
+          $icdPath = Get-ChildItem -Recurse -Path bin -Filter vk_swiftshader_icd.json -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($icdPath) {
+            # Register in registry — the Vulkan loader ignores env vars with elevated permissions
+            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath.FullName -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered SwiftShader ICD: $($icdPath.FullName)"
+          } else {
+            Write-Warning "SwiftShader ICD not found in build output"
+          }
       - name: Test
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
