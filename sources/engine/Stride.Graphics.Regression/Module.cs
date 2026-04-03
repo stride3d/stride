@@ -23,7 +23,7 @@ internal static class Module
 
         // Auto-configure SwiftShader ICD path for Vulkan software rendering
         if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
-            && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VK_ICD_FILENAMES")))
+            && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VK_DRIVER_FILES")))
         {
             // Check next to the binary (NuGet package deploys here)
             var icdPath = Path.Combine(AppContext.BaseDirectory, "vk_swiftshader_icd.json");
