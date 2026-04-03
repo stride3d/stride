@@ -96,6 +96,7 @@ namespace Stride.Graphics
         internal VkInstance NativeInstance;
         internal VkInstanceApi NativeInstanceApi;
         internal bool HasXlibSurfaceSupport;
+        internal bool HasSurfaceSupport;
 
         // We use GraphicsDevice (similar to OpenGL)
         private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
@@ -151,12 +152,16 @@ namespace Stride.Graphics
             };
             var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 6);
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
-            ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
-            var desiredExtensionNames = new HashSet<VkUtf8String>
+            // Surface extensions are optional at instance creation (not available with headless ICDs like SwiftShader).
+            // They are validated later when a swapchain is actually created.
+            var desiredExtensionNames = new HashSet<VkUtf8String>();
+            HasSurfaceSupport = availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME);
+            if (HasSurfaceSupport)
             {
-                VK_KHR_SURFACE_EXTENSION_NAME,
-                GetPlatformRelatedSurfaceExtensionName(availableExtensionNames)
-            };
+                ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
+                desiredExtensionNames.Add(VK_KHR_SURFACE_EXTENSION_NAME);
+                desiredExtensionNames.Add(GetPlatformRelatedSurfaceExtensionName(availableExtensionNames));
+            }
 
             HasXlibSurfaceSupport = desiredExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 

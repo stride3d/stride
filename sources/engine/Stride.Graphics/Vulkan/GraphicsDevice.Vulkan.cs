@@ -398,10 +398,11 @@ namespace Stride.Graphics
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
-            var desiredExtensionProperties = new HashSet<VkUtf8String>
-            {
-                VK_KHR_SWAPCHAIN_EXTENSION_NAME
-            };
+            var desiredExtensionProperties = new HashSet<VkUtf8String>();
+
+            // Swapchain extension is only needed for presentation (not for headless/asset compilation)
+            if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+                desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
             if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
             {
@@ -409,8 +410,23 @@ namespace Stride.Graphics
                 IsProfilingSupported = true;
             }
 
-            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures();
-            timelineSemaphoreFeatures.sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures;
+            // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
+            // Check if the feature is supported before requesting it
+            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
+            };
+            var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
+            {
+                sType = VkStructureType.PhysicalDeviceFeatures2,
+                pNext = &timelineSemaphoreFeatures,
+            };
+            NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
+
+            if (!timelineSemaphoreFeatures.timelineSemaphore)
+                throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
+
+            // Re-set to request the feature
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
