@@ -3,7 +3,8 @@
     "Software": {
       "commandName": "Project",
       "environmentVariables": {
-        "STRIDE_GRAPHICS_SOFTWARE_RENDERING": "1"
+        "STRIDE_GRAPHICS_SOFTWARE_RENDERING": "1",
+        "STRIDE_MAX_PARALLELISM": "8"
       },
       "nativeDebugging": true
     },

@@ -83,6 +83,7 @@ jobs:
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -128,6 +129,7 @@ jobs:
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
     steps:
       - uses: actions/checkout@v4
         with:
