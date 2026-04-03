@@ -995,7 +995,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(depthStencilBuffer);
 
-            using var _ = ResourceBarrierTransitionAndRestore(depthStencilBuffer, GraphicsResourceState.DepthWrite);
+            ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
             FlushResourceBarriers();
 
             // Check that the Depth-Stencil Buffer has a Stencil if Clear Stencil is requested
@@ -1022,7 +1022,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(renderTarget);
 
-            using var _ = ResourceBarrierTransitionAndRestore(renderTarget, GraphicsResourceState.RenderTarget);
+            ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
             FlushResourceBarriers();
 
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
