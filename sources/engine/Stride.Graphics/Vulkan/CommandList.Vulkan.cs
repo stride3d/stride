@@ -268,12 +268,79 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException">Cannot GraphicsDevice.Draw*() without an effect being previously applied with Effect.Apply() method</exception>
         private unsafe void PrepareDraw()
         {
+            // Transition resources to correct layouts before starting the render pass
+            TransitionBoundResources();
+
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+        }
+
+        /// <summary>
+        /// Automatically transitions bound textures to the layouts expected by the pipeline:
+        /// render targets to ColorAttachmentOptimal, depth to DepthStencilAttachmentOptimal,
+        /// sampled images to ShaderReadOnlyOptimal, storage images to General.
+        /// Must be called BEFORE EnsureRenderPass since barriers cannot be issued inside a render pass.
+        /// </summary>
+        private void TransitionBoundResources()
+        {
+            if (activePipeline == null)
+                return;
+
+            // Transition render target attachments
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                var rt = renderTargets[i];
+                if (rt != null)
+                {
+                    var parent = rt.ParentTexture ?? rt;
+                    if (parent.NativeLayout != VkImageLayout.ColorAttachmentOptimal)
+                        ResourceBarrierTransition(rt, GraphicsResourceState.RenderTarget);
+                }
+            }
+
+            if (depthStencilBuffer != null)
+            {
+                var parent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
+                if (parent.NativeLayout != VkImageLayout.DepthStencilAttachmentOptimal)
+                    ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
+            }
+
+            // Transition sampled/storage textures bound in descriptors
+            var bindingCount = activePipeline.DescriptorBindingMapping.Count;
+            for (int index = 0; index < bindingCount; index++)
+            {
+                var mapping = activePipeline.DescriptorBindingMapping[index];
+                if (mapping.DescriptorType != VkDescriptorType.SampledImage &&
+                    mapping.DescriptorType != VkDescriptorType.StorageImage)
+                    continue;
+
+                var sourceSet = boundDescriptorSets[mapping.SourceSet];
+                var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
+                if (heapObject.Value is Texture texture)
+                {
+                    var parent = texture.ParentTexture ?? texture;
+
+                    // Don't transition swapchain images that are queued for presentation
+                    if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
+                        continue;
+
+                    var expectedLayout = mapping.DescriptorType == VkDescriptorType.SampledImage
+                        ? VkImageLayout.ShaderReadOnlyOptimal
+                        : VkImageLayout.General;
+
+                    if (parent.NativeLayout != expectedLayout)
+                    {
+                        var state = mapping.DescriptorType == VkDescriptorType.SampledImage
+                            ? GraphicsResourceState.PixelShaderResource
+                            : GraphicsResourceState.GenericRead;
+                        ResourceBarrierTransition(parent, state);
+                    }
+                }
+            }
         }
 
         private unsafe void BindDescriptorSets()
@@ -548,6 +615,7 @@ namespace Stride.Graphics
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
             CleanupRenderPass();
+            TransitionBoundResources();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
         }
@@ -560,6 +628,7 @@ namespace Stride.Graphics
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
             CleanupRenderPass();
+            TransitionBoundResources();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
         }
