@@ -586,7 +586,7 @@ namespace Stride.Graphics
         ///   HOST_READ/HOST_WRITE access requires VK_PIPELINE_STAGE_HOST_BIT, which is not included
         ///   in VK_PIPELINE_STAGE_ALL_COMMANDS_BIT.
         /// </summary>
-        private static VkPipelineStageFlags FixStagesForAccess(VkPipelineStageFlags stages, VkAccessFlags access)
+        internal static VkPipelineStageFlags FixStagesForAccess(VkPipelineStageFlags stages, VkAccessFlags access)
         {
             if ((access & (VkAccessFlags.HostRead | VkAccessFlags.HostWrite)) != 0)
                 stages |= VkPipelineStageFlags.Host;
