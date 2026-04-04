@@ -360,12 +360,17 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // All textures start in Common state and are transitioned on first use
-                // (via SetRenderTargets, Clear, Copy, etc.)
-                // Staging textures use CopyDest as they live on readback heaps.
-                NativeResourceState = Usage == GraphicsResourceUsage.Staging
-                    ? ResourceStates.CopyDest
-                    : ResourceStates.Common;
+                // Initialize resource state based on texture usage.
+                // DepthStencil and RenderTarget can be created directly in their target state.
+                // Other textures start in Common (D3D12 implicit promotion handles read access).
+                if (Usage == GraphicsResourceUsage.Staging)
+                    NativeResourceState = ResourceStates.CopyDest;
+                else if (ViewFlags.HasFlag(TextureFlags.DepthStencil))
+                    NativeResourceState = ResourceStates.DepthWrite;
+                else if (ViewFlags.HasFlag(TextureFlags.RenderTarget))
+                    NativeResourceState = ResourceStates.RenderTarget;
+                else
+                    NativeResourceState = ResourceStates.Common;
 
                 var desiredResourceState = NativeResourceState;
                 var currentResourceState = desiredResourceState;
