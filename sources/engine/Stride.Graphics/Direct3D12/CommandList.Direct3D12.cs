@@ -405,9 +405,9 @@ namespace Stride.Graphics
                         continue;
 
                     if (isUAV[j])
-                        ResourceBarrierTransition(resource, GraphicsResourceState.UnorderedAccess);
+                        ResourceBarrierTransition(resource, BarrierLayout.UnorderedAccess);
                     else
-                        ResourceBarrierTransition(resource, (GraphicsResourceState)(ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource));
+                        ResourceBarrierTransition(resource, BarrierLayout.ShaderResource);
                 }
             }
         }

@@ -820,7 +820,7 @@ namespace Stride.Games
                     // Perform end of frame presenter operations
                     GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
 
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.Present);
+                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, BarrierLayout.Present);
                 }
 
                 GraphicsContext.ResourceGroupAllocator.Flush();
