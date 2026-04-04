@@ -158,6 +158,8 @@ namespace Stride.Graphics
                     IsShaderResource ? VkImageLayout.ShaderReadOnlyOptimal :
                     VkImageLayout.General;
 
+                TrackedLayout = BarrierMapping.ToBarrierLayout(NativeLayout);
+
                 if (NativeLayout == VkImageLayout.TransferDstOptimal)
                     NativeAccessMask = VkAccessFlags.TransferRead;
 

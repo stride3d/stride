@@ -571,6 +571,8 @@ namespace Stride.Graphics
                         break;
                 }
 
+                texture.TrackedLayout = BarrierMapping.ToBarrierLayout(texture.NativeLayout);
+
                 if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask)
                     return;
 
