@@ -569,6 +569,7 @@ namespace Stride.Graphics
 
                 resourceBarriers.Add(transitionBarrier);
                 resource.NativeResourceState = targetState;
+                resource.TrackedLayout = BarrierMapping.ToBarrierLayout(targetState);
             }
         }
 
