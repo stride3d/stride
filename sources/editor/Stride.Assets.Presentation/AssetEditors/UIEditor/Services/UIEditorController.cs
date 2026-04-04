@@ -116,6 +116,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
                 return false;
 
             rootElements.ForEach(r => RootElements[r.Id] = r);
+            foreach (var root in rootElements)
+                DisableDropDownInteraction(root);
 
             var resolution = uiDesign.Resolution;
             var size = resolution / DesignDensity;
@@ -209,6 +211,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
             EnsureAssetAccess();
 
             var gameSidePart = ClonePartForGameSide(parent.Asset.Asset, assetSidePart);
+            DisableDropDownInteraction(gameSidePart);
             return InvokeAsync(() =>
             {
                 Logger.Debug($"Adding element {assetSidePart.Id} to game-side scene");
@@ -422,6 +425,23 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
         private UIComponent GetUIComponent()
         {
             return GetEntityByName(UIEntityName)?.Get<UIComponent>();
+        }
+
+        /// <summary>
+        /// Traverses the visual tree rooted at <paramref name="root"/> and sets
+        /// <see cref="DropDown.IsInteractable"/> to <c>false</c> on every <see cref="DropDown"/>
+        /// found, preventing the control from responding to touch input in the editor viewport.
+        /// </summary>
+        private static void DisableDropDownInteraction(UIElement root)
+        {
+            if (root is DropDown dropDown)
+                dropDown.IsInteractable = false;
+
+            foreach (var child in root.VisualChildren.BreadthFirst(e => e.VisualChildren))
+            {
+                if (child is DropDown childDropDown)
+                    childDropDown.IsInteractable = false;
+            }
         }
 
         /// <summary>
