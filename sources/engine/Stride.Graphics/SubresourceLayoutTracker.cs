@@ -67,6 +67,31 @@ internal struct SubresourceLayoutTracker
     /// </summary>
     public readonly bool NeedsTransition(uint subresource, BarrierLayout target)
     {
-        return Get(subresource) != target;
+        if (subresource != uint.MaxValue || perSubresource == null)
+            return Get(subresource) != target;
+
+        // Whole-resource check with per-subresource tracking:
+        // any subresource that differs means a transition is needed
+        for (int i = 0; i < perSubresource.Length; i++)
+        {
+            if (perSubresource[i] != target)
+                return true;
+        }
+        return false;
     }
+
+    /// <summary>
+    ///   Whether per-subresource tracking is active (some subresources may have different layouts).
+    /// </summary>
+    internal readonly bool HasPerSubresourceTracking => perSubresource != null;
+
+    /// <summary>
+    ///   The number of subresources tracked.
+    /// </summary>
+    internal readonly int SubresourceCount => subresourceCount;
+
+    /// <summary>
+    ///   Gets the per-subresource array. Only valid when <see cref="HasPerSubresourceTracking"/> is true.
+    /// </summary>
+    internal readonly ReadOnlySpan<BarrierLayout> PerSubresourceLayouts => perSubresource;
 }

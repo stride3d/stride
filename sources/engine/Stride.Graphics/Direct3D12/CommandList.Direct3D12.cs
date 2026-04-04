@@ -570,10 +570,29 @@ namespace Stride.Graphics
 
             if (resource.LayoutTracker.NeedsTransition(subresource, newLayout))
             {
-                pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.LayoutTracker.Get(subresource), newLayout)
+                // When per-subresource tracking is active and a whole-resource transition is requested,
+                // only emit barriers for subresources that actually differ
+                if (subresource == uint.MaxValue && resource.LayoutTracker.HasPerSubresourceTracking)
                 {
-                    Subresource = subresource
-                });
+                    var layouts = resource.LayoutTracker.PerSubresourceLayouts;
+                    for (int i = 0; i < layouts.Length; i++)
+                    {
+                        if (layouts[i] != newLayout)
+                        {
+                            pendingBarriers.Add(new ResourceBarrierDescription(resource, layouts[i], newLayout)
+                            {
+                                Subresource = (uint)i
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.LayoutTracker.Get(subresource), newLayout)
+                    {
+                        Subresource = subresource
+                    });
+                }
 
                 resource.LayoutTracker.Set(subresource, newLayout);
                 resource.NativeResourceState = BarrierMapping.ToResourceStates(newLayout);
