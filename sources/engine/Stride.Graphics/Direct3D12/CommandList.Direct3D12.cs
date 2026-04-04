@@ -569,9 +569,9 @@ namespace Stride.Graphics
         {
             Debug.Assert(resource is not null, "Resource must not be null.");
 
-            // Find parent resource
-            if (resource.ParentResource is not null)
-                resource = resource.ParentResource;
+            // Texture views share the native resource of their parent; barrier the parent instead
+            if (resource is Texture { ParentTexture: not null } textureView)
+                resource = textureView.ParentTexture;
 
             if (resource.LayoutTracker.NeedsTransition(subresource, newLayout))
             {
