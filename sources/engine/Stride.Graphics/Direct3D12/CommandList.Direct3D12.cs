@@ -564,7 +564,7 @@ namespace Stride.Graphics
         [Obsolete("Use BarrierLayout overload instead.")]
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
-            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates) newState));
+            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
         }
 
         /// <summary>
@@ -580,9 +580,10 @@ namespace Stride.Graphics
             if (count == 0)
                 return;
 
-            // TODO: Use enhanced barriers path when SupportsEnhancedBarriers is true
-            // For now, convert to legacy ResourceBarrier structs
-            FlushResourceBarriersLegacy(count);
+            if (GraphicsDevice.SupportsEnhancedBarriers)
+                FlushResourceBarriersEnhanced(count);
+            else
+                FlushResourceBarriersLegacy(count);
         }
 
         private unsafe void FlushResourceBarriersLegacy(int count)
@@ -609,7 +610,86 @@ namespace Stride.Graphics
 
             pendingBarriers.Clear();
 
-            currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint) count, barriers);
+            currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint)count, barriers);
+        }
+
+        private unsafe void FlushResourceBarriersEnhanced(int count)
+        {
+            // Separate texture and buffer barriers
+            scoped Span<D3D12TextureBarrier> textureBarriers = stackalloc D3D12TextureBarrier[count];
+            scoped Span<D3D12BufferBarrier> bufferBarriers = stackalloc D3D12BufferBarrier[count];
+            int textureCount = 0;
+            int bufferCount = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                var desc = pendingBarriers[i];
+
+                if (desc.Resource is Texture)
+                {
+                    textureBarriers[textureCount++] = new D3D12TextureBarrier
+                    {
+                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
+                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
+                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
+                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        LayoutBefore = BarrierMapping.ToEnhancedLayout(desc.LayoutBefore),
+                        LayoutAfter = BarrierMapping.ToEnhancedLayout(desc.LayoutAfter),
+                        PResource = desc.Resource.NativeResource,
+                        Subresources = D3D12SubresourceRange.All,
+                        Flags = 0,
+                    };
+                }
+                else
+                {
+                    bufferBarriers[bufferCount++] = new D3D12BufferBarrier
+                    {
+                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
+                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
+                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
+                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        PResource = desc.Resource.NativeResource,
+                        Offset = 0,
+                        Size = ulong.MaxValue, // Entire buffer
+                    };
+                }
+            }
+
+            pendingBarriers.Clear();
+
+            // Submit barrier groups — both fixed blocks must be active during the Barrier call
+            fixed (D3D12TextureBarrier* pTextureBarriers = textureBarriers)
+            fixed (D3D12BufferBarrier* pBufferBarriers = bufferBarriers)
+            {
+                var groups = stackalloc D3D12BarrierGroup[2];
+                int groupCount = 0;
+
+                if (textureCount > 0)
+                {
+                    groups[groupCount++] = new D3D12BarrierGroup
+                    {
+                        Type = D3D12BarrierType.Texture,
+                        NumBarriers = (uint)textureCount,
+                        PBarriers = pTextureBarriers,
+                    };
+                }
+
+                if (bufferCount > 0)
+                {
+                    groups[groupCount++] = new D3D12BarrierGroup
+                    {
+                        Type = D3D12BarrierType.Buffer,
+                        NumBarriers = (uint)bufferCount,
+                        PBarriers = pBufferBarriers,
+                    };
+                }
+
+                if (groupCount > 0)
+                {
+                    var commandList7 = (ID3D12GraphicsCommandList7*)currentCommandList.NativeCommandList.Handle;
+                    commandList7->Barrier((uint)groupCount, (BarrierGroup*)groups);
+                }
+            }
         }
 
         /// <summary>
@@ -625,7 +705,7 @@ namespace Stride.Graphics
         private ResourceBarrierTransitionRestore ResourceBarrierTransitionAndRestore(GraphicsResource resource, GraphicsResourceState newState)
         {
             var oldLayout = resource.TrackedLayout;
-            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates) newState));
+            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
 
             return new ResourceBarrierTransitionRestore(this, resource, oldLayout);
         }
