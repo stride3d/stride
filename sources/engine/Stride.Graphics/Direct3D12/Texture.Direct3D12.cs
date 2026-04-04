@@ -228,7 +228,7 @@ namespace Stride.Graphics
             void InitializeStagingTexture()
             {
                 NativeResourceState = ResourceStates.CopyDest;
-                TrackedLayout = BarrierLayout.CopyDest;
+                LayoutTracker.Initialize(BarrierLayout.CopyDest, ArraySize * MipLevelCount);
                 NativeTextureDescription = GetTextureDescription(Dimension);
 
                 int totalSize = ComputeBufferTotalSize();
@@ -489,7 +489,7 @@ namespace Stride.Graphics
                 }
 
                 NativeResourceState = desiredResourceState;
-                TrackedLayout = BarrierMapping.ToBarrierLayout(desiredResourceState);
+                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), ArraySize * MipLevelCount);
             }
 
             //

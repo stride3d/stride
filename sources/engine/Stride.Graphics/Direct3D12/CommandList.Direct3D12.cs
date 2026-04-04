@@ -249,10 +249,13 @@ namespace Stride.Graphics
         {
             // Transition render targets and depth-stencil to the correct state
             for (int i = 0; i < renderTargetViews.Length; ++i)
-                ResourceBarrierTransition(renderTargetViews[i], GraphicsResourceState.RenderTarget);
+            {
+                var rt = renderTargetViews[i];
+                ResourceBarrierTransition(rt, BarrierLayout.RenderTarget, GetTextureSubresource(rt));
+            }
 
             if (depthStencilBuffer is not null)
-                ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
+                ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite, GetTextureSubresource(depthStencilBuffer));
 
             FlushResourceBarriers();
 
@@ -413,6 +416,19 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Computes the D3D12 subresource index for a texture or texture view.
+        ///   Returns <see cref="uint.MaxValue"/> for whole-resource (non-view) textures.
+        /// </summary>
+        private static uint GetTextureSubresource(Texture texture)
+        {
+            if (texture.ParentTexture is null)
+                return uint.MaxValue; // Whole resource
+
+            var parent = texture.ParentTexture;
+            return (uint)(texture.MipLevel + texture.ArraySlice * parent.MipLevelCount);
+        }
+
+        /// <summary>
         ///   Sets the reference value for Depth-Stencil tests.
         /// </summary>
         /// <param name="stencilReference">Reference value to perform against when doing a Depth-Stencil test.</param>
@@ -544,7 +560,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
         /// </summary>
-        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             Debug.Assert(resource is not null, "Resource must not be null.");
 
@@ -552,11 +568,14 @@ namespace Stride.Graphics
             if (resource.ParentResource is not null)
                 resource = resource.ParentResource;
 
-            if (resource.TrackedLayout != newLayout)
+            if (resource.LayoutTracker.NeedsTransition(subresource, newLayout))
             {
-                pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.TrackedLayout, newLayout));
+                pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.LayoutTracker.Get(subresource), newLayout)
+                {
+                    Subresource = subresource
+                });
 
-                resource.TrackedLayout = newLayout;
+                resource.LayoutTracker.Set(subresource, newLayout);
                 resource.NativeResourceState = BarrierMapping.ToResourceStates(newLayout);
             }
         }
@@ -704,7 +723,7 @@ namespace Stride.Graphics
         /// </returns>
         private ResourceBarrierTransitionRestore ResourceBarrierTransitionAndRestore(GraphicsResource resource, GraphicsResourceState newState)
         {
-            var oldLayout = resource.TrackedLayout;
+            var oldLayout = resource.LayoutTracker.Get(uint.MaxValue);
             ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
 
             return new ResourceBarrierTransitionRestore(this, resource, oldLayout);
