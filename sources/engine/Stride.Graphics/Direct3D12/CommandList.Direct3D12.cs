@@ -933,8 +933,22 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
-            if (IsDebugMode)
+            if (!IsDebugMode)
+                return;
+
+            if (WinPixNative.IsAvailable)
+            {
                 WinPixNative.PIXBeginEventOnCommandList(currentCommandList.NativeCommandList, profileColor, name);
+            }
+            else
+            {
+                // Fallback: use D3D12 built-in event markers (visible in RenderDoc, NSight, etc.)
+                var maxBytes = System.Text.Encoding.ASCII.GetMaxByteCount(name.Length) + 1;
+                var nameBytes = stackalloc byte[maxBytes];
+                int written = System.Text.Encoding.ASCII.GetBytes(name, new Span<byte>(nameBytes, maxBytes));
+                nameBytes[written] = 0;
+                currentCommandList.NativeCommandList.BeginEvent(Metadata: 0, nameBytes, (uint)(written + 1));
+            }
         }
 
         /// <summary>
@@ -943,8 +957,13 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
-            if (IsDebugMode)
+            if (!IsDebugMode)
+                return;
+
+            if (WinPixNative.IsAvailable)
                 WinPixNative.PIXEndEventOnCommandList(currentCommandList.NativeCommandList);
+            else
+                currentCommandList.NativeCommandList.EndEvent();
         }
 
         // TODO: Unused, remove?
