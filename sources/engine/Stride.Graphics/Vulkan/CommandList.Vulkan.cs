@@ -526,75 +526,22 @@ namespace Stride.Graphics
         /// <summary>
         ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
         /// </summary>
-        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
-        {
-            // Map BarrierLayout to the GraphicsResourceState that the Vulkan backend understands
-            var state = newLayout switch
-            {
-                BarrierLayout.RenderTarget => GraphicsResourceState.RenderTarget,
-                BarrierLayout.DepthStencilWrite => GraphicsResourceState.DepthWrite,
-                BarrierLayout.DepthStencilRead => GraphicsResourceState.DepthRead,
-                BarrierLayout.ShaderResource => GraphicsResourceState.PixelShaderResource,
-                BarrierLayout.UnorderedAccess => GraphicsResourceState.UnorderedAccess,
-                BarrierLayout.CopySource => GraphicsResourceState.CopySource,
-                BarrierLayout.CopyDest => GraphicsResourceState.CopyDestination,
-                BarrierLayout.Present => GraphicsResourceState.Present,
-                BarrierLayout.ResolveSource => GraphicsResourceState.ResolveSource,
-                BarrierLayout.ResolveDest => GraphicsResourceState.ResolveDestination,
-                _ => GraphicsResourceState.Common,
-            };
-            ResourceBarrierTransition(resource, state);
-        }
-
-        public unsafe void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
         {
             if (resource is Texture texture)
             {
                 if (texture.ParentTexture != null)
                     texture = texture.ParentTexture;
 
-                // TODO VULKAN: Check for change
-
                 var oldLayout = texture.NativeLayout;
                 var oldAccessMask = texture.NativeAccessMask;
+                var sourceStages = texture.NativePipelineStageMask;
 
-                var sourceStages = resource.NativePipelineStageMask;
-
-                switch (newState)
-                {
-                    case GraphicsResourceState.RenderTarget:
-                        texture.NativeLayout = VkImageLayout.ColorAttachmentOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.ColorAttachmentWrite;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.ColorAttachmentOutput;
-                        break;
-                    case GraphicsResourceState.Present:
-                        texture.NativeLayout = VkImageLayout.PresentSrcKHR;
-                        texture.NativeAccessMask = VkAccessFlags.MemoryRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.BottomOfPipe;
-                        break;
-                    case GraphicsResourceState.DepthWrite:
-                        texture.NativeLayout = VkImageLayout.DepthStencilAttachmentOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests;
-                        break;
-                    case GraphicsResourceState.PixelShaderResource:
-                        texture.NativeLayout = VkImageLayout.ShaderReadOnlyOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.ShaderRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
-                        break;
-                    case GraphicsResourceState.GenericRead:
-                        texture.NativeLayout = VkImageLayout.General;
-                        texture.NativeAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.TransferRead | VkAccessFlags.IndirectCommandRead | VkAccessFlags.ColorAttachmentRead | VkAccessFlags.DepthStencilAttachmentRead | VkAccessFlags.InputAttachmentRead | VkAccessFlags.VertexAttributeRead | VkAccessFlags.IndexRead | VkAccessFlags.UniformRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.AllCommands;
-                        break;
-                    default:
-                        texture.NativeLayout = VkImageLayout.General;
-                        texture.NativeAccessMask = (VkAccessFlags)0x1FFFF; // TODO VULKAN: Don't hard-code this
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.AllCommands;
-                        break;
-                }
-
-                texture.LayoutTracker.Set(uint.MaxValue, BarrierMapping.ToBarrierLayout(texture.NativeLayout));
+                // Update native state from BarrierLayout via mapping
+                texture.NativeLayout = BarrierMapping.ToVkImageLayout(newLayout);
+                texture.NativeAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
+                texture.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+                texture.LayoutTracker.Set(uint.MaxValue, newLayout);
 
                 if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask)
                     return;
@@ -602,7 +549,7 @@ namespace Stride.Graphics
                 if (oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR)
                     sourceStages = VkPipelineStageFlags.TopOfPipe;
 
-                // End render pass, so barrier effects all commands in the buffer
+                // End render pass, so barrier affects all commands in the buffer
                 CleanupRenderPass();
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, texture.NativeAccessMask, oldLayout, texture.NativeLayout);
@@ -612,6 +559,26 @@ namespace Stride.Graphics
             {
                 throw new NotImplementedException();
             }
+        }
+
+        [Obsolete("Use BarrierLayout overload instead.")]
+        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            var layout = (int)newState switch
+            {
+                0x04 => BarrierLayout.RenderTarget,
+                0x08 => BarrierLayout.UnorderedAccess,
+                0x10 => BarrierLayout.DepthStencilWrite,
+                0x20 => BarrierLayout.DepthStencilRead,
+                0x80 => BarrierLayout.ShaderResource,
+                0xC0 => BarrierLayout.ShaderResource,
+                0x400 => BarrierLayout.CopyDest,
+                0x800 => BarrierLayout.CopySource,
+                0x1000 => BarrierLayout.ResolveDest,
+                0x2000 => BarrierLayout.ResolveSource,
+                _ => BarrierLayout.Common,
+            };
+            ResourceBarrierTransition(resource, layout);
         }
 
         /// <summary>

@@ -48,6 +48,42 @@ internal static class BarrierMapping
         VkImageLayout.PresentSrcKHR => BarrierLayout.Present,
         _ => BarrierLayout.Common,
     };
+
+    /// <summary>
+    ///   Derives the Vulkan access flags from a <see cref="BarrierLayout"/>.
+    /// </summary>
+    internal static VkAccessFlags ToVkAccessFlags(BarrierLayout layout) => layout switch
+    {
+        BarrierLayout.RenderTarget => VkAccessFlags.ColorAttachmentWrite,
+        BarrierLayout.DepthStencilWrite => VkAccessFlags.DepthStencilAttachmentWrite,
+        BarrierLayout.DepthStencilRead => VkAccessFlags.DepthStencilAttachmentRead,
+        BarrierLayout.ShaderResource => VkAccessFlags.ShaderRead,
+        BarrierLayout.UnorderedAccess => VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite,
+        BarrierLayout.CopySource => VkAccessFlags.TransferRead,
+        BarrierLayout.CopyDest => VkAccessFlags.TransferWrite,
+        BarrierLayout.Present => VkAccessFlags.MemoryRead,
+        BarrierLayout.ResolveSource => VkAccessFlags.TransferRead,
+        BarrierLayout.ResolveDest => VkAccessFlags.TransferWrite,
+        _ => VkAccessFlags.None,
+    };
+
+    /// <summary>
+    ///   Derives the Vulkan pipeline stage flags from a <see cref="BarrierLayout"/>.
+    /// </summary>
+    internal static VkPipelineStageFlags ToVkPipelineStageFlags(BarrierLayout layout) => layout switch
+    {
+        BarrierLayout.RenderTarget => VkPipelineStageFlags.ColorAttachmentOutput,
+        BarrierLayout.DepthStencilWrite => VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
+        BarrierLayout.DepthStencilRead => VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
+        BarrierLayout.ShaderResource => VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
+        BarrierLayout.UnorderedAccess => VkPipelineStageFlags.ComputeShader,
+        BarrierLayout.CopySource => VkPipelineStageFlags.Transfer,
+        BarrierLayout.CopyDest => VkPipelineStageFlags.Transfer,
+        BarrierLayout.Present => VkPipelineStageFlags.BottomOfPipe,
+        BarrierLayout.ResolveSource => VkPipelineStageFlags.Transfer,
+        BarrierLayout.ResolveDest => VkPipelineStageFlags.Transfer,
+        _ => VkPipelineStageFlags.TopOfPipe,
+    };
 }
 
 #endif
