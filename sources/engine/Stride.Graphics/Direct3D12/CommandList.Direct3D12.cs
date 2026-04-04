@@ -183,7 +183,12 @@ namespace Stride.Graphics
             HResult result = currentCommandList.NativeCommandList.Close();
 
             if (result.IsFailure)
+            {
+                if (IsDebugMode)
+                    GraphicsDevice.FlushDebugMessages();
+
                 result.Throw();
+            }
 
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)

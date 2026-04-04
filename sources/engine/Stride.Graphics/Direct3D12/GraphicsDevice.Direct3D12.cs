@@ -538,13 +538,18 @@ namespace Stride.Graphics
                 {
                     debugInterface.EnableDebugLayer();
 
-                    // TODO: Probably should be added as extra debug flags (much slower)
-                    result = debugInterface.QueryInterface<ID3D12Debug1>(out var debug1);
-                    if (result.IsSuccess && debug1.IsNotNull())
+                    // GPU-based validation instruments every shader — extremely slow on software renderers.
+                    // Only enable on real hardware.
+                    bool isSoftwareRenderer = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
+                    if (!isSoftwareRenderer)
                     {
-                        debug1.SetEnableGPUBasedValidation(true);
-                        debug1.SetEnableSynchronizedCommandQueueValidation(true);
-                        debug1.Release();
+                        result = debugInterface.QueryInterface<ID3D12Debug1>(out var debug1);
+                        if (result.IsSuccess && debug1.IsNotNull())
+                        {
+                            debug1.SetEnableGPUBasedValidation(true);
+                            debug1.SetEnableSynchronizedCommandQueueValidation(true);
+                            debug1.Release();
+                        }
                     }
                     debugInterface.Release();
                 }
