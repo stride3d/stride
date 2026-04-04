@@ -46,6 +46,11 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
+        /// <summary>
+        ///   Whether D3D12 Enhanced Barriers are supported by the device.
+        /// </summary>
+        internal bool SupportsEnhancedBarriers;
+
         private ID3D12Device* nativeDevice;
         private ID3D12CommandQueue* nativeCommandQueue;
 
@@ -402,6 +407,10 @@ namespace Stride.Graphics
 
                 RequestedProfile = graphicsProfile;
                 CurrentFeatureLevel = featureLevel;
+
+                // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
+                CheckEnhancedBarriersSupport();
+
                 break;
             }
 
@@ -547,6 +556,34 @@ namespace Stride.Graphics
                     dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
                     dredSettings.SetPageFaultEnablement(DredEnablement.ForcedOn);
                     dredSettings.Release();
+                }
+            }
+
+            //
+            // Checks if the device supports D3D12 Enhanced Barriers.
+            //
+            void CheckEnhancedBarriersSupport()
+            {
+                // D3D12_FEATURE_D3D12_OPTIONS12 = 41
+                // The struct has EnhancedBarriersSupported as a BOOL at a known offset.
+                // Since Silk.NET may not have this struct, we use raw CheckFeatureSupport.
+                const int D3D12_FEATURE_D3D12_OPTIONS12 = 41;
+
+                // D3D12_FEATURE_DATA_D3D12_OPTIONS12 is a large struct; EnhancedBarriersSupported
+                // is at byte offset 8 (after MSAAAlignedCountSupported and RelaxedFormatCasting BoolS).
+                // We allocate enough space and read the BOOL at offset 8.
+                Span<byte> options12 = stackalloc byte[64]; // oversized to be safe
+                options12.Clear();
+
+                fixed (byte* pOptions = options12)
+                {
+                    HResult hr = nativeDevice->CheckFeatureSupport((Silk.NET.Direct3D12.Feature) D3D12_FEATURE_D3D12_OPTIONS12,
+                                                                    pOptions, (uint) options12.Length);
+                    if (hr.IsSuccess)
+                    {
+                        // EnhancedBarriersSupported is a BOOL (4 bytes) at offset 8
+                        SupportsEnhancedBarriers = *(int*)(pOptions + 8) != 0;
+                    }
                 }
             }
         }

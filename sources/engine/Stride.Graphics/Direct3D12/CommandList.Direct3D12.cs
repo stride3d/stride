@@ -591,6 +591,10 @@ namespace Stride.Graphics
 
             resourceBarriers.Clear();
 
+            // TODO: When Enhanced Barriers are fully wired, use FlushResourceBarriersEnhanced()
+            // if (GraphicsDevice.SupportsEnhancedBarriers)
+            //     FlushResourceBarriersEnhanced(barriers);
+            // else
             currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint) count, barriers);
         }
 
