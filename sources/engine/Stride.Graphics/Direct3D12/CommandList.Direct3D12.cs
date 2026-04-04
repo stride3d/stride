@@ -35,6 +35,7 @@ namespace Stride.Graphics
         private int samplerHeapOffset = GraphicsDevice.SamplerHeapSize;
 
         private PipelineState boundPipelineState;
+        private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrier> resourceBarriers = new(16);
 
@@ -368,8 +369,47 @@ namespace Stride.Graphics
         /// </remarks>
         private void PrepareDraw()
         {
+            TransitionDescriptorResources();
             FlushResourceBarriers();
             SetViewportImpl();
+        }
+
+        /// <summary>
+        ///   Transitions all resources bound in descriptor sets to the correct state for shader access.
+        ///   SRV resources are transitioned to PixelShaderResource | NonPixelShaderResource,
+        ///   UAV resources are transitioned to UnorderedAccess.
+        /// </summary>
+        private void TransitionDescriptorResources()
+        {
+            if (boundDescriptorSets is null)
+                return;
+
+            for (int i = 0; i < boundDescriptorSets.Length; i++)
+            {
+                var tracking = boundDescriptorSets[i].Tracking;
+                if (tracking is null)
+                    continue;
+
+                var resources = tracking.Resources;
+                var isUAV = tracking.IsUAV;
+
+                for (int j = 0; j < resources.Length; j++)
+                {
+                    var resource = resources[j];
+                    if (resource is null)
+                        continue;
+
+                    // Skip resources on upload/readback heaps (GenericRead/CopyDest) — they can't be transitioned
+                    if (resource.NativeResourceState == ResourceStates.GenericRead ||
+                        resource.NativeResourceState == ResourceStates.CopyDest)
+                        continue;
+
+                    if (isUAV[j])
+                        ResourceBarrierTransition(resource, GraphicsResourceState.UnorderedAccess);
+                    else
+                        ResourceBarrierTransition(resource, (GraphicsResourceState)(ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource));
+                }
+            }
         }
 
         /// <summary>
@@ -584,6 +624,8 @@ namespace Stride.Graphics
         /// </param>
         public void SetDescriptorSets(int index, DescriptorSet[] descriptorSets)
         {
+            boundDescriptorSets = descriptorSets;
+
         RestartWithNewHeap:
             var descriptorTableIndex = 0;
 
