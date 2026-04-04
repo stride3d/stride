@@ -25,6 +25,11 @@ namespace Stride.Graphics
         internal readonly DescriptorSetLayout? Description;
 
         /// <summary>
+        ///   Tracks which GraphicsResource is bound at each SRV/UAV/CBV slot for automatic barrier transitions.
+        /// </summary>
+        internal readonly ResourceTracking? Tracking;
+
+        /// <summary>
         ///   Gets a value indicating if the Descriptor Set is valid.
         /// </summary>
         /// <remarks>
@@ -70,6 +75,7 @@ namespace Stride.Graphics
                 // TODO: different mechanism?
                 nativeDevice = null;
                 Description = null;
+                Tracking = null;
                 SrvStart = default;
                 SamplerStart = default;
                 return;
@@ -79,6 +85,7 @@ namespace Stride.Graphics
 
             nativeDevice = graphicsDevice.NativeDevice;
             Description = layout;
+            Tracking = layout.SrvCount > 0 ? new ResourceTracking(layout.SrvCount, graphicsDevice.SrvHandleIncrementSize) : null;
 
             // Store starting CpuDescriptorHandle for SRVs, UAVs, etc.
             var startHandle = layout.SrvCount > 0
@@ -140,10 +147,13 @@ namespace Stride.Graphics
             if (shaderResourceView.NativeShaderResourceView.Ptr == 0)
                 return;
 
-            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            var bindingOffset = BindingOffsets[slot];
+            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
                                                shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
+
+            Tracking?.Set(bindingOffset, shaderResourceView, isUav: false);
         }
 
         /// <summary>
@@ -184,9 +194,12 @@ namespace Stride.Graphics
                 SizeInBytes = (uint) ((size + D3D12.ConstantBufferDataPlacementAlignment) / D3D12.ConstantBufferDataPlacementAlignment * D3D12.ConstantBufferDataPlacementAlignment)
             };
 
-            var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            var bindingOffset = BindingOffsets[slot];
+            var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CreateConstantBufferView(in cbufferViewDesc, destDescriptorHandle);
+
+            // Constant buffers are typically on upload heaps (GenericRead) and don't need transitions
         }
 
         /// <summary>
@@ -202,10 +215,37 @@ namespace Stride.Graphics
             if (unorderedAccessView.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException($"Resource '{unorderedAccessView}' has missing Unordered Access View.");
 
-            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            var bindingOffset = BindingOffsets[slot];
+            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
                                                unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
+
+            Tracking?.Set(bindingOffset, unorderedAccessView, isUav: true);
+        }
+    }
+
+    /// <summary>
+    ///   Tracks which resources are bound in a descriptor set's SRV/UAV slots for automatic barrier insertion.
+    /// </summary>
+    internal sealed class ResourceTracking
+    {
+        internal readonly GraphicsResource[] Resources;
+        internal readonly bool[] IsUAV;
+        private readonly int handleIncrementSize;
+
+        internal ResourceTracking(int srvCount, int handleIncrementSize)
+        {
+            Resources = new GraphicsResource[srvCount];
+            IsUAV = new bool[srvCount];
+            this.handleIncrementSize = handleIncrementSize;
+        }
+
+        internal void Set(int bindingOffset, GraphicsResource resource, bool isUav)
+        {
+            int index = bindingOffset / handleIncrementSize;
+            Resources[index] = resource;
+            IsUAV[index] = isUav;
         }
     }
 }
