@@ -523,6 +523,29 @@ namespace Stride.Graphics
             GraphicsDevice.NativeDeviceApi.vkCmdBindIndexBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, (ulong) offset, is32bits ? VkIndexType.Uint32 : VkIndexType.Uint16);
         }
 
+        /// <summary>
+        ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
+        /// </summary>
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        {
+            // Map BarrierLayout to the GraphicsResourceState that the Vulkan backend understands
+            var state = newLayout switch
+            {
+                BarrierLayout.RenderTarget => GraphicsResourceState.RenderTarget,
+                BarrierLayout.DepthStencilWrite => GraphicsResourceState.DepthWrite,
+                BarrierLayout.DepthStencilRead => GraphicsResourceState.DepthRead,
+                BarrierLayout.ShaderResource => GraphicsResourceState.PixelShaderResource,
+                BarrierLayout.UnorderedAccess => GraphicsResourceState.UnorderedAccess,
+                BarrierLayout.CopySource => GraphicsResourceState.CopySource,
+                BarrierLayout.CopyDest => GraphicsResourceState.CopyDestination,
+                BarrierLayout.Present => GraphicsResourceState.Present,
+                BarrierLayout.ResolveSource => GraphicsResourceState.ResolveSource,
+                BarrierLayout.ResolveDest => GraphicsResourceState.ResolveDestination,
+                _ => GraphicsResourceState.Common,
+            };
+            ResourceBarrierTransition(resource, state);
+        }
+
         public unsafe void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             if (resource is Texture texture)

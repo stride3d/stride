@@ -1401,6 +1401,11 @@ namespace Stride.Graphics
             }
         }
 
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        {
+            // Nothing to do
+        }
+
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             // Nothing to do

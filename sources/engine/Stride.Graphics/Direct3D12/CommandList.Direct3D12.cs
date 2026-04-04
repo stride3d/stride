@@ -541,6 +541,14 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="resource">The Graphics Resource to transition to a different state.</param>
         /// <param name="newState">The new state of <paramref name="resource"/>.</param>
+        /// <summary>
+        ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
+        /// </summary>
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        {
+            ResourceBarrierTransition(resource, (GraphicsResourceState) BarrierMapping.ToResourceStates(newLayout));
+        }
+
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             Debug.Assert(resource is not null, "Resource must not be null.");
