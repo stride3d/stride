@@ -264,7 +264,7 @@ namespace Stride.Rendering.Images
             {
                 // Transition render targets
                 foreach (var renderTarget in outputRenderTargetViews)
-                    context.CommandList.ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
+                    context.CommandList.ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
 
                 context.CommandList.SetRenderTargetsAndViewport(outputDepthStencilView, outputRenderTargetViews);
             }

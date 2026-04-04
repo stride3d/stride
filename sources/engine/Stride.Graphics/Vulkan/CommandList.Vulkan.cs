@@ -298,7 +298,7 @@ namespace Stride.Graphics
                 {
                     var parent = rt.ParentTexture ?? rt;
                     if (parent.NativeLayout != VkImageLayout.ColorAttachmentOptimal)
-                        ResourceBarrierTransition(rt, GraphicsResourceState.RenderTarget);
+                        ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
                 }
             }
 
@@ -306,7 +306,7 @@ namespace Stride.Graphics
             {
                 var parent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
                 if (parent.NativeLayout != VkImageLayout.DepthStencilAttachmentOptimal)
-                    ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
+                    ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
             }
 
             // Transition sampled/storage textures bound in descriptors
@@ -334,10 +334,10 @@ namespace Stride.Graphics
 
                     if (parent.NativeLayout != expectedLayout)
                     {
-                        var state = mapping.DescriptorType == VkDescriptorType.SampledImage
-                            ? GraphicsResourceState.PixelShaderResource
-                            : GraphicsResourceState.GenericRead;
-                        ResourceBarrierTransition(parent, state);
+                        var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
+                            ? BarrierLayout.ShaderResource
+                            : BarrierLayout.UnorderedAccess;
+                        ResourceBarrierTransition(parent, layout);
                     }
                 }
             }

@@ -731,24 +731,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Transitions the specified Graphics Resource to a new state and returns an object that
-        ///   can restore the resource to its previous state.
-        /// </summary>
-        /// <param name="resource">The Graphics Resource to transition. Cannot be <see langword="null"/>.</param>
-        /// <param name="newState">The state to which the resource will be transitioned.</param>
-        /// <returns>
-        ///   A <see cref="ResourceBarrierTransitionRestore"/> object that can be used to restore
-        ///   the resource to its original state.
-        /// </returns>
-        private ResourceBarrierTransitionRestore ResourceBarrierTransitionAndRestore(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            var oldLayout = resource.LayoutTracker.Get(uint.MaxValue);
-            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
-
-            return new ResourceBarrierTransitionRestore(this, resource, oldLayout);
-        }
-
-        /// <summary>
         ///   Binds an array of Descriptor Sets at the specified index in the current pipeline's Root Signature,
         ///   making shader resources available for rendering operations.
         /// </summary>
@@ -1174,7 +1156,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(depthStencilBuffer);
 
-            ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
             FlushResourceBarriers();
 
             // Check that the Depth-Stencil Buffer has a Stencil if Clear Stencil is requested
@@ -1201,7 +1183,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(renderTarget);
 
-            ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
+            ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
             FlushResourceBarriers();
 
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
@@ -1225,7 +1207,7 @@ namespace Stride.Graphics
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
-            using var _ = ResourceBarrierTransitionAndRestore(buffer, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
@@ -1252,7 +1234,7 @@ namespace Stride.Graphics
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
-            using var _ = ResourceBarrierTransitionAndRestore(buffer, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
@@ -1279,7 +1261,7 @@ namespace Stride.Graphics
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
-            using var _ = ResourceBarrierTransitionAndRestore(buffer, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
@@ -1306,7 +1288,7 @@ namespace Stride.Graphics
             if (texture.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            using var _ = ResourceBarrierTransitionAndRestore(texture, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = texture.NativeUnorderedAccessView;
@@ -1333,7 +1315,7 @@ namespace Stride.Graphics
             if (texture.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            using var _ = ResourceBarrierTransitionAndRestore(texture, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = texture.NativeUnorderedAccessView;
@@ -1360,7 +1342,7 @@ namespace Stride.Graphics
             if (texture.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            using var _ = ResourceBarrierTransitionAndRestore(texture, GraphicsResourceState.UnorderedAccess);
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
 
             var cpuHandle = texture.NativeUnorderedAccessView;
@@ -1509,8 +1491,8 @@ namespace Stride.Graphics
             //
             void CopyTextureToStagingTexture(Texture sourceTexture, Texture sourceParent, Texture destinationTexture)
             {
-                using var _1 = ResourceBarrierTransitionAndRestore(sourceTexture, GraphicsResourceState.CopySource);
-                using var _2 = ResourceBarrierTransitionAndRestore(destinationTexture, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(sourceTexture, BarrierLayout.CopySource);
+                ResourceBarrierTransition(destinationTexture, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 int copyOffset = 0;
@@ -1555,8 +1537,8 @@ namespace Stride.Graphics
             //
             void CopyTextureToTexture(Texture sourceTexture, Texture destinationTexture)
             {
-                using var _1 = ResourceBarrierTransitionAndRestore(sourceTexture, GraphicsResourceState.CopySource);
-                using var _2 = ResourceBarrierTransitionAndRestore(destinationTexture, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(sourceTexture, BarrierLayout.CopySource);
+                ResourceBarrierTransition(destinationTexture, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
@@ -1567,8 +1549,8 @@ namespace Stride.Graphics
             //
             void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
-                using var _1 = ResourceBarrierTransitionAndRestore(sourceBuffer, GraphicsResourceState.CopySource);
-                using var _2 = ResourceBarrierTransitionAndRestore(destinationBuffer, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(sourceBuffer, BarrierLayout.CopySource);
+                ResourceBarrierTransition(destinationBuffer, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
@@ -1648,8 +1630,8 @@ namespace Stride.Graphics
             if (!sourceMultiSampledTexture.IsMultiSampled)
                 throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultiSampledTexture));
 
-            using var _1 = ResourceBarrierTransitionAndRestore(sourceMultiSampledTexture, GraphicsResourceState.ResolveSource);
-            using var _2 = ResourceBarrierTransitionAndRestore(destinationTexture, GraphicsResourceState.ResolveDestination);
+            ResourceBarrierTransition(sourceMultiSampledTexture, BarrierLayout.ResolveSource);
+            ResourceBarrierTransition(destinationTexture, BarrierLayout.ResolveDest);
             FlushResourceBarriers();
 
             currentCommandList.NativeCommandList.ResolveSubresource(sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
@@ -1738,8 +1720,8 @@ namespace Stride.Graphics
                     throw new NotImplementedException("Copy region of staging resources is not supported yet"); // TODO: Implement copy region for staging resources
                 }
 
-                using var _1 = ResourceBarrierTransitionAndRestore(source, GraphicsResourceState.CopySource);
-                using var _2 = ResourceBarrierTransitionAndRestore(destination, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(source, BarrierLayout.CopySource);
+                ResourceBarrierTransition(destination, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
@@ -1811,8 +1793,8 @@ namespace Stride.Graphics
             //
             void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
-                using var _1 = ResourceBarrierTransitionAndRestore(source, GraphicsResourceState.CopySource);
-                using var _2 = ResourceBarrierTransitionAndRestore(destination, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(source, BarrierLayout.CopySource);
+                ResourceBarrierTransition(destination, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong)dstX,
@@ -1846,8 +1828,8 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(sourceBuffer);
             ArgumentNullException.ThrowIfNull(destinationBuffer);
 
-            using var _1 = ResourceBarrierTransitionAndRestore(sourceBuffer, GraphicsResourceState.CopySource);
-            using var _2 = ResourceBarrierTransitionAndRestore(destinationBuffer, GraphicsResourceState.CopyDestination);
+            ResourceBarrierTransition(sourceBuffer, BarrierLayout.CopySource);
+            ResourceBarrierTransition(destinationBuffer, BarrierLayout.CopyDest);
             FlushResourceBarriers();
 
             currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong) destinationOffsetInBytes,
@@ -2062,7 +2044,7 @@ namespace Stride.Graphics
                     result.Throw();
 
                 // Trigger copy
-                using var _ = ResourceBarrierTransitionAndRestore(resource, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(resource, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 var destRegion = new TextureCopyLocation
@@ -2091,7 +2073,7 @@ namespace Stride.Graphics
 
                 MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
 
-                using var _ = ResourceBarrierTransitionAndRestore(resource, GraphicsResourceState.CopyDestination);
+                ResourceBarrierTransition(resource, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong)region.Left,
@@ -2356,31 +2338,6 @@ namespace Stride.Graphics
 
         #endregion
 
-        #region ResourceBarrierTransitionRestore structure
-
-        /// <summary>
-        ///   Provides a mechanism to temporarily transition a Graphics Resource to a new state
-        ///   and automatically restore its previous state when disposed.
-        /// </summary>
-        /// <remarks>
-        ///   This structure is typically used in conjunction with a <see langword="using"/> statement
-        ///   to guarantee state restoration even if an exception occurs.
-        ///   If not used with an <see langword="using"/> statement, the caller is responsible for calling
-        ///   <see cref="Dispose"/> to restore the resource state.
-        /// </remarks>
-        /// <param name="commandList">The Command List used to record the resource state transition operations.</param>
-        /// <param name="Resource">The Graphics Resource to transition between states.</param>
-        /// <param name="OldLayout">The original layout to which the resource will be restored when this instance is disposed.</param>
-        private readonly struct ResourceBarrierTransitionRestore(CommandList commandList, GraphicsResource Resource, BarrierLayout OldLayout) : IDisposable
-        {
-            /// <inheritdoc/>
-            public readonly void Dispose()
-            {
-                commandList.ResourceBarrierTransition(Resource, OldLayout);
-            }
-        }
-
-        #endregion
     }
 }
 
