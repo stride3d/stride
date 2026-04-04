@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -620,6 +621,47 @@ namespace Stride.Graphics
         private unsafe void FlushResourceBarriers()
         {
             int count = pendingBarriers.Count;
+            if (count == 0)
+                return;
+
+            // Coalesce duplicate barriers for the same resource+subresource.
+            // Sort by (Resource, Subresource), then merge consecutive entries:
+            // keep the first LayoutBefore and the last LayoutAfter, drop no-ops.
+            if (count > 1)
+            {
+                pendingBarriers.Sort(static (a, b) =>
+                {
+                    int cmp = RuntimeHelpers.GetHashCode(a.Resource).CompareTo(RuntimeHelpers.GetHashCode(b.Resource));
+                    return cmp != 0 ? cmp : a.Subresource.CompareTo(b.Subresource);
+                });
+
+                int write = 0;
+                for (int read = 1; read < count; read++)
+                {
+                    if (pendingBarriers[write].Resource == pendingBarriers[read].Resource &&
+                        pendingBarriers[write].Subresource == pendingBarriers[read].Subresource)
+                    {
+                        // Merge: keep LayoutBefore from [write], take LayoutAfter from [read]
+                        var merged = pendingBarriers[write];
+                        merged.LayoutAfter = pendingBarriers[read].LayoutAfter;
+                        pendingBarriers[write] = merged;
+                    }
+                    else
+                    {
+                        // Keep previous entry only if it's not a no-op (A→B→A)
+                        if (pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter)
+                            write++;
+                        pendingBarriers[write] = pendingBarriers[read];
+                    }
+                }
+
+                // Final entry: keep if not a no-op
+                count = pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter ? write + 1 : write;
+                if (count < pendingBarriers.Count)
+                    pendingBarriers.RemoveRange(count, pendingBarriers.Count - count);
+            }
+
+            count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
