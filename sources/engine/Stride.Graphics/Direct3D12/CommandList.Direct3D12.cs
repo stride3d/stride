@@ -37,7 +37,7 @@ namespace Stride.Graphics
         private PipelineState boundPipelineState;
         private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
-        private readonly List<ResourceBarrier> resourceBarriers = new(16);
+        private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
 
         // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
@@ -546,39 +546,25 @@ namespace Stride.Graphics
         /// </summary>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
         {
-            ResourceBarrierTransition(resource, (GraphicsResourceState) BarrierMapping.ToResourceStates(newLayout));
-        }
-
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
             Debug.Assert(resource is not null, "Resource must not be null.");
 
             // Find parent resource
             if (resource.ParentResource is not null)
                 resource = resource.ParentResource;
 
-            var targetState = (ResourceStates) newState;
-
-            if (resource.IsTransitionNeeded(targetState))
+            if (resource.TrackedLayout != newLayout)
             {
-                var transitionBarrier = new ResourceBarrier
-                {
-                    Type = ResourceBarrierType.Transition,
-                    Flags = ResourceBarrierFlags.None,
+                pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.TrackedLayout, newLayout));
 
-                    Transition = new ResourceTransitionBarrier
-                    {
-                        PResource = resource.NativeResource,
-                        Subresource = uint.MaxValue,
-                        StateBefore = resource.NativeResourceState,
-                        StateAfter = targetState
-                    }
-                };
-
-                resourceBarriers.Add(transitionBarrier);
-                resource.NativeResourceState = targetState;
-                resource.TrackedLayout = BarrierMapping.ToBarrierLayout(targetState);
+                resource.TrackedLayout = newLayout;
+                resource.NativeResourceState = BarrierMapping.ToResourceStates(newLayout);
             }
+        }
+
+        [Obsolete("Use BarrierLayout overload instead.")]
+        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates) newState));
         }
 
         /// <summary>
@@ -590,19 +576,39 @@ namespace Stride.Graphics
         /// </remarks>
         private unsafe void FlushResourceBarriers()
         {
-            int count = resourceBarriers.Count;
+            int count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
+            // TODO: Use enhanced barriers path when SupportsEnhancedBarriers is true
+            // For now, convert to legacy ResourceBarrier structs
+            FlushResourceBarriersLegacy(count);
+        }
+
+        private unsafe void FlushResourceBarriersLegacy(int count)
+        {
             scoped Span<ResourceBarrier> barriers = stackalloc ResourceBarrier[count];
-            resourceBarriers.CopyTo(barriers);
 
-            resourceBarriers.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                var desc = pendingBarriers[i];
 
-            // TODO: When Enhanced Barriers are fully wired, use FlushResourceBarriersEnhanced()
-            // if (GraphicsDevice.SupportsEnhancedBarriers)
-            //     FlushResourceBarriersEnhanced(barriers);
-            // else
+                barriers[i] = new ResourceBarrier
+                {
+                    Type = ResourceBarrierType.Transition,
+                    Flags = ResourceBarrierFlags.None,
+                    Transition = new ResourceTransitionBarrier
+                    {
+                        PResource = desc.Resource.NativeResource,
+                        Subresource = desc.Subresource,
+                        StateBefore = BarrierMapping.ToResourceStates(desc.LayoutBefore),
+                        StateAfter = BarrierMapping.ToResourceStates(desc.LayoutAfter),
+                    }
+                };
+            }
+
+            pendingBarriers.Clear();
+
             currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint) count, barriers);
         }
 
@@ -618,10 +624,10 @@ namespace Stride.Graphics
         /// </returns>
         private ResourceBarrierTransitionRestore ResourceBarrierTransitionAndRestore(GraphicsResource resource, GraphicsResourceState newState)
         {
-            var currentState = resource.NativeResourceState;
-            ResourceBarrierTransition(resource, newState);
+            var oldLayout = resource.TrackedLayout;
+            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates) newState));
 
-            return new ResourceBarrierTransitionRestore(this, resource, (GraphicsResourceState) currentState);
+            return new ResourceBarrierTransitionRestore(this, resource, oldLayout);
         }
 
         /// <summary>
@@ -2246,13 +2252,13 @@ namespace Stride.Graphics
         /// </remarks>
         /// <param name="commandList">The Command List used to record the resource state transition operations.</param>
         /// <param name="Resource">The Graphics Resource to transition between states.</param>
-        /// <param name="OldState">The original state to which the resource will be restored when this instance is disposed.</param>
-        private readonly struct ResourceBarrierTransitionRestore(CommandList commandList, GraphicsResource Resource, GraphicsResourceState OldState) : IDisposable
+        /// <param name="OldLayout">The original layout to which the resource will be restored when this instance is disposed.</param>
+        private readonly struct ResourceBarrierTransitionRestore(CommandList commandList, GraphicsResource Resource, BarrierLayout OldLayout) : IDisposable
         {
             /// <inheritdoc/>
             public readonly void Dispose()
             {
-                commandList.ResourceBarrierTransition(Resource, OldState);
+                commandList.ResourceBarrierTransition(Resource, OldLayout);
             }
         }
 
