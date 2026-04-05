@@ -318,7 +318,8 @@ namespace Stride.Graphics
                 RecycleCommandListResources(commandList, commandListFenceValue + 1);
             }
 
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            if (commandListFenceValue > 0)
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal the fence
             nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
@@ -910,7 +911,8 @@ namespace Stride.Graphics
         {
             var commandListFenceValue = CommandListFence.NextFenceValue++;
 
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            if (commandListFenceValue > 0)
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal fence
             var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
