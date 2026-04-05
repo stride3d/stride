@@ -1510,6 +1510,13 @@ namespace Stride.Graphics
             //
             void CopyStagingTextureToStagingTexture(Texture sourceTexture, Texture destinationTexture)
             {
+                // Wait for any pending GPU copies (e.g. InitializeStagingData) before reading
+                if (sourceTexture.CopyFenceValue.HasValue)
+                {
+                    GraphicsDevice.CopyFence.WaitForFenceCPUInternal(sourceTexture.CopyFenceValue.Value);
+                    sourceTexture.CopyFenceValue = null;
+                }
+
                 var size = destinationTexture.ComputeBufferTotalSize();
 
                 scoped ref var fullRange = ref NullRef<D3D12Range>();
