@@ -364,14 +364,14 @@ namespace Stride.Graphics
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
                 // Initialize resource state based on texture usage.
-                // DepthStencil and RenderTarget can be created directly in their target state.
-                // Other textures start in Common (D3D12 implicit promotion handles read access).
                 if (Usage == GraphicsResourceUsage.Staging)
                     NativeResourceState = ResourceStates.CopyDest;
                 else if (ViewFlags.HasFlag(TextureFlags.DepthStencil))
                     NativeResourceState = ResourceStates.DepthWrite;
                 else if (ViewFlags.HasFlag(TextureFlags.RenderTarget))
                     NativeResourceState = ResourceStates.RenderTarget;
+                else if (ViewFlags.HasFlag(TextureFlags.ShaderResource))
+                    NativeResourceState = ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
                 else
                     NativeResourceState = ResourceStates.Common;
 
