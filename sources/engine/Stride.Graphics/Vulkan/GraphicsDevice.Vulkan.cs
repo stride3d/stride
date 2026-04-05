@@ -612,6 +612,11 @@ namespace Stride.Graphics
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
+        partial void WaitForGPUIdle()
+        {
+            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
+        }
+
         protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
@@ -626,9 +631,6 @@ namespace Stride.Graphics
 
             EmptyTexture.Dispose();
             EmptyTexture = null;
-
-            // Wait for all queues to be idle
-            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
 
             // Mark upload buffer for destruction
             if (nativeUploadBuffer != VkBuffer.Null)

@@ -732,6 +732,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
+        partial void WaitForGPUIdle()
+        {
+            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
+            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
+        }
+
         protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
@@ -742,10 +748,6 @@ namespace Stride.Graphics
         /// </summary>
         private void ReleaseDevice()
         {
-            // Wait for completion of everything queued
-            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
-            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
-
             // Release command queue
             SafeRelease(ref nativeCommandQueue);
 
