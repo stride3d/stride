@@ -344,8 +344,10 @@ namespace Stride.Graphics
                     CopyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
                 }
 
-                // Release temp texture
-                tempTexture.Release();
+                // Defer temp texture release until the copy queue finishes executing.
+                // The copy commands reference this resource, so we can't release it immediately.
+                GraphicsDevice.CopyTemporaryResources.Enqueue(CopyFenceValue.Value, tempTexture);
+                tempTexture.Handle = null;
             }
 
             //

@@ -2080,8 +2080,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                lock (GraphicsDevice.TemporaryResources)
-                    GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.FrameFence.NextFenceValue, nativeUploadTexture));
+                GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, nativeUploadTexture);
 
                 scoped ref var fullBox = ref NullRef<D3D12Box>();
 

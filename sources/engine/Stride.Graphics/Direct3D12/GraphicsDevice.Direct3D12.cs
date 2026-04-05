@@ -199,9 +199,14 @@ namespace Stride.Graphics
         internal FenceHelper CopyFence;
 
         /// <summary>
-        ///   Temporary or destroyed Graphics Resources that are kept around until the GPU doesn't need them anymore.
+        ///   Resources awaiting deferred release once the frame fence has been reached.
         /// </summary>
-        internal Queue<(ulong FenceValue, object Resource)> TemporaryResources = new();
+        internal DeferredReleaseQueue FrameTemporaryResources = new();
+
+        /// <summary>
+        ///   Resources awaiting deferred release once the copy fence has been reached.
+        /// </summary>
+        internal DeferredReleaseQueue CopyTemporaryResources = new();
 
         /// <summary>
         ///   Gets the tick frquency of timestamp queries, in hertz.
@@ -627,9 +632,7 @@ namespace Stride.Graphics
                 {
                     nativeUploadBuffer->Unmap(Subresource: 0, pWrittenRange: null);
 
-                    lock (TemporaryResources)
-                        TemporaryResources.Enqueue((FrameFence.NextFenceValue, ToComPtr(nativeUploadBuffer)));
-                    // TODO: Keep a separate temporary resource list for COM pointers to avoid boxing
+                    FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, ToComPtr(nativeUploadBuffer));
                 }
 
                 // Allocate new buffer
@@ -716,23 +719,8 @@ namespace Stride.Graphics
         /// </remarks>
         internal void ReleaseTemporaryResources()
         {
-            lock (TemporaryResources)
-            {
-                // Release previous frame resources
-                while (TemporaryResources.Count > 0 && FrameFence.IsFenceCompleteInternal(TemporaryResources.Peek().FenceValue))
-                {
-                    var temporaryResource = TemporaryResources.Dequeue().Resource;
-
-                    if (temporaryResource is ComPtr<ID3D12Resource> resource)
-                    {
-                        resource.Release();
-                    }
-                    else if (temporaryResource is GraphicsResourceLink referenceLink)
-                    {
-                        referenceLink.ReferenceCount--;
-                    }
-                }
-            }
+            FrameTemporaryResources.ReleaseCompleted(FrameFence);
+            CopyTemporaryResources.ReleaseCompleted(CopyFence);
         }
 
         /// <summary>
@@ -767,8 +755,9 @@ namespace Stride.Graphics
 
             SafeRelease(ref nativeUploadBuffer);
 
-            // Release temporary resources
-            ReleaseTemporaryResources();
+            // Release all deferred resources (GPU is fully flushed at this point)
+            FrameTemporaryResources.ReleaseAll();
+            CopyTemporaryResources.ReleaseAll();
 
             FrameFence.Dispose();
             CommandListFence.Dispose();
@@ -1003,16 +992,14 @@ namespace Stride.Graphics
             {
                 // Increase the reference count until GPU is done with the resource
                 resourceLink.ReferenceCount++;
-                lock (TemporaryResources)
-                    TemporaryResources.Enqueue((FrameFence.NextFenceValue, resourceLink));
+                FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, resourceLink);
             }
 
             if (resourceLink.Resource is Buffer { Usage: GraphicsResourceUsage.Dynamic })
             {
                 // Increase the reference count until GPU is done with the resource
                 resourceLink.ReferenceCount++;
-                lock (TemporaryResources)
-                    TemporaryResources.Enqueue((FrameFence.NextFenceValue, resourceLink));
+                FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, resourceLink);
             }
         }
     }
