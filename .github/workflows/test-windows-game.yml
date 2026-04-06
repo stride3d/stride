@@ -1,83 +1,39 @@
-name: Test Windows
+name: Test Windows (Game)
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/test-windows.yml'
-      - 'build/Stride.Tests.*.slnf'
-      - 'deps/**'
-      - 'sources/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
         description: Build
-        default: Release
+        default: Debug
         type: choice
         options:
           - Debug
           - Release
-      test-category:
-        description: Category of tests
-        default: Simple
+      graphics-api:
+        description: Graphics API (blank = all)
+        default: ''
         type: choice
         options:
-          - Simple
-          - Game
-          - VSPackage
+          - ''
+          - Direct3D11
+          - Direct3D12
+          - Vulkan
   workflow_call:
     inputs:
       build-type:
-        default: Release
-        type: string
-      test-category:
-        default: Simple
+        default: Debug
         type: string
 
 concurrency:
-  group: test-windows-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}
+  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
   #
-  # Non-Game tests (Simple, VSPackage)
-  #
-  Windows-Tests:
-    if: ${{ (github.event.inputs.test-category || inputs.test-category || 'Simple') != 'Game' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false) }}
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
-    runs-on: windows-2025-vs2026
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-      - name: Build
-        run: |
-          dotnet build build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
-            -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
-      - name: Test
-        run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            --no-build `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
-
-  #
   # Game tests - API-independent projects (run once)
   #
   Game-Common:
-    if: ${{ (github.event.inputs.test-category || inputs.test-category || 'Simple') == 'Game' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false) }}
     name: Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
@@ -119,13 +75,12 @@ jobs:
   # Game tests - Graphics API-dependent projects (run per API)
   #
   Game-GraphicsApi:
-    if: ${{ (github.event.inputs.test-category || inputs.test-category || 'Simple') == 'Game' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false) }}
     name: Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: [Direct3D11, Direct3D12, Vulkan]
+        graphics-api: ${{ github.event.inputs.graphics-api != '' && fromJson(format('["{0}"]', github.event.inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
