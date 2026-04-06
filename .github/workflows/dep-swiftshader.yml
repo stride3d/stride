@@ -58,15 +58,34 @@ jobs:
           path: nupkg/*.nupkg
 
   publish:
-    name: Publish to NuGet.org
+    name: Sign & Publish to NuGet.org
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: windows-2025-vs2026
     environment: production
     steps:
+      - name: Checkout (for signing tool)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: build/sign
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: Stride.Dependencies.SwiftShader.${{ github.event.inputs.version }}.nupkg
+
+      - name: Sign NuGet package
+        shell: pwsh
+        run: |
+          build/sign/sign code azure-key-vault *.nupkg `
+            --description "Stride" `
+            --description-url "https://stride3d.net" `
+            --publisher-name "Stride" `
+            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
+            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
+            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
+            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
+            -v Information
 
       - name: Publish
         run: |
