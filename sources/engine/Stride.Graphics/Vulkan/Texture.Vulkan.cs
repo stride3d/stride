@@ -102,7 +102,7 @@ namespace Stride.Graphics
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);
             HasStencil = IsStencilFormat(ViewFormat);
 
-            NativeImageAspect = IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color;
+            NativeImageAspect = IsDepthStencil || IsDepthFormat(ViewFormat) ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color;
             if (HasStencil)
                 NativeImageAspect |= VkImageAspectFlags.Stencil;
 
@@ -362,7 +362,7 @@ namespace Stride.Graphics
                         var copy = new VkBufferImageCopy
                         {
                             bufferOffset = (ulong) uploadOffset,
-                            imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
+                            imageSubresource = new VkImageSubresourceLayers(NativeImageAspect, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
                             bufferRowLength = (uint) (dataBoxes[i].RowPitch * Format.BlockWidth / Format.BlockSize),
                             bufferImageHeight = (uint) (dataBoxes[i].SlicePitch * Format.BlockHeight / dataBoxes[i].RowPitch),
                             imageOffset = new VkOffset3D(0, 0, 0),
@@ -500,7 +500,8 @@ namespace Stride.Graphics
                 format = NativeFormat, //VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
-                subresourceRange = new VkImageSubresourceRange(IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount) // TODO VULKAN: Select between depth and stencil?
+                // For shader resource views, use only the depth aspect (not stencil) when sampling depth-stencil textures
+                subresourceRange = new VkImageSubresourceRange(HasStencil ? VkImageAspectFlags.Depth : NativeImageAspect, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount)
             };
 
             if (IsMultiSampled)
@@ -717,6 +718,14 @@ namespace Stride.Graphics
             }
 
             return format;
+        }
+
+        internal static bool IsDepthFormat(PixelFormat format)
+        {
+            return format is PixelFormat.D16_UNorm
+                or PixelFormat.D32_Float
+                or PixelFormat.D24_UNorm_S8_UInt
+                or PixelFormat.D32_Float_S8X24_UInt;
         }
 
         internal static bool IsStencilFormat(PixelFormat format)

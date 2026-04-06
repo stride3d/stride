@@ -1437,7 +1437,7 @@ namespace Stride.Graphics
             {
                 var mipSlice = subResourceIndex % texture.MipLevelCount;
                 var arraySlice = subResourceIndex / texture.MipLevelCount;
-                var subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
+                var subresourceRange = new VkImageSubresourceRange(texture.NativeImageAspect, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, subresourceRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.TransferDstOptimal);
                 GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &uploadBufferMemoryBarrier, imageMemoryBarrierCount: 1, &memoryBarrier);
@@ -1447,7 +1447,7 @@ namespace Stride.Graphics
                 var bufferCopy = new VkBufferImageCopy
                 {
                     bufferOffset = (ulong) (uploadOffset + alignment),
-                    imageSubresource = new VkImageSubresourceLayers { aspectMask = VkImageAspectFlags.Color, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
+                    imageSubresource = new VkImageSubresourceLayers { aspectMask = texture.NativeImageAspect, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
                     bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth / texture.Format.BlockSize),
                     bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight / databox.RowPitch),
                     imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
