@@ -12,21 +12,6 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys
         public const string AbstractNodeMatchingEntries = nameof(AbstractNodeMatchingEntries);
         public static readonly PropertyKey<IEnumerable<AbstractNodeEntry>> Key = new PropertyKey<IEnumerable<AbstractNodeEntry>>(AbstractNodeMatchingEntries, typeof(AbstractNodeEntryData), new PropertyCombinerMetadata(CombineProperties<AbstractNodeEntry>));
         
-        [Obsolete("Use the generic version of CombineProperties instead, which allows to specify the type of the properties to combine. This method is kept for backward compatibility, but it is recommended to use the generic version instead.")]
-        public static object CombineProperty(IEnumerable<object> properties)
-        {
-            HashSet<AbstractNodeEntry> result;
-            var hashSets = new List<HashSet<AbstractNodeEntry>>();
-            hashSets.AddRange(properties.Cast<IEnumerable<AbstractNodeEntry>>().Select(x => new HashSet<AbstractNodeEntry>(x)));
-            result = hashSets[0];
-            // We display only component types that are available for all entities
-            for (var i = 1; i < hashSets.Count; ++i)
-            {
-                result.IntersectWith(hashSets[i]);
-            }
-            return result.OrderBy(x => x.Order).ThenBy(x => x.DisplayValue);
-        }
-        
         /// <summary>
         /// Combines the properties of type <typeparamref name="TAbstractNodeEntry"/> by intersecting them and ordering them by their order and display value.
         /// This method allows to specify the type of the properties to combine, which can be useful when the properties are of a more specific type than <see cref="AbstractNodeEntry"/>.
