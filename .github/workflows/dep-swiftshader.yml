@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: NuGet package version (e.g. 1.0.0)
-        required: true
-        default: '1.0.0'
+        description: NuGet package version (leave empty for date-based)
+        required: false
 
 jobs:
   build:
@@ -36,7 +35,6 @@ jobs:
         run: |
           $destDir = "build/deps/swiftshader"
           Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.dll $destDir/
-          Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.pdb $destDir/
           # ICD JSON is generated in a platform-specific directory by cmake
           $icdJson = Get-ChildItem -Recurse -Path swiftshader-build -Filter vk_swiftshader_icd.json | Select-Object -First 1
           if (-not $icdJson) { throw "vk_swiftshader_icd.json not found in build output" }
@@ -46,15 +44,18 @@ jobs:
         shell: pwsh
         run: |
           $commitHash = git -C swiftshader-src rev-parse --short HEAD
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           nuget pack build/deps/swiftshader/Stride.Dependencies.SwiftShader.nuspec `
-            -Version ${{ github.event.inputs.version }} `
+            -Version $version `
             -Properties "commit=$commitHash" `
             -OutputDirectory nupkg
+          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Stride.Dependencies.SwiftShader.${{ github.event.inputs.version }}.nupkg
+          name: Stride.Dependencies.SwiftShader.nupkg
           path: nupkg/*.nupkg
 
   publish:
@@ -71,7 +72,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: Stride.Dependencies.SwiftShader.${{ github.event.inputs.version }}.nupkg
+          name: Stride.Dependencies.SwiftShader.nupkg
 
       - name: Sign NuGet package
         shell: pwsh
