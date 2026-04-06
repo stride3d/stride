@@ -1,4 +1,4 @@
-name: Build SwiftShader
+name: "Dep: Build & Deploy SwiftShader"
 
 on:
   workflow_dispatch:
