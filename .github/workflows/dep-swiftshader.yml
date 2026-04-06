@@ -37,7 +37,10 @@ jobs:
           $destDir = "build/deps/swiftshader"
           Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.dll $destDir/
           Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.pdb $destDir/
-          Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader_icd.json $destDir/
+          # ICD JSON is generated in a platform-specific directory by cmake
+          $icdJson = Get-ChildItem -Recurse -Path swiftshader-build -Filter vk_swiftshader_icd.json | Select-Object -First 1
+          if (-not $icdJson) { throw "vk_swiftshader_icd.json not found in build output" }
+          Copy-Item $icdJson.FullName $destDir/
 
       - name: Pack NuGet
         shell: pwsh
