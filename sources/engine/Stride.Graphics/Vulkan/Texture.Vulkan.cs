@@ -563,32 +563,15 @@ namespace Stride.Graphics
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
-                viewType = VkImageViewType.Image2D,
-                format = NativeFormat, // VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
+                viewType = GetViewType(Dimension),
+                format = NativeFormat,
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, 1)
             };
 
-            if (IsMultiSampled)
-                throw new NotImplementedException();
-
-            if (this.ArraySize > 1)
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D Textures");
-
-                if (Dimension == TextureDimension.Texture3D)
-                    throw new NotSupportedException("Texture Array is not supported for Texture3D");
-            }
-            else
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
-
-                if (Dimension == TextureDimension.TextureCube)
-                    throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
-            }
+            if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
+                throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
@@ -603,12 +586,11 @@ namespace Stride.Graphics
             //if (ComputeShaderResourceFormatFromDepthFormat(ViewFormat) == PixelFormat.None)
             //    throw new NotSupportedException("Depth stencil format [{0}] not supported".ToFormat(ViewFormat));
 
-            // Create a Depth stencil view on this texture2D
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
-                viewType = VkImageViewType.Image2D,
-                format = NativeFormat, //VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
+                viewType = GetViewType(Dimension),
+                format = NativeFormat,
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
                 subresourceRange = new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: 1, baseArrayLayer: 0, layerCount: 1)
@@ -628,6 +610,13 @@ namespace Stride.Graphics
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView));
             return imageView;
         }
+
+        private static VkImageViewType GetViewType(TextureDimension dimension) => dimension switch
+        {
+            TextureDimension.Texture1D => VkImageViewType.Image1D,
+            TextureDimension.Texture3D => VkImageViewType.Image3D,
+            _ => VkImageViewType.Image2D,
+        };
 
         /// <summary>
         ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
