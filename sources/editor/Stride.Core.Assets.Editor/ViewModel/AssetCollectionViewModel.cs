@@ -547,7 +547,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
         {
             var path = directory.Path;
-            var message = Tr._p("Message", "Do you want to place the resource in the default location?");
+            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
             var finalPath = Path.GetFullPath(Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName()));
             var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
