@@ -373,7 +373,7 @@ namespace Stride.Graphics
             {
                 samplerStates[slotIndex] = samplerState;
 
-                var nativeSampler = samplerState is not null ? samplerState.NativeSamplerState : default;
+                var nativeSampler = (samplerState ?? GraphicsDevice.SamplerStates.LinearClamp).NativeSamplerState;
 
                 switch (stage)
                 {

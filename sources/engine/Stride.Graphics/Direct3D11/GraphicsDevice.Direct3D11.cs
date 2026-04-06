@@ -23,7 +23,7 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 

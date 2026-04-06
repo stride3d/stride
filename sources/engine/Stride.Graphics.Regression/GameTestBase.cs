@@ -611,7 +611,38 @@ namespace Stride.Graphics.Regression
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            GameTester.RunGameTest(game);
+            // Track GPU validation errors and warnings during the test
+            var gpuValidationErrors = new List<string>();
+            var gpuValidationWarnings = new List<string>();
+            void OnGlobalMessage(ILogMessage msg)
+            {
+                if (msg.Module != nameof(GraphicsDevice))
+                    return;
+                if (msg.Type == LogMessageType.Error)
+                    gpuValidationErrors.Add(msg.Text);
+                else if (msg.Type == LogMessageType.Warning && !IsKnownHarmlessWarning(msg.Text))
+                    gpuValidationWarnings.Add(msg.Text);
+            }
+            GlobalLogger.GlobalMessageLogged += OnGlobalMessage;
+
+            try
+            {
+                GameTester.RunGameTest(game);
+            }
+            finally
+            {
+                GlobalLogger.GlobalMessageLogged -= OnGlobalMessage;
+            }
+
+            // Assert no GPU validation errors
+            if (gpuValidationErrors.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationErrors.Count} error(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationErrors));
+
+            // Assert no GPU validation warnings
+            if (gpuValidationWarnings.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationWarnings.Count} warning(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationWarnings));
 
             // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
@@ -635,6 +666,19 @@ namespace Stride.Graphics.Regression
                     Assert.Fail("Some reference images are missing, please copy them manually:" + Environment.NewLine + missingImages);
                 }
             }
+        }
+
+        /// <summary>
+        ///   Filters out known harmless D3D11 debug layer warnings that cannot be avoided
+        ///   without significant refactoring.
+        /// </summary>
+        private static bool IsKnownHarmlessWarning(string text)
+        {
+            return text.Contains("still bound on input")          // D3D11: RT set while SRV still bound (auto-unbinds)
+                || text.Contains("Forcing PS shader resource")    // D3D11: consequence of the above
+                || text.Contains("SetPrivateData")                // D3D11: debug name size mismatch on reuse
+                || text.Contains("NULL Sampler maps to default")  // D3D11: unbound sampler uses default state
+                || text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
         }
 
         /// <summary>

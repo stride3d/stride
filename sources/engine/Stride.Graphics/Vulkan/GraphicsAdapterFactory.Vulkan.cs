@@ -98,8 +98,7 @@ namespace Stride.Graphics
         internal bool HasXlibSurfaceSupport;
         internal bool HasSurfaceSupport;
 
-        // We use GraphicsDevice (similar to OpenGL)
-        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
