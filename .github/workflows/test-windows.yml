@@ -139,6 +139,14 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+      - name: Install Vulkan SDK
+        if: matrix.graphics-api == 'Vulkan'
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: true
+          cache: true
+          stripdown: true
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
