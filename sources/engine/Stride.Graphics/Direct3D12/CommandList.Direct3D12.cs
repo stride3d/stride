@@ -73,9 +73,31 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
-            // Recycle heaps
-            ResetSrvHeap(createNewHeap: false);
-            ResetSamplerHeap(createNewHeap: false);
+            // Release current active heaps
+            if (srvHeap.Heap.IsNotNull())
+            {
+                srvHeap.Heap.Release();
+                srvHeap.Heap = default;
+            }
+            if (samplerHeap.Heap.IsNotNull())
+            {
+                samplerHeap.Heap.Release();
+                samplerHeap.Heap = default;
+            }
+
+            // Release any heaps accumulated in the current command list
+            if (currentCommandList.SrvHeaps is not null)
+            {
+                foreach (var heap in currentCommandList.SrvHeaps)
+                    heap.Release();
+                currentCommandList.SrvHeaps.Clear();
+            }
+            if (currentCommandList.SamplerHeaps is not null)
+            {
+                foreach (var heap in currentCommandList.SamplerHeaps)
+                    heap.Release();
+                currentCommandList.SamplerHeaps.Clear();
+            }
 
             // Available right now (NextFenceValue - 1)
             // TODO: Note that it won't be available right away because CommandAllocators is currently not using a PriorityQueue but a simple Queue
