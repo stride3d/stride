@@ -39,6 +39,5 @@
   <!-- Override the references set in Stride.UnitTests.targets -->
   <ItemGroup>
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.41" />
   </ItemGroup>
 </Project>

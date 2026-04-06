@@ -67,8 +67,12 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
+        env:
+          STRIDE_GRAPHICS_SOFTWARE_RENDERING: ${{ (github.event.inputs.test-category || inputs.test-category || 'Simple') == 'Game' && '1' || '0' }}
       - name: Test
         run: |
           dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+        env:
+          STRIDE_GRAPHICS_SOFTWARE_RENDERING: ${{ (github.event.inputs.test-category || inputs.test-category || 'Simple') == 'Game' && '1' || '0' }}

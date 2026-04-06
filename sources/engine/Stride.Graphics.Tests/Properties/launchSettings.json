@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "WARP": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "STRIDE_GRAPHICS_SOFTWARE_RENDERING": "1"
+      }
+    },
+    "GPU": {
+      "commandName": "Project"
+    }
+  }
+}

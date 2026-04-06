@@ -1,0 +1,71 @@
+name: Test GPU (WARP)
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+
+jobs:
+  GPU-WARP-Test:
+    name: GPU Tests (D3D11 WARP)
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Graphics Tests
+        run: |
+          dotnet build sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.Windows.csproj `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=Debug `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+          dotnet build sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.Windows.csproj `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=Debug `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+
+      - name: Run Graphics Tests (WARP)
+        run: |
+          dotnet test sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.Windows.csproj `
+            --no-build `
+            -p:Configuration=Debug `
+            --logger "trx;LogFileName=test-results.trx" `
+            -- xunit.parallelizeTestCollections=false
+
+      - name: Run Graphics Tests 10_0 (WARP)
+        if: always()
+        run: |
+          dotnet test sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.Windows.csproj `
+            --no-build `
+            -p:Configuration=Debug `
+            --logger "trx;LogFileName=test-results-10_0.trx" `
+            -- xunit.parallelizeTestCollections=false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-warp
+          path: '**/*.trx'
+          retention-days: 7
+
+      - name: Upload rendered images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-images-warp
+          path: tests/local/**/WARP/**
+          retention-days: 7
