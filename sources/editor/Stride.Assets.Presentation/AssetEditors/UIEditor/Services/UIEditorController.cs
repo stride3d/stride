@@ -428,20 +428,25 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
         }
 
         /// <summary>
-        /// Traverses the visual tree rooted at <paramref name="root"/> and sets
-        /// <see cref="DropDown.IsInteractable"/> to <c>false</c> on every <see cref="DropDown"/>
-        /// found, preventing the control from responding to touch input in the editor viewport.
+        /// Recursively traverses the visual tree rooted at <paramref name="element"/> and disables
+        /// popup interaction on every <see cref="DropDown"/> found.
         /// </summary>
-        private static void DisableDropDownInteraction(UIElement root)
+        /// <remarks>
+        /// In the editor, <see cref="DropDown"/> popups open but render only the background — item text
+        /// is not visible. This is a workaround that prevents the popup from opening so the control
+        /// remains in a consistent state during editing. Runtime behavior is unaffected.
+        /// </remarks>
+        /// <param name="element">The root of the visual sub-tree to search. Must not be <see langword="null"/>.</param>
+        private static void DisableDropDownInteraction(UIElement element)
         {
-            if (root is DropDown dropDown)
-                dropDown.IsInteractable = false;
-
-            foreach (var child in root.VisualChildren.BreadthFirst(e => e.VisualChildren))
+            if (element is DropDown dropDown)
             {
-                if (child is DropDown childDropDown)
-                    childDropDown.IsInteractable = false;
+                dropDown.IsInteractable = false;
+                return;
             }
+            var children = element.VisualChildren;
+            for (var i = 0; i < children.Count; i++)
+                DisableDropDownInteraction(children[i]);
         }
 
         /// <summary>
