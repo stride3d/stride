@@ -153,6 +153,9 @@ namespace Stride.Rendering.Shadows
             {
                 atlas.PrepareAsShaderResourceView(commandList);
             }
+
+            // Transition fallback atlas to SRV if it was used (its texture starts in DepthStencilWrite layout)
+            fallbackAtlas?.PrepareAsShaderResourceView(commandList);
         }
 
         public void Flush(RenderDrawContext context)
