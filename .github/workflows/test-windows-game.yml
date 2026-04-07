@@ -117,6 +117,26 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: true
+      - name: Register SwiftShader ICD
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          # Restore with StrideGraphicsApi=Vulkan so the conditional SwiftShader PackageReference is evaluated
+          # (Stride's custom multi-build targets don't run during restore)
+          dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
+          # Find SwiftShader DLL in NuGet cache and register an ICD before build
+          # (CompilerApp needs SwiftShader at build time for Skybox asset compilation)
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader.dll -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($dll) {
+            $icdPath = Join-Path $dll.DirectoryName "vk_swiftshader_icd.json"
+            $dllPath = $dll.FullName -replace '\\', '\\\\'
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.0.5`"}}"
+            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered SwiftShader ICD: $icdPath"
+          } else {
+            Write-Warning "SwiftShader DLL not found in NuGet cache"
+          }
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
@@ -126,20 +146,6 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
-      - name: Register SwiftShader ICD
-        if: matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          # Find the ICD JSON in the build output (restored from NuGet package)
-          $icdPath = Get-ChildItem -Recurse -Path bin -Filter vk_swiftshader_icd.json -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($icdPath) {
-            # Register in registry — the Vulkan loader ignores env vars with elevated permissions
-            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
-            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath.FullName -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered SwiftShader ICD: $($icdPath.FullName)"
-          } else {
-            Write-Warning "SwiftShader ICD not found in build output"
-          }
       - name: Test
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
