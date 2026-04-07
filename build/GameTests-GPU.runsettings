@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Run settings for software rendering tests (WARP / SwiftShader).
+  Run settings for GPU rendering tests (real hardware).
+  Tests default to software rendering (WARP / SwiftShader). Use this runsettings
+  to force tests onto your GPU instead.
   Select this in Visual Studio via Test > Configure Run Settings > Select Solution Wide runsettings File.
 -->
 <RunSettings>
   <RunConfiguration>
     <EnvironmentVariables>
-      <STRIDE_GRAPHICS_SOFTWARE_RENDERING>1</STRIDE_GRAPHICS_SOFTWARE_RENDERING>
-      <STRIDE_MAX_PARALLELISM>8</STRIDE_MAX_PARALLELISM>
+      <STRIDE_TESTS_GPU>1</STRIDE_TESTS_GPU>
     </EnvironmentVariables>
   </RunConfiguration>
 </RunSettings>

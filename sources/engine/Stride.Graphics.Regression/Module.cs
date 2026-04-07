@@ -51,14 +51,22 @@ internal static class Module
             AppDomain.CurrentDomain.FirstChanceException += OnFirstChanceException;
         }
 
-        // Auto-configure SwiftShader ICD path for Vulkan software rendering
-        if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
-            && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VK_DRIVER_FILES")))
+        // Default to software rendering unless STRIDE_TESTS_GPU=1 is set.
+        // This ensures Test Explorer and dotnet test match the gold images out of the box.
+        if (Environment.GetEnvironmentVariable("STRIDE_TESTS_GPU") != "1")
         {
-            // Check next to the binary (NuGet package deploys here)
-            var icdPath = Path.Combine(AppContext.BaseDirectory, "vk_swiftshader_icd.json");
-            if (File.Exists(icdPath))
-                Environment.SetEnvironmentVariable("VK_DRIVER_FILES", icdPath);
+            Environment.SetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING", "1");
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIDE_MAX_PARALLELISM")))
+                Environment.SetEnvironmentVariable("STRIDE_MAX_PARALLELISM", "8");
+
+            // Auto-configure SwiftShader ICD path for Vulkan software rendering
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VK_DRIVER_FILES")))
+            {
+                var icdPath = Path.Combine(AppContext.BaseDirectory, "vk_swiftshader_icd.json");
+                if (File.Exists(icdPath))
+                    Environment.SetEnvironmentVariable("VK_DRIVER_FILES", icdPath);
+            }
         }
     }
 
