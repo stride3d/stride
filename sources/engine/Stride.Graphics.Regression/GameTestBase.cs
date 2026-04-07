@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -605,11 +607,29 @@ namespace Stride.Graphics.Regression
         ///   Executes a game test using the specified <see cref="GameTestBase"/> instance.
         /// </summary>
         /// <param name="game">The game test instance to run. Must not be <see langword="null"/>.</param>
-        protected static void RunGameTest(GameTestBase game)
+        protected static void RunGameTest(GameTestBase game, [CallerMemberName] string callerName = null)
         {
             game.EnableSimulatedInputSource();
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
+
+            // Collect allowed GPU validation errors from [AllowGpuValidationError] attributes on the calling test method and class
+            var allowedErrors = new List<AllowGpuValidationErrorAttribute>();
+            if (callerName != null)
+            {
+                var callerType = new System.Diagnostics.StackTrace().GetFrames()
+                    .Select(f => f.GetMethod())
+                    .FirstOrDefault(m => m?.Name == callerName)?.DeclaringType;
+                if (callerType != null)
+                {
+                    // Class-level attributes
+                    allowedErrors.AddRange(callerType.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                    // Method-level attributes
+                    var method = callerType.GetMethod(callerName);
+                    if (method != null)
+                        allowedErrors.AddRange(method.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                }
+            }
 
             // Track GPU validation errors and warnings during the test
             var gpuValidationErrors = new List<string>();
@@ -633,6 +653,11 @@ namespace Stride.Graphics.Regression
             {
                 GlobalLogger.GlobalMessageLogged -= OnGlobalMessage;
             }
+
+            // Filter out allowed errors for the current platform
+            var platform = GraphicsDevice.Platform;
+            gpuValidationErrors.RemoveAll(error =>
+                allowedErrors.Any(a => a.Platform == platform && error.Contains(a.MessageSubstring)));
 
             // Assert no GPU validation errors
             if (gpuValidationErrors.Count > 0)
