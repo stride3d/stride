@@ -17,6 +17,11 @@ namespace Stride.Graphics
 {
     public partial class GraphicsDevice
     {
+        /// <summary>
+        ///   Counter for generating unique command list IDs. Incremented atomically on each CommandList.Reset.
+        /// </summary>
+        internal int NextCommandListId;
+
         internal int ConstantBufferDataPlacementAlignment;
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());

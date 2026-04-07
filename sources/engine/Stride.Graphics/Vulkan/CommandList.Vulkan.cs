@@ -14,6 +14,13 @@ namespace Stride.Graphics
 {
     public partial class CommandList
     {
+        /// <summary>
+        ///   Unique ID for this command list, incremented on each Reset.
+        ///   Used to detect when a resource is first used on a different command list,
+        ///   requiring barriers to be re-issued even if the layout already matches.
+        /// </summary>
+        internal int CommandListId;
+
         internal CommandBufferPool CommandBufferPool;
 
         private VkRenderPass activeRenderPass;
@@ -64,6 +71,9 @@ namespace Stride.Graphics
         {
             if (currentCommandList.Builder != null)
                 return;
+
+            // New command list ID so resources know they need to re-issue barriers
+            CommandListId = System.Threading.Interlocked.Increment(ref GraphicsDevice.NextCommandListId);
 
             CleanupRenderPass();
             boundDescriptorSets.Clear();
@@ -332,13 +342,12 @@ namespace Stride.Graphics
                         ? VkImageLayout.ShaderReadOnlyOptimal
                         : VkImageLayout.General;
 
-                    if (parent.NativeLayout != expectedLayout)
-                    {
-                        var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
-                            ? BarrierLayout.ShaderResource
-                            : BarrierLayout.UnorderedAccess;
-                        ResourceBarrierTransition(parent, layout);
-                    }
+                    // Always call ResourceBarrierTransition — even if the layout matches, the barrier
+                    // must be re-issued when the resource was last transitioned by a different command list.
+                    var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
+                        ? BarrierLayout.ShaderResource
+                        : BarrierLayout.UnorderedAccess;
+                    ResourceBarrierTransition(parent, layout);
                 }
             }
         }
@@ -543,8 +552,14 @@ namespace Stride.Graphics
                 texture.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(newLayout);
                 texture.LayoutTracker.Set(uint.MaxValue, newLayout);
 
-                if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask)
+                // Skip if the layout already matches AND this command list was the one that set it.
+                // If a different command list set the layout, we must re-issue the barrier so that
+                // this command buffer has the transition recorded (required by Vulkan validation).
+                if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask
+                    && texture.LastBarrierCommandListId == CommandListId)
                     return;
+
+                texture.LastBarrierCommandListId = CommandListId;
 
                 if (oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR)
                     sourceStages = VkPipelineStageFlags.TopOfPipe;
