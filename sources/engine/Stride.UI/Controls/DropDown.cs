@@ -35,7 +35,6 @@ namespace Stride.UI.Controls
         private bool sizeToContent = true;
         private StretchType imageStretchType = StretchType.Uniform;
         private StretchDirection imageStretchDirection = StretchDirection.Both;
-        private float headerArrangedWidth;
         private UIElement dismissTouchRoot;
         private EventHandler<TouchEventArgs> dismissTouchHandler;
         private readonly BackdropElement backdropElement;
@@ -48,6 +47,7 @@ namespace Stride.UI.Controls
         private ISpriteProvider listItemPressedImage;
         private ISpriteProvider listItemMouseOverImage;
         private Color listItemBackgroundColor = new Color(0.1f, 0.1f, 0.1f, 1f);
+        private TextAlignment textAlignment = TextAlignment.Left;
 
         private readonly TrackingCollection<string> items = new TrackingCollection<string>();
 
@@ -239,7 +239,6 @@ namespace Stride.UI.Controls
                     return;
 
                 sizeToContent = value;
-                headerArrangedWidth = 0f;
                 InvalidateMeasure();
             }
         }
@@ -284,6 +283,29 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets the alignment of the header text. Default value is <see cref="Stride.Graphics.TextAlignment.Left"/>.
+        /// </summary>
+        /// <userdoc>The alignment of the header text.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(TextAlignment.Left)]
+        public TextAlignment TextAlignment
+        {
+            get => textAlignment;
+            set
+            {
+                if (textAlignment == value)
+                    return;
+
+                textAlignment = value;
+                headerTextBlock.TextAlignment = value;
+
+                if (isOpen)
+                    RebuildItemButtons();
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the background image of the dropdown list popup.
         /// </summary>
         /// <userdoc>The background image of the dropdown list popup.</userdoc>
@@ -312,32 +334,12 @@ namespace Stride.UI.Controls
         public Color ListColor { get; set; } = Color.White;
 
         /// <summary>
-        /// Gets or sets the font used to render item text in the dropdown list.
-        /// When <c>null</c>, falls back to <see cref="Font"/>.
-        /// </summary>
-        /// <userdoc>The font used to render item text in the dropdown list. Falls back to Font when null.</userdoc>
-        [DataMember]
-        [Display(category: AppearanceCategory)]
-        [DefaultValue(null)]
-        public SpriteFont ItemFont { get; set; }
-
-        /// <summary>
         /// Gets or sets the color of item text in the dropdown list. Default value is White.
         /// </summary>
         /// <userdoc>The color of item text in the dropdown list.</userdoc>
         [DataMember]
         [Display(category: AppearanceCategory)]
         public Color ItemTextColor { get; set; } = Color.White;
-
-        /// <summary>
-        /// Gets or sets the size of item text in virtual pixels. Uses the font's default size when NaN.
-        /// </summary>
-        /// <userdoc>The size of item text in virtual pixels. Uses the font's default size when NaN.</userdoc>
-        [DataMember]
-        [DataMemberRange(0.0f, 3)]
-        [Display(category: AppearanceCategory)]
-        [DefaultValue(float.NaN)]
-        public float ItemTextSize { get; set; } = float.NaN;
 
         /// <summary>
         /// Gets or sets the image displayed on list items in their default (not pressed) state.
@@ -478,7 +480,6 @@ namespace Stride.UI.Controls
                     return;
 
                 placeholderText = value;
-                headerArrangedWidth = 0f;
                 UpdateHeaderText();
                 InvalidateMeasure();
             }
@@ -709,9 +710,20 @@ namespace Stride.UI.Controls
                 var childAvailable = CalculateSizeWithoutThickness(ref availableSizeWithoutMargins, ref padding);
                 headerTextBlock.Measure(childAvailable);
                 var headerDesiredSize = headerTextBlock.DesiredSizeWithMargins;
+
+                var font = headerTextBlock.Font;
+                if (font != null)
+                {
+                    var fontSize = float.IsNaN(headerTextBlock.TextSize) ? font.Size : headerTextBlock.TextSize;
+
+                    if (placeholderText != null)
+                        headerDesiredSize.X = Math.Max(headerDesiredSize.X, font.MeasureString(placeholderText, fontSize).X);
+
+                    foreach (var item in items)
+                        headerDesiredSize.X = Math.Max(headerDesiredSize.X, font.MeasureString(item, fontSize).X);
+                }
+
                 headerDesired = CalculateSizeWithThickness(ref headerDesiredSize, ref padding);
-                headerArrangedWidth = Math.Max(headerArrangedWidth, headerDesired.X);
-                headerDesired.X = headerArrangedWidth;
             }
             else
             {
@@ -831,10 +843,9 @@ namespace Stride.UI.Controls
                 UIElement itemContent = new TextBlock
                 {
                     Text = item,
-                    Font = ItemFont ?? Font,
+                    Font = Font,
                     TextColor = ItemTextColor,
-                    TextSize = ItemTextSize,
-                    TextAlignment = TextAlignment.Left,
+                    TextAlignment = textAlignment,
                     VerticalAlignment = VerticalAlignment.Center,
                 };
 
