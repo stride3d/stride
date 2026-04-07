@@ -344,6 +344,28 @@ namespace Stride.Graphics
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
+
+                    // Suppress known harmless warnings:
+                    // - RT/SRV binding hazards: texture still bound as SRV while set as RT (or vice versa).
+                    //   D3D11 auto-unbinds the conflicting slot — on D3D12/Vulkan this is handled
+                    //   explicitly by SubresourceLayoutTracker which issues the proper barriers.
+                    // - SetPrivateData changing params: debug name size mismatch when reusing resources.
+                    var deniedMessages = stackalloc MessageID[]
+                    {
+                        MessageID.DeviceOmsetrendertargetsHazard,
+                        MessageID.DevicePssetshaderresourcesHazard,
+                        MessageID.SetprivatedataChangingparams,
+                    };
+
+                    Silk.NET.Direct3D11.InfoQueueFilter filter = new()
+                    {
+                        DenyList = new Silk.NET.Direct3D11.InfoQueueFilterDesc
+                        {
+                            NumIDs = 3,
+                            PIDList = deniedMessages,
+                        }
+                    };
+                    infoQueue.AddStorageFilterEntries(ref filter);
                 }
             }
 

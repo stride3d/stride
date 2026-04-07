@@ -699,11 +699,7 @@ namespace Stride.Graphics.Regression
         /// </summary>
         private static bool IsKnownHarmlessWarning(string text)
         {
-            return text.Contains("still bound on input")          // D3D11: RT set while SRV still bound (auto-unbinds)
-                || text.Contains("Forcing PS shader resource")    // D3D11: consequence of the above
-                || text.Contains("SetPrivateData")                // D3D11: debug name size mismatch on reuse
-                || text.Contains("NULL Sampler maps to default")  // D3D11: unbound sampler uses default state
-                || text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
+            return text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
         }
 
         /// <summary>
