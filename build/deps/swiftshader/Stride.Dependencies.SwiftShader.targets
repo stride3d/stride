@@ -4,5 +4,9 @@
           CopyToOutputDirectory="PreserveNewest"
           Link="vk_swiftshader_icd.json"
           Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\runtimes\win-x64\native\vk_swiftshader.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="vk_swiftshader.dll"
+          Visible="false" />
   </ItemGroup>
 </Project>
