@@ -15,7 +15,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="TeamCity.VSTest.TestAdapter" Condition="'$(SkipTeamCityAdapter)' != 'true'" />
   </ItemGroup>
 
   <!-- ================================================================ -->
