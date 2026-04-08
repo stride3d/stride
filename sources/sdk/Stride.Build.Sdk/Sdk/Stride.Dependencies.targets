@@ -152,9 +152,9 @@
       </_SourceItemsToCopyToOutputDirectory>
     </ItemGroup>
 
-    <!-- Android -->
+    <!-- Android: only ship Android RID native libs (skip win/linux/osx/ios runtimes). -->
     <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">
-      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
+      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)" Condition="$([System.String]::new('%(Identity)').Contains('runtimes\android-'))" />
     </ItemGroup>
 
     <!-- iOS -->
