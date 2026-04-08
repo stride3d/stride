@@ -101,7 +101,7 @@ namespace Stride.Particles.VertexLayouts
                     DefaultTexCoords = attrDesc;
                 }
 
-                var stride = vertexElement.Format.SizeInBytes();
+                var stride = vertexElement.Format.SizeInBytes;
                 var attrAccs = new AttributeAccessor { Offset = totalOffset, Size = stride };
                 totalOffset += stride;
 

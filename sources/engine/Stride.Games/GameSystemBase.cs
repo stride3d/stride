@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,25 +22,35 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 
 namespace Stride.Games
 {
     /// <summary>
-    /// Base class for a <see cref="GameSystemBase"/> component.
+    ///   Base class for a <strong>Game System</strong>.
     /// </summary>
     /// <remarks>
-    /// A <see cref="GameSystemBase"/> component can be used to 
+    ///   <para>
+    ///     A Game System is a component that can be used to manage game logic, resources, or other systems within the Game.
+    ///     For example, it can be used to manage audio, input, or other subsystems.
+    ///   </para>
+    ///   <para>
+    ///     Game Systems are typically added to the <see cref="GameBase"/> class and are initialized when the game starts.
+    ///     If the Game System needs to be updated or drawn, it can implement the <see cref="IUpdateable"/> and <see cref="IDrawable"/>
+    ///     interfaces respectively.
+    ///   </para>
     /// </remarks>
     public abstract class GameSystemBase : ComponentBase, IGameSystemBase, IUpdateable, IDrawable, IContentable
     {
         private int drawOrder;
         private bool enabled;
+
         private int updateOrder;
         private bool visible;
+
         private IGraphicsDeviceService graphicsDeviceService;
 
         /// <summary>
@@ -61,8 +71,7 @@ namespace Stride.Games
         /// </summary>
         /// <value>The game.</value>
         /// <remarks>This value can be null</remarks>
-        [CanBeNull]
-        public GameBase Game { get; }
+        public GameBase? Game { get; }
 
         /// <summary>
         /// Gets the services registry.
@@ -75,34 +84,38 @@ namespace Stride.Games
         /// Gets the content manager. This value can be null in a mock environment.
         /// </summary>
         /// <value>The content.</value>
-        [CanBeNull]
-        protected IContentManager Content { get; private set; }
+        protected IContentManager? Content { get; private set; }
 
         /// <summary>
-        /// Gets the graphics device.
+        ///   Gets the Graphics Device.
         /// </summary>
-        /// <value>The graphics device.</value>
+        /// <value>The Graphics Device. This can be <see langword="null"/> if it has not been initialized yet.</value>
         protected GraphicsDevice GraphicsDevice => graphicsDeviceService?.GraphicsDevice;
 
         #region IDrawable Members
 
+        /// <inheritdoc/>
         public event EventHandler<EventArgs> DrawOrderChanged;
-
+        /// <inheritdoc/>
         public event EventHandler<EventArgs> VisibleChanged;
 
+        /// <inheritdoc/>
         public virtual bool BeginDraw()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public virtual void Draw(GameTime gameTime)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void EndDraw()
         {
         }
 
+        /// <inheritdoc/>
         public bool Visible
         {
             get => visible;
@@ -116,6 +129,7 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc/>
         public int DrawOrder
         {
             get => drawOrder;
@@ -137,12 +151,16 @@ namespace Stride.Games
         {
         }
 
-        protected void InitGraphicsDeviceService()
+        /// <summary>
+        ///   Initializes the Graphics Device Service if it has not been initialized.
+        /// </summary>
+        /// <remarks>
+        ///   Upon returning from this method, the <see cref="IGraphicsDeviceService"/> may be available
+        ///   to get the <see cref="GraphicsDevice"/>, so that the Game System can use it if it is initialized.
+        /// </remarks>
+        protected void InitializeGraphicsDeviceService()
         {
-            if (graphicsDeviceService == null)
-            {
-                graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-            }
+            graphicsDeviceService ??= Services.GetService<IGraphicsDeviceService>();
         }
 
         #endregion
@@ -185,11 +203,23 @@ namespace Stride.Games
 
         #endregion
 
+        /// <summary>
+        ///   Method that is called when the <see cref="DrawOrder"/> property changes.
+        ///   Raises the <see cref="DrawOrderChanged"/> event.
+        /// </summary>
+        /// <param name="source">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> that contains the event data.</param>
         protected virtual void OnDrawOrderChanged(object source, EventArgs e)
         {
             DrawOrderChanged?.Invoke(source, e);
         }
 
+        /// <summary>
+        ///   Method that is called when the <see cref="Visible"/> property changes.
+        ///   Raises the <see cref="VisibleChanged"/> event.
+        /// </summary>
+        /// <param name="source">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> that contains the event data.</param>
         private void OnVisibleChanged(EventArgs e)
         {
             VisibleChanged?.Invoke(this, e);
@@ -211,7 +241,7 @@ namespace Stride.Games
         {
             Content = Services.GetService<IContentManager>();
 
-            InitGraphicsDeviceService();
+            InitializeGraphicsDeviceService();
 
             LoadContent();
         }

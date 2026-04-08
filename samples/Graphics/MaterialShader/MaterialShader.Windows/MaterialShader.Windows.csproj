@@ -12,7 +12,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MaterialShader.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup> 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MaterialShader.Game\MaterialShader.Game.csproj" />
   </ItemGroup>

@@ -114,6 +114,12 @@ namespace Stride.Core.Assets
                 {
                     return true;
                 }
+                // Also handle executables (i.e. glslangValidator)
+                if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
                 return false;
             }
         }

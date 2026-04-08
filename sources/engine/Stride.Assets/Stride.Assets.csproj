@@ -1,12 +1,11 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
@@ -20,31 +19,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="SSH.NET" />
-    <PackageReference Include="System.AppContext" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Console" />
-    <PackageReference Include="System.Diagnostics.FileVersionInfo" />
-    <PackageReference Include="System.Diagnostics.StackTrace" />
-    <PackageReference Include="System.IO" />
-    <PackageReference Include="System.IO.Compression" />
-    <PackageReference Include="System.IO.FileSystem" />
-    <PackageReference Include="System.IO.FileSystem.Primitives" />
-    <PackageReference Include="System.Reflection" />
-    <PackageReference Include="System.Reflection.Metadata" />
-    <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Runtime.Extensions" />
-    <PackageReference Include="System.Runtime.InteropServices" />
-    <PackageReference Include="System.Security.Cryptography.Algorithms" />
-    <PackageReference Include="System.Security.Cryptography.Encoding" />
-    <PackageReference Include="System.Security.Cryptography.Primitives" />
-    <PackageReference Include="System.Security.Cryptography.X509Certificates" />
-    <PackageReference Include="System.Text.Encoding.CodePages" />
-    <PackageReference Include="System.Threading.Thread" />
-    <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="System.Xml.ReaderWriter" />
-    <PackageReference Include="System.Xml.XmlDocument" />
-    <PackageReference Include="System.Xml.XPath" />
-    <PackageReference Include="System.Xml.XPath.XDocument" />
     <Reference Include="VHACDSharp">
       <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
     </Reference>
@@ -106,15 +80,14 @@
     <None Include="AssetPackage\Resources\StrideDefaultSplashScreen.png" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)VHACDSharp.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)VHACDSharp.dll" />
     </ItemGroup>
   </Target>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

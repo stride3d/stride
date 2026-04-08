@@ -18,7 +18,7 @@ namespace Stride.Navigation
     public class NavigationMeshLayer
     {
         // Backing field of Tiles
-        internal Dictionary<Point, NavigationMeshTile> TilesInternal = new Dictionary<Point, NavigationMeshTile>();
+        internal Dictionary<Point, NavigationMeshTile> TilesInternal = new();
 
         /// <summary>
         /// Contains all the built tiles mapped to their tile coordinates
@@ -32,8 +32,7 @@ namespace Stride.Navigation
         /// <returns>The found tile or null</returns>
         public NavigationMeshTile FindTile(Point tileCoordinate)
         {
-            NavigationMeshTile foundTile;
-            if (TilesInternal.TryGetValue(tileCoordinate, out foundTile))
+            if (TilesInternal.TryGetValue(tileCoordinate, out var foundTile))
                 return foundTile;
             return null;
         }
@@ -53,8 +52,7 @@ namespace Stride.Navigation
                 base.PreSerialize(ref obj, mode, stream);
                 if (mode == ArchiveMode.Deserialize)
                 {
-                    if (obj == null)
-                        obj = new NavigationMeshLayer();
+                    obj ??= new NavigationMeshLayer();
                 }
             }
 

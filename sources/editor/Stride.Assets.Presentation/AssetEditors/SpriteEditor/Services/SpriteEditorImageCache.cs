@@ -92,7 +92,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.Services
                     using (var texTool = new TextureTool())
                     {
                         texImage = texTool.Load(filePath, false);
-                        texTool.Decompress(texImage, texImage.Format.IsSRgb());
+                        texTool.Decompress(texImage, texImage.Format.IsSRgb);
                         if (texImage.Format == PixelFormat.R16G16B16A16_UNorm)
                             texTool.Convert(texImage, PixelFormat.R8G8B8A8_UNorm);
                         var image = texTool.ConvertToStrideImage(texImage);

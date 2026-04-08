@@ -1,51 +1,30 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Diagnostics;
-using Stride.Core;
-using Stride.Core.Serialization;
 
-namespace Stride.Shaders
+using System.Diagnostics;
+
+using Stride.Core;
+
+namespace Stride.Shaders;
+
+[DataContract]
+[DebuggerDisplay("{Type.Class}{Type.RowCount}x{Type.ColumnCount} {KeyInfo.KeyName} -> {RawName}")]
+public struct EffectValueDescription
 {
     /// <summary>
     /// Describes a shader parameter for a valuetype (usually stored in constant buffers).
     /// </summary>
-    [DataContract]
-    [DebuggerDisplay("{Type.Class}{Type.RowCount}x{Type.ColumnCount} {KeyInfo.KeyName} -> {RawName}")]
-    public struct EffectValueDescription
-    {
-        /// <summary>
-        /// The type of this value.
-        /// </summary>
-        public EffectTypeDescription Type;
+    public EffectTypeDescription Type;
 
-        /// <summary>
-        /// The common description of this parameter.
-        /// </summary>
-        public EffectParameterKeyInfo KeyInfo;
+    public EffectParameterKeyInfo KeyInfo;
 
-        /// <summary>
-        /// Name of this parameter in the original shader
-        /// </summary>
-        public string RawName;
-        
-        /// <summary>
-        /// Offset in bytes into the constant buffer.
-        /// </summary>
-        public int Offset;
+    public string RawName;
 
-        /// <summary>
-        /// Size in bytes in a constant buffer.
-        /// </summary>
-        public int Size;
+    public int Offset;
 
-        /// <summary>
-        /// The default value.
-        /// </summary>
-        public object DefaultValue;
+    public int Size;
 
-        /// <summary>
-        /// Logical group, used to group related descriptors and variables together.
-        /// </summary>
-        public string LogicalGroup;
-    }
+    public object DefaultValue;
+
+    public string LogicalGroup;
 }

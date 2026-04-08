@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core;
@@ -114,7 +114,7 @@ namespace Stride.Extensions
                         else
                         {
                             // Copy as is
-                            Utilities.CopyWithAlignmentFallback(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
+                            MemoryUtilities.CopyWithAlignmentFallback(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
                         }
                     }
 

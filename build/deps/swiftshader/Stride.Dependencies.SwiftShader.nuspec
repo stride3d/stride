@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Stride.Dependencies.SwiftShader</id>
+    <version>$version$</version>
+    <authors>Stride Contributors</authors>
+    <description>SwiftShader CPU-based Vulkan ICD for Stride GPU testing. Built from google/swiftshader commit $commit$.</description>
+    <license type="expression">Apache-2.0</license>
+    <repository type="git" url="https://github.com/stride3d/stride" />
+  </metadata>
+  <files>
+    <file src="vk_swiftshader.dll" target="runtimes/win-x64/native/" />
+    <file src="vk_swiftshader_icd.json" target="build/" />
+    <file src="Stride.Dependencies.SwiftShader.targets" target="build/" />
+  </files>
+</package>

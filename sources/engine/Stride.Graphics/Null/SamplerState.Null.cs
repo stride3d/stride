@@ -1,16 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_NULL 
-using System;
+
+#if STRIDE_GRAPHICS_API_NULL
 
 namespace Stride.Graphics
 {
     public partial class SamplerState
     {
-        private SamplerState(GraphicsDevice graphicsDevice, SamplerStateDescription samplerStateDescription)
+        private SamplerState(GraphicsDevice graphicsDevice, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
         {
-            throw new NotImplementedException();
+            NullHelper.ToImplement();
         }
     }
-} 
-#endif 
+}
+
+#endif

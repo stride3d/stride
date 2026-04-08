@@ -965,6 +965,15 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
         {
+            // Check if the same package exists in the list but with a newer version.
+            var newerPackage = packages.FirstOrDefault(p => p.Meta.Name == assetInfo.package.Meta.Name && p.Meta.Version > assetInfo.package.Meta.Version);
+            if (newerPackage is not null)
+            {
+                // Skip loading assets for this package as a newer version exists in the list.
+                log.Warning($"Newer version of {assetInfo.package.Meta.Name} is already referenced in another package. Using version {newerPackage.Meta.Version} instead of {assetInfo.package.Meta.Version}");
+                continue;
+            }
+
             LoadAssets(assetInfo.session, assetInfo.log, assetInfo.package, assetInfo.loadParameters, assetInfo.pendingPackageUpgrades, assetInfo.newLoadParameters);
         }
     }
@@ -1590,6 +1599,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             return Equals(obj as PendingPackageUpgrade);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(PackageUpgrader, Dependency, DependencyPackage, DependencyVersionBeforeUpgrade);
         }
 
         public PendingPackageUpgrade Clone()

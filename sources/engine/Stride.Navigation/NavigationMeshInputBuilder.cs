@@ -12,8 +12,8 @@ namespace Stride.Navigation
     internal class NavigationMeshInputBuilder
     {
         public BoundingBox BoundingBox = BoundingBox.Empty;
-        public List<Vector3> Points = new List<Vector3>();
-        public List<int> Indices = new List<int>();
+        public readonly List<Vector3> Points = [];
+        public readonly List<int> Indices = [];
 
         /// <summary>
         /// Appends another vertex data builder

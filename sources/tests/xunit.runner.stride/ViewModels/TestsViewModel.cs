@@ -115,6 +115,21 @@ public class TestsViewModel : ViewModelBase
         }
     }
 
+    bool isForceSaveImage = false;
+    public bool IsForceSaveImage
+    {
+        get => isForceSaveImage;
+        set
+        {
+            SetProperty(ref isForceSaveImage, value);
+            SetForceSaveImage?.Invoke(isForceSaveImage);
+        }
+    }
+
     public List<TestNodeViewModel> TestCases { get; } = [];
     public Action<bool>? SetInteractiveMode { get; set; }
+    public bool HasInteractiveMode => SetInteractiveMode != null;
+
+    public Action<bool>? SetForceSaveImage { get; set; }
+    public bool HasForceSaveImage => SetForceSaveImage != null;
 }

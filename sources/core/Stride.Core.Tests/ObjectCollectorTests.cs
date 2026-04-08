@@ -94,7 +94,7 @@ public class ObjectCollectorTests
     public unsafe void Add_WithIntPtr_AddsMemoryPointer()
     {
         var collector = new ObjectCollector();
-        var ptr = Utilities.AllocateMemory(128);
+        var ptr = MemoryUtilities.Allocate(128);
 
         var result = collector.Add(ptr);
 

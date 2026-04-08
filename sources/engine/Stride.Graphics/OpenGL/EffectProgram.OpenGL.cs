@@ -95,7 +95,7 @@ void main()
             CreateShaders();
         }
 
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
@@ -104,7 +104,7 @@ void main()
 
             ProgramId = 0;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         private void CreateShaders()
@@ -272,7 +272,7 @@ void main()
                 var constantBuffer = effectReflection.ResourceBindings[constantBufferIndex];
 
                 GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockDataSize, out constantBufferDescription.Size);
-                
+
                 int uniformCount;
                 GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockActiveUniforms, out uniformCount);
 
@@ -287,7 +287,7 @@ void main()
                 GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockActiveUniformIndices, MemoryMarshal.Cast<uint, int>(uniformIndices.AsSpan()));
                 GL.GetActiveUniforms(ProgramId, (uint)uniformIndices.Length, uniformIndices, UniformPName.UniformOffset, uniformOffsets);
                 GL.GetActiveUniforms(ProgramId, (uint)uniformIndices.Length, uniformIndices, UniformPName.UniformType, uniformTypes);
-                
+
                 for (int uniformIndex = 0; uniformIndex < uniformIndices.Length; ++uniformIndex)
                 {
                     uniformNames[uniformIndex] = GL.GetActiveUniform(ProgramId, uniformIndices[uniformIndex], out var uniformSize, out var uniformType);
@@ -465,7 +465,7 @@ void main()
 
                             // Update texture uniform mapping
                             GL.Uniform1(uniformIndex, textureUnitCount);
-                            
+
                             textureReflection.Stage = stage;
                             //textureReflection.Param.RawName = uniformName;
                             textureReflection.Type = GetTypeFromActiveUniformType(uniformType);
@@ -482,7 +482,7 @@ void main()
                             effectReflection.ResourceBindings[samplerReflectionIndex] = samplerReflection;
 
                             Textures.Add(new Texture(textureUnitCount));
-                            
+
                             textureUnitCount++;
                             break;
                     }
@@ -553,7 +553,7 @@ void main()
                     return 12;
                 case UniformType.FloatMat4:
                     return 16;
-                
+
                 case UniformType.Sampler2D:
                 case UniformType.SamplerCube:
                 case UniformType.Sampler3D:

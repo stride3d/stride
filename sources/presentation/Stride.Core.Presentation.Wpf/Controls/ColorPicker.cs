@@ -39,7 +39,6 @@ namespace Stride.Core.Presentation.Controls
         private FrameworkElement huePickerRenderSurface;
         private Rectangle huePickerSelector;
         private bool interlock;
-        private ColorHSV internalColor;
         private bool suspendBindingUpdates;
         private bool templateApplied;
         private DependencyProperty initializingProperty;
@@ -168,7 +167,7 @@ namespace Stride.Core.Presentation.Controls
         /// <summary>
         /// An internal representation of the color associated to this color picker. Its value never rounded to match a byte division by 255.
         /// </summary>
-        private ColorHSV InternalColor { get { return internalColor; } set { internalColor = value; var prev = interlock; interlock = true; Color = value.ToColor(); interlock = prev; } }
+        private ColorHSV InternalColor { get { return field; } set { field = value; var prev = interlock; interlock = true; Color = value.ToColor(); interlock = prev; } }
 
         /// <inheritdoc/>
         public override void OnApplyTemplate()

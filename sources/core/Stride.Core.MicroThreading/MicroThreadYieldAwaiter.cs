@@ -26,10 +26,7 @@ public readonly struct MicroThreadYieldAwaiter : INotifyCompletion
             if (microThread.IsOver)
                 return true;
 
-            lock (microThread.Scheduler.ScheduledEntries)
-            {
-                return microThread.Scheduler.ScheduledEntries.Count == 0;
-            }
+            return microThread.Scheduler.HasNoEntriesScheduled();
         }
     }
 

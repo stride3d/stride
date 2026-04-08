@@ -14,6 +14,7 @@ using Stride.Core.Shaders.Visitor;
 using Stride.Graphics;
 
 using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
+using HlslStorageQualifier = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
 using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Shaders.Parser
@@ -290,12 +291,12 @@ namespace Stride.Shaders.Parser
         private LocalParameterKey GetLinkParameterKey(Node node)
         {
             var qualifiers = node as IQualifiers;
-            var attributable = node as IAttributes;
 
-            if ((qualifiers != null && (qualifiers.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
+        if ((qualifiers is not null &&
+                (qualifiers.Qualifiers.Contains(HlslStorageQualifier.Static) ||
                                         qualifiers.Qualifiers.Contains(StorageQualifier.Const) ||
-                                        qualifiers.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
-                                       )) || attributable == null)
+                 qualifiers.Qualifiers.Contains(StorageQualifier.GroupShared))) ||
+            node is not IAttributes attributable)
             {
                 return null;
             }
@@ -629,11 +630,12 @@ namespace Stride.Shaders.Parser
 
         private void ParseConstantBufferVariable(string cbName, Variable variable)
         {
-            if (variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
+        if (variable.Qualifiers.Contains(HlslStorageQualifier.Static) ||
                 variable.Qualifiers.Contains(StorageQualifier.Const) ||
-                variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
-                )
+            variable.Qualifiers.Contains(StorageQualifier.GroupShared))
+        {
                 return;
+        }
 
             if (variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
             {

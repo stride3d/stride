@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Graphics;
 using Stride.Shaders;
@@ -74,7 +72,7 @@ namespace Stride.Rendering
                 if (parameters.DataValues != null && resourceGroup.ConstantBuffer.Size > 0)
                 {
                     fixed (byte* dataValues = parameters.DataValues)
-                        Utilities.CopyWithAlignmentFallback(
+                        MemoryUtilities.CopyWithAlignmentFallback(
                             destination: (void*)resourceGroup.ConstantBuffer.Data,
                             source: dataValues + bufferStartOffset,
                             byteCount: (uint)resourceGroup.ConstantBuffer.Size);

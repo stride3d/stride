@@ -81,12 +81,12 @@ namespace Stride.Shaders.Tests
 
             var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
             mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, assignments.ToString()));
-            var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+            var bytecodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
 
-            Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+            Assert.False(bytecodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
-            var members = byteCode.Reflection.ConstantBuffers[0].Members;
+            var bytecode = bytecodeTask.Result.Bytecode;
+            var members = bytecode.Reflection.ConstantBuffers[0].Members;
             foreach (var v in variables)
             {
                 var defaultValue = members.FirstOrDefault(k => k.KeyInfo.KeyName == $"{shaderClassName}.{v.name}").DefaultValue;
@@ -148,7 +148,7 @@ namespace Stride.Shaders.Tests
 
             // First register the key as it would've been done by the generator
             var initialKey = ParameterKeys.NewValue(1f, $"{shaderClassName}.{variableName}");
-            ParameterKeys.Merge(initialKey, null, initialKey.Name);
+            ParameterKeys.Merge(initialKey, ownerType: null, initialKey.Name);
 
             GenerateAndCheck("1", 1f);
 
@@ -167,17 +167,17 @@ namespace Stride.Shaders.Tests
 
                 var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
                 mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, assignments.ToString()));
-                var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+                var bytecodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
 
-                Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+                Assert.False(bytecodeTask.Result.CompilationLog.HasErrors);
 
-                var byteCode = byteCodeTask.Result.Bytecode;
+                var bytecode = bytecodeTask.Result.Bytecode;
                 using (var graphicsDevice = GraphicsDevice.New())
                 {
                     // The effect constructor updates the effect reflection
-                    var effect = new Effect(graphicsDevice, byteCode);
+                    var effect = new Effect(graphicsDevice, bytecode);
 
-                    var members = byteCode.Reflection.ConstantBuffers[0].Members;
+                    var members = bytecode.Reflection.ConstantBuffers[0].Members;
                     foreach (var v in variables)
                     {
                         // Fetch the default value via the key - the previous test already checked whether the default value is present in the value description
@@ -231,12 +231,12 @@ namespace Stride.Shaders.Tests
 
             var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
             mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, assignments.ToString()));
-            var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+            var bytecodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
 
-            Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+            Assert.False(bytecodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
-            var members = byteCode.Reflection.ConstantBuffers[0].Members;
+            var bytecode = bytecodeTask.Result.Bytecode;
+            var members = bytecode.Reflection.ConstantBuffers[0].Members;
             foreach (var v in variables)
             {
                 var defaultValue = members.FirstOrDefault(k => k.KeyInfo.KeyName == $"{shaderClassName}.{v.name}").DefaultValue;
@@ -297,12 +297,12 @@ namespace Stride.Shaders.Tests
 
             var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
             mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, "float x = 3 + 4;"));
-            var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+            var bytecodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
 
-            Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+            Assert.False(bytecodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
-            var member = byteCode.Reflection.ConstantBuffers[0].Members[0];
+            var bytecode = bytecodeTask.Result.Bytecode;
+            var member = bytecode.Reflection.ConstantBuffers[0].Members[0];
             Assert.Null(member.DefaultValue);
         }
 

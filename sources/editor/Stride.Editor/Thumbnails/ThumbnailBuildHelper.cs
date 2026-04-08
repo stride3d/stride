@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading;
+using Stride.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Editor.Resources;
@@ -51,7 +52,7 @@ namespace Stride.Editor.Thumbnails
             // If first time, let's create graphics device and resources
             if (staticGraphicsDevice == null)
             {
-                staticGraphicsDevice = GraphicsDevice.New();
+                staticGraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
                 staticSpriteBatch = new SpriteBatch(staticGraphicsDevice);
             }
 

@@ -3,12 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Stride.Core;
-using Stride.Core.Collections;
-using Stride.Shaders;
 #if STRIDE_GRAPHICS_API_VULKAN
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -42,12 +38,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
-            GraphicsDevice.NativeDevice.DestroyDescriptorSetLayout(NativeLayout);
+            GraphicsDevice.NativeDeviceApi.vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeLayout);
             NativeLayout = VkDescriptorSetLayout.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 #endif
 
@@ -104,7 +100,7 @@ namespace Stride.Graphics
                         bindingCount = (uint)usedBindingCount,
                         pBindings = usedBindingCount > 0 ? fBindings : null,
                     };
-                    vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+                    device.CheckResult(device.NativeDeviceApi.vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout));
                     return descriptorSetLayout;
                 }
             }

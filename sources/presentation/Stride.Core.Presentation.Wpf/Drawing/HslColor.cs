@@ -16,10 +16,6 @@ namespace Stride.Core.Presentation.Drawing
         private const double MaxSaturation = 1.0;
         private const double MinLuminosity = 0.0;
         private const double MaxLuminosity = 1.0;
-        private double _hue;
-        private double _saturation;
-        private double _luminosity;
-        private double _alpha;
 
         /// <summary>Initializes a new instance of the HslColor class with the specified hue, saturation, and luminosity.</summary>
         /// <param name="hue">The hue.</param>
@@ -37,42 +33,42 @@ namespace Stride.Core.Presentation.Drawing
         /// <param name="alpha">The alpha.</param>
         public HslColor(double hue, double saturation, double luminosity, double alpha)
         {
-            _hue = LimitRange(hue, 0.0, 360.0);
-            _saturation = LimitRange(saturation, 0.0, 1.0);
-            _luminosity = LimitRange(luminosity, 0.0, 1.0);
-            _alpha = LimitRange(alpha, 0.0, 1.0);
+            Hue = LimitRange(hue, 0.0, 360.0);
+            Saturation = LimitRange(saturation, 0.0, 1.0);
+            Luminosity = LimitRange(luminosity, 0.0, 1.0);
+            Alpha = LimitRange(alpha, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Hue component</summary>
         /// <returns>The HslColor's Hue component.</returns>
         public double Hue
         {
-            get => _hue;
-            set => _hue = LimitRange(value, 0.0, 360.0);
+            get;
+            set => field = LimitRange(value, 0.0, 360.0);
         }
 
         /// <summary>Gets or sets the HslColor's Saturation component.</summary>
         /// <returns>The HslColor's Saturation component.</returns>
         public double Saturation
         {
-            get => _saturation;
-            set => _saturation = LimitRange(value, 0.0, 1.0);
+            get;
+            set => field = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Luminosity component</summary>
         /// <returns>The HslColor's Luminosity component.</returns>
         public double Luminosity
         {
-            get => _luminosity;
-            set => _luminosity = LimitRange(value, 0.0, 1.0);
+            get;
+            set => field = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Alpha component.</summary>
         /// <returns>The HslColor's Alpha component.</returns>
         public double Alpha
         {
-            get => _alpha;
-            set => _alpha = LimitRange(value, 0.0, 1.0);
+            get;
+            set => field = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Converts a Color value to an HslColor. The algorithm is based on pseudocode available on HSL and HSV.</summary>

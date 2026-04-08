@@ -12,7 +12,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\ThirdPersonPlatformer.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup> 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj" />
   </ItemGroup>

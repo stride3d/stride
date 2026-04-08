@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_NULL 
+#if STRIDE_GRAPHICS_API_NULL
 
 namespace Stride.Graphics
 {
@@ -23,27 +23,30 @@ namespace Stride.Graphics
         /// <summary>
         /// Action called when device is destroyed.
         /// </summary>
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediately = false)
+        {
+            NullHelper.ToImplement();
+        }
+
+        //// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Increases usage of <param name="resourceLink"/> if its usage is dynamic.
+        ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
-        /// <param name="resourceLink">The resource link.</param>
-        internal void TagResource(GraphicsResourceLink resourceLink)
-        {
-            NullHelper.ToImplement();
-        }
-
-        /// <summary>
-        /// Initializes this device.
-        /// </summary>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        private void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
+        private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             NullHelper.ToImplement();
         }
@@ -97,40 +100,42 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Adjust default pipeline state description.
+        ///   Makes platform-specific adjustments to the Pipeline State objects created by the Graphics Device.
         /// </summary>
-        /// <param name="pipelineStateDescription">The pipeline state description to be adjusted.</param>
-        private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
+        private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Initialize post features.
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
         /// </summary>
-        private void InitializePostFeatures()
+        private unsafe partial void InitializePostFeatures()
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Name of the renderer for the current device.
+        ///   Gets a string that identifies the underlying device used by the Graphics Device to render.
         /// </summary>
-        /// <returns>Name of renderer.</returns>
-        private string GetRendererName()
+        /// <remarks>
+        ///   In the case of Direct3D and Vulkan, for example, this will return the name of the Graphics Adapter
+        ///   (e.g. <c>"nVIDIA GeForce RTX 2080"</c>). Other platforms may return a different string.
+        /// </remarks>
+        private partial string GetRendererName()
         {
             NullHelper.ToImplement();
             return rendererName;
         }
 
         /// <summary>
-        /// Destroy device.
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
-        /// <remarks>Called from <see cref="GraphicsDevice.Destroy"/></remarks>
-        private void DestroyPlatformDevice()
+        protected partial void DestroyPlatformDevice()
         {
             NullHelper.ToImplement();
         }
     }
-} 
+}
 #endif

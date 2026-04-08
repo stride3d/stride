@@ -95,7 +95,7 @@ namespace Stride.Graphics
             // Map and build the indice buffer
             indexBuffer = graphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(indexBufferSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic));
 
-            var mappedIndices = graphicsContext.CommandList.MapSubresource(indexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, indexBufferSize);
+            var mappedIndices = graphicsContext.CommandList.MapSubResource(indexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, indexBufferSize);
             var indexPointer = mappedIndices.DataBox.DataPointer;
 
             var i = 0;
@@ -110,7 +110,7 @@ namespace Stride.Graphics
                 *(int*)(indexPointer + IndexStride * i++) = c * 4 + 2;
             }
 
-            graphicsContext.CommandList.UnmapSubresource(mappedIndices);
+            graphicsContext.CommandList.UnmapSubResource(mappedIndices);
 
             indexBufferBinding = new IndexBufferBinding(Buffer.Index.New(graphicsContext.CommandList.GraphicsDevice, new ReadOnlySpan<byte>((void*)indexPointer, indexBufferSize)), true, indexBufferLength);
 
@@ -194,7 +194,7 @@ namespace Stride.Graphics
             activeVertexBufferIndex = ++activeVertexBufferIndex >= VertexBufferCount ? 0 : activeVertexBufferIndex;
 
             // Map the vertex buffer to write to
-            var mappedVertexBuffer = graphicsContext.CommandList.MapSubresource(vertexBuffers[activeVertexBufferIndex], 0, MapMode.WriteDiscard);
+            var mappedVertexBuffer = graphicsContext.CommandList.MapSubResource(vertexBuffers[activeVertexBufferIndex], 0, MapMode.WriteDiscard);
             var mappedVertexData = new Span<NVector4>(mappedVertexBuffer.DataBox.DataPointer.ToPointer(), VertexBufferLength); // Note that we're using Vector4 instead of VertexPosition2DTexture for hardware acceleration, size of the two struct must match obviously
             // We don't have to clear the buffer since we're writing all used data through GraphicsFastTextRendererGenerateVertices
 
@@ -211,7 +211,7 @@ namespace Stride.Graphics
             }
 
             // Unmap the vertex buffer
-            graphicsContext.CommandList.UnmapSubresource(mappedVertexBuffer);
+            graphicsContext.CommandList.UnmapSubResource(mappedVertexBuffer);
 
             // Update pipeline state
             pipelineState.State.SetDefaults();

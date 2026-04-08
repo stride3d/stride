@@ -27,6 +27,7 @@ namespace Stride.Rendering.Shadows
         private const float ReferenceShadowSize = 1024;
 
         private FastListStruct<ShadowMapAtlasTexture> atlases;
+        private ShadowMapAtlasTexture fallbackAtlas;
 
         private readonly List<LightShadowMapTexture> shadowMaps = new List<LightShadowMapTexture>();
         
@@ -121,9 +122,14 @@ namespace Stride.Rendering.Shadows
                     {
                         var shadowMapTexture = lightShadowMapTexture.Value;
 
-                        // Could we allocate shadow map? if not, skip
+                        // Could we allocate shadow map? if not, assign a fallback depth texture
+                        // so that shaders using depth-comparison samplers get a valid depth texture
+                        // instead of the default SRGB fallback.
                         if (shadowMapTexture.Atlas == null)
+                        {
+                            shadowMapTexture.Atlas = GetFallbackAtlas(context);
                             continue;
+                        }
 
                         // Collect views
                         shadowMapTexture.Renderer.Collect(context, renderViewData.Key, shadowMapTexture);
@@ -147,6 +153,9 @@ namespace Stride.Rendering.Shadows
             {
                 atlas.PrepareAsShaderResourceView(commandList);
             }
+
+            // Transition fallback atlas to SRV if it was used (its texture starts in DepthStencilWrite layout)
+            fallbackAtlas?.PrepareAsShaderResourceView(commandList);
         }
 
         public void Flush(RenderDrawContext context)
@@ -184,6 +193,11 @@ namespace Stride.Rendering.Shadows
             }
 
             PrepareAtlasAsShaderResourceViews(drawContext.CommandList);
+        }
+
+        private ShadowMapAtlasTexture GetFallbackAtlas(RenderContext context)
+        {
+            return fallbackAtlas ??= new ShadowMapAtlasTexture(context.GraphicsDevice.GetSharedDepthTexture(), -1);
         }
 
         private void AssignRectangle(LightShadowMapTexture lightShadowMapTexture)

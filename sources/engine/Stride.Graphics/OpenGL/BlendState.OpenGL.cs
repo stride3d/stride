@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 
 namespace Stride.Graphics
@@ -21,33 +21,33 @@ namespace Stride.Graphics
 
         internal unsafe BlendState(BlendStateDescription blendStateDescription, bool hasRenderTarget)
         {
-            var renderTargets = &blendStateDescription.RenderTarget0;
+            var renderTargets = &blendStateDescription.RenderTargets[0];
             for (int i = 1; i < 8; ++i)
             {
                 if (renderTargets[i].BlendEnable || renderTargets[i].ColorWriteChannels != ColorWriteChannels.All)
                     throw new NotSupportedException();
             }
 
-            ColorWriteChannels = blendStateDescription.RenderTarget0.ColorWriteChannels;
+            ColorWriteChannels = blendStateDescription.RenderTargets[0].ColorWriteChannels;
             if (!hasRenderTarget)
                 ColorWriteChannels = 0;
 
-            blendEnable = blendStateDescription.RenderTarget0.BlendEnable;
+            blendEnable = blendStateDescription.RenderTargets[0].BlendEnable;
 
-            blendEquationModeColor = ToOpenGL(blendStateDescription.RenderTarget0.ColorBlendFunction);
-            blendEquationModeAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaBlendFunction);
-            blendFactorSrcColor = ToOpenGL(blendStateDescription.RenderTarget0.ColorSourceBlend);
-            blendFactorSrcAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaSourceBlend);
-            blendFactorDestColor = ToOpenGL(blendStateDescription.RenderTarget0.ColorDestinationBlend);
-            blendFactorDestAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaDestinationBlend);
+            blendEquationModeColor = ToOpenGL(blendStateDescription.RenderTargets[0].ColorBlendFunction);
+            blendEquationModeAlpha = ToOpenGL(blendStateDescription.RenderTargets[0].AlphaBlendFunction);
+            blendFactorSrcColor = ToOpenGL(blendStateDescription.RenderTargets[0].ColorSourceBlend);
+            blendFactorSrcAlpha = ToOpenGL(blendStateDescription.RenderTargets[0].AlphaSourceBlend);
+            blendFactorDestColor = ToOpenGL(blendStateDescription.RenderTargets[0].ColorDestinationBlend);
+            blendFactorDestAlpha = ToOpenGL(blendStateDescription.RenderTargets[0].AlphaDestinationBlend);
 
-            blendEquationHash = (uint)blendStateDescription.RenderTarget0.ColorBlendFunction
-                             | ((uint)blendStateDescription.RenderTarget0.AlphaBlendFunction << 8);
+            blendEquationHash = (uint)blendStateDescription.RenderTargets[0].ColorBlendFunction
+                             | ((uint)blendStateDescription.RenderTargets[0].AlphaBlendFunction << 8);
 
-            blendFuncHash = (uint)blendStateDescription.RenderTarget0.ColorSourceBlend
-                         | ((uint)blendStateDescription.RenderTarget0.AlphaSourceBlend << 8)
-                         | ((uint)blendStateDescription.RenderTarget0.ColorDestinationBlend << 16)
-                         | ((uint)blendStateDescription.RenderTarget0.AlphaDestinationBlend << 24);
+            blendFuncHash = (uint)blendStateDescription.RenderTargets[0].ColorSourceBlend
+                         | ((uint)blendStateDescription.RenderTargets[0].AlphaSourceBlend << 8)
+                         | ((uint)blendStateDescription.RenderTargets[0].ColorDestinationBlend << 16)
+                         | ((uint)blendStateDescription.RenderTargets[0].AlphaDestinationBlend << 24);
         }
 
         public static BlendEquationModeEXT ToOpenGL(BlendFunction blendFunction)
@@ -147,5 +147,5 @@ namespace Stride.Graphics
                 (ColorWriteChannels & ColorWriteChannels.Alpha) != 0);
         }
     }
-} 
+}
 #endif

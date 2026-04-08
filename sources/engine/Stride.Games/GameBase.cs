@@ -219,6 +219,12 @@ namespace Stride.Games
         protected internal bool ForceOneUpdatePerDraw { get; set; }
 
         /// <summary>
+        /// Specifies if <see cref="GameWindow.Visible"/> is set to true during <see cref="Run(GameContext)"/>.
+        /// Only valid when <see cref="GameContext.IsUserManagingRun"/> is false.
+        /// </summary>
+        protected bool MakeWindowVisibleOnRun { get; set; } = true;
+
+        /// <summary>
         /// When <see cref="IsFixedTimeStep"/> is set, is it allowed to render frames between two steps when we have time to do so.
         /// </summary>
         /// <value><c>true</c> if this instance's drawing is desychronized ; otherwise, <c>false</c>.</value>
@@ -775,9 +781,7 @@ namespace Stride.Games
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.RenderTarget);
-
+                // Note: RT/DS transitions are handled by SetRenderTargetsImpl when targets are bound.
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 
@@ -816,7 +820,7 @@ namespace Stride.Games
                     // Perform end of frame presenter operations
                     GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
 
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.Present);
+                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, BarrierLayout.Present);
                 }
 
                 GraphicsContext.ResourceGroupAllocator.Flush();
@@ -891,6 +895,8 @@ namespace Stride.Games
         private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)
         {
             Window.IsMouseVisible = isMouseVisible;
+            if (MakeWindowVisibleOnRun && !Context.IsUserManagingRun)
+                Window.Visible = true;
             OnWindowCreated();
         }
 

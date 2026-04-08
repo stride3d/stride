@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -12,7 +15,7 @@ namespace Stride.Rendering.Skyboxes
 
         private Texture inputTexture;
 
-        public CubemapFromTextureRenderer(IServiceRegistry services, RenderDrawContext renderDrawContext, Texture input, int outputSize, PixelFormat outputFormat) 
+        public CubemapFromTextureRenderer(IServiceRegistry services, RenderDrawContext renderDrawContext, Texture input, int outputSize, PixelFormat outputFormat)
             : base(renderDrawContext.GraphicsDevice, outputSize, outputFormat, false)
         {
             inputTexture = input;
@@ -40,7 +43,7 @@ namespace Stride.Rendering.Skyboxes
 
         public static Texture GenerateCubemap(IServiceRegistry services, RenderDrawContext renderDrawContext, Texture input, int outputSize)
         {
-            var pixelFormat = input.Format.IsHDR() ? PixelFormat.R16G16B16A16_Float : input.Format.IsSRgb() ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
+            var pixelFormat = input.Format.IsHDR ? PixelFormat.R16G16B16A16_Float : input.Format.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
             return GenerateCubemap(new CubemapFromTextureRenderer(services, renderDrawContext, input, outputSize, pixelFormat), Vector3.Zero);
         }
     }

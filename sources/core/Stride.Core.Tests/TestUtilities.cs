@@ -21,25 +21,25 @@ public class TestUtilities
     [InlineData(64)]
     public unsafe void AllocateMemory_WithValidAlignment_AllocatesAlignedMemory(int alignment)
     {
-        var data = Utilities.AllocateMemory(128, alignment);
+        var data = MemoryUtilities.Allocate(128, alignment);
 
         Assert.True(data != IntPtr.Zero);
         Assert.Equal(0, (long)data % alignment);
 
-        Utilities.FreeMemory(data);
+        MemoryUtilities.Free(data);
     }
 
     [Fact]
     public unsafe void AllocateMemory_WithInvalidAlignment_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => Utilities.AllocateMemory(32, 15));
+        Assert.Throws<ArgumentException>(() => MemoryUtilities.Allocate(32, 15));
     }
 
     [Fact]
     public unsafe void AllocateClearedMemory_InitializesMemoryToZero()
     {
         var size = 128;
-        var data = Utilities.AllocateClearedMemory(size);
+        var data = MemoryUtilities.AllocateCleared(size);
 
         var span = new Span<byte>((void*)data, size);
         foreach (var b in span)
@@ -47,7 +47,7 @@ public class TestUtilities
             Assert.Equal(0, b);
         }
 
-        Utilities.FreeMemory(data);
+        MemoryUtilities.Free(data);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class TestUtilities
     {
         var size = 128;
         var clearValue = (byte)0xFF;
-        var data = Utilities.AllocateClearedMemory(size, clearValue);
+        var data = MemoryUtilities.AllocateCleared(size, clearValue);
 
         var span = new Span<byte>((void*)data, size);
         foreach (var b in span)
@@ -63,7 +63,7 @@ public class TestUtilities
             Assert.Equal(clearValue, b);
         }
 
-        Utilities.FreeMemory(data);
+        MemoryUtilities.Free(data);
     }
 
     [Theory]
@@ -74,18 +74,18 @@ public class TestUtilities
     {
         unsafe
         {
-            var data = Utilities.AllocateMemory(128, alignment);
+            var data = MemoryUtilities.Allocate(128, alignment);
 
-            Assert.True(Utilities.IsMemoryAligned(data, alignment));
+            Assert.True(MemoryUtilities.IsAligned(data, alignment));
 
-            Utilities.FreeMemory(data);
+            MemoryUtilities.Free(data);
         }
     }
 
     [Fact]
     public void IsMemoryAligned_WithInvalidAlignment_ThrowsException()
     {
-        Assert.Throws<ArgumentException>(() => Utilities.IsMemoryAligned(IntPtr.Zero, 15));
+        Assert.Throws<ArgumentException>(() => MemoryUtilities.IsAligned(IntPtr.Zero, 15));
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class TestUtilities
         var a = 5;
         var b = 10;
 
-        Utilities.Swap(ref a, ref b);
+        MemoryUtilities.Swap(ref a, ref b);
 
         Assert.Equal(10, a);
         Assert.Equal(5, b);

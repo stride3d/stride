@@ -3,19 +3,15 @@
 
 using Xunit;
 
-
 namespace Stride.Graphics.Tests
 {
     public class TestDynamicSpriteFont : TestSpriteFont
     {
-        public TestDynamicSpriteFont()
-            : base("DynamicFonts/", "dyn")
+        public TestDynamicSpriteFont() : base(assetPrefix: "DynamicFonts/", saveImageSuffix: "dyn")
         {
         }
 
-        /// <summary>
-        /// Run the test
-        /// </summary>
+
         [Fact]
         public void RunTestDynamicSpriteFont()
         {

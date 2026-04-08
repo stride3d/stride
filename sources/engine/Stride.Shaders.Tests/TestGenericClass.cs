@@ -94,7 +94,7 @@ namespace Stride.Shaders.Tests
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
             compiler.SourceDirectories.Add("shaders");
 
-            var effectByteCode = compiler.Compile(mixinSource, compilerParameters.EffectParameters, compilerParameters);
+            var effectBytecode = compiler.Compile(mixinSource, compilerParameters.EffectParameters, compilerParameters);
         }
 
 

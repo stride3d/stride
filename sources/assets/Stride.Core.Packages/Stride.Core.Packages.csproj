@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -14,7 +14,6 @@
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
-    <PackageReference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -38,5 +37,5 @@
       <LastGenOutput>TargetGenerator.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
+
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
@@ -14,25 +14,22 @@ using Stride.Core.Storage;
 using Stride.Graphics;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Glsl;
-using Stride.Core.Shaders.Ast.Hlsl;
 using Stride.Core.Shaders.Convertor;
-using Stride.Core.Shaders.Writer.Hlsl;
+
 using ConstantBuffer = Stride.Core.Shaders.Ast.Hlsl.ConstantBuffer;
-using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
+using GlslStorageQualifier = Stride.Core.Shaders.Ast.Glsl.StorageQualifier;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Compiler.OpenGL
 {
     internal partial class ShaderCompiler : IShaderCompiler
     {
-        private int renderTargetCount;
-
         /// <summary>
         /// The constructor.
         /// </summary>
         /// <param name="rtCount">The number of render targets</param>
-        public ShaderCompiler(int rtCount)
+        public ShaderCompiler()
         {
-            renderTargetCount = rtCount;
         }
 
         /// <summary>
@@ -80,7 +77,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                 return shaderBytecodeResult;
 
             if (effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
-            { 
+            {
                 //TODO: Remove this ugly hack!
                 if (shaderSource.Contains($"Texture2D StrideInternal_TextureExt0") && shader.Contains("uniform sampler2D"))
                 {
@@ -115,23 +112,8 @@ namespace Stride.Shaders.Compiler.OpenGL
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
                 // Run shader compiler
-                string filename;
-                switch (Platform.Type)
-                {
-                    case PlatformType.Windows:
-                    case PlatformType.UWP:
-                        filename = @"win-x64\glslangValidator.exe";
-                        break;
-                    case PlatformType.Linux:
-                        filename = @"linux-x64/glslangValidator.bin";
-                        break;
-                    case PlatformType.macOS:
-                        filename = @"osx-x64/glslangValidator.bin";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
-                ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
+                string glslangValidatorPath = Core.NativeLibraryHelper.LocateExecutable(Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator.bin", typeof(ShaderCompiler));
+                ShellHelper.RunProcessAndRedirectToLogger(glslangValidatorPath, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))
                 {
@@ -163,13 +145,13 @@ namespace Stride.Shaders.Compiler.OpenGL
                 // store string on OpenGL platforms
                 rawData = Encoding.UTF8.GetBytes(shader);
             }
-            
+
             var bytecodeId = ObjectId.FromBytes(rawData);
             var bytecode = new ShaderBytecode(bytecodeId, rawData);
             bytecode.Stage = stage;
 
             shaderBytecodeResult.Bytecode = bytecode;
-            
+
             return shaderBytecodeResult;
         }
 
@@ -262,16 +244,16 @@ namespace Stride.Shaders.Compiler.OpenGL
                         MarkResourceBindingAsUsed(reflection, resourceBindingIndex, stage);
                     }
                 }
-                
-                foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(StorageQualifier.Uniform))))
+
+                foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(GlslStorageQualifier.Uniform))))
                 {
                     // Check if we have a variable that starts or ends with this name (in case of samplers)
                     // TODO: Have real AST support for all the list in Keywords.glsl
-                    if (variable.Type.Name.Text.Contains("sampler1D")
-                        || variable.Type.Name.Text.Contains("sampler2D")
-                        || variable.Type.Name.Text.Contains("sampler3D")
-                        || variable.Type.Name.Text.Contains("samplerCube")
-                        || variable.Type.Name.Text.Contains("samplerBuffer"))
+                    if (variable.Type.Name.Text.Contains("sampler1D") ||
+                        variable.Type.Name.Text.Contains("sampler2D") ||
+                        variable.Type.Name.Text.Contains("sampler3D") ||
+                        variable.Type.Name.Text.Contains("samplerCube") ||
+                        variable.Type.Name.Text.Contains("samplerBuffer"))
                     {
                         // TODO: Make more robust
                         var textureBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().StartsWith(x.RawName, StringComparison.Ordinal));
@@ -326,7 +308,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                     }
 
                     // Add layout(set, bindings) qualifier to all other uniforms
-                    foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(StorageQualifier.Uniform))))
+                    foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(GlslStorageQualifier.Uniform))))
                     {
                         var layoutBindingIndex = bindings.IndexOf(x => variable.Name.Text.StartsWith(x.Key.RawName, StringComparison.Ordinal));
 
@@ -346,9 +328,9 @@ namespace Stride.Shaders.Compiler.OpenGL
                             resourceBindings.Add(bindings[layoutBindingIndex].Key.KeyName, layoutBindingIndex + 1);
 
                             // Buffer should not be marked with uniform, this probably should not be here but it works and does not mess anything up.
-                            if (variable.Type.Qualifiers.Contains(StorageQualifier.Buffer))
+                            if (variable.Type.Qualifiers.Contains(GlslStorageQualifier.Buffer))
                             {
-                                variable.Qualifiers.Values.Remove(StorageQualifier.Uniform);
+                                variable.Qualifiers.Values.Remove(GlslStorageQualifier.Uniform);
                             }
                         }
                     }

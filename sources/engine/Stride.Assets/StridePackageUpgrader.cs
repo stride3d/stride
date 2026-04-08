@@ -147,7 +147,7 @@ namespace Stride.Assets
                 {
                     var project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                     var isProjectDirty = false;
-                    
+
                     List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
                     foreach(var package in project.GetItems("PackageReference"))
                     {

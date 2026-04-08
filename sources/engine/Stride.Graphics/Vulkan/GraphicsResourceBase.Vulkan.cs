@@ -2,10 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Diagnostics;
-
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -14,15 +10,15 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        private void Initialize()
-        {
-        }
+        // No Vulkan-specific initialization
+        private partial void Initialize() { }
 
 
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        protected internal virtual partial void OnDestroyed(bool immediately = false)
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
         }
@@ -35,7 +31,15 @@ namespace Stride.Graphics
         {
             return false;
         }
+
+        /// <summary>
+        ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+        /// </summary>
+        /// <param name="other">The other Graphics Resource.</param>
+        internal virtual void SwapInternal(GraphicsResourceBase other)
+        {
+        }
     }
 }
- 
+
 #endif

@@ -53,7 +53,7 @@ namespace Stride.Rendering.Materials
         {
             this.Material = material ?? new Material();
 
-            foreach (MaterialShaderStage stage in Enum.GetValues(typeof(MaterialShaderStage)))
+            foreach (MaterialShaderStage stage in Enum.GetValues<MaterialShaderStage>())
             {
                 finalCallbacks[stage] = new List<(int, MaterialGeneratorCallback)>();
             }
@@ -403,7 +403,7 @@ namespace Stride.Rendering.Materials
             // --------------------------------------------
             // Copy streams to parent, but not for the PixelLayer if SM is changing
             // --------------------------------------------
-            foreach (MaterialShaderStage stage in Enum.GetValues(typeof(MaterialShaderStage)))
+            foreach (MaterialShaderStage stage in Enum.GetValues<MaterialShaderStage>())
             {
                 var stageContext = layer.GetContextPerStage(stage);
                 var parentStageContext = parent.GetContextPerStage(stage);
@@ -578,7 +578,7 @@ namespace Stride.Rendering.Materials
         private void BlendStreams(MaterialBlendLayerContext layer)
         {
             // Generate Vertex and Pixel surface shaders
-            foreach (MaterialShaderStage stage in Enum.GetValues(typeof(MaterialShaderStage)))
+            foreach (MaterialShaderStage stage in Enum.GetValues<MaterialShaderStage>())
             {
                 // If we don't have any stream set, we have nothing to blend
                 var stageContext = layer.GetContextPerStage(stage);

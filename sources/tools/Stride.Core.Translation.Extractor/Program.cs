@@ -16,26 +16,23 @@ namespace Stride.Core.Translation.Extractor
 {
     internal static class Program
     {
-        private static readonly LongOpt[] LOpts = {
-            new LongOpt("directory", Argument.Required, null, 'D'),
-            new LongOpt("recursive", Argument.No, null, 'r'),
-            new LongOpt("exclude", Argument.Required, null, 'x'),
-            new LongOpt("domain-name", Argument.Required, null, 'd'),
-            new LongOpt("backup", Argument.No, null, 'b'),
-            new LongOpt("output", Argument.Required, null, 'o'),
-            new LongOpt("merge", Argument.No, null, 'm'),
-            new LongOpt("preserve-comments", Argument.No, null, 'C'),
-            new LongOpt("verbose", Argument.No, null, 'v'),
-            new LongOpt("help", Argument.No, null, 'h'),
-        };
+        private static readonly LongOpt[] LOpts =
+        [
+            new("directory", Argument.Required, null, 'D'),
+            new("recursive", Argument.No, null, 'r'),
+            new("exclude", Argument.Required, null, 'x'),
+            new("domain-name", Argument.Required, null, 'd'),
+            new("backup", Argument.No, null, 'b'),
+            new("output", Argument.Required, null, 'o'),
+            new("merge", Argument.No, null, 'm'),
+            new("preserve-comments", Argument.No, null, 'C'),
+            new("verbose", Argument.No, null, 'v'),
+            new("help", Argument.No, null, 'h')
+        ];
         private static readonly string SOpts = "-:D:rx:d:bo:mCvh";
 
         private static int Main([NotNull] string[] args)
         {
-#if DEBUG
-            // Allow to attach debugger
-            Console.ReadLine();
-#endif // DEBUG
             if (args.Length == 0)
             {
                 ShowUsage();
@@ -66,7 +63,7 @@ namespace Stride.Core.Translation.Extractor
                 TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
 
                 // Compute the list of input files
-                ISet<UFile> inputFiles = new HashSet<UFile>();
+                HashSet<UFile> inputFiles = [];
                 var re = options.Excludes.Count > 0 ? new Regex(string.Join("|", options.Excludes.Select(x => Regex.Escape(x).Replace(@"\*", @".*")))) : null;
                 foreach (var path in options.InputDirs)
                 {

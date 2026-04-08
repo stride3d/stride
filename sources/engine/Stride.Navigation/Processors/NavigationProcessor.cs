@@ -19,7 +19,7 @@ namespace Stride.Navigation.Processors
     /// </summary>
     public class NavigationProcessor : EntityProcessor<NavigationComponent, NavigationProcessor.AssociatedData>
     {
-        private readonly Dictionary<NavigationMesh, NavigationMeshData> loadedNavigationMeshes = new Dictionary<NavigationMesh, NavigationMeshData>();
+        private readonly Dictionary<NavigationMesh, NavigationMeshData> loadedNavigationMeshes = new();
         private DynamicNavigationMeshSystem dynamicNavigationMeshSystem;
         private GameSystemCollection gameSystemCollection;
 
@@ -107,15 +107,13 @@ namespace Stride.Navigation.Processors
                     var loadedGroup = data.LoadedGroups[oldGroupKey];
 
                     // See if this layer was updated
-                    NavigationMeshLayerUpdateInfo layerUpdateInfo;
-                    if (!updatedLayers.TryGetValue(oldGroupKey, out layerUpdateInfo))
+                    if (!updatedLayers.TryGetValue(oldGroupKey, out var layerUpdateInfo))
                         continue;
 
                     // Check if the new navigation mesh contains this layer
                     //  if it does not, that means it was removed completely and we
                     //  will remove all the loaded tiles in the loop below
-                    NavigationMeshLayer newLayer = null;
-                    newNavigationMesh.Layers.TryGetValue(oldGroupKey, out newLayer);
+                    newNavigationMesh.Layers.TryGetValue(oldGroupKey, out var newLayer);
 
                     foreach (var updatedTileCoord in layerUpdateInfo.UpdatedTiles)
                     {
@@ -207,8 +205,7 @@ namespace Stride.Navigation.Processors
             if (mesh == null || groupId == Guid.Empty)
                 return null;
 
-            NavigationMeshData data;
-            if (!loadedNavigationMeshes.TryGetValue(mesh, out data))
+            if (!loadedNavigationMeshes.TryGetValue(mesh, out var data))
             {
                 loadedNavigationMeshes.Add(mesh, data = new NavigationMeshData
                 {
@@ -216,11 +213,9 @@ namespace Stride.Navigation.Processors
                 });
             }
 
-            NavigationMeshGroupData groupData;
-            if (!data.LoadedGroups.TryGetValue(groupId, out groupData))
+            if (!data.LoadedGroups.TryGetValue(groupId, out var groupData))
             {
-                NavigationMeshLayer layer;
-                if (!mesh.Layers.TryGetValue(groupId, out layer))
+                if (!mesh.Layers.TryGetValue(groupId, out var layer))
                     return null; // Group not present in navigation mesh
 
                 data.LoadedGroups.Add(groupId, groupData = new NavigationMeshGroupData
@@ -262,7 +257,6 @@ namespace Stride.Navigation.Processors
                 {
                     loadedNavigationMeshes.Remove(data.NavigationMesh);
                 }
-                group.RecastNavigationMesh.Dispose();
             }
         }
 
@@ -281,7 +275,7 @@ namespace Stride.Navigation.Processors
         internal class NavigationMeshData
         {
             public NavigationMesh NavigationMesh;
-            public readonly Dictionary<Guid, NavigationMeshGroupData> LoadedGroups = new Dictionary<Guid, NavigationMeshGroupData>();
+            public readonly Dictionary<Guid, NavigationMeshGroupData> LoadedGroups = new();
         }
 
         /// <summary>
@@ -305,77 +299,5 @@ namespace Stride.Navigation.Processors
                 return --ReferenceCount;
             }
         }
-
-/*
-        internal class NavigationMeshInternal : IDisposable
-        {
-            private readonly float cellTileSize;
-            private readonly HashSet<object> references = new HashSet<object>();
-
-            public IntPtr[] Layers;
-
-            public NavigationMeshInternal(NavigationMesh navigationMesh)
-            {
-                cellTileSize = navigationMesh.TileSize * navigationMesh.CellSize;
-                Layers = new IntPtr[navigationMesh];
-                for (int i = 0; i < navigationMesh.NumLayers; i++)
-                {
-                    Layers[i] = LoadLayer(navigationMesh.Layers[i]);
-                }
-            }
-
-            public void Dispose()
-            {
-                if (Layers == null)
-                    return;
-                for (int i = 0; i < Layers.Length; i++)
-                {
-                    if (Layers[i] != IntPtr.Zero)
-                        Navigation.DestroyNavmesh(Layers[i]);
-                }
-                Layers = null;
-            }
-
-            /// <summary>
-            /// Adds a reference to this object
-            /// </summary>
-            /// <param name="reference"></param>
-            public void AddReference(object reference)
-            {
-                references.Add(reference);
-            }
-
-            /// <summary>
-            ///  Removes a reference to this object
-            /// </summary>
-            /// <param name="reference"></param>
-            /// <returns>true if the object is no longer referenced</returns>
-            public bool RemoveReference(object reference)
-            {
-                references.Remove(reference);
-                return references.Count == 0;
-            }
-
-            private unsafe IntPtr LoadLayer(NavigationMeshLayer navigationMeshLayer)
-            {
-                IntPtr layer = Navigation.CreateNavmesh(cellTileSize);
-                if (layer == IntPtr.Zero)
-                    return layer;
-
-                // Add all the tiles to the navigation mesh
-                foreach (var tile in navigationMeshLayer.Tiles)
-                {
-                    if (tile.Value.Data == null)
-                        continue; // Just skip empty tiles
-                    fixed (byte* inputData = tile.Value.Data)
-                    {
-                        Navigation.AddTile(layer, tile.Key, new IntPtr(inputData), tile.Value.Data.Length);
-                    }
-                }
-
-                return layer;
-            }
-        }
-*/
     }
 }

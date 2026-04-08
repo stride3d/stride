@@ -34,7 +34,7 @@ namespace Stride.Core.Translation.Extractor
         private const RegexOptions PatternOptions = RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline;
 
         private readonly (string, Regex)[] patterns =
-        {
+        [
             (nameof(ITranslationProvider.GetString),                 new Regex($@"{nameof(ITranslationProvider.GetString)}\s*\(\s*{CSharpStringPattern}", PatternOptions)),
             (nameof(ITranslationProvider.GetString),                 new Regex($@"{nameof(Tr._)}\s*\(\s*{CSharpStringPattern}", PatternOptions)),
             (nameof(ITranslationProvider.GetParticularString),       new Regex($@"{nameof(ITranslationProvider.GetParticularString)}\s*\(\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}", PatternOptions)),
@@ -43,8 +43,8 @@ namespace Stride.Core.Translation.Extractor
             (nameof(ITranslationProvider.GetPluralString),           new Regex($@"{nameof(Tr._n)}\s*\(\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}", PatternOptions)),
             (nameof(ITranslationProvider.GetParticularPluralString), new Regex($@"{nameof(ITranslationProvider.GetParticularPluralString)}\s*\(\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}", PatternOptions)),
             (nameof(ITranslationProvider.GetParticularPluralString), new Regex($@"{nameof(Tr._pn)}\s*\(\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}\s*,\s*{CSharpStringPattern}", PatternOptions)),
-            (nameof(TranslationAttribute),                           new Regex($@"Translation\({CSharpStringPattern}(?:\s*,\s*{CSharpStringPattern})?(?:\s*,\s*{nameof(TranslationAttribute.Context)}\s*\=\s*{CSharpStringPattern})?", PatternOptions)),
-        };
+            (nameof(TranslationAttribute),                           new Regex($@"Translation\({CSharpStringPattern}(?:\s*,\s*{CSharpStringPattern})?(?:\s*,\s*{nameof(TranslationAttribute.Context)}\s*\=\s*{CSharpStringPattern})?", PatternOptions))
+        ];
 
         public CSharpExtractor([NotNull] ICollection<UFile> inputFiles)
             : base(inputFiles, ".cs")

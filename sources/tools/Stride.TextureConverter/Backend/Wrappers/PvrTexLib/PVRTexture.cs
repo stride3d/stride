@@ -37,7 +37,7 @@ internal class PVRTexture : IDisposable
     private static extern IntPtr PVRTexLib_GetTextureHeader(IntPtr texture);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-    private static extern IntPtr PVRTexLib_GetTextureDataPtr(IntPtr texture, uint uiMIPLevel, uint uiArrayMember, uint uiFaceNumber);
+    private static extern IntPtr PVRTexLib_GetTextureDataPtr(IntPtr texture, uint uiMIPLevel, uint uiArrayMember, uint uiFaceNumber, uint uiZSlice);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern bool PVRTexLib_GenerateMIPMaps(IntPtr texture, EResizeMode eFilterMode, int uiMIPMapsToDo);
@@ -73,9 +73,9 @@ internal class PVRTexture : IDisposable
         return new PVRTextureHeader(PVRTexLib_GetTextureHeader(texture));
     }
 
-    public IntPtr GetDataPtr(uint uiMIPLevel = 0, uint uiArrayMember = 0, uint uiFaceNumber = 0)
+    public IntPtr GetDataPtr(uint uiMIPLevel = 0, uint uiArrayMember = 0, uint uiFaceNumber = 0, uint uiZSlice = 0)
     {
-        return PVRTexLib_GetTextureDataPtr(texture, uiMIPLevel, uiArrayMember, uiFaceNumber);
+        return PVRTexLib_GetTextureDataPtr(texture, uiMIPLevel, uiArrayMember, uiFaceNumber, uiZSlice);
     }
 
     public bool GenerateMIPMaps(EResizeMode eFilterMode, int uiMIPMapsToDo = ALLMIPLEVELS)

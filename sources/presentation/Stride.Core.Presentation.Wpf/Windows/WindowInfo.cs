@@ -14,7 +14,6 @@ namespace Stride.Core.Presentation.Windows
     public class WindowInfo : IEquatable<WindowInfo>
     {
         private IntPtr hwnd;
-        private bool isShown;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowInfo"/> class.
@@ -58,10 +57,10 @@ namespace Stride.Core.Presentation.Windows
         /// </summary>
         public bool IsShown
         {
-            get => isShown;
+            get;
             internal set
             {
-                isShown = value;
+                field = value;
                 ForceUpdateHwnd();
             }
         }

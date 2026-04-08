@@ -55,7 +55,7 @@ namespace Stride.TextureConverter.TexLibraries
 
         public void StartLibrary(TexImage image)
         {
-            if (image.Format.IsCompressed())
+            if (image.Format.IsCompressed)
             {
                 Log.Error("FreeImage can't process compressed texture.");
                 throw new TextureToolsException("FreeImage can't process compressed texture.");
@@ -114,7 +114,7 @@ namespace Stride.TextureConverter.TexLibraries
                     image.SubImageArray[i].RowPitch = rowPitch;
                     image.SubImageArray[i].SlicePitch = slicePitch;
 
-                    Utilities.CopyWithAlignmentFallback((void*)image.SubImageArray[i].Data, (void*)FreeImage.GetBits(libraryData.Bitmaps[i]), (uint)size);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*)image.SubImageArray[i].Data, (void*)FreeImage.GetBits(libraryData.Bitmaps[i]), (uint)size);
                     offset += size;
                 }
             }
@@ -380,7 +380,7 @@ namespace Stride.TextureConverter.TexLibraries
                 FreeImage.Unload(redChannel);
             }
 
-            if (image.Format.IsBGRAOrder())
+            if (image.Format.IsBgraOrder)
                 image.Format = Graphics.PixelFormat.R8G8B8A8_UNorm;
             else
                 image.Format = Graphics.PixelFormat.B8G8R8A8_UNorm;
@@ -506,7 +506,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new TextureToolsException("Not implemented.");
             }
 
-            if (!image.Format.IsBGRAOrder())
+            if (!image.Format.IsBgraOrder)
             {
                 SwitchChannels(image, libraryData, new SwitchingBRChannelsRequest());
             }

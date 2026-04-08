@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using Stride.Core;
@@ -56,7 +59,7 @@ namespace Stride.Video
 
             // Create a mip mapped texture with the same size as our video
             // Only generate up to "MaxMipMapCount" number of mip maps
-            var mipMapCount = Math.Min(Texture.CountMips(Math.Max(width, height)), maxMipMapCount + 1);
+            var mipMapCount = Math.Min(Texture.CountMipLevels(Math.Max(width, height)), maxMipMapCount + 1);
             var textureDescription = TextureDescription.New2D(width, height, mipMapCount, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 1, GraphicsResourceUsage.Dynamic);
             renderTargetTexture = Texture.New(graphicsDevice, textureDescription, null); // Supply no data. Create an empty texture.
         }
@@ -81,7 +84,7 @@ namespace Stride.Video
             if (originalTargetTexture == newTargetTexture) // the target content is already set to the video stream
                 return;  // -> nothing to do
 
-            if (originalTargetTexture != null) // the target Texture changed, we need to revert the previous one 
+            if (originalTargetTexture != null) // the target Texture changed, we need to revert the previous one
                 SetTargetContentToOriginalPlaceholder();
 
             if (newTargetTexture == null)
@@ -108,8 +111,8 @@ namespace Stride.Video
         {
             // "videoComponent.Target" contains the mip mapped video texture at this point.
             // We now copy the new video frame directly into the video texture's first mip level:
-            var dataPointer = new Span<byte>((void*)image.Buffer, image.BufferSize);
-            renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, 0, 0);
+            var dataPointer = new ReadOnlySpan<byte>((void*)image.Buffer, image.BufferSize);
+            renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, arrayIndex: 0, mipLevel: 0);
         }
 
         public void CopyDecoderOutputToTopLevelMipmap(GraphicsContext context, Texture decoderOutputTexture)
@@ -199,7 +202,7 @@ namespace Stride.Video
             // Create a texture view for every mip map of the texture that we use for displaying the video in the scene:
             DeallocateTextureViewsForMipMaps();
 
-            for (int i = 0; i < parentTexture.MipLevels; ++i)
+            for (int i = 0; i < parentTexture.MipLevelCount; ++i)
             {
                 var renderTargetMipMapTextureViewDescription = new TextureViewDescription
                 {

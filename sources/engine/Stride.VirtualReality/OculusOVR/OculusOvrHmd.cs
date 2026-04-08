@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SharpDX.Direct3D11;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
@@ -17,8 +18,8 @@ namespace Stride.VirtualReality
     {
         private static bool initDone;
 
-        //private static readonly Guid dx12ResourceGuid = new Guid("696442be-a72e-4059-bc79-5b5c98040fad");
-        internal static readonly Guid Dx11Texture2DGuid = new Guid("6f15aaf2-d208-4e89-9ab4-489535d34f9c");
+        //private static readonly Guid dx12ResourceGuid = SilkMarshal.GuidOf<ID3D12Resource>();
+        internal static readonly Guid Dx11Texture2DGuid = SilkMarshal.GuidOf<ID3D11Texture2D>();
 
         private IntPtr ovrSession;
         private Texture[] textures;
@@ -48,24 +49,28 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
+        public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
         {
             graphicsDevice = device;
             long adapterId;
             ovrSession = OculusOvr.CreateSessionDx(out adapterId);
             //Game.GraphicsDeviceManager.RequiredAdapterUid = adapterId.ToString(); //should not be needed
 
-            int texturesCount;
-            if (!OculusOvr.CreateTexturesDx(ovrSession, device.NativeDevice.NativePointer, out texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
+            if (!OculusOvr.CreateTexturesDx(ovrSession, (nint) device.NativeDevice.Handle, out var texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
             {
                 throw new Exception(OculusOvr.GetError());
             }
 
             if (requireMirror)
             {
-                var mirrorTex = OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
-                MirrorTexture = new Texture(device);
-                MirrorTexture.InitializeFromImpl(new Texture2D(mirrorTex), false);
+                var mirrorTex = (ID3D11Texture2D*) OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
+
+                MirrorTexture = new Texture(device).InitializeFromImpl(mirrorTex, treatAsSrgb: false);
+
+                // We don't need to take ownership of the COM pointer.
+                //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+                //   compensate with Release() to return the reference count to its previous value
+                mirrorTex->Release();
             }
 
             textures = new Texture[texturesCount];
@@ -78,7 +83,8 @@ namespace Stride.VirtualReality
                 }
 
                 textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl(new Texture2D(ptr), false);
+                textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, treatAsSrgb: false);
+                textures[i].NativeDeviceChild.Release(); // do not take ownership
             }
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);

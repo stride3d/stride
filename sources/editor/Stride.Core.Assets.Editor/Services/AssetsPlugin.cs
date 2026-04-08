@@ -23,7 +23,7 @@ public abstract class AssetsPlugin
 
     public abstract void InitializeSession(SessionViewModel session);
 
-    public static void RegisterPlugin(Type type)
+    public static AssetsPlugin RegisterPlugin(Type type)
     {
         if (type.GetConstructor(Type.EmptyTypes) is null)
             throw new ArgumentException("The given type does not have a parameterless constructor.");
@@ -36,6 +36,7 @@ public abstract class AssetsPlugin
 
         var plugin = (AssetsPlugin)Activator.CreateInstance(type)!;
         registeredPlugins.Add(plugin);
+        return plugin;
     }
 
     public void RegisterAssetViewModelTypes(IDictionary<Type, Type> assetViewModelTypes)

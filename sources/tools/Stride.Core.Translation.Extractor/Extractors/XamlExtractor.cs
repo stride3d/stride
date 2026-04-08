@@ -28,7 +28,7 @@ namespace Stride.Core.Translation.Extractor
             catch (XamlException ex)
             {
                 Console.Error.WriteLine($"{file.ToOSPath()}: {ex.Message}");
-                return Enumerable.Empty<Message>();
+                return [];
             }
         }
 

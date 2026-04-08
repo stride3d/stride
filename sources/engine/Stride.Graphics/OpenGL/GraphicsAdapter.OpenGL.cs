@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_OPENGL
-using System.Linq;
+
 using Silk.NET.SDL;
 using Stride.Graphics.OpenGL;
 
@@ -29,10 +29,11 @@ namespace Stride.Graphics
 
             var SDL = Stride.Graphics.SDL.Window.SDL;
 
-            //Initialize outputs
-            outputs = new GraphicsOutput[SDL.GetNumVideoDisplays()];
-            for (int i = 0; i < outputs.Length; i++)
-                outputs[i] = new GraphicsOutput(this, i);
+            // Initialize outputs
+            var numOutputs = SDL.GetNumVideoDisplays();
+            graphicsOutputs = new GraphicsOutput[numOutputs];
+            for (int outputIndex = 0; outputIndex < graphicsOutputs.Length; outputIndex++)
+                graphicsOutputs[outputIndex] = new GraphicsOutput(this, outputIndex);
 
             // Some platforms (i.e. Android) can only have a single window
             var sdlWindow = DefaultWindow;

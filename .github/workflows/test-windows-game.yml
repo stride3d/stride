@@ -1,0 +1,175 @@
+name: Test Windows (Game)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      graphics-api:
+        description: Graphics API (blank = all)
+        default: ''
+        type: choice
+        options:
+          - ''
+          - Direct3D11
+          - Direct3D12
+          - Vulkan
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+concurrency:
+  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  #
+  # Game tests - API-independent projects (run once)
+  #
+  Game-Common:
+    name: Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Disable WER dialogs
+        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Game.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.Game.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-common
+          path: tests/local/
+          if-no-files-found: ignore
+
+  #
+  # Game tests - Graphics API-dependent projects (run per API)
+  #
+  Game-GraphicsApi:
+    name: Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        graphics-api: ${{ github.event.inputs.graphics-api != '' && fromJson(format('["{0}"]', github.event.inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
+      # Crash dump collection (covers 3 crash types):
+      STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"            # Shared dump directory for all crash types
+      DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
+      DOTNET_DbgMiniDumpType: "1"                                                    # MiniDumpNormal
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"  # Type 2: dump path
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Configure crash dumps
+        shell: pwsh
+        run: |
+          # WER DontShowUI: suppress dialogs without disabling dump generation
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+          # WER LocalDumps: capture native crashes (type 3)
+          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
+      - name: Install Vulkan SDK
+        if: matrix.graphics-api == 'Vulkan'
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: true
+          cache: true
+          stripdown: true
+      - name: Register SwiftShader ICD
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          # Restore with StrideGraphicsApi=Vulkan so the conditional SwiftShader PackageReference is evaluated
+          # (Stride's custom multi-build targets don't run during restore)
+          dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
+          # Find SwiftShader DLL in NuGet cache and register an ICD before build
+          # (CompilerApp needs SwiftShader at build time for Skybox asset compilation)
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader.dll -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($dll) {
+            $icdPath = Join-Path $dll.DirectoryName "vk_swiftshader_icd.json"
+            $dllPath = $dll.FullName -replace '\\', '\\\\'
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.0.5`"}}"
+            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered SwiftShader ICD: $icdPath"
+          } else {
+            Write-Warning "SwiftShader DLL not found in NuGet cache"
+          }
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Game.GPU.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.Game.GPU.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Collect symbols for crash analysis
+        if: always()
+        shell: pwsh
+        run: |
+          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          if (Get-ChildItem $dumpDir -Filter *.dmp -ErrorAction SilentlyContinue) {
+            $symDir = Join-Path $dumpDir "symbols"
+            New-Item -Path $symDir -ItemType Directory -Force | Out-Null
+            Get-ChildItem bin -Recurse -Include *.pdb,*.dll,*.exe | Copy-Item -Destination $symDir
+            Write-Host "Collected $(( Get-ChildItem $symDir ).Count) symbol files for crash analysis"
+          }
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-${{ matrix.graphics-api }}
+          path: |
+            tests/local/
+            crash-dumps/
+          if-no-files-found: ignore

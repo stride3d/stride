@@ -77,7 +77,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override RectangleF? UpateValueFromFloat(float value)
+        protected override RectangleF? UpdateValueFromFloat(float value)
         {
             return new RectangleF(0.0f, 0.0f, value, value);
         }

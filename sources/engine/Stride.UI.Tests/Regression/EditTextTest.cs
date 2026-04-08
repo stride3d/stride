@@ -99,8 +99,6 @@ namespace Stride.UI.Tests.Regression
             canvas.Children.Add(edit3);
             canvas.Children.Add(edit4);
 
-            canvas.UIElementServices = new UIElementServices { Services = this.Services };
-
             UIComponent.Page = new Engine.UIPage { RootElement = canvas };
         }
 

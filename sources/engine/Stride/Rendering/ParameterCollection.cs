@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
 
@@ -87,7 +86,7 @@ namespace Stride.Rendering
                     fixed (byte* dataValuesSources = parameterCollection.DataValues)
                     fixed (byte* dataValuesDest = DataValues)
                     {
-                        Utilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                        MemoryUtilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
                     }
                 }
             }
@@ -156,10 +155,10 @@ namespace Stride.Rendering
             return new ValueParameter<T>(accessor.Offset, accessor.Count);
         }
 
-        private unsafe Accessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
+        private unsafe ParameterAccessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
         {
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
-            
+
             // Find existing first
             for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
@@ -201,7 +200,7 @@ namespace Stride.Rendering
                     parameterKey.DefaultValueMetadata.WriteBuffer((IntPtr)dataValues + memberOffset, Alignment);
             }
 
-            return new Accessor(memberOffset, elementCount);
+            return new ParameterAccessor(memberOffset, elementCount);
         }
 
         /// <summary>
@@ -364,7 +363,7 @@ namespace Stride.Rendering
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                Utilities.CopyWithAlignmentFallback(
+                MemoryUtilities.CopyWithAlignmentFallback(
                     destination: destDataValues + destParameter.Offset,
                     source: sourceDataValues + sourceParameter.Offset,
                     (uint)sizeInBytes);
@@ -438,7 +437,7 @@ namespace Stride.Rendering
                 PermutationCounter++;
             }
 
-            // For value types, we don't assign again because this causes boxing.
+            // For value types, we don't assign again because this causes boxing
             if (!typeof(T).IsValueType || !isSame)
             {
                 ObjectValues[parameter.BindingSlot] = value;
@@ -496,7 +495,6 @@ namespace Stride.Rendering
                 throw new InvalidOperationException("SetObject can only be used for Permutation or Object keys");
 
             var accessor = GetObjectParameterHelper(key);
-
             if (key.Type == ParameterKeyType.Permutation)
             {
                 var oldValue = ObjectValues[accessor.Offset];
@@ -609,7 +607,7 @@ namespace Stride.Rendering
                 if (processedParameters[i])
                     continue;
 
-                var parameterKeyInfo = newParameterKeyInfos[i];
+                var parameterKeyInfo = newParameterKeyInfosSpan[i];
 
                 if (parameterKeyInfo.Offset != -1)
                 {
@@ -707,7 +705,7 @@ namespace Stride.Rendering
             ObjectValues = newResourceValues;
         }
 
-        protected Accessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
+        protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
         {
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
             // Find existing first
@@ -720,7 +718,7 @@ namespace Stride.Rendering
             }
 
             if (!createIfNew)
-                return new Accessor(-1, 0);
+                return new ParameterAccessor(-1, 0);
 
             if (parameterKey.Type == ParameterKeyType.Permutation)
                 PermutationCounter++;
@@ -751,7 +749,7 @@ namespace Stride.Rendering
                 ObjectValues[resourceValuesSize] = parameterKey.DefaultValueMetadata.GetDefaultValue();
             }
 
-            return new Accessor(resourceValuesSize, 1);
+            return new ParameterAccessor(resourceValuesSize, 1);
         }
 
         public class Serializer : ClassDataSerializer<ParameterCollection>
@@ -822,7 +820,7 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     destination: destDataValues + range.DestStart,
                                     source: sourceDataValues + range.SourceStart,
                                     byteCount: (uint)range.Size);
@@ -835,7 +833,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
+                    MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)
@@ -1030,18 +1028,6 @@ namespace Stride.Rendering
             public int SourceStart;
             public int DestStart;
             public int Size;
-        }
-
-        public struct Accessor
-        {
-            public int Offset;
-            public int Count;
-
-            internal Accessor(int offset, int count)
-            {
-                Offset = offset;
-                Count = count;
-            }
         }
 
         private class DebugView

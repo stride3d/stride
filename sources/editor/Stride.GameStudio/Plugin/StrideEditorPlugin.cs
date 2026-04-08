@@ -23,6 +23,8 @@ namespace Stride.GameStudio.Plugin
 {
     internal sealed class StrideEditorPlugin : StrideAssetsPlugin
     {
+        public bool EnableThumbnailService { get; set; } = true;
+
         protected override void Initialize(ILogger logger)
         {
         }
@@ -79,8 +81,11 @@ namespace Stride.GameStudio.Plugin
             previewService.RegisterAssetPreviewFactories(previewFactories);
             session.ServiceProvider.RegisterService(previewService);
 
-            var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
-            session.ServiceProvider.RegisterService(thumbnailService);
+            if (EnableThumbnailService)
+            {
+                var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
+                session.ServiceProvider.RegisterService(thumbnailService);
+            }
 
             var strideDebugService = new StrideDebugService(session.ServiceProvider);
             session.ServiceProvider.RegisterService(strideDebugService);

@@ -65,7 +65,10 @@ namespace Stride.Core.Translation.Extractor
             if (!Options.Verbose)
                 return;
 
+            var oldColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
             Console.WriteLine(message, arg);
+            Console.ForegroundColor = oldColor;
         }
 
         private void MergeMessage([NotNull] Message message)

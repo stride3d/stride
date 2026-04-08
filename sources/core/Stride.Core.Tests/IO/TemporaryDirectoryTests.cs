@@ -4,6 +4,7 @@
 #if STRIDE_PLATFORM_DESKTOP
 
 using Stride.Core.IO;
+using Xunit;
 
 namespace Stride.Core.Tests.IO;
 

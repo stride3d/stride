@@ -33,8 +33,8 @@ namespace Stride.Graphics
 
             if (makeACopy)
             {
-                var buffer = Utilities.AllocateMemory(size);
-                Utilities.CopyWithAlignmentFallback((void*)buffer, source: (void*)pSource, (uint)size);
+                var buffer = MemoryUtilities.Allocate(size);
+                MemoryUtilities.CopyWithAlignmentFallback((void*)buffer, source: (void*)pSource, (uint)size);
                 pSource = buffer;
                 makeACopy = false;
             }

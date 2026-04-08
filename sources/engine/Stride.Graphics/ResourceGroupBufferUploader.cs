@@ -1,33 +1,59 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Stride.Core;
 using Stride.Shaders;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Describes how DescriptorSet maps to real resource binding.
-    /// This might become a core part of <see cref="Graphics.Effect"/> at some point.
+    ///   Describes how a Descriptor Set maps to real resource bindings.
     /// </summary>
+    /// <remarks>
+    ///   This might become a core part of <see cref="Effect"/> at some point.
+    /// </remarks>
+    /// <seealso cref="ResourceGroup"/>
     public struct ResourceGroupBufferUploader
     {
+        /// <inheritdoc cref="GraphicsDeviceFeatures.HasResourceRenaming"/>
         private bool hasResourceRenaming;
+
         private ResourceGroupBinding[] resourceGroupBindings;
 
-        public void Compile(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection descriptorSetLayouts, EffectBytecode effectBytecode)
+        private const int INVALID_CONSTANT_BUFFER_SLOT = -1;
+
+
+        /// <summary>
+        ///   Compiles a set of Constant Buffers to bind for an Effect, pre-allocating them as needed.
+        /// </summary>
+        /// <param name="graphicsDevice">The Graphics Device used to create and manage GPU resources.</param>
+        /// <param name="descriptorSetLayouts">
+        ///   The Descriptor Set layouts that define the structure of resource bindings for the Effect.
+        /// </param>
+        /// <param name="effectBytecode">
+        ///   The bytecode of the Effect, including reflection data used to resolve Constant Buffers
+        ///   and other resources.
+        /// </param>
+        public void Compile(GraphicsDevice graphicsDevice,
+                            EffectDescriptorSetReflection descriptorSetLayouts,
+                            EffectBytecode effectBytecode)
         {
             hasResourceRenaming = graphicsDevice.Features.HasResourceRenaming;
+
             resourceGroupBindings = new ResourceGroupBinding[descriptorSetLayouts.Layouts.Count];
+
             for (int setIndex = 0; setIndex < descriptorSetLayouts.Layouts.Count; setIndex++)
             {
                 var layout = descriptorSetLayouts.Layouts[setIndex].Layout;
-                if (layout == null)
+                if (layout is null)
                 {
-                    resourceGroupBindings[setIndex] = new ResourceGroupBinding { ConstantBufferSlot = -1 };
+                    // If the layout is null, it means that this set is not used in the Effect
+                    resourceGroupBindings[setIndex] = new ResourceGroupBinding { ConstantBufferSlot = INVALID_CONSTANT_BUFFER_SLOT };
                     continue;
                 }
 
@@ -39,9 +65,13 @@ namespace Stride.Graphics
 
                     if (layoutEntry.Class == EffectParameterClass.ConstantBuffer)
                     {
+                        // For Constant Buffers, we need to create a preallocated Buffer
                         var constantBuffer = effectBytecode.Reflection.ConstantBuffers.First(x => x.Name == layoutEntry.Key.Name);
+
+                        var bufferUsage = hasResourceRenaming ? GraphicsResourceUsage.Dynamic : GraphicsResourceUsage.Default;
+
                         resourceGroupBinding.ConstantBufferSlot = resourceIndex;
-                        resourceGroupBinding.ConstantBufferPreallocated = Buffer.Constant.New(graphicsDevice, constantBuffer.Size, graphicsDevice.Features.HasResourceRenaming ? GraphicsResourceUsage.Dynamic : GraphicsResourceUsage.Default);
+                        resourceGroupBinding.PreAllocatedConstantBuffer = Buffer.Constant.New(graphicsDevice, constantBuffer.Size, bufferUsage);
                     }
                 }
 
@@ -49,9 +79,26 @@ namespace Stride.Graphics
             }
         }
 
-        public unsafe void Apply(CommandList commandList, ResourceGroup[] resourceGroups, int resourceGroupsOffset)
+        /// <summary>
+        ///   Applies the specified resource groups to the given Command List,
+        ///   binding their Graphics Resources and uploading Constant Buffers as needed.
+        /// </summary>
+        /// <param name="commandList">The Command List to which the resource groups will be applied.</param>
+        /// <param name="resourceGroups">
+        ///   An array of resource groups containing the resources to be bound.
+        ///   Each resource group may include Constant Buffers, Textures, or other GPU resources.
+        /// </param>
+        /// <param name="resourceGroupsOffset">
+        ///   The starting index in the <paramref name="resourceGroups"/> array from which
+        ///   to begin applying resource groups.
+        /// </param>
+        /// <remarks>
+        ///   If a resource group contains a Constant Buffer that has not yet been uploaded,
+        ///   the Buffer is uploaded before being bound.
+        /// </remarks>
+        public readonly unsafe void Apply(CommandList commandList, ResourceGroup[] resourceGroups, int resourceGroupsOffset)
         {
-            if (resourceGroupBindings.Length == 0)
+            if (resourceGroupBindings?.Length is null or 0)
                 return;
 
             ref var resourceGroupBinding = ref MemoryMarshal.GetArrayDataReference(resourceGroupBindings);
@@ -59,37 +106,57 @@ namespace Stride.Graphics
             {
                 var resourceGroup = resourceGroups[resourceGroupsOffset + i];
 
-                // Upload cbuffer (if not done yet)
-                if (resourceGroupBinding.ConstantBufferSlot != -1 && resourceGroup != null && resourceGroup.ConstantBuffer.Data != IntPtr.Zero)
+                // Upload the Constant Buffer (if not done yet)
+                if (resourceGroupBinding.ConstantBufferSlot != INVALID_CONSTANT_BUFFER_SLOT &&
+                    resourceGroup is not null &&
+                    resourceGroup.ConstantBuffer.Data != IntPtr.Zero)
                 {
-                    var preallocatedBuffer = resourceGroup.ConstantBuffer.Buffer;
+                    var preAllocatedBuffer = resourceGroup.ConstantBuffer.Buffer;
+
                     bool needUpdate = true;
-                    if (preallocatedBuffer == null)
-                        preallocatedBuffer = resourceGroupBinding.ConstantBufferPreallocated; // If it's preallocated buffer, we always upload
+                    if (preAllocatedBuffer is null)
+                        // If it's a pre-allocated Buffer, we always upload
+                        preAllocatedBuffer = resourceGroupBinding.PreAllocatedConstantBuffer;
+
                     else if (resourceGroup.ConstantBuffer.Uploaded)
-                        needUpdate = false; // If it's not preallocated and already uploaded, we can avoid uploading it again
+                        // If it is not pre-allocated and it is already uploaded, we can avoid uploading it again
+                        needUpdate = false;
                     else
-                        resourceGroup.ConstantBuffer.Uploaded = true; // First time it is uploaded
+                        // First time it is uploaded
+                        resourceGroup.ConstantBuffer.Uploaded = true;
 
                     if (needUpdate)
                     {
                         if (hasResourceRenaming)
                         {
-                            var mappedConstantBuffer = commandList.MapSubresource(preallocatedBuffer, 0, MapMode.WriteDiscard);
-                            Utilities.CopyWithAlignmentFallback((void*)mappedConstantBuffer.DataBox.DataPointer, (void*)resourceGroup.ConstantBuffer.Data, (uint)resourceGroup.ConstantBuffer.Size);
-                            commandList.UnmapSubresource(mappedConstantBuffer);
+                            var mappedConstantBuffer = commandList.MapSubResource(preAllocatedBuffer, subResourceIndex: 0, MapMode.WriteDiscard);
+
+                            MemoryUtilities.CopyWithAlignmentFallback((void*) mappedConstantBuffer.DataBox.DataPointer,
+                                                                      (void*) resourceGroup.ConstantBuffer.Data,
+                                                                      (uint) resourceGroup.ConstantBuffer.Size);
+
+                            commandList.UnmapSubResource(mappedConstantBuffer);
                         }
                         else
                         {
-                            commandList.UpdateSubresource(preallocatedBuffer, 0, new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, 0));
+                            var dataBox = new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, slicePitch: 0);
+                            commandList.UpdateSubResource(preAllocatedBuffer, subResourceIndex: 0, dataBox);
                         }
                     }
 
-                    resourceGroup.DescriptorSet.SetConstantBuffer(resourceGroupBinding.ConstantBufferSlot, preallocatedBuffer, resourceGroup.ConstantBuffer.Offset, resourceGroup.ConstantBuffer.Size);
+                    // Bind the pre-allocated Constant Buffer to the resource group
+                    resourceGroup.DescriptorSet.SetConstantBuffer(resourceGroupBinding.ConstantBufferSlot,
+                                                                  preAllocatedBuffer,
+                                                                  resourceGroup.ConstantBuffer.Offset,
+                                                                  resourceGroup.ConstantBuffer.Size);
                 }
             }
         }
 
+        /// <summary>
+        ///   Releases all pre-allocated Constant Buffers associated with the current
+        ///   resource group bindings and clears the bindings.
+        /// </summary>
         public void Clear()
         {
             if (resourceGroupBindings is null)
@@ -98,17 +165,20 @@ namespace Stride.Graphics
             for (int i = 0; i < resourceGroupBindings.Length; i++)
             {
                 ref var binding = ref resourceGroupBindings[i];
-                binding.ConstantBufferPreallocated?.Dispose();
+                binding.PreAllocatedConstantBuffer?.Dispose();
             }
 
             resourceGroupBindings = null;
         }
 
-        internal struct ResourceGroupBinding
+        #region ResourceGroupBinding
+
+        private struct ResourceGroupBinding
         {
-            // Constant buffer
             public int ConstantBufferSlot;
-            public Buffer ConstantBufferPreallocated;
+            public Buffer PreAllocatedConstantBuffer;
         }
+
+        #endregion
     }
 }

@@ -188,7 +188,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             private unsafe void RebuildConeVertexBuffer(CommandList commandList, LightSpot lightSpot)
             {
-                var mappedVertices = commandList.MapSubresource(vertexBuffer, 0, MapMode.WriteDiscard);
+                var mappedVertices = commandList.MapSubResource(vertexBuffer, 0, MapMode.WriteDiscard);
                 var vertexPointer = mappedVertices.DataBox.DataPointer;
                 var vertex = (VertexPositionNormalTexture*)vertexPointer;
 
@@ -208,12 +208,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 vertex[4 * Tesselation].Position = Vector3.Zero;
                 vertex[4 * Tesselation].Normal = new Vector3(0, 0, -1);
 
-                commandList.UnmapSubresource(mappedVertices);
+                commandList.UnmapSubResource(mappedVertices);
             }
 
             private unsafe void RebuildRectangleVertexBuffer(CommandList commandList, LightSpot lightSpot)
             {
-                var mappedVertices = commandList.MapSubresource(vertexBuffer, 0, MapMode.WriteDiscard);
+                var mappedVertices = commandList.MapSubResource(vertexBuffer, 0, MapMode.WriteDiscard);
                 var vertexPointer = mappedVertices.DataBox.DataPointer;
                 var vertex = (VertexPositionNormalTexture*)vertexPointer;
 
@@ -259,7 +259,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 vertex[8].Position = new Vector3(-projectionPlaneX, projectionPlaneY, -projectionPlaneDistance);
                 vertex[8].Normal = normal;
 
-                commandList.UnmapSubresource(mappedVertices);
+                commandList.UnmapSubResource(mappedVertices);
             }
 
             private static int[] BuildConeIndexBuffer()

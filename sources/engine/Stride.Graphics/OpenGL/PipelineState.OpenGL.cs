@@ -43,7 +43,7 @@ namespace Stride.Graphics
 
             var rootSignature = pipelineStateDescription.RootSignature;
             if (rootSignature != null && effectBytecode != null)
-                ResourceBinder.Compile(graphicsDevice, rootSignature.EffectDescriptorSetReflection, effectBytecode);
+                ResourceBinder.Compile(rootSignature.EffectDescriptorSetReflection, effectBytecode);
 
             // Vertex attributes
             if (pipelineStateDescription.InputElements != null)
@@ -82,7 +82,7 @@ namespace Stride.Graphics
                 DepthStencilState.Apply(commandList);
         }
 
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             var pipelineStateCache = GetPipelineStateCache();
 
@@ -91,7 +91,7 @@ namespace Stride.Graphics
             if (VertexAttribs != null)
                 pipelineStateCache.VertexAttribsCache.Release(VertexAttribs);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         struct VertexAttribsKey : IEquatable<VertexAttribsKey>
@@ -113,7 +113,7 @@ namespace Stride.Graphics
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
-                return obj is VertexAttribsKey && Equals((VertexAttribsKey)obj);
+                return obj is VertexAttribsKey vertexAttribsKey && Equals(vertexAttribsKey);
             }
 
             public override int GetHashCode()

@@ -1,85 +1,66 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
-    public partial class GraphicsOutput : ComponentBase
+    /// <summary>
+    ///   Represents an output (such as a monitor) attached to a <see cref="GraphicsAdapter"/>.
+    /// </summary>
+    public sealed partial class GraphicsOutput : ComponentBase
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
-        private readonly object lockModes = new object();
-        private readonly GraphicsAdapter adapter;
-        private DisplayMode currentDisplayMode;
+
+        private readonly object lockModes = new();
+
+        private DisplayMode? currentDisplayMode;
         private DisplayMode[] supportedDisplayModes;
-        private readonly Rectangle desktopBounds;
+
 
         /// <summary>
-        /// Default constructor to initialize fields that are not explicitly set to avoid warnings at compile time.
+        ///   Gets the <see cref="GraphicsAdapter"/> this output is attached to.
         /// </summary>
-        internal GraphicsOutput()
-        {
-            adapter = null;
-            supportedDisplayModes = null;
-            desktopBounds = Rectangle.Empty;
-        }
+        public GraphicsAdapter Adapter { get; }
 
         /// <summary>
-        /// Gets the current display mode.
+        ///   Gets the current display mode of this <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <value>The current display mode.</value>
-        public DisplayMode CurrentDisplayMode
+        public DisplayMode? CurrentDisplayMode
         {
             get
             {
                 lock (lockModes)
                 {
                     if (currentDisplayMode == null)
-                    {
                         InitializeCurrentDisplayMode();
-                    }
                 }
                 return currentDisplayMode;
             }
         }
 
         /// <summary>
-        /// Returns a collection of supported display modes for this <see cref="GraphicsOutput"/>.
+        ///   Returns a collection of the supported display modes for this <see cref="GraphicsOutput"/>.
         /// </summary>
-        public DisplayMode[] SupportedDisplayModes
+        public ReadOnlySpan<DisplayMode> SupportedDisplayModes
         {
             get
             {
                 lock (lockModes)
                 {
                     if (supportedDisplayModes == null)
-                    {
                         InitializeSupportedDisplayModes();
-                    }
                 }
                 return supportedDisplayModes;
             }
         }
 
         /// <summary>
-        /// Gets the desktop bounds of the current output.
+        ///   Gets the desktop bounds of the current <see cref="GraphicsOutput"/>.
         /// </summary>
-        public Rectangle DesktopBounds
-        {
-            get
-            {
-                return desktopBounds;
-            }
-        }
-
-        /// <summary>
-        /// Gets the adapter this output is attached.
-        /// </summary>
-        /// <value>The adapter.</value>
-        public GraphicsAdapter Adapter
-        {
-            get { return adapter; }
-        }
+        public Rectangle DesktopBounds { get; }
     }
 }

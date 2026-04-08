@@ -45,13 +45,13 @@ namespace Stride.Navigation
         /// Settings for agents used with the dynamic navigation mesh
         /// </summary>
         [DataMember(30)]
-        public List<NavigationMeshGroup> Groups { get; private set; } = new List<NavigationMeshGroup>();
+        public List<NavigationMeshGroup> Groups { get; private set; } = [];
 
         private bool pendingRebuild = true;
 
         private SceneInstance currentSceneInstance;
 
-        private NavigationMeshBuilder builder = new NavigationMeshBuilder();
+        private NavigationMeshBuilder builder = new();
 
         private CancellationTokenSource buildTaskCancellationTokenSource;
 
@@ -159,13 +159,10 @@ namespace Stride.Navigation
             if (boundingBoxProcessor == null)
                 return new NavigationMeshBuildResult();
 
-            List<BoundingBox> boundingBoxes = new List<BoundingBox>();
+            List<BoundingBox> boundingBoxes = [];
             foreach (var boundingBox in boundingBoxProcessor.BoundingBoxes)
             {
-                Vector3 scale;
-                Quaternion rotation;
-                Vector3 translation;
-                boundingBox.Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
+                boundingBox.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion _, out var translation);
                 boundingBoxes.Add(new BoundingBox(translation - boundingBox.Size * scale, translation + boundingBox.Size * scale));
             }
 
@@ -179,7 +176,7 @@ namespace Stride.Navigation
             });
             await result;
 
-            FinilizeRebuild(result);
+            FinalizeRebuild(result);
 
             return result.Result;
         }
@@ -194,7 +191,7 @@ namespace Stride.Navigation
             pendingRebuild = true;
         }
 
-        private void FinilizeRebuild(Task<NavigationMeshBuildResult> resultTask)
+        private void FinalizeRebuild(Task<NavigationMeshBuildResult> resultTask)
         {
             var result = resultTask.Result;
             if (result.Success)
@@ -224,7 +221,7 @@ namespace Stride.Navigation
                 builder = new NavigationMeshBuilder();
             }
 
-            // Set the currect scene
+            // Set the correct scene
             currentSceneInstance = newSceneInstance;
 
             if (currentSceneInstance != null)

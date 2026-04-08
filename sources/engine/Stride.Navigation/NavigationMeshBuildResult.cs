@@ -26,7 +26,7 @@ namespace Stride.Navigation
         /// <summary>
         /// List of updated layers + tiles
         /// </summary>
-        public List<NavigationMeshLayerUpdateInfo> UpdatedLayers = new List<NavigationMeshLayerUpdateInfo>();
+        public readonly List<NavigationMeshLayerUpdateInfo> UpdatedLayers = [];
     }
 
     /// <summary>
@@ -42,6 +42,6 @@ namespace Stride.Navigation
         /// <summary>
         /// Coordinates of the tiles that were updated
         /// </summary>
-        public List<Point> UpdatedTiles = new List<Point>();
+        public List<Point> UpdatedTiles = [];
     }
 }

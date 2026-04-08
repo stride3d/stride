@@ -368,9 +368,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             var meshDraw = new MeshDraw
             {
                 IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices), true, indices.Length),
-                VertexBuffers = new[] { new VertexBufferBinding(Buffer.New(graphicsDevice, vertices, BufferFlags.VertexBuffer).RecreateWith(vertices), layout, vertices.Length) },
+                VertexBuffers = [ new VertexBufferBinding(Buffer.Vertex.New(graphicsDevice, vertices).RecreateWith(vertices), layout, vertices.Length) ],
                 DrawCount = indices.Length,
-                PrimitiveType = primitiveType,
+                PrimitiveType = primitiveType
             };
 
             wireframeResources.Add(meshDraw.VertexBuffers[0].Buffer);

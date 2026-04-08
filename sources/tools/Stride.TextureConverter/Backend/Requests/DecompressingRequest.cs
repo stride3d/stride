@@ -24,7 +24,7 @@ namespace Stride.TextureConverter.Requests
         /// <param name="pixelFormat">Input pixel format.</param>
         public DecompressingRequest(bool isSRgb, PixelFormat pixelFormat = PixelFormat.None)
         {
-            if (pixelFormat.IsHDR())
+            if (pixelFormat.IsHDR)
                 DecompressedFormat = PixelFormat.R16G16B16A16_Float;
             else
                 DecompressedFormat = isSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;

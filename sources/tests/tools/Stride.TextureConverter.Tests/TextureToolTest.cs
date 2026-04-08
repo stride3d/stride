@@ -26,11 +26,11 @@ namespace Stride.TextureConverter.Tests
             TexImage img;
 
             img = texTool.Load(Module.PathToInputImages + "stones.png");
-            Assert.True(img.ArraySize == 1);
-            Assert.True(img.Width == 512);
-            Assert.True(img.Height == 512);
-            Assert.True(img.Depth == 1);
-            Assert.True(img.Format == PixelFormat.B8G8R8A8_UNorm);
+            Assert.Equal(1, img.ArraySize);
+            Assert.Equal(512, img.Width);
+            Assert.Equal(512, img.Height);
+            Assert.Equal(1, img.Depth);
+            Assert.Equal(PixelFormat.B8G8R8A8_UNorm, img.Format);
             img.Dispose();
 
             try
@@ -52,7 +52,7 @@ namespace Stride.TextureConverter.Tests
 
             // ------------------- Test with BC3 image -------------------
             img = texTool.Load(Module.PathToInputImages + "TextureArray_WMipMaps_BC3.dds");
-            Assert.True(img.Format == PixelFormat.BC3_UNorm);
+            Assert.Equal(PixelFormat.BC3_UNorm, img.Format);
             mipmapCount = img.MipmapCount;
             arraySize = img.ArraySize;
             width = img.Width;
@@ -61,7 +61,7 @@ namespace Stride.TextureConverter.Tests
             subImageArrayLenght = img.SubImageArray.Length;
 
             texTool.Decompress(img, false);
-            Assert.True(img.Format == PixelFormat.R8G8B8A8_UNorm);
+            Assert.Equal(PixelFormat.R8G8B8A8_UNorm, img.Format);
             Assert.True(mipmapCount == img.MipmapCount);
             Assert.True(arraySize == img.ArraySize);
             Assert.True(width == img.Width);
@@ -75,7 +75,7 @@ namespace Stride.TextureConverter.Tests
             // ------------------- Test with uncompress image -------------------
             img = texTool.Load(Module.PathToInputImages + "stones.png");
             texTool.Decompress(img, false);
-            Assert.True(img.Format == PixelFormat.B8G8R8A8_UNorm); //FITexLibrary loads image in BGRA order...
+            Assert.Equal(PixelFormat.B8G8R8A8_UNorm, img.Format); //FITexLibrary loads image in BGRA order...
             img.Dispose();
         }
 
@@ -120,7 +120,7 @@ namespace Stride.TextureConverter.Tests
         {
             TexImage image = texTool.Load(Module.PathToInputImages + filename);
             texTool.Compress(image, format);
-            Assert.True(image.Format == format);
+            Assert.Equal(image.Format, format);
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Compress_" + format + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Compress_" + format + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -212,7 +212,7 @@ namespace Stride.TextureConverter.Tests
             texTool.Rescale(image, 0.5f, 0.5f, Filter.Rescaling.Bicubic);
             Assert.True(image.Width == width / 2);
             Assert.True(image.Height == height / 2);
-            Assert.True(image.MipmapCount == 1);
+            Assert.Equal(1, image.MipmapCount);
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Rescale_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -232,7 +232,7 @@ namespace Stride.TextureConverter.Tests
             texTool.Resize(image, width/2, height/2, Filter.Rescaling.Bicubic);
             Assert.True(image.Width == width / 2);
             Assert.True(image.Height == height / 2);
-            Assert.True(image.MipmapCount == 1);
+            Assert.Equal(1, image.MipmapCount);
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Rescale_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -245,12 +245,12 @@ namespace Stride.TextureConverter.Tests
         public void SwitchChannelTest(string file)
         {
             var image = texTool.Load(Module.PathToInputImages + file);
-            var isInBgraOrder = image.Format.IsBGRAOrder();
+            var isInBgraOrder = image.Format.IsBgraOrder;
 
             texTool.SwitchChannel(image);
             image.Update();
 
-            Assert.True(isInBgraOrder != image.Format.IsBGRAOrder());
+            Assert.True(isInBgraOrder != image.Format.IsBgraOrder);
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_SwitchChannel_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_SwitchChannel_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -784,7 +784,7 @@ namespace Stride.TextureConverter.Tests
 
                 // last pixel test
                 new AlphaLevelTest(new Rectangle(52, 54, 12, 10), new Color(255, 81, 237, 255), AlphaLevels.MaskAlpha),
-                
+
                 // region out of bound tests
                 new AlphaLevelTest(new Rectangle(120, 12, 18, 18), new Color(255, 81, 237, 255), AlphaLevels.NoAlpha),
                 new AlphaLevelTest(new Rectangle(12, 120, 18, 18), new Color(255, 81, 237, 255), AlphaLevels.NoAlpha),

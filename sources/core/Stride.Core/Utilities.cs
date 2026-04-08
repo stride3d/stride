@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,131 +23,23 @@
 
 using System.Collections;
 using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Stride.Core;
 
 /// <summary>
-/// Utility class.
+///   Provides a set of static utility methods for collection operations, and general-purpose helpers.
 /// </summary>
 public static class Utilities
 {
-    // MUST BE A METHOD AND AGGRESSIVELY INLINED, OTHERWISE THE JIT WILL NOT ELIMINATE THE BRANCH
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
-    private static bool IsUnalignedSafe() =>
-        RuntimeInformation.ProcessArchitecture is Architecture.X64 or Architecture.X86 or Architecture.Arm64;
-
-    /// <inheritdoc cref="AlignmentFallbackDoc"/>
-    /// <inheritdoc cref="Unsafe.CopyBlock(ref byte, ref readonly byte, uint)"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void CopyWithAlignmentFallback(ref byte destination, ref readonly byte source, uint byteCount)
-    {
-        if (IsUnalignedSafe())
-            fixed (void* src = &source, dst = &destination)
-                Buffer.MemoryCopy(src, dst, byteCount, byteCount);
-        else
-            Unsafe.CopyBlockUnaligned(ref destination, in source, byteCount);
-    }
-
-    /// <inheritdoc cref="AlignmentFallbackDoc"/>
-    /// <inheritdoc cref="Unsafe.CopyBlock(ref byte, ref readonly byte, uint)"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void CopyWithAlignmentFallback(void* destination, void* source, uint byteCount)
-    {
-        if (IsUnalignedSafe())
-            Buffer.MemoryCopy(source, destination, byteCount, byteCount);
-        else
-            Unsafe.CopyBlockUnaligned(destination, source, byteCount);
-    }
-
     /// <summary>
-    /// Zero out memory at the address provided
+    ///   Disposes an <see cref="IDisposable"/> object if not <see langword="null"/>,
+    ///   and sets it to <see langword="null"/>.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void Clear(void* startAddress, uint byteCount)
-    {
-        // Span swaps between InitBlockUnaligned and _ZeroMemory depending on the size
-        new Span<byte>(startAddress, (int)byteCount).Clear();
-    }
-
-    /// <remarks>
-    /// Some of the architecture dotnet runs on do not support arbitrary unaligned reads or writes,
-    /// use this instead of other memcopy if you aren't sure whether the pointers you passed in are aligned.
-    /// </remarks>
-    static void AlignmentFallbackDoc() { }
-
-    /// <summary>
-    /// Allocate an aligned memory buffer.
-    /// </summary>
-    /// <param name="sizeInBytes">Size of the buffer to allocate.</param>
-    /// <param name="align">Alignment, a positive value which is a power of 2. 16 bytes by default.</param>
-    /// <returns>A pointer to a buffer aligned.</returns>
-    /// <remarks>
-    /// To free this buffer, call <see cref="FreeMemory"/>
-    /// </remarks>
-    public static unsafe nint AllocateMemory(int sizeInBytes, int align = 16)
-    {
-        var mask = align - 1;
-        if ((align & mask) != 0)
-        {
-            throw new ArgumentException("Alignment is not a power of 2.", nameof(align));
-        }
-        var memPtr = (nint)Marshal.AllocHGlobal(sizeInBytes + mask + sizeof(void*));
-        var ptr = (memPtr + sizeof(void*) + mask) & ~mask;
-        ((nint*)ptr)[-1] = memPtr;
-        return ptr;
-    }
-
-    /// <summary>
-    /// Allocate an aligned memory buffer and clear it with a specified value (0 by defaault).
-    /// </summary>
-    /// <param name="sizeInBytes">Size of the buffer to allocate.</param>
-    /// <param name="clearValue">Default value used to clear the buffer.</param>
-    /// <param name="align">Alignment, 16 bytes by default.</param>
-    /// <returns>A pointer to a buffer aligned.</returns>
-    /// <remarks>
-    /// To free this buffer, call <see cref="FreeMemory"/>
-    /// </remarks>
-    public static unsafe nint AllocateClearedMemory(int sizeInBytes, byte clearValue = 0, int align = 16)
-    {
-        var ptr = AllocateMemory(sizeInBytes, align);
-        Unsafe.InitBlockUnaligned((void*)ptr, clearValue, (uint)sizeInBytes);
-        return ptr;
-    }
-
-    /// <summary>
-    /// Determines whether the specified memory pointer is aligned in memory.
-    /// </summary>
-    /// <param name="memoryPtr">The memory pointer.</param>
-    /// <param name="align">The align.</param>
-    /// <returns><c>true</c> if the specified memory pointer is aligned in memory; otherwise, <c>false</c>.</returns>
-    public static bool IsMemoryAligned(nint memoryPtr, int align = 16)
-        => BitOperations.IsPow2(align)
-        ? ((nint)memoryPtr & --align) == 0
-        : throw new ArgumentException("Alignment is not a power of 2.", nameof(align));
-
-    /// <summary>
-    /// Free an aligned memory buffer.
-    /// </summary>
-    /// <remarks>
-    /// The buffer must have been allocated with <see cref="AllocateMemory"/>
-    /// </remarks>
-    public static unsafe void FreeMemory(nint alignedBuffer)
-        => Marshal.FreeHGlobal(((nint*)alignedBuffer)[-1]);
-
-    /// <summary>
-    /// If non-null, disposes the specified object and set it to null, otherwise do nothing.
-    /// </summary>
-    /// <param name="disposable">The disposable.</param>
+    /// <param name="disposable">The disposable object to dispose.</param>
     public static void Dispose<T>(ref T? disposable) where T : class, IDisposable
     {
-        if (disposable is not null)
-        {
-            disposable.Dispose();
-            disposable = null;
-        }
+        disposable?.Dispose();
+        disposable = null;
     }
 
     /// <summary>
@@ -283,14 +175,6 @@ public static class Utilities
 
         return true;
     }
-
-    /// <summary>
-    /// Swaps the value between two references.
-    /// </summary>
-    /// <typeparam name="T">Type of a data to swap.</typeparam>
-    /// <param name="left">The left value.</param>
-    /// <param name="right">The right value.</param>
-    public static void Swap<T>(ref T left, ref T right) => (right, left) = (left, right);
 
     /// <summary>
     /// Linq assisted full tree iteration and collection in a single line.

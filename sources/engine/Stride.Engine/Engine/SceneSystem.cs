@@ -203,7 +203,7 @@ namespace Stride.Engine
             if (previousWidth != renderTarget.ViewWidth || previousHeight != renderTarget.ViewHeight)
             {
                 // Force a recycle of all allocated temporary textures
-                renderContext.Allocator.Recycle(link => true);
+                renderContext.Allocator.Recycle(link => link.Resource is Texture);
             }
 
             previousWidth = renderTarget.ViewWidth;

@@ -17,12 +17,10 @@ namespace Stride.Core.Presentation.Behaviors
     /// </summary>
     public static class BindableSelectedItemsControl
     {
-        private static bool disableBindings;
-
         /// <summary>
         /// Allows to disable <see cref="BindableSelectedItemsBehavior{T}"/> instances during specific view operations.
         /// </summary>
-        public static bool DisableBindings { get { return disableBindings; } set { disableBindings = value; if (!value) BindingReactivated?.Invoke(); } }
+        public static bool DisableBindings { get; set { field = value; if (!value) BindingReactivated?.Invoke(); } }
 
         internal static event Action BindingReactivated;
     }

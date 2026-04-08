@@ -37,11 +37,11 @@ namespace Stride.Rendering.UI
         public override Type SupportedRenderObjectType => typeof(RenderUIElement);
 
         /// <summary>
-        /// Represents the UI-element thats currently under the mouse cursor.
+        /// Represents the UI-element currently under the mouse cursor.
         /// Only elements with CanBeHitByUser == true are taken into account.
         /// Last processed element_state / ?UIComponent? with a valid element will be used.
         /// </summary>
-        public UIElement UIElementUnderMouseCursor { get; private set; }
+        public UIElement UIElementUnderMouseCursor => uiSystem.UIElementUnderMouseCursor;
 
         public UIRenderFeature()
         {
@@ -126,7 +126,7 @@ namespace Stride.Rendering.UI
 
             // see UIElementUnderMouseCursor property
             UIElement elementUnderMouseCursor = null;
-            
+
 
             // update view parameters and perform UI picking
             foreach (var uiElementState in uiElementStates)
@@ -137,7 +137,7 @@ namespace Stride.Rendering.UI
                     continue;
 
                 UIElement loopedElementUnderMouseCursor = null;
-                
+
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
                 var virtualResolution = renderObject.Resolution;
 
@@ -161,18 +161,19 @@ namespace Stride.Rendering.UI
                         uiElementState.Update(renderObject, cameraComponent);
                 }
 
-                
+
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
                     PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
-                    
+
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
                         elementUnderMouseCursor = loopedElementUnderMouseCursor;
                 }
             }
-            UIElementUnderMouseCursor = elementUnderMouseCursor;
+            
+            uiSystem.UIElementUnderMouseCursor = elementUnderMouseCursor;
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
@@ -207,9 +208,6 @@ namespace Stride.Rendering.UI
                 var projectedOrigin = virtualOrigin.XY() / virtualOrigin.W;
                 var projectedVirtualWidth = viewportSize * (transformedVirtualWidth.XY() / transformedVirtualWidth.W - projectedOrigin);
                 var projectedVirtualHeight = viewportSize * (transformedVirtualHeight.XY() / transformedVirtualHeight.W - projectedOrigin);
-
-                // Set default services
-                rootElement.UIElementServices = new UIElementServices { Services = RenderSystem.Services };
 
                 // set default resource dictionary
 
@@ -266,8 +264,8 @@ namespace Stride.Rendering.UI
 
             PickingClear();
 
-            // revert the depth stencil buffer to the default value
-            context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            // Revert the Depth-Stencil buffer to the default value
+            context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargets);
 
             // Release scroped texture
             if (scopedDepthBuffer != null)

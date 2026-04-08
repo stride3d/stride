@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.IO;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -51,7 +50,7 @@ namespace Stride.Rendering.Images
             // Readback is always going to be done on the 1x1 texture
             readback = ToLoadAndUnload(readback);
 
-            // Blur used before upscaling 
+            // Blur used before upscaling
             blur = ToLoadAndUnload(new GaussianBlur());
             blur.Radius = 4;
         }
@@ -64,7 +63,7 @@ namespace Stride.Rendering.Images
             get => luminanceFormat;
             set
             {
-                if (value.IsCompressed() || value.IsPacked() || value.IsTypeless() || value == PixelFormat.None)
+                if (value.IsCompressed || value.IsPacked || value.IsTypeless || value == PixelFormat.None)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Unsupported format [{0}] (must be not none, compressed, packed or typeless)".ToFormat(value));
                 }
@@ -78,14 +77,14 @@ namespace Stride.Rendering.Images
         public ImageEffectShader LuminanceLogEffect { get; set; }
 
         /// <summary>
-        /// Gets or sets down scale count used to downscale the input intermediate texture used for local luminance (if no 
+        /// Gets or sets down scale count used to downscale the input intermediate texture used for local luminance (if no
         /// output is given). By default 1/64 of the input texture size.
         /// </summary>
         /// <value>Down scale count.</value>
         public int DownscaleCount { get; set; }
 
         /// <summary>
-        /// Gets or sets the upscale count used to upscale the downscaled input local luminance texture. By default x16 of the 
+        /// Gets or sets the upscale count used to upscale the downscaled input local luminance texture. By default x16 of the
         /// input texture size.
         /// </summary>
         /// <value>The upscale count.</value>
@@ -102,7 +101,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         /// <value>The average luminance.</value>
         /// <remarks>
-        /// The average luminance is calculated on the GPU and readback with a few frames of delay, depending on the number of 
+        /// The average luminance is calculated on the GPU and readback with a few frames of delay, depending on the number of
         /// frames in advance between command scheduling and actual execution on GPU.
         /// </remarks>
         public float AverageLuminance { get; private set; }
@@ -170,7 +169,7 @@ namespace Stride.Rendering.Images
                 multiScaler.SetOutput(blurTexture, AverageLuminanceTexture);
                 multiScaler.Draw(context);
 
-                // Blur x2 the intermediate output texture 
+                // Blur x2 the intermediate output texture
                 blur.SetInput(blurTexture);
                 blur.SetOutput(blurTexture);
                 blur.Draw(context);

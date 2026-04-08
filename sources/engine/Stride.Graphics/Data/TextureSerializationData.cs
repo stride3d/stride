@@ -21,7 +21,7 @@ namespace Stride.Graphics.Data
         /// Also, those levels will be load during initial load, only lower levels will be streamed.
         /// </summary>
         internal const int InitialNonStreamedMipCount = 6;
-        
+
         /// <summary>
         /// The texture image.
         /// </summary>
@@ -79,7 +79,7 @@ namespace Stride.Graphics.Data
 
                 // Determine whether we can store initial image
                 StorageHeader.InitialImage = true;
-                if (Image.Description.Format.IsCompressed())
+                if (Image.Description.Format.IsCompressed)
                 {
                     // Compressed: mips need to be multiple of 4, otherwise we can't do it
                     var initialImageWidth = Image.PixelBuffers[skippedMipCount].Width;

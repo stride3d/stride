@@ -1,0 +1,91 @@
+name: "Dep: Build & Deploy SwiftShader"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: NuGet package version (leave empty for date-based)
+        required: false
+
+jobs:
+  build:
+    name: Build SwiftShader (Windows x64)
+    runs-on: windows-2025-vs2026
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout SwiftShader
+        uses: actions/checkout@v4
+        with:
+          repository: google/swiftshader
+          submodules: recursive
+          path: swiftshader-src
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cmake -S swiftshader-src -B swiftshader-build -Thost=x64 -DSWIFTSHADER_BUILD_TESTS=OFF -DSWIFTSHADER_BUILD_BENCHMARKS=OFF
+          cmake --build swiftshader-build --config RelWithDebInfo --target vk_swiftshader
+
+      - name: Prepare package contents
+        shell: pwsh
+        run: |
+          $destDir = "build/deps/swiftshader"
+          Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.dll $destDir/
+          # ICD JSON is generated in a platform-specific directory by cmake
+          $icdJson = Get-ChildItem -Recurse -Path swiftshader-build -Filter vk_swiftshader_icd.json | Select-Object -First 1
+          if (-not $icdJson) { throw "vk_swiftshader_icd.json not found in build output" }
+          Copy-Item $icdJson.FullName $destDir/
+
+      - name: Pack NuGet
+        shell: pwsh
+        run: |
+          $commitHash = git -C swiftshader-src rev-parse --short HEAD
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
+          nuget pack build/deps/swiftshader/Stride.Dependencies.SwiftShader.nuspec `
+            -Version $version `
+            -Properties "commit=$commitHash" `
+            -OutputDirectory nupkg
+          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stride.Dependencies.SwiftShader.nupkg
+          path: nupkg/*.nupkg
+
+  publish:
+    name: Sign & Publish to NuGet.org
+    needs: build
+    runs-on: windows-2025-vs2026
+    environment: production
+    steps:
+      - name: Install signing tool
+        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Stride.Dependencies.SwiftShader.nupkg
+
+      - name: Sign NuGet package
+        shell: pwsh
+        run: |
+          ./sign-tool/sign code azure-key-vault *.nupkg `
+            --description "Stride" `
+            --description-url "https://stride3d.net" `
+            --publisher-name "Stride" `
+            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
+            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
+            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
+            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
+            -v Information
+
+      - name: Publish
+        run: |
+          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

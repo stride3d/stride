@@ -1,111 +1,143 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
+
 using Stride.Core.Serialization;
-using Stride.Core.Serialization.Serializers;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Binding structure that specifies a Vertex Buffer and other per-vertex parameters (such as offset and instancing) for a Graphics Device.
+/// </summary>
+[DataSerializer(typeof(VertexBufferBinding.Serializer))]
+public readonly struct VertexBufferBinding : IEquatable<VertexBufferBinding>
 {
+    private readonly int hashCode;
+
     /// <summary>
-    /// Binding structure that specifies a vertex buffer and other per-vertex parameters (such as offset and instancing) for a graphics device.
+    ///   Initializes a new instance of the <see cref="VertexBufferBinding"/> structure.
     /// </summary>
-    [DataSerializer(typeof(VertexBufferBinding.Serializer))]
-    public struct VertexBufferBinding : IEquatable<VertexBufferBinding>
+    /// <param name="vertexBuffer">The Vertex Buffer to bind.</param>
+    /// <param name="vertexDeclaration">
+    ///   A description of the layout of the vertices in the <paramref name="vertexBuffer"/>, defining how the data is structured.
+    /// </param>
+    /// <param name="vertexCount">The number of vertices in the Buffer to use.</param>
+    /// <param name="vertexStride">
+    ///   The size of a single vertex in bytes. This is the distance between two consecutive vertices in the buffer.
+    ///   Specify <c>-1</c> to auto-discover the stride from the <paramref name="vertexDeclaration"/>.
+    /// </param>
+    /// <param name="vertexOffset">
+    ///   The offset in bytes from the beginning of the Buffer to the first vertex to use.
+    ///   Default is <c>0</c>, meaning the first vertex in the Buffer will be used.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="vertexBuffer"/> or <paramref name="vertexDeclaration"/> is <see langword="null"/>.
+    /// </exception>
+    public VertexBufferBinding(Buffer vertexBuffer, VertexDeclaration vertexDeclaration, int vertexCount, int vertexStride = -1, int vertexOffset = 0) : this()
     {
-        private readonly int hashCode;
+        ArgumentNullException.ThrowIfNull(vertexBuffer);
+        ArgumentNullException.ThrowIfNull(vertexDeclaration);
 
+        Buffer = vertexBuffer;
+        Stride = vertexStride != -1 ? vertexStride : vertexDeclaration.VertexStride;
+        Offset = vertexOffset;
+        Count = vertexCount;
+        Declaration = vertexDeclaration;
+
+        hashCode = HashCode.Combine(vertexBuffer, vertexOffset, vertexStride, vertexCount, vertexDeclaration);
+    }
+
+
+    /// <summary>
+    ///   Gets the Vertex Buffer to bind.
+    /// </summary>
+    public Buffer Buffer { get; }
+
+    /// <summary>
+    ///   Gets the offset in bytes from the beginning of the <see cref="Buffer"/> to the first vertex to use.
+    /// </summary>
+    public int Offset { get; }
+
+    /// <summary>
+    ///   Gets the size of a single vertex in bytes. This is the distance between two consecutive vertices in the <see cref="Buffer"/>.
+    /// </summary>
+    public int Stride { get; }
+
+    /// <summary>
+    ///   Gets the number of vertices in the <see cref="Buffer"/> to use.
+    /// </summary>
+    public int Count { get; }
+
+    /// <summary>
+    ///   Gets a description of the layout of the vertices in the <see cref="Buffer"/>, defining how the data is structured.
+    /// </summary>
+    public VertexDeclaration Declaration { get; }
+
+
+    /// <inheritdoc/>
+    public readonly bool Equals(VertexBufferBinding other)
+    {
+        return Buffer.Equals(other.Buffer)
+            && Offset == other.Offset
+            && Stride == other.Stride
+            && Count == other.Count
+            && Declaration.Equals(other.Declaration);
+    }
+
+    /// <inheritdoc/>
+    public override readonly bool Equals(object obj)
+    {
+        return obj is VertexBufferBinding vbb && Equals(vbb);
+    }
+
+    public static bool operator ==(VertexBufferBinding left, VertexBufferBinding right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(VertexBufferBinding left, VertexBufferBinding right)
+    {
+        return !(left == right);
+    }
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode() => hashCode;
+
+    #region Serializer
+
+    /// <summary>
+    ///   Provides functionality to serialize and deserialize <see cref="VertexBufferBinding"/> objects.
+    /// </summary>
+    internal class Serializer : DataSerializer<VertexBufferBinding>
+    {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VertexBufferBinding"/> struct.
+        ///   Serializes or deserializes a <see cref="VertexBufferBinding"/> object.
         /// </summary>
-        /// <param name="vertexStride">Jump size to the next element. if -1, it gets auto-discovered from the vertexDeclaration</param>
-        /// <param name="vertexOffset">Offset (in Vertex ElementCount) from the beginning of the buffer to the first vertex to use.</param>
-        public VertexBufferBinding(Buffer vertexBuffer, VertexDeclaration vertexDeclaration, int vertexCount, int vertexStride = -1, int vertexOffset = 0) : this()
+        /// <param name="vertexBufferBinding">The object to serialize or deserialize.</param>
+        /// <inheritdoc/>
+        public override void Serialize(ref VertexBufferBinding vertexBufferBinding, ArchiveMode mode, SerializationStream stream)
         {
-            if (vertexBuffer == null) throw new ArgumentNullException("vertexBuffer");
-            if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
-
-            Buffer = vertexBuffer;
-            Stride = vertexStride != -1 ? vertexStride : vertexDeclaration.VertexStride;
-            Offset = vertexOffset;
-            Count = vertexCount;
-            Declaration = vertexDeclaration;
-
-            unchecked
+            if (mode == ArchiveMode.Deserialize)
             {
-                hashCode = Buffer.GetHashCode();
-                hashCode = (hashCode * 397) ^ Offset;
-                hashCode = (hashCode * 397) ^ Stride;
-                hashCode = (hashCode * 397) ^ Count;
-                hashCode = (hashCode * 397) ^ Declaration.GetHashCode();
+                var buffer = stream.Read<Buffer>();
+                var declaration = stream.Read<VertexDeclaration>();
+                var count = stream.ReadInt32();
+                var stride = stream.ReadInt32();
+                var offset = stream.ReadInt32();
+
+                vertexBufferBinding = new VertexBufferBinding(buffer, declaration, count, stride, offset);
+            }
+            else
+            {
+                stream.Write(vertexBufferBinding.Buffer);
+                stream.Write(vertexBufferBinding.Declaration);
+                stream.Write(vertexBufferBinding.Count);
+                stream.Write(vertexBufferBinding.Stride);
+                stream.Write(vertexBufferBinding.Offset);
             }
         }
 
-        /// <summary>
-        /// Gets a vertex buffer.
-        /// </summary>
-        public Buffer Buffer { get; private set; }
-
-        /// <summary>
-        /// Gets the offset in bytes between the beginning of the buffer and the vertex data to use.
-        /// </summary>
-        public int Offset { get; private set; }
-
-        /// <summary>
-        /// Gets the vertex stride.
-        /// </summary>
-        public int Stride { get; private set; }
-
-        /// <summary>
-        /// Gets the number of vertex.
-        /// </summary>
-        /// <value>The count.</value>
-        public int Count { get; private set; }
-
-        /// <summary>
-        /// Gets the layout of the vertex buffer.
-        /// </summary>
-        /// <value>The declaration.</value>
-        public VertexDeclaration Declaration { get; private set; }
-
-        public bool Equals(VertexBufferBinding other)
-        {
-            return Buffer.Equals(other.Buffer) && Offset == other.Offset && Stride == other.Stride && Count == other.Count && Declaration.Equals(other.Declaration);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is VertexBufferBinding && Equals((VertexBufferBinding)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return hashCode;
-        }
-
-        internal class Serializer : DataSerializer<VertexBufferBinding>
-        {
-            public override void Serialize(ref VertexBufferBinding vertexBufferBinding, ArchiveMode mode, SerializationStream stream)
-            {
-                if (mode == ArchiveMode.Deserialize)
-                {
-                    var buffer = stream.Read<Buffer>();
-                    var declaration = stream.Read<VertexDeclaration>();
-                    var count = stream.ReadInt32();
-                    var stride = stream.ReadInt32();
-                    var offset = stream.ReadInt32();
-
-                    vertexBufferBinding = new VertexBufferBinding(buffer, declaration, count, stride, offset);
-                }
-                else
-                {
-                    stream.Write(vertexBufferBinding.Buffer);
-                    stream.Write(vertexBufferBinding.Declaration);
-                    stream.Write(vertexBufferBinding.Count);
-                    stream.Write(vertexBufferBinding.Stride);
-                    stream.Write(vertexBufferBinding.Offset);
-                }
-            }
-        }
+        #endregion
     }
 }

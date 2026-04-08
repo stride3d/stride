@@ -63,9 +63,12 @@ namespace Stride.Shaders.Parser.Mixins
                                 continue;
                             }
                         }
-                        else if (method.Method.Qualifiers.Contains(StrideStorageQualifier.Override))
+                        // Require override on method implementing abstract definition
+                        // We explicitly disallowed this in the past ("override" keyword forbidden when implementing abstract methods)
+                        // but we actually want it to better follow standard C# abstract/override
+                        else if (!method.Method.Qualifiers.Contains(StrideStorageQualifier.Override))
                         {
-                            log.Error(StrideMessageCode.ErrorOverrideDeclaration, method.Method.Span, method.Method, mixinName);
+                            log.Warning(StrideMessageCode.WarningMissingOverrideKeyword, method.Method.Span, method.Method, mixinName);
                             continue;
                         }
                     }

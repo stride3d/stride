@@ -73,7 +73,7 @@ namespace Stride.Assets.Textures.Packing
                         sourceStartOffsets.Y = oldSourceStartOffsetX;
                     }
 
-                    Core.Utilities.Swap(ref sourceRegionSize.X, ref sourceRegionSize.Y);
+                    MemoryUtilities.Swap(ref sourceRegionSize.X, ref sourceRegionSize.Y);
                 }
 
                 {
@@ -152,9 +152,9 @@ namespace Stride.Assets.Textures.Packing
 
             switch (mode)
             {
-                case TextureAddressMode.Wrap: 
+                case TextureAddressMode.Wrap:
                     return (value >= 0) ? value % maxValue : (maxValue - ((-value) % maxValue)) % maxValue;
-                case TextureAddressMode.Mirror: 
+                case TextureAddressMode.Mirror:
                     return (value >= 0) ? (maxValue - 1) - (value % maxValue) : (-value) % maxValue;
                 case TextureAddressMode.Clamp:
                     return (value >= 0) ? maxValue - 1 : 0;

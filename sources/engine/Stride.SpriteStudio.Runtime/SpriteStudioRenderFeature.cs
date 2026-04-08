@@ -1,9 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
 
@@ -26,26 +26,22 @@ namespace Stride.SpriteStudio.Runtime
 
             sprite3DBatch = new Sprite3DBatch(Context.GraphicsDevice);
 
-            var blendDesc = new BlendStateDescription(Blend.SourceAlpha, Blend.One)
+            var blendDesc = new BlendStateDescription(Blend.SourceAlpha, Blend.One);
+            blendDesc.RenderTargets[0] = new()
             {
-                RenderTarget0 =
-                {
-                    BlendEnable = true,
-                    ColorBlendFunction = BlendFunction.ReverseSubtract,
-                    AlphaBlendFunction = BlendFunction.ReverseSubtract
-                }
+                BlendEnable = true,
+                ColorBlendFunction = BlendFunction.ReverseSubtract,
+                AlphaBlendFunction = BlendFunction.ReverseSubtract
             };
             SubBlendState = blendDesc;
 
-            blendDesc = new BlendStateDescription(Blend.DestinationColor, Blend.InverseSourceAlpha)
+            blendDesc = new BlendStateDescription(Blend.DestinationColor, Blend.InverseSourceAlpha);
+            blendDesc.RenderTargets[0] = new()
             {
-                RenderTarget0 =
-                {
-                    BlendEnable = true,
-                    ColorBlendFunction = BlendFunction.Add,
-                    AlphaSourceBlend = Blend.Zero,
-                    AlphaBlendFunction = BlendFunction.Add
-                }
+                BlendEnable = true,
+                ColorBlendFunction = BlendFunction.Add,
+                AlphaSourceBlend = Blend.Zero,
+                AlphaBlendFunction = BlendFunction.Add
             };
             MultBlendState = blendDesc;
         }

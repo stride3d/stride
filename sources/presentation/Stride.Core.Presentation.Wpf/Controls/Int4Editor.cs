@@ -77,7 +77,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override Int4? UpateValueFromFloat(float value)
+        protected override Int4? UpdateValueFromFloat(float value)
         {
             return new Int4((int)Math.Round(value, MidpointRounding.AwayFromZero));
         }

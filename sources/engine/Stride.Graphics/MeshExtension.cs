@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable enable
 
@@ -58,7 +58,7 @@ public static class MeshExtension
             if (currentElementOffset != VertexElement.AppendAligned)
                 offset = currentElementOffset;
 
-            var elementSize = element.Format.SizeInBytes();
+            var elementSize = element.Format.SizeInBytes;
             if (vertexElementUsage == element.SemanticName && semanticIndex == element.SemanticIndex)
             {
                 result = new VertexElementWithOffset(element, offset, elementSize);
