@@ -15,6 +15,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
@@ -364,6 +365,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
 
             services.Add(new UIEditorGameCameraService(this));
             services.Add(AdornerService = new UIEditorGameAdornerService(this));
+            services.Add(new EditorGameScreenshotService(Editor));
         }
 
         /// <inheritdoc/>

@@ -1,0 +1,104 @@
+!SceneAsset
+Id: d3e4f5a6-b7c8-9012-defa-234567890123
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 10000001-0000-0000-0000-000000000001
+        - ref!! 10000002-0000-0000-0000-000000000002
+        - ref!! 10000003-0000-0000-0000-000000000003
+        - ref!! 10000004-0000-0000-0000-000000000004
+        - ref!! 3abf67e6-216c-42ee-a882-9a987a82a2a4
+    Parts:
+        -   Entity:
+                Id: 10000001-0000-0000-0000-000000000001
+                Name: Camera
+                Components:
+                    a100000000000001a100000000000001: !TransformComponent
+                        Id: 20000001-0000-0000-0000-000000000001
+                        Position: {X: 0.0, Y: 3.0, Z: 6.0}
+                        Rotation: {X: -0.17364818, Y: 0.0, Z: 0.0, W: 0.9848077}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a100000000000002a100000000000002: !CameraComponent
+                        Id: 20000002-0000-0000-0000-000000000002
+                        Name: null
+                        Projection: Perspective
+                        Slot: 07117963-ef3b-47b6-9344-96aa198edeea
+        -   Entity:
+                Id: 10000002-0000-0000-0000-000000000002
+                Name: DirectionalLight
+                Components:
+                    a100000000000003a100000000000003: !TransformComponent
+                        Id: 20000003-0000-0000-0000-000000000003
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.10938163, Y: 0.87571836, Z: 0.26592082, W: -0.38302222}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a100000000000004a100000000000004: !LightComponent
+                        Id: 20000004-0000-0000-0000-000000000004
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+        -   Entity:
+                Id: 10000003-0000-0000-0000-000000000003
+                Name: TestCube
+                Components:
+                    a100000000000005a100000000000005: !TransformComponent
+                        Id: 20000005-0000-0000-0000-000000000005
+                        Position: {X: 0.0, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a10000000000000fa10000000000000f: ref!! 20000009-0000-0000-0000-000000000009
+                    a100000000000006a100000000000006: !ModelComponent
+                        Id: 20000006-0000-0000-0000-000000000006
+                        Model: e4f5a6b7-c8d9-0123-efab-345678901234:CubeModel
+                        Materials: {}
+        -   Entity:
+                Id: 10000004-0000-0000-0000-000000000004
+                Name: Ground
+                Components:
+                    a100000000000007a100000000000007: !TransformComponent
+                        Id: 20000007-0000-0000-0000-000000000007
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a100000000000008a100000000000008: !ModelComponent
+                        Id: 20000008-0000-0000-0000-000000000008
+                        Model: f5a6b7c8-d9e0-1234-fabc-456789012345:GroundModel
+                        Materials: {}
+        -   Entity:
+                Id: 10000005-0000-0000-0000-000000000005
+                Name: ChildObject
+                Components:
+                    a100000000000009a100000000000009: !TransformComponent
+                        Id: 20000009-0000-0000-0000-000000000009
+                        Position: {X: 0.0, Y: 1.2, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 3abf67e6-216c-42ee-a882-9a987a82a2a4
+                Name: TestUIEntity
+                Components:
+                    02a38e7a3c569a29c4902008c4516671: !TransformComponent
+                        Id: 747f4a39-84ab-4454-b6f1-79cc43a6ec78
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    edf184cbdab57c06fe45a3b0e66845dc: !UIComponent
+                        Id: 4440d262-0cd2-485f-bc0b-657f8d83999b
+                        Page: aabd516e-97c9-4e00-b6b9-d77e9faddde8:UI/TestUIPage
+                        Resolution: {X: 800.0, Y: 600.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}

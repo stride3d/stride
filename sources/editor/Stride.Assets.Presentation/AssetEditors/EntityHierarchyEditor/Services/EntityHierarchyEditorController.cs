@@ -58,6 +58,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
             services.Add(new PhysicsDebugShapeService());
             services.Add(new EditorGameLightProbeGizmoService(Editor));
             services.Add(new EditorGameCubemapService(Editor));
+            services.Add(new EditorGameScreenshotService(Editor));
             services.Add(new EditorGameSpaceMarkerService());
             services.Add(new EditorGameCameraOrientationService());
             services.Add(new EditorGameComponentGizmoService(this));
