@@ -138,6 +138,27 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Asset Packing Support (StridePackAssets) -->
+  <!-- ================================================================ -->
+  <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
+       into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true'">
+    <Exec Command="dotnet &quot;$(StrideRoot)sources\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideFramework)\Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
