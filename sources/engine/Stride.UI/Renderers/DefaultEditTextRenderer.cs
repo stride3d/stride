@@ -31,38 +31,49 @@ namespace Stride.UI.Renderers
 
             font.TypeSpecificRatios(requestedFontSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            var lineHeight = font.GetTotalLineSpacing(fontSize.Y);
+            // Scale factor to convert from font-native coordinates to virtual/element coordinates
+            // This must match InternalUIDrawGlyph which divides glyph positions by realVirtualResolutionRatio
+            var fontToVirtualScale = fontSize / requestedFontSize;
+
+            var lineHeight = font.GetTotalLineSpacing(fontSize.Y) / fontToVirtualScale.Y;
 
             var worldMatrix = editText.WorldMatrixInternal;
             worldMatrix.TranslationVector -= worldMatrix.Right * textRegion.X * 0.5f + worldMatrix.Up * (textRegion.Y * 0.5f - lineHeight * 0.5f);
 
+            // Scale textRegion to font-native space for the glyph enumerator, matching InternalUIDraw
+            var scaledTextRegion = textRegion * fontToVirtualScale;
+
             Vector2 selectionStart = default, selectionEnd = default, lineStart = default, lineEnd = default;
             var end = start + length;
-            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font, (editText.TextAlignment, textRegion)))
+            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font, (editText.TextAlignment, scaledTextRegion)))
             {
+                // Convert glyph positions from font-native space to virtual space
+                var pos = glyphInfo.Position / fontToVirtualScale;
+                var nextX = glyphInfo.NextX / fontToVirtualScale.X;
+
                 if (glyphInfo.Index < start)
                 {
-                    lineEnd = lineStart = selectionEnd = selectionStart = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    lineEnd = lineStart = selectionEnd = selectionStart = new Vector2(nextX, pos.Y);
                 }
                 else if (glyphInfo.Index == start)
                 {
-                    lineStart = selectionEnd = selectionStart = glyphInfo.Position;
-                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    lineStart = selectionEnd = selectionStart = pos;
+                    lineEnd = new Vector2(nextX, pos.Y);
                 }
                 else if (glyphInfo.Index <= end)
                 {
                     // We're between start and end
-                    if (lineStart.Y != glyphInfo.Y) // Skipped a line, draw a selection rect between the edges of the previous line
+                    if (lineStart.Y != pos.Y) // Skipped a line, draw a selection rect between the edges of the previous line
                     {
                         DrawSelectionOnGlyphRange(context, color, worldMatrix, lineStart, lineEnd, lineHeight);
-                        lineStart = glyphInfo.Position;
+                        lineStart = pos;
                     }
 
-                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    lineEnd = new Vector2(nextX, pos.Y);
                     if (glyphInfo.Index < end)
-                        selectionEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                        selectionEnd = new Vector2(nextX, pos.Y);
                     else
-                        selectionEnd = glyphInfo.Position;
+                        selectionEnd = pos;
                 }
                 else
                 {
@@ -79,7 +90,8 @@ namespace Stride.UI.Renderers
 
             caretHeight = lineHeight;
             caret = worldMatrix;
-            caret.TranslationVector += caret.Right * selectionStart.X + caret.Up * selectionStart.Y;
+            var caretPos = editText.CaretPosition <= start ? selectionStart : selectionEnd;
+            caret.TranslationVector += caret.Right * caretPos.X + caret.Up * caretPos.Y;
         }
 
         private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix worldMatrix, Vector2 start, Vector2 end, float lineHeight)

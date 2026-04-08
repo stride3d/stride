@@ -373,7 +373,7 @@ namespace Stride.Graphics
             {
                 samplerStates[slotIndex] = samplerState;
 
-                var nativeSampler = samplerState is not null ? samplerState.NativeSamplerState : default;
+                var nativeSampler = (samplerState ?? GraphicsDevice.SamplerStates.LinearClamp).NativeSamplerState;
 
                 switch (stage)
                 {
@@ -653,6 +653,11 @@ namespace Stride.Graphics
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
         /// </remarks>
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        {
+            // Nothing to do
+        }
+
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             // Nothing to do

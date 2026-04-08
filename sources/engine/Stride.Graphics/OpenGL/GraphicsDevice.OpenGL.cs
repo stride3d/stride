@@ -32,7 +32,7 @@ namespace Stride.Graphics
     {
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 
-        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
         internal int FrameCounter;
 

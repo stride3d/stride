@@ -14,6 +14,13 @@ namespace Stride.Graphics
 {
     public partial class CommandList
     {
+        /// <summary>
+        ///   Unique ID for this command list, incremented on each Reset.
+        ///   Used to detect when a resource is first used on a different command list,
+        ///   requiring barriers to be re-issued even if the layout already matches.
+        /// </summary>
+        internal int CommandListId;
+
         internal CommandBufferPool CommandBufferPool;
 
         private VkRenderPass activeRenderPass;
@@ -64,6 +71,9 @@ namespace Stride.Graphics
         {
             if (currentCommandList.Builder != null)
                 return;
+
+            // New command list ID so resources know they need to re-issue barriers
+            CommandListId = System.Threading.Interlocked.Increment(ref GraphicsDevice.NextCommandListId);
 
             CleanupRenderPass();
             boundDescriptorSets.Clear();
@@ -268,12 +278,78 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException">Cannot GraphicsDevice.Draw*() without an effect being previously applied with Effect.Apply() method</exception>
         private unsafe void PrepareDraw()
         {
+            // Transition resources to correct layouts before starting the render pass
+            TransitionBoundResources();
+
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+        }
+
+        /// <summary>
+        /// Automatically transitions bound textures to the layouts expected by the pipeline:
+        /// render targets to ColorAttachmentOptimal, depth to DepthStencilAttachmentOptimal,
+        /// sampled images to ShaderReadOnlyOptimal, storage images to General.
+        /// Must be called BEFORE EnsureRenderPass since barriers cannot be issued inside a render pass.
+        /// </summary>
+        private void TransitionBoundResources()
+        {
+            if (activePipeline == null)
+                return;
+
+            // Transition render target attachments
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                var rt = renderTargets[i];
+                if (rt != null)
+                {
+                    var parent = rt.ParentTexture ?? rt;
+                    if (parent.NativeLayout != VkImageLayout.ColorAttachmentOptimal)
+                        ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
+                }
+            }
+
+            if (depthStencilBuffer != null)
+            {
+                var parent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
+                if (parent.NativeLayout != VkImageLayout.DepthStencilAttachmentOptimal)
+                    ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
+            }
+
+            // Transition sampled/storage textures bound in descriptors
+            var bindingCount = activePipeline.DescriptorBindingMapping.Count;
+            for (int index = 0; index < bindingCount; index++)
+            {
+                var mapping = activePipeline.DescriptorBindingMapping[index];
+                if (mapping.DescriptorType != VkDescriptorType.SampledImage &&
+                    mapping.DescriptorType != VkDescriptorType.StorageImage)
+                    continue;
+
+                var sourceSet = boundDescriptorSets[mapping.SourceSet];
+                var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
+                if (heapObject.Value is Texture texture)
+                {
+                    var parent = texture.ParentTexture ?? texture;
+
+                    // Don't transition swapchain images that are queued for presentation
+                    if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
+                        continue;
+
+                    var expectedLayout = mapping.DescriptorType == VkDescriptorType.SampledImage
+                        ? VkImageLayout.ShaderReadOnlyOptimal
+                        : VkImageLayout.General;
+
+                    // Always call ResourceBarrierTransition — even if the layout matches, the barrier
+                    // must be re-issued when the resource was last transitioned by a different command list.
+                    var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
+                        ? BarrierLayout.ShaderResource
+                        : BarrierLayout.UnorderedAccess;
+                    ResourceBarrierTransition(parent, layout);
+                }
+            }
         }
 
         private unsafe void BindDescriptorSets()
@@ -456,61 +532,39 @@ namespace Stride.Graphics
             GraphicsDevice.NativeDeviceApi.vkCmdBindIndexBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, (ulong) offset, is32bits ? VkIndexType.Uint32 : VkIndexType.Uint16);
         }
 
-        public unsafe void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        /// <summary>
+        ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
+        /// </summary>
+        public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
         {
             if (resource is Texture texture)
             {
                 if (texture.ParentTexture != null)
                     texture = texture.ParentTexture;
 
-                // TODO VULKAN: Check for change
-
                 var oldLayout = texture.NativeLayout;
                 var oldAccessMask = texture.NativeAccessMask;
+                var sourceStages = texture.NativePipelineStageMask;
 
-                var sourceStages = resource.NativePipelineStageMask;
+                // Update native state from BarrierLayout via mapping
+                texture.NativeLayout = BarrierMapping.ToVkImageLayout(newLayout);
+                texture.NativeAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
+                texture.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+                texture.LayoutTracker.Set(uint.MaxValue, newLayout);
 
-                switch (newState)
-                {
-                    case GraphicsResourceState.RenderTarget:
-                        texture.NativeLayout = VkImageLayout.ColorAttachmentOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.ColorAttachmentWrite;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.ColorAttachmentOutput;
-                        break;
-                    case GraphicsResourceState.Present:
-                        texture.NativeLayout = VkImageLayout.PresentSrcKHR;
-                        texture.NativeAccessMask = VkAccessFlags.MemoryRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.BottomOfPipe;
-                        break;
-                    case GraphicsResourceState.DepthWrite:
-                        texture.NativeLayout = VkImageLayout.DepthStencilAttachmentOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests;
-                        break;
-                    case GraphicsResourceState.PixelShaderResource:
-                        texture.NativeLayout = VkImageLayout.ShaderReadOnlyOptimal;
-                        texture.NativeAccessMask = VkAccessFlags.ShaderRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
-                        break;
-                    case GraphicsResourceState.GenericRead:
-                        texture.NativeLayout = VkImageLayout.General;
-                        texture.NativeAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.TransferRead | VkAccessFlags.IndirectCommandRead | VkAccessFlags.ColorAttachmentRead | VkAccessFlags.DepthStencilAttachmentRead | VkAccessFlags.InputAttachmentRead | VkAccessFlags.VertexAttributeRead | VkAccessFlags.IndexRead | VkAccessFlags.UniformRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.AllCommands;
-                        break;
-                    default:
-                        texture.NativeLayout = VkImageLayout.General;
-                        texture.NativeAccessMask = (VkAccessFlags)0x1FFFF; // TODO VULKAN: Don't hard-code this
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.AllCommands;
-                        break;
-                }
-
-                if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask)
+                // Skip if the layout already matches AND this command list was the one that set it.
+                // If a different command list set the layout, we must re-issue the barrier so that
+                // this command buffer has the transition recorded (required by Vulkan validation).
+                if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask
+                    && texture.LastBarrierCommandListId == CommandListId)
                     return;
+
+                texture.LastBarrierCommandListId = CommandListId;
 
                 if (oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR)
                     sourceStages = VkPipelineStageFlags.TopOfPipe;
 
-                // End render pass, so barrier effects all commands in the buffer
+                // End render pass, so barrier affects all commands in the buffer
                 CleanupRenderPass();
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, texture.NativeAccessMask, oldLayout, texture.NativeLayout);
@@ -520,6 +574,38 @@ namespace Stride.Graphics
             {
                 throw new NotImplementedException();
             }
+        }
+
+        [Obsolete("Use BarrierLayout overload instead.")]
+        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            var layout = (int)newState switch
+            {
+                0x04 => BarrierLayout.RenderTarget,
+                0x08 => BarrierLayout.UnorderedAccess,
+                0x10 => BarrierLayout.DepthStencilWrite,
+                0x20 => BarrierLayout.DepthStencilRead,
+                0x80 => BarrierLayout.ShaderResource,
+                0xC0 => BarrierLayout.ShaderResource,
+                0x400 => BarrierLayout.CopyDest,
+                0x800 => BarrierLayout.CopySource,
+                0x1000 => BarrierLayout.ResolveDest,
+                0x2000 => BarrierLayout.ResolveSource,
+                _ => BarrierLayout.Common,
+            };
+            ResourceBarrierTransition(resource, layout);
+        }
+
+        /// <summary>
+        ///   Ensures the pipeline stage mask is compatible with the access flags in a buffer barrier.
+        ///   HOST_READ/HOST_WRITE access requires VK_PIPELINE_STAGE_HOST_BIT, which is not included
+        ///   in VK_PIPELINE_STAGE_ALL_COMMANDS_BIT.
+        /// </summary>
+        internal static VkPipelineStageFlags FixStagesForAccess(VkPipelineStageFlags stages, VkAccessFlags access)
+        {
+            if ((access & (VkAccessFlags.HostRead | VkAccessFlags.HostWrite)) != 0)
+                stages |= VkPipelineStageFlags.Host;
+            return stages;
         }
 
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
@@ -548,6 +634,7 @@ namespace Stride.Graphics
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
             CleanupRenderPass();
+            TransitionBoundResources();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
         }
@@ -560,6 +647,7 @@ namespace Stride.Graphics
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
             CleanupRenderPass();
+            TransitionBoundResources();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
         }
@@ -834,33 +922,52 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">texture</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, Vector4 value)
+        public unsafe void ClearReadWrite(Texture texture, Vector4 value)
         {
-            throw new NotImplementedException();
+            var clearValue = new VkClearColorValue(value.X, value.Y, value.Z, value.W);
+            ClearReadWriteImpl(texture, clearValue);
         }
 
-        /// <summary>
-        /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
-        /// </summary>
-        /// <param name="texture">The texture.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="ArgumentNullException">texture</exception>
-        /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, Int4 value)
+        public unsafe void ClearReadWrite(Texture texture, Int4 value)
         {
-            throw new NotImplementedException();
+            // D3D11 ClearUnorderedAccessViewUint writes raw integer values.
+            // Vulkan vkCmdClearColorImage expects float values for UNORM/SNORM formats, not raw integers.
+            // Convert to float to match D3D11 behavior.
+            if (texture.ViewFormat.IsUNorm)
+            {
+                float scale = 1.0f / texture.ViewFormat.UNormMaxValue;
+                ClearReadWrite(texture, new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale));
+                return;
+            }
+            var clearValue = new VkClearColorValue(*(uint*)&value.X, *(uint*)&value.Y, *(uint*)&value.Z, *(uint*)&value.W);
+            ClearReadWriteImpl(texture, clearValue);
         }
 
-        /// <summary>
-        /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
-        /// </summary>
-        /// <param name="texture">The texture.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="ArgumentNullException">texture</exception>
-        /// <exception cref="ArgumentException">Expecting buffer supporting UAV;texture</exception>
-        public void ClearReadWrite(Texture texture, UInt4 value)
+        public unsafe void ClearReadWrite(Texture texture, UInt4 value)
         {
-            throw new NotImplementedException();
+            if (texture.ViewFormat.IsUNorm)
+            {
+                float scale = 1.0f / texture.ViewFormat.UNormMaxValue;
+                ClearReadWrite(texture, new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale));
+                return;
+            }
+            var clearValue = new VkClearColorValue(value.X, value.Y, value.Z, value.W);
+            ClearReadWriteImpl(texture, clearValue);
+        }
+
+        private unsafe void ClearReadWriteImpl(Texture texture, VkClearColorValue clearValue)
+        {
+            ArgumentNullException.ThrowIfNull(texture);
+            CleanupRenderPass();
+
+            var clearRange = texture.NativeResourceRange;
+            var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.General);
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+
+            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.General, &clearValue, 1, &clearRange);
+
+            memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.General, texture.NativeLayout);
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
         }
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
@@ -906,7 +1013,8 @@ namespace Stride.Graphics
                     imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(destinationParent.NativeImage, new VkImageSubresourceRange(destinationParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), destinationTexture.NativeAccessMask, VkAccessFlags.TransferWrite, destinationTexture.NativeLayout, VkImageLayout.TransferDstOptimal);
                 }
 
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                var copySrcStages = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceTexture.NativeAccessMask | destinationTexture.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, copySrcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // TODO: compute all regions at once in a single call
                 for (var subresource = 0; subresource < sourceTexture.MipLevelCount * sourceTexture.ArraySize; ++subresource)
@@ -1017,26 +1125,29 @@ namespace Stride.Graphics
                     imageBarrierCount++;
                 }
 
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                var dstStages = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                var srcStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, srcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 var copy = new VkBufferCopy
                 {
                     srcOffset = 0,
                     dstOffset = 0,
-                    size = (uint) sourceBuffer.SizeInBytes
+                    size = (uint)sourceBuffer.SizeInBytes
                 };
                 GraphicsDevice.NativeDeviceApi.vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceBuffer.NativeBuffer, destinationBuffer.NativeBuffer, regionCount: 1, &copy);
 
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, VkAccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, VkAccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceBuffer.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                var bufDstStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, bufDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
             }
             else
             {
@@ -1089,7 +1200,8 @@ namespace Stride.Graphics
                     imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(destinationParent.NativeImage, new VkImageSubresourceRange(destinationParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), destinationParent.NativeAccessMask, VkAccessFlags.TransferWrite, destinationParent.NativeLayout, VkImageLayout.TransferDstOptimal);
                 }
 
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                var copySrcStages3 = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, copySrcStages3, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
@@ -1195,7 +1307,8 @@ namespace Stride.Graphics
                     imageBarrierCount++;
                 }
 
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                var dstStages2 = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages2, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else
             {
@@ -1339,7 +1452,7 @@ namespace Stride.Graphics
             {
                 var mipSlice = subResourceIndex % texture.MipLevelCount;
                 var arraySlice = subResourceIndex / texture.MipLevelCount;
-                var subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
+                var subresourceRange = new VkImageSubresourceRange(texture.NativeImageAspect, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, subresourceRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.TransferDstOptimal);
                 GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &uploadBufferMemoryBarrier, imageMemoryBarrierCount: 1, &memoryBarrier);
@@ -1349,7 +1462,7 @@ namespace Stride.Graphics
                 var bufferCopy = new VkBufferImageCopy
                 {
                     bufferOffset = (ulong) (uploadOffset + alignment),
-                    imageSubresource = new VkImageSubresourceLayers { aspectMask = VkImageAspectFlags.Color, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
+                    imageSubresource = new VkImageSubresourceLayers { aspectMask = texture.NativeImageAspect, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
                     bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth / texture.Format.BlockSize),
                     bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight / databox.RowPitch),
                     imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
@@ -1380,7 +1493,8 @@ namespace Stride.Graphics
                     GraphicsDevice.NativeDeviceApi.vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, uploadResource, buffer.NativeBuffer, regionCount: 1, &bufferCopy);
 
                     var memoryBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, VkAccessFlags.TransferWrite, buffer.NativeAccessMask, bufferCopy.dstOffset, bufferCopy.size);
-                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, buffer.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    var uploadDstStages = FixStagesForAccess(buffer.NativePipelineStageMask, buffer.NativeAccessMask);
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, uploadDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
                 }
                 else
                 {

@@ -1,18 +1,6 @@
 name: Build Visual Studio Package
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-vs-package.yml'
-      - 'build/Stride.VisualStudio.sln'
-      - 'sources/tools/Stride.VisualStudio.*/**'
-      - 'sources/sdk/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:

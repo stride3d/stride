@@ -542,6 +542,7 @@ namespace Stride.Rendering.Shadows
 
             public override void ApplyViewParameters(RenderDrawContext context, ParameterCollection parameters, FastListStruct<LightDynamicEntry> currentLights)
             {
+                shadowMapTexture = null;
                 for (int lightIndex = 0; lightIndex < currentLights.Count; ++lightIndex)
                 {
                     var lightEntry = currentLights[lightIndex];
@@ -576,7 +577,7 @@ namespace Stride.Rendering.Shadows
                     }
                 }
 
-                parameters.Set(shadowMapTextureKey, shadowMapTexture);
+                parameters.Set(shadowMapTextureKey, shadowMapTexture ?? context.GraphicsDevice.GetSharedDepthTexture());
                 parameters.Set(shadowMapTextureSizeKey, shadowMapTextureSize);
                 parameters.Set(shadowMapTextureTexelSizeKey, shadowMapTextureTexelSize);
                 parameters.Set(cascadeSplitsKey, cascadeSplits);

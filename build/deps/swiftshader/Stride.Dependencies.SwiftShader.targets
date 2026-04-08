@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows')))">
+    <None Include="$(MSBuildThisFileDirectory)vk_swiftshader_icd.json"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="vk_swiftshader_icd.json"
+          Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\runtimes\win-x64\native\vk_swiftshader.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="vk_swiftshader.dll"
+          Visible="false" />
+  </ItemGroup>
+</Project>

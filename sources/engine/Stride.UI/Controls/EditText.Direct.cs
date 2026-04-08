@@ -61,7 +61,9 @@ namespace Stride.UI.Controls
 
             Font.TypeSpecificRatios(ActualTextSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            return Font.IndexInString(TextToDisplay, fontSize, worldPosition, (TextAlignment, textRegion));
+            // Scale worldPosition and textRegion from virtual space to font-native space
+            var fontToVirtualScale = fontSize / ActualTextSize;
+            return Font.IndexInString(TextToDisplay, fontSize, worldPosition * fontToVirtualScale, (TextAlignment, textRegion * fontToVirtualScale));
         }
 
         internal override void OnKeyPressed(KeyEventArgs args)

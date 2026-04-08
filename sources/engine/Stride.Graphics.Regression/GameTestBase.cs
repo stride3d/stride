@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -104,21 +106,18 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        /// Forces render doc capture even if test didn't fail. This can be used only when <see cref="CaptureRenderDocOnError"/> is set.
+        ///   Controls RenderDoc capture behavior for tests.
+        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   <list type="bullet">
+        ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
+        ///     <item><c>always</c> — capture frames for all tests</item>
+        ///   </list>
         /// </summary>
-        public static bool ForceCaptureRenderDocOnSuccess = false;
+        private static readonly string RenderDocMode =
+            Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
-        /// <summary>
-        ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs
-        ///   or a test fails.
-        /// </summary>
-        /// <remarks>Enabling this feature may cause an Out-of-Memory exception on 32-bit processes.</remarks>
-        public static bool CaptureRenderDocOnError =
-  #if STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR
-            true;
-  #else
-            string.Equals(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase);
-  #endif
+        private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
+        private static bool ForceCaptureRenderDocOnSuccess => RenderDocMode is "always";
 
         private RenderDocManager renderDocManager;
 #endif
@@ -443,6 +442,27 @@ namespace Stride.Graphics.Regression
             renderDocManager?.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
         }
 
+        /// <summary>
+        ///   Ends or discards the RenderDoc capture based on test results.
+        ///   Must be called while the graphics device is still alive.
+        /// </summary>
+        internal void EndOrDiscardRenderDocCapture()
+        {
+            if (renderDocManager is null || !CaptureRenderDocOnError)
+                return;
+
+            if (comparisonFailedMessages.Count == 0 &&
+                comparisonMissingMessages.Count == 0 &&
+                !ForceCaptureRenderDocOnSuccess)
+            {
+                DiscardFrameCapture();
+            }
+            else
+            {
+                EndFrameCapture();
+            }
+        }
+
         /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
         {
@@ -587,40 +607,67 @@ namespace Stride.Graphics.Regression
         ///   Executes a game test using the specified <see cref="GameTestBase"/> instance.
         /// </summary>
         /// <param name="game">The game test instance to run. Must not be <see langword="null"/>.</param>
-        protected static void RunGameTest(GameTestBase game)
+        protected static void RunGameTest(GameTestBase game, [CallerMemberName] string callerName = null)
         {
             game.EnableSimulatedInputSource();
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            ExceptionDispatchInfo exceptionOrFailedAssert = null;
+            // Collect allowed GPU validation errors from [AllowGpuValidationError] attributes on the calling test method and class
+            var allowedErrors = new List<AllowGpuValidationErrorAttribute>();
+            if (callerName != null)
+            {
+                var callerType = new System.Diagnostics.StackTrace().GetFrames()
+                    .Select(f => f.GetMethod())
+                    .FirstOrDefault(m => m?.Name == callerName)?.DeclaringType;
+                if (callerType != null)
+                {
+                    // Class-level attributes
+                    allowedErrors.AddRange(callerType.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                    // Method-level attributes
+                    var method = callerType.GetMethod(callerName);
+                    if (method != null)
+                        allowedErrors.AddRange(method.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                }
+            }
+
+            // Track GPU validation errors and warnings during the test
+            var gpuValidationErrors = new List<string>();
+            var gpuValidationWarnings = new List<string>();
+            void OnGlobalMessage(ILogMessage msg)
+            {
+                if (msg.Module != nameof(GraphicsDevice))
+                    return;
+                if (msg.Type == LogMessageType.Error)
+                    gpuValidationErrors.Add(msg.Text);
+                else if (msg.Type == LogMessageType.Warning && !IsKnownHarmlessWarning(msg.Text))
+                    gpuValidationWarnings.Add(msg.Text);
+            }
+            GlobalLogger.GlobalMessageLogged += OnGlobalMessage;
 
             try
             {
                 GameTester.RunGameTest(game);
             }
-            catch (Exception ex)
+            finally
             {
-                // This catches both errors in the test execution and assertion failures
-                exceptionOrFailedAssert = ExceptionDispatchInfo.Capture(ex);
+                GlobalLogger.GlobalMessageLogged -= OnGlobalMessage;
             }
 
-#if STRIDE_PLATFORM_DESKTOP
-            if (CaptureRenderDocOnError)
-            {
-                // If no comparison errors, and no test errors, discard the capture
-                if (game.comparisonFailedMessages.Count == 0 &&
-                    game.comparisonMissingMessages.Count == 0 &&
-                    exceptionOrFailedAssert is null &&
-                    !ForceCaptureRenderDocOnSuccess)
-                {
-                    game.DiscardFrameCapture();
-                }
-                else game.EndFrameCapture();
-            }
-#endif
-            // If there was an exception, rethrow it now
-            exceptionOrFailedAssert?.Throw();
+            // Filter out allowed errors for the current platform
+            var platform = GraphicsDevice.Platform;
+            gpuValidationErrors.RemoveAll(error =>
+                allowedErrors.Any(a => a.Platform == platform && error.Contains(a.MessageSubstring)));
+
+            // Assert no GPU validation errors
+            if (gpuValidationErrors.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationErrors.Count} error(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationErrors));
+
+            // Assert no GPU validation warnings
+            if (gpuValidationWarnings.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationWarnings.Count} warning(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationWarnings));
 
             // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
@@ -644,6 +691,15 @@ namespace Stride.Graphics.Regression
                     Assert.Fail("Some reference images are missing, please copy them manually:" + Environment.NewLine + missingImages);
                 }
             }
+        }
+
+        /// <summary>
+        ///   Filters out known harmless D3D11 debug layer warnings that cannot be avoided
+        ///   without significant refactoring.
+        /// </summary>
+        private static bool IsKnownHarmlessWarning(string text)
+        {
+            return text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
         }
 
         /// <summary>
@@ -752,7 +808,22 @@ namespace Stride.Graphics.Regression
         private string GetPlatformSpecificDirectory()
         {
             if (Platform.Type == PlatformType.Windows)
-                return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+            {
+                string deviceName;
+                if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+                {
+                    deviceName = GraphicsDevice.Platform switch
+                    {
+                        GraphicsPlatform.Vulkan => "SwiftShader",
+                        _ => "WARP"
+                    };
+                }
+                else
+                {
+                    deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+                }
+                return $"Windows.{GraphicsDevice.Platform}\\{deviceName}";
+            }
             else
                 throw new NotImplementedException();
         }
@@ -852,6 +923,11 @@ namespace Stride.Graphics.Regression
         public static void SkipTestForGraphicPlatform(GraphicsPlatform platform)
         {
             Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been skipped");
+        }
+
+        public static void SkipTestForGraphicPlatform(GraphicsPlatform platform, string reason)
+        {
+            Skip.If(GraphicsDevice.Platform == platform, $"{platform}: {reason}");
         }
 
         /// <summary>

@@ -13,6 +13,8 @@
     <TargetFramework>net472</TargetFramework>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <!-- VSSDK CTO merger requires legacy resource format, not the preserialized one -->
+    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
     <ImplicitUsings>enable</ImplicitUsings>

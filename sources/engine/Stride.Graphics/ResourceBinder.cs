@@ -121,7 +121,8 @@ namespace Stride.Graphics
                             break;
 
                         case EffectParameterClass.Sampler:
-                            commandList.SetSamplerState(bindingOperation.Stage, bindingOperation.SlotStart, bindingOperation.ImmutableSampler ?? (SamplerState) value.Value);
+                            commandList.SetSamplerState(bindingOperation.Stage, bindingOperation.SlotStart,
+                                bindingOperation.ImmutableSampler ?? (SamplerState) value.Value ?? commandList.GraphicsDevice.SamplerStates.LinearClamp);
                             break;
 
                         case EffectParameterClass.ShaderResourceView:

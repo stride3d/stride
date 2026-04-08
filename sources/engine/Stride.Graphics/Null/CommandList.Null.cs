@@ -150,6 +150,11 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        {
+            NullHelper.ToImplement();
+        }
+
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             NullHelper.ToImplement();
