@@ -94,14 +94,16 @@ jobs:
       graphics-api: ${{ matrix.graphics-api }}
 
   ### Tests ###
-  Windows-Tests:
+  Windows-Tests-Simple:
     needs: Windows-Runtime
-    strategy:
-      matrix:
-        build-type: [Release]
-        test-category: [Simple, Game]
-    uses: ./.github/workflows/test-windows.yml
+    uses: ./.github/workflows/test-windows-simple.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
-      test-category: ${{ matrix.test-category }}
+      build-type: Debug
+
+  Windows-Tests-Game:
+    needs: Windows-Runtime
+    uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug

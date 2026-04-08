@@ -858,7 +858,7 @@ namespace Stride.Rendering.Compositing
                     currentRenderTargets[index] = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(textureDescription));
                 }
 
-                drawContext.CommandList.ResourceBarrierTransition(currentRenderTargets[index], GraphicsResourceState.RenderTarget);
+                drawContext.CommandList.ResourceBarrierTransition(currentRenderTargets[index], BarrierLayout.RenderTarget);
             }
 
             // Prepare depth buffer
@@ -872,7 +872,7 @@ namespace Stride.Rendering.Compositing
                 var textureDescription = TextureDescription.New2D(description.Width, description.Height, 1, description.Format, TextureFlags.DepthStencil | TextureFlags.ShaderResource, 1, GraphicsResourceUsage.Default, actualMultisampleCount);
                 currentDepthStencil = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(textureDescription));
             }
-            drawContext.CommandList.ResourceBarrierTransition(currentDepthStencil, GraphicsResourceState.DepthWrite);
+            drawContext.CommandList.ResourceBarrierTransition(currentDepthStencil, BarrierLayout.DepthStencilWrite);
         }
 
         /// <summary>

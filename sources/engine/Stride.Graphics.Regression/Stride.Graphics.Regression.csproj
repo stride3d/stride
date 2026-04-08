@@ -30,6 +30,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" />
+    <PackageReference Include="Stride.Dependencies.SwiftShader" Condition="'$(StrideGraphicsApi)' == 'Vulkan'" />
 
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />

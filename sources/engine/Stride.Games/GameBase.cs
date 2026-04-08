@@ -781,9 +781,7 @@ namespace Stride.Games
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.RenderTarget);
-
+                // Note: RT/DS transitions are handled by SetRenderTargetsImpl when targets are bound.
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 
@@ -822,7 +820,7 @@ namespace Stride.Games
                     // Perform end of frame presenter operations
                     GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
 
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.Present);
+                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, BarrierLayout.Present);
                 }
 
                 GraphicsContext.ResourceGroupAllocator.Flush();

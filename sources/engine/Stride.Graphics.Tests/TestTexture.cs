@@ -492,7 +492,7 @@ namespace Stride.Graphics.Tests
                 GraphicsProfile.Level_9_1);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
@@ -527,7 +527,7 @@ namespace Stride.Graphics.Tests
                 profile);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
