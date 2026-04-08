@@ -2,7 +2,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #if !USE_UNMANAGED
@@ -94,7 +93,7 @@ public sealed class ContentChunk
             var chunkBytes = MemoryUtilities.Allocate(Size);
 
             var bufferCapacity = Math.Min(8192u, (uint)Size);
-            var buffer = ArrayPool<byte>.Shared.Rent((int)bufferCapacity);
+            var buffer = new byte[bufferCapacity];
 
             var count = (uint)Size;
             fixed (byte* bufferStart = buffer) // null if array is empty or null
@@ -110,10 +109,9 @@ public sealed class ContentChunk
                     count -= read;
                 } while (count > 0);
             }
-            ArrayPool<byte>.Shared.Return(buffer);
 #else
                 var bytes = new byte[Size];
-                stream.ReadExactly(bytes, 0, Size);
+                stream.Read(bytes, 0, Size);
 
                 handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
                 var chunkBytes = handle.AddrOfPinnedObject();
