@@ -71,6 +71,9 @@
   <!-- ================================================================ -->
   <Import Project="Stride.NativeBuildMode.props" />
 
+  <!-- Native C/C++ compilation (when StrideNativeOutputName is set) -->
+  <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(StrideRoot)sources\native\Stride.Native.targets" />
+
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
