@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -8,6 +8,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <PackAsTool>true</PackAsTool>
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <ToolCommandName>stride-bundle</ToolCommandName>
     <OutputPath>./nupkg</OutputPath>
   </PropertyGroup>
@@ -24,5 +25,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

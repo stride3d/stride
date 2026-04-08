@@ -1,0 +1,81 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ================================================================ -->
+  <!-- Import Base Stride SDK -->
+  <!-- ================================================================ -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />
+
+  <!-- ================================================================ -->
+  <!-- Test Framework Package References -->
+  <!-- ================================================================ -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
+    <PackageReference Include="xunit" Condition="'$(SkipXunitReference)' != 'true'" />
+    <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- xUnit Startup Configuration -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows') And '$(IncludeXunitLauncher)' != 'false'">
+    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Include xUnit Launcher Code -->
+  <!-- ================================================================ -->
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <!-- Launcher code depends on whether this is a graphics regression test -->
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherSimple.Desktop.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Desktop.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherGame.Desktop.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Asset Compilation Support -->
+  <!-- ================================================================ -->
+  <!-- When StrideCompileAssets=true, add a build-only reference to the asset compiler
+       and import its targets for asset compilation during build.
+       Uses $(StrideRoot) from sources/Directory.Build.props to locate the source tree. -->
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
+          Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+
+  <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
+
+  <!-- ================================================================ -->
+  <!-- Native Libraries Copying -->
+  <!-- ================================================================ -->
+  <!-- Note: Native library copying handled by engine runtime packages -->
+  <!-- _StrideBuildDependencies target is from old build system -->
+  <!-- TODO: Re-implement native lib copying for SDK-style when needed for engine tests -->
+
+  <!-- ================================================================ -->
+  <!-- Platform Target Metadata -->
+  <!-- ================================================================ -->
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker"
+          AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
+
+</Project>

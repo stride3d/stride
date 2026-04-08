@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StartupObject>Stride.Core.ProjectTemplating.Tests.Program</StartupObject>
   </PropertyGroup>
@@ -17,14 +18,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
+    <ItemGroup>
     <None Include="Test\%24ProjectName%24.cs.tt">
       <LastGenOutput>TextTemplate1.cs.txt</LastGenOutput>
     </None>
@@ -43,4 +37,5 @@
   <ItemGroup>
     <Content Include="Test\SubFolder\TextRaw.txt" />
   </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

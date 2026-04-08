@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- StrideRoot points to the repository root (one level above sources/).
+         This file is auto-discovered during Microsoft.Common.props evaluation, which
+         happens inside Microsoft.NET.Sdk initialization — i.e., inside Sdk.props.
+         Therefore $(StrideRoot) is available within SDK files and for the closing
+         targets <Import> at the bottom of project files, but NOT for the opening
+         props <Import> (which uses GetDirectoryNameOfFileAbove to locate Sdk.props
+         without any pre-set property). See build/docs/SDK-GUIDE.md for details. -->
+    <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</StrideRoot>
+  </PropertyGroup>
+</Project>
