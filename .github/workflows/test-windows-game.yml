@@ -58,17 +58,38 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
+      - name: Start screenshot watchdog
+        shell: pwsh
+        run: |
+          Start-Job -Name ScreenshotWatchdog -ScriptBlock {
+            Add-Type -AssemblyName System.Windows.Forms
+            while ($true) {
+              Start-Sleep -Seconds 30
+              try {
+                $bitmap = [System.Drawing.Bitmap]::new([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width, [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
+                [System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
+                $bitmap.Save("$env:GITHUB_WORKSPACE\screenshot.png")
+              } catch {}
+            }
+          }
       - name: Test
+        timeout-minutes: 20
         run: |
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Stop screenshot watchdog
+        if: always()
+        shell: pwsh
+        run: Get-Job -Name ScreenshotWatchdog -ErrorAction SilentlyContinue | Stop-Job -PassThru | Remove-Job
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts-game-common
-          path: tests/local/
+          path: |
+            tests/local/
+            screenshot.png
           if-no-files-found: ignore
 
   #
@@ -146,13 +167,32 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+      - name: Start screenshot watchdog
+        shell: pwsh
+        run: |
+          Start-Job -Name ScreenshotWatchdog -ScriptBlock {
+            Add-Type -AssemblyName System.Windows.Forms
+            while ($true) {
+              Start-Sleep -Seconds 30
+              try {
+                $bitmap = [System.Drawing.Bitmap]::new([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width, [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
+                [System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
+                $bitmap.Save("$env:GITHUB_WORKSPACE\screenshot.png")
+              } catch {}
+            }
+          }
       - name: Test
+        timeout-minutes: 20
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -- RunConfiguration.MaxCpuCount=1
+      - name: Stop screenshot watchdog
+        if: always()
+        shell: pwsh
+        run: Get-Job -Name ScreenshotWatchdog -ErrorAction SilentlyContinue | Stop-Job -PassThru | Remove-Job
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh
@@ -172,4 +212,5 @@ jobs:
           path: |
             tests/local/
             crash-dumps/
+            screenshot.png
           if-no-files-found: ignore
