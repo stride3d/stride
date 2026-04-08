@@ -7,6 +7,6 @@
          targets <Import> at the bottom of project files, but NOT for the opening
          props <Import> (which uses GetDirectoryNameOfFileAbove to locate Sdk.props
          without any pre-set property). See build/docs/SDK-GUIDE.md for details. -->
-    <StrideRoot>$(MSBuildThisFileDirectory)../</StrideRoot>
+    <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</StrideRoot>
   </PropertyGroup>
 </Project>

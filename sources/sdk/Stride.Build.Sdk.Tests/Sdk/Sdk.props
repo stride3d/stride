@@ -32,22 +32,6 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Test-Specific Output Paths -->
-  <!-- ================================================================ -->
-  <PropertyGroup>
-    <!-- Compute test output directory using StrideRoot (set by sources/Directory.Build.props) -->
-    <_StrideTestOutputDir Condition="'$(StrideRoot)' != ''">$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</_StrideTestOutputDir>
-    <_StrideTestOutputDir Condition="'$(StrideGraphicsApi)' != ''">$(_StrideTestOutputDir)$(StrideGraphicsApi)\</_StrideTestOutputDir>
-
-    <!-- Set output path (use custom path if not already set) -->
-    <OutputPath Condition="'$(OutputPath)' == ''">$(_StrideTestOutputDir)</OutputPath>
-
-    <!-- Set intermediate output path -->
-    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' == ''">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
-    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' != ''">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
-  </PropertyGroup>
-
-  <!-- ================================================================ -->
   <!-- Graphics API Configuration for Tests -->
   <!-- ================================================================ -->
   <PropertyGroup>
@@ -62,6 +46,17 @@
 
     <!-- Setup default GraphicsApi -->
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Test-Specific Output Paths -->
+  <!-- ================================================================ -->
+  <!-- Output path set in props so dotnet test can resolve the DLL. -->
+  <PropertyGroup>
+    <OutputPath>$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' == ''">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' != ''">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
