@@ -66,7 +66,7 @@
     <PackageVersion Include="NuGet.PackageManagement" Version="7.0.0" />
     <PackageVersion Include="NuGet.Protocol" Version="7.0.0" />
     <PackageVersion Include="NuGet.Resolver" Version="7.0.0" />
-    <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.Assimp" Version="2.23.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
