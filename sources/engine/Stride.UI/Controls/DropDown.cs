@@ -844,6 +844,7 @@ namespace Stride.UI.Controls
                 {
                     Text = item,
                     Font = Font,
+                    TextSize = TextSize,
                     TextColor = ItemTextColor,
                     TextAlignment = textAlignment,
                     VerticalAlignment = VerticalAlignment.Center,
