@@ -807,25 +807,28 @@ namespace Stride.Graphics.Regression
         /// <exception cref="NotImplementedException">The current platform type is not supported.</exception>
         private string GetPlatformSpecificDirectory()
         {
-            if (Platform.Type == PlatformType.Windows)
+            string platformName = Platform.Type switch
             {
-                string deviceName;
-                if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+                PlatformType.Windows => "Windows",
+                PlatformType.Linux => "Linux",
+                PlatformType.macOS => "macOS",
+                _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
+            };
+
+            string deviceName;
+            if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+            {
+                deviceName = GraphicsDevice.Platform switch
                 {
-                    deviceName = GraphicsDevice.Platform switch
-                    {
-                        GraphicsPlatform.Vulkan => "SwiftShader",
-                        _ => "WARP"
-                    };
-                }
-                else
-                {
-                    deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
-                }
-                return $"Windows.{GraphicsDevice.Platform}\\{deviceName}";
+                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    _ => "WARP"
+                };
             }
             else
-                throw new NotImplementedException();
+            {
+                deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+            }
+            return $"{platformName}.{GraphicsDevice.Platform}\\{deviceName}";
         }
 
         /// <summary>
