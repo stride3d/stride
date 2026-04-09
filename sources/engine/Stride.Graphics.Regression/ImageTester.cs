@@ -43,7 +43,15 @@ namespace Stride.Graphics.Regression
         /// </summary>
         /// <param name="image">The image to send.</param>
         /// <param name="testFilename">The expected filename.</param>
-        public static bool CompareImage(Image image, string testFilename)
+        public static bool CompareImage(Image image, string testFilename) => CompareImage(image, testFilename, 2);
+
+        /// <summary>
+        /// Send the data of the test to the server.
+        /// </summary>
+        /// <param name="image">The image to send.</param>
+        /// <param name="testFilename">The expected filename.</param>
+        /// <param name="allowedDiff">Maximum per-channel difference allowed before a pixel is considered different.</param>
+        public static bool CompareImage(Image image, string testFilename, int allowedDiff)
         {
             // Compare
             using (var stream = File.OpenRead(testFilename))
@@ -77,7 +85,6 @@ namespace Stride.Graphics.Regression
                     bool checkAlpha = buffer.Format.AlphaSizeInBits > 0;
 
                     // Compare remaining bytes.
-                    int allowedDiff = 2;
                     int differentPixels = 0;
                     unsafe
                     {

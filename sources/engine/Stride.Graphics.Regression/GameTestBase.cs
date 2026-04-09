@@ -76,6 +76,12 @@ namespace Stride.Graphics.Regression
         public int StopOnFrameCount { get; set; }
 
         /// <summary>
+        ///   Maximum per-channel color difference (0-255) allowed when comparing images.
+        ///   Default is 2. Increase for tests with expected minor numerical differences.
+        /// </summary>
+        public int ImageComparisonTolerance { get; set; } = 2;
+
+        /// <summary>
         ///   Gets or sets the name of the test. It will be reflected in the saved images.
         /// </summary>
         public string TestName { get; set; }
@@ -777,7 +783,7 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file)))
+            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file, ImageComparisonTolerance)))
             {
                 // Comparison failed, save current version so that user can compare / promote it manually
                 ImageTester.SaveImage(image, testLocalFileName);
