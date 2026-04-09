@@ -2,12 +2,8 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
     <StrideBuildTags>*</StrideBuildTags>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
   </PropertyGroup>

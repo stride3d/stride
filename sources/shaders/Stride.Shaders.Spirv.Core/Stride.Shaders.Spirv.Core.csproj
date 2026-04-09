@@ -1,8 +1,8 @@
 ﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -26,5 +26,5 @@
     <AdditionalFiles Include="..\..\..\build\submodules\SpirvRegistry\specs\unified1\SPIRV.html" />
     <AdditionalFiles Include="..\..\..\build\submodules\SpirvRegistry\specs\unified1\GLSL.std.450.html" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
