@@ -210,8 +210,6 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGL);
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
             SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
             // Note: D3D12 WARP tessellation is limited to first frame only (see RegisterTests)
 
