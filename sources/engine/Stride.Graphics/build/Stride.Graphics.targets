@@ -13,4 +13,78 @@
 
   <!-- Consume packages with StrideGraphicsApi -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApiSpecificPackages.targets" />
+
+  <!--
+    Download and include Vulkan validation layers for Android Debug builds.
+    The layer .so is bundled into the APK so the Vulkan loader picks it up automatically.
+  -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And '$(StrideGraphicsApi)' == 'Vulkan' And '$(Configuration)' == 'Debug'">
+    <StrideVulkanValidationVersion>1.4.341.0</StrideVulkanValidationVersion>
+    <StrideVulkanValidationCacheDir>$(LOCALAPPDATA)\Stride\VulkanValidation\$(StrideVulkanValidationVersion)</StrideVulkanValidationCacheDir>
+    <!-- The release zip nests its ABI folders under android-binaries-<version>/. -->
+    <StrideVulkanValidationAbiDir>$(StrideVulkanValidationCacheDir)\android-binaries-$(StrideVulkanValidationVersion)</StrideVulkanValidationAbiDir>
+    <StrideVulkanValidationZip>$(StrideVulkanValidationCacheDir)\android-binaries.zip</StrideVulkanValidationZip>
+    <StrideVulkanValidationUrl>https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download/vulkan-sdk-$(StrideVulkanValidationVersion)/android-binaries-$(StrideVulkanValidationVersion).zip</StrideVulkanValidationUrl>
+  </PropertyGroup>
+
+  <!-- Atomic directory rename: Directory.Move is atomic on POSIX (rename(2)) and on Windows
+       NTFS (MoveFileEx with MOVEFILE_REPLACE_EXISTING off). Used as the cross-process commit
+       point of the temp-extract pattern in _StrideDownloadVulkanValidationLayers — the loser
+       of a parallel race throws IOException and noops. -->
+  <UsingTask TaskName="StrideAtomicDirectoryMove" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Source ParameterType="System.String" Required="true" />
+      <Destination ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        try { System.IO.Directory.Move(Source, Destination); }
+        catch (System.IO.IOException) { /* destination exists -- another process beat us */ }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Parallel-safe: every Android project hits this target concurrently. Per-invocation
+       temp files isolate the download and the extract; atomic Move/Directory.Move commits
+       the result. Re-check the extracted-layer marker before each expensive step so once any
+       process has populated the cache, the rest skip straight through. -->
+  <Target Name="_StrideDownloadVulkanValidationLayers"
+          Condition="'$(StridePlatform)' == 'Android' And '$(StrideGraphicsApi)' == 'Vulkan' And '$(Configuration)' == 'Debug' And !Exists('$(StrideVulkanValidationAbiDir)\arm64-v8a\libVkLayer_khronos_validation.so')"
+          BeforeTargets="_ResolveLibraryProjectImports">
+    <PropertyGroup>
+      <_StrideVkValidTmpZip>$(StrideVulkanValidationCacheDir)\android-binaries.$([System.Guid]::NewGuid()).tmp</_StrideVkValidTmpZip>
+      <_StrideVkValidTmpExtract>$(StrideVulkanValidationCacheDir)\extract.$([System.Guid]::NewGuid()).tmp</_StrideVkValidTmpExtract>
+    </PropertyGroup>
+    <Message Importance="high" Text="Downloading Vulkan validation layers $(StrideVulkanValidationVersion)..." />
+    <MakeDir Directories="$(StrideVulkanValidationCacheDir)" />
+    <DownloadFile Condition="!Exists('$(StrideVulkanValidationAbiDir)\arm64-v8a\libVkLayer_khronos_validation.so') And !Exists('$(StrideVulkanValidationZip)')"
+                  SourceUrl="$(StrideVulkanValidationUrl)" DestinationFolder="$(StrideVulkanValidationCacheDir)"
+                  DestinationFileName="$([System.IO.Path]::GetFileName('$(_StrideVkValidTmpZip)'))" />
+    <Move Condition="Exists('$(_StrideVkValidTmpZip)') And !Exists('$(StrideVulkanValidationZip)')"
+          SourceFiles="$(_StrideVkValidTmpZip)" DestinationFiles="$(StrideVulkanValidationZip)" />
+    <Delete Condition="Exists('$(_StrideVkValidTmpZip)')" Files="$(_StrideVkValidTmpZip)" />
+    <Unzip Condition="!Exists('$(StrideVulkanValidationAbiDir)\arm64-v8a\libVkLayer_khronos_validation.so')"
+           SourceFiles="$(StrideVulkanValidationZip)" DestinationFolder="$(_StrideVkValidTmpExtract)" OverwriteReadOnlyFiles="true" />
+    <StrideAtomicDirectoryMove Condition="Exists('$(_StrideVkValidTmpExtract)\android-binaries-$(StrideVulkanValidationVersion)') And !Exists('$(StrideVulkanValidationAbiDir)')"
+                               Source="$(_StrideVkValidTmpExtract)\android-binaries-$(StrideVulkanValidationVersion)"
+                               Destination="$(StrideVulkanValidationAbiDir)" />
+    <RemoveDir Condition="Exists('$(_StrideVkValidTmpExtract)')" Directories="$(_StrideVkValidTmpExtract)" />
+  </Target>
+
+  <!-- Only gate APK-producing projects (AndroidApplication=true). Without this, every Android
+       class library that imports this targets file bundles the ~93 MB layer set into its .aar. -->
+  <ItemGroup Condition="'$(StridePlatform)' == 'Android' And '$(StrideGraphicsApi)' == 'Vulkan' And '$(Configuration)' == 'Debug' And '$(AndroidApplication)' == 'true'">
+    <AndroidNativeLibrary Include="$(StrideVulkanValidationAbiDir)\arm64-v8a\libVkLayer_khronos_validation.so" Condition="Exists('$(StrideVulkanValidationAbiDir)\arm64-v8a\libVkLayer_khronos_validation.so')">
+      <Abi>arm64-v8a</Abi>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="$(StrideVulkanValidationAbiDir)\armeabi-v7a\libVkLayer_khronos_validation.so" Condition="Exists('$(StrideVulkanValidationAbiDir)\armeabi-v7a\libVkLayer_khronos_validation.so')">
+      <Abi>armeabi-v7a</Abi>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="$(StrideVulkanValidationAbiDir)\x86_64\libVkLayer_khronos_validation.so" Condition="Exists('$(StrideVulkanValidationAbiDir)\x86_64\libVkLayer_khronos_validation.so')">
+      <Abi>x86_64</Abi>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="$(StrideVulkanValidationAbiDir)\x86\libVkLayer_khronos_validation.so" Condition="Exists('$(StrideVulkanValidationAbiDir)\x86\libVkLayer_khronos_validation.so')">
+      <Abi>x86</Abi>
+    </AndroidNativeLibrary>
+  </ItemGroup>
 </Project>
