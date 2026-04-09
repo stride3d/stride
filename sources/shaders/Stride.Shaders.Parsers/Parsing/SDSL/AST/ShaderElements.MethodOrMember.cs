@@ -116,10 +116,16 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
                     throw new NotImplementedException($"SamplerState parameter '{parameter.Name}' not implemented");
             }
         }
-        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateSDSL, [
-            filter, addressU, addressV, addressW, mipLODBias, maxAnisotropy, comparisonFunc, minLOD, maxLOD,
-            borderR, borderG, borderB, borderA
-        ]));
+        // Only emit immutable sampler state when the declaration has explicit parameters.
+        // Samplers without inline state (e.g. "stage SamplerState Sampler;") are dynamic
+        // and set at runtime via Parameters.Set().
+        if (Parameters.Count > 0)
+        {
+            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateSDSL, [
+                filter, addressU, addressV, addressW, mipLODBias, maxAnisotropy, comparisonFunc, minLOD, maxLOD,
+                borderR, borderG, borderB, borderA
+            ]));
+        }
 
         var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
         context.AddName(variable.ResultId, Name);
