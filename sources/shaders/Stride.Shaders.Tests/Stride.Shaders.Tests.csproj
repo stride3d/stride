@@ -10,6 +10,8 @@
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <StrideEnableTestLauncher>false</StrideEnableTestLauncher>
+    <SkipXunitReference>true</SkipXunitReference>
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
 
     <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>

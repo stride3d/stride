@@ -77,9 +77,15 @@
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
-  <!-- Configure .sdsl and .sdfx files with their code generators,
-       and mark generated .cs files as dependent on their source shader -->
+  <!-- Auto-discover .sdsl/.sdfx files, register them as AdditionalFiles
+       for the Roslyn source generator, and mark generated .cs as dependent -->
   <ItemGroup>
+    <None Remove="**\*.sdsl" />
+    <None Remove="**\*.sdfx" />
+    <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="@(StrideShaderFiles)" />
+    <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(StrideRoot)sources\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
     <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
     <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
