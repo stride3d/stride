@@ -9,6 +9,8 @@
 
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+    <OutputPath>$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
     <StrideEnableTestLauncher>false</StrideEnableTestLauncher>
     <SkipXunitReference>true</SkipXunitReference>
     <IncludeXunitLauncher>false</IncludeXunitLauncher>
@@ -36,15 +38,18 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
-    <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ComputeTests\" />
-    <StrideShaderFiles Include="..\assets\SDSL\StreamOutTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\StreamOutTests\" />
-    <None Include="..\..\engine\Stride.Graphics\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
-    <None Include="..\..\engine\Stride.Graphics\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
-    <None Include="..\..\engine\Stride.Rendering\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
-    <None Include="..\..\engine\Stride.Rendering\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
-    <None Include="..\..\engine\Stride.Engine\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
-    <None Include="..\..\engine\Stride.Engine\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+    <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" LinkBase="assets\SDSL\RenderTests\" />
+    <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" LinkBase="assets\SDSL\ComputeTests\" />
+    <StrideShaderFiles Include="..\assets\SDSL\StreamOutTests\**" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
+    <Content Include="..\assets\SDSL\ComputeTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ComputeTests\" />
+    <Content Include="..\assets\SDSL\StreamOutTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\..\engine\Stride.Graphics\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Graphics\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Rendering\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Rendering\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Engine\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Engine\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
