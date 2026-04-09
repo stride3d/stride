@@ -165,12 +165,13 @@ namespace Stride.Importer.ThreeD
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
             postProcessFlags |= aiPostProcessSteps.aiProcess_CalcTangentSpace
-                               | aiPostProcessSteps.aiProcess_Triangulate
-                               | aiPostProcessSteps.aiProcess_GenNormals
-                               | aiPostProcessSteps.aiProcess_SortByPType
-                               | aiPostProcessSteps.aiProcess_FlipWindingOrder
-                               | aiPostProcessSteps.aiProcess_FlipUVs
-                               | aiPostProcessSteps.aiProcess_GlobalScale;
+                                | aiPostProcessSteps.aiProcess_Triangulate
+                                | aiPostProcessSteps.aiProcess_GenNormals
+                                | aiPostProcessSteps.aiProcess_SortByPType
+                                | aiPostProcessSteps.aiProcess_FlipWindingOrder
+                                | aiPostProcessSteps.aiProcess_FlipUVs
+                                | aiPostProcessSteps.aiProcess_GlobalScale
+                                | aiPostProcessSteps.aiProcess_LimitBoneWeights;
 
             scene = assimp.ApplyPostProcessing(scene, (uint)postProcessFlags);
             assimp.ReleasePropertyStore(propStore);

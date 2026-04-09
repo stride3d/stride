@@ -54,7 +54,7 @@ namespace Stride.Core.Presentation.Tests
             HideBlocking,
         }
 
-        [Theory(Skip = "The teamcity agent is currently running as a service, it cannot handle windowing operations. Will need to set it up as users before enabling this one again")]
+        [Theory]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking)]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal)]
         [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideBlocking, Step.HideModal)]
@@ -186,7 +186,7 @@ namespace Stride.Core.Presentation.Tests
             }
             if (modalWindow != null)
             {
-                Assert.Equal(1, WindowManager.ModalWindows.Count);
+                Assert.Single(WindowManager.ModalWindows);
                 var winInfo = WindowManager.ModalWindows[0];
                 Assert.Equal(modalWindow, winInfo.Window);
                 Assert.True(winInfo.IsModal);
@@ -194,11 +194,11 @@ namespace Stride.Core.Presentation.Tests
             }
             else
             {
-                Assert.Equal(0, WindowManager.ModalWindows.Count);
+                Assert.Empty(WindowManager.ModalWindows);
             }
             if (blockingWindow != null)
             {
-                Assert.Equal(1, WindowManager.BlockingWindows.Count);
+                Assert.Single(WindowManager.BlockingWindows);
                 var winInfo = WindowManager.BlockingWindows[0];
                 Assert.Equal(blockingWindow, winInfo.Window);
                 Assert.False(winInfo.IsModal);
@@ -207,7 +207,7 @@ namespace Stride.Core.Presentation.Tests
             }
             else
             {
-                Assert.Equal(0, WindowManager.BlockingWindows.Count);
+                Assert.Empty(WindowManager.BlockingWindows);
             }
         }
     }

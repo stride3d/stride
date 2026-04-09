@@ -10,11 +10,6 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResource
     {
         /// <summary>
-        ///   A reference to the parent <see cref="GraphicsResource"/> that owns this resource, if any.
-        /// </summary>
-        internal GraphicsResource ParentResource;
-
-        /// <summary>
         /// Fence value used with <see cref="GraphicsDevice.CopyFence"/> during resource initialization. Need to be waited on for CPU access.
         /// </summary>
         internal ulong? CopyFenceValue;
@@ -75,7 +70,6 @@ namespace Stride.Graphics
 
             base.SwapInternal(other);
 
-            (ParentResource, otherResource.ParentResource)                       = (otherResource.ParentResource, ParentResource);
             (CommandListFenceValue, otherResource.CommandListFenceValue)         = (otherResource.CommandListFenceValue, CommandListFenceValue);
             (UpdatingCommandList, otherResource.UpdatingCommandList)             = (otherResource.UpdatingCommandList, UpdatingCommandList);
             (NativeShaderResourceView, otherResource.NativeShaderResourceView)   = (otherResource.NativeShaderResourceView, NativeShaderResourceView);

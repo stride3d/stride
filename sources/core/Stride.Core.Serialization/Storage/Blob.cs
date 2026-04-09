@@ -32,7 +32,7 @@ public class Blob : ReferenceBase
     {
         Size = (int)stream.Length;
         Content = Marshal.AllocHGlobal(Size);
-        stream.Read(new Span<byte>((void*)Content, Size));
+        stream.ReadExactly(new Span<byte>((void*)Content, Size));
     }
 
     /// <summary>

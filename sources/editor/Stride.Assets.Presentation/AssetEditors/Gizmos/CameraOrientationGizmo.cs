@@ -41,8 +41,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             new FaceData("Left", "-X", new Vector3(0, -MathUtil.PiOverTwo, 0)),
             new FaceData("Top", "Y", new Vector3(-MathUtil.PiOverTwo, 0, 0)),
             new FaceData("Bottom", "-Y", new Vector3(MathUtil.PiOverTwo, 0, 0)),
-            new FaceData("Back", "-Z", Vector3.Zero),
-            new FaceData("Front", "Z", new Vector3(0, MathUtil.Pi, 0))
+            new FaceData("Front", "Z", Vector3.Zero),
+            new FaceData("Back", "-Z", new Vector3(0, MathUtil.Pi, 0))
         };
 
         /// <summary>

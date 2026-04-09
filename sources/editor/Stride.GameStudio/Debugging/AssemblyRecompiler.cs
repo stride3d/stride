@@ -23,7 +23,7 @@ namespace Stride.GameStudio.Debugging
 {
     public partial class AssemblyRecompiler
     {
-        private SourceGroup[] previousSortedConnectedGroups = new SourceGroup[0];
+        private SourceGroup[] previousSortedConnectedGroups = [];
         private IMutableBidirectionalGraph<SourceGroup, CondensedEdge<SyntaxTree, SEdge<SyntaxTree>, SourceGroup>> previousStronglyConnected = new BidirectionalGraph<SourceGroup, CondensedEdge<SyntaxTree, SEdge<SyntaxTree>, SourceGroup>>();
         private ImmutableHashSet<SourceGroup> previousConnectedGroups;
         private int assemblyCounter;
@@ -53,7 +53,7 @@ namespace Stride.GameStudio.Debugging
 
             foreach (var syntaxTree in gameProjectCompilation.SyntaxTrees)
             {
-                var syntaxRoot = syntaxTree.GetRoot();
+                var syntaxRoot = await syntaxTree.GetRootAsync();
                 var semanticModel = gameProjectCompilation.GetSemanticModel(syntaxTree);
 
                 var dependencies = new SourceDependencySyntaxVisitor(new HashSet<SyntaxTree>(gameProjectCompilation.SyntaxTrees), semanticModel).DefaultVisit(syntaxRoot);
@@ -106,7 +106,7 @@ namespace Stride.GameStudio.Debugging
             for (int i = 0; i < 1000; i++)
                 internalsVisibleToBuilder.AppendFormat(@"[assembly: InternalsVisibleTo(""{0}.Part{1}"")]", gameProject.AssemblyName, i);
 
-            var internalsVisibleToSource = CSharpSyntaxTree.ParseText(internalsVisibleToBuilder.ToString(), null, "", Encoding.UTF8).GetText();
+            var internalsVisibleToSource = await CSharpSyntaxTree.ParseText(internalsVisibleToBuilder.ToString(), null, "", Encoding.UTF8).GetTextAsync();
 
             // 2. Compile assemblies
             foreach (var sourceGroup in sortedConnectedGroups.Reverse())
@@ -125,7 +125,7 @@ namespace Stride.GameStudio.Debugging
                     // Add sources
                     foreach (var syntaxTree in sourceGroup.Vertices)
                     {
-                        project = project.AddDocument(syntaxTree.FilePath, syntaxTree.GetText()).Project;
+                        project = project.AddDocument(syntaxTree.FilePath, await syntaxTree.GetTextAsync()).Project;
                     }
 
                     // Add references to other sources

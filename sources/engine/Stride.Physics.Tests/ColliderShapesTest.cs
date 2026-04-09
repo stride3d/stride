@@ -280,7 +280,7 @@ namespace Stride.Physics.Tests
                 //add collider shape
                 body.ColliderShape = new SphereColliderShape(false, 1.0f);
                 //check if proper colliderShape setup took place
-                Assert.True(body.ColliderShape != null);
+                Assert.NotNull(body.ColliderShape);
                 Assert.Equal(ColliderShapeTypes.Sphere, body.ColliderShape.Type);
                 Assert.Equal(RigidBodyTypes.Dynamic, body.RigidBodyType);
 

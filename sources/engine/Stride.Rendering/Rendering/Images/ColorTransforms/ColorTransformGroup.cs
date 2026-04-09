@@ -130,7 +130,7 @@ namespace Stride.Rendering.Images
             for (int i = 0; i < transformContext.Inputs.Count; i++)
             {
                 transformGroupEffect.SetInput(i, transformContext.Inputs[i]);
-                context.CommandList.ResourceBarrierTransition(transformContext.Inputs[i], Graphics.GraphicsResourceState.PixelShaderResource);
+                context.CommandList.ResourceBarrierTransition(transformContext.Inputs[i], Graphics.BarrierLayout.ShaderResource);
             }
             transformGroupEffect.SetOutput(output);
             transformGroupEffect.Draw(context, name: Name);

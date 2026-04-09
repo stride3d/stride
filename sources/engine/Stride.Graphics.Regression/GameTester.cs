@@ -1,20 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
 using System;
+using System.Diagnostics;
+using Stride.Core.Diagnostics;
+using Stride.Engine;
+
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using Stride.Games;
+#endif
 
 #if STRIDE_PLATFORM_IOS
 using UIKit;
 #endif
-
-using Stride.Games;
-#endif
-
-using Stride.Core.Diagnostics;
-using Stride.Engine;
 
 namespace Stride.Graphics.Regression
 {
@@ -54,8 +54,21 @@ namespace Stride.Graphics.Regression
 
             using (game)
             {
-                game.Run();
+                try
+                {
+                    game.Run();
+                }
+                finally
+                {
+                    // End/Discard RenderDoc capture while the device is still alive (before Dispose/Destroy)
+                    if (game is GameTestBase testGame)
+                        testGame.EndOrDiscardRenderDocCapture();
+                }
             }
+
+            // Log process memory for diagnostics (helps detect resource leaks across tests)
+            using var process = Process.GetCurrentProcess();
+            Logger.Info($"Process memory: working set={process.WorkingSet64 / 1024 / 1024}MB, private={process.PrivateMemorySize64 / 1024 / 1024}MB, GC={GC.GetTotalMemory(false) / 1024 / 1024}MB");
 
 #elif STRIDE_PLATFORM_UWP
 

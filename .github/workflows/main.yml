@@ -14,11 +14,23 @@ on:
       - '!**/.gitignore'
       - '!**/*.md'
       - '!crowdin.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ### Misc. ###
@@ -82,14 +94,16 @@ jobs:
       graphics-api: ${{ matrix.graphics-api }}
 
   ### Tests ###
-  Windows-Tests:
+  Windows-Tests-Simple:
     needs: Windows-Runtime
-    strategy:
-      matrix:
-        build-type: [Release]
-        test-category: [Simple]
-    uses: ./.github/workflows/test-windows.yml
+    uses: ./.github/workflows/test-windows-simple.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
-      test-category: ${{ matrix.test-category }}
+      build-type: Debug
+
+  Windows-Tests-Game:
+    needs: Windows-Runtime
+    uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug

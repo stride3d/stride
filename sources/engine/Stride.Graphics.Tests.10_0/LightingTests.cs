@@ -14,7 +14,16 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Test lighting and shadows.
     /// </summary>
-    /// Note: shadows stabilization is still not working, new golds will be needed when fixed.
+    // Vulkan validation layer false positive: the shadow map atlas is transitioned from DepthStencilWrite
+    // to ShaderReadOnly in a command buffer that is submitted via a separate vkQueueSubmit call (with
+    // timeline semaphore ordering) before the worker command buffers that sample the shadow map.
+    // The validation layer doesn't track image layout transitions across timeline-semaphore-ordered
+    // submissions, so it reports the image as still being in DepthStencilAttachmentOptimal.
+    // Verified correct with STRIDE_MAX_PARALLELISM=1 (single command buffer, 0 failures in 10 runs).
+    // Related (but not identical): https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/10185
+    [AllowGpuValidationError(GraphicsPlatform.Vulkan,
+        "to be in layout VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL--instead, current layout is VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+        Reason = "Validation layer doesn't track image layouts across timeline-semaphore-ordered command buffer submissions (https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/10185)")]
     public class LightingTests : GameTestBase
     {
         public Action<LightingTests> SetupLighting { get; set; }

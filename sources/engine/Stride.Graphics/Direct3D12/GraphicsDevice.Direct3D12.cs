@@ -6,11 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
 
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 
 using static System.Runtime.CompilerServices.Unsafe;
@@ -20,6 +22,8 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
+
         internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
@@ -27,6 +31,8 @@ namespace Stride.Graphics
         // Lock to ensure the Debug Layer is only initialized once
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
+
+        private ID3D12InfoQueue* nativeInfoQueue;
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -39,6 +45,11 @@ namespace Stride.Graphics
 
         private bool simulateReset = false;
         private string rendererName;
+
+        /// <summary>
+        ///   Whether D3D12 Enhanced Barriers are supported by the device.
+        /// </summary>
+        internal bool SupportsEnhancedBarriers;
 
         private ID3D12Device* nativeDevice;
         private ID3D12CommandQueue* nativeCommandQueue;
@@ -188,9 +199,14 @@ namespace Stride.Graphics
         internal FenceHelper CopyFence;
 
         /// <summary>
-        ///   Temporary or destroyed Graphics Resources that are kept around until the GPU doesn't need them anymore.
+        ///   Resources awaiting deferred release once the frame fence has been reached.
         /// </summary>
-        internal Queue<(ulong FenceValue, object Resource)> TemporaryResources = new();
+        internal DeferredReleaseQueue FrameTemporaryResources = new();
+
+        /// <summary>
+        ///   Resources awaiting deferred release once the copy fence has been reached.
+        /// </summary>
+        internal DeferredReleaseQueue CopyTemporaryResources = new();
 
         /// <summary>
         ///   Gets the tick frquency of timestamp queries, in hertz.
@@ -212,7 +228,7 @@ namespace Stride.Graphics
 
                 var result = (DxgiConstants.DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
-                return result switch
+                var status = result switch
                 {
                     DxgiConstants.DeviceRemoveReason.DeviceRemoved => GraphicsDeviceStatus.Removed,
                     DxgiConstants.DeviceRemoveReason.DeviceReset => GraphicsDeviceStatus.Reset,
@@ -223,6 +239,15 @@ namespace Stride.Graphics
                     < 0 => GraphicsDeviceStatus.Reset,
                     _ => GraphicsDeviceStatus.Normal
                 };
+
+                if (status != GraphicsDeviceStatus.Normal && IsDebugMode)
+                {
+                    Log.Error($"[D3D12] Device removed! Reason: {result} (status: {status})");
+                    FlushDebugMessages();
+                    LogDredData();
+                }
+
+                return status;
             }
         }
 
@@ -293,12 +318,16 @@ namespace Stride.Graphics
                 RecycleCommandListResources(commandList, commandListFenceValue + 1);
             }
 
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            if (commandListFenceValue > 0)
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal the fence
             nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
 
             CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+
+            if (IsDebugMode)
+                FlushDebugMessages();
 
             ReleaseTemporaryResources();
         }
@@ -384,6 +413,10 @@ namespace Stride.Graphics
 
                 RequestedProfile = graphicsProfile;
                 CurrentFeatureLevel = featureLevel;
+
+                // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
+                CheckEnhancedBarriersSupport();
+
                 break;
             }
 
@@ -457,7 +490,8 @@ namespace Stride.Graphics
                         //infoQueue.SetBreakOnSeverity(Silk.NET.Direct3D12.MessageSeverity.Error, true);
                         //infoQueue.SetBreakOnSeverity(Silk.NET.Direct3D12.MessageSeverity.Warning, true);
 
-                        infoQueue.Release();
+                        // Keep reference to drain messages to log
+                        nativeInfoQueue = infoQueue;
                     }
                     debugDevice.Release();
                 }
@@ -510,15 +544,57 @@ namespace Stride.Graphics
                 {
                     debugInterface.EnableDebugLayer();
 
-                    // TODO: Probably should be added as extra debug flags (much slower)
-                    result = debugInterface.QueryInterface<ID3D12Debug1>(out var debug1);
-                    if (result.IsSuccess && debug1.IsNotNull())
+                    // GPU-based validation instruments every shader — extremely slow on software renderers.
+                    // Only enable on real hardware.
+                    bool isSoftwareRenderer = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
+                    if (!isSoftwareRenderer)
                     {
-                        debug1.SetEnableGPUBasedValidation(true);
-                        debug1.SetEnableSynchronizedCommandQueueValidation(true);
-                        debug1.Release();
+                        result = debugInterface.QueryInterface<ID3D12Debug1>(out var debug1);
+                        if (result.IsSuccess && debug1.IsNotNull())
+                        {
+                            debug1.SetEnableGPUBasedValidation(true);
+                            debug1.SetEnableSynchronizedCommandQueueValidation(true);
+                            debug1.Release();
+                        }
                     }
                     debugInterface.Release();
+                }
+
+                // Enable DRED (Device Removed Extended Data) for GPU crash diagnostics
+                result = d3d12.GetDebugInterface(out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
+                if (result.IsSuccess && dredSettings.IsNotNull())
+                {
+                    dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
+                    dredSettings.SetPageFaultEnablement(DredEnablement.ForcedOn);
+                    dredSettings.Release();
+                }
+            }
+
+            //
+            // Checks if the device supports D3D12 Enhanced Barriers.
+            //
+            void CheckEnhancedBarriersSupport()
+            {
+                // D3D12_FEATURE_D3D12_OPTIONS12 = 41
+                // The struct has EnhancedBarriersSupported as a BOOL at a known offset.
+                // Since Silk.NET may not have this struct, we use raw CheckFeatureSupport.
+                const int D3D12_FEATURE_D3D12_OPTIONS12 = 41;
+
+                // D3D12_FEATURE_DATA_D3D12_OPTIONS12 is a large struct; EnhancedBarriersSupported
+                // is at byte offset 8 (after MSAAAlignedCountSupported and RelaxedFormatCasting BoolS).
+                // We allocate enough space and read the BOOL at offset 8.
+                Span<byte> options12 = stackalloc byte[64]; // oversized to be safe
+                options12.Clear();
+
+                fixed (byte* pOptions = options12)
+                {
+                    HResult hr = nativeDevice->CheckFeatureSupport((Silk.NET.Direct3D12.Feature) D3D12_FEATURE_D3D12_OPTIONS12,
+                                                                    pOptions, (uint) options12.Length);
+                    if (hr.IsSuccess)
+                    {
+                        // EnhancedBarriersSupported is a BOOL (4 bytes) at offset 8
+                        SupportsEnhancedBarriers = *(int*)(pOptions + 8) != 0;
+                    }
                 }
             }
         }
@@ -557,9 +633,7 @@ namespace Stride.Graphics
                 {
                     nativeUploadBuffer->Unmap(Subresource: 0, pWrittenRange: null);
 
-                    lock (TemporaryResources)
-                        TemporaryResources.Enqueue((FrameFence.NextFenceValue, ToComPtr(nativeUploadBuffer)));
-                    // TODO: Keep a separate temporary resource list for COM pointers to avoid boxing
+                    FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, ToComPtr(nativeUploadBuffer));
                 }
 
                 // Allocate new buffer
@@ -646,23 +720,8 @@ namespace Stride.Graphics
         /// </remarks>
         internal void ReleaseTemporaryResources()
         {
-            lock (TemporaryResources)
-            {
-                // Release previous frame resources
-                while (TemporaryResources.Count > 0 && FrameFence.IsFenceCompleteInternal(TemporaryResources.Peek().FenceValue))
-                {
-                    var temporaryResource = TemporaryResources.Dequeue().Resource;
-
-                    if (temporaryResource is ComPtr<ID3D12Resource> resource)
-                    {
-                        resource.Release();
-                    }
-                    else if (temporaryResource is GraphicsResourceLink referenceLink)
-                    {
-                        referenceLink.ReferenceCount--;
-                    }
-                }
-            }
+            FrameTemporaryResources.ReleaseCompleted(FrameFence);
+            CopyTemporaryResources.ReleaseCompleted(CopyFence);
         }
 
         /// <summary>
@@ -674,6 +733,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
+        partial void WaitForGPUIdle()
+        {
+            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
+            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
+        }
+
         protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
@@ -684,10 +749,6 @@ namespace Stride.Graphics
         /// </summary>
         private void ReleaseDevice()
         {
-            // Wait for completion of everything queued
-            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
-            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
-
             // Release command queue
             SafeRelease(ref nativeCommandQueue);
 
@@ -697,8 +758,9 @@ namespace Stride.Graphics
 
             SafeRelease(ref nativeUploadBuffer);
 
-            // Release temporary resources
-            ReleaseTemporaryResources();
+            // Release all deferred resources (GPU is fully flushed at this point)
+            FrameTemporaryResources.ReleaseAll();
+            CopyTemporaryResources.ReleaseAll();
 
             FrameFence.Dispose();
             CommandListFence.Dispose();
@@ -717,6 +779,8 @@ namespace Stride.Graphics
 
             if (IsDebugMode)
             {
+                FlushDebugMessages();
+
                 HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
 
                 if (result.IsSuccess && debugDevice.IsNotNull())
@@ -724,6 +788,8 @@ namespace Stride.Graphics
                     debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
                     debugDevice.Release();
                 }
+
+                SafeRelease(ref nativeInfoQueue);
             }
 
             SafeRelease(ref nativeDevice);
@@ -741,6 +807,95 @@ namespace Stride.Graphics
         {
         }
 
+        /// <summary>
+        ///   Drains all pending D3D12 debug messages from the InfoQueue and logs them.
+        /// </summary>
+        internal void FlushDebugMessages()
+        {
+            if (nativeInfoQueue is null)
+                return;
+
+            var numMessages = nativeInfoQueue->GetNumStoredMessages();
+            for (ulong i = 0; i < numMessages; i++)
+            {
+                nuint messageLength = 0;
+                nativeInfoQueue->GetMessageA(i, null, ref messageLength);
+
+                if (messageLength == 0)
+                    continue;
+
+                var messageBytes = new byte[(int) messageLength];
+                fixed (byte* pMessage = messageBytes)
+                {
+                    var message = (Silk.NET.Direct3D12.Message*) pMessage;
+                    nativeInfoQueue->GetMessageA(i, message, ref messageLength);
+
+                    var description = Marshal.PtrToStringAnsi((nint) message->PDescription) ?? "(no description)";
+
+                    Debug.WriteLine($"D3D12: {message->Severity} {description}");
+
+                    switch (message->Severity)
+                    {
+                        case MessageSeverity.Corruption:
+                        case MessageSeverity.Error:
+                            Log.Error($"[D3D12] {message->Severity}: {description}");
+                            break;
+                        case MessageSeverity.Warning:
+                            Log.Warning($"[D3D12] {description}");
+                            break;
+                    }
+                }
+            }
+
+            nativeInfoQueue->ClearStoredMessages();
+        }
+
+        /// <summary>
+        ///   Logs DRED (Device Removed Extended Data) information after a device removal event.
+        /// </summary>
+        internal void LogDredData()
+        {
+            if (nativeDevice is null)
+                return;
+
+            HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DeviceRemovedExtendedData> dred);
+            if (result.IsFailure || dred.IsNull())
+                return;
+
+            DredAutoBreadcrumbsOutput breadcrumbsOutput = default;
+            result = dred.GetAutoBreadcrumbsOutput(ref breadcrumbsOutput);
+            if (result.IsSuccess && breadcrumbsOutput.PHeadAutoBreadcrumbNode is not null)
+            {
+                Log.Error("[DRED] Auto-breadcrumbs:");
+                var node = breadcrumbsOutput.PHeadAutoBreadcrumbNode;
+                while (node is not null)
+                {
+                    var cmdListName = Marshal.PtrToStringUni((nint) node->PCommandListDebugNameW) ?? "(unnamed)";
+                    var cmdQueueName = Marshal.PtrToStringUni((nint) node->PCommandQueueDebugNameW) ?? "(unnamed)";
+                    Log.Error($"[DRED]   CmdList={cmdListName}, CmdQueue={cmdQueueName}, BreadcrumbCount={node->BreadcrumbCount}, LastCompleted={*node->PLastBreadcrumbValue}");
+
+                    // Log the breadcrumb operations
+                    for (uint i = 0; i < node->BreadcrumbCount && i < 64; i++)
+                    {
+                        var op = node->PCommandHistory[i];
+                        var marker = i < *node->PLastBreadcrumbValue ? "DONE" : (i == *node->PLastBreadcrumbValue ? ">>LAST>>" : "pending");
+                        Log.Error($"[DRED]     [{marker}] {i}: {op}");
+                    }
+
+                    node = node->PNext;
+                }
+            }
+
+            DredPageFaultOutput pageFaultOutput = default;
+            result = dred.GetPageFaultAllocationOutput(ref pageFaultOutput);
+            if (result.IsSuccess)
+            {
+                Log.Error($"[DRED] Page fault at VA: 0x{pageFaultOutput.PageFaultVA:X16}");
+            }
+
+            dred.Release();
+        }
+
 
         /// <summary>
         ///   Executes a Compiled Command List.
@@ -756,7 +911,8 @@ namespace Stride.Graphics
         {
             var commandListFenceValue = CommandListFence.NextFenceValue++;
 
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            if (commandListFenceValue > 0)
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal fence
             var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
@@ -840,16 +996,14 @@ namespace Stride.Graphics
             {
                 // Increase the reference count until GPU is done with the resource
                 resourceLink.ReferenceCount++;
-                lock (TemporaryResources)
-                    TemporaryResources.Enqueue((FrameFence.NextFenceValue, resourceLink));
+                FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, resourceLink);
             }
 
             if (resourceLink.Resource is Buffer { Usage: GraphicsResourceUsage.Dynamic })
             {
                 // Increase the reference count until GPU is done with the resource
                 resourceLink.ReferenceCount++;
-                lock (TemporaryResources)
-                    TemporaryResources.Enqueue((FrameFence.NextFenceValue, resourceLink));
+                FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, resourceLink);
             }
         }
     }

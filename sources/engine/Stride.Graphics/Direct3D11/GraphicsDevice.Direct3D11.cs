@@ -13,6 +13,7 @@ using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
 
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.UnsafeExtensions;
 
 using static Stride.Graphics.ComPtrHelpers;
@@ -22,6 +23,8 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
+
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D11;
@@ -341,6 +344,28 @@ namespace Stride.Graphics
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
+
+                    // Suppress known harmless warnings:
+                    // - RT/SRV binding hazards: texture still bound as SRV while set as RT (or vice versa).
+                    //   D3D11 auto-unbinds the conflicting slot — on D3D12/Vulkan this is handled
+                    //   explicitly by SubresourceLayoutTracker which issues the proper barriers.
+                    // - SetPrivateData changing params: debug name size mismatch when reusing resources.
+                    var deniedMessages = stackalloc MessageID[]
+                    {
+                        MessageID.DeviceOmsetrendertargetsHazard,
+                        MessageID.DevicePssetshaderresourcesHazard,
+                        MessageID.SetprivatedataChangingparams,
+                    };
+
+                    Silk.NET.Direct3D11.InfoQueueFilter filter = new()
+                    {
+                        DenyList = new Silk.NET.Direct3D11.InfoQueueFilterDesc
+                        {
+                            NumIDs = 3,
+                            PIDList = deniedMessages,
+                        }
+                    };
+                    infoQueue.AddStorageFilterEntries(ref filter);
                 }
             }
 
@@ -443,14 +468,24 @@ namespace Stride.Graphics
         /// <param name="message">The message received from the InfoQueue.</param>
         private void OnDeviceInfoQueueMessage(ref readonly Message message)
         {
-            var eventHandler = DeviceInfoQueueMessage;
-            if (eventHandler is null)
-                return;
-
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            eventHandler(in message, description);
+            Debug.WriteLine($"D3D11: {message.Severity} {description}");
+
+            // Log warnings and errors to Stride logger
+            switch (message.Severity)
+            {
+                case MessageSeverity.Corruption:
+                case MessageSeverity.Error:
+                    Log.Error($"[D3D11] {message.Severity}: {description}");
+                    break;
+                case MessageSeverity.Warning:
+                    Log.Warning($"[D3D11] {description}");
+                    break;
+            }
+
+            DeviceInfoQueueMessage?.Invoke(in message, description);
         }
 
         /// <summary>
@@ -464,14 +499,6 @@ namespace Stride.Graphics
             var numMessages = nativeInfoQueue->GetNumStoredMessages();
             if (numMessages == 0)
                 return;
-
-            // If no event handler is registered, just clear the messages
-            var eventHandler = DeviceInfoQueueMessage;
-            if (eventHandler is null)
-            {
-                nativeInfoQueue->ClearStoredMessages();
-                return;
-            }
 
             for (var i = 0ul; i < numMessages; i++)
             {

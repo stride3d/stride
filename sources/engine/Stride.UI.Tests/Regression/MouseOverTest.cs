@@ -83,8 +83,6 @@ namespace Stride.UI.Tests.Regression
             canvas.MouseOverStateChanged += (sender, args) => { triggeredCanvas = true;};
             stackPanel.MouseOverStateChanged += (sender, args) => { triggeredStackPanel = true;};
 
-            canvas.UIElementServices = new UIElementServices { Services = this.Services };
-
             UIComponent.Page = new Engine.UIPage { RootElement = canvas };
         }
 
