@@ -105,3 +105,10 @@ jobs:
     secrets: inherit
     with:
       build-type: Debug
+
+  Linux-Tests-Game:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug

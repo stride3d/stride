@@ -1,0 +1,108 @@
+name: Test Linux Game (Vulkan)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+concurrency:
+  group: test-linux-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  # Build on Windows (CompilerApp needs Windows-only native libs for asset compilation)
+  # but target Linux platform so assets are compiled for Linux/Vulkan.
+  Build:
+    name: Build for Linux (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: true
+          cache: true
+          stripdown: true
+      - name: Register SwiftShader ICD
+        shell: pwsh
+        run: |
+          dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
+          $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader_icd.json -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+          if ($icd) {
+            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered SwiftShader ICD: $($icd.FullName)"
+          } else {
+            Write-Warning "SwiftShader ICD not found in NuGet cache"
+          }
+      - name: Build (targeting Linux/Vulkan)
+        run: |
+          dotnet build build\Stride.Tests.Game.GPU.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatform=Linux `
+            -p:StrideGraphicsApis=Vulkan `
+            -p:StrideGraphicsApi=Vulkan
+      - name: Upload test binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+          retention-days: 1
+
+  # Run tests on actual Linux using binaries built on Windows
+  Test:
+    name: Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    needs: Build
+    runs-on: ubuntu-24.04
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfreetype-dev libopenal-dev libfreeimage-dev
+      - name: Download test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+      - name: Test
+        run: |
+          dotnet vstest bin/Tests/Stride.Graphics.Tests.Windows/Linux/Vulkan/Stride.Graphics.Tests.dll \
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-linux-vulkan
+          path: tests/local/
+          if-no-files-found: ignore
