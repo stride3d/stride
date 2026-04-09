@@ -1,6 +1,15 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- ================================================================ -->
+  <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
+  <!-- ================================================================ -->
+  <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
+       is available. This must happen before the .NET SDK Sdk.targets import which freezes TargetDir. -->
+  <PropertyGroup>
+    <OutputPath>$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
   <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />

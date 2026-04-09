@@ -53,7 +53,7 @@
   <!-- ================================================================ -->
   <!-- Output path set in props so dotnet test can resolve the DLL. -->
   <PropertyGroup>
-    <OutputPath>$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+    <!-- OutputPath is set in Sdk.targets (before .NET SDK import) where $(AssemblyName) is available. -->
 
     <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' == ''">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
     <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' != ''">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
