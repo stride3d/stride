@@ -230,7 +230,8 @@
     <PropertyGroup>
       <StrideNativeAndroidToolchainFolder Condition="Exists('$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe')">$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64</StrideNativeAndroidToolchainFolder>
       <StrideNativeAndroidToolchainFolder Condition="$(StrideNativeAndroidToolchainFolder) == '' And Exists('$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows\bin\clang.exe')">$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows</StrideNativeAndroidToolchainFolder>
-      <StrideNativeAndroidClang>-lc++abi -lm --sysroot=&quot;$(StrideNativeAndroidToolchainFolder)\sysroot&quot;</StrideNativeAndroidClang>
+      <!-- -Wl,-z,max-page-size=16384: required for Android 16+ 16KB page size compatibility -->
+      <StrideNativeAndroidClang>-lc++abi -lm --sysroot=&quot;$(StrideNativeAndroidToolchainFolder)\sysroot&quot; -Wl,-z,max-page-size=16384</StrideNativeAndroidClang>
 
       <_StrideNativeAndroidNdkSourceProperties Condition="Exists('$(_AndroidNdkDirectory)\source.properties')">$([System.IO.File]::ReadAllText('$(_AndroidNdkDirectory)\source.properties'))</_StrideNativeAndroidNdkSourceProperties>
       <StrideNativeAndroidNdkVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideNativeAndroidNdkSourceProperties), `Pkg\.Revision = (.*)`).Groups[1].Value)</StrideNativeAndroidNdkVersion>
