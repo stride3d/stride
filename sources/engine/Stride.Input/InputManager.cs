@@ -693,7 +693,7 @@ namespace Stride.Input
                 case AppContextType.UWPCoreWindow:
                     break;
 #endif
-                case AppContextType.Desktop:
+                case AppContextType.DesktopWinForms:
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())

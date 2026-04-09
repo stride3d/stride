@@ -32,7 +32,13 @@ public enum AppContextType
     /// <summary>
     ///   The <c>Game</c> runs on desktop in a Windows Forms' <c>Form</c> or <c>Control</c>.
     /// </summary>
-    Desktop,
+    DesktopWinForms,
+
+    /// <summary>
+    ///   Alias for <see cref="DesktopWinForms"/>.
+    /// </summary>
+    [System.Obsolete("Use DesktopWinForms instead.")]
+    Desktop = DesktopWinForms,
 
     /// <summary>
     ///   The <c>Game</c> runs on desktop in a SDL window.
@@ -42,7 +48,13 @@ public enum AppContextType
     /// <summary>
     ///   The <c>Game</c> runs on desktop in a WPF window through a <c>D3DImage</c>.
     /// </summary>
-    DesktopWpf,
+    DesktopWPF,
+
+    /// <summary>
+    ///   Alias for <see cref="DesktopWPF"/>.
+    /// </summary>
+    [System.Obsolete("Use DesktopWPF instead.")]
+    DesktopWpf = DesktopWPF,
 
     /// <summary>
     ///   The <c>Game</c> runs on an Android device in an <c>AndroidStrideGameView</c>.

@@ -12,7 +12,7 @@ namespace Stride.Engine.Tests
     public class GameWindowTest : GameTestBase
     {
         [Theory]
-        [InlineData(AppContextType.Desktop)]
+        [InlineData(AppContextType.DesktopWinForms)]
         [InlineData(AppContextType.DesktopSDL)]
         public void RenderToWindow(AppContextType contextType)
         {

@@ -427,7 +427,7 @@ namespace Stride.Games
             {
                 AppContextType c;
                 if (OperatingSystem.IsWindows())
-                    c = AppContextType.Desktop;
+                    c = AppContextType.DesktopWinForms;
                 else if (OperatingSystem.IsAndroid())
                     c = AppContextType.Android;
                 else if (OperatingSystem.IsIOS() || OperatingSystem.IsTvOS() || OperatingSystem.IsWatchOS())

@@ -83,7 +83,7 @@ namespace Stride.Games
                     return new GameWindowSDL();
 #endif
 
-                 case AppContextType.Desktop:
+                 case AppContextType.DesktopWinForms:
 #if (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && STRIDE_UI_WINFORMS
                     return new GameWindowWinforms();
 #elif STRIDE_UI_SDL
@@ -93,7 +93,7 @@ namespace Stride.Games
 #endif
 
 #if STRIDE_UI_WPF
-                 case AppContextType.DesktopWpf:
+                 case AppContextType.DesktopWPF:
                     // WPF is not supported yet.
                     return null;
 #endif
