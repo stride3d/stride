@@ -712,7 +712,7 @@ namespace Stride.Graphics.Regression
             var dir = PlatformFolders.ApplicationBinaryDirectory;
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir, @"build\Stride.sln")))
+                if (File.Exists(Path.Combine(dir, "build", "Stride.sln")))
                     return dir;
 
                 dir = Path.GetDirectoryName(dir);
@@ -758,8 +758,10 @@ namespace Stride.Graphics.Regression
             {
                 testFileNames.Clear();
 
-                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, @"*\*", ".png");
-                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var wildcard = "*" + Path.DirectorySeparatorChar + "*";
+                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, wildcard, ".png");
+                var regexSep = Regex.Escape(Path.DirectorySeparatorChar.ToString());
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
                 foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
@@ -828,7 +830,7 @@ namespace Stride.Graphics.Regression
             {
                 deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
             }
-            return $"{platformName}.{GraphicsDevice.Platform}\\{deviceName}";
+            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", deviceName);
         }
 
         /// <summary>
