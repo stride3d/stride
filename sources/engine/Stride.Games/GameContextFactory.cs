@@ -41,6 +41,9 @@ namespace Stride.Games
                 case AppContextType.iOS:
                     res = NewGameContextiOS();
                     break;
+                case AppContextType.Headless:
+                    res = new GameContextHeadless(requestedWidth, requestedHeight);
+                    break;
             }
 
             if (res == null)

@@ -668,9 +668,10 @@ namespace Stride.Input
         {
             var context = gameContext;
 
-            // Add window specific input source
+            // Add window specific input source (null in headless mode)
             var windowInputSource = InputSourceFactory.NewWindowInputSource(context);
-            Sources.Add(windowInputSource);
+            if (windowInputSource != null)
+                Sources.Add(windowInputSource);
 
             // Add platform specific input sources
             switch (context.ContextType)
@@ -703,6 +704,8 @@ namespace Stride.Input
 #endif
 #endif
                     break;
+                case AppContextType.Headless:
+                    break; // No input sources in headless mode
                 default:
                     throw new InvalidOperationException("GameContext type is not supported by the InputManager");
             }

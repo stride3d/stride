@@ -98,6 +98,9 @@ namespace Stride.Games
                     return null;
 #endif
 
+                 case AppContextType.Headless:
+                    return new GameWindowHeadless();
+
                  default:
                     return null;
             }

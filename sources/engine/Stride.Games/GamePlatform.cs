@@ -347,7 +347,9 @@ namespace Stride.Games
             else
 #endif
             {
-                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+                graphicsDevice.Presenter = gameWindow is GameWindowHeadless
+                    ? new HeadlessGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters)
+                    : new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
 
             return graphicsDevice;
