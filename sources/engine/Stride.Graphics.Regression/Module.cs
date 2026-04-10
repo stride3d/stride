@@ -28,10 +28,10 @@ internal static class Module
     {
         if (OperatingSystem.IsWindows())
         {
-            // Prevent critical-error and open-file-error dialogs that would hang CI.
-            // NOTE: We intentionally do NOT set SEM_NOGPFAULTERRORBOX so that WER LocalDumps
-            // can generate crash dumps for pure native crashes (type 3).
-            SetErrorMode(0x0001 /* SEM_FAILCRITICALERRORS */ | 0x8000 /* SEM_NOOPENFILEERRORBOX */);
+            // Prevent error dialogs that would hang CI or interrupt local testing.
+            // SEM_NOGPFAULTERRORBOX suppresses the Windows Error Reporting crash dialog.
+            // Crash dumps are handled by DOTNET_DbgEnableMiniDump and our FirstChanceException handler.
+            SetErrorMode(0x0001 /* SEM_FAILCRITICALERRORS */ | 0x0002 /* SEM_NOGPFAULTERRORBOX */ | 0x8000 /* SEM_NOOPENFILEERRORBOX */);
         }
 
         // GPU drivers (including software renderers like WARP and SwiftShader) can crash with
