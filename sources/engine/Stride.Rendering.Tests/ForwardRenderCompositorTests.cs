@@ -35,7 +35,6 @@ namespace Stride.Rendering.Tests.Compositing
 
             Assert.NotNull(feature.RenderStageSelectors);
 
-            _output.WriteLine($"UIRenderFeature.RenderStageSelectors is present (type: {feature.RenderStageSelectors.GetType().Name}).");
         }
 
 
@@ -58,8 +57,6 @@ namespace Stride.Rendering.Tests.Compositing
             Assert.NotNull(selector);
             Assert.Same(uiStage, selector.RenderStage);
 
-            _output.WriteLine("Group31 selector successfully added to UIRenderFeature.");
-            _output.WriteLine($"  RenderStage: {selector.RenderStage.Name}");
         }
 
         [Fact]
@@ -71,7 +68,7 @@ namespace Stride.Rendering.Tests.Compositing
                 .Any(s => s.Name == "UiStage");
 
             Assert.False(hasUiStage);
-            _output.WriteLine("IsAlreadyPatched: correctly returns false on a fresh compositor.");
+
         }
 
 
@@ -101,7 +98,7 @@ namespace Stride.Rendering.Tests.Compositing
 
             Assert.True(hasStage);
             Assert.True(hasSelector);
-            _output.WriteLine("IsAlreadyPatched: correctly returns true when stage and selector both exist.");
+
         }
 
         // Minimal stand-in; the real UIComponent requires engine services to construct.
