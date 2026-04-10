@@ -1,0 +1,18 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AssemblyName>Stride.Rendering.Tests</AssemblyName>
+    <RootNamespace>Stride.Rendering.Tests</RootNamespace>
+    <StrideCompileAssets>false</StrideCompileAssets>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+    <StrideGraphicsRegression>false</StrideGraphicsRegression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+</Project>
