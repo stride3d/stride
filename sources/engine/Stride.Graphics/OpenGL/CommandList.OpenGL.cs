@@ -1401,7 +1401,7 @@ namespace Stride.Graphics
             }
         }
 
-        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             // Nothing to do
         }
