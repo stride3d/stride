@@ -31,38 +31,25 @@ namespace Stride.Rendering.Tests.Compositing
         //    ForwardRenderer, meaning any UI wired into a SingleStageRenderer
         //    *inside* ForwardRenderer's child chain will be PostFX'd.
         // ----------------------------------------------------------------
-        [Fact]
-        public void ForwardRenderer_HasNoPostFxUIStageProperty()
-        {
-            var renderer = new ForwardRenderer();
-            var type = renderer.GetType();
 
-            // Verify that the property we WANT to add does not yet exist.
-            // When the fix lands, this test should FAIL (and be removed/replaced
-            // by test #2 below).
-            var prop = type.GetProperty("PostEffectsUIRenderStage");
-            Assert.Null(prop);
-
-            _output.WriteLine("DIAGNOSIS CONFIRMED: ForwardRenderer has no PostEffectsUIRenderStage property.");
-            _output.WriteLine("UI rendered inside ForwardRenderer's pipeline will be affected by PostEffects.");
-        }
+        // Diagnostic removed after bugfix to avoid confusion.
 
         // ----------------------------------------------------------------
         // 2. REGRESSION GUARD (currently expected to fail — uncomment after fix):
         //    Once the fix is in, ForwardRenderer should expose a
         //    PostEffectsUIRenderStage property that is drawn AFTER PostEffects.
         // ----------------------------------------------------------------
-        // [Fact]
-        // public void ForwardRenderer_PostEffectsUIRenderStage_ExistsAndIsDrawnAfterPostFx()
-        // {
-        //     var renderer = new ForwardRenderer();
-        //     var prop = renderer.GetType().GetProperty("PostEffectsUIRenderStage");
-        //     Assert.NotNull(prop);
-        //     // Assign and read back
-        //     var stage = new RenderStage("UIStage", "UI");
-        //     prop.SetValue(renderer, stage);
-        //     Assert.Same(stage, prop.GetValue(renderer));
-        // }
+         [Fact]
+         public void ForwardRenderer_PostEffectsUIRenderStage_ExistsAndIsDrawnAfterPostFx()
+         {
+             var renderer = new ForwardRenderer();
+             var prop = renderer.GetType().GetProperty("PostEffectsUIRenderStage");
+            Assert.NotNull(prop);
+            // Assign and read back
+            var stage = new RenderStage("UIStage", "UI");
+             prop.SetValue(renderer, stage);
+            Assert.Same(stage, prop.GetValue(renderer));
+         }
 
         // ----------------------------------------------------------------
         // 3. CONFIRM: UIRenderFeature inherits RenderStageSelectors from

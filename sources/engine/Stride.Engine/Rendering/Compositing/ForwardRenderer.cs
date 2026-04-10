@@ -68,6 +68,15 @@ namespace Stride.Rendering.Compositing
         public RenderStage TransparentRenderStage { get; set; }
 
         /// <summary>
+        /// A UI render stage drawn directly onto <see cref="viewOutputTarget"/> after
+        /// <see cref="PostEffects"/> have resolved. Geometry assigned to this stage is
+        /// never tone-mapped, bloomed, or otherwise affected by post-processing effects,
+        /// making it suitable for HUD and screen-space UI.
+        /// Leave null (the default) when no post-FX-immune UI is required.
+        /// </summary>
+        public RenderStage PostEffectsUIRenderStage { get; set; }
+
+        /// <summary>
         /// The shadow map render stages for shadow casters. No shadow rendering will happen if null.
         /// </summary>
         [MemberCollection(NotNullItems = true)]
@@ -291,6 +300,11 @@ namespace Stride.Rendering.Compositing
             if (GBufferRenderStage != null && LightProbes)
             {
                 context.RenderView.RenderStages.Add(GBufferRenderStage);
+            }
+
+            if (PostEffectsUIRenderStage != null)
+            {
+                context.RenderView.RenderStages.Add(PostEffectsUIRenderStage);
             }
         }
 
@@ -607,6 +621,18 @@ namespace Stride.Rendering.Compositing
                         {
                             drawContext.CommandList.Copy(renderTargets[colorTargetIndex], viewOutputTarget);
                         }
+                    }
+                }
+
+                // Draw UI directly onto the resolved output target, after post-processing.
+                // This stage is never tone-mapped or bloomed — UI stays crisp regardless
+                // of which PostEffects are active.
+                if (PostEffectsUIRenderStage != null)
+                {
+                    using (drawContext.PushRenderTargetsAndRestore())
+                    {
+                        drawContext.CommandList.SetRenderTarget(viewDepthStencil, viewOutputTarget);
+                        renderSystem.Draw(drawContext, context.RenderView, PostEffectsUIRenderStage);
                     }
                 }
 
