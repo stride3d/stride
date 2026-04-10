@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using SharpDX.DirectWrite;
-using SharpFont;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.Core;
 using Stride.Core.Assets.Compiler;
@@ -90,26 +89,49 @@ namespace Stride.Assets.SpriteFont
             return null;
         }
 
-        private string GetFontPathLinux(AssetCompilerResult result)
+        private unsafe string GetFontPathLinux(AssetCompilerResult result)
         {
-            StyleFlags flags = StyleFlags.None;
-            if (Style.IsBold())
-                flags |= StyleFlags.Bold;
-            if (Style.IsItalic())
-                flags |= StyleFlags.Italic;
+            bool wantBold = Style.IsBold();
+            bool wantItalic = Style.IsItalic();
 
             string systemFontDirectory = "/usr/share/fonts";
             var files = System.IO.Directory.EnumerateFiles(systemFontDirectory, "*.ttf", System.IO.SearchOption.AllDirectories);
 
-            var library = new SharpFont.Library();
-            foreach (string file in files)
-            {              
-                var face = new Face(library, file);
-                if (face.FamilyName.Contains(FontName) && face.StyleFlags == flags)
+            int err = FreeTypeNative.FT_Init_FreeType(out var library);
+            if (err != 0)
+            {
+                result?.Warning("Failed to initialize FreeType library for font discovery.");
+                return null;
+            }
+
+            try
+            {
+                foreach (string file in files)
                 {
-                    return file;
+                    var fontData = System.IO.File.ReadAllBytes(file);
+                    fixed (byte* ptr = fontData)
+                    {
+                        err = FreeTypeNative.FT_New_Memory_Face(library, ptr, new System.Runtime.InteropServices.CLong(fontData.Length), new System.Runtime.InteropServices.CLong(0), out FT_FaceRec* face);
+                        if (err != 0)
+                            continue;
+
+                        var familyName = System.Runtime.InteropServices.Marshal.PtrToStringAnsi((nint)face->family_name) ?? "";
+                        long styleFlags = (long)face->style_flags.Value;
+                        bool isBold = (styleFlags & 0x2) != 0;  // FT_STYLE_FLAG_BOLD
+                        bool isItalic = (styleFlags & 0x1) != 0; // FT_STYLE_FLAG_ITALIC
+
+                        FreeTypeNative.FT_Done_Face(face);
+
+                        if (familyName.Contains(FontName) && isBold == wantBold && isItalic == wantItalic)
+                            return file;
+                    }
                 }
             }
+            finally
+            {
+                FreeTypeNative.FT_Done_FreeType(library);
+            }
+
             result?.Warning($"Cannot find style '{Style}' for font family '{FontName}'. Make sure it is installed on this machine.");
             return null;
         }
