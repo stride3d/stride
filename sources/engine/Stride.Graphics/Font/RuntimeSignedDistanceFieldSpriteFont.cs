@@ -259,12 +259,14 @@ namespace Stride.Graphics.Font
                 var spec = GetOrCreateCharacterData(key, sizeVec);
 
                 if (spec.Bitmap == null)
+                {
                     FontManager.GenerateBitmap(spec, true);
 
-                // Apply padding offset
-                if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
-                {
-                    spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                    // Apply padding offset once, when glyph metrics are first materialized.
+                    if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
+                    {
+                        spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                    }
                 }
 
                 EnsureSdfScheduled(key, spec);
