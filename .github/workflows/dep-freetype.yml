@@ -1,0 +1,13 @@
+name: "Dep: Build & Deploy FreeType"
+on:
+  workflow_dispatch:
+    inputs:
+      freetype-version:
+        description: FreeType version tag
+        default: VER-2-13-3
+        required: true
+jobs:
+  placeholder:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "Run this workflow from a feature branch with the full implementation"
