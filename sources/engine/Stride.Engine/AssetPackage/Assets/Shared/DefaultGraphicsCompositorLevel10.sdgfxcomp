@@ -37,6 +37,11 @@ RenderStages:
         Name: GBuffer
         EffectSlotName: GBuffer
         SortMode: !FrontToBackSortMode {}
+    5b5e4f7ee8b5497f9d3b418d06823b14:
+        Id: 5b5e4f7e-e8b5-497f-9d3b-418d06823b14
+        Name: UIRenderStage
+        EffectSlotName: UI
+        SortMode: !BackToFrontSortMode {}
 RenderFeatures:
     d8fb80b0e7995140a46bca8dc36ee8a2: !Stride.Rendering.MeshRenderFeature,Stride.Rendering
         RenderStageSelectors:
@@ -106,7 +111,7 @@ RenderFeatures:
     93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
             14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
-                RenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
+                RenderStage: ref!! 5b5e4f7e-e8b5-497f-9d3b-418d06823b14
                 EffectName: Test
     9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
         RenderStageSelectors:
@@ -129,6 +134,7 @@ SharedRenderers:
             87ff1d9cdd52418daf76385176a0e316: ref!! 555e84b4-b68a-4f38-ac3a-f0f563028ef0
             5e059d4cc2db4ee8a1f28a40f4ac3ae8: ref!! b03a45c6-7a56-417c-8a80-69cc608671f1
         GBufferRenderStage: ref!! ecab139e-5f55-42b5-a324-310c195a9c89
+        PostEffectsUIRenderStage: ref!! 5b5e4f7e-e8b5-497f-9d3b-418d06823b14
         PostEffects: !PostProcessingEffects ref!! 608bf04d-8640-469d-b710-1ecf6a46f794
         LightShafts: null
         VRSettings:

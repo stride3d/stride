@@ -22,6 +22,11 @@ RenderStages:
         Name: ShadowMapCaster
         EffectSlotName: ShadowMapCaster
         SortMode: !FrontToBackSortMode {}
+    62af1128cc9c49a09d813f7f598a4b16:
+        Id: 62af1128-cc9c-49a0-9d81-3f7f598a4b16
+        Name: UIRenderStage
+        EffectSlotName: UI
+        SortMode: !BackToFrontSortMode {}
 RenderFeatures:
     d8fb80b0e7995140a46bca8dc36ee8a2: !Stride.Rendering.MeshRenderFeature,Stride.Rendering
         RenderStageSelectors:
@@ -64,7 +69,7 @@ RenderFeatures:
     93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
             14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
-                RenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
+                RenderStage: ref!! 62af1128-cc9c-49a0-9d81-3f7f598a4b16
                 EffectName: Test
     9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
         RenderStageSelectors:
@@ -85,6 +90,7 @@ SharedRenderers:
         ShadowMapRenderStages:
             fc4d1e0de5c2b0bbc27bcf96e9a848fd: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
         GBufferRenderStage: null
+        PostEffectsUIRenderStage: ref!! 62af1128-cc9c-49a0-9d81-3f7f598a4b16
         PostEffects: null
         LightShafts: null
         VRSettings:
