@@ -31,7 +31,7 @@ namespace Stride.Rendering.Images
             // Initialize all Parameters with values coming from each ParameterKey
             InitializeProperties();
 
-            Shader = new ShaderClassSource(colorTransformShader);
+            Shader = new ShaderMixinGeneratorSource(colorTransformShader);
         }
 
         /// <summary>
