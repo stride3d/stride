@@ -74,7 +74,7 @@ namespace Stride.Rendering.Compositing
         /// making it suitable for HUD and screen-space UI.
         /// Leave null (the default) when no post-FX-immune UI is required.
         /// </summary>
-        public RenderStage PostEffectsUIRenderStage { get; set; }
+        public RenderStage AfterPostEffectsUIRenderStage { get; set; }
 
         /// <summary>
         /// The shadow map render stages for shadow casters. No shadow rendering will happen if null.
@@ -302,9 +302,9 @@ namespace Stride.Rendering.Compositing
                 context.RenderView.RenderStages.Add(GBufferRenderStage);
             }
 
-            if (PostEffectsUIRenderStage != null)
+            if (AfterPostEffectsUIRenderStage != null)
             {
-                context.RenderView.RenderStages.Add(PostEffectsUIRenderStage);
+                context.RenderView.RenderStages.Add(AfterPostEffectsUIRenderStage);
             }
         }
 
@@ -627,12 +627,12 @@ namespace Stride.Rendering.Compositing
                 // Draw UI directly onto the resolved output target, after post-processing.
                 // This stage is never tone-mapped or bloomed — UI stays crisp regardless
                 // of which PostEffects are active.
-                if (PostEffectsUIRenderStage != null)
+                if (AfterPostEffectsUIRenderStage != null)
                 {
                     using (drawContext.PushRenderTargetsAndRestore())
                     {
                         drawContext.CommandList.SetRenderTarget(viewDepthStencil, viewOutputTarget);
-                        renderSystem.Draw(drawContext, context.RenderView, PostEffectsUIRenderStage);
+                        renderSystem.Draw(drawContext, context.RenderView, AfterPostEffectsUIRenderStage);
                     }
                 }
 
