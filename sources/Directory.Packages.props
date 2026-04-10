@@ -76,6 +76,8 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
+    <PackageVersion Include="MSDF-Sharp.Core" Version="1.0.2"/>
+    <PackageVersion Include="Remora.MSDFGen" Version="1.0.0"/>
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>

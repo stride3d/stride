@@ -313,8 +313,9 @@ namespace Stride.Graphics.Font
                 var newFontData = new byte[fontStream.Length];
                 fontStream.ReadExactly(newFontData);
 
-            lock (freetypeLibrary)
-                cachedFontFaces[fontPath] = freetypeLibrary.NewMemoryFace(newFontData, 0);
+                lock (freetypeLibrary)
+                    cachedFontFaces[fontPath] = freetypeLibrary.NewMemoryFace(newFontData, 0);
+            }
         }
 
         /// <summary>
