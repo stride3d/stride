@@ -5,6 +5,7 @@ using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Graphics.Font;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
@@ -94,6 +95,20 @@ namespace Stride.Editor.Thumbnails
 
                     // force pre-generation of the glyph
                     Font.PreGenerateGlyphs(TitleText, new Vector2(desiredFontSize, desiredFontSize));
+                }
+                else if (Font is RuntimeSignedDistanceFieldSpriteFont runtimeSdfFont)
+                {
+                    scale = 1f;
+
+                    // Get the exact size of the font rendered with the desired size
+                    typeNameSize = Font.MeasureString(TitleText, desiredFontSize);
+
+                    // Force bounded warmup so async glyph generation/upload has a chance
+                    // to complete before the thumbnail snapshot is taken.
+                    runtimeSdfFont.PrepareGlyphsForThumbnail(
+                        TitleText,
+                        new Vector2(desiredFontSize, desiredFontSize),
+                        context.CommandList);
                 }
 
                 // the title text

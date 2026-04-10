@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -454,6 +455,85 @@ namespace Stride.Graphics.Font
             cacheRecords[key] = handle;
             cache.NotifyGlyphUtilization(handle);
 
+        }
+
+        internal void PrepareGlyphsForThumbnail(string text, Vector2 requestedSize, CommandList commandList, int maxWaitMilliseconds = 50)
+        {
+            if (string.IsNullOrEmpty(text) || commandList == null)
+                return;
+
+            var sizeVec = new Vector2(Size, Size);
+            var p = GetDfParams();
+
+            var requestedKeys = new HashSet<GlyphKey>();
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+                var key = MakeKey(c, p);
+                requestedKeys.Add(key);
+
+                var spec = GetOrCreateCharacterData(key, sizeVec);
+
+                if (spec.Bitmap == null)
+                {
+                    FontManager.GenerateBitmap(spec, true);
+
+                    if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
+                    {
+                        spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                    }
+
+                    if (spec.Bitmap == null || spec.Bitmap.Width == 0 || spec.Bitmap.Rows == 0 || spec.Glyph.XAdvance == 0)
+                    {
+                        if (c != DefaultCharacter && DefaultCharacter.HasValue)
+                            requestedKeys.Add(MakeKey(DefaultCharacter.Value, p));
+
+                        continue;
+                    }
+                }
+
+                EnsureSdfScheduled(key, spec);
+            }
+
+            if (requestedKeys.Count == 0)
+                return;
+
+            var stopwatch = Stopwatch.StartNew();
+
+            while (stopwatch.ElapsedMilliseconds < maxWaitMilliseconds)
+            {
+                DrainUploads(commandList, maxUploadsPerFrame: requestedKeys.Count);
+
+                if (AreAllGlyphsUploaded(requestedKeys))
+                    break;
+
+                Thread.Sleep(1);
+            }
+
+            // One last drain pass in case workers completed right at the timeout boundary.
+            DrainUploads(commandList, maxUploadsPerFrame: requestedKeys.Count);
+        }
+
+        private bool AreAllGlyphsUploaded(HashSet<GlyphKey> requestedKeys)
+        {
+            foreach (var key in requestedKeys)
+            {
+                if (!characters.TryGetValue(key, out var spec) || spec == null)
+                    return false;
+
+                if (!spec.IsBitmapUploaded)
+                    return false;
+
+                if (cacheRecords.TryGetValue(key, out var handle) && !handle.IsUploaded)
+                {
+                    spec.IsBitmapUploaded = false;
+                    cacheRecords.TryRemove(key, out _);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
