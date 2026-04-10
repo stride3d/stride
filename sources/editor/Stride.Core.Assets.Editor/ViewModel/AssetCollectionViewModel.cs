@@ -671,9 +671,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                                 overwriteAll = copyResult is DialogYesToAll;
 
-                                if (copyResult is DialogClosed or DialogNo)
+                                if (copyResult is DialogClosed)
                                 {
                                     return newAssets;
+                                }
+
+                                if (copyResult is DialogNo)
+                                {
+                                    continue;
                                 }
                             }
                             File.Copy(file.FullPath, finalPath, true);
