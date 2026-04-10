@@ -96,9 +96,9 @@ namespace Stride.Graphics
         internal VkInstance NativeInstance;
         internal VkInstanceApi NativeInstanceApi;
         internal bool HasXlibSurfaceSupport;
+        internal bool HasSurfaceSupport;
 
-        // We use GraphicsDevice (similar to OpenGL)
-        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
@@ -106,7 +106,7 @@ namespace Stride.Graphics
             var applicationInfo = new VkApplicationInfo
             {
                 pEngineName = pEngineName,
-                apiVersion = new VkVersion(1, 4, 304)
+                apiVersion = new VkVersion(1, 3, 0)
             };
 
             Span<VkUtf8String> validationLayerNames = stackalloc VkUtf8String[]
@@ -151,12 +151,16 @@ namespace Stride.Graphics
             };
             var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 6);
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
-            ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
-            var desiredExtensionNames = new HashSet<VkUtf8String>
+            // Surface extensions are optional at instance creation (not available with headless ICDs like SwiftShader).
+            // They are validated later when a swapchain is actually created.
+            var desiredExtensionNames = new HashSet<VkUtf8String>();
+            HasSurfaceSupport = availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME);
+            if (HasSurfaceSupport)
             {
-                VK_KHR_SURFACE_EXTENSION_NAME,
-                GetPlatformRelatedSurfaceExtensionName(availableExtensionNames)
-            };
+                ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
+                desiredExtensionNames.Add(VK_KHR_SURFACE_EXTENSION_NAME);
+                desiredExtensionNames.Add(GetPlatformRelatedSurfaceExtensionName(availableExtensionNames));
+            }
 
             HasXlibSurfaceSupport = desiredExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 
@@ -183,8 +187,10 @@ namespace Stride.Graphics
 
             NativeInstanceApi = GetApi(NativeInstance);
 
-            // Check if validation layer was available (otherwise detected count is 0)
-            if (enableValidation)
+            // Create debug messenger only if the extension was actually enabled and the function is available.
+            // The Vulkan loader may advertise VK_EXT_debug_utils but fail to provide the function
+            // if no validation layers are installed.
+            if (enableDebugReport && NativeInstanceApi.vkCreateDebugUtilsMessengerEXT_ptr != default)
             {
                 var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                 {
@@ -276,22 +282,14 @@ namespace Stride.Graphics
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
             Debug.WriteLine($"Vulkan: {severity} {message}");
 
-            // Redirect to log
+            // Redirect warnings and errors to log
             if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
             {
-                Log.Error(message);
+                Log.Error($"[Vulkan] {message}");
             }
             else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
             {
-                Log.Warning(message);
-            }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Info)
-            {
-                Log.Info(message);
-            }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Verbose)
-            {
-                Log.Verbose(message);
+                Log.Warning($"[Vulkan] {message}");
             }
 
             return VK_FALSE;

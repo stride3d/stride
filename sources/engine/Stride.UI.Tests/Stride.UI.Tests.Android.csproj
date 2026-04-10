@@ -1,101 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}</ProjectGuid>
-    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <OutputType>Library</OutputType>
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Stride.UI.Tests</RootNamespace>
+    <TargetFramework>net10.0-android</TargetFramework>
     <AssemblyName>Stride.UI.Tests</AssemblyName>
-    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AndroidApplication>true</AndroidApplication>
-    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
-    <AndroidUseLatestPlatformSdk></AndroidUseLatestPlatformSdk>
-    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
-    <AndroidSupportedAbis>armeabi,armeabi-v7a,x86</AndroidSupportedAbis>
-    <AndroidStoreUncompressedFileExtensions />
-    <MandroidI18n />
-    <JavaMaximumHeapSize />
-    <JavaOptions />
-    <StrideBuildTags>*</StrideBuildTags>
-    <StridePlatform>Android</StridePlatform>
-    <StridePackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</StridePackageGuid>
+    <RootNamespace>Stride.UI.Tests</RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
-  <PropertyGroup>
-    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.UI.Tests.sdpkg</StrideCurrentPackagePath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Android' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
-    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
-    <OutputPath>..\..\..\Bin\Android-OpenGLES\</OutputPath>
-    <IntermediateOutputPath>obj\Android-OpenGLES\Debug\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
-    <AndroidLinkMode>None</AndroidLinkMode>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Android' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
-    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
-    <OutputPath>..\..\..\Bin\Android-OpenGLES\</OutputPath>
-    <IntermediateOutputPath>obj\Android-OpenGLES\Release\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|Android' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
-    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
-    <OutputPath>..\..\..\Bin\Android-OpenGLES\</OutputPath>
-    <IntermediateOutputPath>obj\Android-OpenGLES\Testing\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|Android' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
-    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
-    <OutputPath>..\..\..\Bin\Android-OpenGLES\</OutputPath>
-    <IntermediateOutputPath>obj\Android-OpenGLES\AppStore\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Mono.Android" Label="Stride.DoNotSync" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
-    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
-    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
-    <Compile Label="Stride.DoNotSync" Include="Resources\Resource.Designer.cs" />
-    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
-      <Link>NUnitLiteLauncher.Android.cs</Link>
-    </Compile>
+    <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="Events\EventManagerTests.cs" />
     <Compile Include="Events\MyTestRoutedEventArgs.cs" />
@@ -129,7 +51,6 @@
     <Compile Include="Layering\ToggleButtonTests.cs" />
     <Compile Include="Layering\UIElementLayeringTests.cs" />
     <Compile Include="Layering\UniformGridTests.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="RandomExtension.cs" />
     <Compile Include="Regression\BillboardModeTests.cs" />
     <Compile Include="Regression\BorderImageTest.cs" />
@@ -168,6 +89,8 @@
     <Compile Include="Regression\TransparencyTest.cs" />
     <Compile Include="Regression\UniformGridTest.cs" />
     <Compile Include="Regression\UITestGameBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Assets\BorderButton.sdtex" />
     <None Include="Assets\BorderButtonCentered.sdtex" />
     <None Include="Assets\CourierNew12.sdfnt" />
@@ -199,21 +122,14 @@
     <None Include="Resources\EditTextInactive.dds" />
     <None Include="Resources\EditTextOverred.dds" />
     <None Include="Stride.UI.Tests.sdpkg" />
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\ToggleChecked.dds" />
     <None Include="Resources\ToggleIndetermate.dds" />
     <None Include="Resources\ToggleUnchecked.dds" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
-  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
-  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-    Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

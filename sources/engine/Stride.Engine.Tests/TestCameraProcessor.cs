@@ -19,10 +19,11 @@ namespace Stride.Engine.Tests
     /// <summary>
     /// Tests for <see cref="TransformComponent"/>.
     /// </summary>
-    public class TestCameraProcessor
+    public class TestCameraProcessor : IDisposable
     {
         private CustomEntityManager entityManager;
         private GraphicsCompositor graphicsCompositor;
+        private GraphicsDevice graphicsDevice;
         private RenderContext context;
 
         public TestCameraProcessor()
@@ -34,12 +35,17 @@ namespace Stride.Engine.Tests
 
             // Create graphics compositor
             graphicsCompositor = new GraphicsCompositor();
-            var graphicsDevice = GraphicsDevice.New(DeviceCreationFlags.Debug);
+            graphicsDevice = GraphicsDevice.New(DeviceCreationFlags.Debug);
             services.AddService<IGraphicsDeviceService>(new GraphicsDeviceServiceLocal(graphicsDevice));
             services.AddService(new EffectSystem(services));
             services.AddService(new GraphicsContext(graphicsDevice));
             context = RenderContext.GetShared(services);
             context.PushTagAndRestore(GraphicsCompositor.Current, graphicsCompositor);
+        }
+
+        public void Dispose()
+        {
+            graphicsDevice?.Dispose();
         }
 
         private CameraComponent AddCamera(bool enabled, SceneCameraSlotId slot)

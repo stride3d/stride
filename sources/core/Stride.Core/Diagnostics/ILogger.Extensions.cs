@@ -5,6 +5,8 @@
 
 namespace Stride.Core.Diagnostics;
 
+#nullable enable
+
 /// <summary>
 /// Extensions for <see cref="ILogger"/>.
 /// </summary>
@@ -19,11 +21,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Verbose(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Verbose, message, exception, callerInfo));
     }
 
@@ -46,11 +44,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Debug(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Debug, message, exception, callerInfo));
     }
 
@@ -73,11 +67,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Info(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Info, message, exception, callerInfo));
     }
 
@@ -100,11 +90,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Warning(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Warning, message, exception, callerInfo));
     }
 
@@ -127,11 +113,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Error(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Error, message, exception, callerInfo));
     }
 
@@ -154,11 +136,7 @@ public static class LoggerExtensions
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
     public static void Fatal(this ILogger logger, string message, Exception? exception, CallerInfo? callerInfo = null)
     {
-#if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(logger);
-#else
-        if (logger is null) throw new ArgumentNullException(nameof(logger));
-#endif // NET7_0_OR_GREATER
         logger.Log(new LogMessage(logger.Module, LogMessageType.Fatal, message, exception, callerInfo));
     }
 

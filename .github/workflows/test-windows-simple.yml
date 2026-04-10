@@ -1,0 +1,47 @@
+name: Test Windows (Simple)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+concurrency:
+  group: test-windows-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  Windows-Tests:
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, Simple)
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Simple.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.Simple.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}

@@ -112,7 +112,7 @@ public sealed class CollidableGizmo : IEntityGizmo
         var bepuShapeCacheSys = _services.GetOrCreate<ShapeCacheSystem>();
         var graphicsDevice = _services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
 
-        if (_component.Collider is MeshCollider meshCollider && (meshCollider.Model.Meshes.Count == 0 || meshCollider.Model == null!/*May be null in editor*/))
+        if (_component.Collider is MeshCollider meshCollider && (meshCollider.Model == null!/*May be null in editor*/ || meshCollider.Model.Meshes.Count == 0))
         {
             // It looks like meshes take some time before being filled in by the editor ... ?
             // Schedule it for later

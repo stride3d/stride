@@ -113,9 +113,9 @@ public class TestSphericalHarmonics
         var result = sh.Evaluate(direction);
 
         // Verify result is valid (SH can produce negative or positive values)
-        Assert.True(!float.IsNaN(result.R));
-        Assert.True(!float.IsNaN(result.G));
-        Assert.True(!float.IsNaN(result.B));
+        Assert.False(float.IsNaN(result.R));
+        Assert.False(float.IsNaN(result.G));
+        Assert.False(float.IsNaN(result.B));
     }
 
     [Fact]

@@ -59,7 +59,7 @@ namespace FreeImageAPI
 		/// Array containing all 'FREE_IMAGE_MDMODEL's.
 		/// </summary>
 		public static readonly FREE_IMAGE_MDMODEL[] FREE_IMAGE_MDMODELS =
-			(FREE_IMAGE_MDMODEL[])Enum.GetValues(typeof(FREE_IMAGE_MDMODEL));
+			Enum.GetValues<FREE_IMAGE_MDMODEL>();
 
 		/// <summary>
 		/// Stores handles used to read from streams.

@@ -216,6 +216,50 @@ namespace Stride.Graphics
             }
         }
 
+        public static PixelFormat ConvertPixelFormat(VkFormat inputFormat) => inputFormat switch
+        {
+            VkFormat.R8Unorm => PixelFormat.R8_UNorm,
+            VkFormat.R8Snorm => PixelFormat.R8_SNorm,
+            VkFormat.R8Uint => PixelFormat.R8_UInt,
+            VkFormat.R8Sint => PixelFormat.R8_SInt,
+            VkFormat.R8G8B8A8Unorm => PixelFormat.R8G8B8A8_UNorm,
+            VkFormat.R8G8B8A8Uint => PixelFormat.R8G8B8A8_UInt,
+            VkFormat.R8G8B8A8Sint => PixelFormat.R8G8B8A8_SInt,
+            VkFormat.B8G8R8A8Unorm => PixelFormat.B8G8R8A8_UNorm,
+            VkFormat.R8G8B8A8Srgb => PixelFormat.R8G8B8A8_UNorm_SRgb,
+            VkFormat.B8G8R8A8Srgb => PixelFormat.B8G8R8A8_UNorm_SRgb,
+            VkFormat.A2R10G10B10UintPack32 => PixelFormat.R10G10B10A2_UInt,
+            VkFormat.A2R10G10B10UnormPack32 => PixelFormat.R10G10B10A2_UNorm,
+            VkFormat.R16Sfloat => PixelFormat.R16_Float,
+            VkFormat.R16Unorm => PixelFormat.R16_UNorm,
+            VkFormat.R16Uint => PixelFormat.R16_UInt,
+            VkFormat.R16Sint => PixelFormat.R16_SInt,
+            VkFormat.R16G16Sfloat => PixelFormat.R16G16_Float,
+            VkFormat.R16G16Snorm => PixelFormat.R16G16_SNorm,
+            VkFormat.R16G16Unorm => PixelFormat.R16G16_UNorm,
+            VkFormat.R16G16B16A16Sfloat => PixelFormat.R16G16B16A16_Float,
+            VkFormat.R16G16B16A16Unorm => PixelFormat.R16G16B16A16_UNorm,
+            VkFormat.R16G16B16A16Snorm => PixelFormat.R16G16B16A16_SNorm,
+            VkFormat.R16G16B16A16Uint => PixelFormat.R16G16B16A16_UInt,
+            VkFormat.R16G16B16A16Sint => PixelFormat.R16G16B16A16_SInt,
+            VkFormat.R32Uint => PixelFormat.R32_UInt,
+            VkFormat.R32Sfloat => PixelFormat.R32_Float,
+            VkFormat.R32G32Sfloat => PixelFormat.R32G32_Float,
+            VkFormat.R32G32Uint => PixelFormat.R32G32_UInt,
+            VkFormat.R32G32Sint => PixelFormat.R32G32_SInt,
+            VkFormat.R32G32B32Sfloat => PixelFormat.R32G32B32_Float,
+            VkFormat.R32G32B32Sint => PixelFormat.R32G32B32_SInt,
+            VkFormat.R32G32B32Uint => PixelFormat.R32G32B32_UInt,
+            VkFormat.R32G32B32A32Sfloat => PixelFormat.R32G32B32A32_Float,
+            VkFormat.R32G32B32A32Sint => PixelFormat.R32G32B32A32_SInt,
+            VkFormat.R32G32B32A32Uint => PixelFormat.R32G32B32A32_UInt,
+            VkFormat.D16Unorm => PixelFormat.D16_UNorm,
+            VkFormat.D24UnormS8Uint => PixelFormat.D24_UNorm_S8_UInt,
+            VkFormat.D32Sfloat => PixelFormat.D32_Float,
+            VkFormat.D32SfloatS8Uint => PixelFormat.D32_Float_S8X24_UInt,
+            _ => throw new NotSupportedException($"VkFormat '{inputFormat}' has no equivalent PixelFormat"),
+        };
+
         public static VkFormat ConvertPixelFormat(PixelFormat inputFormat)
         {
             ConvertPixelFormat(inputFormat, out var format, out _, out _);

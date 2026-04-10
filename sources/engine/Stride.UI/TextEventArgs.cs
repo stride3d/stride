@@ -9,26 +9,26 @@ namespace Stride.UI
     /// <summary>
     /// The arguments associated with a <see cref="TextInputEvent"/>
     /// </summary>
-    internal class TextEventArgs : RoutedEventArgs
+    public class TextEventArgs : RoutedEventArgs
     {
         /// <summary>
         /// The text that was entered
         /// </summary>
-        public string Text { get; internal set; }
+        public string Text { get; init; }
         
         /// <summary>
         /// The type of text input event
         /// </summary>
-        public TextInputEventType Type { get; internal set; }
+        public TextInputEventType Type { get; init; }
 
         /// <summary>
         /// Start of the current composition being edited
         /// </summary>
-        public int CompositionStart { get; internal set; }
+        public int CompositionStart { get; init; }
 
         /// <summary>
         /// Length of the current part of the composition being edited
         /// </summary>
-        public int CompositionLength { get; internal set; }
+        public int CompositionLength { get; init; }
     }
 }

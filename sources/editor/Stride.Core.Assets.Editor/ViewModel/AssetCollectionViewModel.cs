@@ -166,7 +166,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         // Storing out primitive data for filters to save between instances of editor
         private List<AssetFilterViewModelData> StoredListData = InternalSettings.ViewFilters.GetValue();
 
-        public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues(typeof(FilterCategory)).Cast<FilterCategory>();
+        public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues<FilterCategory>();
 
         private readonly ObservableSet<AssetViewModel> assets = new ObservableSet<AssetViewModel>();
 

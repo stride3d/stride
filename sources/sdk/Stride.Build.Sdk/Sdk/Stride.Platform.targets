@@ -1,0 +1,91 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Platform-Specific Build Logic (Sdk.Platform.targets)
+    ================================================================
+
+    EVALUATION PHASE: Late (AFTER project file)
+
+    This file applies platform-specific compiler defines and build settings.
+
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Platform Defines - Desktop Frameworks -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Platform Defines - Android -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Platform Defines - iOS -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- .NET Runtime Defines -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Apply Defines to DefineConstants -->
+  <!-- IMPORTANT: Must come AFTER all StridePlatformDefines are set   -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <DefineConstants Condition="'$(StridePlatformDefines)' != ''">$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Android-Specific Build Properties -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <!-- On Android, everything is library (even Exe) -->
+    <OutputType>Library</OutputType>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <AndroidStoreUncompressedFileExtensions />
+    <!-- Use AssemblyName for Resource class to avoid clashes between assemblies -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe'">
+    <AndroidApplication>true</AndroidApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Debug'">
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Release'">
+    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- iOS-Specific Build Properties -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+    <Platform Condition="'$(Platform)' == ''">iPhone</Platform>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+  </PropertyGroup>
+  <!-- Create empty platform configuration so MSBuild/VS Configuration Manager knows about them -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhone'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator'" />
+
+  <!-- UWP platform support intentionally omitted (UWP is being phased out) -->
+
+</Project>

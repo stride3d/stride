@@ -20,7 +20,14 @@ namespace Stride.Rendering.Images
             // http://graphicrants.blogspot.jp/2013/12/tone-mapping.html
             float3 brianKarisToned = color / (1 + maxComponent / targetRange);
 
-            float3 mapped = brianKarisToned;
+            // Clamp to prevent NaN in RangeDecompressorShader's inverse (division by 1 - maxComponent).
+            // Result is stored in RGBA16F: values too close to 1.0 may round up to 1.0 in half-float,
+            // causing division by zero. This is quite brittle — software renderers like SwiftShader
+            // easily round to 1.0, while GPU hardware needs values close to 1.0 for high HDR precision.
+            // 2047/2048 is the best compromise: it's the largest half-float value that stays below 1.0.
+            // TODO: This range compression/decompression approach should be reevaluated to avoid
+            // relying on half-float precision edge cases.
+            float3 mapped = min(brianKarisToned, 2047.0f / 2048.0f);
             // and we don't apply gamma. because of big outlining artefact around [0-1] range objects in front of high [10-80] range emissive objects.
 
             // write output for FXAA:
