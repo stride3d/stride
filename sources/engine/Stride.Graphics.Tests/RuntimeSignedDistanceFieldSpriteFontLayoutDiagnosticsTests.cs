@@ -61,6 +61,20 @@ namespace Stride.Graphics.Tests
             game.Run();
         }
 
+        [Fact]
+        public void RuntimeSdf_BoundedWarmup_Should_TransitionRequestedGlyphs_ToUploaded()
+        {
+            using var game = new RuntimeSdfDiagnosticsGame(
+                output,
+                runIdempotenceTest: false,
+                runLayoutStabilityTest: false,
+                runMultilineComparisonTest: false,
+                runThumbnailBoundsConsistencyTest: false,
+                runBoundedWarmupUploadConvergenceTest: true);
+
+            game.Run();
+        }
+
         private sealed class RuntimeSdfDiagnosticsGame : GraphicTestGameBase
         {
             private readonly ITestOutputHelper output;
@@ -69,6 +83,7 @@ namespace Stride.Graphics.Tests
 
             private readonly bool runMultilineComparisonTest;
             private readonly bool runThumbnailBoundsConsistencyTest;
+            private readonly bool runBoundedWarmupUploadConvergenceTest;
 
             private RuntimeRasterizedSpriteFont runtimeRasterFont = null!;
 
@@ -80,13 +95,15 @@ namespace Stride.Graphics.Tests
                 bool runIdempotenceTest,
                 bool runLayoutStabilityTest,
                 bool runMultilineComparisonTest,
-                bool runThumbnailBoundsConsistencyTest)
+                bool runThumbnailBoundsConsistencyTest,
+                bool runBoundedWarmupUploadConvergenceTest = false)
             {
                 this.output = output;
                 this.runIdempotenceTest = runIdempotenceTest;
                 this.runLayoutStabilityTest = runLayoutStabilityTest;
                 this.runMultilineComparisonTest = runMultilineComparisonTest;
                 this.runThumbnailBoundsConsistencyTest = runThumbnailBoundsConsistencyTest;
+                this.runBoundedWarmupUploadConvergenceTest = runBoundedWarmupUploadConvergenceTest;
             }
 
             public RuntimeSdfDiagnosticsGame(ITestOutputHelper output, bool runIdempotenceTest, bool runLayoutStabilityTest)
@@ -94,6 +111,70 @@ namespace Stride.Graphics.Tests
                 this.output = output;
                 this.runIdempotenceTest = runIdempotenceTest;
                 this.runLayoutStabilityTest = runLayoutStabilityTest;
+                runMultilineComparisonTest = false;
+                runThumbnailBoundsConsistencyTest = false;
+                runBoundedWarmupUploadConvergenceTest = false;
+            }
+
+            private void RunBoundedWarmupUploadConvergenceProbe()
+            {
+                const string text = "Arial\n64 Regular";
+                var requestedSize = new Vector2(64, 64);
+                const int maxIterations = 12;
+
+                var makeKey = GetMakeKeyMethod();
+                var getDfParams = GetDfParamsMethod();
+                var dfParams = getDfParams.Invoke(runtimeFont, Array.Empty<object>());
+                Assert.NotNull(dfParams);
+
+                var requestedGlyphs = text
+                    .Where(ch => !char.IsWhiteSpace(ch))
+                    .Distinct()
+                    .Select(ch => (Character: ch, Key: makeKey.Invoke(null, new[] { (object)ch, dfParams! })))
+                    .ToList();
+
+                foreach (var glyph in requestedGlyphs)
+                    Assert.NotNull(glyph.Key);
+
+                runtimeFont.PrepareGlyphsForThumbnail(text, requestedSize, GraphicsContext.CommandList);
+
+                for (int iteration = 1; iteration <= maxIterations; iteration++)
+                {
+                    runtimeFont.PrepareGlyphsForThumbnail(text, requestedSize, GraphicsContext.CommandList);
+                    var measured = runtimeFont.MeasureString(text, requestedSize.X);
+                    var placement = ComputeGlyphPlacementBounds(runtimeFont, text, requestedSize.X);
+
+                    var characters = GetCharactersDictionary(runtimeFont);
+                    int uploadedCount = 0;
+                    var pending = new List<char>();
+
+                    foreach (var (character, key) in requestedGlyphs)
+                    {
+                        Assert.NotNull(key);
+
+                        if (!characters.TryGetValue(key!, out var specObj))
+                        {
+                            pending.Add(character);
+                            continue;
+                        }
+
+                        dynamic spec = specObj!;
+                        bool isUploaded = spec.IsBitmapUploaded;
+
+                        if (isUploaded)
+                            uploadedCount++;
+                        else
+                            pending.Add(character);
+                    }
+
+                    output.WriteLine(
+                        $"Iteration {iteration}/{maxIterations}: uploaded={uploadedCount}/{requestedGlyphs.Count}, measure={measured}, placement={placement}, pending=\"{new string(pending.ToArray())}\"");
+
+                    if (uploadedCount == requestedGlyphs.Count)
+                        return;
+                }
+
+                Assert.True(false, $"Not all requested glyphs transitioned to uploaded within {maxIterations} iterations.");
             }
 
             private void RunMultilineComparisonProbe()
@@ -416,6 +497,9 @@ namespace Stride.Graphics.Tests
 
                 if (runThumbnailBoundsConsistencyTest)
                     RunThumbnailBoundsConsistencyProbe();
+
+                if (runBoundedWarmupUploadConvergenceTest)
+                    RunBoundedWarmupUploadConvergenceProbe();
 
                 completed = true;
                 Exit();
