@@ -1,6 +1,18 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- ================================================================ -->
+  <!-- Test projects build for a single graphics API at a time.         -->
+  <!-- ================================================================ -->
+  <!-- Disable cross-targeting dispatch — test projects use StrideGraphicsApi (singular)
+       for output path and engine DLL selection. Build per-API via command line:
+         dotnet build -p:StrideGraphicsApi=Direct3D11
+         dotnet build -p:StrideGraphicsApi=Vulkan
+       Engine libraries still cross-target internally and produce all API variants. -->
+  <PropertyGroup>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
   <!-- ================================================================ -->
   <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
