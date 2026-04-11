@@ -122,6 +122,19 @@ jobs:
         with:
           name: linux-vulkan-test-binaries
           path: bin/Tests/
+      - name: Register SwiftShader ICD
+        run: |
+          # Find SwiftShader in any test output and create ICD JSON
+          LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
+          if [ -n "$LIB" ]; then
+            LIB_ABS=$(readlink -f "$LIB")
+            ICD_JSON="$PWD/vk_swiftshader_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+          else
+            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+          fi
       - name: Test
         run: |
           dotnet vstest \
@@ -156,6 +169,18 @@ jobs:
         with:
           name: linux-vulkan-test-binaries
           path: bin/Tests/
+      - name: Register SwiftShader ICD
+        run: |
+          LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
+          if [ -n "$LIB" ]; then
+            LIB_ABS=$(readlink -f "$LIB")
+            ICD_JSON="$PWD/vk_swiftshader_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+          else
+            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+          fi
       - name: Test
         run: |
           dotnet vstest \
