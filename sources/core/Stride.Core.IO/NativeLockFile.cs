@@ -79,7 +79,7 @@ public static partial class NativeLockFile
         }
         else
         {
-            return UnixLock(fileStream, offset, count, exclusive, failImmediately);
+            return UnixLock(fileStream, offset, count, exclusive);
         }
     }
 
@@ -120,7 +120,7 @@ public static partial class NativeLockFile
     ///   falls back to standard fcntl (per-process) if OFD is not supported.
     ///   On macOS/iOS, uses standard fcntl directly (OFD not available on XNU).
     /// </summary>
-    private static bool UnixLock(FileStream fileStream, long offset, long count, bool exclusive, bool failImmediately)
+    private static bool UnixLock(FileStream fileStream, long offset, long count, bool exclusive)
     {
         int fd = fileStream.SafeFileHandle.DangerousGetHandle().ToInt32();
 
@@ -138,8 +138,9 @@ public static partial class NativeLockFile
         {
             if (useOfdLocks != false)
             {
-                int ofdCmd = failImmediately ? F_OFD_SETLK : F_OFD_SETLKW;
-                if (fcntl(fd, ofdCmd, ref lockInfo) == 0)
+                // Always use non-blocking F_OFD_SETLK — blocking F_OFD_SETLKW can hang
+                // indefinitely on some filesystems and in some contention scenarios.
+                if (fcntl(fd, F_OFD_SETLK, ref lockInfo) == 0)
                 {
                     useOfdLocks = true;
                     return true;
@@ -160,7 +161,7 @@ public static partial class NativeLockFile
         }
 
         // Standard fcntl (per-process) — used on macOS/iOS, or as fallback on old Linux kernels.
-        // Always non-blocking to avoid hanging on filesystems like WSL2 9p.
+        // Always non-blocking to avoid hanging.
         return fcntl(fd, F_SETLK, ref lockInfo) == 0;
     }
 
