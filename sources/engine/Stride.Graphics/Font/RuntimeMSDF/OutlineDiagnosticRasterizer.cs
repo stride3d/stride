@@ -118,8 +118,8 @@ namespace Stride.Graphics.Font.RuntimeMsdf
                         if (seg == null) continue;
 
                         // Transform points to bitmap space
-                        var p0 = TransformPoint(seg.P0, minX, minY, scale, df.Padding);
-                        var p1 = TransformPoint(seg.P1, minX, minY, scale, df.Padding);
+                        var p0 = TransformPoint(seg.P0, minX, maxY, scale, df.Padding);
+                        var p1 = TransformPoint(seg.P1, minX, maxY, scale, df.Padding);
 
                         // Draw line segment
                         DrawLine(buffer, pitch, totalWidth, totalHeight, p0, p1, 255, 255, 255);
@@ -131,12 +131,12 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             return bmp;
         }
 
-        private static Vector2 TransformPoint(Vector2 p, float minX, float minY, float scale, int padding)
+        private static Vector2 TransformPoint(Vector2 p, float minX, float maxY, float scale, int padding)
         {
-            // Transform: (p - min) * scale + padding
+            // Flip Y when mapping outline space (Y-up) to bitmap space (Y-down).
             return new Vector2(
                 (p.X - minX) * scale + padding,
-                (p.Y - minY) * scale + padding
+                (maxY - p.Y) * scale + padding
             );
         }
 
