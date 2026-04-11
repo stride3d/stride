@@ -39,6 +39,13 @@ internal static class Win32
     [DllImport("user32", ExactSpelling = true)]
     public static unsafe extern BOOL EnumDisplayDevicesW(char* lpDevice, uint iDevNum, DISPLAY_DEVICEW* lpDisplayDevice, uint dwFlags);
 
+    // MONITOR_DPI_TYPE
+    public const int MDT_EFFECTIVE_DPI = 0;
+
+    // GetDpiForMonitor(HMONITOR hmonitor, MONITOR_DPI_TYPE dpiType, UINT* dpiX, UINT* dpiY);
+    [DllImport("shcore", ExactSpelling = true)]
+    public static unsafe extern int GetDpiForMonitor(nint hmonitor, int dpiType, uint* dpiX, uint* dpiY);
+
     #region Helper structs and types
 
     public readonly struct BOOL(int value)
