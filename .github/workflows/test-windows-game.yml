@@ -34,7 +34,7 @@ jobs:
   # Game tests - API-independent projects (run once)
   #
   Game-Common:
-    name: Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
@@ -75,7 +75,7 @@ jobs:
   # Game tests - Graphics API-dependent projects (run per API)
   #
   Game-GraphicsApi:
-    name: Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false

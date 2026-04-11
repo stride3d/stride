@@ -106,6 +106,13 @@ jobs:
     with:
       build-type: Debug
 
+  Linux-Tests-Simple:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-simple.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
   Linux-Tests-Game:
     needs: Linux-Runtime
     uses: ./.github/workflows/test-linux-game.yml

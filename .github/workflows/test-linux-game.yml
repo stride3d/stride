@@ -54,7 +54,7 @@ jobs:
           } else {
             Write-Warning "SwiftShader ICD not found in NuGet cache"
           }
-      - name: Build (targeting Linux/Vulkan)
+      - name: Build GPU tests (targeting Linux/Vulkan)
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
             -p:StrideNativeBuildMode=Clang `
@@ -64,6 +64,33 @@ jobs:
             -p:StridePlatform=Linux `
             -p:StrideGraphicsApis=Vulkan `
             -p:StrideGraphicsApi=Vulkan
+      - name: Build non-GPU game tests (targeting Linux)
+        run: |
+          dotnet build build\Stride.Tests.Game.Linux.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatform=Linux `
+            -p:StrideGraphicsApis=Vulkan `
+            -p:StrideGraphicsApi=Vulkan
+      - name: Copy SwiftShader Linux native to test outputs
+        shell: pwsh
+        run: |
+          $swiftShaderDir = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Directory -Filter linux-x64 -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($swiftShaderDir) {
+            # Copy to each GPU test output that has a runtimes folder
+            Get-ChildItem bin\Tests -Directory | ForEach-Object {
+              $dest = Join-Path $_.FullName "Linux\Vulkan\runtimes\linux-x64\native"
+              if (Test-Path (Join-Path $_.FullName "Linux\Vulkan")) {
+                New-Item -Path $dest -ItemType Directory -Force | Out-Null
+                Copy-Item "$($swiftShaderDir.Parent.FullName)\linux-x64\native\*" $dest -Force
+                Write-Host "Copied SwiftShader to $dest"
+              }
+            }
+          } else {
+            Write-Warning "SwiftShader linux-x64 not found in NuGet cache"
+          }
       - name: Upload test binaries
         uses: actions/upload-artifact@v4
         with:
@@ -71,9 +98,43 @@ jobs:
           path: bin/Tests/
           retention-days: 1
 
-  # Run tests on actual Linux using binaries built on Windows
-  Test:
-    name: Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+  # Non-GPU game tests (run once, no graphics API dependency)
+  # Note: some tests still create a GraphicsDevice, so libvulkan1 + SwiftShader are needed.
+  Game-Common:
+    name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    needs: Build
+    runs-on: ubuntu-24.04
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1
+      - name: Download test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+      - name: Test
+        run: |
+          dotnet vstest \
+            bin/Tests/Stride.Audio.Tests/Linux/Vulkan/Stride.Audio.Tests.dll \
+            bin/Tests/Stride.Engine.NoAssets.Tests/Linux/Vulkan/Stride.Engine.NoAssets.Tests.dll \
+            bin/Tests/Stride.Input.Tests/Linux/Vulkan/Stride.Input.Tests.dll \
+            bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
+            bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
+            -- RunConfiguration.MaxCpuCount=1
+
+  # GPU game tests (Vulkan via SwiftShader)
+  Game-GPU:
+    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
     runs-on: ubuntu-24.04
     env:
@@ -89,7 +150,7 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfreetype-dev libopenal-dev libfreeimage-dev
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1
       - name: Download test binaries
         uses: actions/download-artifact@v4
         with:
@@ -97,7 +158,13 @@ jobs:
           path: bin/Tests/
       - name: Test
         run: |
-          dotnet vstest bin/Tests/Stride.Graphics.Tests.Windows/Linux/Vulkan/Stride.Graphics.Tests.dll \
+          dotnet vstest \
+            bin/Tests/Stride.Graphics.Tests/Linux/Vulkan/Stride.Graphics.Tests.dll \
+            bin/Tests/Stride.Graphics.Tests.10_0/Linux/Vulkan/Stride.Graphics.Tests.10_0.dll \
+            bin/Tests/Stride.Graphics.Tests.11_0/Linux/Vulkan/Stride.Graphics.Tests.11_0.dll \
+            bin/Tests/Stride.Engine.Tests/Linux/Vulkan/Stride.Engine.Tests.dll \
+            bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
+            bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
             -- RunConfiguration.MaxCpuCount=1
       - name: Upload test artifacts
         if: always()
