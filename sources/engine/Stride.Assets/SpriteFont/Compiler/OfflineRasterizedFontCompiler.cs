@@ -129,14 +129,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             // Convert to pre-multiplied alpha format.
             if (fontAsset.FontType.IsPremultiplied)
             {
-                if (fontAsset.FontType.AntiAlias == FontAntiAliasMode.ClearType)
-                {
-                    BitmapUtils.PremultiplyAlphaClearType(bitmap, srgb);
-                }
-                else
-                {
-                    BitmapUtils.PremultiplyAlpha(bitmap, srgb);
-                }
+                BitmapUtils.PremultiplyAlpha(bitmap, srgb);
             }
 
             return OfflineRasterizedSpriteFontWriter.CreateSpriteFontData(fontFactory, fontAsset, glyphs, lineSpacing, baseLine, bitmap, srgb);
@@ -151,7 +144,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             var bitmapFileExtensions = new List<string> { ".bmp", ".png", ".gif" };
             var importFromBitmap = bitmapFileExtensions.Contains(sourceExtension);
 
-            importer = importFromBitmap ? (IFontImporter) new BitmapImporter() : new TrueTypeImporter();
+            importer = importFromBitmap ? (IFontImporter) new BitmapImporter() : new FreeTypeFontImporter();
 
             // create the list of character to import
             var characters = GetCharactersToImport(options); 
@@ -170,7 +163,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             {
                 throw new Exception("Font does not contain any glyphs.");
             }
-            if (!importFromBitmap && options.FontType.AntiAlias != FontAntiAliasMode.ClearType)
+            if (!importFromBitmap)
             {
                 foreach (var glyph in importer.Glyphs)
                     BitmapUtils.ConvertGreyToAlpha(glyph.Bitmap, glyph.Subrect);

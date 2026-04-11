@@ -46,7 +46,6 @@
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Sdl" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
-    <PackageReference Include="Stride.SharpFont" />
   </ItemGroup>
   <Choose>
     <When Condition=" '$(TargetFramework)' == '$(StrideFramework)' And '$(StrideGraphicsApi)' == 'Direct3D12' ">
