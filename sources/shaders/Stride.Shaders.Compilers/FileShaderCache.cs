@@ -18,6 +18,12 @@ namespace Stride.Shaders.Compilers;
 /// </summary>
 public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath = "shaders") : IShaderCache
 {
+    /// <summary>
+    /// Optional importer for resolving struct types from imported shaders during deserialization.
+    /// Set after construction to break the circular dependency with the shader loader.
+    /// </summary>
+    internal IShaderImporter? ShaderImporter { get; set; }
+
     private readonly object lockObject = new();
     private readonly ShaderCache memoryCache = new();
 
@@ -140,7 +146,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         writer.Write(bytecode);
     }
 
-    private static ShaderBuffers Deserialize(BinaryReader reader, out ObjectId hash)
+    private ShaderBuffers Deserialize(BinaryReader reader, out ObjectId hash)
     {
         var buffer = new byte[reader.BaseStream.Length];
         reader.ReadExactly(buffer);
@@ -158,7 +164,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
             }
         }
 
-        ShaderClass.ProcessNameAndTypes(result.Context);
+        ShaderClass.ProcessNameAndTypes(result.Context, ShaderImporter);
 
         return result;
     }

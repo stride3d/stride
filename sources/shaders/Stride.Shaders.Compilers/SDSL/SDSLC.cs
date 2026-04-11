@@ -110,7 +110,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 // Ensure all names and types from OpName/OpType instructions are registered
                 // in the context dictionaries. The compiler may not explicitly register everything
                 // (e.g. names for imported IDs, or types from InsertWithoutDuplicates).
-                ShaderClass.ProcessNameAndTypes(lastBuffer.Context);
+                ShaderClass.ProcessNameAndTypes(lastBuffer.Context, new ShaderLoaderImporter(ShaderLoader));
 
                 if (options.RegisterInCache)
                     ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);

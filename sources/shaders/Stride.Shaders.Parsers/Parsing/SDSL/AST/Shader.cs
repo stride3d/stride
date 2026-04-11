@@ -22,6 +22,12 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public interface IShaderImporter
 {
     SymbolType Import(ShaderClassInstantiation classSource, SpirvContext declaringContext);
+
+    /// <summary>
+    /// Resolves an imported struct type by name from a shader.
+    /// Returns the full <see cref="StructuredType"/> with members, or null if not available.
+    /// </summary>
+    StructuredType? ResolveStructType(ShaderSymbol shader, string structName);
 }
 
 public class EmptyShaderImporter : IShaderImporter
@@ -29,6 +35,28 @@ public class EmptyShaderImporter : IShaderImporter
     public SymbolType Import(ShaderClassInstantiation classSource, SpirvContext declaringContext)
     {
         return new ShaderSymbol(classSource.ClassName, classSource.GenericArguments);
+    }
+
+    public virtual StructuredType? ResolveStructType(ShaderSymbol shader, string structName) => null;
+}
+
+/// <summary>
+/// An <see cref="IShaderImporter"/> that resolves struct types by loading shader buffers
+/// from an <see cref="IExternalShaderLoader"/>.
+/// </summary>
+public class ShaderLoaderImporter(IExternalShaderLoader loader) : EmptyShaderImporter
+{
+    public override StructuredType? ResolveStructType(ShaderSymbol shader, string structName)
+    {
+        if (loader.LoadExternalBuffer(shader.Name, [], out var buffer, out _, out _))
+        {
+            foreach (var (_, symbolType) in buffer.Context.ReverseTypes)
+            {
+                if (symbolType is StructuredType st && st.ToId() == structName)
+                    return st;
+            }
+        }
+        return null;
     }
 }
 
@@ -281,9 +309,16 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             }
             else if (instruction.Op == Op.OpImportStructSDSL && (OpImportStructSDSL)instruction is { } importStruct)
             {
-                // Register an empty placeholder struct — the real StructuredType is resolved
-                // later via ImportShaderStruct when the shader is imported into the main context.
-                RegisterType(importStruct.ResultId, new StructType(importStruct.StructName, []));
+                // Resolve the imported struct to the real type (with members) from the owning shader.
+                // Without this, an empty placeholder StructType("Name", []) is created, which
+                // wouldn't match the full struct when used in function type parameters.
+                StructuredType? resolved = null;
+                if (context.ReverseTypes.TryGetValue(importStruct.Shader, out var shaderType)
+                    && shaderType is ShaderSymbol shaderSym)
+                {
+                    resolved = realShaderImporter.ResolveStructType(shaderSym, importStruct.StructName);
+                }
+                RegisterType(importStruct.ResultId, resolved ?? new StructType(importStruct.StructName, []));
             }
         }
 

@@ -1,12 +1,21 @@
 using Stride.Core.IO;
 using Stride.Core.Storage;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Compilers;
 
-public class FileShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new FileShaderCache(VirtualFileSystem.ApplicationCache))
+public class FileShaderLoader : ShaderLoaderBase
 {
-    public ShaderSourceManager SourceManager { get; } = new(FileProvider);
+    public ShaderSourceManager SourceManager { get; }
+
+    public FileShaderLoader(IVirtualFileProvider fileProvider) : base(new FileShaderCache(VirtualFileSystem.ApplicationCache))
+    {
+        SourceManager = new ShaderSourceManager(fileProvider);
+        // Wire up the importer so the file cache can resolve struct types during deserialization
+        if (Cache is FileShaderCache fsc)
+            fsc.ShaderImporter = new ShaderLoaderImporter(this);
+    }
 
     protected override bool ExternalFileExists(string name) => SourceManager.IsClassExists(name);
 

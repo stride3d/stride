@@ -241,6 +241,7 @@ public partial record StructuredType(string Name, List<StructuredTypeMember> Mem
     public override string ToId() => Name;
     public override string ToString() => Name;
 
+
     public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
     {
         foreach (var field in Members)
@@ -270,6 +271,28 @@ public partial record StructuredType(string Name, List<StructuredTypeMember> Mem
 
 public sealed partial record StructType(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
+    // Value equality by Name + Members (matching the FunctionType pattern).
+    // Multiple StructType instances for the same struct can exist when:
+    //   - generic shader instantiation copies the SpirvContext (Builder.Class.cs)
+    //   - shader cache deserialization creates fresh objects (FileShaderCache)
+    // Without this, SpirvContext.Types dictionary lookups fail because
+    // the default record equality uses List<> reference equality.
+    public bool Equals(StructType? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Name == other.Name && Members.SequenceEqual(other.Members);
+    }
+
+    public override int GetHashCode()
+    {
+        int hash = 17;
+        hash = hash * 31 + (Name?.GetHashCode() ?? 0);
+        foreach (var member in Members)
+            hash = hash * 31 + member.GetHashCode();
+        return hash;
+    }
+
     public override string ToString() => base.ToString();
 }
 
