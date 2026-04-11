@@ -357,9 +357,9 @@ namespace Stride.Graphics.Font
                         RenderBitmap(character, fontFace);
                     }
 
-DequeueRequest:
+                    DequeueRequest:
 
-// update the generated cached data
+                    // update the generated cached data
                     lock (dataStructuresLock)
                         bitmapsToGenerate.Dequeue();
                 }
