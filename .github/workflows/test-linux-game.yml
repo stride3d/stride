@@ -104,6 +104,7 @@ jobs:
     name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
     steps:
@@ -150,6 +151,7 @@ jobs:
     name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_MAX_PARALLELISM: "8"

@@ -55,6 +55,7 @@ jobs:
     name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
