@@ -24,6 +24,7 @@ jobs:
   Windows-Tests:
     name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, Simple)
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:

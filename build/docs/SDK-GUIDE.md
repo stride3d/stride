@@ -140,7 +140,7 @@ Use `git` to revert the project file changes (all 125 `.csproj` files). The dire
 
 **Step 5 — Re-add `BuildSdk` target to `build/Stride.build`:**
 
-Restore the target and add `DependsOnTargets="BuildSdk"` (or `BuildSdk;` prefix where multiple dependencies exist) to: `Build`, `BuildRuntime`, `BuildWindows`, `BuildWindowsDirect3D11`, `BuildWindowsDirect3D12`, `BuildWindowsOpenGL`, `BuildWindowsOpenGLES`, `BuildAndroid`, `BuildiOS`, `BuildUWP`, `BuildWindowsVulkan`, `BuildLinux`, `BuildLinuxVulkan`, `BuildmacOS`, `BuildLauncher`, `RunTestsWindows`, `RunTestsMobile`.
+Restore the target and add `DependsOnTargets="BuildSdk"` (or `BuildSdk;` prefix where multiple dependencies exist) to: `Build`, `BuildRuntime`, `BuildWindows`, `BuildWindowsDirect3D11`, `BuildWindowsDirect3D12`, `BuildAndroid`, `BuildiOS`, `BuildUWP`, `BuildWindowsVulkan`, `BuildLinux`, `BuildmacOS`, `BuildLauncher`, `RunTestsWindows`, `RunTestsMobile`.
 
 ```xml
 <!--
@@ -354,7 +354,7 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 
 | Property | Purpose | Set by |
 |----------|---------|--------|
-| `StrideGraphicsApi` | Current API (Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan) | Stride.Graphics.props (platform default) |
+| `StrideGraphicsApi` | Current API (Direct3D11, Direct3D12, Vulkan) | Stride.Graphics.props (platform default) |
 | `StrideGraphicsApis` | Semicolon-separated list of target APIs | Stride.Graphics.props |
 | `StrideDefaultGraphicsApi` | Default/fallback API for the platform | Stride.Graphics.props |
 | `StrideGraphicsApiDependent` | Enable multi-API inner builds | Project (.csproj) |
@@ -364,11 +364,11 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 
 | Platform | Default | Available |
 |----------|---------|-----------|
-| Windows | Direct3D11 | Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan |
-| Linux | OpenGL | OpenGL, Vulkan |
+| Windows | Direct3D11 | Direct3D11, Direct3D12,Vulkan |
+| Linux | Vulkan | Vulkan |
 | macOS | Vulkan | Vulkan |
-| Android | OpenGLES | OpenGLES, Vulkan |
-| iOS | OpenGLES | OpenGLES |
+| Android | VUlkan | Vulkan |
+| iOS | Vulkan | Vulkan |
 
 **Graphics API defines** (added to `DefineConstants`):
 
@@ -376,8 +376,6 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 |-----|---------|
 | Direct3D11 | `STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D11` |
 | Direct3D12 | `STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D12` |
-| OpenGL | `STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE` |
-| OpenGLES | `STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES` |
 | Vulkan | `STRIDE_GRAPHICS_API_VULKAN` |
 
 ### Build Control

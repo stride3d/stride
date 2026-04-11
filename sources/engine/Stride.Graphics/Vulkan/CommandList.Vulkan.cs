@@ -538,7 +538,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
         /// </summary>
-        public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        // TODO: subresource parameter is currently ignored — Vulkan always transitions all
+        // subresources. This is incorrect when different subresources need different layouts
+        // (e.g. reading mip 0 as ShaderResource while writing mip 1 as RenderTarget).
+        // Per-subresource tracking would require storing per-subresource VkImageLayout
+        // to emit precise barriers. Not currently hit by the engine's rendering pipeline.
+        public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             if (resource is Texture texture)
             {

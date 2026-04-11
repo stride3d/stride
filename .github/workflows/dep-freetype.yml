@@ -1,0 +1,280 @@
+name: "Dep: Build FreeType"
+
+on:
+  workflow_dispatch:
+    inputs:
+      freetype-version:
+        description: FreeType version tag (e.g. VER-2-13-3)
+        default: VER-2-13-3
+        required: true
+
+jobs:
+  build-windows:
+    name: Build FreeType (Windows)
+    runs-on: windows-2025-vs2026
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: ARM64
+            rid: win-arm64
+          - arch: Win32
+            rid: win-x86
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cmake -S freetype-src -B freetype-build -A ${{ matrix.arch }} `
+            -DBUILD_SHARED_LIBS=ON `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DFT_DISABLE_BZIP2=ON `
+            -DFT_DISABLE_BROTLI=ON `
+            -DFT_DISABLE_HARFBUZZ=ON `
+            -DFT_DISABLE_PNG=ON `
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build freetype-build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force
+          Copy-Item freetype-build/Release/freetype.dll "out/${{ matrix.rid }}/"
+          Copy-Item freetype-build/Release/freetype.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build FreeType (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build
+        run: |
+          cmake -S freetype-src -B freetype-build \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-fPIC" \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build freetype-build -- -j$(nproc)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          # Copy the actual shared library (not symlinks) with a versionless name
+          cp $(readlink -f freetype-build/libfreetype.so) out/linux-x64/libfreetype.so
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build FreeType (macOS)
+    runs-on: macos-15
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            rid: osx-arm64
+          - arch: x86_64
+            rid: osx-x64
+    steps:
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build
+        run: |
+          cmake -S freetype-src -B freetype-build \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/${{ matrix.rid }}
+          # Copy the actual dylib (not symlinks) with a versionless name
+          cp $(readlink -f freetype-build/libfreetype.dylib) out/${{ matrix.rid }}/libfreetype.dylib
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-android:
+    name: Build FreeType (Android)
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - abi: armeabi-v7a
+            rid: android-arm
+          - abi: arm64-v8a
+            rid: android-arm64
+          - abi: x86
+            rid: android-x86
+          - abi: x86_64
+            rid: android-x64
+    steps:
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build
+        run: |
+          cmake -S freetype-src -B freetype-build \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=android-21 \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build freetype-build -- -j$(nproc)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/${{ matrix.rid }}
+          cp freetype-build/libfreetype.so out/${{ matrix.rid }}/
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-ios:
+    name: Build FreeType (iOS)
+    runs-on: macos-15
+    steps:
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build
+        run: |
+          cmake -S freetype-src -B freetype-build \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/ios
+          cp freetype-build/libfreetype.a out/ios/
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-ios
+          path: out/ios/
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos, build-android, build-ios]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout (for version info)
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into Option B structure
+        run: |
+          OUT=freetype-out
+
+          # Desktop → dotnet/{rid}/
+          for rid in win-x64 win-x86 win-arm64 linux-x64 osx-x64 osx-arm64; do
+            mkdir -p $OUT/dotnet/$rid
+            cp artifacts/freetype-$rid/* $OUT/dotnet/$rid/ 2>/dev/null || true
+          done
+
+          # Android → Android/{rid}/
+          for rid in android-arm android-arm64 android-x86 android-x64; do
+            mkdir -p $OUT/Android/$rid
+            cp artifacts/freetype-$rid/* $OUT/Android/$rid/ 2>/dev/null || true
+          done
+
+          # iOS → iOS/
+          mkdir -p $OUT/iOS
+          cp artifacts/freetype-ios/* $OUT/iOS/
+
+          # Version info
+          COMMIT=$(git -C freetype-src rev-parse HEAD)
+          cat > $OUT/VERSION.txt <<EOF
+FreeType ${{ github.event.inputs.freetype-version }}
+Repository: https://github.com/freetype/freetype
+Commit: $COMMIT
+Built: $(date -u +%Y-%m-%d)
+Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+EOF
+
+      - name: List contents
+        run: find freetype-out -type f | sort
+
+      - name: Upload combined
+        uses: actions/upload-artifact@v4
+        with:
+          name: freetype-all-platforms
+          path: freetype-out/
