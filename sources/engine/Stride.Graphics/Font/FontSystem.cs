@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
@@ -15,11 +16,11 @@ namespace Stride.Graphics.Font
     /// </summary>
     public class FontSystem : IFontFactory
     {
-        internal int FrameCount { get; private set; }
-        internal FontManager FontManager { get; private set; }
-        internal GraphicsDevice GraphicsDevice { get; private set; }
-        internal FontCacheManager FontCacheManager { get; private set; }
-        internal FontCacheManagerMsdf FontCacheManagerMsdf { get; private set; }
+        internal int FrameCount { get; private set; } 
+        internal FontManager FontManager { get; private set; } = null!;
+        internal GraphicsDevice GraphicsDevice { get; private set; } = null!;
+        internal FontCacheManager FontCacheManager { get; private set; } = null!;
+        internal FontCacheManagerMsdf FontCacheManagerMsdf { get; private set; } = null!;
 
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
@@ -31,7 +32,7 @@ namespace Stride.Graphics.Font
         /// via <see cref="RuntimeFontProvider.RegisterFont"/>.</para>
         /// <para>Once registered, fonts can be loaded using the <see cref="LoadRuntimeFont"/> method.</para>
         /// </remarks>
-        public RuntimeFontProvider RuntimeFonts { get; private set; }
+        public RuntimeFontProvider RuntimeFonts { get; private set; } = null!;
 
         /// <summary>
         /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="Stride.Graphics.GraphicsDevice" />.
@@ -64,7 +65,7 @@ namespace Stride.Graphics.Font
         /// <param name="defaultSize">The default font size in pixels.</param>
         /// <param name="style">The font style.</param>
         /// <returns>A <see cref="SpriteFont"/> instance if the font is registered; otherwise, <c>null</c>.</returns>
-        public SpriteFont LoadRuntimeFont(string fontName, float defaultSize = 16f, FontStyle style = FontStyle.Regular)
+        public SpriteFont? LoadRuntimeFont(string fontName, float defaultSize = 16f, FontStyle style = FontStyle.Regular)
         {
             if (!RuntimeFonts.IsRegistered(fontName, style))
                 return null;
