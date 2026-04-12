@@ -27,24 +27,14 @@ on:
         options:
           - Debug
           - Release
-      graphics-api:
-        description: Graphics API
-        default: OpenGL
-        type: choice
-        options:
-          - OpenGL
-          - Vulkan
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
-      graphics-api:
-        default: OpenGL
-        type: string
 
 concurrency:
-  group: build-linux-runtime-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }}
+  group: build-linux-runtime-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -53,7 +43,7 @@ jobs:
   #
   Linux-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +60,5 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Linux `
-            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

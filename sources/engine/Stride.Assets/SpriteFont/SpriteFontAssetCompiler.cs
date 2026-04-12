@@ -97,6 +97,7 @@ namespace Stride.Assets.SpriteFont
                 : base(url, description, assetFinder)
             {
                 this.colorspace = colorspace;
+                Version = 1; // Bumped: switched from DirectWrite to FreeType for glyph rasterization
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()

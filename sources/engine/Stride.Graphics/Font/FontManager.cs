@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
-using SharpFont;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -17,7 +17,7 @@ namespace Stride.Graphics.Font
     /// <summary>
     /// A font manager is in charge of loading in memory the ttf files, looking for font informations, rendering and then caching the <see cref="CharacterBitmap"/>s on the CPU .
     /// </summary>
-    internal class FontManager : IDisposable
+    internal unsafe class FontManager : IDisposable
     {
         /// <summary>
         /// Lock both <see cref="generatedBitmaps"/> and <see cref="bitmapsToGenerate"/>.
@@ -25,9 +25,11 @@ namespace Stride.Graphics.Font
         private readonly Lock dataStructuresLock = new();
 
         /// <summary>
-        /// The font data that are currently cached in the registry
+        /// The font data that are currently cached in the registry.
+        /// Keys are font paths, values are (face pointer, pinned font data handle) pairs.
+        /// The GCHandle keeps font data alive because FreeType references it from the Face.
         /// </summary>
-        private readonly Dictionary<string, Face> cachedFontFaces = [];
+        private readonly Dictionary<string, (nint face, GCHandle dataHandle)> cachedFontFaces = new();
 
         /// <summary>
         /// The list of the bitmaps that have already been generated.
@@ -55,9 +57,14 @@ namespace Stride.Graphics.Font
         private bool bitmapShouldEndThread;
 
         /// <summary>
-        /// A reference pointer to the freetype library.
+        /// A handle to the freetype library.
         /// </summary>
-        private Library freetypeLibrary;
+        private nint freetypeLibrary;
+
+        /// <summary>
+        /// Lock for all FreeType calls (FreeType is not thread-safe per library instance).
+        /// </summary>
+        private readonly object freetypeLock = new object();
 
         /// <summary>
         /// The asset manager used to load the ttf fonts.
@@ -80,11 +87,13 @@ namespace Stride.Graphics.Font
         {
             contentManager = new ContentManager(fileProviderService);
 
-            // Preload proper freetype native library (depending on CPU type)
+            // Preload proper freetype native library (depending on CPU type).
             NativeLibraryHelper.PreloadLibrary("freetype", typeof(FontManager));
 
-            // create a freetype library used to generate the bitmaps
-            freetypeLibrary = new Library();
+            // Initialize FreeType library
+            int err = FreeTypeNative.FT_Init_FreeType(out freetypeLibrary);
+            if (err != 0)
+                throw new InvalidOperationException($"Failed to initialize FreeType library (error {err})");
 
             // launch the thumbnail builder thread
             bitmapBuilderThread = new Thread(SafeAction.Wrap(BuildBitmapThread)) { IsBackground = true, Name = "Bitmap Builder thread" };
@@ -117,41 +126,30 @@ namespace Stride.Graphics.Font
         }
 
         /// <summary>
-        /// Loads a font from the specified file on the file system and adds it to the internal font cache for use with
-        /// the given font name and style.
+        /// Loads a font from the specified file on the file system and adds it to the internal font cache.
         /// </summary>
-        /// <remarks>
-        /// <para>If a font with the same name and style is already cached, the method does nothing.</para>
-        /// <para>This method is thread-safe when adding new fonts to the cache.</para>
-        /// <para><strong>Memory considerations:</strong> The complete font file data is loaded into memory and kept
-        /// resident for the lifetime of the <see cref="FontManager"/>. Fonts cannot be individually unloaded;
-        /// they are only released when the <see cref="FontManager"/> is disposed. Consider this when loading
-        /// large fonts or many font variants, especially on memory-constrained platforms.</para>
-        /// </remarks>
-        /// <param name="fontName">The name to associate with the loaded font. This name is used to reference the font in subsequent
-        /// operations.</param>
-        /// <param name="filePath">The path to the font file on the file system. The file must exist and be accessible.</param>
-        /// <param name="style">The style to apply to the loaded font, such as regular, bold, or italic.</param>
-        /// <exception cref="FileNotFoundException">Thrown if the file specified by <paramref name="filePath"/> does not exist.</exception>
         public void LoadFontFromFileSystem(string fontName, string filePath, FontStyle style)
         {
             var cacheKey = FontHelper.GetFontPath(fontName, style);
 
-            // Fast path: Return if the font is already cached (avoids lock contention)
-            if (cachedFontFaces.ContainsKey(cacheKey))
-                return;
-
-            lock (freetypeLibrary)
+            lock (freetypeLock)
             {
-                // Check again inside lock to prevent race condition
                 if (cachedFontFaces.ContainsKey(cacheKey))
                     return;
 
-                // Load font data into memory
                 var fontData = File.ReadAllBytes(filePath);
+                var handle = GCHandle.Alloc(fontData, GCHandleType.Pinned);
 
-                // Create FreeType face and add to cache
-                cachedFontFaces[cacheKey] = freetypeLibrary.NewMemoryFace(fontData, 0);
+                fixed (byte* ptr = fontData)
+                {
+                    int err = FreeTypeNative.FT_New_Memory_Face(freetypeLibrary, ptr, new CLong(fontData.Length), new CLong(0), out FT_FaceRec* face);
+                    if (err != 0)
+                    {
+                        handle.Free();
+                        throw new InvalidOperationException($"Failed to load font from '{filePath}' (FreeType error {err})");
+                    }
+                    cachedFontFaces[cacheKey] = ((nint)face, handle);
+                }
             }
         }
 
@@ -166,23 +164,29 @@ namespace Stride.Graphics.Font
 
             // get the face of the font
             var fontFace = GetOrCreateFontFace(character.FontName, character.Style);
-            lock (freetypeLibrary)
+            lock (freetypeLock)
             {
                 // set the font size
                 SetFontFaceSize(fontFace, character.Size);
 
                 // get the glyph and render the bitmap
-                var glyphIndex = fontFace.GetCharIndex(character.Character);
+                var glyphIndex = FreeTypeNative.FT_Get_Char_Index(fontFace, character.Character);
 
                 // the character does not exit => let the glyph info null
                 if (glyphIndex == 0)
                     return;
 
-                // load the character glyph
-                fontFace.LoadGlyph(glyphIndex, LoadFlags.Default, LoadTarget.Normal);
+                // load the character glyph — use Mono target when rendering aliased fonts
+                // so the auto-hinter optimizes for 1-bit output (fixes junction gaps)
+                var loadTarget = character.AntiAlias == FontAntiAliasMode.Aliased
+                    ? FreeTypeLoadTarget.Mono
+                    : FreeTypeLoadTarget.Normal;
+                int err = FreeTypeNative.FT_Load_Glyph(fontFace, glyphIndex, (int)FreeTypeLoadFlags.Default | (int)loadTarget);
+                if (err != 0)
+                    return;
 
-                // set glyph information
-                character.Glyph.XAdvance = fontFace.Glyph.Advance.X.ToSingle();
+                // set glyph information (advance is in 26.6 fixed-point)
+                character.Glyph.XAdvance = (int)fontFace->glyph->advance.x.Value / 64.0f;
 
                 // render the bitmap
                 if (renderBitmap)
@@ -190,21 +194,23 @@ namespace Stride.Graphics.Font
             }
         }
 
-        private void RenderBitmap(CharacterSpecification character, Face fontFace)
+        private void RenderBitmap(CharacterSpecification character, FT_FaceRec* fontFace)
         {
             // choose the rendering type and render the glyph
-            var renderingMode = character.AntiAlias == FontAntiAliasMode.Aliased ? RenderMode.Mono : RenderMode.Normal;
-            fontFace.Glyph.RenderGlyph(renderingMode);
+            var renderingMode = character.AntiAlias == FontAntiAliasMode.Aliased ? FreeTypeRenderMode.Mono : FreeTypeRenderMode.Normal;
+            int err = FreeTypeNative.FT_Render_Glyph(fontFace->glyph, renderingMode);
+            if (err != 0)
+                return;
 
             // create the bitmap
-            var bitmap = fontFace.Glyph.Bitmap;
-            if (bitmap.Width != 0 && bitmap.Rows != 0)
-                character.Bitmap = new CharacterBitmap(bitmap.Buffer, ref borderSize, bitmap.Width, bitmap.Rows, bitmap.Pitch, bitmap.GrayLevels, bitmap.PixelMode);
+            ref FT_Bitmap bitmap = ref fontFace->glyph->bitmap;
+            if (bitmap.width != 0 && bitmap.rows != 0)
+                character.Bitmap = new CharacterBitmap((nint)bitmap.buffer, ref borderSize, (int)bitmap.width, (int)bitmap.rows, bitmap.pitch, bitmap.num_grays, (FreeTypePixelMode)bitmap.pixel_mode);
             else
                 character.Bitmap = new CharacterBitmap();
 
             // set the glyph offsets
-            character.Glyph.Offset = new Vector2(fontFace.Glyph.BitmapLeft - borderSize.X, -fontFace.Glyph.BitmapTop - borderSize.Y);
+            character.Glyph.Offset = new Vector2(fontFace->glyph->bitmap_left - borderSize.X, -fontFace->glyph->bitmap_top - borderSize.Y);
         }
 
         private static void ResetGlyph(CharacterSpecification character)
@@ -218,50 +224,37 @@ namespace Stride.Graphics.Font
             character.Glyph.Subrect.Height = 0;
         }
 
-        private static void SetFontFaceSize(Face fontFace, Vector2 size)
+        private void SetFontFaceSize(FT_FaceRec* fontFace, Vector2 size)
         {
-            // calculate and set the size of the font
-            // size is in 26.6 factional points (that is in 1/64th of points)
+            // size is in 26.6 fractional points (that is in 1/64th of points)
             // 72 => the sizes are in "points" (=1/72 inch), setting resolution to 72 dpi let us specify the size in pixels directly
-            fontFace.SetCharSize(size.X, size.Y, 72, 72);
+            var charWidth = new CLong((int)(size.X * 64));
+            var charHeight = new CLong((int)(size.Y * 64));
+            FreeTypeNative.FT_Set_Char_Size(fontFace, charWidth, charHeight, 72, 72);
         }
 
         /// <summary>
         /// Get various information about a font of a given family, type, and size.
         /// </summary>
-        /// <param name="fontFamily">The name of the family of the font</param>
-        /// <param name="fontStyle">The style of the font</param>
-        /// <param name="lineSpacing">The space between two lines for a font size of 1 pixel</param>
-        /// <param name="baseLine">The default base line for a font size of 1 pixel</param>
-        /// <param name="maxWidth">The width of the largest character for a font size of 1 pixel</param>
-        /// <param name="maxHeight">The height of the largest character for a font size of 1 pixel</param>
         public void GetFontInfo(string fontFamily, FontStyle fontStyle, out float lineSpacing, out float baseLine, out float maxWidth, out float maxHeight)
         {
-            // get the data of the font data
-            var fontData = GetOrCreateFontFace(fontFamily, fontStyle);
+            var fontFace = GetOrCreateFontFace(fontFamily, fontStyle);
 
-            lineSpacing = fontData.Height / (float)fontData.UnitsPerEM;
-            baseLine = (fontData.Height + fontData.Descender) / (float)fontData.UnitsPerEM;
-            maxWidth = (fontData.BBox.Right - fontData.BBox.Left) / (float)fontData.UnitsPerEM;
-            maxHeight = (fontData.BBox.Top - fontData.BBox.Bottom) / (float)fontData.UnitsPerEM;
+            lineSpacing = fontFace->height / (float)fontFace->units_per_EM;
+            baseLine = (fontFace->height + fontFace->descender) / (float)fontFace->units_per_EM;
+            maxWidth = ((int)fontFace->bbox.xMax.Value - (int)fontFace->bbox.xMin.Value) / (float)fontFace->units_per_EM;
+            maxHeight = ((int)fontFace->bbox.yMax.Value - (int)fontFace->bbox.yMin.Value) / (float)fontFace->units_per_EM;
         }
 
         /// <summary>
         /// Returns a boolean indicating if the specified font contains the provided character.
         /// </summary>
-        /// <param name="fontStyle">The style in the font family</param>
-        /// <param name="character">The character to look for</param>
-        /// <param name="fontFamily">The family of the font</param>
-        /// <returns>boolean indicating if the font contains the character</returns>
         public bool DoesFontContains(string fontFamily, FontStyle fontStyle, char character)
         {
             var fontFace = GetOrCreateFontFace(fontFamily, fontStyle);
 
-            uint glyphIndex;
-            lock (fontFace)
-                glyphIndex = fontFace.GetCharIndex(character);
-
-            // see if the index of the character is valid
+            // FT_Get_Char_Index only reads charmap data, safe to call without the FreeType lock
+            uint glyphIndex = FreeTypeNative.FT_Get_Char_Index(fontFace, character);
             return glyphIndex != 0;
         }
 
@@ -280,24 +273,28 @@ namespace Stride.Graphics.Font
             }
             generatedBitmaps.Clear();
 
-            // free font faces
-            foreach (var font in cachedFontFaces.Values)
-                font.Dispose();
+            // free font faces and their pinned data
+            foreach (var (face, dataHandle) in cachedFontFaces.Values)
+            {
+                FreeTypeNative.FT_Done_Face((FT_FaceRec*)face);
+                dataHandle.Free();
+            }
             cachedFontFaces.Clear();
 
             // free freetype library
-            freetypeLibrary?.Dispose();
-            freetypeLibrary = null;
+            if (freetypeLibrary != 0)
+                FreeTypeNative.FT_Done_FreeType(freetypeLibrary);
+            freetypeLibrary = 0;
         }
 
-        private Face GetOrCreateFontFace(string fontFamily, FontStyle fontStyle)
+        private FT_FaceRec* GetOrCreateFontFace(string fontFamily, FontStyle fontStyle)
         {
             var fontPath = FontHelper.GetFontPath(fontFamily, fontStyle);
 
-            // ensure that the font is load in memory
+            // ensure that the font is loaded in memory
             LoadFontInMemory(fontPath);
 
-            return cachedFontFaces[fontPath];
+            return (FT_FaceRec*)cachedFontFaces[fontPath].face;
         }
 
         private void LoadFontInMemory(string fontPath)
@@ -309,12 +306,30 @@ namespace Stride.Graphics.Font
             // Load the font from the database
             using (var fontStream = contentManager.OpenAsStream(fontPath))
             {
-                // create the font data from the stream
-                var newFontData = new byte[fontStream.Length];
-                fontStream.ReadExactly(newFontData);
+                var fontData = new byte[fontStream.Length];
+                fontStream.ReadExactly(fontData);
 
-                lock (freetypeLibrary)
-                    cachedFontFaces[fontPath] = freetypeLibrary.NewMemoryFace(newFontData, 0);
+                var handle = GCHandle.Alloc(fontData, GCHandleType.Pinned);
+                lock (freetypeLock)
+                {
+                    // Double-check inside lock
+                    if (cachedFontFaces.ContainsKey(fontPath))
+                    {
+                        handle.Free();
+                        return;
+                    }
+
+                    fixed (byte* ptr = fontData)
+                    {
+                        int err = FreeTypeNative.FT_New_Memory_Face(freetypeLibrary, ptr, new CLong(fontData.Length), new CLong(0), out FT_FaceRec* face);
+                        if (err != 0)
+                        {
+                            handle.Free();
+                            throw new InvalidOperationException($"Failed to load font '{fontPath}' (FreeType error {err})");
+                        }
+                        cachedFontFaces[fontPath] = ((nint)face, handle);
+                    }
+                }
             }
         }
 
@@ -338,20 +353,25 @@ namespace Stride.Graphics.Font
                     // get the face of the font
                     var fontFace = GetOrCreateFontFace(character.FontName, character.Style);
 
-                    lock (freetypeLibrary)
+                    lock (freetypeLock)
                     {
                         // set the font to the correct size
                         SetFontFaceSize(fontFace, character.Size);
 
                         // get the glyph and render the bitmap
-                        var glyphIndex = fontFace.GetCharIndex(character.Character);
+                        var glyphIndex = FreeTypeNative.FT_Get_Char_Index(fontFace, character.Character);
 
                         // if the character does not exist in the face => continue
                         if (glyphIndex == 0)
                             goto DequeueRequest;
 
                         // load the character glyph
-                        fontFace.LoadGlyph(glyphIndex, LoadFlags.Default, LoadTarget.Normal);
+                        var loadTarget = character.AntiAlias == FontAntiAliasMode.Aliased
+                            ? FreeTypeLoadTarget.Mono
+                            : FreeTypeLoadTarget.Normal;
+                        int err = FreeTypeNative.FT_Load_Glyph(fontFace, glyphIndex, (int)FreeTypeLoadFlags.Default | (int)loadTarget);
+                        if (err != 0)
+                            goto DequeueRequest;
 
                         // render the bitmap and set remaining info of the glyph
                         RenderBitmap(character, fontFace);

@@ -245,8 +245,8 @@ namespace Stride.UI.Tests.Regression
         {
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
-            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.49625f, 0.66f));
-            AddPointerEvent(PointerEventType.Released, new Vector2(0.49625f, 0.66f));
+            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.485f, 0.66f));
+            AddPointerEvent(PointerEventType.Released, new Vector2(0.485f, 0.66f));
             Input.Update(new GameTime());
         }
 

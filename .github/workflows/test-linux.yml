@@ -72,8 +72,7 @@ jobs:
             -restore -m:1 -nr:false \
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} \
-            -p:StridePlatforms=Linux \
-            -p:StrideGraphicsApis=OpenGL \
+            -p:StridePlatforms=Linux
       # This step isn't needed, it lists the NuGet sources again
       # - name: Inspect NuGet Local Sources (always)
       #   if: always()
