@@ -56,74 +56,164 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 
         private static GlyphOutline DecomposeOutline(ref FT_Outline ft)
         {
-            var result = new GlyphOutline();
+            var state = new OutlineDecomposeState();
 
-            float minX = float.MaxValue;
-            float minY = float.MaxValue;
-            float maxX = float.MinValue;
-            float maxY = float.MinValue;
-
-            var contourStart = 0;
-            for (var contourIndex = 0; contourIndex < ft.n_contours; contourIndex++)
+            FT_Outline_MoveToFunc moveTo = static (to, user) =>
             {
-                var contourEnd = ft.contours[contourIndex];
-                if (contourEnd < contourStart)
-                    continue;
+                var handle = GCHandle.FromIntPtr(user);
+                var s = (OutlineDecomposeState)handle.Target!;
 
-                var contour = new GlyphContour();
-                result.Contours.Add(contour);
+                var point = ConvertPoint(*to);
+                s.CloseCurrentContourIfNeeded();
+                s.BeginContour(point);
+                s.Include(point);
 
-                Vector2 last = ConvertPoint(ft.points[contourStart], ref minX, ref minY, ref maxX, ref maxY);
-                for (var i = contourStart + 1; i <= contourEnd; i++)
+                return 0;
+            };
+
+            FT_Outline_LineToFunc lineTo = static (to, user) =>
+            {
+                var handle = GCHandle.FromIntPtr(user);
+                var s = (OutlineDecomposeState)handle.Target!;
+
+                var end = ConvertPoint(*to);
+                s.Include(end);
+                s.CurrentContour?.Segments.Add(new LineSegment(s.LastPoint, end));
+                s.LastPoint = end;
+
+                return 0;
+            };
+
+            FT_Outline_ConicToFunc conicTo = static (control, to, user) =>
+            {
+                var handle = GCHandle.FromIntPtr(user);
+                var s = (OutlineDecomposeState)handle.Target!;
+
+                var cp = ConvertPoint(*control);
+                var end = ConvertPoint(*to);
+
+                s.Include(cp);
+                s.Include(end);
+
+                s.CurrentContour?.Segments.Add(new QuadraticSegment(s.LastPoint, cp, end));
+                s.LastPoint = end;
+
+                return 0;
+            };
+
+            FT_Outline_CubicToFunc cubicTo = static (control1, control2, to, user) =>
+            {
+                var handle = GCHandle.FromIntPtr(user);
+                var s = (OutlineDecomposeState)handle.Target!;
+
+                var cp1 = ConvertPoint(*control1);
+                var cp2 = ConvertPoint(*control2);
+                var end = ConvertPoint(*to);
+
+                s.Include(cp1);
+                s.Include(cp2);
+                s.Include(end);
+
+                s.CurrentContour?.Segments.Add(new CubicSegment(s.LastPoint, cp1, cp2, end));
+                s.LastPoint = end;
+
+                return 0;
+            };
+
+            var funcs = new FT_Outline_Funcs
+            {
+                move_to = Marshal.GetFunctionPointerForDelegate(moveTo),
+                line_to = Marshal.GetFunctionPointerForDelegate(lineTo),
+                conic_to = Marshal.GetFunctionPointerForDelegate(conicTo),
+                cubic_to = Marshal.GetFunctionPointerForDelegate(cubicTo),
+                shift = 0,
+                delta = new CLong(0)
+            };
+
+            var stateHandle = GCHandle.Alloc(state);
+            try
+            {
+                var user = GCHandle.ToIntPtr(stateHandle);
+                var localOutline = ft;
+                var error = FreeTypeNative.FT_Outline_Decompose(&localOutline, &funcs, user);
+                if (error != 0)
+                    return new GlyphOutline();
+
+                state.CloseCurrentContourIfNeeded();
+
+                if (state.HasBounds)
                 {
-                    var point = ConvertPoint(ft.points[i], ref minX, ref minY, ref maxX, ref maxY);
-                    var tag = ft.tags[i] & FT_CURVE_TAG_MASK;
-
-                    if (tag == FT_CURVE_TAG_CUBIC && i + 2 <= contourEnd)
-                    {
-                        var cp1 = point;
-                        var cp2 = ConvertPoint(ft.points[i + 1], ref minX, ref minY, ref maxX, ref maxY);
-                        var end = ConvertPoint(ft.points[i + 2], ref minX, ref minY, ref maxX, ref maxY);
-                        contour.Segments.Add(new CubicSegment(last, cp1, cp2, end));
-                        last = end;
-                        i += 2;
-                    }
-                    else if (tag != FT_CURVE_TAG_ON && i + 1 <= contourEnd)
-                    {
-                        var control = point;
-                        var end = ConvertPoint(ft.points[i + 1], ref minX, ref minY, ref maxX, ref maxY);
-                        contour.Segments.Add(new QuadraticSegment(last, control, end));
-                        last = end;
-                        i += 1;
-                    }
-                    else
-                    {
-                        contour.Segments.Add(new LineSegment(last, point));
-                        last = point;
-                    }
+                    state.Result.Bounds = new RectangleF(
+                        state.MinX,
+                        state.MinY,
+                        state.MaxX - state.MinX,
+                        state.MaxY - state.MinY);
                 }
 
-                var firstPoint = ConvertPoint(ft.points[contourStart], ref minX, ref minY, ref maxX, ref maxY);
-                if (last != firstPoint)
-                    contour.Segments.Add(new LineSegment(last, firstPoint));
-
-                contourStart = contourEnd + 1;
+                return state.Result;
             }
+            finally
+            {
+                stateHandle.Free();
 
-            if (minX <= maxX && minY <= maxY)
-                result.Bounds = new RectangleF(minX, minY, maxX - minX, maxY - minY);
-
-            return result;
+                GC.KeepAlive(moveTo);
+                GC.KeepAlive(lineTo);
+                GC.KeepAlive(conicTo);
+                GC.KeepAlive(cubicTo);
+            }
         }
 
-        private static Vector2 ConvertPoint(FT_Vector point, ref float minX, ref float minY, ref float maxX, ref float maxY)
+        private static Vector2 ConvertPoint(FT_Vector point)
         {
-            var v = new Vector2(Fixed26Dot6ToFloat(point.x), Fixed26Dot6ToFloat(point.y));
-            minX = MathF.Min(minX, v.X);
-            minY = MathF.Min(minY, v.Y);
-            maxX = MathF.Max(maxX, v.X);
-            maxY = MathF.Max(maxY, v.Y);
-            return v;
+            return new Vector2(
+                Fixed26Dot6ToFloat(point.x),
+                Fixed26Dot6ToFloat(point.y));
+        }
+
+        private sealed class OutlineDecomposeState
+        {
+            public GlyphOutline Result { get; } = new();
+            public GlyphContour? CurrentContour { get; private set; }
+
+            public Vector2 FirstPoint;
+            public Vector2 LastPoint;
+
+            public float MinX = float.MaxValue;
+            public float MinY = float.MaxValue;
+            public float MaxX = float.MinValue;
+            public float MaxY = float.MinValue;
+
+            public bool HasBounds => MinX <= MaxX && MinY <= MaxY;
+
+            public void BeginContour(Vector2 start)
+            {
+                CurrentContour = new GlyphContour();
+                Result.Contours.Add(CurrentContour);
+
+                FirstPoint = start;
+                LastPoint = start;
+            }
+
+            public void Include(Vector2 p)
+            {
+                MinX = MathF.Min(MinX, p.X);
+                MinY = MathF.Min(MinY, p.Y);
+                MaxX = MathF.Max(MaxX, p.X);
+                MaxY = MathF.Max(MaxY, p.Y);
+            }
+
+            public void CloseCurrentContourIfNeeded()
+            {
+                if (CurrentContour == null)
+                    return;
+
+                if (LastPoint != FirstPoint)
+                {
+                    CurrentContour.Segments.Add(new LineSegment(LastPoint, FirstPoint));
+                }
+
+                CurrentContour = null;
+            }
         }
 
         private static float Fixed26Dot6ToFloat(System.Runtime.InteropServices.CLong value) => (int)value.Value / 64f;
