@@ -1,5 +1,6 @@
 using System;
 using Stride.Core.Mathematics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Graphics.Font.RuntimeMsdf
 {
@@ -125,6 +126,6 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             return v;
         }
 
-        private static float Fixed26Dot6ToFloat(CLong value) => (int)value.Value / 64f;
+        private static float Fixed26Dot6ToFloat(System.Runtime.InteropServices.CLong value) => (int)value.Value / 64f;
     }
 }
