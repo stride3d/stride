@@ -399,14 +399,14 @@ namespace Stride.Graphics.Font
             char character,
             out GlyphOutline outline,
             out GlyphOutlineMetrics metrics,
-            LoadFlags loadFlags = LoadFlags.NoBitmap | LoadFlags.NoHinting)
+            FreeTypeLoadFlags loadFlags = FreeTypeLoadFlags.NoBitmap | FreeTypeLoadFlags.NoHinting)
         {
             outline = null;
             metrics = default;
 
             var fontFace = GetOrCreateFontFace(fontFamily, fontStyle);
 
-            lock (freetypeLibrary)
+            lock (freetypeLock)
             {
                 SetFontFaceSize(fontFace, size);
 
