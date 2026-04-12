@@ -25,6 +25,11 @@ on:
         default: Debug
         type: string
 
+permissions:
+  checks: write
+  contents: read
+
+
 concurrency:
   group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
@@ -62,7 +67,16 @@ jobs:
         run: |
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
+            --logger:trx --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Windows Game Common'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -150,9 +164,18 @@ jobs:
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
+            --logger:trx --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Windows Game ${{ matrix.graphics-api }}'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh

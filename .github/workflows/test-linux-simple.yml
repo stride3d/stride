@@ -16,6 +16,11 @@ on:
         default: Debug
         type: string
 
+permissions:
+  checks: write
+  contents: read
+
+
 concurrency:
   group: test-linux-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
@@ -79,4 +84,13 @@ jobs:
             bin/Tests/Stride.Core.BuildEngine.Tests/Linux/Vulkan/Stride.Core.BuildEngine.Tests.dll \
             bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux/Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
             bin/Tests/Stride.Core.Quantum.Tests/Linux/Vulkan/Stride.Core.Quantum.Tests.dll \
-            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll
+            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Simple'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}

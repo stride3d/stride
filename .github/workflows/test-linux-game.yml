@@ -16,6 +16,11 @@ on:
         default: Debug
         type: string
 
+permissions:
+  checks: write
+  contents: read
+
+
 concurrency:
   group: test-linux-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
@@ -137,6 +142,7 @@ jobs:
             echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
           fi
       - name: Test
+        if: always()
         run: |
           dotnet vstest \
             bin/Tests/Stride.Audio.Tests/Linux/Vulkan/Stride.Audio.Tests.dll \
@@ -144,7 +150,16 @@ jobs:
             bin/Tests/Stride.Input.Tests/Linux/Vulkan/Stride.Input.Tests.dll \
             bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
             bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults \
             -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Game Common'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # GPU game tests (Vulkan via SwiftShader)
   Game-GPU:
@@ -184,6 +199,7 @@ jobs:
             echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
           fi
       - name: Test
+        if: always()
         run: |
           dotnet vstest \
             bin/Tests/Stride.Graphics.Tests/Linux/Vulkan/Stride.Graphics.Tests.dll \
@@ -192,7 +208,16 @@ jobs:
             bin/Tests/Stride.Engine.Tests/Linux/Vulkan/Stride.Engine.Tests.dll \
             bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
             bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults \
             -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Game GPU (Vulkan)'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
