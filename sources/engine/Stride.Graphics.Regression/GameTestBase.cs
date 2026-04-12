@@ -779,13 +779,19 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file)))
+            else if (!testFileNames.Any(file =>
+            {
+                bool match = ImageTester.CompareImage(image, file, out var stats);
+                if (!match)
+                    comparisonFailedMessages.Add($"  {file} ({(matchingImage ? "reference" : "different platform/device")}) — {stats}");
+                return match;
+            }))
             {
                 // Comparison failed, save current version so that user can compare / promote it manually
                 ImageTester.SaveImage(image, testLocalFileName);
-                comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
-                foreach (var file in testFileNames)
-                    comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
+                comparisonFailedMessages.Insert(comparisonFailedMessages.Count > 0
+                    ? comparisonFailedMessages.Count // after the stats lines we just added
+                    : 0, $"* {testLocalFileName} (current)");
             }
             else if (ForceSaveImageOnSuccess)
             {
