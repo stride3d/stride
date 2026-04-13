@@ -46,6 +46,8 @@ namespace Stride.Graphics.Font
         // 2) Generated SDF results waiting for GPU upload
         private readonly System.Collections.Concurrent.ConcurrentQueue<(GlyphKey key, CharacterBitmapRgba sdf)> readyForUpload = new();
 
+        private const string BasicLatinWarmupSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?-+*/()[]{}'\"_#";
+
         // --- Bounded work queue + fixed worker pool ---
 
         private const int WorkQueueCapacity = 1024;   // backpressure / memory safety
@@ -381,9 +383,30 @@ namespace Stride.Graphics.Font
 
         internal void PrepareGlyphsForThumbnail(string text, Vector2 requestedSize, CommandList commandList, int maxWaitMilliseconds = 50)
         {
-            if (string.IsNullOrEmpty(text) || commandList == null)
+            WarmupGlyphSet(text, waitForUpload: true, commandList: commandList, maxWaitMilliseconds: maxWaitMilliseconds);
+        }
+
+        internal void WarmupGlyphSet(string text, bool waitForUpload = false, CommandList commandList = null, int maxWaitMilliseconds = 50)
+        {
+            if (string.IsNullOrEmpty(text))
                 return;
 
+            var requestedKeys = QueueGlyphSet(text);
+
+            if (requestedKeys.Count == 0)
+                return;
+
+            if (waitForUpload && commandList != null)
+                WaitForGlyphSet(requestedKeys, commandList, maxWaitMilliseconds);
+        }
+
+        internal void WarmupBasicLatin(bool waitForUpload = false, CommandList commandList = null, int maxWaitMilliseconds = 50)
+        {
+            WarmupGlyphSet(BasicLatinWarmupSet, waitForUpload, commandList, maxWaitMilliseconds);
+        }
+
+        private HashSet<GlyphKey> QueueGlyphSet(string text)
+        {
             var sizeVec = new Vector2(Size, Size);
             var p = GetDistanceFieldParams();
 
@@ -392,33 +415,63 @@ namespace Stride.Graphics.Font
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
-                var key = MakeKey(c, p);
-                requestedKeys.Add(key);
 
+                // Whitespace does not need atlas residency to avoid visible pop-in.
+                if (char.IsWhiteSpace(c))
+                    continue;
+
+                var key = MakeKey(c, p);
                 var spec = GetOrCreateCharacterData(key, sizeVec);
 
                 if (spec.Bitmap == null)
                 {
                     FontManager.GenerateBitmap(spec, true);
 
+                    // Apply padding offset once, when glyph metrics are first materialized.
                     if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
                     {
                         spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
                     }
-
-                    if (spec.Bitmap == null || spec.Bitmap.Width == 0 || spec.Bitmap.Rows == 0 || spec.Glyph.XAdvance == 0)
-                    {
-                        if (c != DefaultCharacter && DefaultCharacter.HasValue)
-                            requestedKeys.Add(MakeKey(DefaultCharacter.Value, p));
-
-                        continue;
-                    }
                 }
 
+                // Missing or empty glyph: optionally seed the default fallback glyph instead.
+                if (spec.Bitmap == null || spec.Bitmap.Width == 0 || spec.Bitmap.Rows == 0 || spec.Glyph.XAdvance == 0)
+                {
+                    if (c != DefaultCharacter && DefaultCharacter.HasValue && !char.IsWhiteSpace(DefaultCharacter.Value))
+                    {
+                        var fallbackKey = MakeKey(DefaultCharacter.Value, p);
+                        var fallbackSpec = GetOrCreateCharacterData(fallbackKey, sizeVec);
+
+                        if (fallbackSpec.Bitmap == null)
+                        {
+                            FontManager.GenerateBitmap(fallbackSpec, true);
+
+                            if (fallbackSpec.Bitmap != null && fallbackSpec.Glyph.XAdvance != 0)
+                            {
+                                fallbackSpec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                            }
+                        }
+
+                        if (fallbackSpec.Bitmap != null && fallbackSpec.Bitmap.Width > 0 && fallbackSpec.Bitmap.Rows > 0 && fallbackSpec.Glyph.XAdvance != 0)
+                        {
+                            requestedKeys.Add(fallbackKey);
+                            EnsureSdfScheduled(fallbackKey, fallbackSpec);
+                        }
+                    }
+
+                    continue;
+                }
+
+                requestedKeys.Add(key);
                 EnsureSdfScheduled(key, spec);
             }
 
-            if (requestedKeys.Count == 0)
+            return requestedKeys;
+        }
+
+        private void WaitForGlyphSet(HashSet<GlyphKey> requestedKeys, CommandList commandList, int maxWaitMilliseconds)
+        {
+            if (requestedKeys == null || requestedKeys.Count == 0 || commandList == null)
                 return;
 
             var stopwatch = Stopwatch.StartNew();
