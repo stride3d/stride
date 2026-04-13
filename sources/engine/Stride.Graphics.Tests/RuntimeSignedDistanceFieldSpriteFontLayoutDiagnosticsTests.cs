@@ -315,7 +315,7 @@ namespace Stride.Graphics.Tests
             private static MethodInfo GetDfParamsMethod()
             {
                 var method = typeof(RuntimeSignedDistanceFieldSpriteFont).GetMethod(
-                    "GetDfParams",
+                    "GetDistanceFieldParams",
                     BindingFlags.Instance | BindingFlags.NonPublic);
 
                 Assert.NotNull(method);
