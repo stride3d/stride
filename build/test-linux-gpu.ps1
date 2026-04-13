@@ -8,9 +8,6 @@
     2. Copies SwiftShader Linux native to test outputs
     3. Runs tests via WSL2 with SwiftShader ICD
 
-.PARAMETER Promote
-    If set, copies local test output images to gold image directory.
-
 .PARAMETER Filter
     Optional test filter (e.g. "TestDrawQuad" or "Stride.Graphics.Tests")
 
@@ -22,13 +19,11 @@
 
 .EXAMPLE
     .\build\test-linux-gpu.ps1
-    .\build\test-linux-gpu.ps1 -Promote
     .\build\test-linux-gpu.ps1 -Filter "TestDynamicSpriteFont"
     .\build\test-linux-gpu.ps1 -SkipBuild
     .\build\test-linux-gpu.ps1 -- --Logger:console
 #>
 param(
-    [switch]$Promote,
     [string]$Filter,
     [switch]$SkipBuild,
     [Parameter(ValueFromRemainingArguments)]
@@ -149,31 +144,4 @@ $extraArgs = if ($VsTestArgs) { $VsTestArgs -join ' ' } else { '' }
 wsl -- /bin/bash $wslScriptLinux $Filter $extraArgs
 
 Write-Host ""
-if ($Promote) {
-    Write-Host "=== Step 6: Promoting gold images ===" -ForegroundColor Cyan
-    $promoted = 0
-
-    $localGraphics = "tests\local\Stride.Graphics.Tests\Linux.Vulkan\SwiftShader"
-    $goldGraphics = "tests\Stride.Graphics.Tests\Linux.Vulkan\SwiftShader"
-    if (Test-Path $localGraphics) {
-        New-Item -Path $goldGraphics -ItemType Directory -Force | Out-Null
-        $files = Get-ChildItem "$localGraphics\*.png"
-        Copy-Item $files.FullName $goldGraphics -Force
-        $promoted += $files.Count
-        Write-Host "  Graphics: promoted $($files.Count) images"
-    }
-
-    $localUI = "tests\local\Stride.UI.Tests.Regression\Linux.Vulkan\SwiftShader"
-    $goldUI = "tests\Stride.UI.Tests.Regression\Linux.Vulkan\SwiftShader"
-    if (Test-Path $localUI) {
-        New-Item -Path $goldUI -ItemType Directory -Force | Out-Null
-        $files = Get-ChildItem "$localUI\*.png"
-        Copy-Item $files.FullName $goldUI -Force
-        $promoted += $files.Count
-        Write-Host "  UI: promoted $($files.Count) images"
-    }
-
-    Write-Host "Total promoted: $promoted images" -ForegroundColor Green
-} else {
-    Write-Host "Run with -Promote to copy local test images to gold directory" -ForegroundColor Yellow
-}
+Write-Host "Done. Use 'tests\compare-gold.cmd' to review results visually." -ForegroundColor Green
