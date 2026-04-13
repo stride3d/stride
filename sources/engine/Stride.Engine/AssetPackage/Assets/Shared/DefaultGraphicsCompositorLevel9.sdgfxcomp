@@ -90,7 +90,7 @@ SharedRenderers:
         ShadowMapRenderStages:
             fc4d1e0de5c2b0bbc27bcf96e9a848fd: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
         GBufferRenderStage: null
-        PostEffectsUIRenderStage: ref!! 62af1128-cc9c-49a0-9d81-3f7f598a4b16
+        AfterPostEffectsRenderStage: ref!! 62af1128-cc9c-49a0-9d81-3f7f598a4b16
         PostEffects: null
         LightShafts: null
         VRSettings:

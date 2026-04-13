@@ -134,7 +134,7 @@ SharedRenderers:
             87ff1d9cdd52418daf76385176a0e316: ref!! 555e84b4-b68a-4f38-ac3a-f0f563028ef0
             5e059d4cc2db4ee8a1f28a40f4ac3ae8: ref!! b03a45c6-7a56-417c-8a80-69cc608671f1
         GBufferRenderStage: ref!! ecab139e-5f55-42b5-a324-310c195a9c89
-        PostEffectsUIRenderStage: ref!! 5b5e4f7e-e8b5-497f-9d3b-418d06823b14
+        AfterPostEffectsRenderStage: ref!! 5b5e4f7e-e8b5-497f-9d3b-418d06823b14
         PostEffects: !PostProcessingEffects ref!! 608bf04d-8640-469d-b710-1ecf6a46f794
         LightShafts: null
         VRSettings:

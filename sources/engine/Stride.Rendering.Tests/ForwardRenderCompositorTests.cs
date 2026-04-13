@@ -34,9 +34,7 @@ namespace Stride.Rendering.Tests.Compositing
             var feature = new UIRenderFeature();
 
             Assert.NotNull(feature.RenderStageSelectors);
-
         }
-
 
         [Fact]
         public void UIRenderFeature_CanAddGroup31SelectorForUiStage()
@@ -56,7 +54,6 @@ namespace Stride.Rendering.Tests.Compositing
 
             Assert.NotNull(selector);
             Assert.Same(uiStage, selector.RenderStage);
-
         }
 
         [Fact]
@@ -68,9 +65,7 @@ namespace Stride.Rendering.Tests.Compositing
                 .Any(s => s.Name == "UiStage");
 
             Assert.False(hasUiStage);
-
         }
-
 
         [Fact]
         public void IsAlreadyPatched_ReturnsTrue_WhenStageAndSelectorPresent()
@@ -98,7 +93,6 @@ namespace Stride.Rendering.Tests.Compositing
 
             Assert.True(hasStage);
             Assert.True(hasSelector);
-
         }
 
         // Minimal stand-in; the real UIComponent requires engine services to construct.
