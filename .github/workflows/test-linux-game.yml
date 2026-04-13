@@ -122,12 +122,21 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1 xvfb
+      - name: Start virtual display
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
       - name: Download test binaries
         uses: actions/download-artifact@v4
         with:
           name: linux-vulkan-test-binaries
           path: bin/Tests/
+      - name: Fix native binary permissions
+        run: |
+          # Artifact download doesn't preserve Unix execute permissions
+          find bin/Tests -name "*.bin" -exec chmod +x {} \;
+          find bin/Tests -name "*.so" -exec chmod +x {} \;
       - name: Register SwiftShader ICD
         run: |
           # Find SwiftShader in any test output and create ICD JSON
@@ -186,6 +195,11 @@ jobs:
         with:
           name: linux-vulkan-test-binaries
           path: bin/Tests/
+      - name: Fix native binary permissions
+        run: |
+          # Artifact download doesn't preserve Unix execute permissions
+          find bin/Tests -name "*.bin" -exec chmod +x {} \;
+          find bin/Tests -name "*.so" -exec chmod +x {} \;
       - name: Register SwiftShader ICD
         run: |
           LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
