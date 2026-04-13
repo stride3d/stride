@@ -228,9 +228,11 @@ namespace Stride.Graphics.Tests
                 GraphicsProfile.Level_11_0); // Force to use Level11 in order to use UnorderedAccessViews
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestTexture3D()
         {
+            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
+
             PerformTest(
                 game =>
                 {
@@ -399,6 +401,7 @@ namespace Stride.Graphics.Tests
 
             // TODO: Remove this when Load/Save methods are implemented for these types
             Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformTest(
                 game =>
@@ -453,6 +456,7 @@ namespace Stride.Graphics.Tests
             // TODO: Remove this when Load/Save methods are implemented for these types
             Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, reason: "Load/Save not implemented for this format");
+            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformDrawTest(
                 (game, context) =>
