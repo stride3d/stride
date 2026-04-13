@@ -169,6 +169,13 @@ jobs:
           path: TestResults/*.trx
           reporter: dotnet-trx
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-linux-common
+          path: tests/local/
+          if-no-files-found: ignore
 
   # GPU game tests (Vulkan via SwiftShader)
   Game-GPU:
