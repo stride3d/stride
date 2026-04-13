@@ -709,16 +709,25 @@ namespace Stride.Graphics.Regression
         /// <exception cref="InvalidOperationException">The Stride solution root folder could not be located.</exception>
         private static string FindStrideSolutionRootDirectory()
         {
-            var dir = PlatformFolders.ApplicationBinaryDirectory;
+            var startDir = PlatformFolders.ApplicationBinaryDirectory;
+            ImageTester.DiagLog($"FindRoot: AppContext.BaseDirectory={AppContext.BaseDirectory}");
+            ImageTester.DiagLog($"FindRoot: ApplicationBinaryDirectory={startDir}");
+
+            var dir = startDir;
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir, "build", "Stride.sln")))
+                var candidate = Path.Combine(dir, "build", "Stride.sln");
+                if (File.Exists(candidate))
+                {
+                    ImageTester.DiagLog($"FindRoot: Found root={dir}");
                     return dir;
+                }
 
                 dir = Path.GetDirectoryName(dir);
             }
 
-            throw new InvalidOperationException("Could not locate the Stride solution root directory");
+            ImageTester.DiagLog($"FindRoot: FAILED from {startDir}");
+            throw new InvalidOperationException($"Could not locate the Stride solution root directory (started from {startDir})");
         }
 
         /// <summary>
@@ -779,29 +788,40 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFileNames.Any(file =>
-            {
-                bool match = ImageTester.CompareImage(image, file, out var stats);
-                if (!match)
-                    comparisonFailedMessages.Add($"  {file} ({(matchingImage ? "reference" : "different platform/device")}) — {stats}");
-                return match;
-            }))
-            {
-                // Comparison failed, save current version so that user can compare / promote it manually
-                ImageTester.SaveImage(image, testLocalFileName);
-                comparisonFailedMessages.Insert(comparisonFailedMessages.Count > 0
-                    ? comparisonFailedMessages.Count // after the stats lines we just added
-                    : 0, $"* {testLocalFileName} (current)");
-            }
-            else if (ForceSaveImageOnSuccess)
-            {
-                ImageTester.SaveImage(image, testLocalFileName);
-            }
             else
             {
-                // If test is a success, let's delete the local file if it was previously generated
-                if (File.Exists(testLocalFileName))
-                    File.Delete(testLocalFileName);
+                // Compare against all available gold images
+                var pendingFailMessages = new List<string>();
+                bool anyMatch = false;
+                foreach (var file in testFileNames)
+                {
+                    bool match = ImageTester.CompareImage(image, file, out var stats);
+                    if (match)
+                    {
+                        anyMatch = true;
+                        break;
+                    }
+                    var isExactMatch = file == testFileName;
+                    pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
+                }
+
+                if (!anyMatch)
+                {
+                    // All comparisons failed — save current version and report
+                    ImageTester.SaveImage(image, testLocalFileName);
+                    comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
+                    comparisonFailedMessages.AddRange(pendingFailMessages);
+                }
+                else if (ForceSaveImageOnSuccess)
+                {
+                    ImageTester.SaveImage(image, testLocalFileName);
+                }
+                else
+                {
+                    // If test is a success, let's delete the local file if it was previously generated
+                    if (File.Exists(testLocalFileName))
+                        File.Delete(testLocalFileName);
+                }
             }
         }
 

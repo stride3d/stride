@@ -65,11 +65,32 @@ namespace Stride.Graphics.Regression
 
         public static void SaveImage(Image image, string testFilename)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(testFilename));
-            using (var stream = File.Open(testFilename, FileMode.Create))
+            DiagLog($"SaveImage: {testFilename}");
+            try
             {
-                image.Save(stream, ImageFileType.Png);
+                Directory.CreateDirectory(Path.GetDirectoryName(testFilename));
+                using (var stream = File.Open(testFilename, FileMode.Create))
+                {
+                    image.Save(stream, ImageFileType.Png);
+                }
+                DiagLog($"SaveImage OK: exists={File.Exists(testFilename)}, size={new FileInfo(testFilename).Length}");
             }
+            catch (Exception ex)
+            {
+                DiagLog($"SaveImage FAILED: {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+        }
+
+        internal static void DiagLog(string message)
+        {
+            try
+            {
+                var logPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tests", "local", "compare-gold-diag.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(logPath));
+                File.AppendAllText(logPath, $"[{DateTime.UtcNow:HH:mm:ss}] {message}\n");
+            }
+            catch { }
         }
 
         /// <summary>
