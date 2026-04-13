@@ -207,7 +207,7 @@ namespace Stride.Graphics.Tests
                         return;
                 }
 
-                Assert.True(false, $"Not all requested glyphs transitioned to uploaded within {maxIterations} iterations.");
+                Assert.Fail($"Not all requested glyphs transitioned to uploaded within {maxIterations} iterations.");
             }
 
             private GlyphState WarmupAndCaptureGlyphState(string text, Vector2 requestedSize)
@@ -238,7 +238,7 @@ namespace Stride.Graphics.Tests
                     Assert.NotNull(key);
 
                     if (!characters.TryGetValue(key!, out var specObj))
-                        Assert.True(false, $"Character '{ch}' was not present in runtime SDF character cache after warmup.");
+                        Assert.Fail($"Character '{ch}' was not present in runtime SDF character cache after warmup.");
 
                     dynamic spec = specObj!;
                     var glyph = spec.Glyph;
