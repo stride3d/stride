@@ -28,6 +28,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
+permissions:
+  checks: write
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -102,6 +106,20 @@ jobs:
   Windows-Tests-Game:
     needs: Windows-Runtime
     uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Linux-Tests-Simple:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-simple.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Linux-Tests-Game:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-game.yml
     secrets: inherit
     with:
       build-type: Debug

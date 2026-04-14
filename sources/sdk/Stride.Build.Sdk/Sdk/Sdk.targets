@@ -152,7 +152,7 @@
   <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
        into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
   <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true'">
-    <Exec Command="dotnet &quot;$(StrideRoot)sources\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideFramework)\Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(StrideRoot)sources/core/Stride.Core.Tasks/bin/$(Configuration)/$(StrideFramework)/Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)stride&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

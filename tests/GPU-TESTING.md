@@ -39,11 +39,53 @@ SwiftShader is included automatically when building with `StrideGraphicsApi=Vulk
 
 Gold images are stored under `tests/<TestProject>/Windows.Direct3D11/WARP/`.
 
+## CompareGold Tool
+
+A visual comparison tool for reviewing gold image differences:
+
+```bash
+# Launch (opens browser at http://localhost:5555)
+tests\compare-gold.cmd
+
+# Or directly:
+dotnet run --project build/tools/CompareGold
+```
+
+### Features
+
+- **Treeview** with test suites as collapsible groups
+- **Side-by-side comparison** with color-coded diff overlay (blue=noise, green=minor, yellow=noticeable, red=significant)
+- **Pixel inspector** on hover — zoomed RGB values for all images
+- **Synchronized zoom/pan** across gold, source, and diff
+- **CI artifact download** — fetch test output from GitHub Actions runs (requires [gh CLI](https://cli.github.com/))
+- **Promote** selected images to gold with one click
+
+### Workflow
+
+1. Run tests locally or on CI — failing tests save output to `tests/local/`
+2. Launch CompareGold — it auto-loads local output
+3. Review differences — expand rows for side-by-side comparison
+4. Promote accepted images to gold
+5. Commit the updated gold images
+
 ## Generating Gold Images
 
 Gold images should be generated using the **software renderers** to ensure they are reproducible in CI. Run the tests locally with the software renderer profile and commit the resulting screenshots.
 
 Important: gold images must be generated with the **same SwiftShader binary** used in CI. The `Stride.Dependencies.SwiftShader` NuGet package is built from source on the CI runner to ensure identical binaries. Using a different SwiftShader build (e.g., from Silk.NET) may produce subtly different images due to compiler flags and CPU-specific floating-point behavior.
+
+### Linux Gold Images
+
+```powershell
+# Build on Windows, test on Linux via WSL2
+.\build\test-linux-gpu.ps1
+
+# Skip rebuild, just re-run tests
+.\build\test-linux-gpu.ps1 -SkipBuild
+
+# Review results visually
+tests\compare-gold.cmd
+```
 
 ## Dealing with Flaky Tests
 

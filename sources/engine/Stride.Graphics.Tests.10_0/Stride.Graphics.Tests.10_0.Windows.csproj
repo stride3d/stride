@@ -2,7 +2,6 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Graphics.Tests.10_0</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <StrideCompileAssets>true</StrideCompileAssets>

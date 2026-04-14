@@ -1,6 +1,27 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- ================================================================ -->
+  <!-- Test projects build for a single graphics API at a time.         -->
+  <!-- ================================================================ -->
+  <!-- Disable cross-targeting dispatch — test projects use StrideGraphicsApi (singular)
+       for output path and engine DLL selection. Build per-API via command line:
+         dotnet build -p:StrideGraphicsApi=Direct3D11
+         dotnet build -p:StrideGraphicsApi=Vulkan
+       Engine libraries still cross-target internally and produce all API variants. -->
+  <PropertyGroup>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
+  <!-- ================================================================ -->
+  <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
+       is available. This must happen before the .NET SDK Sdk.targets import which freezes TargetDir. -->
+  <PropertyGroup>
+    <OutputPath>$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
   <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />
@@ -59,11 +80,27 @@
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
   <!-- ================================================================ -->
-  <!-- Native Libraries Copying -->
+  <!-- Runtime Native Asset Filtering & Flattening -->
   <!-- ================================================================ -->
-  <!-- Note: Native library copying handled by engine runtime packages -->
-  <!-- _StrideBuildDependencies target is from old build system -->
-  <!-- TODO: Re-implement native lib copying for SDK-style when needed for engine tests -->
+  <!-- When StrideTestRuntimeIdentifier is set, filter out non-matching runtimes/ items
+       and flatten matching ones to the output root. This ensures only the target RID's
+       native libs are copied, and they're placed flat for dlopen to find them. -->
+  <Target Name="_StrideFilterAndFlattenRuntimes"
+          BeforeTargets="_CopyFilesMarkedCopyLocal;_CopySourceItemsToOutputDirectory"
+          Condition="'$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <!-- Remove non-matching runtimes/ items -->
+      <None Remove="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <!-- Flatten matching runtimes/ items to output root -->
+      <None Update="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          Link="%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
 
   <!-- ================================================================ -->
   <!-- Platform Target Metadata -->

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using Stride.Core.Diagnostics;
 using Stride.Engine;
+using Stride.Games;
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
 using System.Runtime.ExceptionServices;
@@ -56,7 +57,11 @@ namespace Stride.Graphics.Regression
             {
                 try
                 {
-                    game.Run();
+                    // Use headless context when not in interactive mode (no window/display needed)
+                    var context = game is GameTestBase { ScreenShotAutomationEnabled: true }
+                        ? GameContextFactory.NewGameContext(AppContextType.Headless)
+                        : null; // null = auto-detect (creates a window)
+                    game.Run(context);
                 }
                 finally
                 {

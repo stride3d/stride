@@ -25,6 +25,11 @@ on:
         default: Debug
         type: string
 
+permissions:
+  checks: write
+  contents: read
+
+
 concurrency:
   group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
@@ -34,7 +39,7 @@ jobs:
   # Game tests - API-independent projects (run once)
   #
   Game-Common:
-    name: Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
@@ -52,6 +57,7 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.slnf `
+            -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
@@ -62,7 +68,16 @@ jobs:
         run: |
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
+            --logger:trx --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Windows Game Common'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,7 +90,7 @@ jobs:
   # Game tests - Graphics API-dependent projects (run per API)
   #
   Game-GraphicsApi:
-    name: Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -140,6 +155,7 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
+            -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
@@ -150,9 +166,18 @@ jobs:
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
+            --logger:trx --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Windows Game ${{ matrix.graphics-api }}'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh
