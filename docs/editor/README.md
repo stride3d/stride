@@ -1,4 +1,4 @@
-# Editor Framework — Contributor Overview
+# Editor Framework — Overview
 
 Stride's editor is built on a ViewModel layer that sits above Quantum and the asset system. Every mutation goes through a transaction stack that feeds undo/redo. A separate selection history stack, sharing the same low-level infrastructure, powers back/forward navigation. Both systems use `ITransactionStack` and `Operation` from the `Stride.Core.Transactions` namespace (assembly: `Stride.Core.Design`).
 
