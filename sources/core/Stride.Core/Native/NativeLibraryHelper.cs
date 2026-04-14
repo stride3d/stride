@@ -32,6 +32,7 @@ public static partial class NativeLibraryHelper
     // Map of loaded libraries to their handles
     private static readonly Dictionary<string, nint> loadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock loadedLibrariesLock = new();
+    private static readonly HashSet<Assembly> registeredAssemblies = new();
 
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
@@ -222,11 +223,13 @@ public static partial class NativeLibraryHelper
         }
 
         //
-        // Adds the loaded library to the dictionary and logs the loading event.
+        // Adds the loaded library to the dictionary, registers a DllImport resolver
+        // for the owner assembly, and logs the loading event.
         //
         void AddLoadedLibrary(string name, nint handle)
         {
             loadedLibraries.Add(name, handle);
+            RegisterDllImportResolver(ownerType.Assembly);
             LogLibraryLoaded(name, handle);
         }
 #endif
@@ -330,6 +333,31 @@ public static partial class NativeLibraryHelper
             nativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
             nativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
         }
+    }
+
+    /// <summary>
+    /// Registers a <see cref="NativeLibrary.SetDllImportResolver"/> for the given assembly
+    /// so that [DllImport] calls resolve to libraries already loaded by <see cref="PreloadLibrary"/>.
+    /// On Linux, dlopen with a full path doesn't make the library findable by bare name,
+    /// so DllImport("freetype") won't find a preloaded "/path/to/libfreetype.so" without this.
+    /// </summary>
+    private static void RegisterDllImportResolver(Assembly assembly)
+    {
+        lock (loadedLibrariesLock)
+        {
+            if (!registeredAssemblies.Add(assembly))
+                return; // Already registered
+        }
+
+        NativeLibrary.SetDllImportResolver(assembly, (name, asm, searchPath) =>
+        {
+            lock (loadedLibrariesLock)
+            {
+                if (loadedLibraries.TryGetValue(name, out var handle))
+                    return handle;
+            }
+            return IntPtr.Zero;
+        });
     }
 
     #region Debug helpers
