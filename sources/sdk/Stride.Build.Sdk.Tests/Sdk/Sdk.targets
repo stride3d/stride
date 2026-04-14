@@ -80,6 +80,29 @@
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
   <!-- ================================================================ -->
+  <!-- Runtime Native Asset Filtering & Flattening -->
+  <!-- ================================================================ -->
+  <!-- When StrideTestRuntimeIdentifier is set, filter out non-matching runtimes/ items
+       and flatten matching ones to the output root. This ensures only the target RID's
+       native libs are copied, and they're placed flat for dlopen to find them. -->
+  <Target Name="_StrideFilterAndFlattenRuntimes"
+          BeforeTargets="_CopyFilesMarkedCopyLocal;_CopySourceItemsToOutputDirectory"
+          Condition="'$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <!-- Remove non-matching runtimes/ items -->
+      <None Remove="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <!-- Flatten matching runtimes/ items to output root -->
+      <None Update="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          Link="%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Platform Target Metadata -->
   <!-- ================================================================ -->
   <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
