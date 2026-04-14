@@ -175,6 +175,19 @@ public static partial class NativeLibraryHelper
                 }
             }
 
+            // Also try with 'lib' prefix in runtimes path (Linux/macOS native libs use lib prefix)
+            if (Platform.Type != PlatformType.Windows && !libraryName.StartsWith("lib", StringComparison.Ordinal))
+            {
+                if (TryFindLibraryPath(ownerType, "lib" + libraryNameWithExtension, out libraryFilename))
+                {
+                    if (NativeLibrary.TryLoad(libraryFilename!, out nint result))
+                    {
+                        AddLoadedLibrary(libraryName, result);
+                        return;
+                    }
+                }
+            }
+
             // Finally, try the default loading mechanism (https://docs.microsoft.com/en-us/dotnet/core/dependency-loading/loading-unmanaged)
             if (NativeLibrary.TryLoad(libraryName, ownerType.Assembly, searchPath: null, out nint handle))
             {
