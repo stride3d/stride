@@ -1,4 +1,4 @@
-# Quantum — Contributor Overview
+# Quantum — Overview
 
 Quantum is Stride's graph-based introspection framework. It wraps any .NET object hierarchy into a typed node graph, and that graph is the single source of truth for three things: **property grid display**, **undo/redo**, and **asset override tracking** (the "bold = overridden" behaviour in prefab/archetype workflows).
 
