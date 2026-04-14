@@ -159,6 +159,7 @@ namespace Stride.Games
                 gameForm.FullscreenToggle += OnFullscreenToggle;
                 gameForm.DisableFullScreen += OnDisableFullScreen;
                 gameForm.FormClosing += OnClosing;
+                gameForm.DpiChanged += OnDpiChanged;
             }
             else
             {
@@ -273,12 +274,12 @@ namespace Stride.Games
         }
 
         /// <inheritdoc />
-        public override double Opacity 
+        public override double Opacity
         {
             get
             {
                 return form?.Opacity ?? 1.0d;
-            } 
+            }
             set
             {
                 if (form != null)
@@ -287,7 +288,7 @@ namespace Stride.Games
                 }
             }
         }
-        
+
         public override Int2 Position
         {
             get
@@ -407,6 +408,12 @@ namespace Stride.Games
                 // Check for non-form control
                 return false;
             }
+        }
+
+        private void OnDpiChanged(object sender, DpiChangedEventArgs e)
+        {
+            Dpi = new Int2(e.DeviceDpiNew);
+            DpiScale = e.DeviceDpiNew / 96.0f;
         }
 
         protected override void Destroy()
