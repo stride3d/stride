@@ -13,9 +13,7 @@ The asset class is the design-time representation of an asset. An instance is se
 | `AssetComposite` | The asset is composed of named sub-parts that can be individually referenced and overridden in derived assets. | `SceneAsset`, `PrefabAsset` |
 | `AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>` | Like `AssetComposite` but with a parent/child hierarchy among parts. Used for scenes and prefabs. Prefer `AssetComposite` unless you need a tree structure. | `SceneAsset`, `PrefabAsset` |
 
-> **Decision:** Start with `Asset`. Upgrade to `AssetWithSource` if the asset's primary content
-> comes from a file on disk that Stride did not produce. Use `AssetComposite` only if your asset
-> must support per-part archetype inheritance.
+> **Decision:** Start with `Asset`. Upgrade to `AssetWithSource` if the asset's primary content comes from a file on disk that Stride did not produce. Use `AssetComposite` only if your asset must support per-part archetype inheritance.
 
 ## Required Attributes
 
@@ -105,5 +103,4 @@ public sealed class %%AssetName%%Asset : Asset          // or AssetWithSource
 ```
 
 > [!NOTE] Game projects
-> Replace `StrideConfig.PackageName` with a string literal matching your game's package name
-> (e.g. `"MyGame"`). The rest of the pattern is identical.
+> Replace `StrideConfig.PackageName` with a string literal matching your game's package name (e.g. `"MyGame"`). The rest of the pattern is identical.

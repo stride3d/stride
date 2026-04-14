@@ -2,10 +2,7 @@
 
 ## Role
 
-The compiler transforms a design-time `Asset` instance into compiled runtime content stored in
-the content database. It is invoked during the game build and by the editor for live preview. A
-compiler is registered by decorating the compiler class with `[AssetCompiler]`. The compiler runs
-on a background thread and must not access any editor UI state.
+The compiler transforms a design-time `Asset` instance into compiled runtime content stored in the content database. It is invoked during the game build and by the editor for live preview. A compiler is registered by decorating the compiler class with `[AssetCompiler]`. The compiler runs on a background thread and must not access any editor UI state.
 
 ## Register the Compiler
 
@@ -14,15 +11,11 @@ on a background thread and must not access any editor UI state.
 public class %%AssetName%%Compiler : AssetCompilerBase { ... }
 ```
 
-`AssetCompilationContext` is the standard context for game-asset compilation. Other contexts exist
-for thumbnail generation and template expansion, but `AssetCompilationContext` is always the right
-choice for new engine assets.
+`AssetCompilationContext` is the standard context for game-asset compilation. Other contexts exist for thumbnail generation and template expansion, but `AssetCompilationContext` is always the right choice for new engine assets.
 
 ## Implement `Prepare`
 
-`Prepare` is called once per asset. It must populate `result.BuildSteps` with one or more
-`AssetCommand<T>` instances that do the actual work. The commands are executed later, possibly in
-parallel with commands from other assets.
+`Prepare` is called once per asset. It must populate `result.BuildSteps` with one or more `AssetCommand<T>` instances that do the actual work. The commands are executed later, possibly in parallel with commands from other assets.
 
 ```csharp
 protected override void Prepare(
@@ -37,13 +30,11 @@ protected override void Prepare(
 }
 ```
 
-`targetUrlInStorage` is the URL under which the compiled output must be saved in the content
-database. Pass it to `ContentManager.Save` inside `DoCommandOverride`.
+`targetUrlInStorage` is the URL under which the compiled output must be saved in the content database. Pass it to `ContentManager.Save` inside `DoCommandOverride`.
 
 ## Implement the Build Command
 
-The command does the actual compilation work. It extends `AssetCommand<TParameters>` where
-`TParameters` is the asset type (or a dedicated parameters struct for complex conversions).
+The command does the actual compilation work. It extends `AssetCommand<TParameters>` where `TParameters` is the asset type (or a dedicated parameters struct for complex conversions).
 
 ```csharp
 public class %%AssetName%%Command(string url, %%AssetName%%Asset parameters, IAssetFinder assetFinder)
@@ -65,19 +56,13 @@ public class %%AssetName%%Command(string url, %%AssetName%%Asset parameters, IAs
 }
 ```
 
-`Parameters` is the typed asset instance passed from `Prepare`. `Url` is the
-`targetUrlInStorage` value passed to the constructor.
-`MicrothreadLocalDatabases.ProviderService` provides the content database to the
-`ContentManager` on the compiler thread.
+`Parameters` is the typed asset instance passed from `Prepare`. `Url` is the `targetUrlInStorage` value passed to the constructor. `MicrothreadLocalDatabases.ProviderService` provides the content database to the `ContentManager` on the compiler thread.
 
 ## Declare External File Dependencies (`GetInputFiles`)
 
-Override `GetInputFiles` when the compiler reads external files (e.g. a `.png` or `.fbx`). This
-allows the build system to detect changes and invalidate the cache correctly.
+Override `GetInputFiles` when the compiler reads external files (e.g. a `.png` or `.fbx`). This allows the build system to detect changes and invalidate the cache correctly.
 
-The pattern requires **two parts**: overriding `GetInputFiles` on the compiler class, and wiring
-it to the build command via `InputFilesGetter` in `Prepare`. Without the wiring, the build cache
-will never invalidate when source files change.
+The pattern requires **two parts**: overriding `GetInputFiles` on the compiler class, and wiring it to the build command via `InputFilesGetter` in `Prepare`. Without the wiring, the build cache will never invalidate when source files change.
 
 **Step 1 — Override `GetInputFiles` on the compiler:**
 
@@ -90,9 +75,7 @@ public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
 }
 ```
 
-Check that `asset.Source` is not null or empty before calling `GetAbsolutePath` — `GetAbsolutePath`
-throws an `ArgumentException` if passed a null or empty path. `GetAbsolutePath` is a helper on
-`AssetCompilerBase` that resolves a `UFile` source path relative to the asset's location on disk.
+Check that `asset.Source` is not null or empty before calling `GetAbsolutePath` — `GetAbsolutePath` throws an `ArgumentException` if passed a null or empty path. `GetAbsolutePath` is a helper on `AssetCompilerBase` that resolves a `UFile` source path relative to the asset's location on disk.
 
 **Step 2 — Wire it to the command in `Prepare`:**
 
@@ -102,19 +85,14 @@ result.BuildSteps.Add(
     { InputFilesGetter = () => GetInputFiles(assetItem) });
 ```
 
-`InputFilesGetter` is a `Func<IEnumerable<ObjectUrl>>` delegate on `Command`. The build engine
-calls it when computing the command hash; without it, file changes are invisible to the cache.
+`InputFilesGetter` is a `Func<IEnumerable<ObjectUrl>>` delegate on `Command`. The build engine calls it when computing the command hash; without it, file changes are invisible to the cache.
 
 > [!NOTE]
-> Alternatively, override `GetInputFiles()` (no parameters) directly on the command class itself.
-> `Command.GetInputFiles()` calls `InputFilesGetter` by default, but you can override it instead
-> to keep the logic self-contained on the command — this avoids the delegate wiring entirely.
-> `TextureConvertCommand` uses this approach.
+> Alternatively, override `GetInputFiles()` (no parameters) directly on the command class itself. `Command.GetInputFiles()` calls `InputFilesGetter` by default, but you can override it instead to keep the logic self-contained on the command — this avoids the delegate wiring entirely. `TextureConvertCommand` uses this approach.
 
 ## Declare Asset Dependencies (`GetInputTypes`)
 
-Override `GetInputTypes` when the compiler needs another asset to be compiled first, or needs to
-read another asset's compiled output during compilation.
+Override `GetInputTypes` when the compiler needs another asset to be compiled first, or needs to read another asset's compiled output during compilation.
 
 ```csharp
 public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
@@ -135,30 +113,18 @@ public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetIt
 | `CompileAsset` | The uncompiled `Asset` object of the dependency is read during compilation. |
 | `CompileContent` | The compiled output of the dependency is read during compilation. |
 
-Use `CompileAsset` when you only need to read the asset class properties — this is cheap and
-imposes no hard build-order constraint beyond "loaded". Use `CompileContent` when you need the
-compiled binary output, which requires the dependency to be fully compiled first. Use `Runtime`
-for runtime references that are embedded in the compiled output, not accessed at compile time.
+Use `CompileAsset` when you only need to read the asset class properties — this is cheap and imposes no hard build-order constraint beyond "loaded". Use `CompileContent` when you need the compiled binary output, which requires the dependency to be fully compiled first. Use `Runtime` for runtime references that are embedded in the compiled output, not accessed at compile time.
 
 > [!WARNING]
-> Do not create circular dependencies via `GetInputFiles` or `GetInputTypes`. Asset A depending
-> on B while B depends on A will deadlock the build.
+> Do not create circular dependencies via `GetInputFiles` or `GetInputTypes`. Asset A depending on B while B depends on A will deadlock the build.
 
 ## Assembly Placement
 
-Compiler classes live in the same assembly as the asset class. For engine assets in
-`Stride.Assets`, the compiler also lives in `Stride.Assets`. The `[AssetCompiler]` attribute is
-discovered at startup when the assembly is registered with `AssemblyCommonCategories.Assets`.
-Compilers must not reference editor assemblies.
+Compiler classes live in the same assembly as the asset class. For engine assets in `Stride.Assets`, the compiler also lives in `Stride.Assets`. The `[AssetCompiler]` attribute is discovered at startup when the assembly is registered with `AssemblyCommonCategories.Assets`. Compilers must not reference editor assemblies.
 
 ## Template
 
-The `Prepare` method and build command shown above form the complete starting template for a new
-compiler. Copy both blocks, replace `%%AssetName%%` with your asset's PascalCase name, and fill
-in the property mapping inside `DoCommandOverride`.
+The `Prepare` method and build command shown above form the complete starting template for a new compiler. Copy both blocks, replace `%%AssetName%%` with your asset's PascalCase name, and fill in the property mapping inside `DoCommandOverride`.
 
 > [!NOTE] Game projects
-> For game-project custom assets, the compiler class lives in the game project itself.
-> Add `<PackageReference Include="Stride.Core.Assets.CompilerApp" IncludeAssets="build;buildTransitive" />`
-> to the game project's `.csproj` — this brings in the infrastructure that discovers and invokes
-> the compiler; it does not change where the compiler class lives.
+> For game-project custom assets, the compiler class lives in the game project itself. Add `<PackageReference Include="Stride.Core.Assets.CompilerApp" IncludeAssets="build;buildTransitive" />` to the game project's `.csproj` — this brings in the infrastructure that discovers and invokes the compiler; it does not change where the compiler class lives.
