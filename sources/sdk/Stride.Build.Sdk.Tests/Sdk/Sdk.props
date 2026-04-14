@@ -21,6 +21,11 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
 
+    <!-- Set RuntimeIdentifier from StrideTestRuntimeIdentifier to avoid NETSDK1134
+         (cannot pass -r or RuntimeIdentifier at solution level in .NET 10+) -->
+    <RuntimeIdentifier Condition="'$(StrideTestRuntimeIdentifier)' != ''">$(StrideTestRuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained Condition="'$(StrideTestRuntimeIdentifier)' != ''">false</SelfContained>
+
     <!-- Allow unsafe code (common in tests) -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 

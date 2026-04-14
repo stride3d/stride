@@ -62,6 +62,7 @@ jobs:
       - name: Build GPU tests (targeting Linux/Vulkan)
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
@@ -72,6 +73,7 @@ jobs:
       - name: Build non-GPU game tests (targeting Linux)
         run: |
           dotnet build build\Stride.Tests.Game.Linux.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
@@ -79,23 +81,6 @@ jobs:
             -p:StridePlatform=Linux `
             -p:StrideGraphicsApis=Vulkan `
             -p:StrideGraphicsApi=Vulkan
-      - name: Copy SwiftShader Linux native to test outputs
-        shell: pwsh
-        run: |
-          $swiftShaderDir = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Directory -Filter linux-x64 -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($swiftShaderDir) {
-            # Copy to each GPU test output that has a runtimes folder
-            Get-ChildItem bin\Tests -Directory | ForEach-Object {
-              $dest = Join-Path $_.FullName "Linux\Vulkan\runtimes\linux-x64\native"
-              if (Test-Path (Join-Path $_.FullName "Linux\Vulkan")) {
-                New-Item -Path $dest -ItemType Directory -Force | Out-Null
-                Copy-Item "$($swiftShaderDir.Parent.FullName)\linux-x64\native\*" $dest -Force
-                Write-Host "Copied SwiftShader to $dest"
-              }
-            }
-          } else {
-            Write-Warning "SwiftShader linux-x64 not found in NuGet cache"
-          }
       - name: Upload test binaries
         uses: actions/upload-artifact@v4
         with:
@@ -140,7 +125,7 @@ jobs:
       - name: Register SwiftShader ICD
         run: |
           # Find SwiftShader in any test output and create ICD JSON
-          LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
+          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
           if [ -n "$LIB" ]; then
             LIB_ABS=$(readlink -f "$LIB")
             ICD_JSON="$PWD/vk_swiftshader_icd.json"
@@ -209,7 +194,7 @@ jobs:
           find bin/Tests -name "*.so" -exec chmod +x {} \;
       - name: Register SwiftShader ICD
         run: |
-          LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
+          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
           if [ -n "$LIB" ]; then
             LIB_ABS=$(readlink -f "$LIB")
             ICD_JSON="$PWD/vk_swiftshader_icd.json"

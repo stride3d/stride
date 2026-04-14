@@ -41,6 +41,7 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Simple.Linux.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
