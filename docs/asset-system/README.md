@@ -1,12 +1,8 @@
-# Asset System — Contributor Overview
+# Asset System —  Overview
 
-This document explains the Stride asset system for engine contributors. It covers the complete
-pipeline from design-time authoring through build compilation to runtime loading, and shows
-how all parts are wired together.
+This document explains the Stride asset system. It covers the complete pipeline from design-time authoring through build compilation to runtime loading, and shows how all parts are wired together.
 
-> **For game-project custom assets** (not engine contributions), the same pipeline applies
-> with minor differences noted in each spoke file. See also the external guide:
-> [Creating custom assets](https://doc.stride3d.net/latest/en/manual/scripts/custom-assets.html).
+> **For game-project custom assets** (not engine contributions), the same pipeline applies with minor differences noted in each spoke file. See also the external guide: [Creating custom assets](https://doc.stride3d.net/latest/en/manual/scripts/custom-assets.html).
 
 ## The Three-Phase Pipeline
 
@@ -24,15 +20,11 @@ flowchart LR
     D -->|"loaded into"| E
 ```
 
-**Design time:** The author edits asset properties in GameStudio. Properties are persisted to a
-`.sdXXX` YAML file. The file is deserialized into an instance of the asset class.
+**Design time:** The author edits asset properties in GameStudio. Properties are persisted to a `.sdXXX` YAML file. The file is deserialized into an instance of the asset class.
 
-**Build time:** The build pipeline invokes the compiler registered for the asset type. The
-compiler reads the asset class instance and produces compiled binary content, which is written
-to the content database.
+**Build time:** The build pipeline invokes the compiler registered for the asset type. The compiler reads the asset class instance and produces compiled binary content, which is written to the content database.
 
-**Runtime:** The game calls `ContentManager.Load<RuntimeType>(url)`. The engine reads the
-compiled binary and returns a typed instance.
+**Runtime:** The game calls `ContentManager.Load<RuntimeType>(url)`. The engine reads the compiled binary and returns a typed instance.
 
 ## Assembly Map
 
@@ -75,37 +67,26 @@ See [editor.md](editor.md) for implementation details for each tier.
 
 ## Implementation Checklist
 
-Use this checklist when adding a new asset type. Steps marked **optional** are only needed
-in specific circumstances.
+Use this checklist when adding a new asset type. Steps marked **optional** are only needed in specific circumstances.
 
 ### Always required
 
-- [ ] **Runtime type** — `[DataContract]`, `[ContentSerializer]`, `[ReferenceSerializer]`,
-      `[DataSerializerGlobal]` → see [runtime-type.md](runtime-type.md)
-- [ ] **Asset class** — `[DataContract]`, `[AssetDescription]`; add `[AssetContentType]` and
-      `[AssetFormatVersion]` when the asset has a compiled runtime output → see [asset-class.md](asset-class.md)
-- [ ] **Compiler** — `[AssetCompiler(typeof(%%Asset%%), typeof(AssetCompilationContext))]` on
-      the compiler class; implement the protected `Prepare` override → see [compiler.md](compiler.md)
-- [ ] **Module initializer** — `AssemblyRegistry.Register(...)` in the assembly's `Module.cs`
-      → see [registration.md](registration.md)
+- [ ] **Runtime type** — `[DataContract]`, `[ContentSerializer]`, `[ReferenceSerializer]`, `[DataSerializerGlobal]` → see [runtime-type.md](runtime-type.md)
+- [ ] **Asset class** — `[DataContract]`, `[AssetDescription]`; add `[AssetContentType]` and `[AssetFormatVersion]` when the asset has a compiled runtime output → see [asset-class.md](asset-class.md)
+- [ ] **Compiler** — `[AssetCompiler(typeof(%%Asset%%), typeof(AssetCompilationContext))]` on the compiler class; implement the protected `Prepare` override → see [compiler.md](compiler.md)
+- [ ] **Module initializer** — `AssemblyRegistry.Register(...)` in the assembly's `Module.cs` → see [registration.md](registration.md)
 
 ### Recommended
 
-- [ ] **`.sdtpl` template** — adds the asset to the **Add Asset** menu in GameStudio →
-      see [registration.md](registration.md#sdtpl-template-files-new-asset-menu)
+- [ ] **`.sdtpl` template** — adds the asset to the **Add Asset** menu in GameStudio → see [registration.md](registration.md#sdtpl-template-files-new-asset-menu)
 
 ### Conditional
 
-- [ ] **`AssetViewModel<T>` (Tier 2)** — only if custom editor commands or display logic is
-      needed → see [editor.md](editor.md#tier-2-custom-assetviewmodelt)
-- [ ] **`AssetEditorViewModel` + XAML View (Tier 3)** — only if a dedicated editor panel is
-      needed → see [editor.md](editor.md#tier-3-full-custom-editor)
-- [ ] **`GetInputFiles` override** — only if the compiler reads external files →
-      see [compiler.md](compiler.md#declare-external-file-dependencies-getinputfiles)
-- [ ] **`GetInputTypes` override** — only if compilation depends on another asset being
-      compiled first → see [compiler.md](compiler.md#declare-asset-dependencies-getinputtypes)
-- [ ] **Version upgrader** — only when bumping `[AssetFormatVersion]` on an existing asset →
-      see [asset-class.md](asset-class.md#versioning-and-upgraders)
+- [ ] **`AssetViewModel<T>` (Tier 2)** — only if custom editor commands or display logic is needed → see [editor.md](editor.md#tier-2-custom-assetviewmodelt)
+- [ ] **`AssetEditorViewModel` + XAML View (Tier 3)** — only if a dedicated editor panel is needed → see [editor.md](editor.md#tier-3-full-custom-editor)
+- [ ] **`GetInputFiles` override** — only if the compiler reads external files → see [compiler.md](compiler.md#declare-external-file-dependencies-getinputfiles)
+- [ ] **`GetInputTypes` override** — only if compilation depends on another asset being compiled first → see [compiler.md](compiler.md#declare-asset-dependencies-getinputtypes)
+- [ ] **Version upgrader** — only when bumping `[AssetFormatVersion]` on an existing asset → see [asset-class.md](asset-class.md#versioning-and-upgraders)
 
 ## Key Terms
 
