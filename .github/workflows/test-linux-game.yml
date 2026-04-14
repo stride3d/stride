@@ -81,6 +81,18 @@ jobs:
             -p:StridePlatform=Linux `
             -p:StrideGraphicsApis=Vulkan `
             -p:StrideGraphicsApi=Vulkan
+      - name: Clean Windows/macOS files from Linux test outputs
+        shell: pwsh
+        run: |
+          # Remove Windows/macOS native libs that are useless on Linux
+          Get-ChildItem bin/Tests -Recurse -Include `
+            'd3dcompiler_47.dll','freeimage.dll','FreeImage.dll','freetype.dll', `
+            'Silk.NET.Direct3D11.dll','Silk.NET.Direct3D12.dll','Silk.NET.Direct3D.Compilers.dll', `
+            'glslangValidator.exe' |
+            Remove-Item -Force
+          # Remove macOS dylibs and Windows PDBs for native libs
+          Get-ChildItem bin/Tests -Recurse -Include '*.dylib','freetype.pdb' |
+            Remove-Item -Force
       - name: Upload test binaries
         uses: actions/upload-artifact@v4
         with:
