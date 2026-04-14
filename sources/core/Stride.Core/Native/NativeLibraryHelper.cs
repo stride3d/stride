@@ -32,7 +32,7 @@ public static partial class NativeLibraryHelper
     // Map of loaded libraries to their handles
     private static readonly Dictionary<string, nint> loadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock loadedLibrariesLock = new();
-    private static readonly HashSet<Assembly> registeredAssemblies = new();
+    private static bool globalResolverRegistered;
 
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
@@ -132,6 +132,15 @@ public static partial class NativeLibraryHelper
 #if STRIDE_PLATFORM_DESKTOP
         lock (loadedLibrariesLock)
         {
+            // Register a global resolver once so [DllImport] from any assembly
+            // can find libraries preloaded by full path (needed on Linux where
+            // dlopen("/full/path/lib.so") doesn't make dlopen("lib") find it).
+            if (!globalResolverRegistered)
+            {
+                globalResolverRegistered = true;
+                System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
+            }
+
             // If already loaded, just exit as we want to load it just once
             if (loadedLibraries.ContainsKey(libraryName))
             {
@@ -229,7 +238,6 @@ public static partial class NativeLibraryHelper
         void AddLoadedLibrary(string name, nint handle)
         {
             loadedLibraries.Add(name, handle);
-            RegisterDllImportResolver(ownerType.Assembly);
             LogLibraryLoaded(name, handle);
         }
 #endif
@@ -336,28 +344,16 @@ public static partial class NativeLibraryHelper
     }
 
     /// <summary>
-    /// Registers a <see cref="NativeLibrary.SetDllImportResolver"/> for the given assembly
-    /// so that [DllImport] calls resolve to libraries already loaded by <see cref="PreloadLibrary"/>.
+    /// Global resolver for [DllImport] calls — returns preloaded library handles.
     /// On Linux, dlopen with a full path doesn't make the library findable by bare name,
     /// so DllImport("freetype") won't find a preloaded "/path/to/libfreetype.so" without this.
     /// </summary>
-    private static void RegisterDllImportResolver(Assembly assembly)
+    private static IntPtr ResolvePreloadedLibrary(Assembly assembly, string name)
     {
         lock (loadedLibrariesLock)
         {
-            if (!registeredAssemblies.Add(assembly))
-                return; // Already registered
+            return loadedLibraries.TryGetValue(name, out var handle) ? handle : IntPtr.Zero;
         }
-
-        NativeLibrary.SetDllImportResolver(assembly, (name, asm, searchPath) =>
-        {
-            lock (loadedLibrariesLock)
-            {
-                if (loadedLibraries.TryGetValue(name, out var handle))
-                    return handle;
-            }
-            return IntPtr.Zero;
-        });
     }
 
     #region Debug helpers
