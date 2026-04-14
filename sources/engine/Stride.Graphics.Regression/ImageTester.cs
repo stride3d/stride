@@ -40,6 +40,7 @@ namespace Stride.Graphics.Regression
             public double MeanSquaredError;
             public double PSNR;
             public bool Passed;
+            public string? ThresholdResult;
 
             /// <summary>
             /// Histogram of per-pixel max channel difference.
@@ -56,10 +57,10 @@ namespace Stride.Graphics.Regression
             public override readonly string ToString()
             {
                 var hist = $"[1-2]:{DiffHistogram[1]} [3-5]:{DiffHistogram[2]} [6-15]:{DiffHistogram[3]} [16+]:{DiffHistogram[4]}";
-                var pct = 100.0 * DifferentPixels / Math.Max(TotalPixels, 1);
+                var threshold = ThresholdResult != null ? $", thresholds: {ThresholdResult}" : "";
                 if (Passed)
-                    return $"PASS (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist})";
-                return $"FAIL ({DifferentPixels}/{TotalPixels} exceed threshold ({pct:F2}%), max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist})";
+                    return $"PASS (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist}{threshold})";
+                return $"FAIL (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist}{threshold})";
             }
         }
 
@@ -101,12 +102,24 @@ namespace Stride.Graphics.Regression
             return CompareImage(image, testFilename, out _);
         }
 
+        internal static bool CompareImage(Image image, string testFilename, AllowBucket[]? thresholds)
+        {
+            return CompareImage(image, testFilename, out _, thresholds);
+        }
+
         /// <summary>
         /// Compare an image against a reference file, returning detailed statistics.
         /// </summary>
         public static bool CompareImage(Image image, string testFilename, out ComparisonStats stats)
         {
+            return CompareImage(image, testFilename, out stats, null);
+        }
+
+        internal static bool CompareImage(Image image, string testFilename, out ComparisonStats stats,
+            AllowBucket[]? thresholds)
+        {
             stats = default;
+            thresholds ??= ImageThreshold.DefaultBuckets;
 
             using (var stream = File.OpenRead(testFilename))
             using (var referenceImage = Image.Load(stream))
@@ -133,13 +146,11 @@ namespace Stride.Graphics.Regression
 
                     bool checkAlpha = buffer.Format.AlphaSizeInBits > 0;
 
-                    int allowedDiff = 2;
-                    int differentPixels = 0;
                     int maxDiff = 0;
                     long sumSquaredError = 0;
                     int totalPixels = buffer.Width * buffer.Height;
-                    // Histogram buckets: [0]=0, [1]=1-2, [2]=3-5, [3]=6-15, [4]=16+
-                    int hist0 = 0, hist1 = 0, hist2 = 0, hist3 = 0, hist4 = 0;
+                    // Per-value diff counts: pixelDiffs[d] = number of pixels with max channel diff == d
+                    var pixelDiffs = new int[256];
 
                     unsafe
                     {
@@ -151,9 +162,7 @@ namespace Stride.Graphics.Regression
                             {
                                 var src = *pSrc;
                                 if (swapBGR)
-                                {
                                     (src.R, src.B) = (src.B, src.R);
-                                }
 
                                 var r = Math.Abs((int)src.R - (int)pDst->R);
                                 var g = Math.Abs((int)src.G - (int)pDst->G);
@@ -164,26 +173,28 @@ namespace Stride.Graphics.Regression
                                 if (pixelMaxDiff > maxDiff)
                                     maxDiff = pixelMaxDiff;
 
-                                if (pixelMaxDiff == 0) hist0++;
-                                else if (pixelMaxDiff <= 2) hist1++;
-                                else if (pixelMaxDiff <= 5) hist2++;
-                                else if (pixelMaxDiff <= 15) hist3++;
-                                else hist4++;
+                                pixelDiffs[pixelMaxDiff]++;
 
                                 sumSquaredError += (long)(r * r + g * g + b * b);
                                 if (checkAlpha)
                                     sumSquaredError += (long)(a * a);
-
-                                if (r > allowedDiff || g > allowedDiff || b > allowedDiff || (a > allowedDiff && checkAlpha))
-                                    differentPixels++;
                             }
                         }
                     }
 
+                    // Build legacy display histogram
+                    int hist0 = pixelDiffs[0], hist1 = 0, hist2 = 0, hist3 = 0, hist4 = 0;
+                    for (int d = 1; d <= 2; d++) hist1 += pixelDiffs[d];
+                    for (int d = 3; d <= 5; d++) hist2 += pixelDiffs[d];
+                    for (int d = 6; d <= 15; d++) hist3 += pixelDiffs[d];
+                    for (int d = 16; d <= 255; d++) hist4 += pixelDiffs[d];
+
+                    int differentPixels = totalPixels - pixelDiffs[0];
                     int channels = checkAlpha ? 4 : 3;
                     double mse = totalPixels > 0 ? (double)sumSquaredError / (totalPixels * channels) : 0;
-
                     double psnr = mse > 0 ? 10.0 * Math.Log10(255.0 * 255.0 / mse) : double.PositiveInfinity;
+
+                    bool passed = ImageThreshold.Check(pixelDiffs, thresholds);
 
                     stats = new ComparisonStats
                     {
@@ -192,7 +203,8 @@ namespace Stride.Graphics.Regression
                         MaxDiff = maxDiff,
                         MeanSquaredError = mse,
                         PSNR = psnr,
-                        Passed = differentPixels == 0,
+                        Passed = passed,
+                        ThresholdResult = ImageThreshold.FormatResult(pixelDiffs, thresholds),
                     };
                     stats.DiffHistogram[0] = hist0;
                     stats.DiffHistogram[1] = hist1;
@@ -200,8 +212,7 @@ namespace Stride.Graphics.Regression
                     stats.DiffHistogram[3] = hist3;
                     stats.DiffHistogram[4] = hist4;
 
-                    if (differentPixels > 0)
-                        return false;
+                    return passed;
                 }
 
                 return true;

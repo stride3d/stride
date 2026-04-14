@@ -35,7 +35,7 @@ app.UseStaticFiles();
 // Disable caching for gold image responses (they change on promote)
 app.Use(async (ctx, next) =>
 {
-    if (ctx.Request.Path.StartsWithSegments("/api/gold"))
+    if (ctx.Request.Path.StartsWithSegments("/api/gold") || ctx.Request.Path.StartsWithSegments("/api/thresholds"))
     {
         ctx.Response.OnStarting(() =>
         {
@@ -150,6 +150,18 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
                 if (File.Exists(candidate)) return Results.File(candidate, "image/png");
             }
     return Results.NotFound();
+});
+
+// Thresholds
+app.MapGet("/api/thresholds", (string suite) =>
+{
+    var path = Path.Combine(testsDir, suite, "thresholds.jsonc");
+    if (!File.Exists(path)) return Results.Ok(Array.Empty<object>());
+    var jsonc = File.ReadAllText(path);
+    // Strip // comments
+    var json = System.Text.RegularExpressions.Regex.Replace(jsonc, @"//.*?$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+    var rules = JsonSerializer.Deserialize<JsonElement>(json);
+    return Results.Ok(rules);
 });
 
 // Also list all gold platforms that have a given image (for fallback info)

@@ -790,12 +790,39 @@ namespace Stride.Graphics.Regression
             }
             else
             {
+                // Resolve thresholds from thresholds.jsonc
+                var fullClassName = GetType().FullName;
+                var classNameIndex = fullClassName.LastIndexOf('.');
+                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
+                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var thresholdRules = ImageThreshold.LoadRules(suiteDir);
+                var imageName = Path.GetFileName(testFileName);
+                var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
+                var platformApiPart = platformParts.Length > 0 ? platformParts[0] : null;
+                var devicePart = platformParts.Length > 1 ? platformParts[1] : null;
+                // platformApiPart is e.g. "Linux.Vulkan" — split into platform and API
+                string? platformName = null, apiName = null;
+                if (platformApiPart != null)
+                {
+                    var dotIdx = platformApiPart.IndexOf('.');
+                    if (dotIdx >= 0)
+                    {
+                        platformName = platformApiPart[..dotIdx];
+                        apiName = platformApiPart[(dotIdx + 1)..];
+                    }
+                    else
+                    {
+                        platformName = platformApiPart;
+                    }
+                }
+                var thresholds = ImageThreshold.Resolve(thresholdRules, imageName, platformName, apiName, devicePart);
+
                 // Compare against all available gold images
                 var pendingFailMessages = new List<string>();
                 bool anyMatch = false;
                 foreach (var file in testFileNames)
                 {
-                    bool match = ImageTester.CompareImage(image, file, out var stats);
+                    bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
                     if (match)
                     {
                         anyMatch = true;

@@ -54,9 +54,12 @@ async function reload() {
       const sRes = await fetch(`/api/source/${src.id}/images?suite=${enc(suite)}&platform=${enc(currentPlatform)}`);
       srcImgs[src.id] = await sRes.json();
     }
+    // Load thresholds for this suite
+    const tRes = await fetch(`/api/thresholds?suite=${enc(suite)}`);
+    const thresholdRules = tRes.ok ? await tRes.json() : [];
     // Only include suite if it has any images
     if (gold.length > 0 || Object.values(srcImgs).some(imgs => imgs.length > 0))
-      suiteData[suite] = { gold, sourceImages: srcImgs };
+      suiteData[suite] = { gold, sourceImages: srcImgs, thresholdRules };
   }
   cellStats = {};
   render();
@@ -172,7 +175,19 @@ function buildSuiteImages(suite) {
       sourcesWithImage[src.id] = (data.sourceImages[src.id] || []).some(s => s.name === name);
     let status = 'pass';
     if (!hasGold && Object.values(sourcesWithImage).some(v => v)) status = 'new';
-    else if (hasGold && Object.values(sourcesWithImage).some(v => v)) status = 'fail';
+    else if (hasGold && Object.values(sourcesWithImage).some(v => v)) {
+      // Check all sources — fail if ANY source fails the threshold
+      let anyFail = false;
+      let anyPending = false;
+      for (const src of sources) {
+        if (!sourcesWithImage[src.id]) continue;
+        const stats = cellStats[`${src.id}:${suite}:${name}`];
+        if (!stats) { anyPending = true; computeCellStats(src.id, suite, name); continue; }
+        const result = checkCellThreshold(suite, name, stats);
+        if (!result.passed) { anyFail = true; }
+      }
+      status = anyFail ? 'fail' : anyPending ? 'pending' : 'pass';
+    }
     return { suite, name, hasGold, goldFallback, sourcesWithImage, status };
   });
 }
@@ -197,7 +212,7 @@ function renderTable() {
 
   for (const suite of Object.keys(suiteData).sort()) {
     let images = buildSuiteImages(suite);
-    if (filter) images = images.filter(i => i.status === filter);
+    if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
     if (search) images = images.filter(i => i.name.toLowerCase().includes(search));
     if (images.length === 0) continue;
 
@@ -210,7 +225,7 @@ function renderTable() {
       });
     }
 
-    const failCount = images.filter(i => i.status === 'fail' || i.status === 'new').length;
+    const failCount = images.filter(i => i.status === 'fail' || i.status === 'new' || i.status === 'pending').length;
     const isCollapsed = collapsedSuites.has(suite);
     const shortSuite = suite.replace('Stride.', '').replace('.Tests', '').replace('.Regression', '');
 
@@ -271,8 +286,10 @@ function renderTable() {
         } else if (!img.hasGold) {
           cellHtml = '<span class="cell new">○ new</span>';
         } else if (stats) {
-          const cls = stats.diffPixels === 0 ? 'pass' : 'fail';
-          cellHtml = `<span class="cell ${cls}">${cls === 'pass' ? '✓' : '✗'} d=${stats.maxDiff}</span>`;
+          const result = checkCellThreshold(img.suite, img.name, stats);
+          const cls = result.passed ? 'pass' : 'fail';
+          const brief = formatThresholdBrief(result);
+          cellHtml = `<span class="cell ${cls}">${cls === 'pass' ? '✓' : '✗'} ${brief}</span>`;
         } else {
           cellHtml = `<span class="cell" data-stats-key="${esc(statsKey)}" style="color:#666">...</span>`;
           computeCellStats(src.id, img.suite, img.name);
@@ -293,7 +310,11 @@ function renderTable() {
       }
 
       tr.innerHTML = cells;
-      tr.onclick = () => toggleExpand(key);
+      tr.onmousedown = (e) => { tr._clickX = e.clientX; tr._clickY = e.clientY; };
+      tr.onclick = (e) => {
+        if (Math.abs(e.clientX - tr._clickX) > 3 || Math.abs(e.clientY - tr._clickY) > 3) return;
+        toggleExpand(key);
+      };
       tbody.appendChild(tr);
 
       if (isExp) {
@@ -445,8 +466,17 @@ function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatform
   if (leftImg && rightImg) {
     const canvas = document.getElementById(`diff-${id}`);
     const stats = computeImageDiff(leftImg, rightImg, canvas);
+    // Resolve threshold for this image
+    const data = suiteData[suite];
+    const rules = data?.thresholdRules || [];
+    const [platApi, device] = currentPlatform.split('/');
+    const dotIdx = platApi?.indexOf('.') ?? -1;
+    const plat = dotIdx >= 0 ? platApi.substring(0, dotIdx) : platApi;
+    const api = dotIdx >= 0 ? platApi.substring(dotIdx + 1) : null;
+    const allow = resolveThreshold(rules, name, plat, api, device);
+    const thresholdResult = stats.pixelDiffs ? checkThreshold(stats.pixelDiffs, allow) : null;
     const statsEl = document.getElementById(`stats-${id}`);
-    if (statsEl) statsEl.innerHTML = formatStats(stats);
+    if (statsEl) statsEl.innerHTML = formatStats(stats, thresholdResult);
   }
   initZoomGroup(id);
 
@@ -512,16 +542,36 @@ async function runStatsQueue() {
     await new Promise(r => setTimeout(r, 10));
   }
   statsRunning = false;
+  // Re-render to update suite badges and filter counts now that all stats are available
+  render();
+}
+
+function checkCellThreshold(suite, name, stats) {
+  const data = suiteData[suite];
+  const rules = data?.thresholdRules || [];
+  const [platApi, device] = currentPlatform.split('/');
+  const dotIdx = platApi?.indexOf('.') ?? -1;
+  const plat = dotIdx >= 0 ? platApi.substring(0, dotIdx) : platApi;
+  const api = dotIdx >= 0 ? platApi.substring(dotIdx + 1) : null;
+  const allow = resolveThreshold(rules, name, plat, api, device);
+  if (stats.pixelDiffs) return checkThreshold(stats.pixelDiffs, allow);
+  // Fallback for stats without pixelDiffs
+  return { passed: stats.diffPixels === 0, details: [] };
 }
 
 function updateCellInline(key, stats) {
   const el = document.querySelector(`[data-stats-key="${CSS.escape(key)}"]`);
   if (!el) return;
-  const cls = stats.diffPixels === 0 ? 'pass' : 'fail';
+  const parts = key.split(':');
+  const suite = parts[1];
+  const name = parts.slice(2).join(':');
+  const result = checkCellThreshold(suite, name, stats);
+  const cls = result.passed ? 'pass' : 'fail';
   el.className = `cell ${cls}`;
   el.removeAttribute('style');
   el.removeAttribute('data-stats-key');
-  el.textContent = `${cls === 'pass' ? '✓' : '✗'} d=${stats.maxDiff}`;
+  const brief = formatThresholdBrief(result);
+  el.textContent = `${cls === 'pass' ? '✓' : '✗'} ${brief}`;
 }
 
 async function computeThumbDiff(suite, name, srcId, canvasId) {
@@ -627,7 +677,7 @@ function toggleSelectAll() {
   const filter = document.getElementById('statusFilter').value;
   for (const suite of Object.keys(suiteData)) {
     let images = buildSuiteImages(suite);
-    if (filter) images = images.filter(i => i.status === filter);
+    if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
     images.forEach(i => {
       const key = `${i.suite}:${i.name}`;
       if (checked) selected.add(key); else selected.delete(key);

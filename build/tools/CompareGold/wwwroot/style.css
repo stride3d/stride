@@ -35,7 +35,8 @@ th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #333; font-si
 th:hover { color: #4fc3f7; }
 th.right { text-align: right; }
 td { padding: 6px 10px; border-bottom: 1px solid #222244; vertical-align: top; }
-tr.row { cursor: pointer; user-select: none; }
+tr.row { cursor: pointer; }
+tr.row .thumb, tr.row .cell, tr.row .cb { user-select: none; }
 tr.row:hover { background: #222244; }
 tr.row.expanded { background: #1a2a4a; }
 tr.row.kb-focus, tr.suite-row.kb-focus { outline: 1px solid #4fc3f7; outline-offset: -1px; }
