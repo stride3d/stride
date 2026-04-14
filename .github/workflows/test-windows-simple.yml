@@ -16,10 +16,6 @@ on:
         default: Debug
         type: string
 
-permissions:
-  checks: write
-  contents: read
-
 
 concurrency:
   group: test-windows-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -55,9 +51,10 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: phoenix-actions/test-reporting@v15
         with:
           name: 'Test Report: Windows Simple'
           path: TestResults/*.trx
           reporter: dotnet-trx
-          token: ${{ secrets.GITHUB_TOKEN }}
+          output-to: step-summary
+          list-tests: 'failed'
