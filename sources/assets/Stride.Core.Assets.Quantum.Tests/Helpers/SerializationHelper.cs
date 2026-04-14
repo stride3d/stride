@@ -23,7 +23,9 @@ public static class SerializationHelper
         stream.Position = 0;
         var streamReader = new StreamReader(stream);
         var yaml = streamReader.ReadToEnd();
-        Assert.Equal(expectedYaml, yaml);
+        // Normalize line endings: raw string literals bake in \r\n when compiled on Windows,
+        // but the YAML serializer uses Environment.NewLine which is \n on Linux.
+        Assert.Equal(expectedYaml.ReplaceLineEndings("\n"), yaml.ReplaceLineEndings("\n"));
     }
 
     public static void SerializeAndCompare(object instance, YamlAssetMetadata<OverrideType> overrides, string expectedYaml)
@@ -35,6 +37,8 @@ public static class SerializationHelper
         stream.Position = 0;
         var streamReader = new StreamReader(stream);
         var yaml = streamReader.ReadToEnd();
-        Assert.Equal(expectedYaml, yaml);
+        // Normalize line endings: raw string literals bake in \r\n when compiled on Windows,
+        // but the YAML serializer uses Environment.NewLine which is \n on Linux.
+        Assert.Equal(expectedYaml.ReplaceLineEndings("\n"), yaml.ReplaceLineEndings("\n"));
     }
 }

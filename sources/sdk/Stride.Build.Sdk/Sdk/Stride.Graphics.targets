@@ -72,8 +72,8 @@
   <!-- Graphics API Output Path Adjustment (Stride.targets:40-46) -->
   <!-- ================================================================ -->
   <!-- When building for multiple graphics APIs, each API gets its own output subdirectory.
-       Skip for test projects (IsTestProject=true) which manage their own output paths. -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(IsTestProject)' != 'true'">
+       Test projects using the Stride test SDK override OutputPath after this import. -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>

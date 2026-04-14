@@ -86,7 +86,7 @@
     <PackageVersion Include="xunit.runner.utility" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
-    <PackageVersion Include="Stride.Dependencies.SwiftShader" Version="2026.4.8" />
+    <PackageVersion Include="Stride.Dependencies.SwiftShader" Version="2026.4.14" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>

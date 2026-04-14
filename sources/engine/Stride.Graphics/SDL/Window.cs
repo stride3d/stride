@@ -17,25 +17,45 @@ namespace Stride.Graphics.SDL
 
 #region Initialization
 
-        /// <summary>
-        /// Initializes static members of the <see cref="Window"/> class.
-        /// </summary>
-        static Window()
-        {
-            SDL = Silk.NET.SDL.Sdl.GetApi();
+        private static readonly object initLock = new();
 
-            // jklawreszuk: Workaround for wayland (see #2487 for more details)  
+        /// <summary>
+        /// Ensures SDL is initialized. Deferred from static constructor to avoid initializing
+        /// SDL when running in headless mode (no display available).
+        /// </summary>
+        internal static void EnsureInitialized()
+        {
+            if (SDL != null)
+                return;
+
+            lock (initLock)
+            {
+                if (SDL != null)
+                    return;
+
+                InitializeSDL();
+            }
+        }
+
+        private static void InitializeSDL()
+        {
+            var sdl = Silk.NET.SDL.Sdl.GetApi();
+
+            // jklawreszuk: Workaround for wayland (see #2487 for more details)
             // TODO: Wayland SDL_EGL_MakeCurrent does not cover multi-context scenario (https://github.com/libsdl-org/SDL/issues/9072)
             if (OperatingSystem.IsLinux())
-                SDL.SetHint("SDL_VIDEODRIVER", "x11");
+                sdl.SetHint("SDL_VIDEODRIVER", "x11");
 
-            SDL.Init(Sdl.InitEverything);
+            sdl.Init(Sdl.InitEverything);
 
-            // Pass first mouse event when user clicked on window 
-            SDL.SetHint(Sdl.HintMouseFocusClickthrough, "1");
+            // Pass first mouse event when user clicked on window
+            sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
 
             // Don't leave fullscreen on focus loss
-            SDL.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, "0");
+            sdl.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, "0");
+
+            // Publish after full initialization (double-checked lock pattern)
+            SDL = sdl;
         }
 
         /// <summary>
@@ -51,6 +71,8 @@ namespace Stride.Graphics.SDL
         /// <param name="parent">Parent window handle</param>
         public Window(string title, IntPtr parent)
         {
+            EnsureInitialized();
+
             WindowFlags flags = WindowFlags.AllowHighdpi;
 #if STRIDE_GRAPHICS_API_VULKAN
             flags |= WindowFlags.Vulkan;

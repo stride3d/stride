@@ -709,16 +709,25 @@ namespace Stride.Graphics.Regression
         /// <exception cref="InvalidOperationException">The Stride solution root folder could not be located.</exception>
         private static string FindStrideSolutionRootDirectory()
         {
-            var dir = PlatformFolders.ApplicationBinaryDirectory;
+            var startDir = PlatformFolders.ApplicationBinaryDirectory;
+            ImageTester.DiagLog($"FindRoot: AppContext.BaseDirectory={AppContext.BaseDirectory}");
+            ImageTester.DiagLog($"FindRoot: ApplicationBinaryDirectory={startDir}");
+
+            var dir = startDir;
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir, @"build\Stride.sln")))
+                var candidate = Path.Combine(dir, "build", "Stride.sln");
+                if (File.Exists(candidate))
+                {
+                    ImageTester.DiagLog($"FindRoot: Found root={dir}");
                     return dir;
+                }
 
                 dir = Path.GetDirectoryName(dir);
             }
 
-            throw new InvalidOperationException("Could not locate the Stride solution root directory");
+            ImageTester.DiagLog($"FindRoot: FAILED from {startDir}");
+            throw new InvalidOperationException($"Could not locate the Stride solution root directory (started from {startDir})");
         }
 
         /// <summary>
@@ -758,8 +767,10 @@ namespace Stride.Graphics.Regression
             {
                 testFileNames.Clear();
 
-                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, @"*\*", ".png");
-                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var wildcard = "*" + Path.DirectorySeparatorChar + "*";
+                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, wildcard, ".png");
+                var regexSep = Regex.Escape(Path.DirectorySeparatorChar.ToString());
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
                 foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
@@ -777,23 +788,67 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file)))
-            {
-                // Comparison failed, save current version so that user can compare / promote it manually
-                ImageTester.SaveImage(image, testLocalFileName);
-                comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
-                foreach (var file in testFileNames)
-                    comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
-            }
-            else if (ForceSaveImageOnSuccess)
-            {
-                ImageTester.SaveImage(image, testLocalFileName);
-            }
             else
             {
-                // If test is a success, let's delete the local file if it was previously generated
-                if (File.Exists(testLocalFileName))
-                    File.Delete(testLocalFileName);
+                // Resolve thresholds from thresholds.jsonc
+                var fullClassName = GetType().FullName;
+                var classNameIndex = fullClassName.LastIndexOf('.');
+                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
+                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var thresholdRules = ImageThreshold.LoadRules(suiteDir);
+                var imageName = Path.GetFileName(testFileName);
+                var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
+                var platformApiPart = platformParts.Length > 0 ? platformParts[0] : null;
+                var devicePart = platformParts.Length > 1 ? platformParts[1] : null;
+                // platformApiPart is e.g. "Linux.Vulkan" — split into platform and API
+                string? platformName = null, apiName = null;
+                if (platformApiPart != null)
+                {
+                    var dotIdx = platformApiPart.IndexOf('.');
+                    if (dotIdx >= 0)
+                    {
+                        platformName = platformApiPart[..dotIdx];
+                        apiName = platformApiPart[(dotIdx + 1)..];
+                    }
+                    else
+                    {
+                        platformName = platformApiPart;
+                    }
+                }
+                var thresholds = ImageThreshold.Resolve(thresholdRules, imageName, platformName, apiName, devicePart);
+
+                // Compare against all available gold images
+                var pendingFailMessages = new List<string>();
+                bool anyMatch = false;
+                foreach (var file in testFileNames)
+                {
+                    bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
+                    if (match)
+                    {
+                        anyMatch = true;
+                        break;
+                    }
+                    var isExactMatch = file == testFileName;
+                    pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
+                }
+
+                if (!anyMatch)
+                {
+                    // All comparisons failed — save current version and report
+                    ImageTester.SaveImage(image, testLocalFileName);
+                    comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
+                    comparisonFailedMessages.AddRange(pendingFailMessages);
+                }
+                else if (ForceSaveImageOnSuccess)
+                {
+                    ImageTester.SaveImage(image, testLocalFileName);
+                }
+                else
+                {
+                    // If test is a success, let's delete the local file if it was previously generated
+                    if (File.Exists(testLocalFileName))
+                        File.Delete(testLocalFileName);
+                }
             }
         }
 
@@ -807,25 +862,28 @@ namespace Stride.Graphics.Regression
         /// <exception cref="NotImplementedException">The current platform type is not supported.</exception>
         private string GetPlatformSpecificDirectory()
         {
-            if (Platform.Type == PlatformType.Windows)
+            string platformName = Platform.Type switch
             {
-                string deviceName;
-                if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+                PlatformType.Windows => "Windows",
+                PlatformType.Linux => "Linux",
+                PlatformType.macOS => "macOS",
+                _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
+            };
+
+            string deviceName;
+            if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+            {
+                deviceName = GraphicsDevice.Platform switch
                 {
-                    deviceName = GraphicsDevice.Platform switch
-                    {
-                        GraphicsPlatform.Vulkan => "SwiftShader",
-                        _ => "WARP"
-                    };
-                }
-                else
-                {
-                    deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
-                }
-                return $"Windows.{GraphicsDevice.Platform}\\{deviceName}";
+                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    _ => "WARP"
+                };
             }
             else
-                throw new NotImplementedException();
+            {
+                deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+            }
+            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", deviceName);
         }
 
         /// <summary>
