@@ -14,6 +14,13 @@ let cellStats = {};           // {`${sourceId}:${suite}:${name}`: stats}
 
 // === Init ===
 async function init() {
+  // Show Stride root path
+  try {
+    const infoRes = await fetch('/api/info');
+    const info = await infoRes.json();
+    document.getElementById('strideRoot').textContent = info.strideRoot;
+  } catch {}
+
   const res = await fetch('/api/suites');
   allSuites = await res.json();
 

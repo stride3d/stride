@@ -65,6 +65,10 @@ try
 catch { }
 Console.WriteLine(ghAvailable ? "GitHub CLI: authenticated" : $"GitHub CLI: {ghError}");
 
+// === Info API ===
+
+app.MapGet("/api/info", () => new { StrideRoot = strideRoot });
+
 // === Gold API ===
 
 app.MapGet("/api/suites", () =>
