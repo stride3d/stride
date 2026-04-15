@@ -14,6 +14,10 @@ flowchart TD
     A -. "uses" .-> C
 ```
 
+## Projects
+
+The editor codebase spans `sources/presentation/` (MVVM framework, Quantum-to-UI binding, shared controls) and `sources/editor/` (editor infrastructure and concrete asset editors). ViewModels are platform-agnostic; WPF coupling belongs in XAML files, code-behind, and WPF-specific service implementations. See [projects.md](projects.md) for the full project map and assembly reference.
+
 ## When You Need These Systems
 
 > **Decision tree:**
@@ -32,6 +36,12 @@ flowchart TD
 >
 > - Understanding how back/forward selection history works?
 >   → **`SelectionService`.** See [navigation.md](navigation.md).
+>
+> - Creating a dedicated editing surface for a new asset type?
+>   → **Write a custom editor.** See [custom-editor.md](custom-editor.md).
+>
+> - Understanding or modifying an existing editor?
+>   → **Existing editors catalogue.** See [editors.md](editors.md).
 
 ## Spoke Files
 
@@ -39,3 +49,6 @@ flowchart TD
 |---|---|
 | [undo-redo.md](undo-redo.md) | `ITransactionStack`, `IUndoRedoService`, `DirtyingOperation`, `IMergeableOperation`, `IDirtiable`, dirty-flag synchronisation |
 | [navigation.md](navigation.md) | `SelectionService`, selection history snapshots, back/forward navigation |
+| [projects.md](projects.md) | Project inventory, WPF boundary rule, assembly map |
+| [custom-editor.md](custom-editor.md) | Custom asset editor: base class, registration, lifecycle, services, MVVM patterns |
+| [editors.md](editors.md) | Existing editors catalogue: SpriteSheet, Scene, Prefab, UIPage, UILibrary, GraphicsCompositor, Script, VisualScript |
