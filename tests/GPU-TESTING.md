@@ -48,7 +48,7 @@ A visual comparison tool for reviewing gold image differences:
 tests\compare-gold.cmd
 
 # Or directly:
-dotnet run --project build/tools/CompareGold
+dotnet run --project build/tools/Stride.CompareGold
 ```
 
 ### Features

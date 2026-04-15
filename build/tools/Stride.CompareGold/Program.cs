@@ -2,6 +2,15 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 
+// Kill any existing CompareGold process (from any Stride checkout) to free the port
+foreach (var proc in Process.GetProcessesByName("Stride.CompareGold"))
+{
+    if (proc.Id != Environment.ProcessId)
+    {
+        try { proc.Kill(); proc.WaitForExit(3000); } catch { }
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5555");
 builder.Services.AddSingleton<SourceManager>();
