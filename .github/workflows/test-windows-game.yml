@@ -160,7 +160,8 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }}
       - name: Test
         run: |
           dotnet test build\Stride.Tests.Game.GPU.slnf `
@@ -168,6 +169,7 @@ jobs:
             --logger:trx --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
