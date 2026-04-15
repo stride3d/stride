@@ -194,7 +194,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts-game-${{ matrix.graphics-api }}
-          path: |
-            tests/local/
-            crash-dumps/
+          path: tests/local/
+          if-no-files-found: ignore
+      - name: Upload crash dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-dumps-game-${{ matrix.graphics-api }}
+          path: crash-dumps/
           if-no-files-found: ignore
