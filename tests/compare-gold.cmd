@@ -1,2 +1,2 @@
 @echo off
-dotnet run --project "%~dp0..\build\tools\Stride.CompareGold"
+dotnet run --project "%~dp0..\build\tools\CompareGold"
