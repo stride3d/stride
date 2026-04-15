@@ -115,8 +115,10 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
     var primarySet = new HashSet<string>(primary);
 
     // Find fallback gold from other platforms (matching test framework behavior)
-    var seen = new HashSet<string>(primarySet);
-    var fallbacks = new List<object>();
+    // Prefer: same API + same renderer class > same API > same class > any
+    var requestedApi = parts[0];
+    var requestedIsSw = IsSoftwareRenderer(parts[1]);
+    var fallbackBest = new Dictionary<string, (string platform, int score)>();
     var suiteDir = Path.Combine(testsDir, suite);
     if (Directory.Exists(suiteDir))
     {
@@ -126,17 +128,23 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
             if (pName == "local") continue;
             foreach (var dDir in Directory.GetDirectories(pDir))
             {
-                var fallbackPlatform = $"{pName}/{Path.GetFileName(dDir)}";
+                var device = Path.GetFileName(dDir);
+                var fallbackPlatform = $"{pName}/{device}";
                 if (fallbackPlatform == platform) continue;
+                int score = 0;
+                if (pName == requestedApi) score += 2;
+                if (IsSoftwareRenderer(device) == requestedIsSw) score += 1;
                 foreach (var f in Directory.GetFiles(dDir, "*.png"))
                 {
                     var name = Path.GetFileName(f);
-                    if (seen.Add(name))
-                        fallbacks.Add(new { Name = name, FallbackPlatform = fallbackPlatform });
+                    if (primarySet.Contains(name)) continue;
+                    if (!fallbackBest.TryGetValue(name, out var existing) || score > existing.score)
+                        fallbackBest[name] = (fallbackPlatform, score);
                 }
             }
         }
     }
+    var fallbacks = fallbackBest.Select(kv => (object)new { Name = kv.Key, FallbackPlatform = kv.Value.platform }).ToList();
 
     return Results.Ok(new
     {
@@ -153,15 +161,31 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
     var filePath = Path.Combine(testsDir, suite, parts[0], parts[1], name);
     if (File.Exists(filePath)) return Results.File(filePath, "image/png");
 
-    // Fallback: search all platforms in this suite
+    // Fallback: search all platforms in this suite, preferring closest match
     var suiteDir = Path.Combine(testsDir, suite);
     if (Directory.Exists(suiteDir))
+    {
+        var requestedIsSw = IsSoftwareRenderer(parts[1]);
+        var requestedApi = parts[0]; // e.g. "Windows.Direct3D11"
+        string? bestPath = null;
+        int bestScore = -1;
         foreach (var pDir in Directory.GetDirectories(suiteDir))
+        {
+            var pName = Path.GetFileName(pDir);
+            if (pName == "local") continue;
             foreach (var dDir in Directory.GetDirectories(pDir))
             {
                 var candidate = Path.Combine(dDir, name);
-                if (File.Exists(candidate)) return Results.File(candidate, "image/png");
+                if (!File.Exists(candidate)) continue;
+                var device = Path.GetFileName(dDir);
+                int score = 0;
+                if (pName == requestedApi) score += 2; // same API
+                if (IsSoftwareRenderer(device) == requestedIsSw) score += 1; // same renderer class
+                if (score > bestScore) { bestScore = score; bestPath = candidate; }
             }
+        }
+        if (bestPath != null) return Results.File(bestPath, "image/png");
+    }
     return Results.NotFound();
 });
 
@@ -433,6 +457,12 @@ static List<object> ListPngs(string dir)
         .ToList();
 }
 
+
+static bool IsSoftwareRenderer(string device)
+{
+    var d = device.ToLowerInvariant();
+    return d.Contains("warp") || d.Contains("swiftshader");
+}
 
 static IResult ServeImage(string baseDir, string suite, string platform, string name)
 {
