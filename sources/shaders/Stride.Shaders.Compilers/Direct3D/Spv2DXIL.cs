@@ -175,4 +175,43 @@ public static partial class Spv2DXIL
 
     [LibraryImport("spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     public static partial ulong spirv_to_dxil_get_version();
+
+    // Linked multi-stage compile — required for correct I/O signature matching when some
+    // stages don't read all outputs from the previous stage (e.g. PS that doesn't use normalWS
+    // from VS). Without linking, spirv_to_dxil strips unused inputs and compacts Locations,
+    // causing the PS signature to no longer match the VS output signature.
+    //
+    // This function is a Stride-specific addition to the Mesa fork. Expected signature:
+    //   bool spirv_to_dxil_pipeline(
+    //     const SpirvStageInput* stages,
+    //     int stage_count,
+    //     ValidatorVersion validator_version_max,
+    //     RuntimeConf* conf,
+    //     DXILSpirvLogger* logger,
+    //     DXILSpirvObject* outputs  // array of size stage_count
+    //   );
+    [LibraryImport("spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf8, SetLastError = true)]
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static unsafe partial bool spirv_to_dxil_pipeline(
+        SpirvStageInput* stages,
+        int stage_count,
+        ValidatorVersion validator_version_max,
+        ref RuntimeConf conf,
+        ref DXILSpirvLogger logger,
+        DXILSpirvObject* outputs
+    );
+}
+
+/// <summary>
+/// Input descriptor for a single shader stage in a linked pipeline compile.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct SpirvStageInput
+{
+    public uint* words;
+    public nint word_count;
+    public ShaderStage stage;
+    /// <summary>UTF-8 null-terminated entry point name.</summary>
+    public byte* entry_point_name;
 }

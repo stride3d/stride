@@ -23,6 +23,7 @@ using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Processing.Interfaces;
 using Stride.Shaders.Spirv.Tools;
 using Encoding = System.Text.Encoding;
 using LoggerResult = Stride.Core.Diagnostics.LoggerResult;
@@ -286,44 +287,7 @@ namespace Stride.Shaders.Compiler
                 {
                     // Check API
                     Spv2DXIL.spirv_to_dxil_get_version();
-                    foreach (var entryPoint in entryPoints)
-                    {
-                        unsafe
-                        {
-                            fixed (byte* shaderData = spirvBytecode)
-                            {
-                                var debugOptions = new DebugOptions();
-                                var runtimeConf = new RuntimeConf
-                                {
-                                    runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
-                                    //first_vertex_and_base_instance_mode = SysvalType.Zero,
-                                    yzflip_mode = FlipMode.YZFlipNone,
-                                    shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
-                                };
-                                var logger = new DXILSpirvLogger();
-                                var result = Spv2DXIL.spirv_to_dxil((uint*)shaderData, spirvBytecode.Length / 4,
-                                    null, 0,
-                                    entryPoint.Stage switch
-                                    {
-                                        ShaderStage.Vertex => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_VERTEX,
-                                        ShaderStage.Hull => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
-                                        ShaderStage.Domain => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
-                                        ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
-                                        ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
-                                        ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
-                                        _ => throw new NotSupportedException($"Unsupported shader stage: {entryPoint.Stage}"),
-                                    },
-                                    entryPoint.Name,
-                                    ValidatorVersion.DXIL_VALIDATOR_1_4,
-                                    ref debugOptions, ref runtimeConf, ref logger, out var dxil);
-
-                                Span<byte> dxilSpan = new(dxil.buffer, (int)dxil.size);
-                                fixed (byte* dxilSpanPtr = dxilSpan)
-                                    DxilHash.ComputeHashRetail(&dxilSpanPtr[20], (uint)(dxilSpan.Length - 20), &dxilSpanPtr[4]);
-                                shaderStageBytecodes.Add(new ShaderBytecode(entryPoint.Stage, ObjectId.FromBytes(dxilSpan), dxilSpan.ToArray()));
-                            }
-                        }
-                    }
+                    CompileDxilPipeline(spirvBytecode, entryPoints, shaderStageBytecodes);
                 }
                 else
                 {
@@ -550,6 +514,80 @@ namespace Stride.Shaders.Compiler
         /// <summary>
         /// Writes .spv and .spvdis files. Caller must hold WriterLock.
         /// </summary>
+        /// <summary>
+        /// Compile SPIR-V to DXIL for all stages in a single linked call. Needed so spirv_to_dxil
+        /// can match PS inputs to VS outputs correctly when some varyings are unused.
+        /// </summary>
+        private static unsafe void CompileDxilPipeline(ReadOnlySpan<byte> spirvBytecode, List<InterfaceProcessor.EntryPointInfo> entryPoints, List<ShaderBytecode> shaderStageBytecodes)
+        {
+            var runtimeConf = new RuntimeConf
+            {
+                runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
+                yzflip_mode = FlipMode.YZFlipNone,
+                shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
+            };
+            var logger = new DXILSpirvLogger();
+
+            // Allocate native buffers for entry point names (UTF-8 null-terminated)
+            var entryPointNameBuffers = new byte[entryPoints.Count][];
+            for (int i = 0; i < entryPoints.Count; i++)
+            {
+                var name = entryPoints[i].Name;
+                var bytes = new byte[Encoding.UTF8.GetByteCount(name) + 1];
+                Encoding.UTF8.GetBytes(name, bytes);
+                entryPointNameBuffers[i] = bytes;
+            }
+
+            var stages = stackalloc SpirvStageInput[entryPoints.Count];
+            var outputs = stackalloc DXILSpirvObject[entryPoints.Count];
+
+            fixed (byte* shaderData = spirvBytecode)
+            {
+                // Pin entry point name buffers
+                var nameHandles = new System.Runtime.InteropServices.GCHandle[entryPoints.Count];
+                try
+                {
+                    for (int i = 0; i < entryPoints.Count; i++)
+                    {
+                        nameHandles[i] = System.Runtime.InteropServices.GCHandle.Alloc(entryPointNameBuffers[i], System.Runtime.InteropServices.GCHandleType.Pinned);
+                        stages[i] = new SpirvStageInput
+                        {
+                            words = (uint*)shaderData,
+                            word_count = spirvBytecode.Length / 4,
+                            stage = entryPoints[i].Stage switch
+                            {
+                                ShaderStage.Vertex => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_VERTEX,
+                                ShaderStage.Hull => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
+                                ShaderStage.Domain => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_EVAL,
+                                ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
+                                ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
+                                ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
+                                _ => throw new NotSupportedException($"Unsupported shader stage: {entryPoints[i].Stage}"),
+                            },
+                            entry_point_name = (byte*)nameHandles[i].AddrOfPinnedObject(),
+                        };
+                    }
+
+                    if (!Spv2DXIL.spirv_to_dxil_pipeline(stages, entryPoints.Count, ValidatorVersion.DXIL_VALIDATOR_1_4, ref runtimeConf, ref logger, outputs))
+                        throw new InvalidOperationException("spirv_to_dxil_pipeline failed");
+
+                    for (int i = 0; i < entryPoints.Count; i++)
+                    {
+                        var dxil = outputs[i];
+                        Span<byte> dxilSpan = new(dxil.buffer, (int)dxil.size);
+                        fixed (byte* dxilSpanPtr = dxilSpan)
+                            DxilHash.ComputeHashRetail(&dxilSpanPtr[20], (uint)(dxilSpan.Length - 20), &dxilSpanPtr[4]);
+                        shaderStageBytecodes.Add(new ShaderBytecode(entryPoints[i].Stage, ObjectId.FromBytes(dxilSpan), dxilSpan.ToArray()));
+                    }
+                }
+                finally
+                {
+                    for (int i = 0; i < entryPoints.Count; i++)
+                        if (nameHandles[i].IsAllocated) nameHandles[i].Free();
+                }
+            }
+        }
+
         private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode)
         {
             var baseFilename = Path.Combine(effectDir, hashName);
