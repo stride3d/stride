@@ -60,7 +60,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         var lazy = compilingShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(() =>
         {
             // Double-check cache (another thread may have finished between our check and this factory)
-            if (Cache.TryLoadFromCache(name, null, macrosArray, out var buf, out var h))
+            if (Cache.TryLoadFromCache(name, null, macrosArray, out var buf, out var h) && ValidateCachedHashes(buf))
                 return (buf, h);
 
             if (!ExternalFileExists(name))
