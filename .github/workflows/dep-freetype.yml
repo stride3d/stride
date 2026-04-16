@@ -227,7 +227,7 @@ jobs:
     needs: [build-windows, build-linux, build-macos, build-android, build-ios]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout (for version info)
+      - name: Checkout FreeType (for version info)
         uses: actions/checkout@v4
         with:
           repository: freetype/freetype
@@ -262,9 +262,12 @@ jobs:
 
           # Version info
           COMMIT=$(git -C freetype-src rev-parse HEAD)
-          printf 'FreeType %s\nRepository: https://github.com/freetype/freetype\nCommit: %s\nBuilt: %s\nWorkflow: %s\n' \
+          URL=$(git -C freetype-src config --get remote.origin.url)
+          printf 'FreeType %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.freetype-version }}" \
+            "$URL" \
             "$COMMIT" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
