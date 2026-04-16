@@ -8,5 +8,6 @@
     <StrideRuntime>false</StrideRuntime>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideCodeAnalysis>false</StrideCodeAnalysis>
+    <ApplicationIcon>wwwroot\favicon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

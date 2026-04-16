@@ -33,7 +33,10 @@ async function init() {
   const platforms = [...allPlatforms].sort();
   const sel = document.getElementById('platformSelect');
   sel.innerHTML = platforms.map(p => `<option value="${p}">${p}</option>`).join('');
-  currentPlatform = platforms[0] || '';
+  // Use platform from restoreState() if valid, otherwise default to first
+  if (!currentPlatform || !platforms.includes(currentPlatform))
+    currentPlatform = platforms[0] || '';
+  sel.value = currentPlatform;
   sel.onchange = onPlatformChange;
 
   document.getElementById('statusFilter').onchange = () => render();
@@ -147,6 +150,7 @@ function render() {
   renderSourceTags();
   renderPromoteSourceSelect();
   renderTable();
+  updateActionCounts();
 }
 
 function renderSourceTags() {
@@ -232,7 +236,8 @@ function renderTable() {
       });
     }
 
-    const failCount = images.filter(i => i.status === 'fail' || i.status === 'new' || i.status === 'pending').length;
+    const failCount = images.filter(i => i.status === 'fail' || i.status === 'new').length;
+    const pendingCount = images.filter(i => i.status === 'pending').length;
     const isCollapsed = collapsedSuites.has(suite);
     const shortSuite = suite.replace('Stride.', '').replace('.Tests', '').replace('.Regression', '');
 
@@ -250,7 +255,7 @@ function renderTable() {
         <span class="suite-toggle">${isCollapsed ? '▶' : '▼'}</span>
         <strong>${esc(shortSuite)}</strong>
         <span class="suite-badge">${images.length} tests</span>
-        ${failCount > 0 ? `<span class="suite-badge fail">${failCount} failing</span>` : ''}
+        <span class="suite-badge fail" data-suite-fail="${esc(suite)}" ${failCount > 0 ? '' : 'style="display:none"'}>${failCount} failing</span><span class="suite-badge pending" data-suite-pending="${esc(suite)}" ${pendingCount > 0 ? '' : 'style="display:none"'}>${pendingCount} pending</span>
       </td>`;
     suiteTr.onclick = () => { toggleSuite(suite); };
     tbody.appendChild(suiteTr);
@@ -263,60 +268,11 @@ function renderTable() {
       totalVisible++;
       const key = `${img.suite}:${img.name}`;
       const isExp = expanded.has(key);
-      const isLoading = loading.has(key);
-      const isSel = selected.has(key);
 
       const tr = document.createElement('tr');
       tr.className = `row ${isExp ? 'expanded' : ''}`;
       tr.dataset.kbKey = key;
-      // Gold thumbnail
-      let goldThumb = '';
-      if (img.hasGold && sources.length > 0) {
-        const thumbUrl = `/api/gold/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
-        goldThumb = `<div class="thumb-row"><img class="thumb" src="${thumbUrl}"></div>`;
-      }
-
-      let cells = `
-        <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
-        <td style="padding-left:24px">${isExp ? '▼' : '▶'} ${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}</td>
-        <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
-
-      const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
-      for (const src of sources) {
-        const has = img.sourcesWithImage[src.id];
-        const isActive = activeRef === `src:${src.id}`;
-        const statsKey = `${src.id}:${img.suite}:${img.name}`;
-        const stats = cellStats[statsKey];
-        let cellHtml;
-        if (!has) {
-          cellHtml = '<span class="cell miss">—</span>';
-        } else if (!img.hasGold) {
-          cellHtml = '<span class="cell new">○ new</span>';
-        } else if (stats) {
-          const result = checkCellThreshold(img.suite, img.name, stats);
-          const cls = result.passed ? 'pass' : 'fail';
-          const brief = formatThresholdBrief(result);
-          cellHtml = `<span class="cell ${cls}">${cls === 'pass' ? '✓' : '✗'} ${brief}</span>`;
-        } else {
-          cellHtml = `<span class="cell" data-stats-key="${esc(statsKey)}" style="color:#666">...</span>`;
-          computeCellStats(src.id, img.suite, img.name);
-        }
-        // Show source thumbnail + diff canvas for failing/new items
-        if (has) {
-          const thumbSrc = `/api/source/${src.id}/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
-          if (img.hasGold) {
-            const thumbId = `thumb-${css(src.id)}-${css(key)}`;
-            cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"><canvas class="thumb" id="${thumbId}"></canvas></div>`;
-            // Queue thumbnail diff computation
-            requestAnimationFrame(() => computeThumbDiff(img.suite, img.name, src.id, thumbId));
-          } else {
-            cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"></div>`;
-          }
-        }
-        cells += `<td onclick="event.stopPropagation(); setActiveSource('${esc(key)}','${src.id}')"${isActive ? ' class="active-source"' : ''}>${cellHtml}</td>`;
-      }
-
-      tr.innerHTML = cells;
+      tr.innerHTML = buildRowCells(img, key);
       tr.onmousedown = (e) => { tr._clickX = e.clientX; tr._clickY = e.clientY; };
       tr.onclick = (e) => {
         if (Math.abs(e.clientX - tr._clickX) > 3 || Math.abs(e.clientY - tr._clickY) > 3) return;
@@ -339,6 +295,97 @@ function renderTable() {
   }
   document.getElementById('emptyMsg').style.display = totalVisible === 0 ? 'block' : 'none';
   updateSelectedCount();
+}
+
+function buildRowCells(img, key) {
+  const isExp = expanded.has(key);
+  const isLoading = loading.has(key);
+  const isSel = selected.has(key);
+
+  let goldThumb = '';
+  if (img.hasGold && sources.length > 0) {
+    const thumbUrl = `/api/gold/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
+    goldThumb = `<div class="thumb-row"><img class="thumb" src="${thumbUrl}"></div>`;
+  }
+
+  let cells = `
+    <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
+    <td style="padding-left:24px">${isExp ? '▼' : '▶'} ${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
+    <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
+
+  const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
+  for (const src of sources) {
+    const has = img.sourcesWithImage[src.id];
+    const isActive = activeRef === `src:${src.id}`;
+    const statsKey = `${src.id}:${img.suite}:${img.name}`;
+    const stats = cellStats[statsKey];
+    let cellHtml;
+    if (!has) {
+      cellHtml = '<span class="cell miss">—</span>';
+    } else if (!img.hasGold) {
+      cellHtml = '<span class="cell new">○ new</span>';
+    } else if (stats) {
+      const result = checkCellThreshold(img.suite, img.name, stats);
+      const cls = result.passed ? 'pass' : 'fail';
+      const brief = formatThresholdBrief(result);
+      cellHtml = `<span class="cell ${cls}">${cls === 'pass' ? '✓' : '✗'} ${brief}</span>`;
+    } else {
+      cellHtml = `<span class="cell" data-stats-key="${esc(statsKey)}" style="color:#666">...</span>`;
+      computeCellStats(src.id, img.suite, img.name);
+    }
+    if (has) {
+      const thumbSrc = `/api/source/${src.id}/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
+      if (img.hasGold) {
+        const thumbId = `thumb-${css(src.id)}-${css(key)}`;
+        cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"><canvas class="thumb" id="${thumbId}"></canvas></div>`;
+        requestAnimationFrame(() => computeThumbDiff(img.suite, img.name, src.id, thumbId));
+      } else {
+        cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"></div>`;
+      }
+    }
+    cells += `<td onclick="event.stopPropagation(); setActiveSource('${esc(key)}','${src.id}')"${isActive ? ' class="active-source"' : ''}>${cellHtml}</td>`;
+  }
+  return cells;
+}
+
+function renderRow(key) {
+  const suite = key.substring(0, key.indexOf(':'));
+  const data = suiteData[suite];
+  if (!data) return;
+  const images = buildSuiteImages(suite);
+  const img = images.find(i => `${i.suite}:${i.name}` === key);
+  if (!img) return;
+
+  const existingTr = document.querySelector(`tr.row[data-kb-key="${CSS.escape(key)}"]`);
+  if (!existingTr) return;
+
+  const isExp = expanded.has(key);
+  existingTr.className = `row ${isExp ? 'expanded' : ''}`;
+  existingTr.innerHTML = buildRowCells(img, key);
+  existingTr.onmousedown = (e) => { existingTr._clickX = e.clientX; existingTr._clickY = e.clientY; };
+  existingTr.onclick = (e) => {
+    if (Math.abs(e.clientX - existingTr._clickX) > 3 || Math.abs(e.clientY - existingTr._clickY) > 3) return;
+    toggleExpand(key);
+  };
+
+  // Handle detail row
+  const nextTr = existingTr.nextElementSibling;
+  const hasDetailRow = nextTr && !nextTr.classList.contains('row') && !nextTr.classList.contains('suite-row');
+  if (isExp && !hasDetailRow) {
+    const detailTr = document.createElement('tr');
+    const colspan = 3 + sources.length;
+    detailTr.innerHTML = `<td></td><td colspan="${colspan - 1}">
+      <div class="detail" id="detail-${css(key)}">
+        <div id="images-${css(key)}">Loading...</div>
+      </div>
+    </td>`;
+    existingTr.after(detailTr);
+    loadDetail(img.suite, img.name);
+  } else if (!isExp && hasDetailRow) {
+    nextTr.remove();
+  }
+  updateSelectedCount();
+  saveState();
 }
 
 function toggleSuite(suite) {
@@ -432,14 +479,14 @@ async function loadDetail(suite, name) {
     loading.delete(key);
     expanded.add(key);
     preloaded[key] = { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img };
-    render(); // re-render creates the container, loadDetail re-enters and uses preloaded
+    renderRow(key); // re-render this row creates the container, loadDetail re-enters and uses preloaded
     return;
   }
 
   fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img });
 }
 
-function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img }) {
+async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img }) {
   detailVersion[key] = ver;
   const container = document.getElementById(`images-${id}`);
   if (!container) return;
@@ -497,16 +544,39 @@ function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatform
       const otherRef = sel === leftSel ? rightRef : leftRef;
       const otherImgForStats = sel === leftSel ? rightImg : leftImg;
       if (!otherImgForStats) continue;
-      for (const opt of sel.options) {
-        if (!opt.value.startsWith('gold:')) continue;
+      const goldOpts = [...sel.options].filter(o => o.value.startsWith('gold:'));
+      // Compute diffs for all gold options, then auto-select best passing one
+      const optResults = [];
+      await Promise.all(goldOpts.map(async (opt) => {
         const plat = opt.value.slice(5);
-        loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`).then(gImg => {
+        try {
+          const gImg = await loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`);
           if (detailVersion[key] !== ver) return;
           const tmpCanvas = new OffscreenCanvas(gImg.width, gImg.height);
           const s = computeImageDiff(gImg, otherImgForStats, tmpCanvas);
-          opt.textContent = `${plat} (d=${s.maxDiff} px=${s.diffPixels})`;
-        }).catch(() => {});
+          const result = checkCellThreshold(suite, name, s);
+          const icon = result.passed ? '\u2713' : '\u2717';
+          opt.textContent = `${icon} ${plat} (d=${s.maxDiff} px=${s.diffPixels})`;
+          opt.dataset.passed = result.passed ? '1' : '0';
+          opt.style.color = result.passed ? '#4caf50' : '#f44336';
+          optResults.push({ opt, result, diffPixels: s.diffPixels });
+        } catch {}
+      }));
+      // If currently selected gold fails, auto-switch to best passing one
+      const selOpt = sel.options[sel.selectedIndex];
+      if (selOpt?.dataset.passed === '0') {
+        const passing = optResults.filter(r => r.result.passed).sort((a, b) => a.diffPixels - b.diffPixels);
+        if (passing.length > 0) {
+          passing[0].opt.selected = true;
+          sel.dispatchEvent(new Event('change'));
+        }
       }
+      const updateSelColor = () => {
+        const so = sel.options[sel.selectedIndex];
+        sel.style.color = so?.style.color || '';
+      };
+      updateSelColor();
+      sel.addEventListener('change', updateSelColor);
     }
   }
 }
@@ -514,6 +584,8 @@ function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatform
 // === Background cell stats ===
 const statsQueue = new Set();
 let statsRunning = false;
+// Maps "suite:name" → { platform, goldFallback } when a failing image has a passing alternate gold
+const fixableVia = {};
 
 function computeCellStats(srcId, suite, name) {
   const key = `${srcId}:${suite}:${name}`;
@@ -524,33 +596,51 @@ function computeCellStats(srcId, suite, name) {
 
 async function runStatsQueue() {
   statsRunning = true;
+  const BATCH = 8;
   while (statsQueue.size > 0) {
-    const key = statsQueue.values().next().value;
-    statsQueue.delete(key);
-    const parts = key.split(':');
-    const srcId = parts[0];
-    const suite = parts[1];
-    const name = parts.slice(2).join(':');
-
-    try {
-    
-      const goldUrl = `/api/gold/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
-      const srcUrl = `/api/source/${srcId}/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
-
-      const [goldImg, srcImg] = await Promise.all([loadImage(goldUrl), loadImage(srcUrl)]);
-      const canvas = new OffscreenCanvas(goldImg.width, goldImg.height);
-      const stats = computeImageDiff(goldImg, srcImg, canvas);
-      cellStats[key] = stats;
-      // Update just the cell inline instead of re-rendering everything
-      updateCellInline(key, stats);
-    } catch (e) {
-      // Skip failed comparisons
+    const batch = [];
+    for (const key of statsQueue) {
+      batch.push(key);
+      if (batch.length >= BATCH) break;
     }
-    await new Promise(r => setTimeout(r, 10));
+    batch.forEach(k => statsQueue.delete(k));
+
+    await Promise.all(batch.map(async (key) => {
+      const parts = key.split(':');
+      const srcId = parts[0];
+      const suite = parts[1];
+      const name = parts.slice(2).join(':');
+      try {
+        const goldUrl = `/api/gold/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
+        const srcUrl = `/api/source/${srcId}/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
+        const [goldImg, srcImg] = await Promise.all([loadImg(goldUrl), loadImg(srcUrl)]);
+        const canvas = new OffscreenCanvas(goldImg.width, goldImg.height);
+        const stats = computeImageDiff(goldImg, srcImg, canvas);
+        cellStats[key] = stats;
+        updateCellInline(key, stats);
+        // If failing, check fixable inline before updating row tag
+        const result = checkCellThreshold(suite, name, stats);
+        if (!result.passed) {
+          const fixKey = `${suite}:${name}`;
+          await checkFixableVia(suite, name, srcImg, fixKey);
+          // Now set the row tag with final status
+          const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(fixKey)}"]`);
+          if (tagEl) {
+            tagEl.innerHTML = fixableVia[fixKey]
+              ? '<span class="tag-fail">failing (fixable)</span>'
+              : '<span class="tag-fail">failing</span>';
+          }
+          scheduleCountUpdate();
+        }
+      } catch (e) {
+        // Skip failed comparisons
+      }
+    }));
   }
   statsRunning = false;
-  // Re-render to update suite badges and filter counts now that all stats are available
-  render();
+  // Final count/badge update (no full render — everything was updated inline)
+  updateActionCounts();
+  updateSuiteBadges();
 }
 
 function checkCellThreshold(suite, name, stats) {
@@ -578,7 +668,63 @@ function updateCellInline(key, stats) {
   el.removeAttribute('style');
   el.removeAttribute('data-stats-key');
   const brief = formatThresholdBrief(result);
-  el.textContent = `${cls === 'pass' ? '✓' : '✗'} ${brief}`;
+  el.innerHTML = `${cls === 'pass' ? '✓' : '✗'} ${brief}`;
+  // Update the row tag once all sources for this image are resolved
+  const rowKey = `${suite}:${name}`;
+  const data = suiteData[suite];
+  if (data) {
+    let allResolved = true, anyFail = false;
+    for (const src of sources) {
+      if (!(data.sourceImages[src.id] || []).some(s => s.name === name)) continue;
+      const s = cellStats[`${src.id}:${suite}:${name}`];
+      if (!s) { allResolved = false; break; }
+      if (!checkCellThreshold(suite, name, s).passed) anyFail = true;
+    }
+    if (allResolved && !anyFail) {
+      const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(rowKey)}"]`);
+      if (tagEl) tagEl.innerHTML = '';
+      // Hide row if it no longer matches the active filter
+      const filter = document.getElementById('statusFilter').value;
+      if (filter && filter !== 'pass') {
+        const tr = document.querySelector(`tr.row[data-kb-key="${CSS.escape(rowKey)}"]`);
+        if (tr) {
+          tr.style.display = 'none';
+          // Also hide detail row if expanded
+          const next = tr.nextElementSibling;
+          if (next && !next.classList.contains('row') && !next.classList.contains('suite-row'))
+            next.style.display = 'none';
+        }
+      }
+      scheduleCountUpdate();
+    }
+  }
+}
+
+async function checkFixableVia(suite, name, srcImg, fixKey) {
+  if (fixableVia[fixKey]) return; // already checked
+  try {
+    const platforms = await fetch(`/api/gold/all?suite=${enc(suite)}&name=${enc(name)}`).then(r => r.json());
+    for (const p of platforms) {
+      if (p.platform === currentPlatform) continue;
+      try {
+        const gImg = await loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(p.platform)}&name=${enc(name)}`);
+        const canvas = new OffscreenCanvas(gImg.width, gImg.height);
+        const s = computeImageDiff(gImg, srcImg, canvas);
+        const r = checkCellThreshold(suite, name, s);
+        if (r.passed) {
+          const device = p.platform.split('/')[1] || p.platform;
+          fixableVia[fixKey] = { platform: p.platform, goldFallback: currentPlatform };
+          if (cellEl) {
+            cellEl.innerHTML += ` <span style="color:#4caf50;font-size:11px">(\u2713 ${esc(device)})</span>`;
+          }
+          const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(fixKey)}"]`);
+          if (tagEl) tagEl.innerHTML = '<span class="tag-fail">failing (fixable)</span>';
+          scheduleCountUpdate();
+          return;
+        }
+      } catch {}
+    }
+  } catch {}
 }
 
 async function computeThumbDiff(suite, name, srcId, canvasId) {
@@ -586,7 +732,7 @@ async function computeThumbDiff(suite, name, srcId, canvasId) {
   
     const goldUrl = `/api/gold/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
     const srcUrl = `/api/source/${srcId}/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
-    const [goldImg, srcImg] = await Promise.all([loadImage(goldUrl), loadImage(srcUrl)]);
+    const [goldImg, srcImg] = await Promise.all([loadImg(goldUrl), loadImg(srcUrl)]);
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const stats = computeImageDiff(goldImg, srcImg, canvas);
@@ -595,32 +741,23 @@ async function computeThumbDiff(suite, name, srcId, canvasId) {
   } catch { }
 }
 
-function loadImage(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
-}
 
 // === Actions ===
 function toggleExpand(key) {
-  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); render(); }
-  else if (loading.has(key)) { loading.delete(key); render(); }
+  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); renderRow(key); }
+  else if (loading.has(key)) { loading.delete(key); renderRow(key); }
   else startExpand(key);
 }
 
 function expandWith(key, srcId) {
-  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); render(); }
-  else if (loading.has(key)) { loading.delete(key); render(); }
+  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); renderRow(key); }
+  else if (loading.has(key)) { loading.delete(key); renderRow(key); }
   else { compareRight[key] = `src:${srcId}`; startExpand(key); }
 }
 
 function startExpand(key) {
   loading.add(key);
-  render();
+  renderRow(key);
   const [suite, name] = [key.substring(0, key.indexOf(':')), key.substring(key.indexOf(':') + 1)];
   loadDetail(suite, name);
 }
@@ -665,22 +802,26 @@ function switchDetailSide(key, side, value) {
 function toggleSelect(name) {
   if (selected.has(name)) selected.delete(name);
   else selected.add(name);
-  render();
+  updateSelectedCount();
+  saveState();
 }
 
 function toggleSelectSuite(suite, checked) {
   const filter = document.getElementById('statusFilter').value;
   let images = buildSuiteImages(suite);
-  if (filter) images = images.filter(i => i.status === filter);
+  if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
   images.forEach(i => {
     const key = `${i.suite}:${i.name}`;
     if (checked) selected.add(key); else selected.delete(key);
   });
-  render();
+  syncCheckboxes();
+  updateSelectedCount();
+  saveState();
 }
 
 function toggleSelectAll() {
-  const checked = document.getElementById('selectAll').checked;
+  const cb = document.getElementById('selectAll');
+  const checked = cb.checked;
   const filter = document.getElementById('statusFilter').value;
   for (const suite of Object.keys(suiteData)) {
     let images = buildSuiteImages(suite);
@@ -690,7 +831,9 @@ function toggleSelectAll() {
       if (checked) selected.add(key); else selected.delete(key);
     });
   }
-  render();
+  syncCheckboxes();
+  updateSelectedCount();
+  saveState();
 }
 
 function getMaxDiffForImage(img) {
@@ -702,11 +845,63 @@ function getMaxDiffForImage(img) {
 }
 
 function selectAllFailing() {
+  selected.clear();
   for (const suite of Object.keys(suiteData)) {
     const images = buildSuiteImages(suite);
     images.filter(i => i.status === 'fail' || i.status === 'new').forEach(i => selected.add(`${i.suite}:${i.name}`));
   }
-  render();
+  syncCheckboxes();
+  updateSelectedCount();
+  saveState();
+}
+
+function selectFixable() {
+  selected.clear();
+  for (const suite of Object.keys(suiteData)) {
+    const images = buildSuiteImages(suite);
+    images.filter(i => i.status === 'fail').forEach(i => {
+      const fixKey = `${i.suite}:${i.name}`;
+      if (fixableVia[fixKey]) selected.add(fixKey);
+    });
+  }
+  syncCheckboxes();
+  updateSelectedCount();
+  saveState();
+}
+
+async function deleteSelectedGold() {
+  if (selected.size === 0) return alert('No images selected.');
+  // Group fixable images by the platform whose gold should be deleted
+  const toDelete = {};
+  for (const key of selected) {
+    const fix = fixableVia[key];
+    if (!fix) continue;
+    const [suite, ...nameParts] = key.split(':');
+    const name = nameParts.join(':');
+    // Delete the gold for the current platform (the failing one)
+    const k = `${suite}|${fix.goldFallback}`;
+    if (!toDelete[k]) toDelete[k] = { suite, platform: fix.goldFallback, names: [] };
+    toDelete[k].names.push(name);
+  }
+  const entries = Object.values(toDelete);
+  if (entries.length === 0) return alert('No fixable images selected. Select images that show a green checkmark hint.');
+  const total = entries.reduce((s, e) => s + e.names.length, 0);
+  if (!confirm(`Delete ${total} device-specific gold image(s)? They will fall back to a passing alternate.`)) return;
+  let totalDeleted = 0;
+  for (const entry of entries) {
+    const res = await fetch('/api/gold/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ suite: entry.suite, platform: entry.platform, names: entry.names })
+    });
+    const result = await res.json();
+    totalDeleted += result.deleted;
+  }
+  alert(`Deleted ${totalDeleted} gold image(s).`);
+  selected.clear();
+  cellStats = {};
+  Object.keys(fixableVia).forEach(k => delete fixableVia[k]);
+  await reload();
 }
 
 function expandAllFailing() {
@@ -769,8 +964,67 @@ async function promoteSelected() {
   await reload();
 }
 
+function syncCheckboxes() {
+  // Sync individual row checkboxes
+  document.querySelectorAll('tr.row[data-kb-key]').forEach(tr => {
+    const key = tr.dataset.kbKey;
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = selected.has(key);
+  });
+  // Sync suite-level checkboxes
+  document.querySelectorAll('tr.suite-row[data-kb-key]').forEach(tr => {
+    const suite = tr.dataset.kbKey;
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (!cb) return;
+    const images = buildSuiteImages(suite);
+    const filter = document.getElementById('statusFilter').value;
+    const filtered = filter ? images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending')) : images;
+    const keys = filtered.map(i => `${i.suite}:${i.name}`);
+    const allSel = keys.length > 0 && keys.every(k => selected.has(k));
+    const someSel = !allSel && keys.some(k => selected.has(k));
+    cb.checked = allSel;
+    cb.indeterminate = someSel;
+  });
+}
+
 function updateSelectedCount() {
   document.getElementById('selectedCount').textContent = selected.size;
+  document.getElementById('selectedCount2').textContent = selected.size;
+}
+
+let _countUpdateTimer = null;
+function scheduleCountUpdate() {
+  if (_countUpdateTimer) return;
+  _countUpdateTimer = setTimeout(() => {
+    _countUpdateTimer = null;
+    updateActionCounts();
+    updateSuiteBadges();
+  }, 300);
+}
+
+function updateSuiteBadges() {
+  for (const suite of Object.keys(suiteData)) {
+    const images = buildSuiteImages(suite);
+    const failCount = images.filter(i => i.status === 'fail' || i.status === 'new').length;
+    const pendingCount = images.filter(i => i.status === 'pending').length;
+    const failEl = document.querySelector(`[data-suite-fail="${CSS.escape(suite)}"]`);
+    const pendEl = document.querySelector(`[data-suite-pending="${CSS.escape(suite)}"]`);
+    if (failEl) { failEl.textContent = `${failCount} failing`; failEl.style.display = failCount > 0 ? '' : 'none'; }
+    if (pendEl) { pendEl.textContent = `${pendingCount} pending`; pendEl.style.display = pendingCount > 0 ? '' : 'none'; }
+  }
+}
+
+function updateActionCounts() {
+  let failCount = 0, fixableCount = 0;
+  for (const suite of Object.keys(suiteData)) {
+    const images = buildSuiteImages(suite);
+    for (const i of images) {
+      if (i.status === 'fail' || i.status === 'new') failCount++;
+      if (i.status === 'fail' && fixableVia[`${i.suite}:${i.name}`]) fixableCount++;
+    }
+  }
+  document.getElementById('failingCount').textContent = failCount;
+  document.getElementById('fixableCount').textContent = fixableCount;
 }
 
 // === Utils ===
@@ -779,17 +1033,35 @@ function isSoftwareRenderer(platform) {
   return p.includes('swiftshader') || p.includes('warp');
 }
 
+function getGfxApi(platform) {
+  // "Windows.Direct3D11/WARP" → "Direct3D11", "Linux.Vulkan/SwiftShader" → "Vulkan"
+  const platApi = platform.split('/')[0];
+  const dot = platApi.indexOf('.');
+  return dot >= 0 ? platApi.substring(dot + 1) : platApi;
+}
+
 function pickBestGoldPlatform(platforms, currentPlatform) {
   if (!platforms || platforms.length === 0) return currentPlatform;
   // Exact match
   const exact = platforms.find(p => p.platform === currentPlatform);
   if (exact) return exact.platform;
-  // Same class (software/hardware)
+  // Score each candidate: same graphics API > same renderer class > any
+  const currentPlatApi = currentPlatform.split('/')[0];
+  const currentGfx = getGfxApi(currentPlatform);
   const currentIsSw = isSoftwareRenderer(currentPlatform);
-  const sameClass = platforms.find(p => isSoftwareRenderer(p.platform) === currentIsSw);
-  if (sameClass) return sameClass.platform;
-  // Any
-  return platforms[0].platform;
+  let best = null, bestScore = -1;
+  for (const p of platforms) {
+    const gfx = getGfxApi(p.platform);
+    const sw = isSoftwareRenderer(p.platform);
+    // If source is SW, skip HW gold
+    if (currentIsSw && !sw) continue;
+    let score = 0;
+    if (p.platform.split('/')[0] === currentPlatApi) score += 4; // same OS + API
+    if (gfx === currentGfx) score += 2; // same graphics API (cross-OS)
+    if (sw === currentIsSw) score += 1; // same renderer class
+    if (score > bestScore) { bestScore = score; best = p.platform; }
+  }
+  return best || platforms[0].platform;
 }
 
 function enc(s) { return encodeURIComponent(s); }

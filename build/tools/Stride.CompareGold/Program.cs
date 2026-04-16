@@ -2,15 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 
-// Kill any existing CompareGold process (from any Stride checkout) to free the port
-foreach (var proc in Process.GetProcessesByName("Stride.CompareGold"))
-{
-    if (proc.Id != Environment.ProcessId)
-    {
-        try { proc.Kill(); proc.WaitForExit(3000); } catch { }
-    }
-}
-
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5555");
 builder.Services.AddSingleton<SourceManager>();
@@ -115,8 +106,9 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
     var primarySet = new HashSet<string>(primary);
 
     // Find fallback gold from other platforms (matching test framework behavior)
-    // Prefer: same API + same renderer class > same API > same class > any
+    // Prefer: same OS+API + same renderer class > same gfx API > same class > any
     var requestedApi = parts[0];
+    var requestedGfx = GetGfxApi(requestedApi);
     var requestedIsSw = IsSoftwareRenderer(parts[1]);
     var fallbackBest = new Dictionary<string, (string platform, int score)>();
     var suiteDir = Path.Combine(testsDir, suite);
@@ -131,9 +123,12 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
                 var device = Path.GetFileName(dDir);
                 var fallbackPlatform = $"{pName}/{device}";
                 if (fallbackPlatform == platform) continue;
+                var candidateIsSw = IsSoftwareRenderer(device);
+                if (requestedIsSw && !candidateIsSw) continue;
                 int score = 0;
-                if (pName == requestedApi) score += 2;
-                if (IsSoftwareRenderer(device) == requestedIsSw) score += 1;
+                if (pName == requestedApi) score += 4;
+                if (GetGfxApi(pName) == requestedGfx) score += 2;
+                if (candidateIsSw == requestedIsSw) score += 1;
                 foreach (var f in Directory.GetFiles(dDir, "*.png"))
                 {
                     var name = Path.GetFileName(f);
@@ -167,6 +162,7 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
     {
         var requestedIsSw = IsSoftwareRenderer(parts[1]);
         var requestedApi = parts[0]; // e.g. "Windows.Direct3D11"
+        var requestedGfx = GetGfxApi(requestedApi); // e.g. "Direct3D11"
         string? bestPath = null;
         int bestScore = -1;
         foreach (var pDir in Directory.GetDirectories(suiteDir))
@@ -178,9 +174,13 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
                 var candidate = Path.Combine(dDir, name);
                 if (!File.Exists(candidate)) continue;
                 var device = Path.GetFileName(dDir);
+                var candidateIsSw = IsSoftwareRenderer(device);
+                // If source is SW, require SW gold (skip HW); if HW, accept any
+                if (requestedIsSw && !candidateIsSw) continue;
                 int score = 0;
-                if (pName == requestedApi) score += 2; // same API
-                if (IsSoftwareRenderer(device) == requestedIsSw) score += 1; // same renderer class
+                if (pName == requestedApi) score += 4; // same OS + API
+                if (GetGfxApi(pName) == requestedGfx) score += 2; // same graphics API (cross-OS)
+                if (candidateIsSw == requestedIsSw) score += 1; // same renderer class
                 if (score > bestScore) { bestScore = score; bestPath = candidate; }
             }
         }
@@ -417,6 +417,30 @@ app.MapPost("/api/promote", async (HttpRequest request) =>
     return Results.Ok(new { Promoted = promoted, Details = details });
 });
 
+app.MapPost("/api/gold/delete", async (HttpRequest request) =>
+{
+    var body = await JsonSerializer.DeserializeAsync<DeleteGoldRequest>(request.Body);
+    if (body == null) return Results.BadRequest("Invalid body");
+
+    var parts = body.Platform.Split('/', 2);
+    if (parts.Length != 2) return Results.BadRequest("Invalid platform");
+
+    var goldDir = Path.Combine(testsDir, body.Suite, parts[0], parts[1]);
+    int deleted = 0;
+    foreach (var name in body.Names)
+    {
+        var file = Path.Combine(goldDir, name);
+        if (File.Exists(file))
+        {
+            File.Delete(file);
+            deleted++;
+            Console.WriteLine($"  Deleted: {file}");
+        }
+    }
+    Console.WriteLine($"Delete gold: {deleted}/{body.Names.Length} from {goldDir}");
+    return Results.Ok(new { Deleted = deleted });
+});
+
 app.Run();
 
 // === Helpers ===
@@ -458,6 +482,13 @@ static List<object> ListPngs(string dir)
 }
 
 
+static string GetGfxApi(string platformApi)
+{
+    // "Windows.Direct3D11" → "Direct3D11", "Linux.Vulkan" → "Vulkan"
+    var dot = platformApi.IndexOf('.');
+    return dot >= 0 ? platformApi[(dot + 1)..] : platformApi;
+}
+
 static bool IsSoftwareRenderer(string device)
 {
     var d = device.ToLowerInvariant();
@@ -495,6 +526,16 @@ record PromoteRequest
 {
     [System.Text.Json.Serialization.JsonPropertyName("sourceId")]
     public string SourceId { get; set; } = "";
+    [System.Text.Json.Serialization.JsonPropertyName("suite")]
+    public string Suite { get; set; } = "";
+    [System.Text.Json.Serialization.JsonPropertyName("platform")]
+    public string Platform { get; set; } = "";
+    [System.Text.Json.Serialization.JsonPropertyName("names")]
+    public string[] Names { get; set; } = [];
+}
+
+record DeleteGoldRequest
+{
     [System.Text.Json.Serialization.JsonPropertyName("suite")]
     public string Suite { get; set; } = "";
     [System.Text.Json.Serialization.JsonPropertyName("platform")]

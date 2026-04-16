@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="favicon.ico">
 <title>CompareGold — Stride Image Comparison</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -36,8 +37,10 @@
     <button class="secondary" onclick="addLocalSource()">+ Local</button>
     <button class="secondary" onclick="showCiModal()">+ CI Run...</button>
     <span style="color:#555">│</span>
-    <button class="secondary" onclick="selectAllFailing()">Select Failing</button>
+    <button class="secondary" onclick="selectAllFailing()">Select Failing (<span id="failingCount">0</span>)</button>
+    <button class="secondary" onclick="selectFixable()" title="Select images that fail current gold but pass with an alternate gold">Select Fixable (<span id="fixableCount">0</span>)</button>
     <button class="promote" onclick="promoteSelected()">Promote Selected (<span id="selectedCount">0</span>)</button>
+    <button class="promote" onclick="deleteSelectedGold()" style="background:#f44336">Delete Gold (<span id="selectedCount2">0</span>)</button>
     <label>from <select id="promoteSource"></select></label>
   </div>
 </div>

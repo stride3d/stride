@@ -49,6 +49,7 @@ tr.suite-row td { padding: 10px 12px; border-bottom: 2px solid #333; }
 .suite-toggle { margin-right: 6px; color: #888; }
 .suite-badge { font-size: 11px; color: #888; background: #2a2a4a; padding: 2px 8px; border-radius: 8px; margin-left: 8px; }
 .suite-badge.fail { color: #ef5350; background: #3a1a1a; }
+.suite-badge.pending { color: #888; background: #2a2a3a; }
 
 .cb { width: 24px; text-align: center; }
 .cb input { cursor: pointer; }
@@ -58,6 +59,9 @@ tr.suite-row td { padding: 10px 12px; border-bottom: 2px solid #333; }
 .cell.pass { color: #66bb6a; }
 .cell.fail { color: #ef5350; }
 .cell.new { color: #ffa726; }
+.tag-fail { font-size: 10px; background: #5a1a1a; color: #ef5350; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+.tag-new { font-size: 10px; background: #4a3a1a; color: #ffa726; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+.tag-pending { font-size: 10px; background: #2a2a3a; color: #888; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
 .cell.miss { color: #555; }
 .cell.ref { color: #888; }
 
