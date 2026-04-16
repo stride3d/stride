@@ -285,9 +285,18 @@ namespace Stride.Shaders.Compiler
                 // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
                 else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
                 {
-                    // Check API
-                    Spv2DXIL.spirv_to_dxil_get_version();
-                    CompileDxilPipeline(spirvBytecode, entryPoints, shaderStageBytecodes);
+#if STRIDE_PLATFORM_DESKTOP
+                    if (OperatingSystem.IsWindows())
+                    {
+                        // Check API
+                        Spv2DXIL.spirv_to_dxil_get_version();
+                        CompileDxilPipeline(spirvBytecode, entryPoints, shaderStageBytecodes);
+                    }
+                    else
+#endif
+                    {
+                        throw new NotImplementedException("D3D12 shader compilation is not supported on this platform");
+                    }
                 }
                 else
                 {
@@ -512,9 +521,6 @@ namespace Stride.Shaders.Compiler
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        /// Writes .spv and .spvdis files. Caller must hold WriterLock.
-        /// </summary>
-        /// <summary>
         /// Compile SPIR-V to DXIL for all stages in a single linked call. Needed so spirv_to_dxil
         /// can match PS inputs to VS outputs correctly when some varyings are unused.
         /// </summary>
@@ -588,6 +594,9 @@ namespace Stride.Shaders.Compiler
             }
         }
 
+        /// <summary>
+        /// Writes .spv and .spvdis files. Caller must hold WriterLock.
+        /// </summary>
         private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode)
         {
             var baseFilename = Path.Combine(effectDir, hashName);
