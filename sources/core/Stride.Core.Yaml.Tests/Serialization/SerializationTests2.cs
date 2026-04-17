@@ -53,6 +53,14 @@ namespace Stride.Core.Yaml.Tests.Serialization;
 
 public class SerializationTests2
 {
+    /// <summary>
+    /// Asserts string equality with normalized line endings.
+    /// Raw string literals bake in \r\n when compiled on Windows, but serializer output
+    /// uses Environment.NewLine which is \n on Linux.
+    /// </summary>
+    private static void AssertYamlEqual(string expected, string actual)
+        => Assert.Equal(expected.ReplaceLineEndings("\n"), actual.ReplaceLineEndings("\n"));
+
     public enum MyEnum
     {
         A,
@@ -72,7 +80,7 @@ public class SerializationTests2
         var serializer = new Serializer();
         var text = serializer.Serialize(new { List = new List<int>() { 1, 2, 3 }, Name = "Hello", Value = "World!" });
         Console.WriteLine(text);
-        Assert.Equal("""
+        AssertYamlEqual("""
             List:
               - 1
               - 2
@@ -133,7 +141,7 @@ public class SerializationTests2
         var value = (TestStructColor)serializer.Deserialize("Color: {R: 255, G: 255, B: 255, A: 255}", typeof(TestStructColor));
         Assert.Equal(new Color() { R = 255, G = 255, B = 255, A = 255 }, value.Color);
         var text = serializer.Serialize(value, typeof(TestStructColor));
-        Assert.Equal("""
+        AssertYamlEqual("""
             Color:
               R: 255
               G: 255
@@ -164,7 +172,7 @@ public class SerializationTests2
         var serializer = new Serializer(settings);
         var value = new TestStructColor() { Color = new Color() { R = 255, G = 255, B = 255, A = 255 } };
         var text = serializer.Serialize(value, typeof(TestStructColor));
-        Assert.Equal("""
+        AssertYamlEqual("""
             Color:
               R: 255
               G: 255
@@ -1051,7 +1059,7 @@ public class SerializationTests2
 
             """;
 
-        Assert.Equal(textReference, text);
+        AssertYamlEqual(textReference, text);
     }
 
     public class ClassWithKeyTransform
@@ -1549,7 +1557,7 @@ public class SerializationTests2
         Console.WriteLine("------------------");
         Console.WriteLine(text2);
 
-        Assert.Equal(text, text2);
+        AssertYamlEqual(text, text2);
     }
 
     private static object SerialRoundTrip(SerializerSettings settings, object value, Type expectedType = null)
@@ -1568,7 +1576,7 @@ public class SerializationTests2
         var text2 = serializer.Serialize(valueDeserialized);
         Console.WriteLine(text2);
 
-        Assert.Equal(text, text2);
+        AssertYamlEqual(text, text2);
 
         return valueDeserialized;
     }

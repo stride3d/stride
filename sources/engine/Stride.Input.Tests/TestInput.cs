@@ -27,12 +27,12 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
 
             // Test press
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             Assert.True(events[0] is KeyEvent);
             var keyEvent = (KeyEvent)events[0];
-            Assert.True(keyEvent.Key == Keys.A);
+            Assert.Equal(Keys.A, keyEvent.Key);
             Assert.True(keyEvent.IsDown);
-            Assert.True(keyEvent.RepeatCount == 0);
+            Assert.Equal(0, keyEvent.RepeatCount);
             Assert.True(keyEvent.Device == keyboard);
 
             // Check pressed/released states
@@ -44,11 +44,11 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
 
             // Test release
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             Assert.True(events[0] is KeyEvent);
             keyEvent = (KeyEvent)events[0];
-            Assert.True(keyEvent.Key == Keys.A);
-            Assert.True(!keyEvent.IsDown);
+            Assert.Equal(Keys.A, keyEvent.Key);
+            Assert.False(keyEvent.IsDown);
 
             // Check pressed/released states
             Assert.False(keyboard.IsKeyPressed(Keys.A));
@@ -74,12 +74,12 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
 
             // Test press with release
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             Assert.True(events[0] is KeyEvent);
             var keyEvent = (KeyEvent)events[0];
-            Assert.True(keyEvent.Key == Keys.A);
+            Assert.Equal(Keys.A, keyEvent.Key);
             Assert.True(keyEvent.IsDown);
-            Assert.True(keyEvent.RepeatCount == 3);
+            Assert.Equal(3, keyEvent.RepeatCount);
             Assert.True(keyEvent.Device == keyboard);
 
             // Check pressed/released states (Pressed events should still be sent when repeating)
@@ -91,11 +91,11 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
 
             // Test release
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             Assert.True(events[0] is KeyEvent);
             keyEvent = (KeyEvent)events[0];
-            Assert.True(keyEvent.Key == Keys.A);
-            Assert.True(!keyEvent.IsDown);
+            Assert.Equal(Keys.A, keyEvent.Key);
+            Assert.False(keyEvent.IsDown);
         }
 
         /// <summary>
@@ -129,9 +129,9 @@ namespace Stride.Input.Tests
             Assert.False(mouse.IsButtonReleased(MouseButton.Left));
             Assert.True(mouse.IsButtonDown(MouseButton.Left));
 
-            Assert.Equal(1, mouse.PressedPointers.Count);
-            Assert.Equal(0, mouse.ReleasedPointers.Count);
-            Assert.Equal(1, mouse.DownPointers.Count);
+            Assert.Single(mouse.PressedPointers);
+            Assert.Empty(mouse.ReleasedPointers);
+            Assert.Single(mouse.DownPointers);
 
             // Check delta
             Assert.Equal(new Vector2(0.1f, 0.0f), Input.PointerEvents[0].DeltaPosition);
@@ -147,7 +147,7 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
 
             // Check up
-            Assert.Equal(1, Input.PointerEvents.Count);
+            Assert.Single(Input.PointerEvents);
             Assert.Equal(PointerEventType.Released, Input.PointerEvents[0].EventType);
             Assert.False(Input.PointerEvents[0].IsDown);
 
@@ -156,9 +156,9 @@ namespace Stride.Input.Tests
             Assert.True(mouse.IsButtonReleased(MouseButton.Left));
             Assert.False(mouse.IsButtonDown(MouseButton.Left));
 
-            Assert.Equal(0, mouse.PressedPointers.Count);
-            Assert.Equal(1, mouse.ReleasedPointers.Count);
-            Assert.Equal(0, mouse.DownPointers.Count);
+            Assert.Empty(mouse.PressedPointers);
+            Assert.Single(mouse.ReleasedPointers);
+            Assert.Empty(mouse.DownPointers);
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace Stride.Input.Tests
         /// </summary>
         void TestGamePad()
         {
-            Assert.Equal(0, InputSourceSimulated.GamePads.Count);
+            Assert.Empty(InputSourceSimulated.GamePads);
             Assert.False(Input.HasGamePad);
             Assert.Null(Input.DefaultGamePad);
 

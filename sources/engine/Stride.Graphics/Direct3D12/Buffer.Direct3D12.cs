@@ -283,6 +283,8 @@ namespace Stride.Graphics
                 }
             }
 
+            LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeResourceState), 1);
+
             NativeShaderResourceView = GetShaderResourceView(ViewFormat);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewFormat);
         }

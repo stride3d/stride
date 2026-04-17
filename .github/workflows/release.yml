@@ -1,0 +1,237 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform-linux:
+        description: Include Linux
+        default: false
+        type: boolean
+      platform-android:
+        description: Include Android
+        default: false
+        type: boolean
+      platform-ios:
+        description: Include iOS
+        default: false
+        type: boolean
+      sign:
+        description: Code sign packages
+        default: true
+        type: boolean
+      build-prerequisites-installer:
+        description: Build prerequisites installer
+        default: true
+        type: boolean
+      deploy:
+        description: Deploy to NuGet.org and create GitHub Release
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  #
+  # Validate inputs and permissions
+  #
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
+          if [ "$STATUS" = "fail" ]; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  #
+  # Build and package
+  #
+  Package:
+    name: Package
+    needs: Validate
+    runs-on: windows-2025-vs2026
+    environment: production
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0  # Full history needed for GitVersioning
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          # 6.0.x required by deps/Gettext.Net/GNU.Gettext.Msgfmt.exe (see #3113)
+          dotnet-version: |
+            6.0.x
+            10.0.x
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Install Advanced Installer
+        if: ${{ inputs.build-prerequisites-installer }}
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile advinst.msi
+          msiexec /i advinst.msi /qn ADDLOCAL=ALL | Out-Null
+          # Register license if provided
+          if ("${{ secrets.ADVINST_LICENSE_KEY }}" -ne "") {
+            & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
+          }
+
+      - name: Build Package
+        run: |
+          $platforms = "Windows"
+          if ("${{ inputs.platform-linux }}" -eq "true") { $platforms += ";Linux" }
+          if ("${{ inputs.platform-android }}" -eq "true") { $platforms += ";Android" }
+          if ("${{ inputs.platform-ios }}" -eq "true") { $platforms += ";iOS" }
+          echo "Building for platforms: $platforms"
+          msbuild build\Stride.build `
+            /t:Package `
+            /bl /m /nr:false `
+            /p:StridePlatforms="$platforms" `
+            /p:StrideGraphicsApiDependentBuildAll=true `
+            /p:StrideSign=${{ inputs.sign }} `
+            /p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
+            /p:StrideNativeBuildMode=Clang
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+          StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
+          StrideSignClientId: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_ID || '' }}
+          StrideSignClientSecret: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_SECRET || '' }}
+          StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
+          StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
+
+      - name: Detect version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
+          if ($pkg) {
+            $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
+            echo "version=$version" >> $env:GITHUB_OUTPUT
+            echo "::notice::Package version: $version"
+          } else {
+            echo "::error::No Stride.Core package found"
+            exit 1
+          }
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: bin/packages/*.nupkg
+          if-no-files-found: error
+
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: ${{ always() && !inputs.sign }}
+        with:
+          name: build-log
+          path: msbuild.binlog
+          if-no-files-found: ignore
+
+  #
+  # Deploy to NuGet.org and create GitHub Release
+  #
+  Deploy:
+    name: Deploy ${{ needs.Package.outputs.version }}
+    if: ${{ inputs.deploy && inputs.sign }}
+    needs: Package
+    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    environment: production  # Requires manual approval in GitHub settings
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: bin/packages
+
+      - name: List packages
+        shell: pwsh
+        run: |
+          echo "## Packages to deploy" >> $env:GITHUB_STEP_SUMMARY
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Path bin -Recurse -Filter "*.nupkg" | ForEach-Object {
+            echo "$($_.Name)" >> $env:GITHUB_STEP_SUMMARY
+          }
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Push NuGet packages
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Samples\.Templates' }
+          $samples = $packages | Where-Object { $_.Name -match 'Samples\.Templates' }
+          $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
+
+          echo "::group::Pushing main packages ($($main.Count))"
+          foreach ($pkg in $main) {
+            echo "Pushing $($pkg.Name)..."
+            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+          }
+          echo "::endgroup::"
+
+          if ($samples) {
+            echo "::group::Pushing Samples.Templates"
+            foreach ($pkg in $samples) {
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+            }
+            echo "::endgroup::"
+          }
+
+          if ($gameStudio) {
+            echo "::group::Pushing GameStudio (last, so dependencies are already available)"
+            foreach ($pkg in $gameStudio) {
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
+            }
+            echo "::endgroup::"
+          }
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        run: |
+          if git rev-parse "releases/${{ needs.Package.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag releases/${{ needs.Package.outputs.version }} already exists, skipping"
+          else
+            git tag "releases/${{ needs.Package.outputs.version }}"
+            git push origin "releases/${{ needs.Package.outputs.version }}"
+          fi
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "releases/${{ needs.Package.outputs.version }}" \
+            --title "Stride ${{ needs.Package.outputs.version }}" \
+            --generate-notes \
+            bin/packages/*.nupkg
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}

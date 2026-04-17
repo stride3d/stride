@@ -4,14 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-android.yml'
-      - 'build/Stride.Android.sln'
+      - 'build/Stride.Android.slnf'
       # - 'deps/**'
       # - 'sources/core/**'
       # - 'sources/engine/**'
       # - 'sources/native/**'
       # - 'sources/shaders/**'
       # - 'sources/shared/**'
-      # - 'sources/targets/**'
+      # - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -44,7 +44,7 @@ jobs:
   Android-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,7 +76,6 @@ jobs:
           echo "ANDROID_NDK_ROOT=$ndkPath" >> $env:GITHUB_ENV
           echo "ANDROID_NDK_HOME=$ndkPath" >> $env:GITHUB_ENV
           echo "Using NDK at: $ndkPath"
-      - uses: microsoft/setup-msbuild@v2
       - name: Debug NDK Configuration
         shell: pwsh
         run: |
@@ -89,9 +88,9 @@ jobs:
           }
       - name: Build
         run: |
-          msbuild build\Stride.Android.sln `
-            -restore -m:1 -nr:false `
-            -v:m -p:WarningLevel=0 `
+          dotnet build build\Stride.Android.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Android `
             -p:StrideSkipUnitTests=true `

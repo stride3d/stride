@@ -142,7 +142,7 @@ namespace Stride.Games
                 height = Control is Form ? GraphicsDeviceManager.DefaultBackBufferHeight : Control.ClientSize.Height;
             }
 
-            windowHandle = new WindowHandle(AppContextType.Desktop, Control, Control.Handle);
+            windowHandle = new WindowHandle(AppContextType.DesktopWinForms, Control, Control.Handle);
 
             Control.ClientSize = new Size(width, height);
 

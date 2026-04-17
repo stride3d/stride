@@ -108,40 +108,63 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-
         public unsafe void StartLibrary(TexImage image)
         {
             PvrTextureLibraryData libraryData = new PvrTextureLibraryData();
 
-            int imageArraySize = image.Dimension == TexImage.TextureDimension.TextureCube ? image.ArraySize/6 : image.ArraySize;
-            int imageFaceCount = image.Dimension == TexImage.TextureDimension.TextureCube ? 6 : 1;
+            bool isCube = image.Dimension == TexImage.TextureDimension.TextureCube;
+            bool is3D = image.Dimension == TexImage.TextureDimension.Texture3D;
+
+            int imageArraySize = isCube ? image.ArraySize / 6 : image.ArraySize;
+            int imageFaceCount = isCube ? 6 : 1;
 
             // Creating native header corresponding to the TexImage instance
             ulong format = RetrieveNativeFormat(image.Format);
             EPVRTColourSpace colorSpace = RetrieveNativeColorSpace(image.Format);
             EPVRTVariableType pixelType = RetrieveNativePixelType(image.Format);
-            libraryData.Header = new PVRTextureHeader(format, image.Height, image.Width, image.Depth, image.MipmapCount, imageArraySize, imageFaceCount, colorSpace, pixelType);
-
-            int imageCount = 0;
-            int depth = image.Depth;
-            libraryData.Texture = new PVRTexture(libraryData.Header, IntPtr.Zero); // Initializing a new native texture, allocating memory.
+            libraryData.Header = new PVRTextureHeader(format, image.Height, image.Width, image.Depth,
+                image.MipmapCount, imageArraySize, imageFaceCount, colorSpace, pixelType);
+            // Initializing a new native texture, allocating memory.
+            libraryData.Texture = new PVRTexture(libraryData.Header, IntPtr.Zero);
 
             // Copying TexImage data into the native texture allocated memory
+            int imageCount = 0;
             try
             {
-                for (uint i = 0; i < imageFaceCount; ++i)
+                for (uint face = 0; face < imageFaceCount; ++face)
                 {
-                    for (uint j = 0; j < imageArraySize; ++j)
+                    for (uint array = 0; array < imageArraySize; ++array)
                     {
-                        for (uint k = 0; k < image.MipmapCount; ++k)
-                        {
-                            MemoryUtilities.CopyWithAlignmentFallback(
-                                (void*)libraryData.Texture.GetDataPtr(k, j, i),
-                                (void*)image.SubImageArray[imageCount].Data,
-                                (uint)(image.SubImageArray[imageCount].DataSize * depth));
-                            imageCount += depth;
+                        int depth = image.Depth;
 
-                            depth = depth > 1 ? depth >>= 1 : depth;
+                        for (uint mip = 0; mip < image.MipmapCount; ++mip)
+                        {
+                            if (is3D)
+                            {
+                                // 3D texture: copy all slices for this mip
+                                for (int slice = 0; slice < depth; ++slice)
+                                {
+                                    IntPtr dst = libraryData.Texture.GetDataPtr(mip, array, face) + slice * image.SubImageArray[imageCount].SlicePitch;
+                                    MemoryUtilities.CopyWithAlignmentFallback(
+                                        (void*)dst,
+                                        (void*)image.SubImageArray[imageCount].Data,
+                                        (uint)image.SubImageArray[imageCount].DataSize);
+
+                                    imageCount++;
+                                }
+
+                                depth = depth > 1 ? depth >> 1 : depth;
+                            }
+                            else
+                            {
+                                // 2D or Cube: exactly one subimage per mip
+                                MemoryUtilities.CopyWithAlignmentFallback(
+                                    (void*)libraryData.Texture.GetDataPtr(mip, array, face),
+                                    (void*)image.SubImageArray[imageCount].Data,
+                                    (uint)image.SubImageArray[imageCount].DataSize);
+
+                                imageCount++;
+                            }
                         }
                     }
                 }
@@ -154,13 +177,11 @@ namespace Stride.TextureConverter.TexLibraries
             }
 
             // Freeing previous image data
-            if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
+            image.DisposingLibrary?.Dispose(image);
 
             image.LibraryData[this] = libraryData;
-
             image.DisposingLibrary = this;
         }
-
 
         public void EndLibrary(TexImage image)
         {
@@ -799,27 +820,42 @@ namespace Stride.TextureConverter.TexLibraries
                 case Stride.Graphics.PixelFormat.EAC_RG11_Signed:
                     return (ulong)EPVRTPixelFormat.EAC_RG11;
                 case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
-                case Stride.Graphics.PixelFormat.R32G32B32_Float:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
-                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', 'a', 32, 32, 32, 32);
+                case Stride.Graphics.PixelFormat.R32G32B32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', ' ', 32, 32, 32, 0);
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', 'a', 16, 16, 16, 16);
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
-                    return (ulong)EPVRTPixelFormat.RGBG8888;
+                    return MakePvrPixelFormat('r', 'g', 'b', 'a', 8, 8, 8, 8);
                 default:
                     Log.Error("UnHandled compression format by PowerVC Texture Tool.");
                     throw new TextureToolsException("UnHandled compression format by PowerVC Texture Tool.");
             }
         }
 
+        private ulong MakePvrPixelFormat(char c0, char c1, char c2, char c3,
+                                 byte b0, byte b1, byte b2, byte b3)
+        {
+            return ((ulong)c0) |
+                    ((ulong)c1 << 8) |
+                    ((ulong)c2 << 16) |
+                    ((ulong)c3 << 24) |
+                    ((ulong)b0 << 32) |
+                    ((ulong)b1 << 40) |
+                    ((ulong)b2 << 48) |
+                    ((ulong)b3 << 56);
+        }
 
         private EPVRTVariableType RetrieveNativePixelType(Stride.Graphics.PixelFormat format)
         {

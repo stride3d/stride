@@ -19,7 +19,10 @@ public static class Dispatcher
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
     public static readonly int MaxDegreeOfParallelism = 1;
 #else
-    public static int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
+    public static int MaxDegreeOfParallelism { get; set; } =
+        int.TryParse(Environment.GetEnvironmentVariable("STRIDE_MAX_PARALLELISM"), out var envValue) && envValue > 0
+            ? envValue
+            : Environment.ProcessorCount;
 #endif
 
     private static readonly ProfilingKey DispatcherSortKey = new("Dispatcher.Sort");

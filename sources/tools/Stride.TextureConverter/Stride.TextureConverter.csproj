@@ -1,10 +1,9 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\ConsoleProgram.cs">
@@ -24,5 +23,5 @@
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
     <ProjectReference Include="..\Stride.FreeImage\Stride.FreeImage.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

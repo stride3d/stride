@@ -4,7 +4,7 @@ MDTOOL=/Applications/MonoDevelop.app/Contents/MacOS/mdtool
 MTOUCH=/Developer/MonoTouch/usr/bin/mtouch
 
 # build
-$MDTOOL -v build -t:Build "-c:Release|iPhone" Stride.iOS.sln
+$MDTOOL -v build -t:Build "-c:Release|iPhone" Stride.iOS.slnf
 
 # create app
 $MTOUCH -dev="" MyApp.app -c <em>"???"</em> foo.exe

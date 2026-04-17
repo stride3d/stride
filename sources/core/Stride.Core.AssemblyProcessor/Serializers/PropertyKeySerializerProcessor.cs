@@ -18,7 +18,7 @@ class PropertyKeySerializerProcessor : ICecilSerializerProcessor
                 if (!member.IsStatic || member.IsPrivate)
                     continue;
 
-                if (ComplexSerializerRegistry.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))
+                if (SerializationHelpers.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))
                     continue;
 
                 if (member.FieldType.Name == "PropertyKey`1"
@@ -27,12 +27,12 @@ class PropertyKeySerializerProcessor : ICecilSerializerProcessor
                     || member.FieldType.Name == "ObjectParameterKey`1"
                     || member.FieldType.Name == "PermutationParameterKey`1")
                 {
-                    context.GenerateSerializer(member.FieldType);
+                    context.ResolveSerializer(member.FieldType);
 
                     var genericType = (GenericInstanceType)member.FieldType;
 
                     // Also generate serializer for embedded type
-                    context.GenerateSerializer(genericType.GenericArguments[0]);
+                    context.ResolveSerializer(genericType.GenericArguments[0]);
                 }
             }
         }

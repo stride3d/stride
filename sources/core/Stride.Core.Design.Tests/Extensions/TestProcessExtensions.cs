@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Stride.Core.Extensions;
 using Xunit;
 
@@ -12,20 +13,22 @@ namespace Stride.Core.Design.Tests.Extensions;
 /// </summary>
 public class TestProcessExtensions
 {
+    private static ProcessStartInfo ExitImmediately() => OperatingSystem.IsWindows()
+        ? new ProcessStartInfo { FileName = "cmd.exe", Arguments = "/c exit 0", CreateNoWindow = true, UseShellExecute = false }
+        : new ProcessStartInfo { FileName = "/bin/sh", Arguments = "-c \"exit 0\"", CreateNoWindow = true, UseShellExecute = false };
+
+    private static ProcessStartInfo ShortLived() => OperatingSystem.IsWindows()
+        ? new ProcessStartInfo { FileName = "ping", Arguments = "127.0.0.1 -n 2", CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true }
+        : new ProcessStartInfo { FileName = "sleep", Arguments = "1", CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true };
+
+    private static ProcessStartInfo LongRunning() => OperatingSystem.IsWindows()
+        ? new ProcessStartInfo { FileName = "ping", Arguments = "127.0.0.1 -n 100", CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true }
+        : new ProcessStartInfo { FileName = "sleep", Arguments = "100", CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true };
+
     [Fact]
     public async Task WaitForExitAsync_WithCompletedProcess_CompletesImmediately()
     {
-        // Create a process that exits immediately
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/c exit 0",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            }
-        };
+        using var process = new Process { StartInfo = ExitImmediately() };
 
         process.Start();
         process.WaitForExit(); // Wait synchronously first to ensure it's done
@@ -38,19 +41,7 @@ public class TestProcessExtensions
     [Fact]
     public async Task WaitForExitAsync_WithRunningProcess_WaitsForExit()
     {
-        // Create a process that takes a short time to exit
-        // Using ping with -n 2 sends 2 pings which takes about 1 second
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "ping",
-                Arguments = "127.0.0.1 -n 2",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            }
-        };
+        using var process = new Process { StartInfo = ShortLived() };
 
         process.Start();
 
@@ -67,19 +58,7 @@ public class TestProcessExtensions
     [Fact]
     public async Task WaitForExitAsync_WithCancellation_CancelsWait()
     {
-        // Create a long-running process using ping with high count
-        // This is more reliable than timeout command across different environments
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "ping",
-                Arguments = "127.0.0.1 -n 100",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            }
-        };
+        using var process = new Process { StartInfo = LongRunning() };
 
         process.Start();
 
@@ -103,16 +82,7 @@ public class TestProcessExtensions
     [Fact]
     public async Task WaitForExitAsync_WithoutCancellation_CompletesNormally()
     {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/c exit 0",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            }
-        };
+        using var process = new Process { StartInfo = ExitImmediately() };
 
         process.Start();
 

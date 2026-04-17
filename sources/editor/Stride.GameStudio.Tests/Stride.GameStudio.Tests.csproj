@@ -1,19 +1,11 @@
 <Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>Helpers\GuidGenerator.cs</Link>
@@ -26,5 +18,5 @@
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.GameStudio\Stride.GameStudio.csproj" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

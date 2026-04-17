@@ -45,7 +45,7 @@
           <Setter.Value>
             <DataTemplate>
               <Border Width="28" Height="28"
-                      ToolTip="{Binding Converter={sd:EnumToTooltip}}" sd:ToolTipHelper.Status="{Binding Editor.Status, Source={x:Static sd:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
+                      Background="Transparent" ToolTip="{Binding Converter={sd:EnumToTooltip}}" sd:ToolTipHelper.Status="{Binding Editor.Status, Source={x:Static sd:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
                 <Image Width="16" Height="16" Source="{Binding Converter={sd:EnumToResource}}" />
               </Border>
             </DataTemplate>

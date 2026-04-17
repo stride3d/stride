@@ -1,0 +1,2 @@
+# Release workflows require approval from release managers
+.github/workflows/release*.yml @stride3d/stride-release-managers

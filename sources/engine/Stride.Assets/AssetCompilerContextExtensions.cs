@@ -34,7 +34,7 @@ namespace Stride.Assets
             // If we have a command line override, use it first
             string graphicsApi;
             if (context.OptionProperties.TryGetValue("StrideGraphicsApi", out graphicsApi))
-                return (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), graphicsApi);
+                return Enum.Parse<GraphicsPlatform>(graphicsApi);
 
             // Ohterwise, use default as fallback
             return context.Platform.GetDefaultGraphicsPlatform();
@@ -49,9 +49,7 @@ namespace Stride.Assets
                     return GraphicsPlatform.Direct3D11;
                 case PlatformType.Android:
                 case PlatformType.iOS:
-                    return GraphicsPlatform.OpenGLES;
                 case PlatformType.Linux:
-                    return GraphicsPlatform.OpenGL;
                 case PlatformType.macOS:
                     return GraphicsPlatform.Vulkan;
                 default:
