@@ -467,6 +467,24 @@ public partial class ShaderMethod(
         table.CurrentShader!.Methods.Add((symbol, functionFlags));
     }
 
+    // SPIR-V spec: SpacingX / VertexOrderX / PointMode execution modes are only valid on
+    // TessellationEvaluation entry points. HLSL places them on the hull shader function,
+    // so for spec compliance we emit them on DSMain's function id instead. Throws if
+    // no DSMain method is declared — a tessellation control shader without a matching
+    // evaluation shader cannot produce valid SPIR-V anyway.
+    private static int GetTessEvaluationFunctionId(SymbolTable table, int fallbackId)
+    {
+        if (table.CurrentShader != null)
+        {
+            foreach (var (symbol, _) in table.CurrentShader.Methods)
+            {
+                if (symbol.Id.Name == "DSMain")
+                    return symbol.IdRef;
+            }
+        }
+        return fallbackId;
+    }
+
     private static PointerType GenerateParameterType(MethodParameter p)
     {
         // Opaque types (image/sampler) must use UniformConstant storage class —
@@ -532,17 +550,28 @@ public partial class ShaderMethod(
                     }
                     else if (anyAttribute.Name == "domain")
                     {
-                        context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                        // Triangles/Quads/Isolines are valid on either TCS or TES per spec.
+                        // We emit them only on DSMain (TES), matching glslang's convention
+                        // and keeping the SPIR-V minimal. HLSL's [domain] on HS is therefore
+                        // skipped here; HLSL also requires [domain] on DS, so DSMain's own
+                        // [domain] attribute guarantees the mode ends up in the module.
+                        if (EntryPoint != EntryPoint.HullShader)
                         {
-                            "tri" => Specification.ExecutionMode.Triangles,
-                            "quad" => Specification.ExecutionMode.Quads,
-                            "isolined" => Specification.ExecutionMode.Isolines,
-                            _ => throw new NotSupportedException($"Unsupported domain value '{((StringLiteral)anyAttribute.Parameters[0]).Value}'"),
-                        }, []));
+                            context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                            {
+                                "tri" => Specification.ExecutionMode.Triangles,
+                                "quad" => Specification.ExecutionMode.Quads,
+                                "isolined" => Specification.ExecutionMode.Isolines,
+                                _ => throw new NotSupportedException($"Unsupported domain value '{((StringLiteral)anyAttribute.Parameters[0]).Value}'"),
+                            }, []));
+                        }
                     }
                     else if (anyAttribute.Name == "partitioning")
                     {
-                        context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                        // Spacing execution modes are only valid on TessellationEvaluation
+                        // per SPIR-V spec, but HLSL puts [partitioning] on the hull shader.
+                        // Emit the mode on DSMain's function id so the SPIR-V is spec-compliant.
+                        context.Add(new OpExecutionMode(GetTessEvaluationFunctionId(table, function.Id), ((StringLiteral)anyAttribute.Parameters[0]).Value switch
                         {
                             "fractional_odd" => Specification.ExecutionMode.SpacingFractionalOdd,
                             "fractional_even" => Specification.ExecutionMode.SpacingFractionalEven,
@@ -556,7 +585,9 @@ public partial class ShaderMethod(
                         var value = ((StringLiteral)anyAttribute.Parameters[0]).Value;
                         if (value != "line")
                         {
-                            context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                            // VertexOrderCw/Ccw are only valid on TessellationEvaluation per
+                            // SPIR-V spec; route to DSMain (same reason as partitioning above).
+                            context.Add(new OpExecutionMode(GetTessEvaluationFunctionId(table, function.Id), ((StringLiteral)anyAttribute.Parameters[0]).Value switch
                             {
                                 "triangle_cw" => Specification.ExecutionMode.VertexOrderCw,
                                 "triangle_ccw" => Specification.ExecutionMode.VertexOrderCcw,
