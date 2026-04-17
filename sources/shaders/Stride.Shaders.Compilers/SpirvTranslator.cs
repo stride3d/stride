@@ -9,6 +9,7 @@ using System.Text;
 namespace Stride.Shaders.Compilers;
 
 using Compiler = Silk.NET.SPIRV.Cross.Compiler;
+using Result = Silk.NET.SPIRV.Cross.Result;
 
 public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 {
