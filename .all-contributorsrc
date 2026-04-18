@@ -725,6 +725,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "C0dingSteve",
+      "name": "Steve",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36681624?v=4",
+      "profile": "http://codingsteve.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
