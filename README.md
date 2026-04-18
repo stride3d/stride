@@ -261,6 +261,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="http://codingsteve.com/"><img src="https://avatars.githubusercontent.com/u/36681624?v=4?s=100" width="100px;" alt="Steve"/><br /><sub><b>Steve</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=C0dingSteve" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MEEMexe"><img src="https://avatars.githubusercontent.com/u/78092485?v=4?s=100" width="100px;" alt="Niklas Arndt"/><br /><sub><b>Niklas Arndt</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MEEMexe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ferafiks"><img src="https://avatars.githubusercontent.com/u/49789311?v=4?s=100" width="100px;" alt="Fera"/><br /><sub><b>Fera</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ferafiks" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Kreblc3428"><img src="https://avatars.githubusercontent.com/u/197451419?v=4?s=100" width="100px;" alt="Kreblc3428"/><br /><sub><b>Kreblc3428</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Kreblc3428" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
