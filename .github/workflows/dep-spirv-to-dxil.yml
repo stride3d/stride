@@ -7,8 +7,8 @@ on:
         description: Mesa git URL
         default: https://gitlab.freedesktop.org/mesa/mesa.git
         required: false
-      branch:
-        description: Mesa branch/ref to build
+      ref:
+        description: Mesa ref to build (branch, tag, SHA, or refs/merge-requests/<id>/head)
         default: main
         required: false
 
@@ -26,14 +26,18 @@ jobs:
       - name: Clone Mesa
         shell: pwsh
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.branch || 'main' }}" `
-            "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}" mesa-src
+          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin $url
+          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src checkout FETCH_HEAD
 
-      - name: Apply Stride patch
+      - name: Apply Stride pipeline patch
         shell: pwsh
         working-directory: mesa-src
         run: |
-          git apply --verbose "${{ github.workspace }}/stride-src/build/deps/spirv-to-dxil/mesa-pipeline.patch"
+          git apply --3way --verbose "${{ github.workspace }}/stride-src/build/deps/spirv-to-dxil/mesa-pipeline.patch"
 
       - name: Install build dependencies
         shell: pwsh

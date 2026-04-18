@@ -1,8 +1,100 @@
+diff --git a/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c b/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c
+index 460af16..4273abd 100644
+--- a/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c
++++ b/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c
+@@ -103,6 +103,10 @@ dxil_spirv_nir_get_spirv_options(void)
+    return &spirv_to_nir_options;
+ }
+ 
++/* Stride: keep I/O variables marked always_active_io alive (forward decl, definition later) */
++static bool
++dxil_spirv_can_remove_io_var(nir_variable *var, void *data);
++
+  /* Logic extracted from vk_spirv_to_nir() so we have the same preparation
+  * steps for both the vulkan driver and the lib used by the WebGPU
+  * implementation.
+@@ -139,11 +143,17 @@ dxil_spirv_nir_prep(nir_shader *nir)
+    NIR_PASS(_, nir, nir_split_var_copies);
+    NIR_PASS(_, nir, nir_split_per_member_structs);
+ 
+-   NIR_PASS(_, nir, nir_remove_dead_variables,
+-              nir_var_shader_in | nir_var_shader_out | nir_var_system_value |
+-              nir_var_shader_call_data | nir_var_ray_hit_attrib,
+-              NULL);
+-   
++   /* Stride: keep I/O variables marked always_active_io alive (signature matching) */
++   {
++      static const struct nir_remove_dead_variables_options _opts = {
++         .can_remove_var = dxil_spirv_can_remove_io_var,
++      };
++      NIR_PASS(_, nir, nir_remove_dead_variables,
++                 nir_var_shader_in | nir_var_shader_out | nir_var_system_value |
++                 nir_var_shader_call_data | nir_var_ray_hit_attrib,
++                 &_opts);
++   }
++
+    /* This needs to happen after remove_dead_vars because GLSLang likes to
+     * insert dead clip/cull vars and we don't want to clip/cull based on
+     * uninitialized garbage.
+@@ -787,6 +797,13 @@ lower_view_index_to_rt_layer(nir_shader *nir)
+    }
+ }
+ 
++/* Stride: keep I/O variables marked always_active_io alive */
++static bool
++dxil_spirv_can_remove_io_var(nir_variable *var, void *data)
++{
++   return !var->data.always_active_io;
++}
++
+ void
+ dxil_spirv_nir_link(nir_shader *nir, nir_shader *prev_stage_nir,
+                     const struct dxil_spirv_runtime_conf *conf,
+@@ -1007,10 +1024,16 @@ dxil_spirv_nir_passes(nir_shader *nir,
+ 
+    NIR_PASS(_, nir, dxil_spirv_nir_discard_point_size_var);
+ 
+-   NIR_PASS(_, nir, nir_remove_dead_variables,
+-              nir_var_shader_in | nir_var_shader_out |
+-              nir_var_system_value | nir_var_mem_shared,
+-              NULL);
++   /* Stride: keep I/O variables marked always_active_io alive (signature matching) */
++   {
++      static const struct nir_remove_dead_variables_options _opts2 = {
++         .can_remove_var = dxil_spirv_can_remove_io_var,
++      };
++      NIR_PASS(_, nir, nir_remove_dead_variables,
++                 nir_var_shader_in | nir_var_shader_out |
++                 nir_var_system_value | nir_var_mem_shared,
++                 &_opts2);
++   }
+ 
+    uint32_t push_constant_size = 0;
+    NIR_PASS(_, nir, nir_lower_explicit_io, nir_var_mem_push_const,
+@@ -1121,9 +1144,15 @@ dxil_spirv_nir_passes(nir_shader *nir,
+    NIR_PASS(_, nir, dxil_nir_lower_ubo_array_one_to_static);
+    NIR_PASS(_, nir, nir_opt_dce);
+    NIR_PASS(_, nir, nir_remove_dead_derefs);
+-   NIR_PASS(_, nir, nir_remove_dead_variables,
+-              nir_var_uniform | nir_var_shader_in | nir_var_shader_out,
+-              NULL);
++   /* Stride: keep I/O variables marked always_active_io alive (signature matching) */
++   {
++      static const struct nir_remove_dead_variables_options _opts = {
++         .can_remove_var = dxil_spirv_can_remove_io_var,
++      };
++      NIR_PASS(_, nir, nir_remove_dead_variables,
++                 nir_var_uniform | nir_var_shader_in | nir_var_shader_out,
++                 &_opts);
++   }
+    NIR_PASS(_, nir, merge_ubos_and_ssbos);
+ 
+    if (nir->info.stage == MESA_SHADER_FRAGMENT) {
 diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
-index 1a8e6e2..3408de3 100644
+index 1a8e6e2..14b0f11 100644
 --- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
 +++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
-@@ -126,3 +126,125 @@ spirv_to_dxil_get_version()
+@@ -126,3 +126,140 @@ spirv_to_dxil_get_version()
     }
     return 0;
  }
@@ -68,6 +160,20 @@ index 1a8e6e2..3408de3 100644
 +         goto cleanup;
 +      }
 +      nir_validate_shader(nir, "Validate SPIR-V to NIR output");
++      /* Mark all I/O variables as always active so that nir_remove_dead_variables
++       * doesn't strip them. This preserves the I/O signatures across stages, which is
++       * required for D3D12 pipeline state validation (especially for HS<->DS where the
++       * control point and patch constant signatures must match exactly).
++       *
++       * Also keeps HS outputs alive when only read by the patch-constant function
++       * (which the kill pass otherwise treats as unused since they aren't read by DS),
++       * and keeps DS dummy inputs alive (added by Stride to match HS-internal outputs).
++       *
++       * Must happen BEFORE dxil_spirv_nir_prep, since that runs nir_remove_dead_variables
++       * itself and would strip our dummies before they get a chance to be marked.
++       */
++      nir_foreach_variable_with_modes(var, nir, nir_var_shader_in | nir_var_shader_out)
++         var->data.always_active_io = true;
 +      dxil_spirv_nir_prep(nir);
 +      nirs[stage] = nir;
 +      input_index_by_stage[stage] = (int)i;
@@ -76,8 +182,9 @@ index 1a8e6e2..3408de3 100644
 +   /* Run per-stage passes */
 +   struct dxil_spirv_metadata metadata[MESA_SHADER_STAGES] = { 0 };
 +   for (int stage = 0; stage < MESA_SHADER_STAGES; ++stage) {
-+      if (nirs[stage])
-+         dxil_spirv_nir_passes(nirs[stage], conf, &metadata[stage]);
++      if (!nirs[stage])
++         continue;
++      dxil_spirv_nir_passes(nirs[stage], conf, &metadata[stage]);
 +   }
 +
 +   /* Link consecutive stages (later -> earlier). For each stage with a
