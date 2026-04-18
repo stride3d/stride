@@ -257,6 +257,7 @@ Thanks to all these wonderful people who have contributed to Stride!
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hoelzl"><img src="https://avatars.githubusercontent.com/u/35998?v=4?s=100" width="100px;" alt="Matthias Hölzl"/><br /><sub><b>Matthias Hölzl</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=hoelzl" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kutal10"><img src="https://avatars.githubusercontent.com/u/36085864?v=4?s=100" width="100px;" alt="Rahul Pai "/><br /><sub><b>Rahul Pai </b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kutal10" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ModxVoldHunter"><img src="https://avatars.githubusercontent.com/u/65139923?v=4?s=100" width="100px;" alt="ModxVoldHunter"/><br /><sub><b>ModxVoldHunter</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ModxVoldHunter" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
