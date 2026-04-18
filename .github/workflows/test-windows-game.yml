@@ -131,25 +131,25 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: true
-      - name: Register SwiftShader ICD
+      - name: Register Lavapipe ICD
         if: matrix.graphics-api == 'Vulkan'
         shell: pwsh
         run: |
-          # Restore with StrideGraphicsApi=Vulkan so the conditional SwiftShader PackageReference is evaluated
-          # (Stride's custom multi-build targets don't run during restore)
+          # CompilerApp needs a Vulkan device at build time (Skybox asset compilation).
+          # Runtime tests are served by the Lavapipe module initializer; this step is
+          # only for the pre-runtime CompilerApp invocation, so we register an ICD here.
+          # Restore first so the package is in the NuGet cache.
           dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
-          # Find SwiftShader DLL in NuGet cache and register an ICD before build
-          # (CompilerApp needs SwiftShader at build time for Skybox asset compilation)
-          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader.dll -ErrorAction SilentlyContinue | Select-Object -First 1
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter vulkan_lvp.dll -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
           if ($dll) {
-            $icdPath = Join-Path $dll.DirectoryName "vk_swiftshader_icd.json"
+            $icdPath = Join-Path $dll.DirectoryName "lvp_icd.json"
             $dllPath = $dll.FullName -replace '\\', '\\\\'
-            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.0.5`"}}"
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.3.0`"}}"
             New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
             New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered SwiftShader ICD: $icdPath"
+            Write-Host "Registered Lavapipe ICD: $icdPath"
           } else {
-            Write-Warning "SwiftShader DLL not found in NuGet cache"
+            Write-Warning "Lavapipe DLL not found in NuGet cache"
           }
       - name: Build
         run: |

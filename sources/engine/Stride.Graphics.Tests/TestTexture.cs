@@ -231,8 +231,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture3D()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
-
             PerformTest(
                 game =>
                 {

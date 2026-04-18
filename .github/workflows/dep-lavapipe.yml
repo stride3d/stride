@@ -1,8 +1,18 @@
 name: "Dep: Build & Deploy Lavapipe"
 
-# Skeleton workflow — the full implementation lives on a feature branch.
-# This exists on master only so the workflow is triggerable via workflow_dispatch
-# with the expected inputs. Checkout the feature branch ref to run the real build.
+# Skeleton — not yet exercised. Notes on per-OS friction at the bottom.
+#
+# Lavapipe is built from Mesa with:
+#   meson setup _build -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
+#                      -Dgallium-extra-hud=false -Dvideo-codecs= \
+#                      -Dplatforms=windows|x11,wayland|... \
+#                      -Dbuildtype=release
+#
+# Outputs (per OS):
+#   Windows:  vulkan_lvp.dll        + lvp_icd.x86_64.json (or lvp_icd.json)
+#   Linux:    libvulkan_lvp.so      + lvp_icd.x86_64.json
+#   macOS:    libvulkan_lvp.dylib   + lvp_icd.x86_64.json
+# The ICD JSON's `library_path` may need rewriting to a side-by-side path.
 
 on:
   workflow_dispatch:
@@ -20,11 +30,348 @@ on:
         required: false
 
 jobs:
-  placeholder:
-    name: Skeleton (run on feature branch for real build)
-    runs-on: ubuntu-latest
+  build-windows:
+    name: Build Lavapipe (Windows x64)
+    runs-on: windows-2025-vs2026
     steps:
-      - name: Notice
+      - name: Checkout Stride
+        uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: build/deps/lavapipe
+
+      - name: Clone Mesa
+        shell: pwsh
         run: |
-          echo "This is a skeleton. The real build lives on a feature branch."
-          echo "Trigger this workflow against that branch ref to run the actual build."
+          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin $url
+          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          choco install -y winflexbison3
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja mako pyyaml packaging
+
+      # Provides glslangValidator (and headers/loader we don't strictly need).
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: false
+          cache: true
+          stripdown: true
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # LLVM is statically linked into vulkan_lvp.dll so the output has no host-LLVM
+      # dependency. We build it once per (LLVM version × MSVC version) and cache.
+      # Bump the cache key suffix to force a rebuild.
+      # Split restore/save so the built LLVM persists even if later steps fail.
+      - name: Restore LLVM cache
+        id: restore-llvm
+        uses: actions/cache/restore@v4
+        with:
+          path: llvm-install
+          key: llvm-21.1.0-msvc2026-static-x64-v1
+
+      - name: Build LLVM (cache miss)
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch llvmorg-21.1.0 https://github.com/llvm/llvm-project.git
+          cmake -S llvm-project/llvm -B llvm-build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%CD%\llvm-install ^
+            -DLLVM_BUILD_LLVM_DYLIB=OFF ^
+            -DLLVM_LINK_LLVM_DYLIB=OFF ^
+            -DLLVM_ENABLE_PROJECTS= ^
+            -DLLVM_TARGETS_TO_BUILD=X86;AArch64 ^
+            -DLLVM_ENABLE_ASSERTIONS=OFF ^
+            -DLLVM_INCLUDE_TESTS=OFF ^
+            -DLLVM_INCLUDE_EXAMPLES=OFF ^
+            -DLLVM_INCLUDE_BENCHMARKS=OFF
+          cmake --build llvm-build --target install
+
+      # Save cache immediately after build, independent of subsequent step outcomes.
+      - name: Save LLVM cache
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: llvm-install
+          key: llvm-21.1.0-msvc2026-static-x64-v1
+
+      - name: Configure Mesa (Lavapipe only, static LLVM)
+        shell: cmd
+        working-directory: mesa-src
+        env:
+          LLVM_CONFIG: ${{ github.workspace }}\llvm-install\bin\llvm-config.exe
+          # choco winflexbison3 installs win_flex.exe / win_bison.exe. Mesa's meson
+          # looks for `flex`/`bison`; these env vars redirect the lookup.
+          FLEX: win_flex
+          LEX: win_flex
+          BISON: win_bison
+          YACC: win_bison
+        run: |
+          set PYTHONUTF8=1
+          set PATH=${{ github.workspace }}\llvm-install\bin;%PATH%
+          meson setup _build ^
+            -Dvulkan-drivers=swrast ^
+            -Dgallium-drivers=llvmpipe ^
+            -Dplatforms=windows ^
+            -Dc_args="/wd4189" ^
+            -Dcpp_args="/wd4189" ^
+            -Dglx=disabled -Degl=disabled ^
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled ^
+            -Dgallium-extra-hud=false ^
+            -Dvideo-codecs= ^
+            -Dllvm=enabled ^
+            -Dshared-llvm=disabled ^
+            -Dbuildtype=release
+
+      - name: Build vulkan_lvp.dll
+        shell: cmd
+        working-directory: mesa-src
+        run: |
+          set PYTHONUTF8=1
+          meson compile -C _build src/gallium/targets/lavapipe/vulkan_lvp:shared_library
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          mkdir lavapipe-out
+          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter vulkan_lvp.dll | Select-Object -First 1
+          if (-not $dll) { throw "vulkan_lvp.dll not found in build output" }
+          Copy-Item $dll.FullName lavapipe-out/
+          # ICD manifest with relative library_path. Windows Vulkan loader requires a
+          # backslash here — forward-slash `./vulkan_lvp.dll` loads the DLL but every
+          # subsequent Vulkan call returns VK_ERROR_OUT_OF_HOST_MEMORY.
+          Set-Content -NoNewline -Path lavapipe-out/lvp_icd.json -Value '{"file_format_version":"1.0.0","ICD":{"library_path":".\\vulkan_lvp.dll","api_version":"1.3.0"}}'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavapipe-win-x64
+          path: lavapipe-out/
+
+  build-linux:
+    name: Build Lavapipe (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Stride
+        uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: build/deps/lavapipe
+
+      - name: Clone Mesa
+        run: |
+          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          ref="${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin "$url"
+          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          # Build with x11,wayland Vulkan WSI so swapchains work under Xvfb/WSLg/etc.
+          # libxcb/libwayland are dlopen'd lazily — headless callers never pay the cost.
+          # llvm-dev + libpolly-*-dev because llvm-config emits -lPolly -lPollyISL.
+          sudo apt-get install -y ninja-build pkg-config bison flex glslang-tools \
+            llvm-dev libpolly-18-dev libelf-dev libdrm-dev \
+            libx11-xcb-dev libxrandr-dev libxext-dev libxfixes-dev libxxf86vm-dev libxdamage-dev \
+            libxcb-randr0-dev libxcb-shm0-dev libxcb-present-dev \
+            libxcb-dri3-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-sync-dev \
+            libxshmfence-dev \
+            libwayland-dev wayland-protocols libwayland-egl-backend-dev
+          # Ubuntu 24.04 ships meson 1.3.2; Mesa requires >= 1.4.0 — use pip.
+          python3 -m pip install --user --upgrade meson mako packaging pyyaml
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure & build
+        working-directory: mesa-src
+        run: |
+          meson setup _build \
+            -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
+            -Dplatforms=x11,wayland \
+            -Dglx=disabled -Degl=disabled \
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
+            -Dgallium-extra-hud=false -Dvideo-codecs= \
+            -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dbuildtype=release
+          ninja -C _build src/gallium/targets/lavapipe/libvulkan_lvp.so
+
+      - name: Collect output
+        run: |
+          mkdir -p lavapipe-out
+          find mesa-src/_build -name "libvulkan_lvp.so*" -exec cp {} lavapipe-out/ \;
+          # ICD manifest with relative library_path
+          printf '%s' '{"file_format_version":"1.0.0","ICD":{"library_path":"./libvulkan_lvp.so","api_version":"1.3.0"}}' > lavapipe-out/lvp_icd.json
+          ls -la lavapipe-out/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavapipe-linux-x64
+          path: lavapipe-out/
+
+  build-macos:
+    name: Build Lavapipe (macOS ARM64)
+    runs-on: macos-15
+    steps:
+      - name: Checkout Stride
+        uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: build/deps/lavapipe
+
+      - name: Clone Mesa
+        run: |
+          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          ref="${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin "$url"
+          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Install build dependencies
+        run: |
+          brew install meson ninja pkg-config llvm bison flex glslang
+          pip3 install --break-system-packages mako packaging pyyaml
+
+      - name: Configure & build
+        working-directory: mesa-src
+        env:
+          PKG_CONFIG_PATH: /opt/homebrew/opt/llvm/lib/pkgconfig:/opt/homebrew/opt/zstd/lib/pkgconfig
+          PATH: /opt/homebrew/opt/llvm/bin:/opt/homebrew/opt/bison/bin:/opt/homebrew/opt/flex/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+          LIBRARY_PATH: /opt/homebrew/opt/zstd/lib:/opt/homebrew/opt/llvm/lib
+          LDFLAGS: -L/opt/homebrew/opt/zstd/lib -L/opt/homebrew/opt/llvm/lib
+        run: |
+          # macOS lavapipe is lightly tested — expect rough edges.
+          # -Dplatforms=macos exposes Mesa's experimental IOSurface-based WSI so
+          # VK_KHR_swapchain is available alongside MoltenVK when both ICDs load.
+          meson setup _build \
+            -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
+            -Dplatforms=macos \
+            -Dglx=disabled -Degl=disabled \
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
+            -Dgallium-extra-hud=false -Dvideo-codecs= \
+            -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dbuildtype=release
+          ninja -C _build src/gallium/targets/lavapipe/libvulkan_lvp.dylib
+
+      - name: Collect output
+        run: |
+          mkdir -p lavapipe-out
+          find mesa-src/_build -name "libvulkan_lvp*.dylib" -exec cp {} lavapipe-out/ \;
+          # ICD manifest with relative library_path
+          printf '%s' '{"file_format_version":"1.0.0","ICD":{"library_path":"./libvulkan_lvp.dylib","api_version":"1.3.0"}}' > lavapipe-out/lvp_icd.json
+          ls -la lavapipe-out/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavapipe-osx-arm64
+          path: lavapipe-out/
+
+  pack:
+    name: Pack & Publish NuGet
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone Mesa (for commit hash)
+        shell: pwsh
+        run: |
+          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin $url
+          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with: { name: lavapipe-win-x64, path: artifacts/win-x64 }
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with: { name: lavapipe-linux-x64, path: artifacts/linux-x64 }
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with: { name: lavapipe-osx-arm64, path: artifacts/osx-arm64 }
+
+      - name: Stage native payload into csproj
+        shell: pwsh
+        run: |
+          $destRoot = "build/deps/lavapipe/runtimes"
+          foreach ($rid in 'win-x64','linux-x64','osx-arm64') {
+            $native = "$destRoot/$rid/native"
+            New-Item -Path $native -ItemType Directory -Force | Out-Null
+            Copy-Item -Recurse artifacts/$rid/* $native
+          }
+          # Note: lvp_icd.json is included but unused — Lavapipe.cs generates
+          # its own JSON at runtime pointing to an absolute library_path.
+
+      - name: Pack NuGet (dotnet pack)
+        shell: pwsh
+        run: |
+          $commitHash = git -C mesa-src rev-parse --short HEAD
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
+          dotnet pack build/deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
+            -c Release `
+            -p:PackageVersion=$version `
+            -p:RepositoryCommit=$commitHash `
+            -o nupkg
+          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stride.Dependencies.Lavapipe.nupkg
+          path: nupkg/*.nupkg
+
+  publish:
+    name: Sign & Publish to NuGet.org
+    needs: pack
+    runs-on: windows-2025-vs2026
+    environment: production
+    steps:
+      - name: Install signing tool
+        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Stride.Dependencies.Lavapipe.nupkg
+
+      - name: Sign NuGet package
+        shell: pwsh
+        run: |
+          ./sign-tool/sign code azure-key-vault *.nupkg `
+            --description "Stride" `
+            --description-url "https://stride3d.net" `
+            --publisher-name "Stride" `
+            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
+            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
+            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
+            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
+            -v Information
+
+      - name: Publish
+        run: |
+          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

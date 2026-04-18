@@ -881,7 +881,7 @@ namespace Stride.Graphics.Regression
             {
                 deviceName = GraphicsDevice.Platform switch
                 {
-                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    GraphicsPlatform.Vulkan => "Lavapipe",
                     _ => "WARP"
                 };
             }

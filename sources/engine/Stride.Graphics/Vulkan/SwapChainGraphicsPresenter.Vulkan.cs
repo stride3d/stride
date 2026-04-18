@@ -510,9 +510,9 @@ namespace Stride.Graphics
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
 
-            // Validate surface extension support (not available with headless ICDs like SwiftShader)
+            // Validate surface extension support (not available with headless ICDs)
             if (!GraphicsAdapterFactory.GetInstance(GraphicsDevice.IsDebugMode).HasSurfaceSupport)
-                throw new InvalidOperationException("Cannot create a swapchain: Vulkan surface extensions are not available. This may happen when using a headless ICD (e.g. SwiftShader).");
+                throw new InvalidOperationException("Cannot create a swapchain: Vulkan surface extensions are not available. This may happen when using a headless ICD.");
 
             // Create surface
 #if STRIDE_UI_SDL

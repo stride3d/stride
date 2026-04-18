@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <PackageId>Stride.Dependencies.Lavapipe</PackageId>
+    <Authors>Stride Contributors</Authors>
+    <Description>Lavapipe software Vulkan ICD (Mesa/llvmpipe) for Stride GPU testing. Auto-configures VK_DRIVER_FILES on load.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Native payload is placed into runtimes/<rid>/native/ by the build workflow
+         before `dotnet pack` runs. The folder layout below is the standard NuGet
+         runtime-asset convention, so consumers get the right file per RID. -->
+    <IncludeContentInPack>true</IncludeContentInPack>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="runtimes\win-x64\native\*" Pack="true" PackagePath="runtimes\win-x64\native\" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="runtimes\linux-x64\native\*" Pack="true" PackagePath="runtimes\linux-x64\native\" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="runtimes\osx-arm64\native\*" Pack="true" PackagePath="runtimes\osx-arm64\native\" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
