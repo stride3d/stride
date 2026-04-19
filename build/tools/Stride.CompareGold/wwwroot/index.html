@@ -27,9 +27,6 @@
       <option value="name">Name</option>
       <option value="diff">Worst diff first</option>
     </select></label>
-    <span style="color:#555">│</span>
-    <button class="secondary" onclick="expandAllFailing()">Expand Failing</button>
-    <button class="secondary" onclick="collapseAll()">Collapse All</button>
   </div>
   <div class="panel-row">
     <span style="color:#888">Sources:</span>
@@ -51,6 +48,14 @@
     <tbody id="tbody"></tbody>
   </table>
   <div id="emptyMsg" class="empty-msg">Select a suite and platform, then add a source to compare.</div>
+</div>
+
+<!-- Fixed Detail Pane -->
+<div id="detailPane" class="detail-pane">
+  <div id="detailPaneHandle" class="detail-pane-handle" title="Drag to resize"></div>
+  <div id="detailPaneContent" class="detail-pane-content">
+    <div class="detail-pane-empty">No selection</div>
+  </div>
 </div>
 
 <!-- Pixel Inspector -->

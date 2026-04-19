@@ -4,7 +4,7 @@ let currentPlatform = '';
 let sources = [];      // [{id, type, label}]
 let sourceDefs = [];   // tracks how sources were added for persistence
 let suiteData = {};    // {suite: {gold: [{name}], sourceImages: {srcId: [{name}]}}}
-let expanded = new Set();     // "suite:name" — fully loaded and visible
+let focusedKey = null;        // "suite:name" — currently selected row shown in bottom detail pane
 let loading = new Set();      // "suite:name" — loading in progress
 let selected = new Set();     // "suite:name"
 let collapsedSuites = new Set();
@@ -133,7 +133,7 @@ async function removeSource(id) {
   sources = sources.filter(s => s.id !== id);
   if (idx >= 0) sourceDefs.splice(idx, 1);
   cellStats = {};
-  expanded.clear();
+  focusedKey = null;
   selected.clear();
   compareLeft = {};
   compareRight = {};
@@ -267,30 +267,17 @@ function renderTable() {
     for (const img of images) {
       totalVisible++;
       const key = `${img.suite}:${img.name}`;
-      const isExp = expanded.has(key);
 
       const tr = document.createElement('tr');
-      tr.className = `row ${isExp ? 'expanded' : ''}`;
+      tr.className = `row${focusedKey === key ? ' kb-focus' : ''}`;
       tr.dataset.kbKey = key;
       tr.innerHTML = buildRowCells(img, key);
       tr.onmousedown = (e) => { tr._clickX = e.clientX; tr._clickY = e.clientY; };
       tr.onclick = (e) => {
         if (Math.abs(e.clientX - tr._clickX) > 3 || Math.abs(e.clientY - tr._clickY) > 3) return;
-        toggleExpand(key);
+        focusRow(key);
       };
       tbody.appendChild(tr);
-
-      if (isExp) {
-        const detailTr = document.createElement('tr');
-        const colspan = 3 + sources.length;
-        detailTr.innerHTML = `<td></td><td colspan="${colspan - 1}">
-          <div class="detail" id="detail-${css(key)}">
-            <div id="images-${css(key)}">Loading...</div>
-          </div>
-        </td>`;
-        tbody.appendChild(detailTr);
-        loadDetail(img.suite, img.name);
-      }
     }
   }
   document.getElementById('emptyMsg').style.display = totalVisible === 0 ? 'block' : 'none';
@@ -298,7 +285,6 @@ function renderTable() {
 }
 
 function buildRowCells(img, key) {
-  const isExp = expanded.has(key);
   const isLoading = loading.has(key);
   const isSel = selected.has(key);
 
@@ -310,7 +296,7 @@ function buildRowCells(img, key) {
 
   let cells = `
     <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
-    <td style="padding-left:24px">${isExp ? '▼' : '▶'} ${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
+    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
     <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
 
   const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
@@ -359,31 +345,13 @@ function renderRow(key) {
   const existingTr = document.querySelector(`tr.row[data-kb-key="${CSS.escape(key)}"]`);
   if (!existingTr) return;
 
-  const isExp = expanded.has(key);
-  existingTr.className = `row ${isExp ? 'expanded' : ''}`;
+  existingTr.className = `row${focusedKey === key ? ' kb-focus' : ''}`;
   existingTr.innerHTML = buildRowCells(img, key);
   existingTr.onmousedown = (e) => { existingTr._clickX = e.clientX; existingTr._clickY = e.clientY; };
   existingTr.onclick = (e) => {
     if (Math.abs(e.clientX - existingTr._clickX) > 3 || Math.abs(e.clientY - existingTr._clickY) > 3) return;
-    toggleExpand(key);
+    focusRow(key);
   };
-
-  // Handle detail row
-  const nextTr = existingTr.nextElementSibling;
-  const hasDetailRow = nextTr && !nextTr.classList.contains('row') && !nextTr.classList.contains('suite-row');
-  if (isExp && !hasDetailRow) {
-    const detailTr = document.createElement('tr');
-    const colspan = 3 + sources.length;
-    detailTr.innerHTML = `<td></td><td colspan="${colspan - 1}">
-      <div class="detail" id="detail-${css(key)}">
-        <div id="images-${css(key)}">Loading...</div>
-      </div>
-    </td>`;
-    existingTr.after(detailTr);
-    loadDetail(img.suite, img.name);
-  } else if (!isExp && hasDetailRow) {
-    nextTr.remove();
-  }
   updateSelectedCount();
   saveState();
 }
@@ -396,7 +364,6 @@ function toggleSuite(suite) {
 
 // === Detail ===
 const detailVersion = {}; // track version to discard stale loads
-const preloaded = {};     // cached images from startExpand
 
 function resolveImageRef(ref, suite, name) {
   if (!ref) return null;
@@ -443,14 +410,6 @@ async function loadDetail(suite, name) {
   const key = `${suite}:${name}`;
   const id = css(key);
 
-  // Use preloaded data if available (from startExpand)
-  const cached = preloaded[key];
-  if (cached) {
-    delete preloaded[key];
-    fillDetail(id, key, suite, name, cached);
-    return;
-  }
-
   const ver = (detailVersion[key] || 0) + 1;
   detailVersion[key] = ver;
 
@@ -473,15 +432,6 @@ async function loadDetail(suite, name) {
     rightUrl ? loadImg(rightUrl).catch(() => null) : null,
   ]);
   if (detailVersion[key] !== ver) return;
-
-  // If no container yet (loading from startExpand), transition to expanded
-  if (!document.getElementById(`images-${id}`)) {
-    loading.delete(key);
-    expanded.add(key);
-    preloaded[key] = { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img };
-    renderRow(key); // re-render this row creates the container, loadDetail re-enters and uses preloaded
-    return;
-  }
 
   fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img });
 }
@@ -508,11 +458,11 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
   else html += `<div class="empty-msg" style="padding:20px">No image</div>`;
   html += `</div>`;
   html += `<div class="image-box"><div class="lbl">Diff</div>`;
-  if (leftImg && rightImg) html += `<div class="zoom-container"><div class="zoom-inner"><canvas id="diff-${id}"></canvas></div></div><div class="stats" id="stats-${id}"></div>`;
+  if (leftImg && rightImg) html += `<div class="zoom-container"><div class="zoom-inner"><canvas id="diff-${id}"></canvas></div></div>`;
   else html += `<div class="empty-msg" style="padding:20px">—</div>`;
   html += `</div>`;
   html += '</div>';
-  html += `<div class="zoom-controls">Ctrl+Scroll to zoom · Drag to pan · <button class="secondary" onclick="resetZoom('${id}')">Reset</button></div>`;
+  html += `<div class="detail-footer"><div class="zoom-controls">Scroll to zoom · Drag to pan · <button class="secondary" onclick="resetZoom('${id}')">Reset</button></div><div class="stats" id="stats-${id}"></div></div>`;
   container.innerHTML = html;
 
   if (leftImg) drawToCanvas(document.getElementById(`left-${id}`), leftImg);
@@ -533,6 +483,7 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
     if (statsEl) statsEl.innerHTML = formatStats(stats, thresholdResult);
   }
   initZoomGroup(id);
+  updatePaneBounds(leftImg || rightImg);
 
   // Compute compact stats for gold options vs the other side
   const otherImg = rightImg || leftImg;
@@ -743,22 +694,40 @@ async function computeThumbDiff(suite, name, srcId, canvasId) {
 
 
 // === Actions ===
-function toggleExpand(key) {
-  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); renderRow(key); }
-  else if (loading.has(key)) { loading.delete(key); renderRow(key); }
-  else startExpand(key);
+function focusRow(key) {
+  if (!key) {
+    focusedKey = null;
+    kbFocusKey = null;
+    document.querySelectorAll('tr.kb-focus').forEach(r => r.classList.remove('kb-focus'));
+    renderDetailPane(null);
+    saveState();
+    return;
+  }
+  focusedKey = key;
+  kbFocusKey = key;
+  // Update border on rows without full re-render
+  document.querySelectorAll('tr.kb-focus').forEach(r => r.classList.remove('kb-focus'));
+  const row = document.querySelector(`tr[data-kb-key="${CSS.escape(key)}"]`);
+  if (row) {
+    row.classList.add('kb-focus');
+    row.scrollIntoView({ block: 'nearest' });
+  }
+  renderDetailPane(key);
+  saveState();
 }
 
-function expandWith(key, srcId) {
-  if (expanded.has(key)) { expanded.delete(key); loading.delete(key); renderRow(key); }
-  else if (loading.has(key)) { loading.delete(key); renderRow(key); }
-  else { compareRight[key] = `src:${srcId}`; startExpand(key); }
-}
-
-function startExpand(key) {
-  loading.add(key);
-  renderRow(key);
-  const [suite, name] = [key.substring(0, key.indexOf(':')), key.substring(key.indexOf(':') + 1)];
+function renderDetailPane(key) {
+  const pane = document.getElementById('detailPaneContent');
+  if (!pane) return;
+  if (!key) {
+    pane.innerHTML = `<div class="detail-pane-empty">No selection</div>`;
+    return;
+  }
+  const colon = key.indexOf(':');
+  const suite = key.substring(0, colon);
+  const name = key.substring(colon + 1);
+  const id = css(key);
+  pane.innerHTML = `<div class="detail" id="detail-${id}"><div id="images-${id}">Loading...</div></div>`;
   loadDetail(suite, name);
 }
 
@@ -772,8 +741,8 @@ function setActiveSource(key, srcId) {
       td.classList.toggle('active-source', match && match[1] === srcId);
     });
   }
-  // If expanded, also update the detail view
-  if (expanded.has(key)) {
+  // If this is the focused row, refresh the detail pane
+  if (focusedKey === key) {
     const [suite, name] = [key.substring(0, key.indexOf(':')), key.substring(key.indexOf(':') + 1)];
     loadDetail(suite, name);
   }
@@ -791,7 +760,7 @@ function switchDetailSide(key, side, value) {
       const activeSrcId = value.startsWith('src:') ? value.slice(4) : null;
       const srcCells = row.querySelectorAll('td[onclick]');
       srcCells.forEach(td => {
-        const match = td.getAttribute('onclick')?.match(/expandWith\('[^']*','([^']*)'\)/);
+        const match = td.getAttribute('onclick')?.match(/setActiveSource\('[^']*','([^']*)'\)/);
         td.classList.toggle('active-source', match && match[1] === activeSrcId);
       });
     }
@@ -903,16 +872,6 @@ async function deleteSelectedGold() {
   Object.keys(fixableVia).forEach(k => delete fixableVia[k]);
   await reload();
 }
-
-function expandAllFailing() {
-  for (const suite of Object.keys(suiteData)) {
-    const images = buildSuiteImages(suite);
-    images.filter(i => i.status === 'fail' || i.status === 'new').forEach(i => expanded.add(`${i.suite}:${i.name}`));
-  }
-  render();
-}
-
-function collapseAll() { expanded.clear(); render(); }
 
 function getSourceForKey(key) {
   // Use the right-side source from the detail view, or fall back to first source with the image
@@ -1218,9 +1177,8 @@ function initZoomGroup(groupId) {
   const containers = group.querySelectorAll('.zoom-container');
 
   containers.forEach(container => {
-    // Wheel zoom
+    // Wheel zoom (scroll anywhere over the image area)
     container.addEventListener('wheel', (e) => {
-      if (!e.ctrlKey) return; // plain scroll passes through; Ctrl+scroll zooms
       e.preventDefault();
       const state = zoomState[groupId];
       const rect = container.getBoundingClientRect();
@@ -1319,6 +1277,9 @@ document.addEventListener('mousemove', (e) => {
 
   // Build inspector content
   let html = '';
+  // Collect full-size entries in order [left, right, diff]; delta is shown only on the diff entry,
+  // computed as right − left (so the third column reports the inter-image difference).
+  let leftRGBA = null, rightRGBA = null, entryIdx = 0;
   for (const ri of relatedImages) {
     const lblEl = ri.closest('.image-box')?.querySelector('.lbl');
     const sel = lblEl?.querySelector('select');
@@ -1362,16 +1323,41 @@ document.addEventListener('mousemove', (e) => {
 
     const r = cr, g = cg, b = cb, a = ca;
 
+    // Capture left/right RGBA so the diff entry can report right − left.
+    if (entryIdx === 0) leftRGBA = { r, g, b, a };
+    else if (entryIdx === 1) rightRGBA = { r, g, b, a };
+
+    // Body rows: columns 1 and 2 show absolute RGB; column 3 shows Δ(right − left) only.
+    let bodyHtml;
+    if (entryIdx >= 2 && leftRGBA && rightRGBA) {
+      const dR = rightRGBA.r - leftRGBA.r;
+      const dG = rightRGBA.g - leftRGBA.g;
+      const dB = rightRGBA.b - leftRGBA.b;
+      const dA = rightRGBA.a - leftRGBA.a;
+      const fmt = (v) => (v > 0 ? '+' : '') + v;
+      const cls = (v) => v !== 0 ? 'pi-delta-nz' : '';
+      bodyHtml =
+        `<div class="pi-rgb">&nbsp;</div>` + // spacer to align with the #hex row on columns 1/2
+        `<div class="pi-rgb"><span class="${cls(dR)}">ΔR: ${fmt(dR)}</span></div>` +
+        `<div class="pi-rgb"><span class="${cls(dG)}">ΔG: ${fmt(dG)}</span></div>` +
+        `<div class="pi-rgb"><span class="${cls(dB)}">ΔB: ${fmt(dB)}</span></div>` +
+        `<div class="pi-rgb"><span class="${cls(dA)}">ΔA: ${fmt(dA)}</span></div>`;
+    } else {
+      bodyHtml =
+        `<div class="pi-rgb">#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}${a<255?a.toString(16).padStart(2,'0'):''}</div>` +
+        `<div class="pi-rgb">R: ${String(r).padStart(3)} (${(r/255).toFixed(3)})</div>` +
+        `<div class="pi-rgb">G: ${String(g).padStart(3)} (${(g/255).toFixed(3)})</div>` +
+        `<div class="pi-rgb">B: ${String(b).padStart(3)} (${(b/255).toFixed(3)})</div>` +
+        `<div class="pi-rgb">A: ${String(a).padStart(3)} (${(a/255).toFixed(3)})</div>`;
+    }
+
     html += `<div class="pi-entry">
       <div class="pi-label">${esc(label)}</div>
       <img class="pi-zoom" src="${canvas.toDataURL()}" width="${piZoomSize * piScale}" height="${piZoomSize * piScale}">
       <div class="pi-coords">X:${px} Y:${py}</div>
-      <div class="pi-rgb">#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}${a<255?a.toString(16).padStart(2,'0'):''}</div>
-      <div class="pi-rgb">R: ${String(r).padStart(3)} (${(r/255).toFixed(3)})</div>
-      <div class="pi-rgb">G: ${String(g).padStart(3)} (${(g/255).toFixed(3)})</div>
-      <div class="pi-rgb">B: ${String(b).padStart(3)} (${(b/255).toFixed(3)})</div>
-      <div class="pi-rgb">A: ${String(a).padStart(3)} (${(a/255).toFixed(3)})</div>
+      ${bodyHtml}
     </div>`;
+    entryIdx++;
   }
 
   const inspector = document.getElementById('pixelInspector');
@@ -1421,7 +1407,14 @@ function kbSetFocus(rows, idx) {
   if (idx >= 0 && idx < rows.length) {
     rows[idx].classList.add('kb-focus');
     rows[idx].scrollIntoView({ block: 'nearest' });
-    kbFocusKey = rows[idx].dataset.kbKey || null;
+    const key = rows[idx].dataset.kbKey || null;
+    kbFocusKey = key;
+    // Drive the detail pane when focus lands on a test row (not the suite header).
+    if (rows[idx].classList.contains('row')) {
+      focusedKey = key;
+      renderDetailPane(key);
+    }
+    saveState();
   }
 }
 
@@ -1440,8 +1433,6 @@ function kbExpand(row) {
     }
     collapsedSuites.delete(key);
     render();
-  } else if (!expanded.has(key) && !loading.has(key)) {
-    startExpand(key);
   }
 }
 
@@ -1451,11 +1442,8 @@ function kbCollapse(row) {
   if (row.classList.contains('suite-row')) {
     if (collapsedSuites.has(key)) return; // already collapsed, nowhere to go
     collapsedSuites.add(key);
-  } else if (expanded.has(key) || loading.has(key)) {
-    expanded.delete(key);
-    loading.delete(key);
   } else {
-    // Already collapsed test row — move to parent suite
+    // Test row — move to parent suite
     const rows = [...document.querySelectorAll('tr.suite-row, tr.row')];
     const idx = rows.indexOf(row);
     for (let i = idx - 1; i >= 0; i--) {
@@ -1484,12 +1472,13 @@ function saveState() {
   try {
     localStorage.setItem('compareGold', JSON.stringify({
       platform: currentPlatform,
-      expanded: [...expanded],
+      selectedKey: focusedKey,
       collapsedSuites: [...collapsedSuites],
       statusFilter: document.getElementById('statusFilter')?.value || '',
       sort: document.getElementById('sortSelect')?.value || 'name',
       search: document.getElementById('searchFilter')?.value || '',
       savedSources: sourceDefs,
+      detailPaneH: document.documentElement.style.getPropertyValue('--detail-pane-h') || '',
     }));
   } catch {}
 }
@@ -1498,7 +1487,7 @@ function restoreState() {
   try {
     const data = JSON.parse(localStorage.getItem('compareGold') || '{}');
     if (data.platform) currentPlatform = data.platform;
-    if (data.expanded) data.expanded.forEach(k => expanded.add(k));
+    if (data.selectedKey) { focusedKey = data.selectedKey; kbFocusKey = data.selectedKey; }
     if (data.collapsedSuites) data.collapsedSuites.forEach(k => collapsedSuites.add(k));
     if (data.statusFilter !== undefined) {
       const sel = document.getElementById('statusFilter');
@@ -1513,6 +1502,7 @@ function restoreState() {
       if (el) el.value = data.search;
     }
     if (data.savedSources) savedSourceDefs = data.savedSources;
+    if (data.detailPaneH) document.documentElement.style.setProperty('--detail-pane-h', data.detailPaneH);
   } catch {}
 }
 
@@ -1547,6 +1537,59 @@ async function restoreSources() {
 const _origRender = render;
 render = function() { _origRender(); saveState(); };
 
+// === Detail pane resize ===
+// Hard floor: keep images usable; updatePaneBounds() recomputes ceiling from loaded image aspect.
+const PANE_MIN_H = 160;
+let paneMaxH = null;
+
+function updatePaneBounds(refImg) {
+  const pane = document.getElementById('detailPane');
+  if (!pane) return;
+  const container = pane.querySelector('.zoom-container');
+  if (!refImg || !container) { paneMaxH = null; return; }
+  const aw = refImg.naturalWidth || refImg.width;
+  const ah = refImg.naturalHeight || refImg.height;
+  if (!aw || !ah) { paneMaxH = null; return; }
+  // Image-box width at full pane width. Add non-image overhead (handle, padding, label, footer, margins).
+  const boxW = container.offsetWidth;
+  const maxImgH = Math.ceil(boxW * ah / aw);
+  const overhead = pane.offsetHeight - container.offsetHeight;
+  const winCap = window.innerHeight - 120;
+  paneMaxH = Math.min(winCap, Math.max(PANE_MIN_H, maxImgH + overhead));
+  // Clamp current height if it exceeds the new bounds.
+  const cur = pane.offsetHeight;
+  const clamped = Math.max(PANE_MIN_H, Math.min(paneMaxH, cur));
+  if (clamped !== cur) {
+    document.documentElement.style.setProperty('--detail-pane-h', clamped + 'px');
+    saveState();
+  }
+}
+
+(function initPaneResize() {
+  const handle = document.getElementById('detailPaneHandle');
+  if (!handle) return;
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    handle.classList.add('dragging');
+    const startY = e.clientY;
+    const startH = document.getElementById('detailPane').offsetHeight;
+    const onMove = (ev) => {
+      const dy = startY - ev.clientY;
+      const cap = paneMaxH != null ? paneMaxH : (window.innerHeight - 120);
+      const h = Math.max(PANE_MIN_H, Math.min(cap, startH + dy));
+      document.documentElement.style.setProperty('--detail-pane-h', h + 'px');
+    };
+    const onUp = () => {
+      handle.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      saveState();
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
+
 // === Start ===
 restoreState();
 init().then(async () => {
@@ -1563,5 +1606,19 @@ init().then(async () => {
     await reload();
   } else {
     await addLocalSource().catch(() => {});
+  }
+  // Re-hydrate the detail pane with the restored selection (if it still exists).
+  if (focusedKey) {
+    const row = document.querySelector(`tr.row[data-kb-key="${CSS.escape(focusedKey)}"]`);
+    if (row) {
+      row.classList.add('kb-focus');
+      row.scrollIntoView({ block: 'nearest' });
+      renderDetailPane(focusedKey);
+    } else {
+      focusedKey = null;
+      renderDetailPane(null);
+    }
+  } else {
+    renderDetailPane(null);
   }
 });
