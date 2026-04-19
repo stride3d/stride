@@ -458,7 +458,9 @@ public abstract class GraphicsPresenter : ComponentBase
 
         // Creates the Depth-Stencil Buffer
         var flags = TextureFlags.DepthStencil;
-        if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_0 &&
+        // Gate depth-as-SRV on the device feature rather than the profile — D3D11 Level_10_0+ and
+        // all Vulkan devices expose it regardless.
+        if (GraphicsDevice.Features.HasDepthAsSRV &&
             Description.MultisampleCount == MultisampleCount.None)
         {
             flags |= TextureFlags.ShaderResource;
