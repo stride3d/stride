@@ -384,6 +384,8 @@ namespace Stride.Games
         {
             Dpi = new Int2((int) window.Dpi);
             DpiScale = window.DpiScale;
+
+            OnDpiChanged(this, EventArgs.Empty);
         }
 
         protected override void Destroy()

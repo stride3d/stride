@@ -73,6 +73,11 @@ namespace Stride.Games
         public event EventHandler<EventArgs> FullscreenChanged;
 
         /// <summary>
+        /// Occurs when the DPI configuration of this window has changed.
+        /// </summary>
+        public event EventHandler<EventArgs> DpiChanged;
+
+        /// <summary>
         /// Occurs before the window gets destroyed.
         /// </summary>
         public event EventHandler<EventArgs> Closing;
@@ -326,6 +331,12 @@ namespace Stride.Games
         protected void OnDisableFullScreen(object source, EventArgs e)
         {
             IsFullscreen = false;
+        }
+
+        protected void OnDpiChanged(object source, EventArgs e)
+        {
+            var handler = DpiChanged;
+            handler?.Invoke(this, e);
         }
 
         protected void OnClosing(object source, EventArgs e)
