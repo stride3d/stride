@@ -315,11 +315,25 @@ namespace Stride.Graphics
                 }
             }
 
+            // If the pipeline disables depth+stencil writes the depth attachment can ride in
+            // DepthStencilReadOnlyOptimal — matching the render-pass layout picked in
+            // PipelineState.CreateRenderPass and leaving the image sampleable (soft-edge particles).
+            var dss = activePipeline.Description.DepthStencilState;
+            bool depthReadOnly = !dss.DepthBufferWriteEnable
+                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
+            var depthAttachmentLayout = depthReadOnly
+                ? VkImageLayout.DepthStencilReadOnlyOptimal
+                : VkImageLayout.DepthStencilAttachmentOptimal;
+            var depthAttachmentBarrier = depthReadOnly
+                ? BarrierLayout.DepthStencilRead
+                : BarrierLayout.DepthStencilWrite;
+
+            Texture depthParent = null;
             if (depthStencilBuffer != null)
             {
-                var parent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
-                if (parent.NativeLayout != VkImageLayout.DepthStencilAttachmentOptimal)
-                    ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
+                depthParent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
+                if (depthParent.NativeLayout != depthAttachmentLayout)
+                    ResourceBarrierTransition(depthStencilBuffer, depthAttachmentBarrier);
             }
 
             // Transition sampled/storage textures bound in descriptors
@@ -341,9 +355,12 @@ namespace Stride.Graphics
                     if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
                         continue;
 
-                    var expectedLayout = mapping.DescriptorType == VkDescriptorType.SampledImage
-                        ? VkImageLayout.ShaderReadOnlyOptimal
-                        : VkImageLayout.General;
+                    // Skip if this sampled image is the currently bound read-only depth buffer:
+                    // DepthStencilReadOnlyOptimal is already valid for shader reads and moving it
+                    // to ShaderReadOnlyOptimal would break the render pass's attachment layout.
+                    if (depthReadOnly && depthParent != null && parent == depthParent
+                        && mapping.DescriptorType == VkDescriptorType.SampledImage)
+                        continue;
 
                     // Always call ResourceBarrierTransition — even if the layout matches, the barrier
                     // must be re-issued when the resource was last transitioned by a different command list.
@@ -445,7 +462,14 @@ namespace Stride.Graphics
                     case VkDescriptorType.SampledImage:
                         {
                             var texture = heapObject.Value as Texture;
-                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.ShaderReadOnlyOptimal };
+                            // The descriptor's layout field must match the image's actual layout.
+                            // A depth buffer sampled as SRV while still bound as a read-only attachment
+                            // is in DepthStencilReadOnlyOptimal rather than the usual ShaderReadOnlyOptimal.
+                            var nativeLayout = (texture?.ParentTexture ?? texture)?.NativeLayout ?? VkImageLayout.ShaderReadOnlyOptimal;
+                            var imageLayout = nativeLayout == VkImageLayout.DepthStencilReadOnlyOptimal
+                                ? VkImageLayout.DepthStencilReadOnlyOptimal
+                                : VkImageLayout.ShaderReadOnlyOptimal;
+                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
                             write->pImageInfo = &descriptorData->ImageInfo;
                             break;
                         }

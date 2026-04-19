@@ -289,6 +289,19 @@ namespace Stride.Graphics
                 }
             }
 
+            // A pipeline that disables depth writes AND doesn't write stencil is compatible with
+            // DepthStencilReadOnlyOptimal, which is also a valid layout for shader sampling. Using
+            // that layout here lets a depth buffer be bound simultaneously as read-only attachment
+            // and as a SampledImage (e.g. soft-edge particles sampling the scene depth) without
+            // triggering VUID-vkCmdBeginRenderPass-initialLayout-00900.
+            var dss = pipelineStateDescription.DepthStencilState;
+            bool depthReadOnly = hasDepthStencilAttachment
+                && !dss.DepthBufferWriteEnable
+                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
+            var depthLayout = depthReadOnly
+                ? VkImageLayout.DepthStencilReadOnlyOptimal
+                : VkImageLayout.DepthStencilAttachmentOptimal;
+
             if (hasDepthStencilAttachment)
             {
                 attachments[attachmentCount - 1] = new VkAttachmentDescription
@@ -299,8 +312,8 @@ namespace Stride.Graphics
                     storeOp = VkAttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
                     stencilLoadOp = VkAttachmentLoadOp.DontCare, // TODO VULKAN: Handle stencil
                     stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                    initialLayout = VkImageLayout.DepthStencilAttachmentOptimal,
-                    finalLayout = VkImageLayout.DepthStencilAttachmentOptimal
+                    initialLayout = depthLayout,
+                    finalLayout = depthLayout
                 };
             }
 
@@ -311,7 +324,7 @@ namespace Stride.Graphics
                 var depthAttachmentReference = new VkAttachmentReference
                 {
                     attachment = (uint)attachments.Length - 1,
-                    layout = VkImageLayout.DepthStencilAttachmentOptimal
+                    layout = depthLayout
                 };
 
                 var subpass = new VkSubpassDescription
