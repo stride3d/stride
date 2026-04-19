@@ -120,6 +120,16 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     entryPoints.Add(psEntry);
 
                     buffer.Add(new OpExecutionMode(psEntry.Id, ExecutionMode.OriginUpperLeft, []));
+
+                    // Vulkan spec VUID-FragDepth-FragDepth-04216: a shader that writes the FragDepth
+                    // builtin must declare the DepthReplacing execution mode. NVIDIA/AMD drivers
+                    // tolerate the omission; strict validators (spirv-val, Lavapipe) reject it.
+                    if (streams.Any(s => s.Value.Write && s.Value.Output
+                        && s.Value.Semantic is { } sem
+                        && sem.Equals("SV_DEPTH", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        buffer.Add(new OpExecutionMode(psEntry.Id, ExecutionMode.DepthReplacing, []));
+                    }
                 }
                 else
                 {
