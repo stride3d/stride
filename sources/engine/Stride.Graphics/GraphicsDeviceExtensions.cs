@@ -158,6 +158,13 @@ public static class GraphicsDeviceExtensions
     /// </summary>
     /// <param name="device">The Graphics Device for which to retrieve the shared depth Texture.</param>
     /// <returns>A <see cref="Texture"/> with a 1x1 depth format.</returns>
+    /// <remarks>
+    /// Only <see cref="TextureFlags.ShaderResource"/> is set (no <c>DepthStencil</c>): the placeholder
+    /// is never attached for depth writes, so we don't want the initial Vulkan layout to be
+    /// <c>DepthStencilAttachmentOptimal</c>. With ShaderResource-only, Stride's <c>NativeLayout</c>
+    /// starts at <c>ShaderReadOnlyOptimal</c>, matching how the texture is actually used and avoiding
+    /// a stale-layout race when multiple worker command buffers first sample it in parallel.
+    /// </remarks>
     public static Texture GetSharedDepthTexture(this GraphicsDevice device)
     {
         return device.GetOrCreateSharedData("DepthTexture", static device =>
@@ -166,7 +173,7 @@ public static class GraphicsDeviceExtensions
                 ? new Texture(device, "DepthTexture")
                 : new Texture(device);
 
-            var description = TextureDescription.New2D(1, 1, PixelFormat.D32_Float, TextureFlags.DepthStencil | TextureFlags.ShaderResource);
+            var description = TextureDescription.New2D(1, 1, PixelFormat.D32_Float, TextureFlags.ShaderResource);
             texture.InitializeFrom(description);
 
             return texture;
