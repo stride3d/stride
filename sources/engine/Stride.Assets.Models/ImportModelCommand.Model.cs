@@ -171,7 +171,8 @@ namespace Stride.Assets.Models
             bool needsRootTransformUndo = false;
             if (isUnskinnedHierarchySubModel && SourceRootTransform != Matrix.Identity)
             {
-                Matrix.Invert(ref SourceRootTransform, out inverseSourceRootTransform);
+                var sourceRootTransformCopy = SourceRootTransform;
+                Matrix.Invert(ref sourceRootTransformCopy, out inverseSourceRootTransform);
                 needsRootTransformUndo = true;
             }
 
@@ -322,7 +323,6 @@ namespace Stride.Assets.Models
                             Draw = generatedMesh,
                             NodeIndex = baseMesh.NodeIndex,
                             Skinning = baseMesh.Skinning,
-                            BlendShapes = baseMesh.BlendShapes,
                         });
                     }
                 }

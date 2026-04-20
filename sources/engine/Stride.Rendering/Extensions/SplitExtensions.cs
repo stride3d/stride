@@ -30,7 +30,6 @@ namespace Stride.Extensions
                                 Name = mesh.Name,
                                 NodeIndex = mesh.NodeIndex,
                                 Skinning = mesh.Skinning,
-                                BlendShapes = mesh.BlendShapes,
                             };
                         finalList.Add(newMeshData);
                     }

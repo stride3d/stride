@@ -89,12 +89,6 @@ namespace Stride.Rendering
                         context.Mixin(mixin, "NormalFromMesh");
                     }
                 }
-                if (context.GetParam(MaterialKeys.HasBlendShapes))
-                {
-                    mixin.AddMacro("BlendShapeCount", context.GetParam(MaterialKeys.BlendShapeCount));
-                    mixin.AddMacro("BlendShapeHasTangent", context.GetParam(MaterialKeys.BlendShapeHasTangent) ? 1 : 0);
-                    context.Mixin(mixin, "TransformationBlendShape");
-                }
                 if (context.GetParam(MaterialKeys.HasSkinningPosition))
                 {
                     mixin.AddMacro("SkinningMaxBones", context.GetParam(MaterialKeys.SkinningMaxBones));
