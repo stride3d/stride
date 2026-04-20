@@ -84,7 +84,8 @@ jobs:
             bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux/Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
             bin/Tests/Stride.Core.Quantum.Tests/Linux/Vulkan/Stride.Core.Quantum.Tests.dll \
             bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
-            --logger:trx --ResultsDirectory:TestResults
+            --logger:trx --ResultsDirectory:TestResults \
+            '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full'
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15
@@ -94,3 +95,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-simple
+          path: TestResults/
+          if-no-files-found: ignore

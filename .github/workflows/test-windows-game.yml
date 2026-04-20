@@ -37,6 +37,7 @@ jobs:
   Game-Common:
     name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
@@ -66,6 +67,7 @@ jobs:
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
@@ -76,6 +78,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-game-common
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,6 +99,7 @@ jobs:
   Game-GraphicsApi:
     name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -98,12 +108,13 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
-      # Crash dump collection (covers 3 crash types):
+      # Crash dump collection (covers 3 crash types) — all dumps land under TestResults/
+      # alongside the .trx logs and the blame-hang dumps from `dotnet test`.
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
-      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"            # Shared dump directory for all crash types
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\TestResults"            # Shared dump directory for all crash types
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
       DOTNET_DbgMiniDumpType: "1"                                                    # MiniDumpNormal
-      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"  # Type 2: dump path
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
     steps:
       - uses: actions/checkout@v4
         with:
@@ -118,7 +129,7 @@ jobs:
           # WER DontShowUI: suppress dialogs without disabling dump generation
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
           # WER LocalDumps: capture native crashes (type 3)
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          $dumpDir = "${{ github.workspace }}\TestResults"
           New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
@@ -167,6 +178,7 @@ jobs:
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
@@ -184,8 +196,8 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
-          if (Get-ChildItem $dumpDir -Filter *.dmp -ErrorAction SilentlyContinue) {
+          $dumpDir = "${{ github.workspace }}\TestResults"
+          if (Get-ChildItem $dumpDir -Recurse -Filter *.dmp -ErrorAction SilentlyContinue) {
             $symDir = Join-Path $dumpDir "symbols"
             New-Item -Path $symDir -ItemType Directory -Force | Out-Null
             Get-ChildItem bin -Recurse -Include *.pdb,*.dll,*.exe | Copy-Item -Destination $symDir
@@ -198,10 +210,10 @@ jobs:
           name: test-artifacts-game-${{ matrix.graphics-api }}
           path: tests/local/
           if-no-files-found: ignore
-      - name: Upload crash dumps
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crash-dumps-game-${{ matrix.graphics-api }}
-          path: crash-dumps/
+          name: test-results-game-${{ matrix.graphics-api }}
+          path: TestResults/
           if-no-files-found: ignore

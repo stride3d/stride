@@ -167,6 +167,7 @@ jobs:
             bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
             bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
+            '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
@@ -177,6 +178,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-common
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -252,6 +260,7 @@ jobs:
             bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
             bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
+            '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
@@ -262,6 +271,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-vulkan
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
