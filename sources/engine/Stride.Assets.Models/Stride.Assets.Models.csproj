@@ -1,8 +1,8 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -19,18 +19,17 @@
   <ItemGroup>
     <Folder Include="Analysis\" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
     <TargetsForTfmSpecificContentInPackage>_StrideIncludeNativeLibs;$(TargetsForTfmSpecificContentInPackage)</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
-  
+
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
-      <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)ijwhost.dll" Condition="Exists('$(TargetDir)ijwhost.dll')" />
+      <BuildOutputInPackage Include="$(TargetDir)Stride.Importer.Common.dll" />
     </ItemGroup>
   </Target>
 
@@ -38,4 +37,5 @@
     <ItemGroup>
     </ItemGroup>
   </Target>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

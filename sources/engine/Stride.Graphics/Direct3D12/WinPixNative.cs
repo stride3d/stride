@@ -29,9 +29,22 @@ public static class WinPixNative
     private const string RuntimeDllName = "WinPixEventRuntime.dll";
     private const string CapturerDllName = "WinPixGpuCapturer.dll";
 
+    /// <summary>
+    ///   Whether the PIX runtime DLL was successfully loaded.
+    /// </summary>
+    internal static bool IsAvailable { get; private set; }
+
     internal static void PreLoad()
     {
-        NativeLibraryHelper.PreloadLibrary("WinPixEventRuntime", typeof(WinPixNative));
+        try
+        {
+            NativeLibraryHelper.PreloadLibrary("WinPixEventRuntime", typeof(WinPixNative));
+            IsAvailable = GetModuleHandle(RuntimeDllName) != IntPtr.Zero;
+        }
+        catch
+        {
+            IsAvailable = false;
+        }
     }
 
     static WinPixNative()

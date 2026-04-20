@@ -252,6 +252,18 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             {
                 Content = new ContentControl { Content = data, ContentTemplate = DragVisualTemplate }
             };
+
+            // Set initial position to the cursor location to avoid the element potentially flashing at the system-default window position.
+            var rootSource = PresentationSource.FromVisual(AssociatedObject);
+            if (rootSource != null)
+            {
+                var cursorRelToSource = AssociatedObject.GetCursorRelativePosition();
+                var cursorScreenPhysical = AssociatedObject.PointToScreen(cursorRelToSource);
+                var cursorInDip = rootSource.CompositionTarget.TransformFromDevice.Transform(cursorScreenPhysical);
+                DragWindow.Left = cursorInDip.X + 16;
+                DragWindow.Top = cursorInDip.Y;
+            }
+
             DragWindow.Show();
 
             try
@@ -317,7 +329,10 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             var itemsToDrag = GetItemsToDrag(container).ToList();
             if (itemsToDrag.Count > 0)
             {
-                var dragContainer = new DragContainer(itemsToDrag);
+                var dragContainer = new DragContainer(itemsToDrag)
+                {
+                    Message = DragDropBehavior.InvalidDropAreaMessage
+                };
                 data = dragContainer;
             }
             return data;
@@ -502,25 +517,14 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
         private void OnGiveFeedback(object sender, GiveFeedbackEventArgs e)
         {
-            if (DragWindow == null)
+            if (DragWindow == null || PresentationSource.FromVisual(DragWindow) == null)
                 return;
 
-            // Get root window
-            var rootWindow = Window.GetWindow((DependencyObject)sender);
-            if (rootWindow == null)
-                return;
-
-            // Get position in WPF screen coordinates
-            var point = rootWindow.GetCursorScreenPosition();
-            // Get the relative DPI between the two windows
-            var rootDpi = VisualTreeHelper.GetDpi(rootWindow);
-            var dragDpi = VisualTreeHelper.GetDpi(DragWindow);
-            // Calculate relative DPI scale
-            var dpiRatioX = rootDpi.DpiScaleX / dragDpi.DpiScaleX;
-            var dpiRatioY = rootDpi.DpiScaleY / dragDpi.DpiScaleY;
-            // Move drag window accordingly
-            DragWindow.Left = (point.X + 16) * dpiRatioX;
-            DragWindow.Top = point.Y * dpiRatioY;
+            // Get the cursor position in DragWindow's own coordinate space and adjust its position so the cursor sits just to the left of DragWindow.
+            // Using the DragWindow's own coordinate space allows the drag visual to be properly positioned across various DPI / monitor settings.
+            var cursorRelative = DragWindow.GetCursorRelativePosition();
+            DragWindow.Left += cursorRelative.X + 16;
+            DragWindow.Top += cursorRelative.Y;
         }
 
         private void OnDragOver(object sender, [NotNull] DragEventArgs e)

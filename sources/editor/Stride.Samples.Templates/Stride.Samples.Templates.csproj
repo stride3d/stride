@@ -1,6 +1,5 @@
-﻿<Project>
-  <Import Project="..\..\targets\Stride.props" />
-
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
@@ -24,6 +23,5 @@
     <Compile Include="ThisPackageVersion.PackageBuild.cs" />
     <Compile Include="ThisPackageVersion.DevBuild.cs" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

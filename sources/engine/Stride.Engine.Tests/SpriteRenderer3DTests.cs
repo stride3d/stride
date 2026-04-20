@@ -143,7 +143,7 @@ namespace Stride.Engine.Tests
             ratio.Transform.Scale = new Vector3(time % 5f) / 5;
         }
 
-        [Fact]
+        [SkippableFact]
         public void SpriteRender3DRun()
         {
             RunGameTest(new SpriteRenderer3DTests());

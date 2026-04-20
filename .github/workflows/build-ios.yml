@@ -4,14 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-ios.yml'
-      - 'build/Stride.iOS.sln'
+      - 'build/Stride.iOS.slnf'
       - 'deps/**'
       - 'sources/core/**'
       - 'sources/engine/**'
       - 'sources/native/**'
       - 'sources/shaders/**'
       - 'sources/shared/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -44,7 +44,7 @@ jobs:
   iOS-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,11 +54,11 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Install .NET iOS Workload
         run: dotnet workload install ios
-      - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.iOS.sln `
-            -restore -m:1 -nr:false `
+          dotnet build build\Stride.iOS.slnf `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=iOS `

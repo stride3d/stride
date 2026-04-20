@@ -231,9 +231,10 @@ public class TestUDirectory
         Assert.Equal(expected, new UDirectory(path).GetDirectoryName());
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetParent_ReturnsParentDirectory()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var dir = new UDirectory("c:/a/b");
         Assert.Equal("c:/a", dir.GetParent().FullPath);
 
@@ -253,9 +254,10 @@ public class TestUDirectory
         Assert.Equal("", dir.GetParent().FullPath); // No parent
     }
 
-    [Fact]
+    [SkippableFact]
     public void IsAbsolute_ChecksPathCorrectly()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         Assert.True(new UDirectory("/a/b/c").IsAbsolute);
         Assert.True(new UDirectory("C:/a/b").IsAbsolute);
         Assert.False(new UDirectory("a/b/c").IsAbsolute);

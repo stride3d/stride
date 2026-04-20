@@ -53,7 +53,6 @@ Cache/
 /externals/
 /sources/common/externals/
 /sources/tools/Stride.ShaderKeyGenerator/build/
-/sources/tools/Stride.ProjectGenerator/build/
 /sources/tools/SLConverter/BuildRelease/Package/SLConverter-*.pdf
 /sources/tools/SLConverter/BuildRelease/Package/bin/x64/SLConverter.exe
 /sources/tools/SLConverter/BuildRelease/Package/bin/x86/SLConverter.exe
@@ -65,6 +64,7 @@ Cache/
 /package/
 /tools/
 **/Properties/launchSettings.json
+!**/*Tests*/Properties/launchSettings.json
 launch-android.bat
 sources/tests/framework/Stride.Framework.Audio.Tests/Resources/Resource.Designer.cs
 Win32

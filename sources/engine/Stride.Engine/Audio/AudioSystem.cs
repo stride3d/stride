@@ -50,19 +50,30 @@ namespace Stride.Audio
         {
             base.Initialize();
 
-            lock (AudioEngineStaticLock)
+            try
             {
-                if (audioEngineSingleton == null)
+                lock (AudioEngineStaticLock)
                 {
-                    var settings = Services.GetService<IGameSettingsService>()?.Settings?.Configurations?.Get<AudioEngineSettings>();
-                    audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings != null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
-                }
-                else
-                {
-                    ((IReferencable)audioEngineSingleton).AddReference();
-                }
+                    if (audioEngineSingleton == null)
+                    {
+                        var settings = Services.GetService<IGameSettingsService>()?.Settings?.Configurations?.Get<AudioEngineSettings>();
+                        audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings != null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
+                    }
+                    else
+                    {
+                        ((IReferencable)audioEngineSingleton).AddReference();
+                    }
 
-                AudioEngine = audioEngineSingleton;
+                    AudioEngine = audioEngineSingleton;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Audio may not be available (e.g. missing OpenAL on Linux, headless CI).
+                // Log the error but don't crash — audio is not required for rendering tests.
+                // Audio may not be available (e.g. missing OpenAL on Linux, headless CI).
+                // Don't crash — audio is not required for rendering.
+                System.Diagnostics.Debug.WriteLine($"[AudioSystem] Initialization failed, audio disabled: {ex.Message}");
             }
 
             Game.Activated += OnActivated;
@@ -97,7 +108,7 @@ namespace Stride.Audio
 
         public override void Update(GameTime gameTime)
         {
-            AudioEngine.Update();
+            AudioEngine?.Update();
         }
 
         // called on dispose
@@ -111,10 +122,13 @@ namespace Stride.Audio
             lock (AudioEngineStaticLock)
             {
                 AudioEngine = null;
-                var count = ((IReferencable)audioEngineSingleton).Release();
-                if (count == 0)
+                if (audioEngineSingleton != null)
                 {
-                    audioEngineSingleton = null;
+                    var count = ((IReferencable)audioEngineSingleton).Release();
+                    if (count == 0)
+                    {
+                        audioEngineSingleton = null;
+                    }
                 }
             }
         }

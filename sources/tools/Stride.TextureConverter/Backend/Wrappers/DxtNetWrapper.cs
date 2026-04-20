@@ -931,7 +931,11 @@ namespace Stride.TextureConverter.DxtWrapper
                 int headerSize = sizeof(DDSHeaderDX9);  // 128byte
                 byte[] buffer = new byte[headerSize];
                 DDSHeaderDX9 header;
-                fileStream.ReadExactly(buffer, 0, headerSize);
+                int readCount = fileStream.Read(buffer, 0, headerSize);
+                if (readCount != headerSize)
+                {
+                    return -1;
+                }
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;
