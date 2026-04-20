@@ -234,16 +234,16 @@ namespace Stride.Rendering.Images
             for (int i = 0; i <= maxInputTextureIndex; ++i)
             {
                 if (inputTextures[i] != null)
-                    context.CommandList.ResourceBarrierTransition(inputTextures[i], GraphicsResourceState.PixelShaderResource);
+                    context.CommandList.ResourceBarrierTransition(inputTextures[i], BarrierLayout.ShaderResource);
             }
 
             if (outputDepthStencilView != null)
-                context.CommandList.ResourceBarrierTransition(outputDepthStencilView, GraphicsResourceState.DepthWrite);
+                context.CommandList.ResourceBarrierTransition(outputDepthStencilView, BarrierLayout.DepthStencilWrite);
 
             if (outputRenderTargetView != null)
             {
                 // Transition render target
-                context.CommandList.ResourceBarrierTransition(outputRenderTargetView, GraphicsResourceState.RenderTarget);
+                context.CommandList.ResourceBarrierTransition(outputRenderTargetView, BarrierLayout.RenderTarget);
 
                 if (outputRenderTargetView.ViewDimension == TextureDimension.TextureCube)
                 {
@@ -264,7 +264,7 @@ namespace Stride.Rendering.Images
             {
                 // Transition render targets
                 foreach (var renderTarget in outputRenderTargetViews)
-                    context.CommandList.ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
+                    context.CommandList.ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
 
                 context.CommandList.SetRenderTargetsAndViewport(outputDepthStencilView, outputRenderTargetViews);
             }

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -104,21 +106,18 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        /// Forces render doc capture even if test didn't fail. This can be used only when <see cref="CaptureRenderDocOnError"/> is set.
+        ///   Controls RenderDoc capture behavior for tests.
+        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   <list type="bullet">
+        ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
+        ///     <item><c>always</c> — capture frames for all tests</item>
+        ///   </list>
         /// </summary>
-        public static bool ForceCaptureRenderDocOnSuccess = false;
+        private static readonly string RenderDocMode =
+            Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
-        /// <summary>
-        ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs
-        ///   or a test fails.
-        /// </summary>
-        /// <remarks>Enabling this feature may cause an Out-of-Memory exception on 32-bit processes.</remarks>
-        public static bool CaptureRenderDocOnError =
-  #if STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR
-            true;
-  #else
-            string.Equals(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase);
-  #endif
+        private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
+        private static bool ForceCaptureRenderDocOnSuccess => RenderDocMode is "always";
 
         private RenderDocManager renderDocManager;
 #endif
@@ -443,6 +442,27 @@ namespace Stride.Graphics.Regression
             renderDocManager?.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
         }
 
+        /// <summary>
+        ///   Ends or discards the RenderDoc capture based on test results.
+        ///   Must be called while the graphics device is still alive.
+        /// </summary>
+        internal void EndOrDiscardRenderDocCapture()
+        {
+            if (renderDocManager is null || !CaptureRenderDocOnError)
+                return;
+
+            if (comparisonFailedMessages.Count == 0 &&
+                comparisonMissingMessages.Count == 0 &&
+                !ForceCaptureRenderDocOnSuccess)
+            {
+                DiscardFrameCapture();
+            }
+            else
+            {
+                EndFrameCapture();
+            }
+        }
+
         /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
         {
@@ -587,40 +607,67 @@ namespace Stride.Graphics.Regression
         ///   Executes a game test using the specified <see cref="GameTestBase"/> instance.
         /// </summary>
         /// <param name="game">The game test instance to run. Must not be <see langword="null"/>.</param>
-        protected static void RunGameTest(GameTestBase game)
+        protected static void RunGameTest(GameTestBase game, [CallerMemberName] string callerName = null)
         {
             game.EnableSimulatedInputSource();
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            ExceptionDispatchInfo exceptionOrFailedAssert = null;
+            // Collect allowed GPU validation errors from [AllowGpuValidationError] attributes on the calling test method and class
+            var allowedErrors = new List<AllowGpuValidationErrorAttribute>();
+            if (callerName != null)
+            {
+                var callerType = new System.Diagnostics.StackTrace().GetFrames()
+                    .Select(f => f.GetMethod())
+                    .FirstOrDefault(m => m?.Name == callerName)?.DeclaringType;
+                if (callerType != null)
+                {
+                    // Class-level attributes
+                    allowedErrors.AddRange(callerType.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                    // Method-level attributes
+                    var method = callerType.GetMethod(callerName);
+                    if (method != null)
+                        allowedErrors.AddRange(method.GetCustomAttributes<AllowGpuValidationErrorAttribute>(true));
+                }
+            }
+
+            // Track GPU validation errors and warnings during the test
+            var gpuValidationErrors = new List<string>();
+            var gpuValidationWarnings = new List<string>();
+            void OnGlobalMessage(ILogMessage msg)
+            {
+                if (msg.Module != nameof(GraphicsDevice))
+                    return;
+                if (msg.Type == LogMessageType.Error)
+                    gpuValidationErrors.Add(msg.Text);
+                else if (msg.Type == LogMessageType.Warning && !IsKnownHarmlessWarning(msg.Text))
+                    gpuValidationWarnings.Add(msg.Text);
+            }
+            GlobalLogger.GlobalMessageLogged += OnGlobalMessage;
 
             try
             {
                 GameTester.RunGameTest(game);
             }
-            catch (Exception ex)
+            finally
             {
-                // This catches both errors in the test execution and assertion failures
-                exceptionOrFailedAssert = ExceptionDispatchInfo.Capture(ex);
+                GlobalLogger.GlobalMessageLogged -= OnGlobalMessage;
             }
 
-#if STRIDE_PLATFORM_DESKTOP
-            if (CaptureRenderDocOnError)
-            {
-                // If no comparison errors, and no test errors, discard the capture
-                if (game.comparisonFailedMessages.Count == 0 &&
-                    game.comparisonMissingMessages.Count == 0 &&
-                    exceptionOrFailedAssert is null &&
-                    !ForceCaptureRenderDocOnSuccess)
-                {
-                    game.DiscardFrameCapture();
-                }
-                else game.EndFrameCapture();
-            }
-#endif
-            // If there was an exception, rethrow it now
-            exceptionOrFailedAssert?.Throw();
+            // Filter out allowed errors for the current platform
+            var platform = GraphicsDevice.Platform;
+            gpuValidationErrors.RemoveAll(error =>
+                allowedErrors.Any(a => a.Platform == platform && error.Contains(a.MessageSubstring)));
+
+            // Assert no GPU validation errors
+            if (gpuValidationErrors.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationErrors.Count} error(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationErrors));
+
+            // Assert no GPU validation warnings
+            if (gpuValidationWarnings.Count > 0)
+                Assert.Fail($"GPU validation reported {gpuValidationWarnings.Count} warning(s):" + Environment.NewLine
+                    + string.Join(Environment.NewLine, gpuValidationWarnings));
 
             // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
@@ -647,22 +694,40 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
+        ///   Filters out known harmless D3D11 debug layer warnings that cannot be avoided
+        ///   without significant refactoring.
+        /// </summary>
+        private static bool IsKnownHarmlessWarning(string text)
+        {
+            return text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
+        }
+
+        /// <summary>
         ///   Searches for the root folder of the Stride solution by traversing upward from the test's binary directory.
         /// </summary>
         /// <returns>The full path to the root folder of the Stride solution.</returns>
         /// <exception cref="InvalidOperationException">The Stride solution root folder could not be located.</exception>
         private static string FindStrideSolutionRootDirectory()
         {
-            var dir = PlatformFolders.ApplicationBinaryDirectory;
+            var startDir = PlatformFolders.ApplicationBinaryDirectory;
+            ImageTester.DiagLog($"FindRoot: AppContext.BaseDirectory={AppContext.BaseDirectory}");
+            ImageTester.DiagLog($"FindRoot: ApplicationBinaryDirectory={startDir}");
+
+            var dir = startDir;
             while (dir is not null)
             {
-                if (File.Exists(Path.Combine(dir, @"build\Stride.sln")))
+                var candidate = Path.Combine(dir, "build", "Stride.sln");
+                if (File.Exists(candidate))
+                {
+                    ImageTester.DiagLog($"FindRoot: Found root={dir}");
                     return dir;
+                }
 
                 dir = Path.GetDirectoryName(dir);
             }
 
-            throw new InvalidOperationException("Could not locate the Stride solution root directory");
+            ImageTester.DiagLog($"FindRoot: FAILED from {startDir}");
+            throw new InvalidOperationException($"Could not locate the Stride solution root directory (started from {startDir})");
         }
 
         /// <summary>
@@ -702,8 +767,10 @@ namespace Stride.Graphics.Regression
             {
                 testFileNames.Clear();
 
-                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, @"*\*", ".png");
-                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var wildcard = "*" + Path.DirectorySeparatorChar + "*";
+                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, wildcard, ".png");
+                var regexSep = Regex.Escape(Path.DirectorySeparatorChar.ToString());
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
                 foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
@@ -721,23 +788,67 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file)))
-            {
-                // Comparison failed, save current version so that user can compare / promote it manually
-                ImageTester.SaveImage(image, testLocalFileName);
-                comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
-                foreach (var file in testFileNames)
-                    comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
-            }
-            else if (ForceSaveImageOnSuccess)
-            {
-                ImageTester.SaveImage(image, testLocalFileName);
-            }
             else
             {
-                // If test is a success, let's delete the local file if it was previously generated
-                if (File.Exists(testLocalFileName))
-                    File.Delete(testLocalFileName);
+                // Resolve thresholds from thresholds.jsonc
+                var fullClassName = GetType().FullName;
+                var classNameIndex = fullClassName.LastIndexOf('.');
+                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
+                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var thresholdRules = ImageThreshold.LoadRules(suiteDir);
+                var imageName = Path.GetFileName(testFileName);
+                var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
+                var platformApiPart = platformParts.Length > 0 ? platformParts[0] : null;
+                var devicePart = platformParts.Length > 1 ? platformParts[1] : null;
+                // platformApiPart is e.g. "Linux.Vulkan" — split into platform and API
+                string? platformName = null, apiName = null;
+                if (platformApiPart != null)
+                {
+                    var dotIdx = platformApiPart.IndexOf('.');
+                    if (dotIdx >= 0)
+                    {
+                        platformName = platformApiPart[..dotIdx];
+                        apiName = platformApiPart[(dotIdx + 1)..];
+                    }
+                    else
+                    {
+                        platformName = platformApiPart;
+                    }
+                }
+                var thresholds = ImageThreshold.Resolve(thresholdRules, imageName, platformName, apiName, devicePart);
+
+                // Compare against all available gold images
+                var pendingFailMessages = new List<string>();
+                bool anyMatch = false;
+                foreach (var file in testFileNames)
+                {
+                    bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
+                    if (match)
+                    {
+                        anyMatch = true;
+                        break;
+                    }
+                    var isExactMatch = file == testFileName;
+                    pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
+                }
+
+                if (!anyMatch)
+                {
+                    // All comparisons failed — save current version and report
+                    ImageTester.SaveImage(image, testLocalFileName);
+                    comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
+                    comparisonFailedMessages.AddRange(pendingFailMessages);
+                }
+                else if (ForceSaveImageOnSuccess)
+                {
+                    ImageTester.SaveImage(image, testLocalFileName);
+                }
+                else
+                {
+                    // If test is a success, let's delete the local file if it was previously generated
+                    if (File.Exists(testLocalFileName))
+                        File.Delete(testLocalFileName);
+                }
             }
         }
 
@@ -751,10 +862,28 @@ namespace Stride.Graphics.Regression
         /// <exception cref="NotImplementedException">The current platform type is not supported.</exception>
         private string GetPlatformSpecificDirectory()
         {
-            if (Platform.Type == PlatformType.Windows)
-                return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+            string platformName = Platform.Type switch
+            {
+                PlatformType.Windows => "Windows",
+                PlatformType.Linux => "Linux",
+                PlatformType.macOS => "macOS",
+                _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
+            };
+
+            string deviceName;
+            if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+            {
+                deviceName = GraphicsDevice.Platform switch
+                {
+                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    _ => "WARP"
+                };
+            }
             else
-                throw new NotImplementedException();
+            {
+                deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
+            }
+            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", deviceName);
         }
 
         /// <summary>
@@ -852,6 +981,11 @@ namespace Stride.Graphics.Regression
         public static void SkipTestForGraphicPlatform(GraphicsPlatform platform)
         {
             Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been skipped");
+        }
+
+        public static void SkipTestForGraphicPlatform(GraphicsPlatform platform, string reason)
+        {
+            Skip.If(GraphicsDevice.Platform == platform, $"{platform}: {reason}");
         }
 
         /// <summary>

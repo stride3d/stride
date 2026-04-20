@@ -1,0 +1,97 @@
+name: Test Linux (Simple)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+permissions:
+  checks: write
+  contents: read
+
+
+concurrency:
+  group: test-linux-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  # Build on Windows — some projects have Windows-only build dependencies
+  # (native compilation, asset compiler) even though the tests themselves are cross-platform.
+  Build:
+    name: Build for Linux (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Simple.Linux.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatform=Linux `
+            -p:StrideGraphicsApis=Vulkan `
+            -p:StrideGraphicsApi=Vulkan
+      - name: Upload test binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-simple-test-binaries
+          path: bin/Tests/
+          retention-days: 1
+
+  # Run tests on actual Linux
+  Test:
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    needs: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Download test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-simple-test-binaries
+          path: bin/Tests/
+      - name: Test
+        run: |
+          dotnet vstest \
+            bin/Tests/Stride.Core.Tests/Linux/Vulkan/Stride.Core.Tests.dll \
+            bin/Tests/Stride.Core.Mathematics.Tests/Linux/Vulkan/Stride.Core.Mathematics.Tests.dll \
+            bin/Tests/Stride.Core.Design.Tests/Linux/Vulkan/Stride.Core.Design.Tests.dll \
+            bin/Tests/Stride.Core.Yaml.Tests/Linux/Vulkan/Stride.Core.Yaml.Tests.dll \
+            bin/Tests/Stride.Core.CompilerServices.Tests/Linux/Vulkan/Stride.Core.CompilerServices.Tests.dll \
+            bin/Tests/Stride.Core.BuildEngine.Tests/Linux/Vulkan/Stride.Core.BuildEngine.Tests.dll \
+            bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux/Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
+            bin/Tests/Stride.Core.Quantum.Tests/Linux/Vulkan/Stride.Core.Quantum.Tests.dll \
+            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Simple'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}

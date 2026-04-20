@@ -16,7 +16,7 @@ FOR /F "skip=1" %%D IN ('adb devices') DO (
     C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe C:\Projects\Stride\sources\engine\Stride.Graphics.RegressionTests\Stride.Graphics.RegressionTests.Android.csproj /p:SolutionName=Stride.Android;SolutionDir=C:\Projects\Stride\ /t:Install /p:AdbTarget="-s %%D"
 
     REM install the package -> should be done by bamboo too?
-    REM adb -s %%D -d install -r C:\Projects\Stride\Bin\Android-AnyCPU-OpenGLES\Stride.Graphics.RegressionTests-Signed.apk
+    REM adb -s %%D -d install -r C:\Projects\Stride\Bin\Android-AnyCPU-Vulkan\Stride.Graphics.RegressionTests-Signed.apk
 
     REM run it
     adb -s %%D shell am start -a android.intent.action.MAIN -n Stride.Graphics.RegressionTests/stride.graphics.regressiontests.Program -e STRIDE_SERVER_IP %1 -e STRIDE_SERVER_PORT %2 -e STRIDE_BUILD_NUMBER %3
@@ -29,7 +29,7 @@ adb -s %4 am shell force-stop Stride.Graphics.RegressionTests
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe C:\Projects\Stride\sources\engine\Stride.Graphics.RegressionTests\Stride.Graphics.RegressionTests.Android.csproj /p:SolutionName=Stride.Android;SolutionDir=C:\Projects\Stride\ /t:Install /p:AdbTarget="-s %4"
 
 REM install the package -> should be done by bamboo too?
-REM adb -s %%D -d install -r C:\Projects\Stride\Bin\Android-AnyCPU-OpenGLES\Stride.Graphics.RegressionTests-Signed.apk
+REM adb -s %%D -d install -r C:\Projects\Stride\Bin\Android-AnyCPU-Vulkan\Stride.Graphics.RegressionTests-Signed.apk
 
 REM run it
 adb -s %4 shell am start -a android.intent.action.MAIN -n Stride.Graphics.RegressionTests/stride.graphics.regressiontests.Program -e STRIDE_SERVER_IP %1 -e STRIDE_SERVER_PORT %2 -e STRIDE_BUILD_NUMBER %3 -e STRIDE_DEVICE_SERIAL %4

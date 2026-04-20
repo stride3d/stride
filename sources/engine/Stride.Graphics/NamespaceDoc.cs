@@ -3,7 +3,7 @@
 namespace Stride.Graphics
 {
     /// <summary>
-    /// The <see cref="Stride.Graphics"/> namespace contains types that provides a unified Graphics API for Direct3D, OpenGL and OpenGLES.
+    /// The <see cref="Stride.Graphics"/> namespace contains types that provides a unified Graphics API for Direct3D 11, 12 and Vulkan.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGenerated]
     internal class NamespaceDoc

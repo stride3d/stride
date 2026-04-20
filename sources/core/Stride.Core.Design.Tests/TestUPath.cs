@@ -9,9 +9,10 @@ namespace Stride.Core.Design.Tests;
 
 public class TestUPath
 {
-    [Fact]
+    [SkippableFact]
     public void TestUFileConstructor()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         _ = new UFile(null);
         _ = new UFile("");
         { const string s = "a"; _ = new UFile(s); _ = new UFile(s.Replace('/', '\\')); }
@@ -42,9 +43,10 @@ public class TestUPath
         Assert.Throws<ArgumentException>(() => new UFile("E:e"));
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUDirectoryConstructor()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         _ = new UDirectory(null);
         _ = new UDirectory("");
         { const string s = "a"; _ = new UDirectory(s); _ = new UDirectory(s.Replace('/', '\\')); }
@@ -78,9 +80,10 @@ public class TestUPath
         Assert.Throws<ArgumentException>(() => new UDirectory("E:e"));
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathFullPath()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         Assert.Equal("a", new UDirectory("a").FullPath);
         Assert.Equal("/a", new UDirectory("/a").FullPath);
         Assert.Equal("a/b", new UDirectory("a/b").FullPath);
@@ -121,9 +124,10 @@ public class TestUPath
         Assert.False(new UFile("a").HasDirectory);
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathIsRelativeAndIsAbsolute()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var assert = new Action<UPath, bool>((x, isAbsolute) =>
         {
             Assert.Equal(isAbsolute, x.IsAbsolute);
@@ -171,10 +175,11 @@ public class TestUPath
         // TODO
     }
 
-    [Fact]
+    [SkippableFact]
     [Obsolete("Test GetFullDirectory instead")]
     public void TestUPathGetDirectory()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         Assert.Equal("/", new UDirectory("/").GetDirectory());
         Assert.Equal("a", new UDirectory("a").GetDirectory());
         Assert.Equal("/a", new UDirectory("/a").GetDirectory());
@@ -192,9 +197,10 @@ public class TestUPath
         // TODO
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathGetParent()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         // First directories
         var dir = new UDirectory("c:/");
         Assert.Equal("c:/", dir.GetParent().FullPath);
@@ -240,9 +246,10 @@ public class TestUPath
         Assert.Equal("a", file.GetParent().FullPath);
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathGetFullDirectory()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         Assert.Equal(new UDirectory("/a"), new UFile("/a/b.txt").GetFullDirectory());
         Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c.txt").GetFullDirectory());
         Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c").GetFullDirectory());
@@ -332,9 +339,10 @@ public class TestUPath
         // TODO
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathCombine()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         // TODO: not enough test!
         Assert.Equal(new UFile("e.txt"), UPath.Combine(".", new UFile("e.txt")));
         Assert.Equal(new UFile("/a/b/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../d/e.txt")));
@@ -370,9 +378,10 @@ public class TestUPath
         // TODO
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestUPathNormalize()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         // TODO - maybe we should turn this method private? Or keep a single overload public?
         Assert.Equal("test.txt", new UDirectory("test.txt").FullPath);
         Assert.Equal("a", new UDirectory("a").FullPath);

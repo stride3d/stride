@@ -10,7 +10,9 @@ using Android.Widget;
 using Android.Text.Method;
 using Stride.Core;
 using Stride.Games;
+using Stride.Input;
 using Exception = System.Exception;
+using KeyEvent = Android.Views.KeyEvent;
 
 namespace Stride.UI.Controls
 {
@@ -228,7 +230,7 @@ namespace Stride.UI.Controls
             editText.Post(editTextSetMinLinesAction);
         }
 
-        private void ActivateEditTextImpl()
+        private void ActivateEditTextImpl(InputManager inputManager)
         {
             lock (syncRoot)
             {
@@ -250,7 +252,7 @@ namespace Stride.UI.Controls
             }
         }
 
-        private void DeactivateEditTextImpl()
+        private void DeactivateEditTextImpl(InputManager inputManager)
         {
             lock (syncRoot)
             {
@@ -265,8 +267,6 @@ namespace Stride.UI.Controls
                 activeEditText = null;
 
                 GetGameContext().HideEditTextPopup();
-
-                FocusedElement = null;
             }
         }
 

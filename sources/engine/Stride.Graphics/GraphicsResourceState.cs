@@ -8,6 +8,11 @@ namespace Stride.Graphics;
 /// <summary>
 ///   Defines constants that specify the state of a Graphics Resource regarding how the resource is being used.
 /// </summary>
+/// <remarks>
+///   This enum is being replaced by <see cref="BarrierLayout"/> for cross-platform barrier transitions.
+///   New code should use <see cref="CommandList.ResourceBarrierTransition(GraphicsResource, BarrierLayout)"/> instead.
+/// </remarks>
+[Obsolete("Use BarrierLayout instead for cross-platform barrier transitions.")]
 [Flags]
 public enum GraphicsResourceState
 {

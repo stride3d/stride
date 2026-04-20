@@ -338,6 +338,29 @@ public static class PixelFormatExtensions
             B8G8R8A8_UNorm or B8G8R8X8_UNorm or B8G8R8A8_Typeless or B8G8R8A8_UNorm_SRgb or B8G8R8X8_Typeless or B8G8R8X8_UNorm_SRgb => true,
             _ => false,
         };
+
+        /// <summary>
+        ///   Gets a value indicating if the <see cref="PixelFormat"/> is an unsigned normalized format.
+        /// </summary>
+        public bool IsUNorm => format switch
+        {
+            R8_UNorm or R8G8_UNorm or R8G8B8A8_UNorm or R8G8B8A8_UNorm_SRgb
+                or B8G8R8A8_UNorm or B8G8R8A8_UNorm_SRgb or B8G8R8X8_UNorm or B8G8R8X8_UNorm_SRgb
+                or R16_UNorm or R16G16_UNorm or R16G16B16A16_UNorm
+                or R10G10B10A2_UNorm => true,
+            _ => false,
+        };
+
+        /// <summary>
+        ///   Gets the maximum integer value representable per channel for unsigned normalized formats.
+        ///   For example, 255 for 8-bit UNORM, 65535 for 16-bit UNORM.
+        /// </summary>
+        public float UNormMaxValue => format switch
+        {
+            R16_UNorm or R16G16_UNorm or R16G16B16A16_UNorm => 65535.0f,
+            R10G10B10A2_UNorm => 1023.0f,
+            _ => 255.0f,
+        };
     }
 
     #region Lookup tables and pre-computed information

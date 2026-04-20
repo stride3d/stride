@@ -40,6 +40,7 @@ namespace Stride.UI.Tests.Layering
             UIElementLayeringTests.TestNoInvalidation(this, () => source.Region = new Rectangle(8, 9, 3, 4)); // if the size of the region does not change we avoid re-measuring
             UIElementLayeringTests.TestNoInvalidation(this, () => source.Orientation = ImageOrientation.Rotated90); // no changes
             UIElementLayeringTests.TestNoInvalidation(this, () => source.Borders = Vector4.One); // no changes
+            UIElementLayeringTests.TestNoInvalidation(this, () => Rotation = MathUtil.PiOverFour); // rotation does not affect layout/measurement
 
             // ReSharper restore ImplicitlyCapturedClosure
         }

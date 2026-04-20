@@ -1,15 +1,13 @@
-﻿<Project>
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <RestorePackages>true</RestorePackages>
     <AssemblyName>Stride.GameStudio</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -109,7 +107,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
@@ -118,17 +115,17 @@
     <ItemGroup>
       <!-- We need to manually include Microsoft.CodeAnalysis.Workspaces.MSBuild.dll, buildhost and analyzer dlls because it expects those to be side-by-side (which is not the case in the nuget folder with contentFiles folder) -->
       <!-- As a future improvement, two possible fixes: (1) we might want to copy all dll and contents in a folder during NuGetResolver so that it behaves similar to a normal build, or (2) PR MSBuild to have this configurable -->
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.Features.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.Features.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" />
-      <BuildHostFiles Include="$(OutputPath)BuildHost-netcore\**\*.*" />
+      <BuildOutputInPackage Include="$(TargetDir)Microsoft.CodeAnalysis.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)Microsoft.CodeAnalysis.CSharp.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)Microsoft.CodeAnalysis.Features.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)Microsoft.CodeAnalysis.CSharp.Features.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" />
+      <BuildHostFiles Include="$(TargetDir)BuildHost-netcore\**\*.*" />
       <BuildOutputInPackage Include="%(BuildHostFiles.Identity)">
         <TargetPath>BuildHost-netcore\%(BuildHostFiles.RecursiveDir)%(BuildHostFiles.Filename)%(BuildHostFiles.Extension)</TargetPath>
       </BuildOutputInPackage>
-      
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
+
+      <BuildOutputInPackage Include="$(TargetDir)Stride.Core.AssemblyProcessor.*" />
     </ItemGroup>
   </Target>
   <Target Name="_StrideGameStudioCopyPackageInstall" BeforeTargets="_GetPackageFiles">
@@ -136,4 +133,5 @@
       <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
     </ItemGroup>
   </Target>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

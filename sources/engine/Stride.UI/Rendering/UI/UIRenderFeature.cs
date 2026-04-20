@@ -37,11 +37,11 @@ namespace Stride.Rendering.UI
         public override Type SupportedRenderObjectType => typeof(RenderUIElement);
 
         /// <summary>
-        /// Represents the UI-element thats currently under the mouse cursor.
+        /// Represents the UI-element currently under the mouse cursor.
         /// Only elements with CanBeHitByUser == true are taken into account.
         /// Last processed element_state / ?UIComponent? with a valid element will be used.
         /// </summary>
-        public UIElement UIElementUnderMouseCursor { get; private set; }
+        public UIElement UIElementUnderMouseCursor => uiSystem.UIElementUnderMouseCursor;
 
         public UIRenderFeature()
         {
@@ -172,7 +172,8 @@ namespace Stride.Rendering.UI
                         elementUnderMouseCursor = loopedElementUnderMouseCursor;
                 }
             }
-            UIElementUnderMouseCursor = elementUnderMouseCursor;
+            
+            uiSystem.UIElementUnderMouseCursor = elementUnderMouseCursor;
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
@@ -207,9 +208,6 @@ namespace Stride.Rendering.UI
                 var projectedOrigin = virtualOrigin.XY() / virtualOrigin.W;
                 var projectedVirtualWidth = viewportSize * (transformedVirtualWidth.XY() / transformedVirtualWidth.W - projectedOrigin);
                 var projectedVirtualHeight = viewportSize * (transformedVirtualHeight.XY() / transformedVirtualHeight.W - projectedOrigin);
-
-                // Set default services
-                rootElement.UIElementServices = new UIElementServices { Services = RenderSystem.Services };
 
                 // set default resource dictionary
 

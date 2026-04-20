@@ -10,7 +10,7 @@ public class StepCounter
 
     public StepCounter()
     {
-        stepResults = new int[Enum.GetValues(typeof(ResultStatus)).Length];
+        stepResults = new int[Enum.GetValues<ResultStatus>().Length];
     }
 
     public void AddStepResult(ResultStatus result)
@@ -35,7 +35,7 @@ public class StepCounter
         lock (stepResults)
         {
             Total = 0;
-            foreach (var value in Enum.GetValues(typeof(ResultStatus)))
+            foreach (var value in Enum.GetValues<ResultStatus>())
                 stepResults[(int)value] = 0;
         }
     }
