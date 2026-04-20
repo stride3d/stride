@@ -860,6 +860,12 @@ namespace Stride.Rendering
 
                         mutablePipelineState.Update();
                         renderEffect.PipelineState = mutablePipelineState.CurrentState;
+
+                        // Snapshot depth-write state so RenderSystem.Draw can auto-detect the
+                        // stage's depth access mode (pre-barrier Read vs Write) before dispatch.
+                        var dss = pipelineState.DepthStencilState;
+                        renderEffect.WritesDepth = dss.DepthBufferWriteEnable
+                            || (dss.StencilEnable && dss.StencilWriteMask != 0);
                     }
 
                     RenderNodes[renderNodeReference.Index] = renderNode;

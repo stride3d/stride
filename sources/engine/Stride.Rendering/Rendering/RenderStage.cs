@@ -49,7 +49,7 @@ namespace Stride.Rendering
         /// homogeneous in depth access.
         /// </summary>
         [DataMemberIgnore]
-        public RenderStageDepthAccess DepthAccess { get; set; } = RenderStageDepthAccess.Write;
+        public RenderStageDepthAccess DepthAccess { get; set; } = RenderStageDepthAccess.Auto;
 
         public RenderStage()
         {
@@ -90,6 +90,8 @@ namespace Stride.Rendering
     /// </summary>
     public enum RenderStageDepthAccess
     {
+        /// <summary>Detect from the stage's render nodes on each frame (default). See RenderSystem.Draw.</summary>
+        Auto,
         /// <summary>All pipelines in the stage write depth (most opaque, shadow, z-prepass passes).</summary>
         Write,
         /// <summary>All pipelines in the stage only read depth (transparent with depth-test-only).</summary>
