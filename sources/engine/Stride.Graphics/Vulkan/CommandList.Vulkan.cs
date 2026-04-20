@@ -28,6 +28,14 @@ namespace Stride.Graphics
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
+        // Per-CB layout state. Stride's per-Texture NativeLayout is a single shared field mutated
+        // by every CB's ResourceBarrierTransition calls in arbitrary order, which disagrees with
+        // Vulkan's per-execution-order layout tracking when CBs record concurrently. This map
+        // remembers what layout THIS CB believes each texture holds for the draws it records.
+        // Cleared on Reset. The first touch of a texture in a CB still falls back to NativeLayout —
+        // that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
+        private readonly Dictionary<Texture, BarrierLayout> currentCbLayouts = new();
+
         private readonly Dictionary<FramebufferKey, VkFramebuffer> framebuffers = new();
         private readonly VkImageView[] framebufferAttachments = new VkImageView[9];
         private int framebufferAttachmentCount;
@@ -77,6 +85,7 @@ namespace Stride.Graphics
 
             CleanupRenderPass();
             boundDescriptorSets.Clear();
+            currentCbLayouts.Clear();
 
             framebuffers.Clear();
             framebufferDirty = true;
@@ -303,14 +312,14 @@ namespace Stride.Graphics
             if (activePipeline == null)
                 return;
 
-            // Transition render target attachments
+            // Transition render target attachments.
             for (int i = 0; i < RenderTargetCount; i++)
             {
                 var rt = renderTargets[i];
                 if (rt != null)
                 {
                     var parent = rt.ParentTexture ?? rt;
-                    if (parent.NativeLayout != VkImageLayout.ColorAttachmentOptimal)
+                    if (!currentCbLayouts.TryGetValue(parent, out var current) || current != BarrierLayout.RenderTarget)
                         ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
                 }
             }
@@ -332,7 +341,7 @@ namespace Stride.Graphics
             if (depthStencilBuffer != null)
             {
                 depthParent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
-                if (depthParent.NativeLayout != depthAttachmentLayout)
+                if (!currentCbLayouts.TryGetValue(depthParent, out var currentDepth) || currentDepth != depthAttachmentBarrier)
                     ResourceBarrierTransition(depthStencilBuffer, depthAttachmentBarrier);
             }
 
@@ -462,11 +471,12 @@ namespace Stride.Graphics
                     case VkDescriptorType.SampledImage:
                         {
                             var texture = heapObject.Value as Texture;
-                            // The descriptor's layout field must match the image's actual layout.
-                            // A depth buffer sampled as SRV while still bound as a read-only attachment
-                            // is in DepthStencilReadOnlyOptimal rather than the usual ShaderReadOnlyOptimal.
-                            var nativeLayout = (texture?.ParentTexture ?? texture)?.NativeLayout ?? VkImageLayout.ShaderReadOnlyOptimal;
-                            var imageLayout = nativeLayout == VkImageLayout.DepthStencilReadOnlyOptimal
+                            // The descriptor's layout field must match the image's actual layout as
+                            // this CB understands it. Use the per-CB map rather than texture.NativeLayout
+                            // (which can be mutated by other CBs recording concurrently).
+                            var parent = texture?.ParentTexture ?? texture;
+                            var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
+                            var imageLayout = perCb == BarrierLayout.DepthStencilRead
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
                                 : VkImageLayout.ShaderReadOnlyOptimal;
                             descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
@@ -574,24 +584,38 @@ namespace Stride.Graphics
                 if (texture.ParentTexture != null)
                     texture = texture.ParentTexture;
 
-                var oldLayout = texture.NativeLayout;
-                var oldAccessMask = texture.NativeAccessMask;
-                var sourceStages = texture.NativePipelineStageMask;
+                // Resolve "from" layout for THIS CB. If we've already transitioned the texture in
+                // this CB, use that; otherwise assume the last-submitted global state (NativeLayout).
+                // This keeps the barrier's oldLayout accurate even when other CBs have mutated the
+                // global tracker concurrently.
+                VkImageLayout oldLayout;
+                VkAccessFlags oldAccessMask;
+                VkPipelineStageFlags sourceStages;
+                if (currentCbLayouts.TryGetValue(texture, out var fromLayout))
+                {
+                    if (fromLayout == newLayout)
+                        return; // already at target in this CB
+                    oldLayout = BarrierMapping.ToVkImageLayout(fromLayout);
+                    oldAccessMask = BarrierMapping.ToVkAccessFlags(fromLayout);
+                    sourceStages = BarrierMapping.ToVkPipelineStageFlags(fromLayout);
+                }
+                else
+                {
+                    oldLayout = texture.NativeLayout;
+                    oldAccessMask = texture.NativeAccessMask;
+                    sourceStages = texture.NativePipelineStageMask;
+                }
 
-                // Update native state from BarrierLayout via mapping
-                texture.NativeLayout = BarrierMapping.ToVkImageLayout(newLayout);
-                texture.NativeAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
-                texture.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+                var newVkLayout = BarrierMapping.ToVkImageLayout(newLayout);
+                var newAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
+                var newStages = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+
+                // Update per-CB map, global state, and subresource tracker together
+                currentCbLayouts[texture] = newLayout;
+                texture.NativeLayout = newVkLayout;
+                texture.NativeAccessMask = newAccessMask;
+                texture.NativePipelineStageMask = newStages;
                 texture.LayoutTracker.Set(uint.MaxValue, newLayout);
-
-                // Skip if the layout already matches AND this command list was the one that set it.
-                // If a different command list set the layout, we must re-issue the barrier so that
-                // this command buffer has the transition recorded (required by Vulkan validation).
-                if (oldLayout == texture.NativeLayout && oldAccessMask == texture.NativeAccessMask
-                    && texture.LastBarrierCommandListId == CommandListId)
-                    return;
-
-                texture.LastBarrierCommandListId = CommandListId;
 
                 if (oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR)
                     sourceStages = VkPipelineStageFlags.TopOfPipe;
@@ -599,8 +623,8 @@ namespace Stride.Graphics
                 // End render pass, so barrier affects all commands in the buffer
                 CleanupRenderPass();
 
-                var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, texture.NativeAccessMask, oldLayout, texture.NativeLayout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+                var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, newAccessMask, oldLayout, newVkLayout);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
             }
             else
             {
