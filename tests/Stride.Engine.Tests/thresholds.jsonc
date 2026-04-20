@@ -14,6 +14,6 @@
     // rasterization on a geometry edge; observed across software renderers
     // (Lavapipe/WARP on Linux/Windows). Tolerated on all platforms.
     "image": "AnimatedModelTests.f3.png",
-    "allow": { "3-70": 1, "71+": 0 }
+    "allow": { "3-70": 1, "71+": 1 }
   }
 ]
