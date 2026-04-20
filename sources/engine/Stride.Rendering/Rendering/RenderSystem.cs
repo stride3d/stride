@@ -399,16 +399,30 @@ namespace Stride.Rendering
                 var scissor = commandList.Scissor;
 
                 // Pass-entry barriers on the main CB (single-threaded, submitted first). Worker CBs
-                // that follow see the RT/depth layouts already at their target on the GPU side, so
-                // the per-draw TransitionBoundResources doesn't race to claim a transition from a
-                // stale "last-submitted" layout. A few redundant no-op barriers from workers are fine.
+                // that follow see the RT/depth layouts already at their target, so per-draw
+                // TransitionBoundResources doesn't race to claim a transition from a stale
+                // "last-submitted" layout. A few redundant no-op barriers from workers are fine.
+                // Depth transition follows the stage's declared access mode; Mixed stages are
+                // skipped (workers will transition per-pipeline and may still race — those stages
+                // should be split or handled separately).
                 for (int i = 0; i < renderTargetCount; i++)
                 {
                     if (renderTargets[i] != null)
                         commandList.ResourceBarrierTransition(renderTargets[i], BarrierLayout.RenderTarget);
                 }
                 if (depthStencilBuffer != null)
-                    commandList.ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
+                {
+                    switch (renderStage.DepthAccess)
+                    {
+                        case RenderStageDepthAccess.Write:
+                            commandList.ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
+                            break;
+                        case RenderStageDepthAccess.Read:
+                            commandList.ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilRead);
+                            break;
+                        // Mixed: skip
+                    }
+                }
 
                 // Collect one command list per batch and the main one up to this point
                 if (commandLists == null || (commandLists.Length < batchCount + 1))
