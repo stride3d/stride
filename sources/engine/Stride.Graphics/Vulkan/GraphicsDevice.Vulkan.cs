@@ -420,10 +420,16 @@ namespace Stride.Graphics
             {
                 sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
             };
+            // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
+            var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
+                pNext = &timelineSemaphoreFeatures,
+            };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = &multiviewFeatures,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
@@ -432,11 +438,20 @@ namespace Stride.Graphics
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
             timelineSemaphoreFeatures.pNext = &uniformBufferStandardLayoutFeature;
 
+            // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
+            void* pNextChainHead = &timelineSemaphoreFeatures;
+            if (multiviewFeatures.multiview)
+            {
+                multiviewFeatures.multiviewGeometryShader = VkBool32.False;
+                multiviewFeatures.multiviewTessellationShader = VkBool32.False;
+                pNextChainHead = &multiviewFeatures;
+            }
+
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = pNextChainHead,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
