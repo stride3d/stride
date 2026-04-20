@@ -105,11 +105,12 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
     var primary = ListPngNames(dir);
     var primarySet = new HashSet<string>(primary);
 
-    // Find fallback gold from other platforms (matching test framework behavior)
-    // Prefer: same OS+API + same renderer class > same gfx API > same class > any
+    // Pick the best fallback gold for display. We mirror Graphics.Regression's
+    // any-match semantics for pass/fail on the client — this score only decides
+    // which gold the UI shows by default.
     var requestedApi = parts[0];
-    var requestedGfx = GetGfxApi(requestedApi);
-    var requestedIsSw = IsSoftwareRenderer(parts[1]);
+    var requestedDevice = parts[1];
+    var requestedIsSw = IsSoftwareRenderer(requestedDevice);
     var fallbackBest = new Dictionary<string, (string platform, int score)>();
     var suiteDir = Path.Combine(testsDir, suite);
     if (Directory.Exists(suiteDir))
@@ -124,11 +125,7 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
                 var fallbackPlatform = $"{pName}/{device}";
                 if (fallbackPlatform == platform) continue;
                 var candidateIsSw = IsSoftwareRenderer(device);
-                if (requestedIsSw && !candidateIsSw) continue;
-                int score = 0;
-                if (pName == requestedApi) score += 4;
-                if (GetGfxApi(pName) == requestedGfx) score += 2;
-                if (candidateIsSw == requestedIsSw) score += 1;
+                var score = ScoreFallback(pName, device, candidateIsSw, requestedApi, requestedDevice, requestedIsSw);
                 foreach (var f in Directory.GetFiles(dDir, "*.png"))
                 {
                     var name = Path.GetFileName(f);
@@ -160,9 +157,9 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
     var suiteDir = Path.Combine(testsDir, suite);
     if (Directory.Exists(suiteDir))
     {
-        var requestedIsSw = IsSoftwareRenderer(parts[1]);
-        var requestedApi = parts[0]; // e.g. "Windows.Direct3D11"
-        var requestedGfx = GetGfxApi(requestedApi); // e.g. "Direct3D11"
+        var requestedApi = parts[0];
+        var requestedDevice = parts[1];
+        var requestedIsSw = IsSoftwareRenderer(requestedDevice);
         string? bestPath = null;
         int bestScore = -1;
         foreach (var pDir in Directory.GetDirectories(suiteDir))
@@ -175,12 +172,7 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
                 if (!File.Exists(candidate)) continue;
                 var device = Path.GetFileName(dDir);
                 var candidateIsSw = IsSoftwareRenderer(device);
-                // If source is SW, require SW gold (skip HW); if HW, accept any
-                if (requestedIsSw && !candidateIsSw) continue;
-                int score = 0;
-                if (pName == requestedApi) score += 4; // same OS + API
-                if (GetGfxApi(pName) == requestedGfx) score += 2; // same graphics API (cross-OS)
-                if (candidateIsSw == requestedIsSw) score += 1; // same renderer class
+                var score = ScoreFallback(pName, device, candidateIsSw, requestedApi, requestedDevice, requestedIsSw);
                 if (score > bestScore) { bestScore = score; bestPath = candidate; }
             }
         }
@@ -487,6 +479,30 @@ static string GetGfxApi(string platformApi)
     // "Windows.Direct3D11" → "Direct3D11", "Linux.Vulkan" → "Vulkan"
     var dot = platformApi.IndexOf('.');
     return dot >= 0 ? platformApi[(dot + 1)..] : platformApi;
+}
+
+static string GetOS(string platformApi)
+{
+    // "Windows.Direct3D11" → "Windows", "Linux.Vulkan" → "Linux"
+    var dot = platformApi.IndexOf('.');
+    return dot >= 0 ? platformApi[..dot] : platformApi;
+}
+
+static int ScoreFallback(string candidatePlatApi, string candidateDevice, bool candidateIsSw,
+                         string requestedPlatApi, string requestedDevice, bool requestedIsSw)
+{
+    // Higher = closer. Tiers, roughly in order of importance:
+    //   exact OS+API > same OS > same gfx API across OS > same device/renderer >
+    //   same renderer class (SW/HW).
+    // Same-device (e.g. both WARP, both Lavapipe) matters so D3D12/WARP picks
+    // D3D11/WARP over Windows.Vulkan/Lavapipe when they'd otherwise tie on OS.
+    int score = 0;
+    if (candidatePlatApi == requestedPlatApi) score += 16;
+    if (GetOS(candidatePlatApi) == GetOS(requestedPlatApi)) score += 8;
+    if (GetGfxApi(candidatePlatApi) == GetGfxApi(requestedPlatApi)) score += 4;
+    if (string.Equals(candidateDevice, requestedDevice, StringComparison.OrdinalIgnoreCase)) score += 2;
+    if (candidateIsSw == requestedIsSw) score += 1;
+    return score;
 }
 
 static bool IsSoftwareRenderer(string device)

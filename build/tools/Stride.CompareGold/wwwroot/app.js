@@ -72,6 +72,7 @@ async function reload() {
       suiteData[suite] = { gold, sourceImages: srcImgs, thresholdRules };
   }
   cellStats = {};
+  resetAltGoldState();
   render();
 }
 
@@ -133,6 +134,7 @@ async function removeSource(id) {
   sources = sources.filter(s => s.id !== id);
   if (idx >= 0) sourceDefs.splice(idx, 1);
   cellStats = {};
+  resetAltGoldState();
   focusedKey = null;
   selected.clear();
   compareLeft = {};
@@ -151,6 +153,13 @@ function render() {
   renderPromoteSourceSelect();
   renderTable();
   updateActionCounts();
+  // If the focused row is no longer visible (platform switch, filter, search, etc.),
+  // clear the detail pane so it doesn't keep showing a stale selection.
+  if (focusedKey && !document.querySelector(`tr.row[data-kb-key="${CSS.escape(focusedKey)}"]`)) {
+    focusedKey = null;
+    kbFocusKey = null;
+    renderDetailPane(null);
+  }
 }
 
 function renderSourceTags() {
@@ -187,15 +196,19 @@ function buildSuiteImages(suite) {
     let status = 'pass';
     if (!hasGold && Object.values(sourcesWithImage).some(v => v)) status = 'new';
     else if (hasGold && Object.values(sourcesWithImage).some(v => v)) {
-      // Check all sources — fail if ANY source fails the threshold
+      // Per source: fail only when every gold in the suite fails — mirrors
+      // Graphics.Regression's any-match semantics. The alternate-gold check
+      // is lazy (kicked off when the preferred fails), so a cell whose
+      // preferred gold failed stays "pending" until that completes.
       let anyFail = false;
       let anyPending = false;
       for (const src of sources) {
         if (!sourcesWithImage[src.id]) continue;
         const stats = cellStats[`${src.id}:${suite}:${name}`];
         if (!stats) { anyPending = true; computeCellStats(src.id, suite, name); continue; }
-        const result = checkCellThreshold(suite, name, stats);
-        if (!result.passed) { anyFail = true; }
+        const r = isCellPassing(src.id, suite, name, stats);
+        if (r === null) anyPending = true;
+        else if (!r) anyFail = true;
       }
       status = anyFail ? 'fail' : anyPending ? 'pending' : 'pass';
     }
@@ -296,7 +309,7 @@ function buildRowCells(img, key) {
 
   let cells = `
     <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
-    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
+    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? '<span class="tag-fail">failing</span>' : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
     <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
 
   const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
@@ -394,7 +407,14 @@ function buildRefOptions(goldPlatforms, selectedRef) {
   return html;
 }
 
-function pickDefaultLeft(goldPlatforms) {
+function pickDefaultLeft(goldPlatforms, img) {
+  // Match the gold the table row shows: primary if it exists for currentPlatform,
+  // otherwise the fallback the backend resolved. Only fall back to the scoring
+  // heuristic when the row has no gold at all.
+  if (img?.hasGold) {
+    const plat = img.goldFallback || currentPlatform;
+    if (goldPlatforms.some(p => p.platform === plat)) return `gold:${plat}`;
+  }
   const best = pickBestGoldPlatform(goldPlatforms, currentPlatform);
   return best ? `gold:${best}` : (sources[0] ? `src:${sources[0].id}` : '');
 }
@@ -421,7 +441,9 @@ async function loadDetail(suite, name) {
   if (detailVersion[key] !== ver) return;
 
   // Resolve left and right refs
-  const leftRef = compareLeft[key] || pickDefaultLeft(goldPlatforms);
+  const leftHadUserChoice = compareLeft[key] != null;
+  const rightHadUserChoice = compareRight[key] != null;
+  const leftRef = compareLeft[key] || pickDefaultLeft(goldPlatforms, img);
   const rightRef = compareRight[key] || pickDefaultRight(img);
   const leftUrl = resolveImageRef(leftRef, suite, name);
   const rightUrl = resolveImageRef(rightRef, suite, name);
@@ -433,10 +455,10 @@ async function loadDetail(suite, name) {
   ]);
   if (detailVersion[key] !== ver) return;
 
-  fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img });
+  fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img, leftHadUserChoice, rightHadUserChoice });
 }
 
-async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img }) {
+async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPlatforms, leftRef, rightRef, img, leftHadUserChoice, rightHadUserChoice }) {
   detailVersion[key] = ver;
   const container = document.getElementById(`images-${id}`);
   if (!container) return;
@@ -492,8 +514,10 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
     const rightSel = container.querySelectorAll(`select`)[1];
     for (const sel of [leftSel, rightSel]) {
       if (!sel) continue;
-      const otherRef = sel === leftSel ? rightRef : leftRef;
-      const otherImgForStats = sel === leftSel ? rightImg : leftImg;
+      const isLeft = sel === leftSel;
+      const hadUserChoice = isLeft ? leftHadUserChoice : rightHadUserChoice;
+      const otherRef = isLeft ? rightRef : leftRef;
+      const otherImgForStats = isLeft ? rightImg : leftImg;
       if (!otherImgForStats) continue;
       const goldOpts = [...sel.options].filter(o => o.value.startsWith('gold:'));
       // Compute diffs for all gold options, then auto-select best passing one
@@ -513,13 +537,17 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
           optResults.push({ opt, result, diffPixels: s.diffPixels });
         } catch {}
       }));
-      // If currently selected gold fails, auto-switch to best passing one
-      const selOpt = sel.options[sel.selectedIndex];
-      if (selOpt?.dataset.passed === '0') {
-        const passing = optResults.filter(r => r.result.passed).sort((a, b) => a.diffPixels - b.diffPixels);
-        if (passing.length > 0) {
-          passing[0].opt.selected = true;
-          sel.dispatchEvent(new Event('change'));
+      // If currently selected gold fails, auto-switch to best passing one —
+      // but only when the user hasn't explicitly picked this side, otherwise
+      // we'd override their choice every time loadDetail re-renders.
+      if (!hadUserChoice) {
+        const selOpt = sel.options[sel.selectedIndex];
+        if (selOpt?.dataset.passed === '0') {
+          const passing = optResults.filter(r => r.result.passed).sort((a, b) => a.diffPixels - b.diffPixels);
+          if (passing.length > 0) {
+            passing[0].opt.selected = true;
+            sel.dispatchEvent(new Event('change'));
+          }
         }
       }
       const updateSelColor = () => {
@@ -535,8 +563,19 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
 // === Background cell stats ===
 const statsQueue = new Set();
 let statsRunning = false;
-// Maps "suite:name" → { platform, goldFallback } when a failing image has a passing alternate gold
+// "srcId:suite:name" → { checked: bool, passingPlatform: string|null }.
+// Populated once the preferred gold has been checked against alternates.
+// Drives the framework-style "any gold passes → cell passes" verdict.
+const altGoldStatus = {};
+// "suite:name" → { platform } when the row has a primary gold at currentPlatform
+// that fails while some alternate passes. Used by Delete Gold to clean up the
+// now-unneeded primary.
 const fixableVia = {};
+
+function resetAltGoldState() {
+  Object.keys(altGoldStatus).forEach(k => delete altGoldStatus[k]);
+  Object.keys(fixableVia).forEach(k => delete fixableVia[k]);
+}
 
 function computeCellStats(srcId, suite, name) {
   const key = `${srcId}:${suite}:${name}`;
@@ -569,18 +608,13 @@ async function runStatsQueue() {
         const stats = computeImageDiff(goldImg, srcImg, canvas);
         cellStats[key] = stats;
         updateCellInline(key, stats);
-        // If failing, check fixable inline before updating row tag
+        // If the preferred gold fails, scan the rest of the suite — the
+        // framework passes the test if any gold matches, so we do too.
         const result = checkCellThreshold(suite, name, stats);
         if (!result.passed) {
-          const fixKey = `${suite}:${name}`;
-          await checkFixableVia(suite, name, srcImg, fixKey);
-          // Now set the row tag with final status
-          const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(fixKey)}"]`);
-          if (tagEl) {
-            tagEl.innerHTML = fixableVia[fixKey]
-              ? '<span class="tag-fail">failing (fixable)</span>'
-              : '<span class="tag-fail">failing</span>';
-          }
+          await checkAlternateGold(srcId, suite, name, srcImg);
+          // Re-render cell and row tag with the final verdict (may flip to pass).
+          updateCellInline(key, stats);
           scheduleCountUpdate();
         }
       } catch (e) {
@@ -607,52 +641,72 @@ function checkCellThreshold(suite, name, stats) {
   return { passed: stats.diffPixels === 0, details: [] };
 }
 
+// Returns true (pass), false (fail), or null (pending) — pending means the
+// preferred gold failed but the alternate-gold scan hasn't finished yet.
+function isCellPassing(srcId, suite, name, stats) {
+  if (checkCellThreshold(suite, name, stats).passed) return true;
+  const alt = altGoldStatus[`${srcId}:${suite}:${name}`];
+  if (!alt || !alt.checked) return null;
+  return alt.passingPlatform != null;
+}
+
 function updateCellInline(key, stats) {
   const el = document.querySelector(`[data-stats-key="${CSS.escape(key)}"]`);
-  if (!el) return;
   const parts = key.split(':');
+  const srcId = parts[0];
   const suite = parts[1];
   const name = parts.slice(2).join(':');
   const result = checkCellThreshold(suite, name, stats);
-  const cls = result.passed ? 'pass' : 'fail';
-  el.className = `cell ${cls}`;
-  el.removeAttribute('style');
-  el.removeAttribute('data-stats-key');
-  const brief = formatThresholdBrief(result);
-  el.innerHTML = `${cls === 'pass' ? '✓' : '✗'} ${brief}`;
+  const passing = isCellPassing(srcId, suite, name, stats);
+  const cls = passing === true ? 'pass' : passing === false ? 'fail' : 'pending';
+  if (el) {
+    el.className = `cell ${cls}`;
+    el.removeAttribute('style');
+    el.removeAttribute('data-stats-key');
+    const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
+    const brief = formatThresholdBrief(result);
+    const viaAlt = passing === true && !result.passed ? ' (via alt)' : '';
+    el.innerHTML = `${icon} ${brief}${viaAlt}`;
+  }
   // Update the row tag once all sources for this image are resolved
   const rowKey = `${suite}:${name}`;
   const data = suiteData[suite];
-  if (data) {
-    let allResolved = true, anyFail = false;
-    for (const src of sources) {
-      if (!(data.sourceImages[src.id] || []).some(s => s.name === name)) continue;
-      const s = cellStats[`${src.id}:${suite}:${name}`];
-      if (!s) { allResolved = false; break; }
-      if (!checkCellThreshold(suite, name, s).passed) anyFail = true;
-    }
-    if (allResolved && !anyFail) {
-      const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(rowKey)}"]`);
-      if (tagEl) tagEl.innerHTML = '';
-      // Hide row if it no longer matches the active filter
-      const filter = document.getElementById('statusFilter').value;
-      if (filter && filter !== 'pass') {
-        const tr = document.querySelector(`tr.row[data-kb-key="${CSS.escape(rowKey)}"]`);
-        if (tr) {
-          tr.style.display = 'none';
-          // Also hide detail row if expanded
-          const next = tr.nextElementSibling;
-          if (next && !next.classList.contains('row') && !next.classList.contains('suite-row'))
-            next.style.display = 'none';
-        }
+  if (!data) return;
+  let anyFail = false, anyPending = false;
+  for (const src of sources) {
+    if (!(data.sourceImages[src.id] || []).some(s => s.name === name)) continue;
+    const s = cellStats[`${src.id}:${suite}:${name}`];
+    if (!s) { anyPending = true; continue; }
+    const r = isCellPassing(src.id, suite, name, s);
+    if (r === null) anyPending = true;
+    else if (!r) anyFail = true;
+  }
+  const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(rowKey)}"]`);
+  if (tagEl) {
+    if (anyFail) tagEl.innerHTML = '<span class="tag-fail">failing</span>';
+    else if (anyPending) tagEl.innerHTML = '<span class="tag-pending">...</span>';
+    else tagEl.innerHTML = '';
+  }
+  if (!anyFail && !anyPending) {
+    // Hide row if it no longer matches the active filter
+    const filter = document.getElementById('statusFilter').value;
+    if (filter && filter !== 'pass') {
+      const tr = document.querySelector(`tr.row[data-kb-key="${CSS.escape(rowKey)}"]`);
+      if (tr) {
+        tr.style.display = 'none';
+        const next = tr.nextElementSibling;
+        if (next && !next.classList.contains('row') && !next.classList.contains('suite-row'))
+          next.style.display = 'none';
       }
-      scheduleCountUpdate();
     }
+    scheduleCountUpdate();
   }
 }
 
-async function checkFixableVia(suite, name, srcImg, fixKey) {
-  if (fixableVia[fixKey]) return; // already checked
+async function checkAlternateGold(srcId, suite, name, srcImg) {
+  const key = `${srcId}:${suite}:${name}`;
+  if (altGoldStatus[key]?.checked) return;
+  let passingPlatform = null;
   try {
     const platforms = await fetch(`/api/gold/all?suite=${enc(suite)}&name=${enc(name)}`).then(r => r.json());
     for (const p of platforms) {
@@ -661,21 +715,21 @@ async function checkFixableVia(suite, name, srcImg, fixKey) {
         const gImg = await loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(p.platform)}&name=${enc(name)}`);
         const canvas = new OffscreenCanvas(gImg.width, gImg.height);
         const s = computeImageDiff(gImg, srcImg, canvas);
-        const r = checkCellThreshold(suite, name, s);
-        if (r.passed) {
-          const device = p.platform.split('/')[1] || p.platform;
-          fixableVia[fixKey] = { platform: p.platform, goldFallback: currentPlatform };
-          if (cellEl) {
-            cellEl.innerHTML += ` <span style="color:#4caf50;font-size:11px">(\u2713 ${esc(device)})</span>`;
-          }
-          const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(fixKey)}"]`);
-          if (tagEl) tagEl.innerHTML = '<span class="tag-fail">failing (fixable)</span>';
-          scheduleCountUpdate();
-          return;
+        if (checkCellThreshold(suite, name, s).passed) {
+          passingPlatform = p.platform;
+          break;
         }
       } catch {}
     }
   } catch {}
+  altGoldStatus[key] = { checked: true, passingPlatform };
+  // Record a "fixable" hit only when the primary gold lives at currentPlatform
+  // — deleting a fallback path would either be a no-op or hurt other platforms.
+  const goldEntry = suiteData[suite]?.gold.find(g => g.name === name);
+  if (passingPlatform && goldEntry && goldEntry.fallback == null) {
+    const fixKey = `${suite}:${name}`;
+    fixableVia[fixKey] = { platform: passingPlatform, goldFallback: currentPlatform };
+  }
 }
 
 async function computeThumbDiff(suite, name, srcId, canvasId) {
@@ -825,13 +879,15 @@ function selectAllFailing() {
 }
 
 function selectFixable() {
+  // With the framework's any-match semantics, "fixable" rows now pass (via an
+  // alternate gold) while still carrying a stale primary gold at the current
+  // platform. Selecting them lets the user clean up those redundant primaries.
   selected.clear();
   for (const suite of Object.keys(suiteData)) {
-    const images = buildSuiteImages(suite);
-    images.filter(i => i.status === 'fail').forEach(i => {
-      const fixKey = `${i.suite}:${i.name}`;
+    for (const img of buildSuiteImages(suite)) {
+      const fixKey = `${img.suite}:${img.name}`;
       if (fixableVia[fixKey]) selected.add(fixKey);
-    });
+    }
   }
   syncCheckboxes();
   updateSelectedCount();
@@ -869,7 +925,7 @@ async function deleteSelectedGold() {
   alert(`Deleted ${totalDeleted} gold image(s).`);
   selected.clear();
   cellStats = {};
-  Object.keys(fixableVia).forEach(k => delete fixableVia[k]);
+  resetAltGoldState();
   await reload();
 }
 
@@ -918,6 +974,7 @@ async function promoteSelected() {
   alert(`Promoted ${totalPromoted} image(s).`);
   selected.clear();
   cellStats = {};
+  resetAltGoldState();
   compareLeft = {};
   compareRight = {};
   await reload();
@@ -979,7 +1036,7 @@ function updateActionCounts() {
     const images = buildSuiteImages(suite);
     for (const i of images) {
       if (i.status === 'fail' || i.status === 'new') failCount++;
-      if (i.status === 'fail' && fixableVia[`${i.suite}:${i.name}`]) fixableCount++;
+      if (fixableVia[`${i.suite}:${i.name}`]) fixableCount++;
     }
   }
   document.getElementById('failingCount').textContent = failCount;
@@ -999,25 +1056,36 @@ function getGfxApi(platform) {
   return dot >= 0 ? platApi.substring(dot + 1) : platApi;
 }
 
+function getOS(platform) {
+  const platApi = platform.split('/')[0];
+  const dot = platApi.indexOf('.');
+  return dot >= 0 ? platApi.substring(0, dot) : platApi;
+}
+
+function scoreFallback(candidate, requested) {
+  // Mirrors Program.cs ScoreFallback: exact > same OS > same gfx API >
+  // same device (WARP↔WARP, Lavapipe↔Lavapipe) > same renderer class.
+  const cPlatApi = candidate.split('/')[0];
+  const rPlatApi = requested.split('/')[0];
+  const cDevice = candidate.split('/')[1] || '';
+  const rDevice = requested.split('/')[1] || '';
+  let score = 0;
+  if (cPlatApi === rPlatApi) score += 16;
+  if (getOS(cPlatApi) === getOS(rPlatApi)) score += 8;
+  if (getGfxApi(cPlatApi) === getGfxApi(rPlatApi)) score += 4;
+  if (cDevice.toLowerCase() === rDevice.toLowerCase()) score += 2;
+  if (isSoftwareRenderer(candidate) === isSoftwareRenderer(requested)) score += 1;
+  return score;
+}
+
 function pickBestGoldPlatform(platforms, currentPlatform) {
   if (!platforms || platforms.length === 0) return currentPlatform;
   // Exact match
   const exact = platforms.find(p => p.platform === currentPlatform);
   if (exact) return exact.platform;
-  // Score each candidate: same graphics API > same renderer class > any
-  const currentPlatApi = currentPlatform.split('/')[0];
-  const currentGfx = getGfxApi(currentPlatform);
-  const currentIsSw = isSoftwareRenderer(currentPlatform);
   let best = null, bestScore = -1;
   for (const p of platforms) {
-    const gfx = getGfxApi(p.platform);
-    const sw = isSoftwareRenderer(p.platform);
-    // If source is SW, skip HW gold
-    if (currentIsSw && !sw) continue;
-    let score = 0;
-    if (p.platform.split('/')[0] === currentPlatApi) score += 4; // same OS + API
-    if (gfx === currentGfx) score += 2; // same graphics API (cross-OS)
-    if (sw === currentIsSw) score += 1; // same renderer class
+    const score = scoreFallback(p.platform, currentPlatform);
     if (score > bestScore) { bestScore = score; best = p.platform; }
   }
   return best || platforms[0].platform;
