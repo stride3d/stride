@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 
 namespace Stride.Shaders.Spirv.Core.Buffers;
@@ -45,7 +44,11 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         return new(header, new SpirvBuffer(span[SpirvHeader.IntSpanSize..]));
     }
 
-    public static SpanOwner<int> CreateSpanFromBuffers(SpirvHeader header, bool computeBounds, params Span<SpirvBuffer> buffers)
+    // Returns a freshly allocated array. Do not back this with ArrayPool/SpanOwner: the caller
+    // receives a Span that carries no ownership, so a pooled buffer would be returned to the pool
+    // by the finalizer and reused while the span is still in use, silently corrupting the bytecode
+    // (e.g. another shader's OpCapability bleeding into vkCreateShaderModule input).
+    public static Span<int> CreateSpanFromBuffers(SpirvHeader header, bool computeBounds, params Span<SpirvBuffer> buffers)
     {
         int instructionsMemorySize = 0;
         var bound = header.Bound;
@@ -63,8 +66,8 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
 
         header = header with { Bound = bound };
 
-        var result = SpanOwner<int>.Allocate(5 + instructionsMemorySize);
-        var span = result.Span;
+        var result = new int[5 + instructionsMemorySize];
+        var span = result.AsSpan();
         header.WriteTo(span);
         var offset = 5;
         foreach (var buffer in buffers)
@@ -75,7 +78,7 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
                 offset += i.Data.Memory.Length;
             }
         }
-        return result;
+        return span;
     }
 
     public static Span<byte> CreateBytecodeFromBuffers(params Span<SpirvBuffer> buffers)
@@ -85,6 +88,6 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
 
     public static Span<byte> CreateBytecodeFromBuffers(SpirvHeader header, bool computeBounds, params Span<SpirvBuffer> buffers)
     {
-        return MemoryMarshal.AsBytes(CreateSpanFromBuffers(header, computeBounds, buffers).Span);
+        return MemoryMarshal.AsBytes(CreateSpanFromBuffers(header, computeBounds, buffers));
     }
 }
