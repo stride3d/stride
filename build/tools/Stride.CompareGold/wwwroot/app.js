@@ -645,6 +645,11 @@ function checkCellThreshold(suite, name, stats) {
 // preferred gold failed but the alternate-gold scan hasn't finished yet.
 function isCellPassing(srcId, suite, name, stats) {
   if (checkCellThreshold(suite, name, stats).passed) return true;
+  // Graphics.Regression only enumerates fallbacks when the primary gold for
+  // the current platform doesn't exist. If it does exist, that single file is
+  // the sole judge — a passing alternate doesn't rescue a failing primary.
+  const goldEntry = suiteData[suite]?.gold.find(g => g.name === name);
+  if (goldEntry && goldEntry.fallback == null) return false;
   const alt = altGoldStatus[`${srcId}:${suite}:${name}`];
   if (!alt || !alt.checked) return null;
   return alt.passingPlatform != null;
