@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 
@@ -426,7 +426,7 @@ namespace Stride.Graphics
             Draw(texture, in elementInfo);
         }
 
-        internal void DrawString(SpriteFont font, string text, ref SpriteFont.InternalUIDrawCommand drawCommand)
+        internal void DrawString([NotNull] SpriteFont font, [NotNull] string text, ref SpriteFont.InternalUIDrawCommand drawCommand)
         {
             if (font == null) throw new ArgumentNullException(nameof(font));
             if (text == null) throw new ArgumentNullException(nameof(text));
@@ -443,24 +443,7 @@ namespace Stride.Graphics
             // transform the world matrix into the world view project matrix
             Matrix.Multiply(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
-            if (font.FontType == SpriteFontType.SDF)
-            {
-                drawCommand.SnapText = false;
-                float scaling = drawCommand.RequestedFontSize / font.Size;
-                drawCommand.RealVirtualResolutionRatio = 1 / new Vector2(scaling, scaling);
-            }
-            if (font.FontType == SpriteFontType.Static)
-            {
-                drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
-            }
-            if (font.FontType == SpriteFontType.Dynamic)
-            {
-                // Dynamic: if we're not displaying in a situation where we can snap text, we're probably in 3D.
-                // Let's use virtual resolution (otherwise requested size might change on every camera move)
-                // TODO: some step function to have LOD without regenerating on every small change?
-                if (!drawCommand.SnapText)
-                    drawCommand.RealVirtualResolutionRatio = Vector2.One;
-            }
+            font.TypeSpecificRatios(drawCommand.RequestedFontSize, ref drawCommand.SnapText, ref drawCommand.RealVirtualResolutionRatio, out var actualFontSize);
 
             // snap draw start position to prevent characters to be drawn in between two pixels
             if (drawCommand.SnapText)
@@ -477,7 +460,7 @@ namespace Stride.Graphics
                 drawCommand.Matrix.M42 /= invW;
             }
 
-            font.InternalUIDraw(GraphicsContext.CommandList, ref proxy, ref drawCommand);
+            font.InternalUIDraw(GraphicsContext.CommandList, proxy, ref drawCommand, actualFontSize);
         }
 
         protected override unsafe void UpdateBufferValuesFromElementInfo(ref ElementInfo elementInfo, IntPtr vertexPtr, IntPtr indexPtr, int vertexOffset)

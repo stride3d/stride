@@ -4828,4 +4828,19 @@
       </Setter.Value>
     </Setter>
   </Style>
+
+  <Style TargetType="ctrl:AngleEditor">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ctrl:AngleEditor">
+          <ctrl:NumericTextBox Value="{Binding Degrees, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}"
+                               DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="2,0" TextAlignment="Left"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 </ResourceDictionary>

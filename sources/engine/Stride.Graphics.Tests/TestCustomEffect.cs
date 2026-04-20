@@ -63,7 +63,7 @@ namespace Stride.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public void RunCustomEffect()
         {
             RunGameTest(new TestCustomEffect());

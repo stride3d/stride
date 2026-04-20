@@ -169,13 +169,14 @@ namespace Stride.Video
 
             ReceivedNotificationToUpdateVideoTextureSurface = false;
 
+            // Looks like we need to use VK_ANDROID_external_memory_android_hardware_buffer and AImageReader, ANativeWindow and AHardwareBuffer
+            throw new NotImplementedException("MediaCodec is not implemented with Vulkan");
             //==============================================================================================
             //Create the Texture and Surface where the codec will directly extract the video
             //The texture is set as external (GlTextureExternalOes): the mediaCodec API will create it and fill it
             //We don't know its size and format (size / format will depend on the media and on the device implementation)
-            TextureExternal = Texture.NewExternalOES(GraphicsDevice);   // TODO: Can we just allocate a mip mapped texture for this?
-            var textureId = (int)TextureExternal.TextureId;
-            VideoSurfaceTexture = new SurfaceTexture(textureId);
+            //TextureExternal = Texture.NewExternalOES(GraphicsDevice);   // TODO: Can we just allocate a mip mapped texture for this?
+            VideoSurfaceTexture = new SurfaceTexture(0);
             VideoSurface = new Surface(VideoSurfaceTexture);
 
             //==============================================================================================

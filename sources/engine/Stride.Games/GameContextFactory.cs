@@ -23,13 +23,13 @@ namespace Stride.Games
                 case AppContextType.Android:
                     res = NewGameContextAndroid();
                     break;
-                case AppContextType.Desktop:
+                case AppContextType.DesktopWinForms:
                     res = NewGameContextDesktop(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopSDL:
                     res = NewGameContextSDL(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
-                case AppContextType.DesktopWpf:
+                case AppContextType.DesktopWPF:
                     res = NewGameContextWpf(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.UWPXaml:
@@ -40,6 +40,9 @@ namespace Stride.Games
                     break;
                 case AppContextType.iOS:
                     res = NewGameContextiOS();
+                    break;
+                case AppContextType.Headless:
+                    res = new GameContextHeadless(requestedWidth, requestedHeight);
                     break;
             }
 

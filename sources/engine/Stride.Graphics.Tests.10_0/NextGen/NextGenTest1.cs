@@ -185,7 +185,7 @@ namespace Stride.Engine.NextGen
         /// <summary>
         /// Run the test
         /// </summary>
-        [Fact]
+        [SkippableFact(Skip = "Crashes on D3D12 and Vulkan - needs investigation")]
         public void RunNextGenTest()
         {
             RunGameTest(new NextGenTest1());

@@ -1,0 +1,245 @@
+name: Test Linux Game (Vulkan)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+permissions:
+  checks: write
+  contents: read
+
+
+concurrency:
+  group: test-linux-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  # Build on Windows (CompilerApp needs Windows-only native libs for asset compilation)
+  # but target Linux platform so assets are compiled for Linux/Vulkan.
+  Build:
+    name: Build for Linux (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: true
+          cache: true
+          stripdown: true
+      - name: Register SwiftShader ICD
+        shell: pwsh
+        run: |
+          dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
+          $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader_icd.json -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+          if ($icd) {
+            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered SwiftShader ICD: $($icd.FullName)"
+          } else {
+            Write-Warning "SwiftShader ICD not found in NuGet cache"
+          }
+      - name: Build GPU tests (targeting Linux/Vulkan)
+        run: |
+          dotnet build build\Stride.Tests.Game.GPU.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatform=Linux `
+            -p:StrideGraphicsApis=Vulkan `
+            -p:StrideGraphicsApi=Vulkan
+      - name: Build non-GPU game tests (targeting Linux)
+        run: |
+          dotnet build build\Stride.Tests.Game.Linux.slnf `
+            -p:StrideTestRuntimeIdentifier=linux-x64 `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatform=Linux `
+            -p:StrideGraphicsApis=Vulkan `
+            -p:StrideGraphicsApi=Vulkan
+      - name: Clean Windows/macOS files from Linux test outputs
+        shell: pwsh
+        run: |
+          # Remove Windows/macOS native libs that are useless on Linux
+          Get-ChildItem bin/Tests -Recurse -Include `
+            'd3dcompiler_47.dll','freeimage.dll','FreeImage.dll','freetype.dll', `
+            'Silk.NET.Direct3D11.dll','Silk.NET.Direct3D12.dll','Silk.NET.Direct3D.Compilers.dll', `
+            'glslangValidator.exe' |
+            Remove-Item -Force
+          # Remove macOS dylibs and Windows PDBs for native libs
+          Get-ChildItem bin/Tests -Recurse -Include '*.dylib','freetype.pdb' |
+            Remove-Item -Force
+      - name: Upload test binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+          retention-days: 1
+
+  # Non-GPU game tests (run once, no graphics API dependency)
+  # Note: some tests still create a GraphicsDevice, so libvulkan1 + SwiftShader are needed.
+  Game-Common:
+    name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    needs: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1 xvfb
+      - name: Start virtual display
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+      - name: Download test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+      - name: Fix native binary permissions
+        run: |
+          # Artifact download doesn't preserve Unix execute permissions
+          find bin/Tests -name "*.bin" -exec chmod +x {} \;
+          find bin/Tests -name "*.so" -exec chmod +x {} \;
+      - name: Register SwiftShader ICD
+        run: |
+          # Find SwiftShader in any test output and create ICD JSON
+          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
+          if [ -n "$LIB" ]; then
+            LIB_ABS=$(readlink -f "$LIB")
+            ICD_JSON="$PWD/vk_swiftshader_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+          else
+            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+          fi
+      - name: Test
+        if: always()
+        run: |
+          dotnet vstest \
+            bin/Tests/Stride.Audio.Tests/Linux/Vulkan/Stride.Audio.Tests.dll \
+            bin/Tests/Stride.Engine.NoAssets.Tests/Linux/Vulkan/Stride.Engine.NoAssets.Tests.dll \
+            bin/Tests/Stride.Input.Tests/Linux/Vulkan/Stride.Input.Tests.dll \
+            bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
+            bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults \
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Game Common'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-linux-common
+          path: tests/local/
+          if-no-files-found: ignore
+
+  # GPU game tests (Vulkan via SwiftShader)
+  Game-GPU:
+    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    needs: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1
+      - name: Download test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-vulkan-test-binaries
+          path: bin/Tests/
+      - name: Fix native binary permissions
+        run: |
+          # Artifact download doesn't preserve Unix execute permissions
+          find bin/Tests -name "*.bin" -exec chmod +x {} \;
+          find bin/Tests -name "*.so" -exec chmod +x {} \;
+      - name: Register SwiftShader ICD
+        run: |
+          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
+          if [ -n "$LIB" ]; then
+            LIB_ABS=$(readlink -f "$LIB")
+            ICD_JSON="$PWD/vk_swiftshader_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+          else
+            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+          fi
+      - name: Test
+        if: always()
+        run: |
+          dotnet vstest \
+            bin/Tests/Stride.Graphics.Tests/Linux/Vulkan/Stride.Graphics.Tests.dll \
+            bin/Tests/Stride.Graphics.Tests.10_0/Linux/Vulkan/Stride.Graphics.Tests.10_0.dll \
+            bin/Tests/Stride.Graphics.Tests.11_0/Linux/Vulkan/Stride.Graphics.Tests.11_0.dll \
+            bin/Tests/Stride.Engine.Tests/Linux/Vulkan/Stride.Engine.Tests.dll \
+            bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
+            bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
+            --logger:trx --ResultsDirectory:TestResults \
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Test Report: Linux Game GPU (Vulkan)'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-linux-vulkan
+          path: tests/local/
+          if-no-files-found: ignore

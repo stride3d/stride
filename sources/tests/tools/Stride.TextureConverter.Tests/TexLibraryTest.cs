@@ -39,7 +39,7 @@ namespace Stride.TextureConverter.Tests
             library.Execute(image, request);
             Assert.True(image.Width == width);
             Assert.True(image.Height == height);
-            Assert.True(image.MipmapCount == 1);
+            Assert.Equal(1, image.MipmapCount);
 
             image.Update();
 
@@ -56,7 +56,7 @@ namespace Stride.TextureConverter.Tests
             library.Execute(image, request);
             Assert.True(image.Width == width);
             Assert.True(image.Height == height);
-            Assert.True(image.MipmapCount == 1);
+            Assert.Equal(1, image.MipmapCount);
 
             image.Update();
 
@@ -86,24 +86,24 @@ namespace Stride.TextureConverter.Tests
         {
             Assert.True(image.Format.IsCompressed);
             library.Execute(image, new DecompressingRequest(false));
-            Assert.True(image.Format == PixelFormat.R8G8B8A8_UNorm);
+            Assert.Equal(PixelFormat.R8G8B8A8_UNorm, image.Format);
             Assert.Equal(TestTools.GetInstance().Checksum["DecompressTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("DecompressTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
         public static void CompressTest(TexImage image, ITexLibrary library, PixelFormat format)
         {
-            Assert.True(!image.Format.IsCompressed);
+            Assert.False(image.Format.IsCompressed);
             library.Execute(image, new CompressingRequest(format));
 
-            Assert.True(image.Format == format);
+            Assert.Equal(image.Format, format);
             Assert.Equal(TestTools.GetInstance().Checksum["CompressTest_" + format + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("CompressTest_" + format + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
         public static void GenerateMipMapTest(TexImage image, ITexLibrary library, Filter.MipMapGeneration filter)
         {
-            Assert.True(image.MipmapCount == 1);
+            Assert.Equal(1, image.MipmapCount);
             if (image.Format.IsCompressed) library.Execute(image, new DecompressingRequest(false));
             library.Execute(image, new MipMapsGenerationRequest(filter));
             Assert.True(image.MipmapCount > 1);
@@ -161,7 +161,7 @@ namespace Stride.TextureConverter.Tests
             image.Update();
             image2.Update();
 
-            Assert.True(image.Dimension == image2.Dimension);
+            Assert.Equal(image.Dimension, image2.Dimension);
             Assert.True(image2.SubImageArray[image2.SubImageArray.Length - 1].Width >= minMipMapSize);
             Assert.True(image2.SubImageArray[image2.SubImageArray.Length - 1].Height >= minMipMapSize);
             Assert.True(image.Width == image2.Width);

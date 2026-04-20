@@ -1234,13 +1234,9 @@ namespace Stride.Games
                     isReallyFullScreen = presentationParameters.IsFullScreen;
 
                     if (presentationParameters.BackBufferWidth != 0)
-                    {
                         width = presentationParameters.BackBufferWidth;
-                    }
                     if (presentationParameters.BackBufferHeight != 0)
-                    {
                         height = presentationParameters.BackBufferHeight;
-                    }
                     deviceSettingsChanged = false;
                 }
                 finally

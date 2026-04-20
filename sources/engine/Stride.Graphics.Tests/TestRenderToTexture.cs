@@ -97,7 +97,7 @@ namespace Stride.Graphics.Tests
 
             GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
             GraphicsContext.CommandList.SetViewport(new Viewport(width / 2, 0, width / 2, height / 2));
-            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget0, GraphicsResourceState.PixelShaderResource);
+            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget0, BarrierLayout.ShaderResource);
             GraphicsContext.DrawTexture(offlineTarget0);
 
             // 2 intermediate RTs
@@ -107,12 +107,12 @@ namespace Stride.Graphics.Tests
 
             GraphicsContext.CommandList.Clear(depthBuffer, DepthStencilClearOptions.DepthBuffer);
             GraphicsContext.CommandList.SetRenderTargetAndViewport(depthBuffer, offlineTarget2);
-            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget1, GraphicsResourceState.PixelShaderResource);
+            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget1, BarrierLayout.ShaderResource);
             GraphicsContext.DrawTexture(offlineTarget1);
 
             GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
             GraphicsContext.CommandList.SetViewport(new Viewport(0, height / 2, width / 2, height / 2));
-            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget2, GraphicsResourceState.PixelShaderResource);
+            GraphicsContext.CommandList.ResourceBarrierTransition(offlineTarget2, BarrierLayout.ShaderResource);
             GraphicsContext.DrawTexture(offlineTarget2);
 
             // draw quad on screen
@@ -130,7 +130,7 @@ namespace Stride.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public void RunRenderToTexture()
         {
             RunGameTest(new TestRenderToTexture());

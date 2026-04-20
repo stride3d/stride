@@ -68,7 +68,7 @@ namespace Stride.TextureConverter
         {
             var supportedFormat = new StringBuilder();
             supportedFormat.AppendLine();
-            supportedFormat.AppendFormat("Supported format: {0}", string.Join(", ", Enum.GetNames(typeof(PixelFormat))));
+            supportedFormat.AppendFormat("Supported format: {0}", string.Join(", ", Enum.GetNames<PixelFormat>()));
             return supportedFormat.ToString();
         }
 

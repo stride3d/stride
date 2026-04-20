@@ -26,6 +26,18 @@ namespace Stride.UI
 
         private InputManager input;
 
+        /// <summary>
+        /// Represents the UI-element currently under the mouse cursor.
+        /// Only elements with CanBeHitByUser == true are taken into account.
+        /// Last processed element_state / ?UIComponent? with a valid element will be used.
+        /// </summary>
+        public UIElement UIElementUnderMouseCursor { get; internal set; }
+
+        /// <summary>
+        /// The <see cref="UIElement"/> that currently has the focus.
+        /// </summary>
+        public UIElement FocusedElement { get; internal set; }
+
         public UISystem(IServiceRegistry registry)
             : base(registry)
         {
@@ -103,17 +115,17 @@ namespace Stride.UI
         /// <summary>
         /// The method to call when the application is put on background.
         /// </summary>
-        private static void OnApplicationPaused(object sender, EventArgs e)
+        private void OnApplicationPaused(object sender, EventArgs e)
         {
             // validate the edit text and close the keyboard, if any edit text is currently active
-            if (UIElement.FocusedElement is EditText focusedEdit)
+            if (FocusedElement is EditText focusedEdit)
                 focusedEdit.IsSelectionActive = false;
         }
 
         /// <summary>
         /// The method to call when the application is put on foreground.
         /// </summary>
-        private static void OnApplicationResumed(object sender, EventArgs e)
+        private void OnApplicationResumed(object sender, EventArgs e)
         {
             // revert the state of the edit text here?
         }
@@ -130,7 +142,8 @@ namespace Stride.UI
             if (input == null)
                 return;
 
-            if (UIElement.FocusedElement == null || !UIElement.FocusedElement.IsHierarchyEnabled) return;
+            if (FocusedElement == null || !FocusedElement.IsHierarchyEnabled)
+                return;
 
             // Raise text input events
             var textEvents = input.Events.OfType<TextInputEvent>();
@@ -138,7 +151,7 @@ namespace Stride.UI
             foreach (var textEvent in textEvents)
             {
                 enteredText = true;
-                UIElement.FocusedElement?.RaiseTextInputEvent(new TextEventArgs
+                FocusedElement?.RaiseTextInputEvent(new TextEventArgs
                 {
                     Text = textEvent.Text,
                     Type = textEvent.Type,
@@ -155,17 +168,17 @@ namespace Stride.UI
                     continue; // Skip key events if text was entered
                 if (keyEvent.IsDown)
                 {
-                    UIElement.FocusedElement?.RaiseKeyPressedEvent(evt);
+                    FocusedElement?.RaiseKeyPressedEvent(evt);
                 }
                 else
                 {
-                    UIElement.FocusedElement?.RaiseKeyReleasedEvent(evt);
+                    FocusedElement?.RaiseKeyReleasedEvent(evt);
                 }
             }
 
             foreach (var key in input.DownKeys)
             {
-                UIElement.FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input });
+                FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input });
             }
         }
 

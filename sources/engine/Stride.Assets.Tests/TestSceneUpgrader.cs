@@ -24,7 +24,11 @@ namespace Stride.Assets.Tests
         {
             var logger = new LoggerResult();
 
-            var samplesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\samples");
+            // Walk up from the binary directory to find the solution root (contains build\Stride.sln)
+            var dir = AppDomain.CurrentDomain.BaseDirectory;
+            while (dir is not null && !File.Exists(Path.Combine(dir, @"build\Stride.sln")))
+                dir = Path.GetDirectoryName(dir);
+            var samplesPath = Path.Combine(dir ?? throw new DirectoryNotFoundException("Could not find Stride solution root"), "samples");
             var files = Directory.EnumerateFiles(samplesPath, "*.sdscene", SearchOption.AllDirectories);
 
             foreach (var sceneFile in files)

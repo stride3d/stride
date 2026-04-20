@@ -3,6 +3,7 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -57,9 +58,13 @@ namespace Stride.Graphics
 
             staticCollector.Add(ComPtrHelpers.ToComPtr(dxgiFactory));  // To avoid circular references and stack overflow on Initialize()
 
-            var adapterList = dxgiFactoryVersion >= 6
-                ? EnumerateAdaptersPrefer(GpuPreference.HighPerformance)  // TODO: Make GPU preference configurable?
-                : EnumerateAdapters();
+            var useWarp = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
+
+            var adapterList = useWarp && dxgiFactoryVersion >= 4
+                ? EnumerateWarpAdapter()
+                : dxgiFactoryVersion >= 6
+                    ? EnumerateAdaptersPrefer(GpuPreference.HighPerformance)  // TODO: Make GPU preference configurable?
+                    : EnumerateAdapters();
 
             adapters = adapterList.ToArray();
             defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
@@ -198,6 +203,23 @@ namespace Stride.Graphics
                 } while (true);
 
                 return adapterList;
+            }
+
+            //
+            // Enumerates the WARP software adapter (DXGI 1.4+).
+            //
+            static List<GraphicsAdapter> EnumerateWarpAdapter()
+            {
+                Debug.Assert(dxgiFactoryVersion >= 4);
+                var dxgiFactory4 = (IDXGIFactory4*) dxgiFactory;
+
+                HResult result = dxgiFactory4->EnumWarpAdapter(out ComPtr<IDXGIAdapter1> warpAdapter);
+                if (result.IsFailure)
+                    return [];
+
+                var adapter = new GraphicsAdapter(warpAdapter, 0);
+                staticCollector.Add(adapter);
+                return [adapter];
             }
         }
     }

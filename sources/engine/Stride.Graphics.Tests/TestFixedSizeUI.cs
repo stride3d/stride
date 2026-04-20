@@ -104,10 +104,6 @@ namespace Stride.Graphics.Tests
 
             Window.AllowUserResizing = true;
 
-            await base.LoadContent();
-
-            Window.AllowUserResizing = true;
-
             arial16 = Content.Load<SpriteFont>("DynamicFonts/Arial16");
 
             // Instantiate a scene with a single entity and model component

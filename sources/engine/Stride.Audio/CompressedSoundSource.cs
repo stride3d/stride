@@ -260,7 +260,7 @@ namespace Stride.Audio
 
                     //read one packet, size first, then data
                     var len = reader.ReadInt16();
-                    compressedSoundStream.Read(compressedBuffer, 0, len);
+                    compressedSoundStream.ReadExactly(compressedBuffer, 0, len);
                     currentPacketIndex++;
 
                     var writePtr = bufferPtr + offset;

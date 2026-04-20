@@ -17,6 +17,11 @@ namespace Stride.Graphics
 {
     public partial class GraphicsDevice
     {
+        /// <summary>
+        ///   Counter for generating unique command list IDs. Incremented atomically on each CommandList.Reset.
+        /// </summary>
+        internal int NextCommandListId;
+
         internal int ConstantBufferDataPlacementAlignment;
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
@@ -398,10 +403,11 @@ namespace Stride.Graphics
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
-            var desiredExtensionProperties = new HashSet<VkUtf8String>
-            {
-                VK_KHR_SWAPCHAIN_EXTENSION_NAME
-            };
+            var desiredExtensionProperties = new HashSet<VkUtf8String>();
+
+            // Swapchain extension is only needed for presentation (not for headless/asset compilation)
+            if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+                desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
             if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
             {
@@ -409,8 +415,23 @@ namespace Stride.Graphics
                 IsProfilingSupported = true;
             }
 
-            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures();
-            timelineSemaphoreFeatures.sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures;
+            // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
+            // Check if the feature is supported before requesting it
+            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
+            };
+            var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
+            {
+                sType = VkStructureType.PhysicalDeviceFeatures2,
+                pNext = &timelineSemaphoreFeatures,
+            };
+            NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
+
+            if (!timelineSemaphoreFeatures.timelineSemaphore)
+                throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
+
+            // Re-set to request the feature
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
@@ -596,6 +617,11 @@ namespace Stride.Graphics
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
+        partial void WaitForGPUIdle()
+        {
+            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
+        }
+
         protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
@@ -610,9 +636,6 @@ namespace Stride.Graphics
 
             EmptyTexture.Dispose();
             EmptyTexture = null;
-
-            // Wait for all queues to be idle
-            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
 
             // Mark upload buffer for destruction
             if (nativeUploadBuffer != VkBuffer.Null)
@@ -1069,6 +1092,26 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.QueryPool, *(ulong*)&handle);
         }
 
+        public static unsafe implicit operator NativeResource(VkPipeline handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.Pipeline, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkPipelineLayout handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.PipelineLayout, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkRenderPass handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.RenderPass, *(ulong*)&handle);
+        }
+
+        public static unsafe implicit operator NativeResource(VkDescriptorSetLayout handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.DescriptorSetLayout, *(ulong*)&handle);
+        }
+
         public unsafe void Destroy(GraphicsDevice device)
         {
             var handleCopy = handle;
@@ -1104,6 +1147,18 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.QueryPool:
                     device.NativeDeviceApi.vkDestroyQueryPool(device.NativeDevice, *(VkQueryPool*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.Pipeline:
+                    device.NativeDeviceApi.vkDestroyPipeline(device.NativeDevice, *(VkPipeline*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.PipelineLayout:
+                    device.NativeDeviceApi.vkDestroyPipelineLayout(device.NativeDevice, *(VkPipelineLayout*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.RenderPass:
+                    device.NativeDeviceApi.vkDestroyRenderPass(device.NativeDevice, *(VkRenderPass*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
+                    device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);
                     break;
             }
         }

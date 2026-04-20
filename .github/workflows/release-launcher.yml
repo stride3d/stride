@@ -1,0 +1,146 @@
+name: Release Launcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Code sign packages
+        default: true
+        type: boolean
+      deploy:
+        description: Deploy to NuGet.org
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-launcher-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  #
+  # Validate inputs and permissions
+  #
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
+          if [ "$STATUS" = "fail" ]; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  #
+  # Build, package and optionally deploy the launcher
+  #
+  Package:
+    name: Package Launcher
+    needs: Validate
+    runs-on: windows-latest
+    environment: production
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            10.0.x
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Install Advanced Installer
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile advinst.msi
+          msiexec /i advinst.msi /qn ADDLOCAL=ALL | Out-Null
+          if ("${{ secrets.ADVINST_LICENSE_KEY }}" -ne "") {
+            & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
+          }
+
+      - name: Build and package launcher
+        shell: pwsh
+        run: |
+          msbuild build\Stride.build `
+            /t:FullBuildLauncher `
+            /bl /m /nr:false `
+            /p:StrideSign=${{ inputs.sign }}
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $nupkg = Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | Select-Object -First 1
+          if ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$') {
+            echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Upload launcher artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: launcher
+          path: |
+            bin/launcher/*.nupkg
+            bin/launcher/*.exe
+          retention-days: 30
+
+  Deploy:
+    name: Deploy Launcher
+    if: ${{ inputs.deploy && inputs.sign }}
+    needs: Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download launcher artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: launcher
+          path: bin/launcher
+
+      - name: Push to NuGet
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | ForEach-Object {
+            echo "Pushing $($_.Name)..."
+            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          }
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Create GitHub Release
+        if: ${{ needs.Package.outputs.version != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: launcher/${{ needs.Package.outputs.version }}
+          name: Stride Launcher ${{ needs.Package.outputs.version }}
+          files: bin/launcher/*.exe
+          prerelease: ${{ contains(needs.Package.outputs.version, '-') }}
+          generate_release_notes: true

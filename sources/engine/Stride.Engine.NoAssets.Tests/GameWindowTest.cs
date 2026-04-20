@@ -3,6 +3,7 @@
 
 using Xunit;
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Regression;
 using Stride.Games;
@@ -11,11 +12,13 @@ namespace Stride.Engine.Tests
 {
     public class GameWindowTest : GameTestBase
     {
-        [Theory]
-        [InlineData(AppContextType.Desktop)]
+        [SkippableTheory]
+        [InlineData(AppContextType.DesktopWinForms)]
         [InlineData(AppContextType.DesktopSDL)]
         public void RenderToWindow(AppContextType contextType)
         {
+            Skip.If(Platform.Type == PlatformType.Linux && contextType == AppContextType.DesktopWinForms, reason: "WinForms not available on Linux");
+
             PerformTest(game =>
             {
                 var context = GameContextFactory.NewGameContext(contextType, isUserManagingRun: true);

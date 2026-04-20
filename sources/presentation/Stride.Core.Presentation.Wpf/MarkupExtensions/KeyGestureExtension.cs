@@ -28,10 +28,10 @@ namespace Stride.Core.Presentation.MarkupExtensions
             for (int i = 0; i < tokens.Length - 1; ++i)
             {
                 var token = tokens[i].Replace("Ctrl", "Control");
-                var modifier = (ModifierKeys)Enum.Parse(typeof(ModifierKeys), token, true);
+                var modifier = Enum.Parse<ModifierKeys>(token, true);
                 modifiers |= modifier;
             }
-            var key = (Key)Enum.Parse(typeof(Key), tokens[tokens.Length - 1], true);
+            var key = Enum.Parse<Key>(tokens[tokens.Length - 1], true);
             Gesture = new KeyGesture(key, modifiers);
         }
 

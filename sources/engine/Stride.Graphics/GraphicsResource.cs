@@ -11,6 +11,11 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResource : GraphicsResourceBase
     {
         /// <summary>
+        ///   Tracks the layout of this resource's subresources for cross-platform barrier transitions.
+        /// </summary>
+        internal SubresourceLayoutTracker LayoutTracker;
+
+        /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsResource"/> class.
         /// </summary>
         protected GraphicsResource() { }

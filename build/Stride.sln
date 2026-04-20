@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 18.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90-Tools", "90-Tools", "{1AE1AC60-5D2F-4CA7-AE20-888F44551185}"
 EndProject
@@ -8,25 +8,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-StrideRuntime", "{4C142567-C42B-40F5-B092-798882190209}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config.Private", "00-Config.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
 		..\sources\Directory.Packages.props = ..\sources\Directory.Packages.props
 		..\nuget.config = ..\nuget.config
-		..\sources\targets\Stride.Core.CompilerServices.props = ..\sources\targets\Stride.Core.CompilerServices.props
-		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
-		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
-		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
-		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
-		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
-		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
-		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
-		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
-		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
-		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
-		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
-		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
-		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"
@@ -62,14 +48,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "51-Presentation.Tests", "51
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "70-StrideAssets", "70-StrideAssets", "{F765035E-F4F4-4CFA-BA02-755DC677AA97}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Build", "00-Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
 		Stride.build = Stride.build
-		Stride.Build.props = Stride.Build.props
-		Stride.Build.targets = Stride.Build.targets
-		Stride.Core.Build.props = Stride.Core.Build.props
-		Stride.Core.Build.targets = Stride.Core.Build.targets
-		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"
@@ -79,6 +60,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "71-StrideAssets.Tests", "71-StrideAssets.Tests", "{A47B451D-3162-410F-BAF7-C650C4B7A4B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio", "..\sources\editor\Stride.GameStudio\Stride.GameStudio.csproj", "{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}"
+	ProjectSection(ProjectDependencies) = postProject
+		{040F754C-17F4-4B5F-B974-93F1E39D107F} = {040F754C-17F4-4B5F-B974-93F1E39D107F}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
 EndProject
@@ -103,8 +87,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TextureConverter", "..\sources\tools\Stride.TextureConverter\Stride.TextureConverter.csproj", "{7F7BFF79-C400-435F-B359-56A2EF8956E0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TextureConverter.Tests", "..\sources\tests\tools\Stride.TextureConverter.Tests\Stride.TextureConverter.Tests.csproj", "{C485CE61-3006-4C99-ACB3-A737F5CEBAE7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ProjectGenerator", "..\sources\tools\Stride.ProjectGenerator\Stride.ProjectGenerator.csproj", "{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.Windows", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.Windows.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
 EndProject
@@ -334,7 +316,42 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.FreeImage", "..\sources\tools\Stride.FreeImage\Stride.FreeImage.csproj", "{03695F9B-10E9-4A10-93AE-6402E46F10B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{35EC42D8-0A09-41AE-A918-B8C2796061B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{35EC42D8-0A09-41AE-A918-B8C2796061B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Build.Sdk", "Stride.Build.Sdk", "{D26186F8-7158-4A01-9524-EF4F53E0802C}"
+	ProjectSection(SolutionItems) = preProject
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Sdk.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Sdk.props
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Sdk.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Sdk.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.AssemblyProcessor.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.AssemblyProcessor.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.CodeAnalysis.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.CodeAnalysis.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Dependencies.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Dependencies.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.DisableBuild.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.DisableBuild.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.props
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.props
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.GraphicsApi.InnerBuild.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.GraphicsApi.InnerBuild.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.NativeBuildMode.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.NativeBuildMode.props
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.PackageInfo.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.PackageInfo.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.props
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.ruleset = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.ruleset
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Build.Sdk.Editor", "Stride.Build.Sdk.Editor", "{8D873BE7-8EF2-4478-B86A-249021D046EB}"
+	ProjectSection(SolutionItems) = preProject
+		..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.props = ..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.props
+		..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.targets = ..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.targets
+		..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Stride.Editor.Frameworks.props = ..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Stride.Editor.Frameworks.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Build.Sdk.Tests", "Stride.Build.Sdk.Tests", "{E6B11A34-A1DB-41C2-B509-94DACA9D9BDE}"
+	ProjectSection(SolutionItems) = preProject
+		..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\LauncherGame.Desktop.cs = ..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\LauncherGame.Desktop.cs
+		..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\LauncherSimple.Desktop.cs = ..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\LauncherSimple.Desktop.cs
+		..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\Sdk.props = ..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\Sdk.props
+		..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\Sdk.targets = ..\sources\sdk\Stride.Build.Sdk.Tests\Sdk\Sdk.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -477,16 +494,6 @@ Global
 		{C485CE61-3006-4C99-ACB3-A737F5CEBAE7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{C485CE61-3006-4C99-ACB3-A737F5CEBAE7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C485CE61-3006-4C99-ACB3-A737F5CEBAE7}.Release|Win32.ActiveCfg = Release|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}.Release|Win32.ActiveCfg = Release|Any CPU
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
@@ -1545,7 +1552,6 @@ Global
 		{42780CBD-3FE7-48E3-BD5B-59945EA20137} = {4C142567-C42B-40F5-B092-798882190209}
 		{7F7BFF79-C400-435F-B359-56A2EF8956E0} = {4A15BAAD-AA37-4754-A2BF-8D4049211E36}
 		{C485CE61-3006-4C99-ACB3-A737F5CEBAE7} = {4A15BAAD-AA37-4754-A2BF-8D4049211E36}
-		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{09F32307-595A-4CBB-BF7C-F055DA1F70EE} = {B175D318-B4D0-49EA-9AEF-A54ACA2F03DC}
 		{7732CB84-A39A-4ADF-B740-FD32A352FA8A} = {25F10A0B-7259-404C-86BE-FD2363C92F72}
@@ -1650,6 +1656,9 @@ Global
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{03695F9B-10E9-4A10-93AE-6402E46F10B5} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{35EC42D8-0A09-41AE-A918-B8C2796061B3} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
+		{D26186F8-7158-4A01-9524-EF4F53E0802C} = {0B81090E-4066-4723-A658-8AEDBEADE619}
+		{8D873BE7-8EF2-4478-B86A-249021D046EB} = {0B81090E-4066-4723-A658-8AEDBEADE619}
+		{E6B11A34-A1DB-41C2-B509-94DACA9D9BDE} = {0B81090E-4066-4723-A658-8AEDBEADE619}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

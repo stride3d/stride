@@ -68,6 +68,7 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void TestFixedRatio()
         {
+            // Note: SwiftShader produces a 1-pixel black line at the viewport boundary; this is a known SwiftShader rasterization difference
             RunGameTest(new FixedAspectRatioTests());
         }
     }

@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
@@ -29,6 +30,7 @@ public unsafe partial class GraphicsDevice
         // Cached size of a descriptor handle for the given heap type
         private readonly int descriptorSize = (int) device.NativeDevice.GetDescriptorHandleIncrementSize(descriptorHeapType);
 
+        private readonly List<ComPtr<ID3D12DescriptorHeap>> allocatedHeaps = [];
         private ComPtr<ID3D12DescriptorHeap> currentHeap;
         private CpuDescriptorHandle currentHandle;
         private int remainingHandles;
@@ -37,7 +39,13 @@ public unsafe partial class GraphicsDevice
         /// <inheritdoc/>
         public void Dispose()
         {
-            SafeRelease(ref currentHeap);
+            foreach (var heap in allocatedHeaps)
+            {
+                var h = heap;
+                SafeRelease(ref h);
+            }
+            allocatedHeaps.Clear();
+            currentHeap = default;
         }
 
 
@@ -89,7 +97,8 @@ public unsafe partial class GraphicsDevice
                 if (result.IsFailure)
                     result.Throw();
 
-                currentHeap = descriptorHeap; // TODO: What do we do with the previous heap? Should we release it?
+                allocatedHeaps.Add(descriptorHeap);
+                currentHeap = descriptorHeap;
 
                 remainingHandles = DescriptorPerHeap;
                 currentHandle = descriptorHeap.GetCPUDescriptorHandleForHeapStart();

@@ -9,9 +9,10 @@ namespace Stride.Core.Design.Tests;
 // TODO: Tests in this class should be migrated to the new testUPath class where we do one test method per UFile method/property
 public class TestUPathOld
 {
-    [Fact]
+    [SkippableFact]
     public void TestNormalize()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var text = UPath.Normalize("test.txt", out var driveSpan, out var dirSpan, out var nameSpan, out var error);
         Assert.Null(error);
         Assert.NotNull(text);
@@ -362,9 +363,10 @@ public class TestUPathOld
         Assert.Equal("test.txt", filePath.GetFileName());
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestWithSimpleDirectory()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var assetPath = new UDirectory("/a/b/c");
         Assert.Equal("/a/b/c", assetPath.GetDirectory());
         Assert.Equal("/a/b/c", assetPath.FullPath);
@@ -508,9 +510,10 @@ public class TestUPathOld
         Assert.Equal("../../../test.txt", newAssetPath2.FullPath);
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestMakeRelativeWithDrive()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var dir1 = new UDirectory("C:/a/b/c");
 
         // Test direct relative

@@ -2,5 +2,11 @@
   "sdk": {
     "version": "10.0.100",
     "rollForward": "latestMinor"
+  },
+  "msbuild-sdks": {
+    // Uncomment if switching back to Sdk="Stride.Build.Sdk" project style.
+    // "Stride.Build.Sdk": "4.3.0-dev",
+    // "Stride.Build.Sdk.Editor": "4.3.0-dev",
+    // "Stride.Build.Sdk.Tests": "4.3.0-dev"
   }
 }

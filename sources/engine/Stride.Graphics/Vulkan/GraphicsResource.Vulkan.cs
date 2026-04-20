@@ -24,6 +24,13 @@ namespace Stride.Graphics
         /// </summary>
         internal CommandList UpdatingCommandList;
 
+        /// <summary>
+        ///   ID of the command list that last recorded a barrier transition for this resource.
+        ///   Used to detect when a resource is first used on a different command list, in which
+        ///   case the barrier must be re-issued even if the layout already matches.
+        /// </summary>
+        internal int LastBarrierCommandListId;
+
         internal VkDeviceMemory NativeMemory;
         internal VkPipelineStageFlags NativePipelineStageMask;
 

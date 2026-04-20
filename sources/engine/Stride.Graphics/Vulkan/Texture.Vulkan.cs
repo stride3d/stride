@@ -23,7 +23,17 @@ namespace Stride.Graphics
         internal VkImageSubresourceRange NativeResourceRange;
 
         private bool isNotOwningResources;
-        internal bool IsInitialized;
+        internal bool IsInitialized
+        {
+            get => ParentTexture?.IsInitialized ?? field;
+            set
+            {
+                if (ParentTexture != null)
+                    ParentTexture.IsInitialized = value;
+                else
+                    field = value;
+            }
+        }
 
         internal VkFormat NativeFormat;
         internal bool HasStencil;
@@ -92,7 +102,7 @@ namespace Stride.Graphics
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);
             HasStencil = IsStencilFormat(ViewFormat);
 
-            NativeImageAspect = IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color;
+            NativeImageAspect = IsDepthStencil || IsDepthFormat(ViewFormat) ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color;
             if (HasStencil)
                 NativeImageAspect |= VkImageAspectFlags.Stencil;
 
@@ -147,6 +157,8 @@ namespace Stride.Graphics
                     IsDepthStencil ? VkImageLayout.DepthStencilAttachmentOptimal :
                     IsShaderResource ? VkImageLayout.ShaderReadOnlyOptimal :
                     VkImageLayout.General;
+
+                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeLayout), ArraySize * MipLevelCount);
 
                 if (NativeLayout == VkImageLayout.TransferDstOptimal)
                     NativeAccessMask = VkAccessFlags.TransferRead;
@@ -350,7 +362,7 @@ namespace Stride.Graphics
                         var copy = new VkBufferImageCopy
                         {
                             bufferOffset = (ulong) uploadOffset,
-                            imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
+                            imageSubresource = new VkImageSubresourceLayers(NativeImageAspect, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
                             bufferRowLength = (uint) (dataBoxes[i].RowPitch * Format.BlockWidth / Format.BlockSize),
                             bufferImageHeight = (uint) (dataBoxes[i].SlicePitch * Format.BlockHeight / dataBoxes[i].RowPitch),
                             imageOffset = new VkOffset3D(0, 0, 0),
@@ -368,7 +380,8 @@ namespace Stride.Graphics
                 if (Usage == GraphicsResourceUsage.Staging)
                 {
                     bufferBarriers[0] = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
-                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    var stagingDstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, stagingDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
                 }
 
                 IsInitialized = true;
@@ -381,7 +394,8 @@ namespace Stride.Graphics
                     new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue),
                     dataBoxes == null || dataBoxes.Length == 0 ? VkAccessFlags.None : VkAccessFlags.TransferWrite, NativeAccessMask,
                     dataBoxes == null || dataBoxes.Length == 0 ? VkImageLayout.Undefined : VkImageLayout.TransferDstOptimal, NativeLayout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &imageMemoryBarrier);
+                var texDstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, texDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &imageMemoryBarrier);
             }
 
             // Close and submit
@@ -486,17 +500,18 @@ namespace Stride.Graphics
                 format = NativeFormat, //VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
-                subresourceRange = new VkImageSubresourceRange(IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount) // TODO VULKAN: Select between depth and stencil?
+                // For shader resource views, use only the depth aspect (not stencil) when sampling depth-stencil textures
+                subresourceRange = new VkImageSubresourceRange(HasStencil ? VkImageAspectFlags.Depth : NativeImageAspect, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount)
             };
 
             if (IsMultiSampled)
                 throw new NotImplementedException();
 
-            if (this.ArraySize > 1)
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D Textures");
+            if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
+                throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
+            if (layerCount > 1)
+            {
                 if (Dimension == TextureDimension.Texture3D)
                     throw new NotSupportedException("Texture Array is not supported for Texture3D");
 
@@ -509,26 +524,21 @@ namespace Stride.Graphics
                         createInfo.viewType = VkImageViewType.Image2DArray;
                         break;
                     case TextureDimension.TextureCube:
-                        if (ArraySize % 6 != 0) throw new NotSupportedException("Texture cubes require an ArraySize which is a multiple of 6");
+                        if (layerCount % 6 != 0) throw new NotSupportedException("Texture cube views require a layerCount which is a multiple of 6");
 
-                        createInfo.viewType = ArraySize > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
+                        createInfo.viewType = layerCount > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
                         break;
                 }
             }
             else
             {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
-
-                if (Dimension == TextureDimension.TextureCube)
-                    throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
-
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
                         createInfo.viewType = VkImageViewType.Image1D;
                         break;
                     case TextureDimension.Texture2D:
+                    case TextureDimension.TextureCube:
                         createInfo.viewType = VkImageViewType.Image2D;
                         break;
                     case TextureDimension.Texture3D:
@@ -553,32 +563,15 @@ namespace Stride.Graphics
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
-                viewType = VkImageViewType.Image2D,
-                format = NativeFormat, // VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
+                viewType = GetViewType(Dimension),
+                format = NativeFormat,
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, 1)
             };
 
-            if (IsMultiSampled)
-                throw new NotImplementedException();
-
-            if (this.ArraySize > 1)
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D Textures");
-
-                if (Dimension == TextureDimension.Texture3D)
-                    throw new NotSupportedException("Texture Array is not supported for Texture3D");
-            }
-            else
-            {
-                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
-                    throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
-
-                if (Dimension == TextureDimension.TextureCube)
-                    throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
-            }
+            if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
+                throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
@@ -593,12 +586,11 @@ namespace Stride.Graphics
             //if (ComputeShaderResourceFormatFromDepthFormat(ViewFormat) == PixelFormat.None)
             //    throw new NotSupportedException("Depth stencil format [{0}] not supported".ToFormat(ViewFormat));
 
-            // Create a Depth stencil view on this texture2D
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
-                viewType = VkImageViewType.Image2D,
-                format = NativeFormat, //VulkanConvertExtensions.ConvertPixelFormat(ViewFormat),
+                viewType = GetViewType(Dimension),
+                format = NativeFormat,
                 image = NativeImage,
                 components = VkComponentMapping.Identity,
                 subresourceRange = new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: 1, baseArrayLayer: 0, layerCount: 1)
@@ -618,6 +610,13 @@ namespace Stride.Graphics
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView));
             return imageView;
         }
+
+        private static VkImageViewType GetViewType(TextureDimension dimension) => dimension switch
+        {
+            TextureDimension.Texture1D => VkImageViewType.Image1D,
+            TextureDimension.Texture3D => VkImageViewType.Image3D,
+            _ => VkImageViewType.Image2D,
+        };
 
         /// <summary>
         ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
@@ -708,6 +707,14 @@ namespace Stride.Graphics
             }
 
             return format;
+        }
+
+        internal static bool IsDepthFormat(PixelFormat format)
+        {
+            return format is PixelFormat.D16_UNorm
+                or PixelFormat.D32_Float
+                or PixelFormat.D24_UNorm_S8_UInt
+                or PixelFormat.D32_Float_S8X24_UInt;
         }
 
         internal static bool IsStencilFormat(PixelFormat format)

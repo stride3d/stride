@@ -86,8 +86,8 @@ public class TestBoundingSphere
         BoundingSphere.Merge(ref sphere1, ref sphere2, out var merged);
         
         // Merged sphere should contain both spheres
-        Assert.True(merged.Contains(ref sphere1) != ContainmentType.Disjoint);
-        Assert.True(merged.Contains(ref sphere2) != ContainmentType.Disjoint);
+        Assert.NotEqual(ContainmentType.Disjoint, merged.Contains(ref sphere1));
+        Assert.NotEqual(ContainmentType.Disjoint, merged.Contains(ref sphere2));
 
         // Test non-ref version
         var merged2 = BoundingSphere.Merge(sphere1, sphere2);

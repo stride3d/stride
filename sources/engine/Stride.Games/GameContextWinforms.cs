@@ -36,12 +36,12 @@ namespace Stride.Games
         public GameContextWinforms(Control control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
             : base(control ?? CreateForm(), requestedWidth, requestedHeight, isUserManagingRun)
         {
-            ContextType = AppContextType.Desktop;
+            ContextType = AppContextType.DesktopWinForms;
         }
 
         private static Form CreateForm()
         {
-#if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_NULL
+#if !STRIDE_GRAPHICS_API_NULL
             return new GameForm();
 #else
             // Not Reachable.

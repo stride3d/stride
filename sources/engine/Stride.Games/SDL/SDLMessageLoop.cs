@@ -28,7 +28,7 @@ namespace Stride.Games
     /// </remarks>
     internal unsafe class SDLMessageLoop : IMessageLoop
     {
-        private static Sdl SDL = Window.SDL;
+        private static Sdl SDL => Window.SDL;
 
         private Window control;
         private bool isControlAlive;

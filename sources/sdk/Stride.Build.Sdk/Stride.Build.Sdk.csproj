@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">  
+  <PropertyGroup>
+    <!-- Package Identity -->
+    <PackageId>Stride.Build.Sdk</PackageId>
+    <PackageTags>$(PackageTags)</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include SDK files in Sdk/ folder (required for MSBuild SDK resolution) -->
+    <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.props"
+          Pack="true" PackagePath="Sdk/" />
+    <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.targets"
+          Pack="true" PackagePath="Sdk/" />
+
+    <!-- Include Code Analysis ruleset -->
+    <None Include="$(MSBuildThisFileDirectory)Sdk/Stride.ruleset"
+          Pack="true" PackagePath="Sdk/" />
+
+    <!-- Package Assembly Processor binaries with SDK (interim until standalone package) -->
+    <None Include="$(MSBuildThisFileDirectory)../../../deps\AssemblyProcessor/**"
+          Pack="true" PackagePath="tools/AssemblyProcessor/" />
+  </ItemGroup>
+</Project>

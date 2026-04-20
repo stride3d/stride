@@ -261,10 +261,12 @@ namespace Stride.Shaders.Compiler.Direct3D
                 // Constant Buffers
                 for (uint i = 0; i < shaderReflectionDesc.ConstantBuffers; ++i)
                 {
-                    var constantBuffer = ToComPtr(shaderReflection.GetConstantBufferByIndex(i));
+                    // Note: ID3D11ShaderReflectionConstantBuffer is not a real COM object (no AddRef/Release).
+                    // It is a child interface whose lifetime is tied to the parent ID3D11ShaderReflection.
+                    var constantBuffer = shaderReflection.GetConstantBufferByIndex(i);
 
                     SkipInit(out ShaderBufferDesc constantBufferDesc);
-                    constantBuffer.GetDesc(ref constantBufferDesc);
+                    constantBuffer->GetDesc(ref constantBufferDesc);
 
                     if (constantBufferDesc.Type == D3DCBufferType.D3DCTResourceBindInfo)
                         continue;
@@ -364,7 +366,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                 //
                 // Validates the reflection of a Constant Buffer against the expected description.
                 //
-                void ValidateConstantBufferReflection(ComPtr<ID3D11ShaderReflectionConstantBuffer> constantBufferRaw,
+                void ValidateConstantBufferReflection(ID3D11ShaderReflectionConstantBuffer* constantBufferRaw,
                                                       ref ShaderBufferDesc constantBufferRawDesc,
                                                       EffectConstantBufferDescription constantBuffer,
                                                       LoggerResult log)
@@ -388,18 +390,19 @@ namespace Stride.Shaders.Compiler.Direct3D
                     }
 
                     // Constant Buffer variables
+                    // Note: ID3D11ShaderReflectionVariable and ID3D11ShaderReflectionType are not real COM objects
+                    // (no AddRef/Release). Their lifetime is tied to the parent ID3D11ShaderReflection.
                     for (uint i = 0; i < constantBufferRawDesc.Variables; i++)
                     {
-                        var variable = ToComPtr(constantBufferRaw.GetVariableByIndex(i));
+                        var variable = constantBufferRaw->GetVariableByIndex(i);
 
                         SkipInit(out ShaderVariableDesc variableDescription);
-                        variable.GetDesc(ref variableDescription);
+                        variable->GetDesc(ref variableDescription);
 
-                        // NOTE: To force to call the GetType() of ID3D11ShaderReflectionVariable and not the GetType() of System.Object
-                        var variableType = ToComPtr(variable.Handle->GetType());
+                        var variableType = variable->GetType();
 
                         SkipInit(out ShaderTypeDesc variableTypeDescription);
-                        variableType.GetDesc(ref variableTypeDescription);
+                        variableType->GetDesc(ref variableTypeDescription);
 
                         var variableName = GetUtf8Span(variableDescription.Name).GetString();
                         if (variableTypeDescription.Offset != 0)

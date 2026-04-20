@@ -16,6 +16,7 @@ namespace Stride.Engine
     [DataContract("UIComponent")]
     [Display("UI", Expand = ExpandRule.Once)]
     [DefaultEntityComponentRenderer(typeof(UIRenderProcessor))]
+    [DefaultEntityComponentProcessor(typeof(UIProcessor))]
     [ComponentOrder(9800)]
     [ComponentCategory("UI")]
     public sealed class UIComponent : ActivableEntityComponent
@@ -36,7 +37,15 @@ namespace Stride.Engine
         /// <userdoc>The UI page.</userdoc>
         [DataMember(10)]
         [Display("Page")]
-        public UIPage Page { get; set; }
+        public UIPage Page
+        {
+            get;
+            set
+            {
+                field = value;
+                field?.Services = Services;
+            }
+        }
 
         /// <summary>
         /// Specifies the sampling method to be used for this component
@@ -125,5 +134,16 @@ namespace Stride.Engine
         /// </summary>
         [DataMemberIgnore]
         public const float FixedSizeVerticalUnit = 1;   // 100% of the vertical resolution
+
+        [DataMemberIgnore]
+        internal IServiceRegistry Services
+        {
+            get;
+            set
+            {
+                field = value;
+                Page?.Services = Services;
+            }
+        }
     }
 }

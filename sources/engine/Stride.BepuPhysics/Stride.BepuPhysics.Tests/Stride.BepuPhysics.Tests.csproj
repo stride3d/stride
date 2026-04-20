@@ -1,11 +1,10 @@
 <Project>
-  <Import Project="..\..\..\targets\Stride.UnitTests.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.BepuPhysics.Tests</AssemblyName>
     <RootNamespace>Stride.BepuPhysics.Tests</RootNamespace>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
@@ -13,10 +12,7 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>xunit.runner.stride.Program</StartupObject>
-  </PropertyGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
@@ -25,5 +21,5 @@
   <ItemGroup>
     <None Include="Stride.BepuPhysics.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="..\..\..\targets\Stride.UnitTests.targets" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

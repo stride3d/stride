@@ -273,7 +273,10 @@ namespace Stride.Games
 
                 // Skip adapters that don't have graphics output
                 // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
-                if (graphicsAdapter.Outputs.Length == 0 && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
+                // Software rendering adapters (e.g. WARP) have no outputs either, so allow them through
+                if (graphicsAdapter.Outputs.Length == 0
+                    && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
+                    && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1")
                 {
                     continue;
                 }
@@ -344,7 +347,9 @@ namespace Stride.Games
             else
 #endif
             {
-                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+                graphicsDevice.Presenter = gameWindow is GameWindowHeadless
+                    ? new HeadlessGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters)
+                    : new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
 
             return graphicsDevice;

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Package Identity -->
+    <PackageId>Stride.Build.Sdk.Editor</PackageId>
+    <PackageTags>$(PackageTags);editor;tools</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include SDK files in Sdk/ folder (required for MSBuild SDK resolution) -->
+    <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.props" Pack="true" PackagePath="Sdk/" />
+    <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.targets" Pack="true" PackagePath="Sdk/" />
+
+  </ItemGroup>
+</Project>

@@ -333,11 +333,15 @@ namespace Stride.Graphics
         {
             if (NativePipeline != VkPipeline.Null)
             {
-                GraphicsDevice.NativeDeviceApi.vkDestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, allocator: null);
-                GraphicsDevice.NativeDeviceApi.vkDestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, allocator: null);
-                GraphicsDevice.NativeDeviceApi.vkDestroyPipelineLayout(GraphicsDevice.NativeDevice, NativeLayout, allocator: null);
+                GraphicsDevice.Collect(NativeRenderPass);
+                GraphicsDevice.Collect(NativePipeline);
+                GraphicsDevice.Collect(NativeLayout);
+                GraphicsDevice.Collect(NativeDescriptorSetLayout);
 
-                GraphicsDevice.NativeDeviceApi.vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, allocator: null);
+                NativeRenderPass = VkRenderPass.Null;
+                NativePipeline = VkPipeline.Null;
+                NativeLayout = VkPipelineLayout.Null;
+                NativeDescriptorSetLayout = VkDescriptorSetLayout.Null;
             }
 
             base.OnDestroyed(immediately);

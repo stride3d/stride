@@ -13,7 +13,7 @@ namespace Stride.Engine.Tests
 {
     public partial class TestEntityManager
     {
-        [Fact]
+        [Fact(Skip = "Benchmark with hardcoded timeout is unreliable on CI runners")]
         public void Benchmark()
         {
             const int TestCount = 5;

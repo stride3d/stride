@@ -151,4 +151,25 @@ public static class GraphicsDeviceExtensions
             return texture;
         }
     }
+
+    /// <summary>
+    ///   Gets a shared 1x1 depth Texture for use as a placeholder when no shadow map is available.
+    ///   This avoids Vulkan validation errors when a depth-comparison sampler references a color texture.
+    /// </summary>
+    /// <param name="device">The Graphics Device for which to retrieve the shared depth Texture.</param>
+    /// <returns>A <see cref="Texture"/> with a 1x1 depth format.</returns>
+    public static Texture GetSharedDepthTexture(this GraphicsDevice device)
+    {
+        return device.GetOrCreateSharedData("DepthTexture", static device =>
+        {
+            var texture = device.IsDebugMode
+                ? new Texture(device, "DepthTexture")
+                : new Texture(device);
+
+            var description = TextureDescription.New2D(1, 1, PixelFormat.D32_Float, TextureFlags.DepthStencil | TextureFlags.ShaderResource);
+            texture.InitializeFrom(description);
+
+            return texture;
+        });
+    }
 }

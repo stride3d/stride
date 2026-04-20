@@ -205,6 +205,9 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected override void Destroy()
         {
+            // Wait for all GPU work to complete before releasing resources
+            WaitForGPUIdle();
+
             SamplerStates.Dispose();
             SamplerStates = null;
 
@@ -253,6 +256,11 @@ namespace Stride.Graphics
                 sharedDataPerDevice.Clear();
             }
         }
+
+        /// <summary>
+        ///   Waits for all submitted GPU work to complete. Called before releasing resources during teardown.
+        /// </summary>
+        partial void WaitForGPUIdle();
 
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.

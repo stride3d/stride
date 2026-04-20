@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using Stride.Core;
+using Stride.Core.Serialization;
 
 namespace Stride.Graphics;
 
@@ -20,6 +21,7 @@ namespace Stride.Graphics;
 /// </remarks>
 /// <seealso cref="BlendStates"/>
 [DataContract]
+[DataSerializer(typeof(BlendStateDescription.Serializer))]
 [StructLayout(LayoutKind.Sequential)]
 public struct BlendStateDescription : IEquatable<BlendStateDescription>
 {
@@ -116,8 +118,8 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     ///     If set to <see langword="true"/>, each of the <see cref="RenderTargets"/> can have its own blend settings.
     ///   </para>
     ///   <para>
-    ///     If set to <see langword="false"/>, only the first Render Target (<see cref="RenderTarget0"/>) is taken into account.
-    ///     The others (<see cref="RenderTarget1"/> to <see cref="RenderTarget7"/>) are ignored.
+    ///     If set to <see langword="false"/>, only the first Render Target (<c>RenderTargets[0]</c>) is taken into account.
+    ///     The others (<c>RenderTargets[1]</c> to <c>RenderTargets[7]</c>) are ignored.
     ///   </para>
     /// </remarks>
     public bool IndependentBlendEnable = DefaultIndependentBlendEnable;
@@ -208,5 +210,25 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
             hash.Add(renderTargetsSpan[i]);
 
         return hash.ToHashCode();
+    }
+
+    // Custom serializer needed because RenderTargetBlendStates uses [InlineArray] with a private
+    // backing field, which Stride's auto-generated serializer cannot access.
+    internal class Serializer : DataSerializer<BlendStateDescription>
+    {
+        private DataSerializer<BlendStateRenderTargetDescription> _renderTargetSerializer;
+
+        public override void Initialize(SerializerSelector serializerSelector)
+        {
+            _renderTargetSerializer = serializerSelector.GetSerializer<BlendStateRenderTargetDescription>();
+        }
+
+        public override void Serialize(ref BlendStateDescription obj, ArchiveMode mode, SerializationStream stream)
+        {
+            stream.Serialize(ref obj.AlphaToCoverageEnable);
+            stream.Serialize(ref obj.IndependentBlendEnable);
+            for (int i = 0; i < obj.RenderTargets.Count; i++)
+                _renderTargetSerializer.Serialize(ref obj.RenderTargets[i], mode, stream);
+        }
     }
 }

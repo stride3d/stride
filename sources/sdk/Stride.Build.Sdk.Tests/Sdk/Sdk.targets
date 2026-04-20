@@ -1,0 +1,118 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ================================================================ -->
+  <!-- Test projects build for a single graphics API at a time.         -->
+  <!-- ================================================================ -->
+  <!-- Disable cross-targeting dispatch — test projects use StrideGraphicsApi (singular)
+       for output path and engine DLL selection. Build per-API via command line:
+         dotnet build -p:StrideGraphicsApi=Direct3D11
+         dotnet build -p:StrideGraphicsApi=Vulkan
+       Engine libraries still cross-target internally and produce all API variants. -->
+  <PropertyGroup>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
+  <!-- ================================================================ -->
+  <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
+       is available. This must happen before the .NET SDK Sdk.targets import which freezes TargetDir. -->
+  <PropertyGroup>
+    <OutputPath>$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Import Base Stride SDK -->
+  <!-- ================================================================ -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />
+
+  <!-- ================================================================ -->
+  <!-- Test Framework Package References -->
+  <!-- ================================================================ -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
+    <PackageReference Include="xunit" Condition="'$(SkipXunitReference)' != 'true'" />
+    <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- xUnit Startup Configuration -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows') And '$(IncludeXunitLauncher)' != 'false'">
+    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Include xUnit Launcher Code -->
+  <!-- ================================================================ -->
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <!-- Launcher code depends on whether this is a graphics regression test -->
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherSimple.Desktop.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Desktop.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherGame.Desktop.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Asset Compilation Support -->
+  <!-- ================================================================ -->
+  <!-- When StrideCompileAssets=true, add a build-only reference to the asset compiler
+       and import its targets for asset compilation during build.
+       Uses $(StrideRoot) from sources/Directory.Build.props to locate the source tree. -->
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
+          Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+
+  <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
+
+  <!-- ================================================================ -->
+  <!-- Runtime Native Asset Filtering & Flattening -->
+  <!-- ================================================================ -->
+  <!-- When StrideTestRuntimeIdentifier is set, filter out non-matching runtimes/ items
+       and flatten matching ones to the output root. This ensures only the target RID's
+       native libs are copied, and they're placed flat for dlopen to find them. -->
+  <Target Name="_StrideFilterAndFlattenRuntimes"
+          BeforeTargets="_CopyFilesMarkedCopyLocal;_CopySourceItemsToOutputDirectory"
+          Condition="'$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <!-- Remove non-matching runtimes/ items -->
+      <None Remove="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <!-- Flatten matching runtimes/ items to output root -->
+      <None Update="@(None)"
+          Condition="'%(None.CopyToOutputDirectory)' != '' And
+                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          Link="%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Platform Target Metadata -->
+  <!-- ================================================================ -->
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker"
+          AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
+
+</Project>

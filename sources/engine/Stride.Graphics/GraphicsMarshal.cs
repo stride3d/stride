@@ -1,14 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12 || STRIDE_GRAPHICS_API_VULKAN
 
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using Silk.NET.Direct3D11;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
 using Silk.NET.Direct3D12;
+#endif
 #endif
 
 namespace Stride.Graphics;
@@ -19,6 +21,7 @@ namespace Stride.Graphics;
 /// </summary>
 public static unsafe class GraphicsMarshal
 {
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
     /// <summary>
     ///   Gets the underlying DXGI swap-chain.
     /// </summary>
@@ -31,6 +34,7 @@ public static unsafe class GraphicsMarshal
         => presenter is SwapChainGraphicsPresenter swapChainPresenter
             ? swapChainPresenter.NativeSwapChain
             : null;
+#endif
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
     /// <summary>
@@ -175,6 +179,22 @@ public static unsafe class GraphicsMarshal
 
         return texture;
     }
+#endif
+
+#if STRIDE_GRAPHICS_API_VULKAN
+    /// <summary>
+    ///   Gets the native Vulkan instance.
+    /// </summary>
+    /// <param name="device">The Stride Graphics Device.</param>
+    /// <returns>The native <see cref="Vortice.Vulkan.VkInstance"/>.</returns>
+    public static Vortice.Vulkan.VkInstance GetNativeInstance(GraphicsDevice device) => device.NativeInstance;
+
+    /// <summary>
+    ///   Gets the native Vulkan device.
+    /// </summary>
+    /// <param name="device">The Stride Graphics Device.</param>
+    /// <returns>The native <see cref="Vortice.Vulkan.VkDevice"/>.</returns>
+    public static Vortice.Vulkan.VkDevice GetNativeDevice(GraphicsDevice device) => device.NativeDevice;
 #endif
 }
 

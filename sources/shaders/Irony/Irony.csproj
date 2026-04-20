@@ -1,17 +1,10 @@
-﻿<Project>
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-
-  <Import Project="..\..\targets\Stride.Core.props" />
-
-  <PropertyGroup>
     <SignAssembly>false</SignAssembly>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <StrideBuildTags>*</StrideBuildTags>
     <AssemblyName>Stride.Irony</AssemblyName>
   </PropertyGroup>
-  
   <ItemGroup>
     <Compile Remove="**\*.cs" />
     <Compile Include="Parsing\AstInterfaces.cs" />
@@ -59,7 +52,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -67,11 +59,8 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  
   <ItemGroup>
     <None Include="Parsing\Data\Construction\_about_parser_construction.txt" />
   </ItemGroup>
-  
-  <Import Project="$(StrideSdkTargets)" />
-
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

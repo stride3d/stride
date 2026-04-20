@@ -1,0 +1,13 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Import base Stride.Build.Sdk targets -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk\Sdk\Sdk.targets" />
+
+  <!--
+    Future editor-specific targets can go here:
+    - WPF/Avalonia resource compilation
+    - Localization build steps
+    - Editor plugin packaging
+  -->
+
+</Project>

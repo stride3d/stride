@@ -1,20 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-    <!-- <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
     <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -31,19 +24,10 @@
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Native\Common.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Native\OpenAL.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Native\OpenSLES.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Native\XAudio2.cpp" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

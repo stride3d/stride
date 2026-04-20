@@ -14,73 +14,45 @@ internal partial class UpdateEngineProcessor
         var assembly = context.Assembly;
 
         // Check "#if IL" directly in the source to easily see what is generated
-        GenerateUpdateEngineHelperCode(assembly);
         GenerateUpdatableFieldCode(assembly);
         new UpdatablePropertyCodeGenerator(assembly).GenerateUpdatablePropertyCode();
         new UpdatableListCodeGenerator(assembly).GenerateUpdatablePropertyCode();
     }
 
-    private static void GenerateUpdateEngineHelperCode(AssemblyDefinition assembly)
-    {
-        var updateEngineHelperType = assembly.MainModule.GetType("Stride.Updater.UpdateEngineHelper");
-
-        // UpdateEngineHelper.ObjectToPtr
-        var objectToPtr = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "ObjectToPtr"));
-        objectToPtr.Emit(OpCodes.Ldarg, objectToPtr.Body.Method.Parameters[0]);
-        objectToPtr.Emit(OpCodes.Conv_I);
-        objectToPtr.Emit(OpCodes.Ret);
-
-        // UpdateEngineHelper.PtrToObject
-        // Simpler "ldarg.0 + ret" doesn't work with Xamarin: https://bugzilla.xamarin.com/show_bug.cgi?id=40608
-        var ptrToObject = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "PtrToObject"));
-        ptrToObject.Body.Variables.Add(new VariableDefinition(assembly.MainModule.TypeSystem.Object));
-        ptrToObject.Emit(OpCodes.Ldloca_S, (byte)0);
-        ptrToObject.Emit(OpCodes.Ldarg, ptrToObject.Body.Method.Parameters[0]);
-
-        // Somehow Xamarin forces us to do a roundtrip to an object
-        ptrToObject.Emit(OpCodes.Stind_I);
-        ptrToObject.Emit(OpCodes.Ldloc_0);
-
-        ptrToObject.Emit(OpCodes.Ret);
-
-        // UpdateEngineHelper.Unbox
-        var unbox = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "Unbox"));
-        unbox.Emit(OpCodes.Ldarg, unbox.Body.Method.Parameters[0]);
-        unbox.Emit(OpCodes.Unbox, unbox.Body.Method.GenericParameters[0]);
-        unbox.Emit(OpCodes.Ret);
-    }
-
+    /// <summary>
+    /// Rewrites UpdatableField methods with raw pointer-based field access.
+    /// </summary>
     private static void GenerateUpdatableFieldCode(AssemblyDefinition assembly)
     {
         var updatableFieldType = assembly.MainModule.GetType("Stride.Updater.UpdatableField");
         var updatableFieldGenericType = assembly.MainModule.GetType("Stride.Updater.UpdatableField`1");
 
-        // UpdatableField.GetObject
-        var getObject = RewriteBody(updatableFieldType.Methods.First(x => x.Name == "GetObject"));
-        getObject.Emit(OpCodes.Ldarg, getObject.Body.Method.Parameters[0]);
-        getObject.Emit(OpCodes.Ldind_Ref);
-        getObject.Emit(OpCodes.Ret);
+        // Generates: object GetObject(IntPtr ptr) => *(object*)ptr;
+        var getObject = RewriteBody(updatableFieldType.Methods.First(x => x.Name == "GetObject"), assembly);
+        getObject.Emit(OpCodes.Ldarg, getObject.Body.Method.Parameters[0])
+                 .Emit(OpCodes.Ldind_Ref)
+                 .Emit(OpCodes.Ret);
 
-        // UpdatableField.SetObject
-        var setObject = RewriteBody(updatableFieldType.Methods.First(x => x.Name == "SetObject"));
-        setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[0]);
-        setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[1]);
-        setObject.Emit(OpCodes.Stind_Ref);
-        setObject.Emit(OpCodes.Ret);
+        // Generates: void SetObject(IntPtr ptr, object value) { *(object*)ptr = value; }
+        var setObject = RewriteBody(updatableFieldType.Methods.First(x => x.Name == "SetObject"), assembly);
+        setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[0])
+                 .Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[1])
+                 .Emit(OpCodes.Stind_Ref)
+                 .Emit(OpCodes.Ret);
 
-        // UpdatableField<T>.SetStruct
-        var setStruct = RewriteBody(updatableFieldGenericType.Methods.First(x => x.Name == "SetStruct"));
-        setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[0]);
-        setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[1]);
-        setStruct.Emit(OpCodes.Unbox, updatableFieldGenericType.GenericParameters[0]);
-        setStruct.Emit(OpCodes.Cpobj, updatableFieldGenericType.GenericParameters[0]);
-        setStruct.Emit(OpCodes.Ret);
+        // Generates: void SetStruct(IntPtr ptr, object value) { *(T*)ptr = (T)value; }
+        var setStruct = RewriteBody(updatableFieldGenericType.Methods.First(x => x.Name == "SetStruct"), assembly);
+        setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[0])
+                 .Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[1])
+                 .Emit(OpCodes.Unbox, updatableFieldGenericType.GenericParameters[0])
+                 .Emit(OpCodes.Cpobj, updatableFieldGenericType.GenericParameters[0])
+                 .Emit(OpCodes.Ret);
     }
 
-    private static ILProcessor RewriteBody(MethodDefinition method)
+    private static ILBuilder RewriteBody(MethodDefinition method, AssemblyDefinition assembly)
     {
         method.Body = new MethodBody(method);
-        return method.Body.GetILProcessor();
+        return new ILBuilder(method.Body, assembly.MainModule);
     }
 
     /// <summary>
@@ -96,50 +68,49 @@ internal partial class UpdateEngineProcessor
             this.assembly = assembly;
         }
 
-        public abstract void EmitGetCode(ILProcessor il, TypeReference type);
+        public abstract void EmitGetCode(ILBuilder il, TypeReference type);
 
-        public virtual void EmitSetCodeBeforeValue(ILProcessor il, TypeReference type)
+        public virtual void EmitSetCodeBeforeValue(ILBuilder il, TypeReference type)
         {
         }
 
-        public abstract void EmitSetCodeAfterValue(ILProcessor il, TypeReference type);
+        public abstract void EmitSetCodeAfterValue(ILBuilder il, TypeReference type);
 
         public virtual void GenerateUpdatablePropertyCode()
         {
-            // UpdatableProperty.GetStructAndUnbox
-            var getStructAndUnbox = RewriteBody(declaringType.Methods.First(x => x.Name == "GetStructAndUnbox"));
-            getStructAndUnbox.Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[1]);
-            //getStructAndUnbox.Emit(OpCodes.Call, assembly.MainModule.ImportReference(unbox).MakeGenericMethod(declaringType.GenericParameters[0]));
-            getStructAndUnbox.Emit(OpCodes.Unbox, declaringType.GenericParameters[0]);
-            getStructAndUnbox.Emit(OpCodes.Dup);
-            getStructAndUnbox.Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[0]);
+            // Generates: void GetStructAndUnbox(IntPtr ptr, object obj) { *(T*)Unbox(obj) = Get(ptr); }
+            var getStructAndUnbox = RewriteBody(declaringType.Methods.First(x => x.Name == "GetStructAndUnbox"), assembly);
+            getStructAndUnbox.Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[1])
+                             .Emit(OpCodes.Unbox, declaringType.GenericParameters[0])
+                             .Emit(OpCodes.Dup)
+                             .Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[0]);
             EmitGetCode(getStructAndUnbox, declaringType.GenericParameters[0]);
-            getStructAndUnbox.Emit(OpCodes.Stobj, declaringType.GenericParameters[0]);
-            getStructAndUnbox.Emit(OpCodes.Ret);
+            getStructAndUnbox.Emit(OpCodes.Stobj, declaringType.GenericParameters[0])
+                             .Emit(OpCodes.Ret);
 
-            // UpdatableProperty.GetBlittable
-            var getBlittable = RewriteBody(declaringType.Methods.First(x => x.Name == "GetBlittable"));
-            getBlittable.Emit(OpCodes.Ldarg, getBlittable.Body.Method.Parameters[1]);
-            getBlittable.Emit(OpCodes.Ldarg, getBlittable.Body.Method.Parameters[0]);
+            // Generates: void GetBlittable(IntPtr ptr, IntPtr dest) { *(T*)dest = Get(ptr); }
+            var getBlittable = RewriteBody(declaringType.Methods.First(x => x.Name == "GetBlittable"), assembly);
+            getBlittable.Emit(OpCodes.Ldarg, getBlittable.Body.Method.Parameters[1])
+                        .Emit(OpCodes.Ldarg, getBlittable.Body.Method.Parameters[0]);
             EmitGetCode(getBlittable, declaringType.GenericParameters[0]);
-            getBlittable.Emit(OpCodes.Stobj, declaringType.GenericParameters[0]);
-            getBlittable.Emit(OpCodes.Ret);
+            getBlittable.Emit(OpCodes.Stobj, declaringType.GenericParameters[0])
+                        .Emit(OpCodes.Ret);
 
-            // UpdatableProperty.SetStruct
-            var setStruct = RewriteBody(declaringType.Methods.First(x => x.Name == "SetStruct"));
+            // Generates: void SetStruct(IntPtr ptr, object value) { Set(ptr, (T)value); }
+            var setStruct = RewriteBody(declaringType.Methods.First(x => x.Name == "SetStruct"), assembly);
             setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[0]);
             EmitSetCodeBeforeValue(setStruct, declaringType.GenericParameters[0]);
-            setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[1]);
-            setStruct.Emit(OpCodes.Unbox_Any, declaringType.GenericParameters[0]);
+            setStruct.Emit(OpCodes.Ldarg, setStruct.Body.Method.Parameters[1])
+                     .Emit(OpCodes.Unbox_Any, declaringType.GenericParameters[0]);
             EmitSetCodeAfterValue(setStruct, declaringType.GenericParameters[0]);
             setStruct.Emit(OpCodes.Ret);
 
-            // UpdatableProperty.SetBlittable
-            var setBlittable = RewriteBody(declaringType.Methods.First(x => x.Name == "SetBlittable"));
+            // Generates: void SetBlittable(IntPtr ptr, IntPtr src) { Set(ptr, *(T*)src); }
+            var setBlittable = RewriteBody(declaringType.Methods.First(x => x.Name == "SetBlittable"), assembly);
             setBlittable.Emit(OpCodes.Ldarg, setBlittable.Body.Method.Parameters[0]);
             EmitSetCodeBeforeValue(setBlittable, declaringType.GenericParameters[0]);
-            setBlittable.Emit(OpCodes.Ldarg, setBlittable.Body.Method.Parameters[1]);
-            setBlittable.Emit(OpCodes.Ldobj, declaringType.GenericParameters[0]);
+            setBlittable.Emit(OpCodes.Ldarg, setBlittable.Body.Method.Parameters[1])
+                        .Emit(OpCodes.Ldobj, declaringType.GenericParameters[0]);
             EmitSetCodeAfterValue(setBlittable, declaringType.GenericParameters[0]);
             setBlittable.Emit(OpCodes.Ret);
         }
@@ -167,16 +138,14 @@ internal partial class UpdateEngineProcessor
 
         public override void GenerateUpdatablePropertyCode()
         {
-            // For UpdatableProperty, GetObject/SetObject are declared on another type
-
-            // UpdatableProperty.GetObject
-            var getObject = RewriteBody(declaringTypeForObjectMethods.Methods.First(x => x.Name == "GetObject"));
+            // Generates: object GetObject(IntPtr ptr) => Getter(ptr);  // via calli
+            var getObject = RewriteBody(declaringTypeForObjectMethods.Methods.First(x => x.Name == "GetObject"), assembly);
             getObject.Emit(OpCodes.Ldarg, getObject.Body.Method.Parameters[0]);
             EmitGetCode(getObject, assembly.MainModule.TypeSystem.Object);
             getObject.Emit(OpCodes.Ret);
 
-            // UpdatableProperty.SetObject
-            var setObject = RewriteBody(declaringTypeForObjectMethods.Methods.First(x => x.Name == "SetObject"));
+            // Generates: void SetObject(IntPtr ptr, object value) { Setter(ptr, value); }  // via calli
+            var setObject = RewriteBody(declaringTypeForObjectMethods.Methods.First(x => x.Name == "SetObject"), assembly);
             setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[0]);
             EmitSetCodeBeforeValue(setObject, assembly.MainModule.TypeSystem.Object);
             setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[1]);
@@ -186,48 +155,60 @@ internal partial class UpdateEngineProcessor
             base.GenerateUpdatablePropertyCode();
         }
 
-        public override void EmitGetCode(ILProcessor il, TypeReference type)
+        /// <summary>
+        /// Emits getter call via function pointer (calli). Branches on VirtualDispatchGetter:
+        /// <code>
+        /// if (VirtualDispatchGetter)
+        ///     return calli(Getter, (IntPtr)obj);  // static dispatcher that does ldvirtftn internally
+        /// else
+        ///     return calli(Getter, obj);           // direct instance call via fn pointer
+        /// </code>
+        /// </summary>
+        public override void EmitGetCode(ILBuilder il, TypeReference type)
         {
             var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = true });
-            // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expect a IntPtr rather than object
+            // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expects IntPtr
             // (another option would be to use "castclass object" after pushing the IntPtr on the stack)
             var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.IntPtr) } });
-            var postCalli = Instruction.Create(OpCodes.Nop);
+            var postCalli = ILBuilder.DefineLabel();
 
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, updatablePropertyGetter);
-            il.Emit(OpCodes.Ldarg_0);
-            // For normal calls, we use ldftn and an instance calls
-            // For virtual and interface calls, we generate a dispatch function that calls ldvirtftn on the actual object, then call the method on the object
-            // this dispatcher method is static, so the calli has a different signature
-            // Note: we could later optimize the bool check by having two variant of Get/SetObject
-            // and two different implementations of both UpdatableProperty<T> and UpdatablePropertyObject<T>
-            // (not sure if worth it)
-            il.Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchGetter);
-            il.Emit(OpCodes.Brfalse, calliInstance);
-            il.Append(calliVirtualDispatch);
-            il.Emit(OpCodes.Br, postCalli);
-            il.Append(calliInstance);
-            il.Append(postCalli);
+            il.Emit(OpCodes.Ldarg_0)
+              .Emit(OpCodes.Ldfld, updatablePropertyGetter)
+              .Emit(OpCodes.Ldarg_0)
+              // For normal calls, we use ldftn and an instance calli.
+              // For virtual/interface calls, we generate a static dispatch function (via <see cref="CreateDispatcher"/>)
+              // that calls ldvirtftn on the actual object — the calli has a different signature since the dispatcher is static.
+              /// Note: we could later optimize the bool check by having two variants of Get/SetObject
+              // and two different implementations of both UpdatableProperty&lt;T&gt; and UpdatablePropertyObject&lt;T&gt;
+              // (not sure if worth it).
+              .Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchGetter)
+              .Emit(OpCodes.Brfalse, calliInstance)
+              .Append(calliVirtualDispatch)
+              .Emit(OpCodes.Br, postCalli)
+              .Append(calliInstance)
+              .MarkLabel(postCalli);
         }
 
-        public override void EmitSetCodeAfterValue(ILProcessor il, TypeReference type)
+        /// <summary>
+        /// Emits setter call via function pointer (calli), same branching pattern as getter.
+        /// </summary>
+        public override void EmitSetCodeAfterValue(ILBuilder il, TypeReference type)
         {
             var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = true, Parameters = { new ParameterDefinition(type) } });
-            // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expect a IntPtr rather than object
+            // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expects IntPtr
             // (another option would be to use "castclass object" after pushing the IntPtr on the stack)
             var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.IntPtr), new ParameterDefinition(type) } });
-            var postCalli = Instruction.Create(OpCodes.Nop);
+            var postCalli = ILBuilder.DefineLabel();
 
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, updatablePropertySetter);
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchSetter);
-            il.Emit(OpCodes.Brfalse, calliInstance);
-            il.Append(calliVirtualDispatch);
-            il.Emit(OpCodes.Br, postCalli);
-            il.Append(calliInstance);
-            il.Append(postCalli);
+            il.Emit(OpCodes.Ldarg_0)
+              .Emit(OpCodes.Ldfld, updatablePropertySetter)
+              .Emit(OpCodes.Ldarg_0)
+              .Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchSetter)
+              .Emit(OpCodes.Brfalse, calliInstance)
+              .Append(calliVirtualDispatch)
+              .Emit(OpCodes.Br, postCalli)
+              .Append(calliInstance)
+              .MarkLabel(postCalli);
         }
     }
 
@@ -239,21 +220,19 @@ internal partial class UpdateEngineProcessor
 
         public override void GenerateUpdatablePropertyCode()
         {
-            // For UpdatableCustomAccessor, GetObject/SetObject are declared in the generic type
-
-            // UpdatableProperty.GetObject
-            var getObject = RewriteBody(declaringType.Methods.First(x => x.Name == "GetObject"));
+            // Generates: object GetObject(IntPtr ptr) => (object)Get(ptr);
+            var getObject = RewriteBody(declaringType.Methods.First(x => x.Name == "GetObject"), assembly);
             getObject.Emit(OpCodes.Ldarg, getObject.Body.Method.Parameters[0]);
             EmitGetCode(getObject, declaringType.GenericParameters[0]);
-            getObject.Emit(OpCodes.Box, declaringType.GenericParameters[0]); // Required for Windows 10 AOT
-            getObject.Emit(OpCodes.Ret);
+            getObject.Emit(OpCodes.Box, declaringType.GenericParameters[0]) // Required for Windows 10 AOT
+                     .Emit(OpCodes.Ret);
 
-            // UpdatableProperty.SetObject
-            var setObject = RewriteBody(declaringType.Methods.First(x => x.Name == "SetObject"));
+            // Generates: void SetObject(IntPtr ptr, object value) { Set(ptr, (T)value); }
+            var setObject = RewriteBody(declaringType.Methods.First(x => x.Name == "SetObject"), assembly);
             setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[0]);
             EmitSetCodeBeforeValue(setObject, declaringType.GenericParameters[0]);
-            setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[1]);
-            setObject.Emit(OpCodes.Unbox_Any, declaringType.GenericParameters[0]); // Required for Windows 10 AOT
+            setObject.Emit(OpCodes.Ldarg, setObject.Body.Method.Parameters[1])
+                     .Emit(OpCodes.Unbox_Any, declaringType.GenericParameters[0]); // Required for Windows 10 AOT
             EmitSetCodeAfterValue(setObject, declaringType.GenericParameters[0]);
             setObject.Emit(OpCodes.Ret);
 
@@ -261,6 +240,11 @@ internal partial class UpdateEngineProcessor
         }
     }
 
+    /// <summary>
+    /// Generates list accessor methods that delegate to <c>IList&lt;T&gt;[Index]</c>.
+    /// Get: <c>return ((IList&lt;T&gt;)obj)[this.Index];</c>
+    /// Set: <c>((IList&lt;T&gt;)obj)[this.Index] = value;</c>
+    /// </summary>
     class UpdatableListCodeGenerator : UpdatableCustomPropertyCodeGenerator
     {
         private readonly FieldDefinition indexField;
@@ -282,20 +266,20 @@ internal partial class UpdateEngineProcessor
             ilistSetItem = assembly.MainModule.ImportReference(ilistItem.SetMethod).MakeGeneric(declaringType.GenericParameters[0]);
         }
 
-        public override void EmitGetCode(ILProcessor il, TypeReference type)
+        public override void EmitGetCode(ILBuilder il, TypeReference type)
         {
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, indexField);
-            il.Emit(OpCodes.Callvirt, ilistGetItem);
+            il.Emit(OpCodes.Ldarg_0)
+              .Emit(OpCodes.Ldfld, indexField)
+              .Emit(OpCodes.Callvirt, ilistGetItem);
         }
 
-        public override void EmitSetCodeBeforeValue(ILProcessor il, TypeReference type)
+        public override void EmitSetCodeBeforeValue(ILBuilder il, TypeReference type)
         {
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, indexField);
+            il.Emit(OpCodes.Ldarg_0)
+              .Emit(OpCodes.Ldfld, indexField);
         }
 
-        public override void EmitSetCodeAfterValue(ILProcessor il, TypeReference type)
+        public override void EmitSetCodeAfterValue(ILBuilder il, TypeReference type)
         {
             il.Emit(OpCodes.Callvirt, ilistSetItem);
         }

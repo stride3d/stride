@@ -176,8 +176,7 @@ namespace Stride.Graphics
                 else
                 {
                     // Schedule the resource for destruction (as soon as we are done with it)
-                    lock (GraphicsDevice.TemporaryResources)
-                        GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.FrameFence.NextFenceValue, NativeResource));
+                    GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, NativeResource);
                 }
             }
 

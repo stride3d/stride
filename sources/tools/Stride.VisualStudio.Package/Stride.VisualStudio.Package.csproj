@@ -1,10 +1,9 @@
-﻿<Project>
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">18.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <TargetVsixContainerName>Stride.vsix</TargetVsixContainerName>
     <TargetVsixContainer>bin\$(TargetVsixContainerName)</TargetVsixContainer>
@@ -13,13 +12,14 @@
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFramework>net472</TargetFramework>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <!-- VSSDK CTO merger requires legacy resource format, not the preserialized one -->
+    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
     <None Remove="NShader\Common\HLSLKeywords.map" />
@@ -31,12 +31,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
-        <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
     <PackageReference Include="NuGet.Commands" />
-	<PackageReference Include="Polysharp" />
+    <PackageReference Include="Polysharp" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
@@ -152,7 +152,7 @@
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Newtonsoft.Json.dll" />
     </ItemGroup>
   </Target>
-  <Import Project="$(StrideSdkTargets)" />
   <!-- Force NET Sdk to be included before VsSDK -->
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

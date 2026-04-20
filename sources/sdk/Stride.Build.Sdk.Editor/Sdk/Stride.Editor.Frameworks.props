@@ -1,0 +1,20 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Editor-specific framework definitions.
+
+    These properties are only available to projects using Stride.Sdk.Editor
+    (or SDKs that compose it, like Stride.Sdk.Tests).
+
+    - StrideEditorTargetFramework: Windows-only editor projects (WPF/GameStudio)
+    - StrideXplatEditorTargetFramework: Cross-platform editor/tool projects
+
+    Future: When migrating from WPF to Avalonia, this is the single location
+    to update framework targeting for all editor projects.
+  -->
+  <PropertyGroup>
+    <StrideEditorTargetFramework>$(StrideFrameworkWindows)</StrideEditorTargetFramework>
+    <StrideXplatEditorTargetFramework>$(StrideFramework)</StrideXplatEditorTargetFramework>
+  </PropertyGroup>
+
+</Project>

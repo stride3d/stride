@@ -21,7 +21,7 @@ namespace Stride.Assets
 
         public override IEnumerable<GraphicsPlatform> GetSupportedGraphicsPlatforms()
         {
-            return new[] { GraphicsPlatform.Direct3D11, GraphicsPlatform.OpenGL, GraphicsPlatform.OpenGLES, };
+            return [GraphicsPlatform.Direct3D11];
         }
     }
 }

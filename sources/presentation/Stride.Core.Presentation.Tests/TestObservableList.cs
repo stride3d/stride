@@ -49,7 +49,7 @@ namespace Stride.Core.Presentation.Tests
                 Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
                 Assert.Equal(3, e.NewStartingIndex);
                 Assert.NotNull(e.NewItems);
-                Assert.Equal(1, e.NewItems.Count);
+                Assert.Single(e.NewItems);
                 Assert.Equal("ddd", e.NewItems[0]);
                 collectionChangedInvoked = true;
             };
@@ -149,7 +149,7 @@ namespace Stride.Core.Presentation.Tests
                 Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
                 Assert.Equal(1, e.OldStartingIndex);
                 Assert.NotNull(e.OldItems);
-                Assert.Equal(1, e.OldItems.Count);
+                Assert.Single(e.OldItems);
                 Assert.Equal("bbb", e.OldItems[0]);
                 collectionChangedInvoked = true;
             };
@@ -195,7 +195,7 @@ namespace Stride.Core.Presentation.Tests
                 Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
                 Assert.Equal(1, e.NewStartingIndex);
                 Assert.NotNull(e.NewItems);
-                Assert.Equal(1, e.NewItems.Count);
+                Assert.Single(e.NewItems);
                 Assert.Equal("ddd", e.NewItems[0]);
                 collectionChangedInvoked = true;
             };
@@ -227,7 +227,7 @@ namespace Stride.Core.Presentation.Tests
                 Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
                 Assert.Equal(1, e.OldStartingIndex);
                 Assert.NotNull(e.OldItems);
-                Assert.Equal(1, e.OldItems.Count);
+                Assert.Single(e.OldItems);
                 Assert.Equal("bbb", e.OldItems[0]);
                 collectionChangedInvoked = true;
             };
