@@ -309,7 +309,7 @@ function buildRowCells(img, key) {
 
   let cells = `
     <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
-    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? '<span class="tag-fail">failing</span>' : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
+    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
     <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
 
   const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
@@ -688,8 +688,10 @@ function updateCellInline(key, stats) {
   }
   const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(rowKey)}"]`);
   if (tagEl) {
-    if (anyFail) tagEl.innerHTML = '<span class="tag-fail">failing</span>';
-    else if (anyPending) tagEl.innerHTML = '<span class="tag-pending">...</span>';
+    if (anyFail) {
+      const label = fixableVia[rowKey] ? 'failing (fixable)' : 'failing';
+      tagEl.innerHTML = `<span class="tag-fail">${label}</span>`;
+    } else if (anyPending) tagEl.innerHTML = '<span class="tag-pending">...</span>';
     else tagEl.innerHTML = '';
   }
   if (!anyFail && !anyPending) {
