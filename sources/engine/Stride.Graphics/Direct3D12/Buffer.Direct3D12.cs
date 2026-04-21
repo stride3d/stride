@@ -207,6 +207,14 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
+            // Defer-release the previous native resource — SetNativeDeviceChild otherwise
+            // leaks the prior ref on repeated Recreate. Avoid OnDestroyed so Destroyed doesn't fire.
+            if (NativeDeviceChild.IsNotNull())
+            {
+                GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, NativeResource);
+                UnsetNativeDeviceChild();
+            }
+
             SetNativeDeviceChild(buffer.AsDeviceChild());
             GPUVirtualAddress = NativeResource.GetGPUVirtualAddress();
 
