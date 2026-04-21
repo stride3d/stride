@@ -197,6 +197,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                     {
                         ProcessCompilerErrors(compileErrors, bytecodeResult);
                     }
+
+                    // Guarantee at least one error is recorded on failure — FXC occasionally returns
+                    // a failure HRESULT with no blob or with messages we don't recognise as errors.
+                    if (!bytecodeResult.HasErrors)
+                    {
+                        bytecodeResult.Error($"D3D shader compilation failed for stage '{stage}' entry '{entryPoint}' profile '{shaderModel}' (HRESULT 0x{(uint)result.Value:X8}) with no diagnostic from D3DCompiler.");
+                    }
                 }
 
                 return result;
@@ -212,7 +219,8 @@ namespace Stride.Shaders.Compiler.Direct3D
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        if (line.Contains(": error"))
+                        // FXC emits "internal error: ..." without a ": error" prefix, so match it explicitly.
+                        if (line.Contains(": error") || line.Contains("internal error"))
                             bytecodeResult.Error(line);
                         else if (line.Contains(": warning"))
                             bytecodeResult.Warning(line);

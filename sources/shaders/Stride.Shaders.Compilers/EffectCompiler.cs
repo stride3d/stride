@@ -264,6 +264,13 @@ namespace Stride.Shaders.Compiler
                             continue;
                         }
 
+                        // Guard against a silent null bytecode (actionable message instead of NRE below).
+                        if (result.Bytecode is null)
+                        {
+                            log.Error($"Shader compilation for stage {shaderStage} (entry '{entryPoint.TranslatedName}') produced no bytecode and no error.");
+                            continue;
+                        }
+
                         // -------------------------------------------------------
                         // Append bytecode id to shader log
 #if STRIDE_PLATFORM_DESKTOP
