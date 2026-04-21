@@ -22,6 +22,7 @@ public class EffectGenerator : IIncrementalGenerator
     private void GenerateShaderKeysAndEffects(SourceProductionContext arg1, AdditionalText arg2)
     {
         var filename = GetSafeHintName(arg2.Path);
+        var isSdfx = Path.GetExtension(arg2.Path).Equals(".sdfx", StringComparison.OrdinalIgnoreCase);
 
         try
         {
@@ -41,6 +42,14 @@ public class EffectGenerator : IIncrementalGenerator
                 return;
             }
 
+            // .sdfx files must declare 'effect', not 'shader' — catch the mistake here
+            // instead of silently emitting unbuildable C#.
+            if (isSdfx && parsed.AST is Parsing.ShaderFile sdfxFile && HasShaderClassDeclaration(sdfxFile))
+            {
+                arg1.AddSource(filename, $"#error '{Path.GetFileName(arg2.Path)}' contains a 'shader' declaration. Use 'effect' (or 'partial effect') inside .sdfx files; 'shader' / 'partial shader' belongs in .sdsl.");
+                return;
+            }
+
             var effectCodeWriter = new EffectCodeWriter();
             effectCodeWriter.Run(parsed.AST);
             arg1.AddSource(filename, effectCodeWriter.Text);
@@ -51,6 +60,18 @@ public class EffectGenerator : IIncrementalGenerator
             sb.AppendLine($"#error Exception while running {nameof(EffectGenerator)} {e}");
             arg1.AddSource(filename, sb.ToString());
         }
+    }
+
+    private static bool HasShaderClassDeclaration(Parsing.ShaderFile ast)
+    {
+        foreach (var d in ast.RootDeclarations)
+            if (d is Parsing.SDSL.AST.ShaderClass)
+                return true;
+        foreach (var ns in ast.Namespaces)
+            foreach (var d in ns.Declarations)
+                if (d is Parsing.SDSL.AST.ShaderClass)
+                    return true;
+        return false;
     }
 
     public static string GetSafeHintName(string absolutePath)
