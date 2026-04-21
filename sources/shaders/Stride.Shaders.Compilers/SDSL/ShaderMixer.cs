@@ -188,6 +188,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 break;
             }
         }
+        {
+            bool hasImageRead = false;
+            foreach (var i in temp)
+                if (i.Op == Op.OpImageRead) { hasImageRead = true; break; }
+            if (hasImageRead)
+            {
+                foreach (var i in context)
+                {
+                    if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.ImageFormat == ImageFormat.Unknown)
+                    {
+                        context.Add(new OpCapability(Capability.StorageImageReadWithoutFormat));
+                        break;
+                    }
+                }
+            }
+        }
         foreach (var i in context)
         {
             if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.ImageFormat is
