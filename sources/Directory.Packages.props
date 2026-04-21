@@ -90,19 +90,23 @@
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>
-    <AvaloniaVersion>11.3.9</AvaloniaVersion>
-    <AvaloniaBehaviorVersion>11.3.9</AvaloniaBehaviorVersion>
+    <AvaloniaVersion>12.0.1</AvaloniaVersion>
+    <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
+    <AvaloniaMarkViewVersion>12.0.2</AvaloniaMarkViewVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Xaml.Behaviors.Interactions" Version="$(AvaloniaBehaviorVersion)" />
-    <PackageVersion Include="ClassIsland.Markdown.Avalonia.Tight" Version="11.0.3.4" />
+    <PackageVersion Include="MarkView.Avalonia" Version="$(AvaloniaMarkViewVersion)" />
+    <PackageVersion Include="MarkView.Avalonia.Mermaid" Version="$(AvaloniaMarkViewVersion)" />
+    <PackageVersion Include="MarkView.Avalonia.Svg" Version="$(AvaloniaMarkViewVersion)" />
+    <PackageVersion Include="MarkView.Avalonia.SyntaxHighlighting" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->

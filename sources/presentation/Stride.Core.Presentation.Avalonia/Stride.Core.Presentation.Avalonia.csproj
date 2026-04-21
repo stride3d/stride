@@ -16,9 +16,9 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
-    <PackageReference Include="ClassIsland.Markdown.Avalonia.Tight" />
+    <!--Condition below is needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
+    <PackageReference Include="MarkView.Avalonia" />
     <PackageReference Include="Xaml.Behaviors.Interactions" />
   </ItemGroup>
 

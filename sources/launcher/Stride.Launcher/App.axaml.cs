@@ -1,10 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using MarkView.Avalonia;
+using MarkView.Avalonia.Rendering;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Launcher.ViewModels;
@@ -21,13 +23,15 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+#if DEBUG
+        this.AttachDeveloperTools();
+#endif
     }
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Line below is needed to remove Avalonia data validation.
-        // Without this line you will get duplicate validations from both Avalonia and CT
-        BindingPlugins.DataValidators.RemoveAt(0);
+        InitializeMarkdownViewer();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -51,7 +55,40 @@ public partial class App : Application
         return new(InitializeServiceProvider());
     }
 
-    private static IViewModelServiceProvider InitializeServiceProvider()
+    private static void InitializeMarkdownViewer()
+    {
+        // Global pipeline — applies to every MarkdownViewer in the app
+        MarkdownViewerDefaults.Pipeline = new Markdig.MarkdownPipelineBuilder()
+            .UseSupportedExtensions()
+            .UseAbbreviations()
+            .UseAlertBlocks()
+            .UseFigures()
+            .UseFootnotes()
+            .UseMediaLinks()
+            .Build();
+
+        // Global extensions — applies to every MarkdownViewer in the app
+        MarkdownViewerDefaults.Extensions.AddTextMateHighlighting();
+        MarkdownViewerDefaults.Extensions.AddSvg();
+        MarkdownViewerDefaults.Extensions.AddMermaid();
+
+        // Global link handler — handles external links for every MarkdownViewer in the app
+        MarkdownViewer.LinkClickedEvent.AddClassHandler<MarkdownViewer>(OnLinkClicked);
+
+        static void OnLinkClicked(MarkdownViewer sender, LinkClickedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Url) { UseShellExecute = true });
+            }
+            catch
+            {
+                // Ignore failures to open browser
+            }
+        }
+    }
+
+    private static ViewModelServiceProvider InitializeServiceProvider()
     {
         var dispatcherService = DispatcherService.Create();
         var services = new object[]

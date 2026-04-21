@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Extensions;
 using Stride.Core.IO;

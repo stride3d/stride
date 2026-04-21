@@ -33,4 +33,6 @@ public abstract class TestNodeViewModel : ViewModelBase
     }
 
     public abstract string DisplayName { get; }
+
+    public abstract void RunTest();
 }

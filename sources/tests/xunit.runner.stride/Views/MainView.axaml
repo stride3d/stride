@@ -21,7 +21,7 @@
                           ItemsSource="{Binding Children}">
           <StackPanel Orientation="Horizontal">
             <Menu>
-              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
+              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding !$parent[DockPanel].DataContext.RunningTests}"/>
             </Menu>
             <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
             <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
@@ -33,7 +33,7 @@
         <DataTemplate DataType="{x:Type vm:TestNodeViewModel}">
           <StackPanel Orientation="Horizontal">
             <Menu>
-              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
+              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding !$parent[DockPanel].DataContext.RunningTests}"/>
             </Menu>
             <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
             <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
