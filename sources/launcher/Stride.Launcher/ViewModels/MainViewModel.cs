@@ -33,6 +33,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private string currentToolTip;
     private readonly List<(DateTime Time, MessageLevel Level, string Message)> logMessages = [];
     private bool autoCloseLauncher = LauncherSettings.CloseLauncherAutomatically;
+    private int currentTab = LauncherSettings.CurrentTab;
     private bool lastActiveVersionRestored;
     private AnnouncementViewModel announcement;
     private bool isVisible;
@@ -144,6 +145,19 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     }
 
     public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => LauncherSettings.CloseLauncherAutomatically = value); } }
+
+    public int CurrentTab
+    {
+        get => currentTab;
+        set
+        {
+            if (SetValue(ref currentTab, value))
+            {
+                LauncherSettings.CurrentTab = value;
+                LauncherSettings.Save();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or Sets the visibility status of this instance.

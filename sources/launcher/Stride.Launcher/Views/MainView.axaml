@@ -603,7 +603,7 @@
 
             <!-- THIRD COLUMN -->
             <Border Grid.Column="1">
-              <TabControl>
+              <TabControl SelectedIndex="{Binding CurrentTab, Mode=TwoWay}">
                 <TabControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <UniformGrid Rows="1" Height="32" Margin="0,12,0,32"/>
