@@ -11,6 +11,7 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Windows;
 using Stride.Launcher.Assets.Localization;
 using Stride.Launcher.Services;
 
@@ -691,6 +692,51 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\");
             subkey?.SetValue(taskName, "True");
         }
+    }
+
+    private const int KeepOpenResult = 0;
+    private const int CloseAnywayResult = 1;
+
+    /// <summary>
+    /// Determines whether the launcher can close right now, prompting the user to confirm
+    /// if any Stride version is currently being downloaded or installed, and persists
+    /// settings before returning <c>true</c>.
+    /// </summary>
+    /// <returns><c>true</c> if the caller should proceed with closing the window; <c>false</c> if the user chose to keep the launcher open.</returns>
+    public async Task<bool> TryCloseAsync()
+    {
+        if (StrideVersions.Any(v => v.IsProcessing))
+        {
+            var buttons = new[]
+            {
+                new DialogButtonInfo
+                {
+                    Content = Strings.CloseAnyway,
+                    Result = CloseAnywayResult,
+                },
+                new DialogButtonInfo
+                {
+                    Content = Strings.KeepLauncherOpen,
+                    IsDefault = true,
+                    IsCancel = true,
+                    Result = KeepOpenResult,
+                },
+            };
+
+            var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(
+                Strings.CloseLauncherInProgressMessage,
+                buttons,
+                MessageBoxImage.Warning);
+
+            if (result == KeepOpenResult)
+            {
+                return false;
+            }
+        }
+
+        LauncherSettings.ActiveVersion = ActiveVersion?.Name ?? string.Empty;
+        LauncherSettings.Save();
+        return true;
     }
 
     private void DisplayReleaseAnnouncement()
