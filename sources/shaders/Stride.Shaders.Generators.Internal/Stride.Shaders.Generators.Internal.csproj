@@ -7,6 +7,8 @@
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<RootNamespace>Stride.Shaders.Generators</RootNamespace>
+		<!-- RS2008: release tracking files not needed for internal build-time generators. -->
+		<NoWarn>$(NoWarn);RS2008</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

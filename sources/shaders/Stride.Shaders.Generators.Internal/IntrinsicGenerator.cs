@@ -12,8 +12,23 @@ namespace Stride.Shaders.Generators;
 [Generator]
 internal class IntrinsicsGenerator : IIncrementalGenerator
 {
+    internal static readonly DiagnosticDescriptor MissingIntrinsicsDiagnostic = new(
+        id: "SHG0001",
+        title: "Missing intrinsics definition file",
+        messageFormat: "'gen_intrin_main.txt' was not supplied to the intrinsics generator. Expected as an AdditionalFiles entry.",
+        category: "ShaderGenerator",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var allTexts = context.AdditionalTextsProvider.Collect();
+        context.RegisterSourceOutput(allTexts, static (spc, texts) =>
+        {
+            if (!texts.Any(x => x.Path.EndsWith("gen_intrin_main.txt")))
+                spc.ReportDiagnostic(Diagnostic.Create(MissingIntrinsicsDiagnostic, Location.None));
+        });
+
         var file =
             context
             .AdditionalTextsProvider
