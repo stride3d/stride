@@ -18,6 +18,8 @@
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Generators.Internal\Stride.Shaders.Generators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <!-- SPIRV-Tools: in-process spirv-val + spirv-opt via Stride's combined stride_spirv_tools native library. -->
+    <PackageReference Include="Stride.Dependencies.SPIRVTools" />
   </ItemGroup>
 
   <PropertyGroup>
