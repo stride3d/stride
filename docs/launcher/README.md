@@ -96,3 +96,4 @@ See [projects.md](projects.md) for the full layout and each file's role.
 | [localization.md](localization.md) | `Strings.resx` / `Urls.resx`, designer classes, adding a new language |
 | [packaging.md](packaging.md) | `Stride.Launcher.nuspec`, Advanced Installer projects, `StrideSetup.exe`, versioning |
 | [cross-platform.md](cross-platform.md) | Windows-only code paths, Registry usage, Linux/macOS porting status (xplat-launcher) |
+| [port-status.md](port-status.md) | Full delta vs the WPF launcher on `master` — including silent regressions — and a phased roadmap to close the gap |

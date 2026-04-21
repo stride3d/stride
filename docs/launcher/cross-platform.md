@@ -41,9 +41,9 @@ There is a `FIXME xplat-editor` marker for a file-based implementation.
 
 Advanced Installer projects ([Prerequisites/](../../sources/launcher/Prerequisites/), [Setup/](../../sources/launcher/Setup/)) are Windows-only by construction. The MSBuild `PackageInstaller` target silently skips when `AdvancedInstaller.com` is not on `PATH`. On Linux/macOS, distribute the launcher via `dotnet publish -r {rid} --self-contained`. See [packaging.md](packaging.md).
 
-## Privacy policy
+## Telemetry and privacy policy
 
-`Launcher.UninstallAsync` contains a commented-out call to `PrivacyPolicyHelper.RevokeAllPrivacyPolicy()` with a `FIXME: xplat-launcher` marker. The helper has not been ported yet, so uninstall currently does not revoke stored consent — revisit when porting `PrivacyPolicyHelper`.
+Both `Stride.Metrics` / `MetricsClient` (telemetry) and `PrivacyPolicyHelper` (first-run consent prompt, uninstall-time revoke) have been **intentionally and permanently removed** from the launcher. They will not be ported. A commented-out `PrivacyPolicyHelper.RevokeAllPrivacyPolicy()` with a `FIXME: xplat-launcher` marker still exists at [Launcher.cs:174](../../sources/launcher/Stride.Launcher/Launcher.cs#L174); keep it for now — uninstall may still need logic to clean up privacy-policy state left behind on machines that had the previous WPF launcher installed.
 
 ## Settings paths
 
