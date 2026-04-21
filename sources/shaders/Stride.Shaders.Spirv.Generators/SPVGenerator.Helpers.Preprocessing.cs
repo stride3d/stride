@@ -24,13 +24,7 @@ public partial class SPVGenerator
 
     public SpirvGrammar PreProcessGrammar(ImmutableArray<AdditionalText> files, CancellationToken _)
     {
-        var fileNames = new HashSet<string>(files.Select(f => Path.GetFileName(f.Path)));
-        var missing = RequiredFiles.Where(r => !fileNames.Contains(r)).ToArray();
-        // TODO: Proper Roslyn diagnostics
-        if (missing.Length > 0)
-            throw new InvalidOperationException(
-                $"Missing SPIR-V specification files: {string.Join(", ", missing)}. Ensure git submodules are fetched (git submodule update --init).");
-
+        // Note: Missing files are reported as SPV0001 via the RegisterSourceOutput check in Initialize
         SpirvGrammar grammar = new();
         foreach (var file in files)
         {

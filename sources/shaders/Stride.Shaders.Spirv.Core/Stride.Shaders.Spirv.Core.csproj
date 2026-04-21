@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <StrideBuildTags>*</StrideBuildTags>
+    <!-- Fail the build on any source-generator exception (CS8785) so generator issues surface clearly. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8785</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <!-- <Compile Include="../../submodules/SpirvHeaders/include/spirv/unified1/spirv.cs" /> -->

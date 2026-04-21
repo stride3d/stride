@@ -6,6 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<!-- RS2008: release tracking files not needed for internal build-time generator. -->
+		<NoWarn>$(NoWarn);RS2008</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

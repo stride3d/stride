@@ -12,6 +12,14 @@ public partial class SPVGenerator : IIncrementalGenerator
 {
     static readonly JsonSerializerOptions options = new();
 
+    internal static readonly DiagnosticDescriptor MissingSpecDiagnostic = new(
+        id: "SPV0001",
+        title: "Missing SPIR-V specification files",
+        messageFormat: "Missing SPIR-V specification files: {0}. Run 'git submodule update --init --recursive'.",
+        category: "SpirvGenerator",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         if (!options.Converters.Any(x => x is EquatableListJsonConverter<OperandData>))
@@ -26,11 +34,23 @@ public partial class SPVGenerator : IIncrementalGenerator
             options.Converters.Add(new EquatableListJsonConverter<string>());
         if (!options.Converters.Any(x => x is EquatableListJsonConverter<EnumerantParameter>))
             options.Converters.Add(new EquatableListJsonConverter<EnumerantParameter>());
-        var grammarData =
+        var files =
             context
             .AdditionalTextsProvider
             .Where(IsSpirvSpecification)
-            .Collect()
+            .Collect();
+
+        // Emit SPV0001 if any required grammar file is missing (submodule not fetched).
+        context.RegisterSourceOutput(files, static (spc, texts) =>
+        {
+            var fileNames = new HashSet<string>(texts.Select(f => Path.GetFileName(f.Path)));
+            var missing = RequiredFiles.Where(r => !fileNames.Contains(r)).ToArray();
+            if (missing.Length > 0)
+                spc.ReportDiagnostic(Diagnostic.Create(MissingSpecDiagnostic, Location.None, string.Join(", ", missing)));
+        });
+
+        var grammarData =
+            files
             .Select(PreProcessGrammar)
             .Select(PreProcessEnumerants)
             .Select(PreProcessInstructions);
