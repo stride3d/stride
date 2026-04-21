@@ -182,6 +182,28 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close anyway.
+        /// </summary>
+        public static string CloseAnyway {
+            get {
+                return ResourceManager.GetString("CloseAnyway", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A Stride version is still being downloaded or installed.
+        ///
+        ///Closing the launcher now will cancel the operation.
+        ///
+        ///Do you want to close anyway?.
+        /// </summary>
+        public static string CloseLauncherInProgressMessage {
+            get {
+                return ResourceManager.GetString("CloseLauncherInProgressMessage", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you wish to uninstall version {0}?.
         /// </summary>
         public static string ConfirmUninstall {
@@ -334,6 +356,15 @@ namespace Stride.Launcher.Assets.Localization {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Keep launcher open.
+        /// </summary>
+        public static string KeepLauncherOpen {
+            get {
+                return ResourceManager.GetString("KeepLauncherOpen", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Stride launcher.
         /// </summary>

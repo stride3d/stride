@@ -448,4 +448,20 @@ Do you want to proceed?
 
 This will restart the launcher.</value>
   </data>
+  <data name="CloseAnyway" xml:space="preserve">
+    <value>Close anyway</value>
+    <comment>Button label: closes the launcher even though an operation is in progress.</comment>
+  </data>
+  <data name="CloseLauncherInProgressMessage" xml:space="preserve">
+    <value>A Stride version is still being downloaded or installed.
+
+Closing the launcher now will cancel the operation.
+
+Do you want to close anyway?</value>
+    <comment>Dialog body shown when the user tries to close the launcher while a download or install is running.</comment>
+  </data>
+  <data name="KeepLauncherOpen" xml:space="preserve">
+    <value>Keep launcher open</value>
+    <comment>Button label: cancels the close and keeps the launcher open so the operation can finish.</comment>
+  </data>
 </root>
