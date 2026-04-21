@@ -274,6 +274,13 @@ namespace Stride.Graphics
         {
             FrameFence.Signal(nativeCommandQueue, FrameFence.NextFenceValue);
             FrameFence.NextFenceValue++;
+
+            // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
+            if (FrameFence.NextFenceValue > (ulong)MaxFramesInFlight)
+            {
+                FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
+                FrameTemporaryResources.ReleaseCompleted(FrameFence);
+            }
         }
 
         /// <summary>

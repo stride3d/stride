@@ -220,6 +220,13 @@ namespace Stride.Graphics
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
+
+            // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
+            if (FrameFence.NextFenceValue > (ulong)MaxFramesInFlight)
+            {
+                FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
+                graphicsResourceLinkCollector.Release();
+            }
         }
 
         /// <summary>
