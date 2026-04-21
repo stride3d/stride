@@ -158,6 +158,23 @@ Not required for parity, but on the horizon:
 2. **macOS support.** No RID yet. Needs `osx-x64` / `osx-arm64` targets, `.app` bundle layout, codesigning / notarization, and window chrome review.
 3. **Self-update on Linux.** The `force-reinstall` path downloads `StrideSetup.exe` — Windows-only. Options: (a) a Linux-only code path that downloads the matching `.tar.gz` / AppImage and replaces the install in place, or (b) "update via your package manager" documented as the intended path. Mentioned in [self-update.md](self-update.md) and [cross-platform.md](cross-platform.md).
 
+### Phase 5 — test infrastructure
+
+The launcher has no unit or integration tests today. Bootstrap a test project for the launcher, leveraging Avalonia's headless-platform support so tests can exercise real views (bindings, commands, dialogs, keyboard/mouse input) without a display server.
+
+1. **Bootstrap `Stride.Launcher.Tests`.** New csproj alongside `Stride.Launcher`, matching the test framework the rest of `stride-xplat` uses. Reference `Avalonia.Headless` (core) and `Avalonia.Headless.XUnit` / `Avalonia.Headless.NUnit` as appropriate.
+2. **View-model tests.** Cover the testable surfaces added in Phases 1 and 2, starting with:
+   - `MainViewModel.TryCloseAsync` — no processing / keep-open / close-anyway branches, with an in-memory `IDialogService`.
+   - `MainViewModel.CurrentTab` setter — writes to `LauncherSettings.CurrentTab` and persists.
+   - One-shot-task storage (`HasDoneTask` / `SaveTaskAsDone`) after Phase 1 item (d).
+3. **Avalonia headless integration tests.** Exercise the real `MainWindow` + `MainView`:
+   - `Opened` fires → `MainViewModel.WindowHandle` is non-zero on Windows, zero on Linux.
+   - `TabControl` selection change propagates to `LauncherSettings.CurrentTab`.
+   - Simulated close with in-progress download shows the confirmation dialog.
+4. **CI wiring.** Run the test project on both `windows-latest` and `ubuntu-latest` in the existing launcher build workflow so platform divergences surface early.
+
+This phase is not blocked by the others — it can be pulled earlier any time new behaviour needs coverage. Each Phase 1–3 item whose surface is naturally testable should note the tests that will be added here so nothing is forgotten.
+
 ## Cross-references
 
 - [cross-platform.md](cross-platform.md) — the "which OS does what" view; update alongside this page as gaps close.
