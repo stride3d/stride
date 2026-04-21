@@ -92,6 +92,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     }
                 }
 
+                foreach (var info in table.Infos)
+                    log.Info(info.ToString());
+
                 foreach (var warning in table.Warnings)
                     log.Warning(warning.ToString());
 

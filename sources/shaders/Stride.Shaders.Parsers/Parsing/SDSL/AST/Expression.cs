@@ -259,7 +259,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                     // Self: mark current function
                     builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
                 }
-                table.AddWarning(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage method '{calleeOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+                table.AddInfo(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage method '{calleeOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
             }
 
             result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);

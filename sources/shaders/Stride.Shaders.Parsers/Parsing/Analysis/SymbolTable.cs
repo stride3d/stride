@@ -54,6 +54,7 @@ public partial class SymbolTable : ISymbolProvider
     public RootSymbolFrame RootSymbols { get; }
     public List<SemanticError> Errors { get; } = [];
     public List<SemanticError> Warnings { get; } = [];
+    public List<SemanticError> Infos { get; } = [];
 
     // Used by Identifier.ResolveSymbol
     public SymbolFrame CurrentFrame => CurrentSymbols[^1];
@@ -155,5 +156,10 @@ public partial class SymbolTable : ISymbolProvider
     public void AddWarning(SemanticError warning)
     {
         Warnings.Add(warning);
+    }
+
+    public void AddInfo(SemanticError info)
+    {
+        Infos.Add(info);
     }
 }

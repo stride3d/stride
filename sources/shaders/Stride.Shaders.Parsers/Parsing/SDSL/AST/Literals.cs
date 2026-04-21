@@ -463,7 +463,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
             {
                 builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
             }
-            table.AddWarning(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+            table.AddInfo(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
         }
 
         return EmitSymbol(builder, context, symbol, constantOnly);
