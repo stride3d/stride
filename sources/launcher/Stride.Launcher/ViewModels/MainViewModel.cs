@@ -586,6 +586,9 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         if (AutoCloseLauncher)
         {
+            // WindowHandle is a Win32 HWND populated by MainWindow.OnOpened on Windows only.
+            // On Linux it stays IntPtr.Zero — Game Studio's parser tolerates 0. See
+            // MainWindow.OnOpened for what needs to change when xplat-GameStudio lands.
             argument = $"/LauncherWindowHandle {WindowHandle} {argument}";
         }
 

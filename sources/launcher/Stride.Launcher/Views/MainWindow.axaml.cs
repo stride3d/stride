@@ -13,6 +13,24 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        // When the cross-platform Game Studio port (xplat-editor) lands, the Win32
+        // HWND hand-off below needs to be replaced with a cross-platform IPC token
+        // (e.g. a named-pipe path) passed via a generalised CLI argument. See
+        // docs/launcher/port-status.md Phase 1 for the rationale.
+        if (OperatingSystem.IsWindows())
+        {
+            var platformHandle = TryGetPlatformHandle();
+            if (platformHandle is not null)
+            {
+                MainViewModel.WindowHandle = platformHandle.Handle;
+            }
+        }
+    }
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);
