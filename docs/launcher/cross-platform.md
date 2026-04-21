@@ -45,6 +45,12 @@ Advanced Installer projects ([Prerequisites/](../../sources/launcher/Prerequisit
 
 Both `Stride.Metrics` / `MetricsClient` (telemetry) and `PrivacyPolicyHelper` (first-run consent prompt, uninstall-time revoke) have been **intentionally and permanently removed** from the launcher. They will not be ported. A commented-out `PrivacyPolicyHelper.RevokeAllPrivacyPolicy()` with a `FIXME: xplat-launcher` marker still exists at [Launcher.cs:174](../../sources/launcher/Stride.Launcher/Launcher.cs#L174); keep it for now — uninstall may still need logic to clean up privacy-policy state left behind on machines that had the previous WPF launcher installed.
 
+## Launcher ↔ GameStudio IPC
+
+When `AutoCloseLauncher` is on, the launcher passes its own Win32 window handle to Game Studio via the `/LauncherWindowHandle <hwnd>` argument. Game Studio uses it later to `PostMessage` back at the launcher and ask it to close itself.
+
+The handle is captured in `MainWindow.OnOpened` only when `OperatingSystem.IsWindows()` is true; on Linux it stays `IntPtr.Zero` and Game Studio's parser ignores it. This is fine on the current branch because Game Studio itself is still Windows-only — a separate effort (`xplat-editor`) is porting it to Avalonia. When that lands, the HWND-based channel will need to be replaced with a cross-platform IPC token (named pipe, socket, or similar), passed via a generalised CLI argument. See [port-status.md](port-status.md) Phase 1 for the rationale.
+
 ## Settings paths
 
 All config paths go through `EditorPath` (linked file from `Stride.Core.Assets.Editor`). `EditorPath.UserDataPath` resolves to:

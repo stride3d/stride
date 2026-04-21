@@ -32,23 +32,7 @@ Documented there, recapped for completeness:
 
 These are behavioural differences that were not preserved during the port and carry no `TODO` / `FIXME` in the current tree. They compile and appear to work, which is what makes them easy to miss.
 
-### `/LauncherWindowHandle` is always 0
-
-- `MainViewModel.WindowHandle` is declared at [MainViewModel.cs:95](../../sources/launcher/Stride.Launcher/ViewModels/MainViewModel.cs#L95) and read at [MainViewModel.cs:574](../../sources/launcher/Stride.Launcher/ViewModels/MainViewModel.cs#L574) (`argument = $"/LauncherWindowHandle {WindowHandle} {argument}";`) but it is **never assigned** anywhere in the branch.
-- Master assigned it in `LauncherWindow.xaml.cs.OnLoaded` via `new WindowInteropHelper(this).Handle`.
-- Effect: Game Studio receives `0` in `/LauncherWindowHandle`, so the "launcher auto-closes when GameStudio signals back" feature (driven by `CloseLauncherAutomatically`) is broken everywhere, including Windows.
-
-### `MainWindow.OnClosing` is empty
-
-Master's `LauncherWindow.xaml.cs.OnClosing` did three things; all three are absent here:
-
-1. If any version has `IsProcessing == true`, prompt "Some background operations are still in progress. Force close?" and cancel the close if the user declines. Current: window closes mid-download silently.
-2. Save `LauncherSettings.ActiveVersion` on close. Current: saved only in `StartStudio`, so if the user changes active version but closes without launching Game Studio the change is lost.
-3. `Environment.Exit(1)` when `ExitOnUserClose` was set (used to bypass stuck dispatchers). Current: relies on Avalonia's normal shutdown.
-
-### `TabControl.SelectedIndex` never persists
-
-Master's `SelectedTabChanged` event handler wrote `LauncherSettings.CurrentTab = TabControl.SelectedIndex`. Current [MainView.axaml.cs](../../sources/launcher/Stride.Launcher/Views/MainView.axaml.cs) has no such handler. The setting is still read at startup, so you see "current tab is restored to whatever it was when the persistence handler last worked"; changes made in this branch never stick.
+*(Three items previously listed here — `/LauncherWindowHandle` always zero, empty `MainWindow.OnClosing`, and the unpersistent `TabControl.SelectedIndex` — have been resolved. See the 2026-04-22 `feat(launcher): …` commits for the window-lifecycle restoration.)*
 
 ### `OpenHyperlinkCommand` lost `.md → .html` rewriting
 
@@ -128,9 +112,9 @@ Ordered by blast radius — each phase is useful on its own.
 
 These change observable behaviour on both Windows and Linux and should ship first.
 
-1. **Wire `WindowHandle` on Avalonia `MainWindow`.** On Windows, obtain the native HWND via `TryGetPlatformHandle()?.Handle` and assign `MainViewModel.WindowHandle` in the window's `Opened` handler. On Linux, either (a) pass `0` and make sure GameStudio's `/LauncherWindowHandle` path tolerates that, or (b) introduce a different IPC token (e.g. a named pipe / socket path) and generalise the argument. Option (a) is simpler if the Linux GameStudio doesn't currently need to signal the launcher; option (b) unblocks `CloseLauncherAutomatically` on Linux.
-2. **Restore `MainWindow.OnClosing`.** Add the "background operations in progress" confirmation prompt, save `LauncherSettings.ActiveVersion` and `LauncherSettings.CurrentTab`, and handle `ExitOnUserClose`.
-3. **Persist `LauncherSettings.CurrentTab` on tab change.** Either an event handler on the `TabControl` in [MainView.axaml.cs](../../sources/launcher/Stride.Launcher/Views/MainView.axaml.cs) or a two-way binding to a view-model property that saves on set.
+1. ~~**Wire `WindowHandle` on Avalonia `MainWindow`.**~~ **Done** (2026-04-22): HWND captured in `MainWindow.OnOpened` on Windows via `TryGetPlatformHandle()`; stays `IntPtr.Zero` on Linux until xplat-GameStudio lands. See [cross-platform.md](cross-platform.md) § Launcher ↔ GameStudio IPC.
+2. ~~**Restore `MainWindow.OnClosing`.**~~ **Done** (2026-04-22): confirmation dialog with `Close anyway` / `Keep launcher open` buttons shown when any version `IsProcessing`; `LauncherSettings.ActiveVersion` persisted on close via `MainViewModel.TryCloseAsync`.
+3. ~~**Persist `LauncherSettings.CurrentTab` on tab change.**~~ **Done** (2026-04-22): `MainViewModel.CurrentTab` persisted-on-set, two-way bound from the `TabControl`.
 4. **Port `HasDoneTask` / `SaveTaskAsDone` to a file under `EditorPath.UserDataPath`.** Replace `HKCU\SOFTWARE\Stride` with something like a JSON `one-shot-tasks.json`. Removes the current "announcement never displays on Linux" and "prerequisites installer never auto-runs" gaps in one shot.
 5. **Fix `explorer.exe` hard-coding** in `RecentProjectViewModel.Explore` — platform switch on `OperatingSystem.IsWindows()` / `IsMacOS()` / `IsLinux()`.
 
