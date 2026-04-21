@@ -51,9 +51,13 @@ namespace Stride.Shaders.Compiler
 
         /// <summary>
         /// When true, runs spirv-val on the SPIR-V bytecode after MergeSDSL.
-        /// Validation errors are logged as warnings (they do not block compilation).
+        /// Validation errors block the compile via <c>log.Error</c>.
+        /// Default: on in Debug builds, off in Release.
         /// </summary>
         public bool ValidateSpirv { get; set; }
+#if DEBUG
+            = true;
+#endif
 
         public EffectCompiler(IVirtualFileProvider fileProvider)
         {
@@ -183,10 +187,10 @@ namespace Stride.Shaders.Compiler
                 return new EffectBytecodeCompilerResult(null, log);
             }
 
-            // Select the correct backend compiler
+            // Select the correct backend compiler. D3D11 is the only platform that needs
+            // SPIRV→HLSL via SPIRV-Cross today; Vulkan/D3D12 consume SPIR-V directly.
             IShaderCompiler? compiler;
-            // Set to null if translator is not needed
-            Backend? translatorBackend = null;
+            bool useSpirvCrossToHlsl = false;
             switch (effectParameters.Platform)
             {
 #if STRIDE_PLATFORM_DESKTOP
@@ -194,7 +198,7 @@ namespace Stride.Shaders.Compiler
                     if (Platform.Type != PlatformType.Windows && Platform.Type != PlatformType.UWP)
                         throw new NotSupportedException();
                     compiler = new Direct3D.ShaderCompiler();
-                    translatorBackend = Backend.Hlsl;
+                    useSpirvCrossToHlsl = true;
                     break;
 #endif
                 case GraphicsPlatform.Vulkan:
@@ -219,9 +223,15 @@ namespace Stride.Shaders.Compiler
 
             try
             {
-                if (translatorBackend != null)
+                if (useSpirvCrossToHlsl)
                 {
-                    var translator = new SpirvTranslator(spirvBytecode.ToArray().AsMemory().Cast<byte, uint>());
+                    // Run SPIRV-Cross-tuned legalization before handing SPIR-V off:
+                    // folds constants, kills dead branches, legalizes structured CFG.
+                    // Required to stop SPIRV-Cross emitting `if (true)`-style dead code
+                    // when generic template values collapse to constants.
+                    var spirvWords = spirvBytecode.ToArray().AsMemory().Cast<byte, uint>();
+                    var legalized = Spirv.Tools.SpirvTools.LegalizeForHlsl(spirvWords.Span);
+                    var translator = new SpirvTranslator(legalized.AsMemory());
                     var translatorEntryPoints = translator.GetEntryPoints();
                     foreach (var entryPoint in translatorEntryPoints)
                     {

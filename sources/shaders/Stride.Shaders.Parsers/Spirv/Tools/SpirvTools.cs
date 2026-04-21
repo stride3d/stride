@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Stride.Shaders.Spirv.Tools;
 
@@ -155,7 +156,13 @@ public static unsafe class SpirvTools
                         var msg = diag != null && diag->Error != null
                             ? Marshal.PtrToStringAnsi((IntPtr)diag->Error)
                             : null;
-                        return msg ?? $"SPIR-V validation failed: {r}";
+                        msg ??= $"SPIR-V validation failed: {r}";
+                        if (diag != null)
+                        {
+                            var location = ResolveSourceLocation(words, diag->Position.Index);
+                            if (location != null) msg = $"{location}: {msg}";
+                        }
+                        return msg;
                     }
                     finally
                     {
@@ -177,6 +184,64 @@ public static unsafe class SpirvTools
     /// <inheritdoc cref="Validate(ReadOnlySpan{uint}, TargetEnv, ValidatorOptions)"/>
     public static string? Validate(ReadOnlySpan<byte> bytes, TargetEnv env = TargetEnv.Vulkan_1_3, ValidatorOptions options = ValidatorOptions.None)
         => Validate(MemoryMarshal.Cast<byte, uint>(bytes), env, options);
+
+    /// <summary>
+    /// Walks a SPIR-V binary up to <paramref name="errorInstructionIndex"/> (zero-based
+    /// instruction ordinal of the failing instruction, as reported by
+    /// <c>spvValidateBinary</c> in <c>spv_diagnostic.position.index</c>) and resolves
+    /// the most recent <c>OpLine</c> + <c>OpString</c> into a <c>file:line:col</c>
+    /// prefix. Returns <c>null</c> if no debug info is available before the error.
+    /// </summary>
+    static string? ResolveSourceLocation(ReadOnlySpan<uint> words, nuint errorInstructionIndex)
+    {
+        const uint OpString = 7;
+        const uint OpLine = 8;
+        const uint OpNoLine = 317;
+        const int HeaderSize = 5;
+
+        if (words.Length < HeaderSize) return null;
+
+        Dictionary<uint, string>? strings = null;
+        uint lastFileId = 0, lastLine = 0, lastColumn = 0;
+        bool lineActive = false;
+
+        int i = HeaderSize;
+        nuint instIndex = 0;
+        while (i < words.Length && instIndex < errorInstructionIndex)
+        {
+            uint firstWord = words[i];
+            int wordCount = (int)(firstWord >> 16);
+            uint opcode = firstWord & 0xFFFF;
+            if (wordCount == 0 || i + wordCount > words.Length) break;
+
+            if (opcode == OpString && wordCount >= 3)
+            {
+                uint resultId = words[i + 1];
+                var bytes = MemoryMarshal.AsBytes(words.Slice(i + 2, wordCount - 2));
+                int nullIdx = bytes.IndexOf((byte)0);
+                var s = nullIdx >= 0 ? Encoding.UTF8.GetString(bytes[..nullIdx]) : Encoding.UTF8.GetString(bytes);
+                (strings ??= new()).Add(resultId, s);
+            }
+            else if (opcode == OpLine && wordCount == 4)
+            {
+                lastFileId = words[i + 1];
+                lastLine = words[i + 2];
+                lastColumn = words[i + 3];
+                lineActive = true;
+            }
+            else if (opcode == OpNoLine)
+            {
+                lineActive = false;
+            }
+
+            i += wordCount;
+            instIndex++;
+        }
+
+        if (!lineActive || strings is null || !strings.TryGetValue(lastFileId, out var file))
+            return null;
+        return $"{file}:{lastLine}:{lastColumn}";
+    }
 
     // ---- Optimizer (C shim over spvtools::Optimizer) ----------------------
     [DllImport(Lib, EntryPoint = "stride_spvOptimizerCreate")]
