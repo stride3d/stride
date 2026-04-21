@@ -77,9 +77,15 @@
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
-  <!-- Auto-discover .sdsl/.sdfx files, register them as AdditionalFiles
-       for the Roslyn source generator, and mark generated .cs as dependent -->
-  <ItemGroup>
+  <!-- Auto-discover .sdsl/.sdfx files, register them as AdditionalFiles for the
+       Roslyn source generator, mark generated .cs as dependent, and tag the files
+       with the VS Custom Tool generator for older projects that still use it.
+       Projects that contain .sdsl/.sdfx files as test inputs or other non-shader
+       content can set EnableDefaultStrideShaderItems=false to opt out. -->
+  <PropertyGroup>
+    <EnableDefaultStrideShaderItems Condition="'$(EnableDefaultStrideShaderItems)' == ''">true</EnableDefaultStrideShaderItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableDefaultStrideShaderItems)' == 'true'">
     <None Remove="**\*.sdsl" />
     <None Remove="**\*.sdfx" />
     <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
