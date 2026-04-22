@@ -1,32 +1,32 @@
 name: CI
 
-#on:
-#  push:
-#    branches:
-#      - master
-#    paths:
-#      - '.github/workflows/**'
-#      - 'build/**'
-#      - 'deps/**'
-#      - 'sources/**'
-#      - '!**/.all-contributorsrc'
-#      - '!**/.editorconfig'
-#      - '!**/.gitignore'
-#      - '!**/*.md'
-#      - '!crowdin.yml'
-#  pull_request:
-#    paths:
-#      - '.github/workflows/**'
-#      - 'build/**'
-#      - 'deps/**'
-#      - 'sources/**'
-#      - '!**/.all-contributorsrc'
-#      - '!**/.editorconfig'
-#      - '!**/.gitignore'
-#      - '!**/*.md'
-#      - '!crowdin.yml'
-#    types: [opened, synchronize, reopened, ready_for_review]
-#  workflow_dispatch:
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   checks: write
