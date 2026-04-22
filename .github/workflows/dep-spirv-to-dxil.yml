@@ -29,6 +29,10 @@ jobs:
           $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
           $ref = "${{ github.event.inputs.ref || 'main' }}"
           git init mesa-src
+          # Keep LF line endings — our patch is LF, and on Windows runners
+          # autocrlf=true would otherwise add CR which breaks `git apply`.
+          git -C mesa-src config core.autocrlf false
+          git -C mesa-src config core.eol lf
           git -C mesa-src remote add origin $url
           git -C mesa-src fetch --depth 1 origin $ref
           git -C mesa-src checkout FETCH_HEAD
