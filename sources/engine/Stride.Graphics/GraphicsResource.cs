@@ -16,6 +16,15 @@ namespace Stride.Graphics
         internal SubresourceLayoutTracker LayoutTracker;
 
         /// <summary>
+        ///   Whether this resource lives on a CPU-visible heap (Upload / Readback on D3D12, host-visible
+        ///   memory on Vulkan). The native resource state on such heaps is a fixed lifetime property
+        ///   (D3D12: <c>GENERIC_READ</c> or <c>COPY_DEST</c>; Vulkan: no layout transitions needed for
+        ///   buffers, and staging textures are handled separately). Barrier code must skip these.
+        ///   Set once at resource creation — do not flip at runtime.
+        /// </summary>
+        internal bool IsHostVisibleHeap;
+
+        /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsResource"/> class.
         /// </summary>
         protected GraphicsResource() { }

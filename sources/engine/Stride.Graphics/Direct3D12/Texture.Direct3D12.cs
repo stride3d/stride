@@ -363,21 +363,10 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // Compute the texture's final post-init state from its flags. Only used for
-                // CreateCommittedResource + the init-time copy-queue barriers (legacy
-                // ResourceStates surface is intrinsic to D3D12 resource creation). Runtime
-                // transitions go through LayoutTracker / BarrierLayout.
-                ResourceStates desiredResourceState;
-                if (Usage == GraphicsResourceUsage.Staging)
-                    desiredResourceState = ResourceStates.CopyDest;
-                else if (ViewFlags.HasFlag(TextureFlags.DepthStencil))
-                    desiredResourceState = ResourceStates.DepthWrite;
-                else if (ViewFlags.HasFlag(TextureFlags.RenderTarget))
-                    desiredResourceState = ResourceStates.RenderTarget;
-                else if (ViewFlags.HasFlag(TextureFlags.ShaderResource))
-                    desiredResourceState = ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
-                else
-                    desiredResourceState = ResourceStates.Common;
+                // Post-init layout. Drives both the ResourceStates for CreateCommittedResource
+                // (D3D12 creation is a ResourceStates API) and the LayoutTracker seed.
+                var desiredLayout = GetInitialBarrierLayout();
+                var desiredResourceState = BarrierMapping.ToResourceStates(desiredLayout);
 
                 bool hasInitData = initialData?.Length > 0;
 
@@ -492,7 +481,7 @@ namespace Stride.Graphics
                     }
                 }
 
-                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), ArraySize * MipLevelCount);
+                LayoutTracker.Initialize(desiredLayout, ArraySize * MipLevelCount);
             }
 
             //

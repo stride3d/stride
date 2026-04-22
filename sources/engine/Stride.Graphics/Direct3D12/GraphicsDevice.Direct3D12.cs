@@ -573,8 +573,7 @@ namespace Stride.Graphics
             }
 
             //
-            // Requires D3D12 Enhanced Barriers. Throws if unsupported — Stride's runtime
-            // barrier code no longer ships a legacy ResourceBarrier fallback.
+            // Requires D3D12 Enhanced Barriers. Throws if unsupported.
             //
             // Minimum requirements: Windows 10 1909+ with Agility SDK, or Windows 11. Driver
             // floors: NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox

@@ -159,6 +159,7 @@ namespace Stride.Graphics
             if (bufferDescription.Usage == GraphicsResourceUsage.Staging || Usage == GraphicsResourceUsage.Dynamic)
             {
                 memoryProperties = VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent;
+                IsHostVisibleHeap = true;
             }
 
             GraphicsDevice.NativeDeviceApi.vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);

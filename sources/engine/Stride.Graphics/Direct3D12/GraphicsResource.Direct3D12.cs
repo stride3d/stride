@@ -32,16 +32,6 @@ namespace Stride.Graphics
         internal CpuDescriptorHandle NativeUnorderedAccessView;
 
         /// <summary>
-        ///   Whether this resource is on a CPU-visible heap (Upload or Readback). Resources on
-        ///   these heaps have a fixed D3D12 state (<see cref="ResourceStates.GenericRead"/> or
-        ///   <see cref="ResourceStates.CopyDest"/>) for their lifetime and cannot be transitioned —
-        ///   lazy barrier code must skip them. This is a heap-type property: don't confuse it
-        ///   with transient <see cref="SubresourceLayoutTracker"/> state (default-heap resources
-        ///   can legitimately be in CopyDest after a copy).
-        /// </summary>
-        internal bool IsHostVisibleHeap;
-
-        /// <summary>
         ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
         /// </summary>
         /// <value>

@@ -13,13 +13,29 @@ namespace Stride.Graphics;
 internal static class BarrierMapping
 {
     /// <summary>
-    ///   Converts a legacy D3D12 <see cref="ResourceStates"/> to a <see cref="BarrierLayout"/>.
+    ///   Maps a <see cref="BarrierLayout"/> to the <see cref="ResourceStates"/> value to pass
+    ///   to <c>CreateCommittedResource</c>. Creation-boundary bridge only — the runtime
+    ///   barrier path operates on <see cref="BarrierLayout"/> directly via the Enhanced
+    ///   mapping methods below.
     /// </summary>
-    /// <remarks>
-    ///   Creation-boundary bridge only. Used to seed <c>LayoutTracker</c> from the
-    ///   <see cref="ResourceStates"/> value the resource was created in. Runtime barriers must
-    ///   not call this — the runtime path operates on <see cref="BarrierLayout"/> directly.
-    /// </remarks>
+    internal static ResourceStates ToResourceStates(BarrierLayout layout) => layout switch
+    {
+        BarrierLayout.RenderTarget => ResourceStates.RenderTarget,
+        BarrierLayout.DepthStencilWrite => ResourceStates.DepthWrite,
+        BarrierLayout.DepthStencilRead => ResourceStates.DepthRead,
+        BarrierLayout.ShaderResource => ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource,
+        BarrierLayout.UnorderedAccess => ResourceStates.UnorderedAccess,
+        BarrierLayout.CopySource => ResourceStates.CopySource,
+        BarrierLayout.CopyDest => ResourceStates.CopyDest,
+        BarrierLayout.ResolveSource => ResourceStates.ResolveSource,
+        BarrierLayout.ResolveDest => ResourceStates.ResolveDest,
+        _ => ResourceStates.Common,
+    };
+
+    /// <summary>
+    ///   Seeds a <see cref="BarrierLayout"/> from the <see cref="ResourceStates"/> value a
+    ///   resource was created in. Creation-boundary bridge only.
+    /// </summary>
     internal static BarrierLayout ToBarrierLayout(ResourceStates state) => state switch
     {
         ResourceStates.RenderTarget => BarrierLayout.RenderTarget,

@@ -633,21 +633,14 @@ namespace Stride.Graphics
         /// <summary>
         ///   Flushes all pending Graphics Resource barriers using D3D12 Enhanced Barriers.
         /// </summary>
-        /// <remarks>
-        ///   Redundant or no-op entries for the same (resource, subresource) are folded in one
-        ///   O(n) pass over <see cref="pendingBarriers"/> — insertion order preserved, no sort
-        ///   needed. Coalescing removes redundant layout/access/sync transitions and runs
-        ///   unconditionally.
-        /// </remarks>
         private unsafe void FlushResourceBarriers()
         {
             int count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
-            // Dictionary-keyed dedup on (resource, subresource). For repeat entries, keep the
-            // first LayoutBefore and overwrite LayoutAfter — A→B followed by B→C collapses to
-            // A→C; A→B→A collapses to A→A (dropped below). Order-stable without sorting.
+            // Dedup on (resource, subresource) in O(n) with insertion order preserved.
+            // A→B followed by B→C collapses to A→C; A→B→A collapses to A→A (dropped below).
             if (count > 1)
             {
                 barrierCoalesceMap.Clear();

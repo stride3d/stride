@@ -127,6 +127,7 @@ namespace Stride.Graphics
                 if (isNotOwningResources)
                     throw new InvalidOperationException();
 
+                IsHostVisibleHeap = true;
                 NativeAccessMask = VkAccessFlags.HostRead | VkAccessFlags.HostWrite;
 
                 NativePipelineStageMask = VkPipelineStageFlags.Host;
@@ -152,13 +153,9 @@ namespace Stride.Graphics
                 if (NativeImage != VkImage.Null)
                     throw new InvalidOperationException();
 
-                NativeLayout =
-                    IsRenderTarget ? VkImageLayout.ColorAttachmentOptimal :
-                    IsDepthStencil ? VkImageLayout.DepthStencilAttachmentOptimal :
-                    IsShaderResource ? VkImageLayout.ShaderReadOnlyOptimal :
-                    VkImageLayout.General;
-
-                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeLayout), ArraySize * MipLevelCount);
+                var initialLayout = GetInitialBarrierLayout();
+                NativeLayout = BarrierMapping.ToVkImageLayout(initialLayout);
+                LayoutTracker.Initialize(initialLayout, ArraySize * MipLevelCount);
 
                 if (NativeLayout == VkImageLayout.TransferDstOptimal)
                     NativeAccessMask = VkAccessFlags.TransferRead;

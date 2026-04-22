@@ -150,10 +150,10 @@ namespace Stride.Graphics
         {
             bool hasInitData = dataPointer != IntPtr.Zero;
 
-            // Compute the buffer's final post-init state from its flags. Only used for
-            // CreateCommittedResource + the init-time copy-queue barrier (legacy ResourceStates
-            // surface is intrinsic to D3D12 resource creation). Runtime transitions go through
-            // LayoutTracker / BarrierLayout — see ResourceBarrierTransition.
+            // Final post-init state derived from the buffer's flags. Consumed by
+            // CreateCommittedResource and the init-time copy-queue barrier — D3D12 creation
+            // is a ResourceStates API. Runtime transitions go through LayoutTracker /
+            // BarrierLayout in ResourceBarrierTransition.
             var bufferFlags = bufferDescription.BufferFlags;
             var desiredResourceState = ResourceStates.Common;
 
