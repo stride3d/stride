@@ -41,15 +41,39 @@ partial class SpirvBuilder
             VectorType v => MultiplySize(TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules), v.Size),
             // Note: this is HLSL-style so Rows/Columns meaning is swapped
             // Note: HLSL default is ColumnMajor
+            // StructuredBuffer uses std430 strict matrix layout: each column (ColumnMajor) or row
+            // (RowMajor) is padded to its std430 base alignment, matching how the Vulkan validator
+            // expects matrix layout under relaxed block layout.
+            MatrixType m when alignmentRules == AlignmentRules.StructuredBuffer
+                => StructuredBufferMatrixSize(m, typeModifier),
             MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
-                => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), alignmentRules == AlignmentRules.CBuffer ? (4 * (m.Rows - 1)) + m.Columns : m.Rows * m.Columns * 4),
+                => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), (4 * (m.Rows - 1)) + m.Columns),
             MatrixType m when typeModifier == TypeModifier.RowMajor
-                => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), alignmentRules == AlignmentRules.CBuffer ? (4 * (m.Columns - 1)) + m.Rows : m.Rows * m.Columns * 4),
+                => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), (4 * (m.Columns - 1)) + m.Rows),
             // Round up to 16 bytes (size of float4)
             ArrayType a => Array(TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules), a.Size, alignmentRules),
             // TODO: StructureType
             _ => throw new NotSupportedException($"Unsupported type for buffer layout: {symbol}"),
         };
+    }
+
+    /// <summary>
+    /// Computes std430 size and alignment for a matrix in a StorageBuffer.
+    /// ColumnMajor: matrix is an array of <c>Columns</c> column-vectors of dimension <c>Rows</c>.
+    /// RowMajor: matrix is an array of <c>Rows</c> row-vectors of dimension <c>Columns</c>.
+    /// Each element vector is laid out at its std430 base-alignment stride, so non-square matrices
+    /// get trailing padding on the short axis.
+    /// </summary>
+    private static (int Size, int Alignment) StructuredBufferMatrixSize(MatrixType m, TypeModifier typeModifier)
+    {
+        var (vecDim, vecCount) = typeModifier == TypeModifier.RowMajor
+            ? (m.Columns, m.Rows)
+            : (m.Rows, m.Columns);
+        var scalarSize = TypeSizeInBuffer(m.BaseType, typeModifier, AlignmentRules.StructuredBuffer).Size;
+        var vecSize = scalarSize * vecDim;
+        var vecAlignment = StorageBufferBaseAlignment(new VectorType(m.BaseType, vecDim));
+        var vecStride = (vecSize + vecAlignment - 1) / vecAlignment * vecAlignment;
+        return (vecStride * vecCount, vecAlignment);
     }
 
     private static (int, int) StructSizeInBuffer(StructuredType s, AlignmentRules alignmentRules)
