@@ -277,8 +277,14 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 ComPtr<ID3D11ShaderReflection> shaderReflection = Reflect(bytecode);
 
-                SkipInit(out ShaderDesc shaderReflectionDesc);
-                shaderReflection.GetDesc(ref shaderReflectionDesc);
+                ShaderDesc shaderReflectionDesc = default;
+                HResult getShaderDescResult = shaderReflection.GetDesc(ref shaderReflectionDesc);
+                if (getShaderDescResult.IsFailure)
+                {
+                    log.Error($"ID3D11ShaderReflection::GetDesc failed (HRESULT 0x{(uint)getShaderDescResult.Value:X8})");
+                    shaderReflection.Dispose();
+                    return;
+                }
 
                 // Adjust the Constant Buffer size, and compute the offsets and sizes of its members
                 foreach (var constantBuffer in effectReflection.ConstantBuffers)
@@ -293,8 +299,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                     // It is a child interface whose lifetime is tied to the parent ID3D11ShaderReflection.
                     var constantBuffer = shaderReflection.GetConstantBufferByIndex(i);
 
-                    SkipInit(out ShaderBufferDesc constantBufferDesc);
-                    constantBuffer->GetDesc(ref constantBufferDesc);
+                    ShaderBufferDesc constantBufferDesc = default;
+                    HResult getCbDescResult = constantBuffer->GetDesc(ref constantBufferDesc);
+                    if (getCbDescResult.IsFailure)
+                    {
+                        log.Error($"ID3D11ShaderReflectionConstantBuffer::GetDesc failed at index {i} (HRESULT 0x{(uint)getCbDescResult.Value:X8})");
+                        continue;
+                    }
 
                     if (constantBufferDesc.Type == D3DCBufferType.D3DCTResourceBindInfo)
                         continue;
@@ -314,8 +325,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                 // Bound Resources
                 for (uint i = 0; i < shaderReflectionDesc.BoundResources; ++i)
                 {
-                    SkipInit(out ShaderInputBindDesc boundResourceDesc);
-                    shaderReflection.GetResourceBindingDesc(i, ref boundResourceDesc);
+                    ShaderInputBindDesc boundResourceDesc = default;
+                    HResult getBindDescResult = shaderReflection.GetResourceBindingDesc(i, ref boundResourceDesc);
+                    if (getBindDescResult.IsFailure)
+                    {
+                        log.Error($"ID3D11ShaderReflection::GetResourceBindingDesc failed at index {i} (HRESULT 0x{(uint)getBindDescResult.Value:X8})");
+                        continue;
+                    }
 
                     string? linkKeyName = null;
                     string? resourceGroup = null;
@@ -444,13 +460,23 @@ namespace Stride.Shaders.Compiler.Direct3D
                     {
                         var variable = constantBufferRaw->GetVariableByIndex(i);
 
-                        SkipInit(out ShaderVariableDesc variableDescription);
-                        variable->GetDesc(ref variableDescription);
+                        ShaderVariableDesc variableDescription = default;
+                        HResult getVarDescResult = variable->GetDesc(ref variableDescription);
+                        if (getVarDescResult.IsFailure)
+                        {
+                            log.Error($"ID3D11ShaderReflectionVariable::GetDesc failed at index {i} in Constant Buffer [{constantBuffer.Name}] (HRESULT 0x{(uint)getVarDescResult.Value:X8})");
+                            continue;
+                        }
 
                         var variableType = variable->GetType();
 
-                        SkipInit(out ShaderTypeDesc variableTypeDescription);
-                        variableType->GetDesc(ref variableTypeDescription);
+                        ShaderTypeDesc variableTypeDescription = default;
+                        HResult getVarTypeDescResult = variableType->GetDesc(ref variableTypeDescription);
+                        if (getVarTypeDescResult.IsFailure)
+                        {
+                            log.Error($"ID3D11ShaderReflectionType::GetDesc failed at index {i} in Constant Buffer [{constantBuffer.Name}] (HRESULT 0x{(uint)getVarTypeDescResult.Value:X8})");
+                            continue;
+                        }
 
                         var variableName = GetUtf8Span(variableDescription.Name).GetString()!;
                         if (variableTypeDescription.Offset != 0)
