@@ -176,6 +176,7 @@ namespace Stride.Graphics
                 NativeResourceState |= ResourceStates.IndirectArgument;
 
             var heapType = HeapType.Default;
+            IsHostVisibleHeap = false;
             if (Usage == GraphicsResourceUsage.Staging)
             {
                 // Per our own definition of staging resource (read-back only)
@@ -184,11 +185,13 @@ namespace Stride.Graphics
 
                 heapType = HeapType.Readback;
                 NativeResourceState = ResourceStates.CopyDest;
+                IsHostVisibleHeap = true;
             }
             else if (Usage == GraphicsResourceUsage.Dynamic)
             {
                 heapType = HeapType.Upload;
                 NativeResourceState = ResourceStates.GenericRead;
+                IsHostVisibleHeap = true;
             }
 
             // TODO: D3D12: Move to a global allocator in bigger committed resources

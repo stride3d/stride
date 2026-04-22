@@ -430,9 +430,11 @@ namespace Stride.Graphics
                     if (resource is null)
                         continue;
 
-                    // Skip resources on upload/readback heaps (GenericRead/CopyDest) — they can't be transitioned
-                    if (resource.NativeResourceState == ResourceStates.GenericRead ||
-                        resource.NativeResourceState == ResourceStates.CopyDest)
+                    // Skip resources on CPU-visible heaps (Upload/Readback) — they have a fixed
+                    // D3D12 state for their lifetime and cannot be transitioned. Must check by heap
+                    // type, not by state: default-heap resources can be in CopyDest/GenericRead
+                    // transiently after a copy and must still go through the transition.
+                    if (resource.IsHostVisibleHeap)
                         continue;
 
                     if (isUAV[j])

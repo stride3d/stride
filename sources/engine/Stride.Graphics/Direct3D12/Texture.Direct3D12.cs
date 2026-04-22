@@ -228,6 +228,7 @@ namespace Stride.Graphics
             void InitializeStagingTexture()
             {
                 NativeResourceState = ResourceStates.CopyDest;
+                IsHostVisibleHeap = true;
                 LayoutTracker.Initialize(BarrierLayout.CopyDest, ArraySize * MipLevelCount);
                 NativeTextureDescription = GetTextureDescription(Dimension);
 
