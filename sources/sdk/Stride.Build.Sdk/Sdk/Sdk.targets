@@ -92,10 +92,6 @@
     <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
     <AdditionalFiles Include="@(StrideShaderFiles)" />
     <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(StrideRoot)sources\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
   </ItemGroup>
 
   <!-- ================================================================ -->
