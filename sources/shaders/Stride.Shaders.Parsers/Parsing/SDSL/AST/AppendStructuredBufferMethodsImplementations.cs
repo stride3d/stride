@@ -30,7 +30,7 @@ public class AppendStructuredBufferMethodsImplementations : AppendStructuredBuff
         var arrayLen = builder.Insert(new OpArrayLength(uintType, context.Bound++, appendStructuredBuffer.Id, 0));
         builder.Insert(new OpStore(count.Id, arrayLen.ResultId, null, []));
         var baseType = functionType.ParameterTypes[0].Type;
-        var elementSize = SpirvBuilder.TypeSizeInBuffer(baseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer).Size;
+        var elementSize = SpirvBuilder.StorageBufferArrayStride(baseType);
         var strideConst = context.CompileConstant((uint)elementSize);
         builder.Insert(new OpStore(stride.Id, strideConst.Id, null, []));
         return default;

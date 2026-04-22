@@ -31,6 +31,13 @@ partial class SpirvBuilder
             ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Boolean } => (4, 4),
             ScalarType { Type: Scalar.Int64 or Scalar.UInt64 or Scalar.Double } => (8, 8),
             StructuredType s => StructSizeInBuffer(s, alignmentRules),
+            // StructuredBuffer uses std430 vector alignment (2×scalar for vec2, 4×scalar for vec3/vec4)
+            // to satisfy Vulkan's relaxed block layout rule that a vector must not straddle a
+            // 16-byte boundary. CBuffer keeps scalar alignment — ComputeBufferOffset handles the
+            // "vector crossing 16-byte boundary" bump separately for that path.
+            VectorType v when alignmentRules == AlignmentRules.StructuredBuffer
+                => (TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules).Size * v.Size,
+                    TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules).Alignment * (v.Size == 2 ? 2 : 4)),
             VectorType v => MultiplySize(TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules), v.Size),
             // Note: this is HLSL-style so Rows/Columns meaning is swapped
             // Note: HLSL default is ColumnMajor
@@ -107,5 +114,48 @@ partial class SpirvBuilder
             if (constantBufferOffset < paddedEnd)
                 constantBufferOffset = paddedEnd;
         }
+    }
+
+    /// <summary>
+    /// Computes the std430 base alignment of a type as required by Vulkan's storage buffer layout
+    /// (vec2 → 2×scalar, vec3/vec4 → 4×scalar, struct → max member alignment). Used to round the
+    /// ArrayStride of a [RW]StructuredBuffer element type so the SPIR-V validates under relaxed
+    /// block layout. Relaxed rules allow scalar-aligned offsets for vector members, but an array
+    /// of structs still needs its stride aligned to the struct's base alignment.
+    /// </summary>
+    public static int StorageBufferBaseAlignment(SymbolType type, TypeModifier typeModifier = TypeModifier.None) => type switch
+    {
+        ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Boolean or Scalar.Half } => 4,
+        ScalarType { Type: Scalar.Int64 or Scalar.UInt64 or Scalar.Double } => 8,
+        VectorType { Size: 2, BaseType: var bt } => 2 * StorageBufferBaseAlignment(bt),
+        VectorType { Size: 3 or 4, BaseType: var bt } => 4 * StorageBufferBaseAlignment(bt),
+        MatrixType m when typeModifier == TypeModifier.RowMajor
+            => StorageBufferBaseAlignment(new VectorType(m.BaseType, m.Columns)),
+        MatrixType m
+            => StorageBufferBaseAlignment(new VectorType(m.BaseType, m.Rows)),
+        ArrayType a => StorageBufferBaseAlignment(a.BaseType, typeModifier),
+        StructuredType s => MaxMemberAlignment(s),
+        _ => throw new NotSupportedException($"Unsupported type for storage buffer alignment: {type}"),
+    };
+
+    static int MaxMemberAlignment(StructuredType s)
+    {
+        var max = 4;
+        foreach (var member in s.Members)
+            max = Math.Max(max, StorageBufferBaseAlignment(member.Type, member.TypeModifier));
+        return max;
+    }
+
+    /// <summary>
+    /// Returns the ArrayStride required for <paramref name="elementType"/> when used as the element
+    /// of a [RW]StructuredBuffer's runtime array. The value is the packed size (via
+    /// <see cref="TypeSizeInBuffer"/>) rounded up to the type's std430 base alignment, so that the
+    /// emitted SPIR-V validates under relaxed block layout.
+    /// </summary>
+    public static int StorageBufferArrayStride(SymbolType elementType, TypeModifier typeModifier = TypeModifier.None)
+    {
+        var size = TypeSizeInBuffer(elementType, typeModifier, AlignmentRules.StructuredBuffer).Size;
+        var alignment = StorageBufferBaseAlignment(elementType, typeModifier);
+        return (size + alignment - 1) / alignment * alignment;
     }
 }

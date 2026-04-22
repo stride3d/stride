@@ -47,11 +47,10 @@ public partial class ShaderMixer
             return;
         }
 
-        var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size;
         arrayStride = alignmentRules switch
         {
-            SpirvBuilder.AlignmentRules.CBuffer => (elementSize + 15) / 16 * 16,
-            SpirvBuilder.AlignmentRules.StructuredBuffer => elementSize,
+            SpirvBuilder.AlignmentRules.CBuffer => (SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size + 15) / 16 * 16,
+            SpirvBuilder.AlignmentRules.StructuredBuffer => SpirvBuilder.StorageBufferArrayStride(a.BaseType, typeModifier),
             _ => throw new NotSupportedException($"Unsupported alignment rules: {alignmentRules}"),
         };
         context.Add(new OpDecorate(typeId, Specification.Decoration.ArrayStride, [arrayStride]));

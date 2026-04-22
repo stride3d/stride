@@ -197,7 +197,7 @@ public partial class SpirvContext
 
     private int RegisterStructuredBufferType(StructuredBufferType structuredBufferType)
     {
-        var elementSize = SpirvBuilder.TypeSizeInBuffer(structuredBufferType.BaseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer).Size;
+        var elementSize = SpirvBuilder.StorageBufferArrayStride(structuredBufferType.BaseType);
         var runtimeArrayType = GetOrCreateRuntimeArray(GetOrRegister(structuredBufferType.BaseType), elementSize);
 
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
@@ -210,7 +210,7 @@ public partial class SpirvContext
 
     private int RegisterAppendOrConsumeStructuredBufferType(string prefix, SymbolType baseType)
     {
-        var elementSize = SpirvBuilder.TypeSizeInBuffer(baseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer).Size;
+        var elementSize = SpirvBuilder.StorageBufferArrayStride(baseType);
         var runtimeArrayType = GetOrCreateRuntimeArray(GetOrRegister(baseType), elementSize);
 
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
