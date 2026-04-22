@@ -102,8 +102,8 @@
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.15" />
-    <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.4.22" />
+    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.23" />
+    <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.4.23" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.4.22" />
   </ItemGroup>
   <!-- Avalonia dependencies -->

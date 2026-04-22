@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
@@ -221,17 +222,23 @@ namespace Stride.Shaders.Compiler
             var spirvBytecodeForDebug = spirvBytecode.ToArray();
 #endif
 
+            // Run SPIRV-Cross-tuned legalization on the merged SPIR-V module before
+            // any downstream consumer (SPIRV-Cross for D3D11 HLSL, or spirv-to-dxil
+            // for D3D12 DXIL). Folds constants, kills dead branches, legalizes
+            // structured CFG. Required to stop SPIRV-Cross emitting `if (true)`-style
+            // dead code when generic template values collapse to constants, and to
+            // give spirv-to-dxil a cleaner input.
+            // preserve_interface=true keeps Input/Output variables alive across stages
+            // — per-stage DCE otherwise leaves VS/HS outputs and PS/DS inputs out of
+            // sync, which FXC maps to mismatched hardware registers. The proper
+            // long-term fix is cross-stage DCE driven back-to-front (PS → DS/GS → VS).
+            var legalizedSpirv = Spirv.Tools.SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(spirvBytecode));
+
             try
             {
                 if (useSpirvCrossToHlsl)
                 {
-                    // Run SPIRV-Cross-tuned legalization before handing SPIR-V off:
-                    // folds constants, kills dead branches, legalizes structured CFG.
-                    // Required to stop SPIRV-Cross emitting `if (true)`-style dead code
-                    // when generic template values collapse to constants.
-                    var spirvWords = spirvBytecode.ToArray().AsMemory().Cast<byte, uint>();
-                    var legalized = Spirv.Tools.SpirvTools.LegalizeForHlsl(spirvWords.Span);
-                    var translator = new SpirvTranslator(legalized.AsMemory());
+                    var translator = new SpirvTranslator(legalizedSpirv.AsMemory());
                     var translatorEntryPoints = translator.GetEntryPoints();
                     foreach (var entryPoint in translatorEntryPoints)
                     {
@@ -307,7 +314,7 @@ namespace Stride.Shaders.Compiler
                     {
                         // Check API
                         Spv2DXIL.spirv_to_dxil_get_version();
-                        CompileDxilPipeline(spirvBytecode, entryPoints, shaderStageBytecodes);
+                        CompileDxilPipeline(MemoryMarshal.AsBytes<uint>(legalizedSpirv), entryPoints, shaderStageBytecodes);
                     }
                     else
 #endif

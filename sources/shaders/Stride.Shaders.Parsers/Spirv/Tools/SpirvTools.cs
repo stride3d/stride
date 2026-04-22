@@ -250,12 +250,6 @@ public static unsafe class SpirvTools
     [DllImport(Lib, EntryPoint = "stride_spvOptimizerDestroy")]
     static extern void OptimizerDestroy(IntPtr optimizer);
 
-    [DllImport(Lib, EntryPoint = "stride_spvOptimizerRegisterLegalizationPasses")]
-    static extern void OptimizerRegisterLegalizationPasses(IntPtr optimizer);
-
-    [DllImport(Lib, EntryPoint = "stride_spvOptimizerRegisterLegalizationPassesPreserveInterface")]
-    static extern void OptimizerRegisterLegalizationPassesPreserveInterface(IntPtr optimizer);
-
     [DllImport(Lib, EntryPoint = "stride_spvOptimizerRegisterPerformancePasses")]
     static extern void OptimizerRegisterPerformancePasses(IntPtr optimizer);
 
@@ -273,24 +267,68 @@ public static unsafe class SpirvTools
     [DllImport(Lib, EntryPoint = "stride_spvOptimizerFreeBinary")]
     static extern void OptimizerFreeBinary(uint* binary);
 
-    enum PassMode { Legalize, LegalizePreserveInterface, Performance }
+    // Mirrors upstream Optimizer::RegisterLegalizationPasses(preserve_interface=true)
+    // with two differences:
+    //   - `--remove-unused-interface-variables` is omitted: it isn't controlled by
+    //     the preserve_interface flag and would strip stage I/O variables anyway,
+    //     re-introducing the cross-stage signature mismatch we're trying to avoid.
+    //   - `CreateInvocationInterlockPlacementPass` is dropped because
+    //     spirv-opt's RegisterPassFromFlag has no flag mapping for it (only
+    //     relevant to SPV_KHR_fragment_shader_interlock, which Stride doesn't use).
+    // Keep this list synced with upstream source/opt/optimizer.cpp when updating
+    // the SPIRV-Tools package.
+    static readonly string[] LegalizeForHlslKeepInterface =
+    {
+        "--wrap-opkill",
+        "--eliminate-dead-branches",
+        "--merge-return",
+        "--inline-entry-points-exhaustive",
+        "--eliminate-dead-functions",
+        "--private-to-local",
+        "--fix-storage-class",
+        "--eliminate-local-single-block",
+        "--eliminate-local-single-store",
+        "--eliminate-dead-code-aggressive",
+        "--scalar-replacement=0",
+        "--eliminate-local-single-block",
+        "--eliminate-local-single-store",
+        "--eliminate-dead-code-aggressive",
+        "--eliminate-local-multi-store",
+        "--combine-access-chains",
+        "--eliminate-dead-code-aggressive",
+        "--legalize-multidim-array",
+        "--ccp",
+        "--loop-unroll",
+        "--eliminate-dead-branches",
+        "--simplify-instructions",
+        "--eliminate-dead-code-aggressive",
+        "--copy-propagate-arrays",
+        "--vector-dce",
+        "--eliminate-dead-inserts",
+        "--reduce-load-size",
+        "--eliminate-dead-code-aggressive",
+        "--interpolate-fixup",
+        "--fix-opextinst-opcodes",
+    };
 
     /// <summary>
-    /// Runs the SPIRV-Cross-tuned legalization pass list with <c>preserve_interface=true</c>
-    /// — constant folding, DCE, CCP, structured-CFG cleanup, but no pruning of unused
-    /// <c>Input</c>/<c>Output</c> variables. Use this before handing SPIR-V to SPIRV-Cross
-    /// for HLSL/MSL/GLSL emission.
+    /// Runs a legalization pass list tuned for SPIRV-Cross HLSL emission —
+    /// constant folding, DCE, CCP, structured-CFG cleanup — while keeping every
+    /// stage's <c>Input</c>/<c>Output</c> variables alive.
     /// <para>
-    /// Interface preservation is a stopgap: Stride feeds a single merged module
+    /// Interface preservation is a stopgap. Stride feeds a single merged module
     /// containing every stage to the optimizer, and spirv-opt has no cross-stage
-    /// awareness. Letting DCE strip outputs independently per stage leaves downstream
-    /// stages holding inputs whose producers vanished, which FXC then maps to
-    /// mismatched hardware registers. The proper long-term fix is cross-stage DCE
-    /// driven back-to-front (PS → DS/GS → VS).
+    /// awareness. Letting interface pruning run independently per stage leaves
+    /// downstream stages holding inputs whose producers vanished, which FXC then
+    /// maps to mismatched hardware registers (D3D11 rejects with "Semantic X
+    /// defined for mismatched hardware registers", or "Signatures between stages
+    /// are different lengths" for HS/DS). The proper long-term fix is cross-stage
+    /// DCE driven back-to-front (PS → DS/GS → VS) so each predecessor's outputs
+    /// match its successor's surviving inputs exactly.
     /// </para>
     /// </summary>
     public static uint[] LegalizeForHlsl(ReadOnlySpan<uint> words, TargetEnv env = TargetEnv.Vulkan_1_3)
-        => RunOptimizer(words, env, PassMode.LegalizePreserveInterface);
+        => Optimize(words, LegalizeForHlslKeepInterface, preserveInterface: true, env);
 
     /// <summary>
     /// Runs the performance pass list (equivalent to <c>spirv-opt -O</c>). Produces
@@ -298,7 +336,20 @@ public static unsafe class SpirvTools
     /// — the aggressive inlining and reordering hurts HLSL output quality.
     /// </summary>
     public static uint[] OptimizeForPerformance(ReadOnlySpan<uint> words, TargetEnv env = TargetEnv.Vulkan_1_3)
-        => RunOptimizer(words, env, PassMode.Performance);
+    {
+        var opt = OptimizerCreate(env);
+        if (opt == IntPtr.Zero)
+            throw new InvalidOperationException("spvOptimizerCreate failed");
+        try
+        {
+            OptimizerRegisterPerformancePasses(opt);
+            return RunAndCopy(opt, words);
+        }
+        finally
+        {
+            OptimizerDestroy(opt);
+        }
+    }
 
     /// <summary>
     /// Runs a caller-supplied pass pipeline, specified as <c>spirv-opt</c> CLI flags
@@ -315,27 +366,6 @@ public static unsafe class SpirvTools
         {
             foreach (var flag in flags)
                 RegisterFlag(opt, flag, preserveInterface);
-            return RunAndCopy(opt, words);
-        }
-        finally
-        {
-            OptimizerDestroy(opt);
-        }
-    }
-
-    static uint[] RunOptimizer(ReadOnlySpan<uint> words, TargetEnv env, PassMode mode)
-    {
-        var opt = OptimizerCreate(env);
-        if (opt == IntPtr.Zero)
-            throw new InvalidOperationException("spvOptimizerCreate failed");
-        try
-        {
-            switch (mode)
-            {
-                case PassMode.Legalize:                  OptimizerRegisterLegalizationPasses(opt); break;
-                case PassMode.LegalizePreserveInterface: OptimizerRegisterLegalizationPassesPreserveInterface(opt); break;
-                case PassMode.Performance:               OptimizerRegisterPerformancePasses(opt); break;
-            }
             return RunAndCopy(opt, words);
         }
         finally
