@@ -202,8 +202,6 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "tessellation pipeline state creation fails");
-
             RunGameTest(new TesselationTest());
         }
 
