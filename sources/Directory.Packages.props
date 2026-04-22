@@ -105,6 +105,7 @@
     <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.23" />
     <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.4.23" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.4.22" />
+    <PackageVersion Include="Microsoft.Direct3D.WARP" Version="1.0.18" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>

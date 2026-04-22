@@ -33,6 +33,17 @@
     -->
     <PackageReference Include="Stride.Dependencies.Lavapipe" ExcludeAssets="native" PrivateAssets="native" />
 
+    <!-- Pin WARP (software rasterizer) for reproducible D3D11/D3D12 test runs across CI and dev machines.
+         Side-loaded via d3d10warp.dll next to the test host .exe — same DLL covers both D3D11 and D3D12.
+         Skipped on Vulkan/Null builds so Linux outputs stay slim. Dev/test use only (no redistribution).
+         GeneratePathProperty is needed because the package uses build/native/ layout (C++ convention),
+         which NuGet does not auto-import into C# projects. -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true"
+                      Condition="'$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12'" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
