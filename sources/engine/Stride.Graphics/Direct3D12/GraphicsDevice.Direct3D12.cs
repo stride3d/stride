@@ -46,11 +46,6 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        /// <summary>
-        ///   Whether D3D12 Enhanced Barriers are supported by the device.
-        /// </summary>
-        internal bool SupportsEnhancedBarriers;
-
         private ID3D12Device* nativeDevice;
         private ID3D12CommandQueue* nativeCommandQueue;
 
@@ -422,7 +417,7 @@ namespace Stride.Graphics
                 CurrentFeatureLevel = featureLevel;
 
                 // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
-                CheckEnhancedBarriersSupport();
+                RequireEnhancedBarriersSupport();
 
                 break;
             }
@@ -578,30 +573,27 @@ namespace Stride.Graphics
             }
 
             //
-            // Checks if the device supports D3D12 Enhanced Barriers.
+            // Requires D3D12 Enhanced Barriers. Throws if unsupported — Stride's runtime
+            // barrier code no longer ships a legacy ResourceBarrier fallback.
             //
-            void CheckEnhancedBarriersSupport()
+            // Minimum requirements: Windows 10 1909+ with Agility SDK, or Windows 11. Driver
+            // floors: NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox
+            // Series X|S are supported.
+            //
+            void RequireEnhancedBarriersSupport()
             {
-                // D3D12_FEATURE_D3D12_OPTIONS12 = 41
-                // The struct has EnhancedBarriersSupported as a BOOL at a known offset.
-                // Since Silk.NET may not have this struct, we use raw CheckFeatureSupport.
-                const int D3D12_FEATURE_D3D12_OPTIONS12 = 41;
-
-                // D3D12_FEATURE_DATA_D3D12_OPTIONS12 is a large struct; EnhancedBarriersSupported
-                // is at byte offset 8 (after MSAAAlignedCountSupported and RelaxedFormatCasting BoolS).
-                // We allocate enough space and read the BOOL at offset 8.
-                Span<byte> options12 = stackalloc byte[64]; // oversized to be safe
-                options12.Clear();
-
-                fixed (byte* pOptions = options12)
+                // CheckFeatureSupport validates the struct size exactly — passing an oversized
+                // buffer returns E_INVALIDARG and the query silently fails. Use the Silk.NET
+                // struct + ref overload so size and field offsets stay correct.
+                var options12 = default(FeatureDataD3D12Options12);
+                HResult hr = nativeDevice->CheckFeatureSupport(Silk.NET.Direct3D12.Feature.D3D12Options12, ref options12,
+                                                                (uint) sizeof(FeatureDataD3D12Options12));
+                if (!hr.IsSuccess || !options12.EnhancedBarriersSupported)
                 {
-                    HResult hr = nativeDevice->CheckFeatureSupport((Silk.NET.Direct3D12.Feature) D3D12_FEATURE_D3D12_OPTIONS12,
-                                                                    pOptions, (uint) options12.Length);
-                    if (hr.IsSuccess)
-                    {
-                        // EnhancedBarriersSupported is a BOOL (4 bytes) at offset 8
-                        SupportsEnhancedBarriers = *(int*)(pOptions + 8) != 0;
-                    }
+                    throw new GraphicsDeviceException(
+                        "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
+                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+) " +
+                        "or run on Windows 11 / Windows 10 with the Agility SDK.");
                 }
             }
         }

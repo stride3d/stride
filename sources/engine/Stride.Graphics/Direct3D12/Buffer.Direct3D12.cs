@@ -150,21 +150,24 @@ namespace Stride.Graphics
         {
             bool hasInitData = dataPointer != IntPtr.Zero;
 
-            // TODO: D3D12: Where should that go longer term? Should it be precomputed for future use? (cost would likely be additional check on SetDescriptorSets/Draw)
-            NativeResourceState = ResourceStates.Common;
+            // Compute the buffer's final post-init state from its flags. Only used for
+            // CreateCommittedResource + the init-time copy-queue barrier (legacy ResourceStates
+            // surface is intrinsic to D3D12 resource creation). Runtime transitions go through
+            // LayoutTracker / BarrierLayout — see ResourceBarrierTransition.
             var bufferFlags = bufferDescription.BufferFlags;
+            var desiredResourceState = ResourceStates.Common;
 
             if (bufferFlags.HasFlag(BufferFlags.ConstantBuffer))
-                NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
+                desiredResourceState |= ResourceStates.VertexAndConstantBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.IndexBuffer))
-                NativeResourceState |= ResourceStates.IndexBuffer;
+                desiredResourceState |= ResourceStates.IndexBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.VertexBuffer))
-                NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
+                desiredResourceState |= ResourceStates.VertexAndConstantBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.ShaderResource))
-                NativeResourceState |= ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
+                desiredResourceState |= ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
 
             if (bufferFlags.HasFlag(BufferFlags.StructuredBuffer))
             {
@@ -173,7 +176,7 @@ namespace Stride.Graphics
             }
 
             if (bufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
-                NativeResourceState |= ResourceStates.IndirectArgument;
+                desiredResourceState |= ResourceStates.IndirectArgument;
 
             var heapType = HeapType.Default;
             IsHostVisibleHeap = false;
@@ -184,20 +187,20 @@ namespace Stride.Graphics
                     throw new InvalidOperationException("D3D12: Staging buffers can't be created with initial data.");
 
                 heapType = HeapType.Readback;
-                NativeResourceState = ResourceStates.CopyDest;
+                desiredResourceState = ResourceStates.CopyDest;
                 IsHostVisibleHeap = true;
             }
             else if (Usage == GraphicsResourceUsage.Dynamic)
             {
                 heapType = HeapType.Upload;
-                NativeResourceState = ResourceStates.GenericRead;
+                desiredResourceState = ResourceStates.GenericRead;
                 IsHostVisibleHeap = true;
             }
 
             // TODO: D3D12: Move to a global allocator in bigger committed resources
             var heap = new HeapProperties { Type = heapType };
 
-            var initialResourceState = heapType != HeapType.Default ? NativeResourceState : ResourceStates.Common;
+            var initialResourceState = heapType != HeapType.Default ? desiredResourceState : ResourceStates.Common;
 
             // If the resource must be initialized with data, it is initially in the state
             // CopyDest so we can copy from an upload buffer
@@ -278,7 +281,7 @@ namespace Stride.Graphics
 
                     // Once initialized, transition the Buffer to its final state
                     resourceBarrier.Transition.StateBefore = hasInitData ? ResourceStates.CopyDest : initialResourceState;
-                    resourceBarrier.Transition.StateAfter = NativeResourceState;
+                    resourceBarrier.Transition.StateAfter = desiredResourceState;
 
                     commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
@@ -294,7 +297,7 @@ namespace Stride.Graphics
                 }
             }
 
-            LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeResourceState), 1);
+            LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), 1);
 
             NativeShaderResourceView = GetShaderResourceView(ViewFormat);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewFormat);

@@ -227,7 +227,6 @@ namespace Stride.Graphics
             //
             void InitializeStagingTexture()
             {
-                NativeResourceState = ResourceStates.CopyDest;
                 IsHostVisibleHeap = true;
                 LayoutTracker.Initialize(BarrierLayout.CopyDest, ArraySize * MipLevelCount);
                 NativeTextureDescription = GetTextureDescription(Dimension);
@@ -237,7 +236,7 @@ namespace Stride.Graphics
 
                 HeapProperties heap = new HeapProperties { Type = HeapType.Readback };
 
-                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, NativeResourceState, pOptimizedClearValue: null,
+                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, ResourceStates.CopyDest, pOptimizedClearValue: null,
                                                                       out ComPtr<ID3D12Resource> stagingTextureResource);
                 if (result.IsFailure)
                     result.Throw();
@@ -364,19 +363,21 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // Initialize resource state based on texture usage.
+                // Compute the texture's final post-init state from its flags. Only used for
+                // CreateCommittedResource + the init-time copy-queue barriers (legacy
+                // ResourceStates surface is intrinsic to D3D12 resource creation). Runtime
+                // transitions go through LayoutTracker / BarrierLayout.
+                ResourceStates desiredResourceState;
                 if (Usage == GraphicsResourceUsage.Staging)
-                    NativeResourceState = ResourceStates.CopyDest;
+                    desiredResourceState = ResourceStates.CopyDest;
                 else if (ViewFlags.HasFlag(TextureFlags.DepthStencil))
-                    NativeResourceState = ResourceStates.DepthWrite;
+                    desiredResourceState = ResourceStates.DepthWrite;
                 else if (ViewFlags.HasFlag(TextureFlags.RenderTarget))
-                    NativeResourceState = ResourceStates.RenderTarget;
+                    desiredResourceState = ResourceStates.RenderTarget;
                 else if (ViewFlags.HasFlag(TextureFlags.ShaderResource))
-                    NativeResourceState = ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
+                    desiredResourceState = ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
                 else
-                    NativeResourceState = ResourceStates.Common;
-
-                var desiredResourceState = NativeResourceState;
+                    desiredResourceState = ResourceStates.Common;
 
                 bool hasInitData = initialData?.Length > 0;
 
@@ -491,7 +492,6 @@ namespace Stride.Graphics
                     }
                 }
 
-                NativeResourceState = desiredResourceState;
                 LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), ArraySize * MipLevelCount);
             }
 

@@ -39,6 +39,8 @@ namespace Stride.Graphics
         private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
+        // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
+        private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
 
         // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
@@ -625,22 +627,17 @@ namespace Stride.Graphics
                 }
 
                 resource.LayoutTracker.Set(subresource, newLayout);
-                resource.NativeResourceState = BarrierMapping.ToResourceStates(newLayout);
             }
         }
 
-        [Obsolete("Use BarrierLayout overload instead.")]
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
-        }
-
         /// <summary>
-        ///   Flushes all pending Graphics Resource barriers.
+        ///   Flushes all pending Graphics Resource barriers using D3D12 Enhanced Barriers.
         /// </summary>
         /// <remarks>
-        ///   This method processes all pending resource barriers, applying them. This is to to ensure
-        ///   that all queued resource transitions are executed.
+        ///   Redundant or no-op entries for the same (resource, subresource) are folded in one
+        ///   O(n) pass over <see cref="pendingBarriers"/> — insertion order preserved, no sort
+        ///   needed. Coalescing removes redundant layout/access/sync transitions and runs
+        ///   unconditionally.
         /// </remarks>
         private unsafe void FlushResourceBarriers()
         {
@@ -648,83 +645,48 @@ namespace Stride.Graphics
             if (count == 0)
                 return;
 
-            // Coalesce duplicate barriers for the same resource+subresource.
-            // Sort by (Resource, Subresource), then merge consecutive entries:
-            // keep the first LayoutBefore and the last LayoutAfter, drop no-ops.
+            // Dictionary-keyed dedup on (resource, subresource). For repeat entries, keep the
+            // first LayoutBefore and overwrite LayoutAfter — A→B followed by B→C collapses to
+            // A→C; A→B→A collapses to A→A (dropped below). Order-stable without sorting.
             if (count > 1)
             {
-                pendingBarriers.Sort(static (a, b) =>
-                {
-                    int cmp = RuntimeHelpers.GetHashCode(a.Resource).CompareTo(RuntimeHelpers.GetHashCode(b.Resource));
-                    return cmp != 0 ? cmp : a.Subresource.CompareTo(b.Subresource);
-                });
-
+                barrierCoalesceMap.Clear();
                 int write = 0;
-                for (int read = 1; read < count; read++)
+                for (int read = 0; read < count; read++)
                 {
-                    if (pendingBarriers[write].Resource == pendingBarriers[read].Resource &&
-                        pendingBarriers[write].Subresource == pendingBarriers[read].Subresource)
+                    var desc = pendingBarriers[read];
+                    var key = (desc.Resource, desc.Subresource);
+                    if (barrierCoalesceMap.TryGetValue(key, out int existing))
                     {
-                        // Merge: keep LayoutBefore from [write], take LayoutAfter from [read]
-                        var merged = pendingBarriers[write];
-                        merged.LayoutAfter = pendingBarriers[read].LayoutAfter;
-                        pendingBarriers[write] = merged;
+                        var merged = pendingBarriers[existing];
+                        merged.LayoutAfter = desc.LayoutAfter;
+                        pendingBarriers[existing] = merged;
                     }
                     else
                     {
-                        // Keep previous entry only if it's not a no-op (A→B→A)
-                        if (pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter)
-                            write++;
-                        pendingBarriers[write] = pendingBarriers[read];
+                        barrierCoalesceMap[key] = write;
+                        pendingBarriers[write++] = desc;
                     }
                 }
 
-                // Final entry: keep if not a no-op
-                count = pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter ? write + 1 : write;
+                // Drop no-ops in-place.
+                int finalCount = 0;
+                for (int i = 0; i < write; i++)
+                {
+                    var desc = pendingBarriers[i];
+                    if (desc.LayoutBefore != desc.LayoutAfter)
+                        pendingBarriers[finalCount++] = desc;
+                }
+
+                count = finalCount;
                 if (count < pendingBarriers.Count)
                     pendingBarriers.RemoveRange(count, pendingBarriers.Count - count);
             }
 
-            count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
-            if (GraphicsDevice.SupportsEnhancedBarriers)
-                FlushResourceBarriersEnhanced(count);
-            else
-                FlushResourceBarriersLegacy(count);
-        }
-
-        private unsafe void FlushResourceBarriersLegacy(int count)
-        {
-            scoped Span<ResourceBarrier> barriers = stackalloc ResourceBarrier[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                var desc = pendingBarriers[i];
-
-                barriers[i] = new ResourceBarrier
-                {
-                    Type = ResourceBarrierType.Transition,
-                    Flags = ResourceBarrierFlags.None,
-                    Transition = new ResourceTransitionBarrier
-                    {
-                        PResource = desc.Resource.NativeResource,
-                        Subresource = desc.Subresource,
-                        StateBefore = BarrierMapping.ToResourceStates(desc.LayoutBefore),
-                        StateAfter = BarrierMapping.ToResourceStates(desc.LayoutAfter),
-                    }
-                };
-            }
-
-            pendingBarriers.Clear();
-
-            currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint)count, barriers);
-        }
-
-        private unsafe void FlushResourceBarriersEnhanced(int count)
-        {
-            // Separate texture and buffer barriers
+            // Split texture and buffer barriers — D3D12 Enhanced requires separate BarrierGroups.
             scoped Span<D3D12TextureBarrier> textureBarriers = stackalloc D3D12TextureBarrier[count];
             scoped Span<D3D12BufferBarrier> bufferBarriers = stackalloc D3D12BufferBarrier[count];
             int textureCount = 0;
