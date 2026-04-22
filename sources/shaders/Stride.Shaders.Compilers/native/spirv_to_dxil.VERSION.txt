@@ -1,2 +1,2 @@
-Mesa: https://gitlab.freedesktop.org/mesa/mesa.git @ 477c44ba93986e9aa4feae20f7e3777586a50ed1
-Stride: https://github.com/xen2/stride @ e91a6cc3dec1ac12ffc8410683ce50f89289ab9f (for workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)
+Mesa: https://gitlab.freedesktop.org/mesa/mesa.git @ aa2bc8d2d88e65dcfb046a8ff11db1f0000d4a8a
+Stride: https://github.com/stride3d/stride @ ae6aa351cff4c7d810eae21d0bed6801c515f05f (for workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)
