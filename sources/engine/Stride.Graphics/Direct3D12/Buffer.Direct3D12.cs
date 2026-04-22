@@ -241,18 +241,15 @@ namespace Stride.Graphics
                     NativeResource.Unmap(Subresource: 0, pWrittenRange: ref NullRef<D3D12Range>());
                 }
             }
-            else if (heapType == HeapType.Default)
+            else if (heapType == HeapType.Default && hasInitData)
             {
-                ComPtr<ID3D12Resource> uploadResource = default;
-                int uploadOffset = 0;
-
-                if (hasInitData)
-                {
-                    // Copy data to the upload heap for later inter-resource copy
-                    // TODO: D3D12: Move that to a shared upload heap
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
-                }
+                // Default-heap buffer with init data: upload via the copy queue through
+                // Common → CopyDest → Common. The resource must end in Common so the first
+                // runtime enhanced Barrier can take over — non-Common initial states are
+                // rejected by the D3D12 enhanced/legacy interop check.
+                // TODO: D3D12: Move that to a shared upload heap
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
+                MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                 var commandList = GraphicsDevice.NativeCopyCommandList;
 
@@ -268,21 +265,16 @@ namespace Stride.Graphics
                     resourceBarrier.Transition.PResource = NativeResource;
                     resourceBarrier.Transition.Subresource = 0;
 
-                    if (hasInitData)
-                    {
-                        // Switch resource to CopyDest state
-                        resourceBarrier.Transition.StateBefore = initialResourceState;
-                        resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
-                        commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+                    // Common → CopyDest
+                    resourceBarrier.Transition.StateBefore = ResourceStates.Common;
+                    resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
+                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
-                        // Copy from the upload heap to the actual resource
-                        commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
-                    }
+                    commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
 
-                    // Once initialized, transition the Buffer to its final state
-                    resourceBarrier.Transition.StateBefore = hasInitData ? ResourceStates.CopyDest : initialResourceState;
-                    resourceBarrier.Transition.StateAfter = desiredResourceState;
-
+                    // CopyDest → Common
+                    resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
+                    resourceBarrier.Transition.StateAfter = ResourceStates.Common;
                     commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
                     result = commandList.Close();
@@ -297,7 +289,12 @@ namespace Stride.Graphics
                 }
             }
 
-            LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), 1);
+            // Default-heap buffers live in Common — non-default heaps live in their
+            // creation-time state (GenericRead for Upload / CopyDest for Readback) and
+            // are skipped by runtime barrier code via IsHostVisibleHeap.
+            LayoutTracker.Initialize(heapType == HeapType.Default
+                ? BarrierLayout.Common
+                : BarrierMapping.ToBarrierLayout(desiredResourceState), 1);
 
             NativeShaderResourceView = GetShaderResourceView(ViewFormat);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewFormat);

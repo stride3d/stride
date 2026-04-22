@@ -363,21 +363,16 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // Post-init layout. Drives both the ResourceStates for CreateCommittedResource
-                // (D3D12 creation is a ResourceStates API) and the LayoutTracker seed.
-                var desiredLayout = GetInitialBarrierLayout();
-                var desiredResourceState = BarrierMapping.ToResourceStates(desiredLayout);
-
+                // Create default-heap textures in COMMON. Enhanced Barriers only accept
+                // interop with legacy state tracking when the resource is in COMMON / BARRIER_LAYOUT_COMMON;
+                // any other initial state would cause the first runtime enhanced Barrier to be rejected
+                // with "does not support barrier interop" on strict D3D12 runtimes.
                 bool hasInitData = initialData?.Length > 0;
-
-                // Always create in the desired state. For textures with init data that aren't
-                // already in CopyDest, we'll transition explicitly within the command list.
-                var initialResourceState = desiredResourceState;
 
                 // TODO: D3D12: Move that to a global allocator in bigger committed resources
                 var heap = new HeapProperties { Type = HeapType.Default };
 
-                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, initialResourceState,
+                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, ResourceStates.Common,
                                                                       in clearValueRef, out ComPtr<ID3D12Resource> textureResource);
                 if (result.IsFailure)
                     result.Throw();
@@ -401,13 +396,10 @@ namespace Stride.Graphics
                         resourceBarrier.Transition.PResource = NativeResource;
                         resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
-                        // Transition to CopyDest for the upload
-                        if (initialResourceState != ResourceStates.CopyDest)
-                        {
-                            resourceBarrier.Transition.StateBefore = initialResourceState;
-                            resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
-                            commandList.ResourceBarrier(1, in resourceBarrier);
-                        }
+                        // Common → CopyDest for the upload
+                        resourceBarrier.Transition.StateBefore = ResourceStates.Common;
+                        resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
+                        commandList.ResourceBarrier(1, in resourceBarrier);
 
                         var subresourceCount = initialData.Length;
                         scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
@@ -461,13 +453,10 @@ namespace Stride.Graphics
                             commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                         }
 
-                        // Transition back to the desired state
-                        if (initialResourceState != ResourceStates.CopyDest)
-                        {
-                            resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
-                            resourceBarrier.Transition.StateAfter = desiredResourceState;
-                            commandList.ResourceBarrier(1, in resourceBarrier);
-                        }
+                        // CopyDest → Common so the first runtime Enhanced Barrier can take over.
+                        resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
+                        resourceBarrier.Transition.StateAfter = ResourceStates.Common;
+                        commandList.ResourceBarrier(1, in resourceBarrier);
 
                         result = commandList.Close();
 
@@ -481,7 +470,9 @@ namespace Stride.Graphics
                     }
                 }
 
-                LayoutTracker.Initialize(desiredLayout, ArraySize * MipLevelCount);
+                // Seed the tracker at Common — that is where the texture actually sits after init.
+                // The first runtime enhanced Barrier will transition it to whatever state it needs.
+                LayoutTracker.Initialize(BarrierLayout.Common, ArraySize * MipLevelCount);
             }
 
             //
