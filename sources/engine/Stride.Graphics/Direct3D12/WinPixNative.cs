@@ -119,7 +119,7 @@ public static class WinPixNative
     ///   The Direct3D 12 Command List on which to end the PIX event. Must not be <see langword="null"/>.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static unsafe void PIXEndEventOnCommandList(ComPtr<ID3D12GraphicsCommandList> commandList)
+    internal static unsafe void PIXEndEventOnCommandList(ComPtr<ID3D12GraphicsCommandList7> commandList)
     {
         PIXEndEventOnCommandList((nint) commandList.Handle);
     }
@@ -178,7 +178,7 @@ public static class WinPixNative
     ///   The name of the event to display in PIX. Can be <see langword="null"/> or empty if no name is desired.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static unsafe void PIXBeginEventOnCommandList(ComPtr<ID3D12GraphicsCommandList> commandList, Color4 profileColor, string? name)
+    internal static unsafe void PIXBeginEventOnCommandList(ComPtr<ID3D12GraphicsCommandList7> commandList, Color4 profileColor, string? name)
     {
         PIXBeginEventOnCommandList((nint) commandList.Handle, (uint) profileColor.ToBgra(), name);
     }
@@ -224,7 +224,7 @@ public static class WinPixNative
     ///   The name of the marker to display in PIX. Can be <see langword="null"/> or empty if no name is desired.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static unsafe void PIXSetMarkerOnCommandList(ComPtr<ID3D12GraphicsCommandList> commandList, Color4 profileColor, string? name)
+    internal static unsafe void PIXSetMarkerOnCommandList(ComPtr<ID3D12GraphicsCommandList7> commandList, Color4 profileColor, string? name)
     {
         PIXSetMarkerOnCommandList((nint) commandList.Handle, (uint) profileColor.ToBgra(), name);
     }

@@ -101,7 +101,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
+                var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
                 var commandQueue = GraphicsDevice.NativeCommandQueue;
                 commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
 

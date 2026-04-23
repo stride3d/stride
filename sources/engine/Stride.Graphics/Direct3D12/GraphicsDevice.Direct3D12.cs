@@ -98,7 +98,7 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D12CommandAllocator> NativeCopyCommandAllocator => ToComPtr(nativeCopyCommandAllocator);
 
-        private ID3D12GraphicsCommandList* nativeCopyCommandList;
+        private ID3D12GraphicsCommandList7* nativeCopyCommandList;
 
         /// <summary>
         ///   Gets the internal Direct3D 12 Command List used for copy commands.
@@ -107,7 +107,7 @@ namespace Stride.Graphics
         ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
-        internal ComPtr<ID3D12GraphicsCommandList> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
+        internal ComPtr<ID3D12GraphicsCommandList7> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
 
         internal object NativeCopyCommandListLock = new();
 
@@ -316,7 +316,7 @@ namespace Stride.Graphics
             for (int index = 0; index < count; index++)
             {
                 var commandList = commandLists[index];
-                commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
+                commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
                 RecycleCommandListResources(commandList, commandListFenceValue + 1);
             }
 
@@ -464,13 +464,10 @@ namespace Stride.Graphics
                         // RenderDoc intercepts ID3D12InfoQueue with a stub that drops every call (see
                         // DummyID3D12InfoQueue in renderdoc/driver/d3d12/d3d12_device.h). The filter
                         // install and message drain below will appear to succeed but emit nothing,
-                        // so warn the user upfront. Vulkan does not have this limitation — RenderDoc
-                        // wraps vkCreateDebugUtilsMessengerEXT and forwards messages when the
-                        // DebugOutputMute capture option is off.
+                        // so warn the user upfront.
                         if (Win32.GetModuleHandle("renderdoc.dll") != 0)
                         {
-                            Log.Warning("[D3D12] RenderDoc detected — D3D12 debug-layer messages will not surface through the logger "
-                                      + "(RenderDoc returns a stub ID3D12InfoQueue). Use Vulkan to keep validation output under RenderDoc.");
+                            Log.Warning("[D3D12] RenderDoc detected — D3D12 debug-layer messages will not surface through the logger (RenderDoc returns a stub ID3D12InfoQueue)");
                         }
 
                         var disabledMessages = stackalloc MessageID[]
@@ -531,7 +528,7 @@ namespace Stride.Graphics
             nativeCopyCommandAllocator = commandAllocator;
 
             result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
-                                                     out ComPtr<ID3D12GraphicsCommandList> commandList);
+                                                     out ComPtr<ID3D12GraphicsCommandList7> commandList);
             if (result.IsFailure)
                 result.Throw();
 
@@ -925,7 +922,7 @@ namespace Stride.Graphics
                 CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal fence
-            var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
+            var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
             // Wait on GPU side to complete so that the next Command List (i.e. for a draw)

@@ -46,7 +46,7 @@ namespace Stride.Graphics
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
         private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = [];
 
-        internal readonly Queue<ComPtr<ID3D12GraphicsCommandList>> NativeCommandLists = new();
+        internal readonly Queue<ComPtr<ID3D12GraphicsCommandList7>> NativeCommandLists = new();
 
         private CompiledCommandList currentCommandList;
 
@@ -159,7 +159,7 @@ namespace Stride.Graphics
             {
                 scoped ref var nullInitialPipelineState = ref NullRef<ID3D12PipelineState>();
 
-                if (NativeCommandLists.TryDequeue(out ComPtr<ID3D12GraphicsCommandList> nativeCommandList))
+                if (NativeCommandLists.TryDequeue(out ComPtr<ID3D12GraphicsCommandList7> nativeCommandList))
                 {
                     currentCommandList.NativeCommandList = nativeCommandList;
 
@@ -172,7 +172,7 @@ namespace Stride.Graphics
                 {
                     var commandAllocator = currentCommandList.NativeCommandAllocator;
                     HResult result = NativeDevice.CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, ref nullInitialPipelineState,
-                                                                    out ComPtr<ID3D12GraphicsCommandList> commandList);
+                                                                    out ComPtr<ID3D12GraphicsCommandList7> commandList);
                     if (result.IsFailure)
                         result.Throw();
 
@@ -767,8 +767,7 @@ namespace Stride.Graphics
 
                 if (groupCount > 0)
                 {
-                    var commandList7 = (ID3D12GraphicsCommandList7*)currentCommandList.NativeCommandList.Handle;
-                    commandList7->Barrier((uint)groupCount, (BarrierGroup*)groups);
+                    currentCommandList.NativeCommandList.Barrier((uint)groupCount, (BarrierGroup*)groups);
                 }
             }
         }
