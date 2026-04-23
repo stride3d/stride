@@ -125,6 +125,10 @@ namespace Stride.Graphics.Font
                     }
                 }
                 ArrayPool<byte>.Shared.Return(expandedBuffer);
+
+                // UpdateSubResource leaves the atlas in CopyDest; transition back so the next
+                // sprite-batch sample sees ShaderResource without relying on a lazy transition.
+                commandList.ResourceBarrierTransition(cacheTextures[0], BarrierLayout.ShaderResource);
             }
 
             // update the glyph data
