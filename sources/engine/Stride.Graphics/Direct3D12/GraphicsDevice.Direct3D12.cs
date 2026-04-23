@@ -68,6 +68,18 @@ namespace Stride.Graphics
         internal ComPtr<ID3D12CommandQueue> NativeCommandQueue => ToComPtr(nativeCommandQueue);
 
         /// <summary>
+        ///   Serializes the native-queue submit sequence (fence inc + ExecuteCommandLists + Signal)
+        ///   across all paths that submit to it. Mirrors Vulkan's QueueLock.
+        /// </summary>
+        internal readonly object QueueLock = new();
+
+        /// <summary>
+        ///   Highest <see cref="CopyFence"/> value already waited on from a main-queue submit.
+        ///   Starts at 1 so the first submit doesn't wait on an unsignaled value.
+        /// </summary>
+        private ulong lastGPUSyncCopyFenceToCommandFence = 1;
+
+        /// <summary>
         ///   The requested graphics profile for the Graphics Device.
         /// </summary>
         internal GraphicsProfile RequestedProfile;
@@ -309,24 +321,33 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(commandLists);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(count, commandLists.Length);
 
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
-
-            // Recycle resources
             var commandListToExecute = stackalloc ID3D12CommandList*[count];
-            for (int index = 0; index < count; index++)
+
+            lock (QueueLock)
             {
-                var commandList = commandLists[index];
-                commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
-                RecycleCommandListResources(commandList, commandListFenceValue + 1);
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+
+                for (int index = 0; index < count; index++)
+                {
+                    var commandList = commandLists[index];
+                    commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
+                    RecycleCommandListResources(commandList, commandListFenceValue + 1);
+                }
+
+                if (commandListFenceValue > 0)
+                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+
+                var copyFenceValue = CopyFence.NextFenceValue;
+                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
+                {
+                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
+                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+                }
+
+                nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
+
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
             }
-
-            if (commandListFenceValue > 0)
-                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
-
-            // Submit and signal the fence
-            nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
-
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
 
             if (IsDebugMode)
                 FlushDebugMessages();
@@ -483,7 +504,12 @@ namespace Stride.Graphics
 
                             // These happen when capturing with VS diagnostics
                             MessageID.MapInvalidNullrange,
-                            MessageID.UnmapInvalidNullrange
+                            MessageID.UnmapInvalidNullrange,
+
+                            // Perf hint when a submitted CL contains only barrier commands; happens e.g. at
+                            // frame end after a screenshot flushes the CL and only the Present transition
+                            // remains.
+                            MessageID.NonOptimalBarrierOnlyExecuteCommandLists,
                         };
 
                         // Disable irrelevant debug layer warnings
@@ -492,7 +518,7 @@ namespace Stride.Graphics
                             AllowList = new Silk.NET.Direct3D12.InfoQueueFilterDesc(),
                             DenyList = new Silk.NET.Direct3D12.InfoQueueFilterDesc
                             {
-                                NumIDs = 5,
+                                NumIDs = 6,
                                 PIDList = disabledMessages
                             }
                         };
@@ -701,19 +727,22 @@ namespace Stride.Graphics
         /// </remarks>
         internal ulong ExecuteAndWaitCopyQueueGPU()
         {
-            var copyFenceValue = CopyFence.NextFenceValue++;
-            var nextCopyFenceValue = copyFenceValue + 1;
+            lock (QueueLock)
+            {
+                var copyFenceValue = CopyFence.NextFenceValue++;
+                var nextCopyFenceValue = copyFenceValue + 1;
 
-            // For now, we execute everything on the non-copy Command Queue otherwise ResourceBarrier won't work
-            // Improvement: on Copy Queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
-            //              on Graphics Queue: Wait for Signal and then ResourceBarrier
-            //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-            var commandList = (ID3D12CommandList*) nativeCopyCommandList;
-            nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
+                // For now, we execute everything on the non-copy Command Queue otherwise ResourceBarrier won't work
+                // Improvement: on Copy Queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
+                //              on Graphics Queue: Wait for Signal and then ResourceBarrier
+                //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
+                var commandList = (ID3D12CommandList*) nativeCopyCommandList;
+                nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
 
-            CopyFence.Signal(NativeCommandQueue, nextCopyFenceValue);
+                CopyFence.Signal(NativeCommandQueue, nextCopyFenceValue);
 
-            return nextCopyFenceValue;
+                return nextCopyFenceValue;
+            }
         }
 
         /// <summary>
@@ -916,20 +945,27 @@ namespace Stride.Graphics
         /// </returns>
         internal ulong ExecuteCommandListInternal(CompiledCommandList commandList)
         {
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
+            ulong commandListFenceValue;
+            lock (QueueLock)
+            {
+                commandListFenceValue = CommandListFence.NextFenceValue++;
 
-            if (commandListFenceValue > 0)
-                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+                if (commandListFenceValue > 0)
+                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
-            // Submit and signal fence
-            var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
-            nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
+                var copyFenceValue = CopyFence.NextFenceValue;
+                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
+                {
+                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
+                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+                }
 
-            // Wait on GPU side to complete so that the next Command List (i.e. for a draw)
-            // can access the newly copied resources
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+                var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
+                nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
-            // Recycle resources
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+            }
+
             RecycleCommandListResources(commandList, commandListFenceValue + 1);
 
             return commandListFenceValue + 1;
