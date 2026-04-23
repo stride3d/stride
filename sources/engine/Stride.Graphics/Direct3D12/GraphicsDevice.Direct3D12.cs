@@ -461,6 +461,18 @@ namespace Stride.Graphics
 
                     if (result.IsSuccess && infoQueue.IsNotNull())
                     {
+                        // RenderDoc intercepts ID3D12InfoQueue with a stub that drops every call (see
+                        // DummyID3D12InfoQueue in renderdoc/driver/d3d12/d3d12_device.h). The filter
+                        // install and message drain below will appear to succeed but emit nothing,
+                        // so warn the user upfront. Vulkan does not have this limitation — RenderDoc
+                        // wraps vkCreateDebugUtilsMessengerEXT and forwards messages when the
+                        // DebugOutputMute capture option is off.
+                        if (Win32.GetModuleHandle("renderdoc.dll") != 0)
+                        {
+                            Log.Warning("[D3D12] RenderDoc detected — D3D12 debug-layer messages will not surface through the logger "
+                                      + "(RenderDoc returns a stub ID3D12InfoQueue). Use Vulkan to keep validation output under RenderDoc.");
+                        }
+
                         var disabledMessages = stackalloc MessageID[]
                         {
                             // These happens when a Render Target's or Depth-Stencil Buffer's clear values are different
