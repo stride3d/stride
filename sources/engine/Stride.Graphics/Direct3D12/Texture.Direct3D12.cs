@@ -363,12 +363,14 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // Create default-heap textures in COMMON. Enhanced Barriers only accept
-                // interop with legacy state tracking when the resource is in COMMON / BARRIER_LAYOUT_COMMON;
-                // any other initial state would cause the first runtime enhanced Barrier to be rejected
-                // with "does not support barrier interop" on strict D3D12 runtimes.
+                // Textures settle at their "resting" layout right after init (SR for shader-readable,
+                // RenderTarget/DepthStencilWrite for write-only targets, etc.). Renderers transition
+                // to/from the write state explicitly at pass boundaries.
+                var desiredLayout = GetInitialBarrierLayout();
                 bool hasInitData = initialData?.Length > 0;
 
+                // CreateCommittedResource must use COMMON so the subsequent enhanced Barrier on the
+                // copy CL is valid (legacy-to-enhanced barrier interop requires COMMON).
                 // TODO: D3D12: Move that to a global allocator in bigger committed resources
                 var heap = new HeapProperties { Type = HeapType.Default };
 
@@ -450,6 +452,15 @@ namespace Stride.Graphics
                             commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                         }
 
+                        // Transition to the resting layout so the texture is immediately usable
+                        // without any further transition for its primary purpose (SR for shader-
+                        // readable textures, RT/DSWrite for write targets, etc.).
+                        EnhancedBarriers.TextureBarrier(commandList,
+                            NativeResource,
+                            syncBefore: D3D12BarrierSync.Copy, syncAfter: D3D12BarrierSync.None,
+                            accessBefore: D3D12BarrierAccess.CopyDest, accessAfter: D3D12BarrierAccess.NoAccess,
+                            layoutBefore: Silk.NET.Direct3D12.BarrierLayout.CopyDest, layoutAfter: BarrierMapping.ToEnhancedLayout(desiredLayout));
+
                         result = commandList.Close();
 
                         if (result.IsFailure)
@@ -462,8 +473,10 @@ namespace Stride.Graphics
                     }
                 }
 
-                // Seed tracker at the post-init layout: CopyDest after an upload, Common otherwise.
-                LayoutTracker.Initialize(hasInitData ? BarrierLayout.CopyDest : BarrierLayout.Common,
+                // If no upload CL ran, the resource is still in COMMON (its creation state).
+                // Seed the tracker accordingly; the first runtime enhanced Barrier will transition
+                // from Common to whatever the renderer needs (standard interop).
+                LayoutTracker.Initialize(hasInitData ? desiredLayout : BarrierLayout.Common,
                                          ArraySize * MipLevelCount);
             }
 
