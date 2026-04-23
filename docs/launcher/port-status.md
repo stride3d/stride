@@ -25,7 +25,6 @@ The core is in place:
 
 Documented there, recapped for completeness:
 
-- `MainViewModel.HasDoneTask` / `SaveTaskAsDone` use `HKCU\SOFTWARE\Stride\`; on Linux/macOS both are no-ops with a `FIXME xplat-editor` marker. Consequence: announcement dismissal state and `PrerequisitesRun` flag do not persist outside Windows.
 - Prerequisites installer (`install-prerequisites.exe`) and Advanced Installer bundles are Windows-only by construction.
 
 ## Silent regressions (not flagged)
@@ -115,8 +114,8 @@ These change observable behaviour on both Windows and Linux and should ship firs
 1. ~~**Wire `WindowHandle` on Avalonia `MainWindow`.**~~ **Done** (2026-04-22): HWND captured in `MainWindow.OnOpened` on Windows via `TryGetPlatformHandle()`; stays `IntPtr.Zero` on Linux until xplat-GameStudio lands. See [cross-platform.md](cross-platform.md) § Launcher ↔ GameStudio IPC.
 2. ~~**Restore `MainWindow.OnClosing`.**~~ **Done** (2026-04-22): confirmation dialog with `Close anyway` / `Keep launcher open` buttons shown when any version `IsProcessing`; `LauncherSettings.ActiveVersion` persisted on close via `MainViewModel.TryCloseAsync`.
 3. ~~**Persist `LauncherSettings.CurrentTab` on tab change.**~~ **Done** (2026-04-22): `MainViewModel.CurrentTab` persisted-on-set, two-way bound from the `TabControl`.
-4. **Port `HasDoneTask` / `SaveTaskAsDone` to a file under `EditorPath.UserDataPath`.** Replace `HKCU\SOFTWARE\Stride` with something like a JSON `one-shot-tasks.json`. Removes the current "announcement never displays on Linux" and "prerequisites installer never auto-runs" gaps in one shot.
-5. **Fix `explorer.exe` hard-coding** in `RecentProjectViewModel.Explore` — platform switch on `OperatingSystem.IsWindows()` / `IsMacOS()` / `IsLinux()`.
+4. ~~**Port `HasDoneTask` / `SaveTaskAsDone` to a file under `EditorPath.UserDataPath`.**~~ **Done** (2026-04-22): one-shot task state moved into `Internal/Launcher/CompletedTasks` inside the existing `LauncherSettings.conf`. No migration — pre-existing `HKCU\SOFTWARE\Stride\` keys on Windows become harmless orphans.
+5. ~~**Fix `explorer.exe` hard-coding** in `RecentProjectViewModel.Explore`.~~ **Done** (2026-04-22): platform switch — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback. See [cross-platform.md](cross-platform.md) § Recent-project "Show in Explorer".
 
 ### Phase 2 — feature restoration
 

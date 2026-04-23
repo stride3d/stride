@@ -15,20 +15,6 @@ The choice is in `StrideVersionViewModel.GetExecutableNames` and `MainViewModel.
 
 Searching for `OperatingSystem.IsWindows()` in the launcher shows the remaining divergences.
 
-### Registry-backed one-shot tasks
-
-`MainViewModel.HasDoneTask` / `SaveTaskAsDone` use `HKCU\SOFTWARE\Stride\` to remember whether a one-off action has run (`PrerequisitesRun`, announcement dismissal). On Linux/macOS:
-
-- `HasDoneTask` returns `true` unconditionally, so the one-off tasks never fire a second time — but they never fire a first time either.
-- `SaveTaskAsDone` is a no-op.
-
-Consequences:
-
-- The prerequisites installer is never auto-launched on Linux — which is fine, it's a Windows-only redistributable bundle.
-- Announcements gated by `AnnouncementViewModel` are skipped.
-
-There is a `FIXME xplat-editor` marker for a file-based implementation.
-
 ### Prerequisites installer
 
 `StrideStoreVersionViewModel.RunPrerequisitesInstaller` runs `{InstallPath}/Bin/Prerequisites/install-prerequisites.exe`. That binary is a Windows installer — it is simply skipped on non-Windows since the DirectX / .NET prerequisites it ships don't apply.
@@ -64,6 +50,16 @@ The launcher writes `LauncherSettings.conf` and the `launcher.lock` single-insta
 ## Icons
 
 Window icons (`Launcher.ico`) are served through Avalonia's resource system. The `.ico` format is used on every platform; Avalonia picks the best-matching size at runtime.
+
+## Recent-project "Show in Explorer"
+
+`RecentProjectViewModel.Explore` reveals the selected recent project in the platform's native file manager:
+
+- **Windows:** `explorer.exe /select,{path}` (unchanged from master).
+- **macOS:** `open -R {path}` — reveals the file in Finder.
+- **Linux:** `dbus-send` invocation of `org.freedesktop.FileManager1.ShowItems` on the session bus (implemented by GNOME Nautilus, KDE Dolphin, Cinnamon Nemo, XFCE Thunar, LXDE PCManFM, and others). Falls back to `xdg-open {parent-dir}` when the DBus call fails — e.g. on minimal WMs without an `org.freedesktop.FileManager1` implementer, or headless environments without a session bus.
+
+All failures are swallowed silently (no dialog, no crash) since they are not actionable from inside the launcher.
 
 ## Testing surface
 
