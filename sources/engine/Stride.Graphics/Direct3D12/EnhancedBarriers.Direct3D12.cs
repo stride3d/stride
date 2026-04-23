@@ -128,6 +128,21 @@ internal struct D3D12SubresourceRange
         FirstPlane = 0,
         NumPlanes = 0,
     };
+
+    /// <summary>
+    ///   A range targeting a single subresource by its flat index.
+    /// </summary>
+    public static D3D12SubresourceRange Single(uint subresourceIndex) => new()
+    {
+        // Per D3D12 spec: when NumMipLevels is 0, IndexOrFirstMipLevel is interpreted as a
+        // single flat subresource index (matches D3D12_RESOURCE_BARRIER semantics).
+        IndexOrFirstMipLevel = subresourceIndex,
+        NumMipLevels = 0,
+        FirstArraySlice = 0,
+        NumArraySlices = 0,
+        FirstPlane = 0,
+        NumPlanes = 0,
+    };
 }
 
 /// <summary>

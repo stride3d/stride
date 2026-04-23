@@ -717,7 +717,9 @@ namespace Stride.Graphics
                         LayoutBefore = BarrierMapping.ToEnhancedLayout(desc.LayoutBefore),
                         LayoutAfter = BarrierMapping.ToEnhancedLayout(desc.LayoutAfter),
                         PResource = desc.Resource.NativeResource,
-                        Subresources = D3D12SubresourceRange.All,
+                        Subresources = desc.Subresource == uint.MaxValue
+                            ? D3D12SubresourceRange.All
+                            : D3D12SubresourceRange.Single(desc.Subresource),
                         Flags = 0,
                     };
                 }
