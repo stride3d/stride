@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Win32;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
@@ -668,34 +667,9 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         Dispatcher.Invoke(() => NewsPages = new(sortedPages));
     }
 
-    public static bool HasDoneTask(string taskName)
-    {
-        // FIXME xplat-editor get that information from a config file on Linux (e.g. under /etc) and MacOS
-        if (OperatingSystem.IsWindows())
-        {
-            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\");
-            if (subkey is not null)
-            {
-                var value = (string?)subkey.GetValue(taskName);
-                return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
-            }
-            return false;
-        }
+    public static bool HasDoneTask(string taskName) => LauncherSettings.IsTaskCompleted(taskName);
 
-        return true;
-    }
-
-    public static void SaveTaskAsDone(string taskName)
-    {
-        // FIXME xplat-editor store that information to a config file on Linux (e.g. under /etc) and MacOS
-        if (OperatingSystem.IsWindows())
-        {
-            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\");
-            subkey?.SetValue(taskName, "True");
-        }
-    }
+    public static void SaveTaskAsDone(string taskName) => LauncherSettings.MarkTaskCompleted(taskName);
 
     private const int KeepOpenResult = 0;
     private const int CloseAnywayResult = 1;
