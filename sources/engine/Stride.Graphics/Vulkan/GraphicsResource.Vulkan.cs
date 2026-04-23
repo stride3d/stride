@@ -113,6 +113,7 @@ namespace Stride.Graphics
             (NativeMemory, otherResource.NativeMemory)                         = (otherResource.NativeMemory, NativeMemory);
             (NativePipelineStageMask, otherResource.NativePipelineStageMask)   = (otherResource.NativePipelineStageMask, NativePipelineStageMask);
             (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)               = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
+            (LayoutTracker, otherResource.LayoutTracker)                       = (otherResource.LayoutTracker, LayoutTracker);
         }
     }
 }
