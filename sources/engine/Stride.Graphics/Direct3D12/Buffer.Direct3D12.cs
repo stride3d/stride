@@ -261,21 +261,9 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                    resourceBarrier.Transition.PResource = NativeResource;
-                    resourceBarrier.Transition.Subresource = 0;
-
-                    // Common → CopyDest
-                    resourceBarrier.Transition.StateBefore = ResourceStates.Common;
-                    resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
-                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
-
+                    // Buffers implicitly promote to CopyDest and decay back to Common at
+                    // ExecuteCommandLists — no explicit barriers needed.
                     commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
-
-                    // CopyDest → Common
-                    resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
-                    resourceBarrier.Transition.StateAfter = ResourceStates.Common;
-                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
                     result = commandList.Close();
 

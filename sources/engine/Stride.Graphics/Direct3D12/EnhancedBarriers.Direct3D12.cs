@@ -142,4 +142,38 @@ internal unsafe struct D3D12BarrierGroup
     public void* PBarriers;
 }
 
+internal static unsafe class EnhancedBarriers
+{
+    /// <summary>
+    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources).
+    /// </summary>
+    public static void TextureBarrier(
+        ID3D12GraphicsCommandList7* commandList,
+        ID3D12Resource* resource,
+        D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
+        D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter,
+        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter)
+    {
+        var barrier = new D3D12TextureBarrier
+        {
+            SyncBefore = syncBefore,
+            SyncAfter = syncAfter,
+            AccessBefore = accessBefore,
+            AccessAfter = accessAfter,
+            LayoutBefore = layoutBefore,
+            LayoutAfter = layoutAfter,
+            PResource = resource,
+            Subresources = D3D12SubresourceRange.All,
+            Flags = 0,
+        };
+        var group = new D3D12BarrierGroup
+        {
+            Type = D3D12BarrierType.Texture,
+            NumBarriers = 1,
+            PBarriers = &barrier,
+        };
+        commandList->Barrier(1, (BarrierGroup*)&group);
+    }
+}
+
 #endif
