@@ -343,11 +343,6 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        public override void BeginDraw(CommandList commandList)
-        {
-        }
-
-        /// <inheritdoc/>
         public override void EndDraw(CommandList commandList, bool present)
         {
             // Transition the back-buffer to Present so the upcoming IDXGISwapChain::Present sees

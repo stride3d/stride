@@ -260,7 +260,7 @@ namespace Stride.Graphics
 
         public override void BeginDraw(CommandList commandList)
         {
-            // Backbuffer needs to be cleared
+            base.BeginDraw(commandList);
             backBuffer.IsInitialized = false;
         }
 

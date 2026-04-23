@@ -19,6 +19,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
+using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -234,7 +235,6 @@ namespace Stride.Graphics.Regression
         {
             TestGameLogger.Info(@"Saving the Back-Buffer");
 
-            // TODO: GRAPHICS REFACTOR: Switched to presenter backbuffer, need to check if it's good
             var backBuffer = GraphicsDevice.Presenter.BackBuffer;
             using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
             SaveImage(image, testName);

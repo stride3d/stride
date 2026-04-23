@@ -785,7 +785,6 @@ namespace Stride.Games
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
-                // Note: RT/DS transitions are handled by SetRenderTargetsImpl when targets are bound.
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 

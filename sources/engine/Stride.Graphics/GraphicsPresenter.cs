@@ -176,6 +176,7 @@ public abstract class GraphicsPresenter : ComponentBase
     /// </remarks>
     public virtual void BeginDraw(CommandList commandList)
     {
+        commandList.ResourceBarrierTransition(BackBuffer, BarrierLayout.RenderTarget);
     }
 
     /// <summary>
