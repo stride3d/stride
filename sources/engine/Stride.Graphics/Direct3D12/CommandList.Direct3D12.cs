@@ -42,6 +42,11 @@ namespace Stride.Graphics
         // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
         private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
 
+        // Per-CL layout state. Seeded from GraphicsResource.LayoutTracker on first touch; used by
+        // ResourceBarrierTransition so the read path can't race concurrent writes. Writes still
+        // mirror to the shared tracker (matches Vulkan 03a246a1b8).
+        private readonly Dictionary<GraphicsResource, SubresourceLayoutTracker> cbLayouts = new();
+
         // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
         private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = [];
@@ -140,6 +145,8 @@ namespace Stride.Graphics
             // Clear descriptor mappings
             srvMapping.Clear();
             samplerMapping.Clear();
+
+            cbLayouts.Clear();
 
             currentCommandList.Builder = this;
             currentCommandList.SrvHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
@@ -612,13 +619,19 @@ namespace Stride.Graphics
             if (resource is Texture { ParentTexture: not null } textureView)
                 resource = textureView.ParentTexture;
 
-            if (resource.LayoutTracker.NeedsTransition(subresource, newLayout))
+            // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
+            // perSubresource array.
+            ref var tracker = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cbLayouts, resource, out bool exists);
+            if (!exists)
+                tracker = resource.LayoutTracker.Clone();
+
+            if (tracker.NeedsTransition(subresource, newLayout))
             {
                 // When per-subresource tracking is active and a whole-resource transition is requested,
                 // only emit barriers for subresources that actually differ
-                if (subresource == uint.MaxValue && resource.LayoutTracker.HasPerSubresourceTracking)
+                if (subresource == uint.MaxValue && tracker.HasPerSubresourceTracking)
                 {
-                    var layouts = resource.LayoutTracker.PerSubresourceLayouts;
+                    var layouts = tracker.PerSubresourceLayouts;
                     for (int i = 0; i < layouts.Length; i++)
                     {
                         if (layouts[i] != newLayout)
@@ -632,13 +645,14 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.LayoutTracker.Get(subresource), newLayout)
+                    pendingBarriers.Add(new ResourceBarrierDescription(resource, tracker.Get(subresource), newLayout)
                     {
                         Subresource = subresource
                     });
                 }
 
-                resource.LayoutTracker.Set(subresource, newLayout);
+                tracker.Set(subresource, newLayout);
+                resource.LayoutTracker = tracker;
             }
         }
 
