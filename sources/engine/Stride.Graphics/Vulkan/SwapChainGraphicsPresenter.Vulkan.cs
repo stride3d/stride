@@ -266,6 +266,10 @@ namespace Stride.Graphics
 
         public override void EndDraw(CommandList commandList, bool present)
         {
+            // Transition the back-buffer to Present before vkQueuePresentKHR sees it.
+            // Skipped when the caller won't actually Present (no-draw frames, headless tests).
+            if (present)
+                commandList.ResourceBarrierTransition(BackBuffer, BarrierLayout.Present);
         }
 
         protected override void OnNameChanged()

@@ -188,8 +188,6 @@ namespace Stride.Graphics
         /// </summary>
         public partial void Flush()
         {
-            FlushResourceBarriers();
-
             var commandList = Close();
             GraphicsDevice.ExecuteCommandList(commandList);
         }
@@ -277,17 +275,9 @@ namespace Stride.Graphics
         /// <param name="renderTargetViews">The Render Targets to bind.</param>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargetViews)
         {
-            // Transition render targets and depth-stencil to the correct state
-            for (int i = 0; i < renderTargetViews.Length; ++i)
-            {
-                var rt = renderTargetViews[i];
-                ResourceBarrierTransition(rt, BarrierLayout.RenderTarget, GetTextureSubresource(rt));
-            }
-
-            if (depthStencilBuffer is not null)
-                ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite, GetTextureSubresource(depthStencilBuffer));
-
-            FlushResourceBarriers();
+            // RT/DS state transitions are deferred to PrepareDraw (see TransitionBoundRenderTargets)
+            // so a bare SetRenderTargets without any subsequent draw (e.g. ClearState during init)
+            // doesn't produce a command list with only barrier commands.
 
             int renderTargetCount = renderTargetViews.Length;
 
@@ -402,9 +392,31 @@ namespace Stride.Graphics
         /// </remarks>
         private void PrepareDraw()
         {
+            TransitionBoundRenderTargets();
             TransitionDescriptorResources();
             FlushResourceBarriers();
             SetViewportImpl();
+        }
+
+        /// <summary>
+        ///   Transitions the currently-bound render targets and depth-stencil buffer to their
+        ///   render-writable states (RenderTarget / DepthStencilWrite). Done at draw time rather
+        ///   than at SetRenderTargets time so a bind without any subsequent draw (e.g. ClearState
+        ///   during game init) doesn't leave a barrier-only command list to submit.
+        /// </summary>
+        private void TransitionBoundRenderTargets()
+        {
+            var rts = RenderTargets;
+            for (int i = 0; i < rts.Length; ++i)
+            {
+                var rt = rts[i];
+                if (rt is not null)
+                    ResourceBarrierTransition(rt, BarrierLayout.RenderTarget, GetTextureSubresource(rt));
+            }
+
+            var ds = DepthStencilBuffer;
+            if (ds is not null)
+                ResourceBarrierTransition(ds, BarrierLayout.DepthStencilWrite, GetTextureSubresource(ds));
         }
 
         /// <summary>
@@ -689,14 +701,19 @@ namespace Stride.Graphics
             {
                 var desc = pendingBarriers[i];
 
+                var syncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore);
+                var syncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter);
+                var accessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore);
+                var accessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter);
+
                 if (desc.Resource is Texture)
                 {
                     textureBarriers[textureCount++] = new D3D12TextureBarrier
                     {
-                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
-                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
-                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
-                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        SyncBefore = syncBefore,
+                        SyncAfter = syncAfter,
+                        AccessBefore = accessBefore,
+                        AccessAfter = accessAfter,
                         LayoutBefore = BarrierMapping.ToEnhancedLayout(desc.LayoutBefore),
                         LayoutAfter = BarrierMapping.ToEnhancedLayout(desc.LayoutAfter),
                         PResource = desc.Resource.NativeResource,
@@ -708,10 +725,10 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferCount++] = new D3D12BufferBarrier
                     {
-                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
-                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
-                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
-                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        SyncBefore = syncBefore,
+                        SyncAfter = syncAfter,
+                        AccessBefore = accessBefore,
+                        AccessAfter = accessAfter,
                         PResource = desc.Resource.NativeResource,
                         Offset = 0,
                         Size = ulong.MaxValue, // Entire buffer
