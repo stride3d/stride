@@ -282,10 +282,6 @@ namespace Stride.Graphics
         /// <param name="renderTargetViews">The Render Targets to bind.</param>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargetViews)
         {
-            // RT/DS state transitions are deferred to PrepareDraw (see TransitionBoundRenderTargets)
-            // so a bare SetRenderTargets without any subsequent draw (e.g. ClearState during init)
-            // doesn't produce a command list with only barrier commands.
-
             int renderTargetCount = renderTargetViews.Length;
 
             var renderTargetHandles = stackalloc CpuDescriptorHandle[renderTargetCount];
@@ -399,71 +395,8 @@ namespace Stride.Graphics
         /// </remarks>
         private void PrepareDraw()
         {
-            TransitionBoundRenderTargets();
-            TransitionDescriptorResources();
             FlushResourceBarriers();
             SetViewportImpl();
-        }
-
-        /// <summary>
-        ///   Transitions the currently-bound render targets and depth-stencil buffer to their
-        ///   render-writable states (RenderTarget / DepthStencilWrite). Done at draw time rather
-        ///   than at SetRenderTargets time so a bind without any subsequent draw (e.g. ClearState
-        ///   during game init) doesn't leave a barrier-only command list to submit.
-        /// </summary>
-        private void TransitionBoundRenderTargets()
-        {
-            var rts = RenderTargets;
-            for (int i = 0; i < rts.Length; ++i)
-            {
-                var rt = rts[i];
-                if (rt is not null)
-                    ResourceBarrierTransition(rt, BarrierLayout.RenderTarget, GetTextureSubresource(rt));
-            }
-
-            var ds = DepthStencilBuffer;
-            if (ds is not null)
-                ResourceBarrierTransition(ds, BarrierLayout.DepthStencilWrite, GetTextureSubresource(ds));
-        }
-
-        /// <summary>
-        ///   Transitions all resources bound in descriptor sets to the correct state for shader access.
-        ///   SRV resources are transitioned to PixelShaderResource | NonPixelShaderResource,
-        ///   UAV resources are transitioned to UnorderedAccess.
-        /// </summary>
-        private void TransitionDescriptorResources()
-        {
-            if (boundDescriptorSets is null)
-                return;
-
-            for (int i = 0; i < boundDescriptorSets.Length; i++)
-            {
-                var tracking = boundDescriptorSets[i].Tracking;
-                if (tracking is null)
-                    continue;
-
-                var resources = tracking.Resources;
-                var isUAV = tracking.IsUAV;
-
-                for (int j = 0; j < resources.Length; j++)
-                {
-                    var resource = resources[j];
-                    if (resource is null)
-                        continue;
-
-                    // Skip resources on CPU-visible heaps (Upload/Readback) — they have a fixed
-                    // D3D12 state for their lifetime and cannot be transitioned. Must check by heap
-                    // type, not by state: default-heap resources can be in CopyDest/GenericRead
-                    // transiently after a copy and must still go through the transition.
-                    if (resource.IsHostVisibleHeap)
-                        continue;
-
-                    if (isUAV[j])
-                        ResourceBarrierTransition(resource, BarrierLayout.UnorderedAccess);
-                    else
-                        ResourceBarrierTransition(resource, BarrierLayout.ShaderResource);
-                }
-            }
         }
 
         /// <summary>
