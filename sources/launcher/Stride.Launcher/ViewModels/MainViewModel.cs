@@ -722,6 +722,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     Content = Strings.KeepLauncherOpen,
                     IsDefault = true,
                     IsCancel = true,
+                    Key = "Escape",
                     Result = KeepOpenResult,
                 },
             };
