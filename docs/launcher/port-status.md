@@ -33,6 +33,10 @@ These are behavioural differences that were not preserved during the port and ca
 
 *(Three items previously listed here — `/LauncherWindowHandle` always zero, empty `MainWindow.OnClosing`, and the unpersistent `TabControl.SelectedIndex` — have been resolved. See the 2026-04-22 `feat(launcher): …` commits for the window-lifecycle restoration.)*
 
+### Recent-project row has an offset hit-test for right-click
+
+Observed on Linux during the 2026-04-22 cross-platform-services smoke: right-clicking on a recent-project row does not open the context menu at the row's visible position. The hit-test lands a few pixels lower than the rendered content, so the menu only appears when the user clicks *below* the visible row. Not present in master (where hit-testing was WPF-native and correct). Likely an Avalonia layout discrepancy in the recent-projects panel of [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) — the `Border.ContextMenu` or one of its parent containers has a vertical offset between its rendered bounds and its input bounds. Not caused by Phase 1 items; filed here so it isn't lost.
+
 ### `OpenHyperlinkCommand` lost `.md → .html` rewriting
 
 Master's `Views/Commands.cs`:
