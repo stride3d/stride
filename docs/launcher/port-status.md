@@ -159,6 +159,12 @@ The launcher has no unit or integration tests today. Bootstrap a test project fo
 
 This phase is not blocked by the others — it can be pulled earlier any time new behaviour needs coverage. Each Phase 1–3 item whose surface is naturally testable should note the tests that will be added here so nothing is forgotten.
 
+## Beyond parity (proposed enhancements)
+
+Items that were never in the master WPF launcher but are reasonable next steps once parity is achieved. They are not on any phase above because "do nothing" is a valid answer — only pick them up if they become a real pain point.
+
+1. **Persist the selected alternate version.** The `Internal/Launcher/ActiveVersion` setting stores only `"Stride <major>.<minor>"` (see [StrideVersionViewModel.GetName](../../sources/launcher/Stride.Launcher/ViewModels/StrideVersionViewModel.cs#L152)). When a user has multiple patch-level builds of the same major.minor installed (e.g., `4.3.0.1` and `4.3.0.2`), the launcher remembers which *major.minor* was active but always selects the default patch on restart. Requires: extending the setting format to capture the full version (or adding a sibling key `ActiveAlternateVersion`), and updating the restore logic in [MainViewModel.RetrieveLocalStrideVersions](../../sources/launcher/Stride.Launcher/ViewModels/MainViewModel.cs#L355) to consult it. Surfaced during the 2026-04-22 window-lifecycle smoke.
+
 ## Cross-references
 
 - [cross-platform.md](cross-platform.md) — the "which OS does what" view; update alongside this page as gaps close.
