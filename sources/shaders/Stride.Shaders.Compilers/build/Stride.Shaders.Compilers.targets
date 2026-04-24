@@ -12,4 +12,12 @@
     <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
     <AdditionalFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
   </ItemGroup>
+
+  <Target Name="StrideStripSilkSpirvCrossNative" AfterTargets="ResolvePackageAssets" BeforeTargets="ResolveLockFileCopyLocalFiles;ComputeFilesToPublish">
+    <ItemGroup>
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+    </ItemGroup>
+  </Target>
 </Project>
