@@ -97,10 +97,13 @@
   <!-- ================================================================ -->
   <!-- Stride.Core.CompilerServices Roslyn Analyzer -->
   <!-- ================================================================ -->
+  <!-- Stride.Core.CompilerServices is single-TF (netstandard2.0), so an explicit
+       SetTargetFramework is redundant — and harmful: it forces TargetFramework into the
+       consumer-ref dispatch globals, producing a cache key distinct from the slnf-direct
+       outer dispatch (which has no TF global). Both then race on obj/. -->
   <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
     <ProjectReference Include="$(StrideRoot)sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
                       OutputItemType="Analyzer"
-                      SetTargetFramework="TargetFramework=netstandard2.0"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
@@ -236,7 +239,6 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
-             Targets="Build;Pack"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
     </MSBuild>
   </Target>

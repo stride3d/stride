@@ -42,7 +42,7 @@ jobs:
       - name: Build
         run: |
           msbuild build\Stride.VisualStudio.sln `
-            -restore -m:1 -nr:false `
+            -restore -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideSkipUnitTests=true `
