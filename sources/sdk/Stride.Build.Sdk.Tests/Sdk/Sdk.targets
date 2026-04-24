@@ -70,7 +70,9 @@
     <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <!-- Strip test-project-only properties so CompilerApp still packs its .nupkg
+           (needed at AssetCompiler time for the test's package graph resolution). -->
+      <GlobalPropertiesToRemove>TargetFramework;StrideSkipAutoPack</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
