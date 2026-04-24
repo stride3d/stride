@@ -313,8 +313,14 @@ public static unsafe class SpirvTools
 
     /// <summary>
     /// Runs a legalization pass list tuned for SPIRV-Cross HLSL emission —
-    /// constant folding, DCE, CCP, structured-CFG cleanup — while keeping every
-    /// stage's <c>Input</c>/<c>Output</c> variables alive.
+    /// constant folding, DCE, CCP, structured-CFG cleanup, SSA promotion and
+    /// inlining — while keeping every stage's <c>Input</c>/<c>Output</c>
+    /// variables alive. Equivalent to <c>spirv-opt --legalize-hlsl</c>.
+    /// <para>
+    /// Without the inlining + SSA passes here FXC can hit
+    /// 'internal error: argument pulled into unrelated predicate' on shaders
+    /// that call Prepare/Compute helpers through a static stream struct.
+    /// </para>
     /// <para>
     /// Interface preservation is a stopgap. Stride feeds a single merged module
     /// containing every stage to the optimizer, and spirv-opt has no cross-stage
