@@ -440,6 +440,17 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
 
+            // Match the stage-variable path in ShaderMember.Compile: emit UserTypeGOOGLE /
+            // NonWritable so SPIRV-Cross emits StructuredBuffer<T> / ByteAddressBuffer on SRV
+            // registers instead of defaulting to RWByteAddressBuffer on UAV registers.
+            if (type.BaseType is StructuredBufferType sb)
+                context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, $"{(sb.WriteAllowed ? "rw" : "")}structuredbuffer:<{sb.BaseType.ToId().ToLowerInvariant()}>"));
+            else if (type.BaseType is ByteAddressBufferType bab)
+                context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, bab.WriteAllowed ? "rwbyteaddressbuffer" : "byteaddressbuffer"));
+
+            if (type.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
+                context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.NonWritable, []));
+
             context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.ResourceGroupSDSL, Name));
             // We also store an ID because multiple rgroup might have the same name,
             // but we still want to know which one was in the same "block" when we try to optimize them (we can only optimize a resource if all the resource in the same rgroup block can be optimized)

@@ -78,6 +78,33 @@ public partial class RenderingTests
         }
     }
 
+    [Fact]
+    public void StructuredBufferEmitsStructuredBufferHlsl()
+    {
+        // Regression: StructuredBuffer<T>/RWStructuredBuffer<T> must reach HLSL as the
+        // matching types, not RWByteAddressBuffer. Requires NonWritable + UserTypeGOOGLE
+        // decorations to survive ShaderMixer / type-duplicate elimination.
+        const string shaderName = "CSStructuredBuffer";
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        File.WriteAllBytes($"{shaderName}.spv", bytecode);
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoint = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+        File.WriteAllText($"{shaderName}.hlsl", hlsl);
+
+        Assert.Contains("StructuredBuffer<Entry>", hlsl);
+        Assert.Contains("RWStructuredBuffer<Entry>", hlsl);
+        Assert.DoesNotContain("ByteAddressBuffer", hlsl);
+    }
+
     [Theory]
     [MemberData(nameof(GetRenderTestFiles))]
     public void RenderTest1(string shaderName)
