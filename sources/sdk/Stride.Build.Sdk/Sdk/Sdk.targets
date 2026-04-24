@@ -62,6 +62,16 @@
   <Import Project="Stride.GraphicsApi.InnerBuild.targets" />
 
   <!-- ================================================================ -->
+  <!-- Graphics API consumer-side targets (shared with NuGet consumers) -->
+  <!-- ================================================================ -->
+  <!-- Lives in Stride.Graphics/build/ because the same file is packed into
+       the Stride.Graphics NuGet's build/ and buildTransitive/ folders for
+       external consumers. Importing it here also gives internal Stride
+       builds (which consume Silk.NET native packages directly via
+       PackageReference) the same per-API native asset trimming. -->
+  <Import Project="$(StrideRoot)sources/engine/Stride.Graphics/build/Stride.GraphicsApiSpecificPackages.targets" />
+
+  <!-- ================================================================ -->
   <!-- Native dependency system (.ssdeps) -->
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />

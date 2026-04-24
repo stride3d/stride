@@ -12,5 +12,5 @@
   </PropertyGroup>
 
   <!-- Consume packages with StrideGraphicsApi -->
-  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApiSpecificPackages.targets" />
 </Project>
