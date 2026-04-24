@@ -1,0 +1,23 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ==================================================================
+       Stride.Assets contributions to the graphics-API native-package filter
+       defined in Stride.Graphics/build/Stride.GraphicsApi.PackageReference.targets.
+
+       Only the filter-related items live here so this file can be imported
+       standalone by the internal Stride.Build.Sdk.Editor without pulling in
+       any future unrelated Stride.Assets targets.
+
+       The asset pipeline (EffectCompileCommand and friends) cross-compiles
+       HLSL to SPIR-V via DXC even when the consumer's target is Vulkan — so
+       extend DXC's APIs list to keep it out of the base filter's strip set.
+       Any other cross-compile native packages the asset pipeline pulls in
+       the future can be declared (or extended) here.
+  -->
+  <ItemGroup>
+    <!-- HLSL -> SPIR-V cross-compile for Vulkan asset builds uses DXC. -->
+    <StrideGraphicsApiSpecificPackage Update="Silk.NET.Direct3D.Compilers"
+        GraphicsApis="Direct3D11;Direct3D12;Vulkan" />
+  </ItemGroup>
+
+</Project>
