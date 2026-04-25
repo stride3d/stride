@@ -133,6 +133,22 @@
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
   </Target>
 
+  <!-- In-tree consumers invoke CompilerApp.exe via ProjectReference. CompilerApp's own
+       Stride.NuGetResolver needs Stride.Core.Assets.CompilerApp.<version>.nupkg in
+       bin\packages\ to resolve its runtime dep graph. Under parallel MSBuild, the normal
+       AfterTargets=Build Pack chain isn't guaranteed to complete before another consumer's
+       StrideCompileAsset fires. Dispatch Pack explicitly here so it's done before we run
+       CompilerApp.exe. Gated by the source-tree existence check — NuGet-package consumers
+       already have the .nupkg. -->
+  <Target Name="_StrideEnsureCompilerAppPacked"
+          BeforeTargets="StrideCompileAsset"
+          Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
+             Targets="Pack"
+             Properties="TargetFramework=$(StrideXplatEditorTargetFramework)"
+             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi" />
+  </Target>
+
   <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">
     <Message Importance="Normal" Text="Android inner MSBuild execution detected - skipping compilation" Condition="'$(StrideCompilerSkipAndroidInnerBuild)' == 'true'" />
   </Target>
