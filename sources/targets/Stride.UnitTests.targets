@@ -22,6 +22,9 @@
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SetTargetFramework>TargetFramework=$(StrideXplatEditorTargetFramework)</SetTargetFramework>
+      <!-- Strip StrideSkipAutoPack so CompilerApp still packs its .nupkg (needed at
+           AssetCompiler time for the test's package graph resolution). -->
+      <GlobalPropertiesToRemove>StrideSkipAutoPack</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
