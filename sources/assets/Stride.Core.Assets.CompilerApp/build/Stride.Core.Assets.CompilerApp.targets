@@ -145,7 +145,7 @@
           Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
              Targets="Pack"
-             Properties="TargetFramework=$(StrideXplatEditorTargetFramework)"
+             Properties="TargetFrameworks=$(StrideXplatEditorTargetFramework);TargetFramework=$(StrideXplatEditorTargetFramework)"
              RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi" />
   </Target>
 
