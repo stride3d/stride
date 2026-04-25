@@ -112,9 +112,24 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     }
                 }
 
-                // Check if there is any output
-                // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
-                if (streams.Any(x => x.Value.Output))
+                // SDSL convention: `override stage void PSMain() { }` at the leaf of the mixin chain (with no
+                // further override) means "no pixel shader needed" — drop the Fragment entry point entirely.
+                // Detect this by inspecting the resolved PSMain body in SPIR-V: if it contains only structural
+                // instructions, the source body is empty and the convention applies. Anything else (clip/discard
+                // → OpKill, function calls, stores, atomics, etc.) keeps the PS.
+                var (psStart, psEnd) = SpirvBuilder.FindMethodBounds(buffer, entryPointPS.IdRef);
+                bool psBodyIsEmpty = true;
+                for (int idx = psStart; idx < psEnd; idx++)
+                {
+                    var op = buffer[idx].Op;
+                    if (op is not (Op.OpFunction or Op.OpFunctionParameter or Op.OpLabel or Op.OpReturn or Op.OpReturnValue or Op.OpFunctionEnd))
+                    {
+                        psBodyIsEmpty = false;
+                        break;
+                    }
+                }
+
+                if (!psBodyIsEmpty)
                 {
                     var psEntry = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Fragment, entryPointPS, analysisResult, liveAnalysis, false);
                     entryPoints.Add(psEntry);
