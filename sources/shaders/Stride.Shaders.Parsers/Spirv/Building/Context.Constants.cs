@@ -104,6 +104,27 @@ public partial class SpirvContext
                         _ => throw new NotSupportedException($"Unsupported conversion op: {op}"),
                     };
                     break;
+                // Bitcast: reinterpret the operand's bits as the target scalar type.
+                case Specification.Op.OpBitcast:
+                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var bitcastOperand, out _))
+                        return false;
+                    if (ReverseTypes[resultType] is not ScalarType { Type: var bitcastTargetScalar })
+                        throw new NotSupportedException($"OpBitcast result type {ReverseTypes[resultType]} is not a scalar");
+                    var bitcastBits = bitcastOperand switch
+                    {
+                        int v => (uint)v,
+                        uint v => v,
+                        float v => BitConverter.SingleToUInt32Bits(v),
+                        _ => throw new NotSupportedException($"OpBitcast operand type {bitcastOperand.GetType()} is not supported"),
+                    };
+                    value = bitcastTargetScalar switch
+                    {
+                        Scalar.Int => (object)(int)bitcastBits,
+                        Scalar.UInt => bitcastBits,
+                        Scalar.Float => BitConverter.UInt32BitsToSingle(bitcastBits),
+                        _ => throw new NotSupportedException($"OpBitcast target scalar {bitcastTargetScalar} is not supported"),
+                    };
+                    break;
                 // Unary operations
                 case Specification.Op.OpSNegate:
                 case Specification.Op.OpFNegate:
