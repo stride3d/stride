@@ -97,10 +97,13 @@ internal static class Module
             var path = Path.Combine(crashDumpDir, $"{tag}_{Environment.ProcessId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.dmp");
             using var fs = File.Create(path);
             var process = Process.GetCurrentProcess();
-            const uint MiniDumpWithThreadInfo = 0x00001000;
+            const uint MiniDumpWithFullMemory = 0x00000002;
             const uint MiniDumpWithFullMemoryInfo = 0x00000800;
+            const uint MiniDumpWithHandleData = 0x00000004;
+            const uint MiniDumpWithThreadInfo = 0x00001000;
             bool ok = MiniDumpWriteDump(process.Handle, (uint)process.Id, fs.SafeFileHandle.DangerousGetHandle(),
-                MiniDumpWithThreadInfo | MiniDumpWithFullMemoryInfo, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithThreadInfo,
+                IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
             Console.Error.WriteLine(ok
                 ? $"[CrashDiag] Dump written: {path}"
                 : $"[CrashDiag] Dump failed: error {Marshal.GetLastWin32Error()}");

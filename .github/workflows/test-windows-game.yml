@@ -113,7 +113,7 @@ jobs:
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
       STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\TestResults"            # Shared dump directory for all crash types
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
-      DOTNET_DbgMiniDumpType: "1"                                                    # MiniDumpNormal
+      DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
     steps:
       - uses: actions/checkout@v4
@@ -132,7 +132,7 @@ jobs:
           $dumpDir = "${{ github.workspace }}\TestResults"
           New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
       - name: Install Vulkan SDK
         if: matrix.graphics-api == 'Vulkan'
