@@ -40,11 +40,6 @@
       <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
-    <StrideNativeLib Include="..\..\..\deps\glslang\**\glslangValidator*.*">
-      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
-      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </StrideNativeLib>
     <StrideNativeLib Include="./native/spirv_to_dxil.dll">
       <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
       <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
