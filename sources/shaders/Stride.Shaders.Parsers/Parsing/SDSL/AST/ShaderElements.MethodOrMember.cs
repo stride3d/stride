@@ -225,6 +225,11 @@ public sealed partial class ShaderMember(
 
             // Constant: compile right away
             var constantValue = Value.CompileConstantValue(table, context, memberType);
+            // Infer size for unsized arrays (e.g. `static const uint info[] = {...};`) from
+            // the initializer; otherwise indexing the constant later allocates a temp variable
+            // typed as runtime array, mismatching the OpSpecConstantComposite's sized OpTypeArray.
+            if (memberType is ArrayType { Size: -1 } && Value.ValueType is ArrayType { Size: > 0 } inferred)
+                memberType = inferred;
             context.SetName(constantValue.Id, Name);
             var constant = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id, OwnerType: table.CurrentShader);
             table.CurrentFrame.Add(Name, constant);

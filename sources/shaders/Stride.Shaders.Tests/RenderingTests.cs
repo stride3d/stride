@@ -108,6 +108,27 @@ public partial class RenderingTests
     }
 
     [Fact]
+    public void UnsizedConstArrayInfersSizeForIndexing()
+    {
+        // Regression: `static const uint info[] = {...};` was kept as ArrayType
+        // with Size=-1 even after the initializer fixed the count, so indexing
+        // `info[i]` allocated a Function temp typed as OpTypeRuntimeArray and
+        // then OpStored the OpSpecConstantComposite of OpTypeArray<7> into it —
+        // SPIR-V validation rejects the type mismatch.
+        const string shaderName3 = "CSConstArrayInfer";
+        var shaderMixer3 = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
+        shaderMixer3.ShaderLoader.LoadExternalBuffer(shaderName3, [], out _, out _, out _);
+
+        var log3 = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer3.MergeSDSL(new ShaderClassSource(shaderName3), new ShaderMixer.Options(true), log3, out var bytecode3, out _, out _, out _),
+            string.Join(Environment.NewLine, log3.Messages.Select(m => m.Text)));
+
+        File.WriteAllBytes($"{shaderName3}.spv", bytecode3);
+        var validation = Spv.ValidateFile($"{shaderName3}.spv");
+        Assert.True(validation.IsValid, validation.Output);
+    }
+
+    [Fact]
     public void StructuredBufferEmitsStructuredBufferHlsl()
     {
         // Regression: StructuredBuffer<T>/RWStructuredBuffer<T> must reach HLSL as the
