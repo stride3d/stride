@@ -79,6 +79,35 @@ public partial class RenderingTests
     }
 
     [Fact]
+    public void DuplicateCBufferNameSurvivesMixerRename()
+    {
+        // Regression: when two shader classes declare a cbuffer with the same
+        // source-level name (e.g. PerDraw / Settings), MergeCBuffers groups
+        // them by GetCBufferRealName but for count==1 (after one is optimized
+        // out) it must rewrite the surviving variable's OpName back to the
+        // unsuffixed original. Otherwise SPIRV-Cross emits e.g. `Settings_1`
+        // which mismatches EffectReflection's `Settings` lookup at
+        // ShaderCompiler.UpdateReflection.
+        const string shaderName2 = "CSCBufferRename";
+        var shaderMixer2 = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
+        shaderMixer2.ShaderLoader.LoadExternalBuffer(shaderName2, [], out _, out _, out _);
+
+        var log2 = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer2.MergeSDSL(new ShaderClassSource(shaderName2), new ShaderMixer.Options(true), log2, out var bytecode2, out _, out _, out _),
+            string.Join(Environment.NewLine, log2.Messages.Select(m => m.Text)));
+
+        File.WriteAllBytes($"{shaderName2}.spv", bytecode2);
+        File.WriteAllText($"{shaderName2}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode2), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+        var translator2 = new SpirvTranslator(bytecode2.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoint2 = translator2.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl2 = translator2.Translate(Backend.Hlsl, entryPoint2);
+        File.WriteAllText($"{shaderName2}.hlsl", hlsl2);
+
+        Assert.Contains("cbuffer Settings ", hlsl2);
+        Assert.DoesNotContain("cbuffer Settings_", hlsl2);
+    }
+
+    [Fact]
     public void StructuredBufferEmitsStructuredBufferHlsl()
     {
         // Regression: StructuredBuffer<T>/RWStructuredBuffer<T> must reach HLSL as the

@@ -258,11 +258,18 @@ namespace Stride.Shaders.Compilers.SDSL
                 var cbuffersSpan = CollectionsMarshal.AsSpan(cbuffers);
 
                 // In all cases, we update name to one without .0 .1 suffix
-                // (we do it even for case count == 1 because all buffer except one might have been optimized away)
-                context.Names[cbuffersSpan[0].VariableId] = cbuffersEntry.Key;
+                // (we do it even for case count == 1 because all buffer except one might have been optimized away).
+                // SetName updates both the Names dict and the corresponding OpName instruction in the buffer.
+                context.SetName(cbuffersSpan[0].VariableId, cbuffersEntry.Key);
 
                 if (cbuffersEntry.Count() == 1)
                 {
+                    // SPIRV-Cross derives the HLSL cbuffer name from the struct type name
+                    // (`type.X` → `cbuffer X`), not the variable name. Rename the surviving
+                    // struct type back to the unsuffixed form too, otherwise we get e.g.
+                    // `cbuffer Settings_1 : register(b0)` which mismatches reflection's
+                    // `Settings` lookup at ShaderCompiler.UpdateReflection.
+                    context.SetName(context.Types[cbuffersSpan[0].StructType], $"type.{cbuffersEntry.Key}");
                     ProcessDecorations(cbuffersSpan, cbuffersEntry.First().StructType, false);
                 }
                 // More than 1 cbuffers with same name
