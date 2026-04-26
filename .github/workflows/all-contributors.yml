@@ -1,0 +1,192 @@
+name: All Contributors
+
+on:
+  workflow_dispatch:
+    inputs:
+      commands:
+        description: Semicolon-separated contributors such as @user1 code; @user2 doc
+        required: true
+        type: string
+      base-branch:
+        description: Base branch for the generated pull request
+        required: false
+        default: master
+        type: string
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: all-contributors-${{ github.event.issue.number || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.number == 1226 &&
+        contains(github.event.comment.body, '/contributor add ') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+      )
+    runs-on: ubuntu-latest
+    env:
+      ALL_CONTRIBUTORS_VERSION: 6.26.1
+      ALL_CONTRIBUTORS_CONFIG: .all-contributorsrc
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.base-branch || github.event.repository.default_branch }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Parse contributor commands
+        id: metadata
+        shell: pwsh
+        env:
+          TRIGGER_EVENT: ${{ github.event_name }}
+          CONTRIBUTOR_COMMANDS: ${{ github.event_name == 'workflow_dispatch' && inputs.commands || github.event.comment.body }}
+        run: |
+          $maxUsersInTitle = 3
+          $issueCommentPattern = '^\s*/contributor\s+add\s+@?(?<login>[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\s+(?<types>[A-Za-z][A-Za-z0-9]*(?:,[A-Za-z][A-Za-z0-9]*)*)\s*$'
+          $workflowDispatchPattern = '^\s*(?:/contributor\s+add\s+)?@?(?<login>[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\s+(?<types>[A-Za-z][A-Za-z0-9]*(?:,[A-Za-z][A-Za-z0-9]*)*)\s*$'
+
+          if ($env:TRIGGER_EVENT -eq 'workflow_dispatch') {
+            $entries = $env:CONTRIBUTOR_COMMANDS -split '\s*;\s*'
+            $pattern = $workflowDispatchPattern
+          }
+          else {
+            $entries = $env:CONTRIBUTOR_COMMANDS -split "`r?`n"
+            $pattern = $issueCommentPattern
+          }
+
+          $updates = [ordered]@{}
+          $validCommands = [System.Collections.Generic.List[string]]::new()
+
+          foreach ($entry in $entries) {
+            if ([string]::IsNullOrWhiteSpace($entry)) {
+              continue
+            }
+
+            $match = [System.Text.RegularExpressions.Regex]::Match($entry, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            if (-not $match.Success) {
+              continue
+            }
+
+            $login = $match.Groups['login'].Value
+            if (-not $updates.Contains($login)) {
+              $updates[$login] = [System.Collections.Generic.List[string]]::new()
+            }
+
+            foreach ($contributionType in ($match.Groups['types'].Value -split ',')) {
+              $normalizedType = $contributionType.Trim().ToLowerInvariant()
+              if ([string]::IsNullOrWhiteSpace($normalizedType) -or $updates[$login].Contains($normalizedType)) {
+                continue
+              }
+
+              $updates[$login].Add($normalizedType)
+              $validCommands.Add("/contributor add @$login $normalizedType")
+            }
+          }
+
+          if ($updates.Count -eq 0) {
+            throw 'No valid contributor commands were found.'
+          }
+
+          $users = @($updates.Keys)
+          if ($users.Count -eq 1) {
+            $branch = "all-contributors/add-$($users[0])-$env:GITHUB_RUN_ID"
+            $title = "docs: add all-contributors entry for @$($users[0])"
+          }
+          else {
+            $branch = "all-contributors/update-$($users.Count)-users-$env:GITHUB_RUN_ID"
+            if ($users.Count -le $maxUsersInTitle) {
+              $mentions = ($users | ForEach-Object { "@$_" }) -join ', '
+              $title = "docs: add all-contributors entries for $mentions"
+            }
+            else {
+              $title = "docs: add all-contributors entries for $($users.Count) users"
+            }
+          }
+
+          $userLines = foreach ($login in $updates.Keys) {
+            "$login`t$([string]::Join(',', $updates[$login]))"
+          }
+
+          Set-Content -Path /tmp/all-contributors-users.tsv -Value $userLines
+          Set-Content -Path /tmp/all-contributors-valid-commands.txt -Value $validCommands
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "branch=$branch"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "title=$title"
+
+          Write-Host 'Validated contributor updates:'
+          Get-Content /tmp/all-contributors-users.tsv | ForEach-Object { Write-Host $_ }
+
+      - name: Update contributor files
+        shell: pwsh
+        run: |
+          foreach ($line in Get-Content /tmp/all-contributors-users.tsv) {
+            if ([string]::IsNullOrWhiteSpace($line)) {
+              continue
+            }
+
+            $login, $contributionTypes = $line -split "`t", 2
+            Write-Host "Adding @$login with contributions: $contributionTypes"
+            npx --yes "all-contributors-cli@$env:ALL_CONTRIBUTORS_VERSION" add $login $contributionTypes --config $env:ALL_CONTRIBUTORS_CONFIG
+          }
+
+          npx --yes "all-contributors-cli@$env:ALL_CONTRIBUTORS_VERSION" generate --config $env:ALL_CONTRIBUTORS_CONFIG
+
+      - name: Detect contributor file changes
+        id: diff
+        shell: bash
+        run: |
+          if git diff --quiet -- README.md .all-contributorsrc; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No contributor changes were produced."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create contributor pull request
+        if: steps.diff.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.base-branch || github.event.repository.default_branch }}
+          PR_BRANCH: ${{ steps.metadata.outputs.branch }}
+          PR_TITLE: ${{ steps.metadata.outputs.title }}
+          TRIGGER_SOURCE: "${{ github.event_name == 'workflow_dispatch' && 'workflow_dispatch' || format('issue #{0}', github.event.issue.number) }}"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$PR_BRANCH"
+          git add README.md .all-contributorsrc
+          git commit -m "$PR_TITLE"
+          git push --set-upstream origin "$PR_BRANCH"
+
+          cat > /tmp/all-contributors-pr-body.md <<EOF
+          Automated all-contributors update using \`all-contributors-cli\`.
+
+          Trigger source: $TRIGGER_SOURCE
+
+          Commands:
+          \`\`\`text
+          $(cat /tmp/all-contributors-valid-commands.txt)
+          \`\`\`
+          EOF
+
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$PR_BRANCH" \
+            --title "$PR_TITLE" \
+            --body-file /tmp/all-contributors-pr-body.md
