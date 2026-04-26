@@ -5,8 +5,6 @@
   *****************************************************************************************************************************
   -->
   <ItemGroup>
-    <Compile Remove="**\*.sdsl.cs" />
-    <Compile Remove="**\*.sdfx.cs" />
     <None Remove ="**\*.sdsl" />
     <None Remove ="**\*.sdfx" />
     <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
