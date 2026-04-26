@@ -68,18 +68,18 @@
        temp dir. A FileShare.None lock file gates the writer; a sentinel marker lets latecomers
        skip without taking the lock. Avoids races where one worker overwrites a DLL another
        worker has already loaded via UsingTask. -->
-  <UsingTask TaskName="StrideEnsureAssemblyProcessorCopied"
+  <UsingTask TaskName="StrideEnsureFilesCopied"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <SourceDir Required="true" />
-      <DestDir Required="true" />
+      <SourceFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <DestinationFolder Required="true" />
       <MarkerFile Required="true" />
     </ParameterGroup>
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
         if (System.IO.File.Exists(MarkerFile)) return true;
-        System.IO.Directory.CreateDirectory(DestDir);
+        System.IO.Directory.CreateDirectory(DestinationFolder);
         var lockFile = MarkerFile + ".lock";
         var deadline = System.DateTime.UtcNow.AddMinutes(2);
         while (!System.IO.File.Exists(MarkerFile))
@@ -90,9 +90,10 @@
                 {
                     if (!System.IO.File.Exists(MarkerFile))
                     {
-                        foreach (var src in System.IO.Directory.GetFiles(SourceDir))
+                        foreach (var item in SourceFiles)
                         {
-                            var dest = System.IO.Path.Combine(DestDir, System.IO.Path.GetFileName(src));
+                            var src = item.ItemSpec;
+                            var dest = System.IO.Path.Combine(DestinationFolder, System.IO.Path.GetFileName(src));
                             if (!System.IO.File.Exists(dest))
                                 System.IO.File.Copy(src, dest, overwrite: false);
                         }
@@ -170,9 +171,12 @@
 
     <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking).
          Parallel-safe via cross-process file lock + sentinel marker. -->
-    <StrideEnsureAssemblyProcessorCopied SourceDir="$(StrideAssemblyProcessorBasePath)"
-                                          DestDir="$(StrideAssemblyProcessorTempBasePath)"
-                                          MarkerFile="$(StrideAssemblyProcessorTempBasePath).copy-complete" />
+    <ItemGroup>
+      <_StrideAssemblyProcessorFiles Include="$(StrideAssemblyProcessorBasePath)*.*" />
+    </ItemGroup>
+    <StrideEnsureFilesCopied SourceFiles="@(_StrideAssemblyProcessorFiles)"
+                             DestinationFolder="$(StrideAssemblyProcessorTempBasePath)"
+                             MarkerFile="$(StrideAssemblyProcessorTempBasePath).copy-complete" />
 
     <!-- Step 5: Execute processor -->
     <Message Condition="'$(StrideAssemblyProcessorDev)' != 'true'"
