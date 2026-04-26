@@ -11,16 +11,16 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public static IntrinsicImplementations Instance { get; } = new();
 
     // Bool
-    public override SpirvValue CompileAll(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBoolToScalarBoolCall(table, context, builder, functionType, x, Specification.Op.OpAll);
-    public override SpirvValue CompileAny(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBoolToScalarBoolCall(table, context, builder, functionType, x, Specification.Op.OpAny);
+    public override SpirvValue CompileAll(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBoolToScalarBoolCall(table, context, builder, functionType.ReturnType, x, Specification.Op.OpAll);
+    public override SpirvValue CompileAny(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBoolToScalarBoolCall(table, context, builder, functionType.ReturnType, x, Specification.Op.OpAny);
 
     // Cast
-    public override SpirvValue CompileAsfloat(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType, x);
-    public override SpirvValue CompileAsint(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType, x);
+    public override SpirvValue CompileAsfloat(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType.ReturnType, x);
+    public override SpirvValue CompileAsint(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType.ReturnType, x);
     public override SpirvValue CompileAsuint(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue? d = null, SpirvValue? x = null, SpirvValue? y = null, TextLocation location = default)
     {
         if (d == null && y == null)
-            return CompileBitcastCall(table, context, builder, functionType, x!.Value);
+            return CompileBitcastCall(table, context, builder, functionType.ReturnType, x!.Value);
         throw new NotImplementedException();
     }
 
@@ -54,40 +54,40 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         }
         throw new InvalidOperationException($"Unexpected type {inputType} for asdouble");
     }
-    public override SpirvValue CompileAsfloat16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType, x);
-    public override SpirvValue CompileAsint16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType, x);
-    public override SpirvValue CompileAsuint16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType, x);
+    public override SpirvValue CompileAsfloat16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType.ReturnType, x);
+    public override SpirvValue CompileAsint16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType.ReturnType, x);
+    public override SpirvValue CompileAsuint16(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileBitcastCall(table, context, builder, functionType.ReturnType, x);
 
     // Trigo
-    public override SpirvValue CompileSin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLSin, x);
-    public override SpirvValue CompileSinh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLSinh, x);
-    public override SpirvValue CompileAsin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLAsin, x);
-    public override SpirvValue CompileCos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLCos, x);
-    public override SpirvValue CompileCosh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLCosh, x);
-    public override SpirvValue CompileAcos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLAcos, x);
-    public override SpirvValue CompileTan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLTan, x);
-    public override SpirvValue CompileTanh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLTanh, x);
-    public override SpirvValue CompileAtan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLAtan, x);
-    public override SpirvValue CompileAtan2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLAtan2, x, y);
+    public override SpirvValue CompileSin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLSin, x);
+    public override SpirvValue CompileSinh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLSinh, x);
+    public override SpirvValue CompileAsin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLAsin, x);
+    public override SpirvValue CompileCos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLCos, x);
+    public override SpirvValue CompileCosh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLCosh, x);
+    public override SpirvValue CompileAcos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLAcos, x);
+    public override SpirvValue CompileTan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLTan, x);
+    public override SpirvValue CompileTanh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLTanh, x);
+    public override SpirvValue CompileAtan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLAtan, x);
+    public override SpirvValue CompileAtan2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLAtan2, x, y);
     public override SpirvValue CompileSincos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue s, SpirvValue c, TextLocation location = default)
     {
         // sincos(x, out s, out c): compute sin and cos separately, store to out params
-        var sinCosType = functionType with { ReturnType = context.ReverseTypes[x.TypeId] };
-        var sinVal = CompileGLSLFloatUnaryCall(table, context, builder, sinCosType, Specification.GLSLOp.GLSLSin, x);
-        var cosVal = CompileGLSLFloatUnaryCall(table, context, builder, sinCosType, Specification.GLSLOp.GLSLCos, x);
+        var resultType = context.ReverseTypes[x.TypeId];
+        var sinVal = CompileGLSLFloatUnaryCall(table, context, builder, resultType, Specification.GLSLOp.GLSLSin, x);
+        var cosVal = CompileGLSLFloatUnaryCall(table, context, builder, resultType, Specification.GLSLOp.GLSLCos, x);
         builder.Insert(new OpStore(s.Id, sinVal.Id, null, []));
         builder.Insert(new OpStore(c.Id, cosVal.Id, null, []));
         return new();
     }
 
     // Derivatives
-    public override SpirvValue CompileDdx(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdx, x);
-    public override SpirvValue CompileDdx_coarse(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdxCoarse, x);
-    public override SpirvValue CompileDdx_fine(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdxFine, x);
-    public override SpirvValue CompileDdy(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdy, x);
-    public override SpirvValue CompileDdy_coarse(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdyCoarse, x);
-    public override SpirvValue CompileDdy_fine(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpDPdyFine, x);
-    public override SpirvValue CompileFwidth(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpFwidth, x);
+    public override SpirvValue CompileDdx(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdx, x);
+    public override SpirvValue CompileDdx_coarse(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdxCoarse, x);
+    public override SpirvValue CompileDdx_fine(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdxFine, x);
+    public override SpirvValue CompileDdy(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdy, x);
+    public override SpirvValue CompileDdy_coarse(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdyCoarse, x);
+    public override SpirvValue CompileDdy_fine(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpDPdyFine, x);
+    public override SpirvValue CompileFwidth(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpFwidth, x);
 
     // Per component math
     public override SpirvValue CompileAbs(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
@@ -100,9 +100,9 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         };
         return new(instruction);
     }
-    public override SpirvValue CompileFloor(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLFloor, x);
-    public override SpirvValue CompileCeil(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLCeil, x);
-    public override SpirvValue CompileTrunc(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLTrunc, x);
+    public override SpirvValue CompileFloor(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLFloor, x);
+    public override SpirvValue CompileCeil(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLCeil, x);
+    public override SpirvValue CompileTrunc(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLTrunc, x);
     public override SpirvValue CompileMin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default)
     {
         var instruction = context.ReverseTypes[a.TypeId].GetElementType() switch
@@ -139,15 +139,15 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new(instruction);
     }
 
-    public override SpirvValue CompileRadians(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLRadians, x);
-    public override SpirvValue CompileDegrees(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLDegrees, x);
+    public override SpirvValue CompileRadians(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLRadians, x);
+    public override SpirvValue CompileDegrees(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLDegrees, x);
 
-    public override SpirvValue CompileExp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLExp, x);
-    public override SpirvValue CompileExp2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLExp2, x);
-    public override SpirvValue CompileLog(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLLog, x);
-    public override SpirvValue CompileLog10(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => MultiplyConstant(table, context, builder, functionType, CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLLog2, x), (float)Math.Log10(2.0));
-    public override SpirvValue CompileLog2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLLog2, x);
-    public override SpirvValue CompilePow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLPow, x, y);
+    public override SpirvValue CompileExp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLExp, x);
+    public override SpirvValue CompileExp2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLExp2, x);
+    public override SpirvValue CompileLog(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLLog, x);
+    public override SpirvValue CompileLog10(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => MultiplyConstant(table, context, builder, functionType.ReturnType, CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLLog2, x), (float)Math.Log10(2.0));
+    public override SpirvValue CompileLog2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLLog2, x);
+    public override SpirvValue CompilePow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLPow, x, y);
 
     // Vector math
     public override SpirvValue CompileDistance(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default)
@@ -160,7 +160,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var instruction = builder.Insert(new OpDot(context.GetOrRegister(functionType.ReturnType), context.Bound++, a.Id, b.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
-    public override SpirvValue CompileCross(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLCross, a, b);
+    public override SpirvValue CompileCross(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLCross, a, b);
 
     public override SpirvValue CompileDeterminant(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
@@ -223,10 +223,10 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new(instruction.ResultId, instruction.ResultType);
     }
 
-    public override SpirvValue CompileRound(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLRound, x);
-    public override SpirvValue CompileRsqrt(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLInverseSqrt, x);
-    public override SpirvValue CompileSqrt(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLSqrt, x);
-    public override SpirvValue CompileStep(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue x, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLStep, a, x);
+    public override SpirvValue CompileRound(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLRound, x);
+    public override SpirvValue CompileRsqrt(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLInverseSqrt, x);
+    public override SpirvValue CompileSqrt(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLSqrt, x);
+    public override SpirvValue CompileStep(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue x, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLStep, a, x);
     public override SpirvValue CompileSaturate(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
         // Ensure 0.0 amd 1.0 constants have same type as x
@@ -272,7 +272,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var instruction = builder.Insert(new OpFRem(context.GetOrRegister(functionType.ReturnType), context.Bound++, a.Id, b.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
-    public override SpirvValue CompileFrac(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLFract, x);
+    public override SpirvValue CompileFrac(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLFract, x);
 
     public override SpirvValue CompileRcp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
@@ -288,11 +288,11 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
 
     // Float checks
-    public override SpirvValue CompileIsnan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpIsNan, x);
-    public override SpirvValue CompileIsinf(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpIsInf, x);
+    public override SpirvValue CompileIsnan(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpIsNan, x);
+    public override SpirvValue CompileIsinf(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpIsInf, x);
 
     // Bit operations
-    public override SpirvValue CompileCountbits(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType, Specification.Op.OpBitCount, x);
+    public override SpirvValue CompileCountbits(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.Op.OpBitCount, x);
     public override SpirvValue CompileFirstbithigh(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
         var op = context.ReverseTypes[x.TypeId].GetElementType() switch
@@ -300,30 +300,30 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
             ScalarType { Type: Scalar.UInt } => Specification.GLSLOp.GLSLFindUMsb,
             _ => Specification.GLSLOp.GLSLFindSMsb,
         };
-        return CompileGLSLFloatUnaryCall(table, context, builder, functionType, op, x);
+        return CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, op, x);
     }
 
     // Compute Barriers
     const Specification.MemorySemanticsMask AllMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
     const Specification.MemorySemanticsMask DeviceMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
     const Specification.MemorySemanticsMask GroupMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.AcquireRelease;
-    public override SpirvValue CompileAllMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, functionType, AllMemoryBarrierMemorySemanticsMask);
-    public override SpirvValue CompileAllMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, functionType, AllMemoryBarrierMemorySemanticsMask);
-    public override SpirvValue CompileDeviceMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, functionType, DeviceMemoryBarrierMemorySemanticsMask);
-    public override SpirvValue CompileDeviceMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, functionType, DeviceMemoryBarrierMemorySemanticsMask);
-    public override SpirvValue CompileGroupMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, functionType, GroupMemoryBarrierMemorySemanticsMask);
-    public override SpirvValue CompileGroupMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, functionType, GroupMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileAllMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, AllMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileAllMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, AllMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileDeviceMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, DeviceMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileDeviceMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, DeviceMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileGroupMemoryBarrier(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileMemoryBarrierCall(table, context, builder, GroupMemoryBarrierMemorySemanticsMask);
+    public override SpirvValue CompileGroupMemoryBarrierWithGroupSync(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, TextLocation location = default) => CompileControlBarrierCall(table, context, builder, GroupMemoryBarrierMemorySemanticsMask);
 
     // Compute interlocked
-    public override SpirvValue CompileInterlockedAdd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Add, result, value, original);
-    public override SpirvValue CompileInterlockedMin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Min, result, value, original);
-    public override SpirvValue CompileInterlockedMax(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Max, result, value, original);
-    public override SpirvValue CompileInterlockedAnd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.And, result, value, original);
-    public override SpirvValue CompileInterlockedOr(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Or, result, value, original);
-    public override SpirvValue CompileInterlockedXor(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Xor, result, value, original);
-    public override SpirvValue CompileInterlockedExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.Exchange, result, value, original);
-    public override SpirvValue CompileInterlockedCompareStore(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.CompareStore, result, value, null, compare);
-    public override SpirvValue CompileInterlockedCompareExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, SpirvValue original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, functionType, InterlockedOp.CompareExchange, result, value, original, compare);
+    public override SpirvValue CompileInterlockedAdd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Add, result, value, original);
+    public override SpirvValue CompileInterlockedMin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Min, result, value, original);
+    public override SpirvValue CompileInterlockedMax(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Max, result, value, original);
+    public override SpirvValue CompileInterlockedAnd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.And, result, value, original);
+    public override SpirvValue CompileInterlockedOr(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Or, result, value, original);
+    public override SpirvValue CompileInterlockedXor(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Xor, result, value, original);
+    public override SpirvValue CompileInterlockedExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.Exchange, result, value, original);
+    public override SpirvValue CompileInterlockedCompareStore(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.CompareStore, result, value, null, compare);
+    public override SpirvValue CompileInterlockedCompareExchange(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, SpirvValue original, TextLocation location = default) => CompileInterlockedCall(table, context, builder, InterlockedOp.CompareExchange, result, value, original, compare);
     public override SpirvValue CompileInterlockedCompareStoreFloatBitwise(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileInterlockedCompareExchangeFloatBitwise(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, SpirvValue original, TextLocation location = default) => throw new NotImplementedException();
 
@@ -455,7 +455,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         }
         throw new InvalidOperationException($"Unexpected type {inputType} for f32tof16");
     }
-    public override SpirvValue CompileFirstbitlow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLFindILsb, x);
+    public override SpirvValue CompileFirstbitlow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLFindILsb, x);
     public override SpirvValue CompileFma(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c, TextLocation location = default)
     {
         var instruction = builder.Insert(new GLSLFma(a.TypeId, context.Bound++, context.GetGLSL(), a.Id, b.Id, c.Id));
@@ -589,44 +589,44 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileTexCUBEproj(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue s, SpirvValue x, TextLocation location = default) => throw new NotImplementedException();
 
 
-    public static SpirvValue CompileFloatUnaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.Op op, SpirvValue x)
+    public static SpirvValue CompileFloatUnaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, Specification.Op op, SpirvValue x)
     {
-        var instruction = builder.Insert(new OpFwidth(context.GetOrRegister(functionType.ReturnType), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpFwidth(context.GetOrRegister(resultType), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
 
-    public static SpirvValue CompileGLSLFloatUnaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.GLSLOp op, SpirvValue x)
+    public static SpirvValue CompileGLSLFloatUnaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, Specification.GLSLOp op, SpirvValue x)
     {
-        var instruction = builder.Insert(new GLSLExp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id));
+        var instruction = builder.Insert(new GLSLExp(context.GetOrRegister(resultType), context.Bound++, context.GetGLSL(), x.Id));
         // Adjust OpCode only since Exp/Exp2/Log/Log2 share the same operands
         instruction.InstructionMemory.Span[4] = (int)op;
         return new SpirvValue(instruction.ResultId, instruction.ResultType);
     }
 
-    public static SpirvValue MultiplyConstant(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, float multiplyConstant)
+    public static SpirvValue MultiplyConstant(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, SpirvValue value, float multiplyConstant)
     {
         var constant = context.CompileConstant(multiplyConstant);
         constant = builder.Convert(context, constant, context.ReverseTypes[value.TypeId]);
-        var instruction2 = builder.Insert(new OpFMul(context.GetOrRegister(functionType.ReturnType), context.Bound++, value.Id, constant.Id));
+        var instruction2 = builder.Insert(new OpFMul(context.GetOrRegister(resultType), context.Bound++, value.Id, constant.Id));
         return new SpirvValue(instruction2.ResultId, instruction2.ResultType);
     }
 
-    public static SpirvValue CompileGLSLFloatBinaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.GLSLOp op, SpirvValue x, SpirvValue y)
+    public static SpirvValue CompileGLSLFloatBinaryCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, Specification.GLSLOp op, SpirvValue x, SpirvValue y)
     {
-        var instruction = builder.Insert(new GLSLPow(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, y.Id));
+        var instruction = builder.Insert(new GLSLPow(context.GetOrRegister(resultType), context.Bound++, context.GetGLSL(), x.Id, y.Id));
         // Adjust OpCode only since Pow/Atan2/etc. share the same operands
         instruction.InstructionMemory.Span[4] = (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
 
-    public static SpirvValue CompileBitcastCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    public static SpirvValue CompileBitcastCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, SpirvValue x)
     {
-        var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(functionType.ReturnType), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(resultType), context.Bound++, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 
-    public static SpirvValue CompileInterlockedCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, InterlockedOp op, SpirvValue dest, SpirvValue value, SpirvValue? originalLocation = null, SpirvValue? compare = null)
+    public static SpirvValue CompileInterlockedCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, InterlockedOp op, SpirvValue dest, SpirvValue value, SpirvValue? originalLocation = null, SpirvValue? compare = null)
     {
         var destType = context.ReverseTypes[dest.TypeId];
         if (destType is not PointerType pointerType || pointerType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int } s)
@@ -681,18 +681,18 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new();
     }
 
-    public static SpirvValue CompileMemoryBarrierCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.MemorySemanticsMask memorySemanticsMask)
+    public static SpirvValue CompileMemoryBarrierCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, Specification.MemorySemanticsMask memorySemanticsMask)
     {
         builder.Insert(new OpMemoryBarrier(context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
         return new();
     }
-    public static SpirvValue CompileControlBarrierCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.MemorySemanticsMask memorySemanticsMask)
+    public static SpirvValue CompileControlBarrierCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, Specification.MemorySemanticsMask memorySemanticsMask)
     {
         builder.Insert(new OpControlBarrier(context.CompileConstant((int)Specification.Scope.Workgroup).Id, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
         return new();
     }
 
-    public static SpirvValue CompileBoolToScalarBoolCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, Specification.Op op)
+    public static SpirvValue CompileBoolToScalarBoolCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, SymbolType resultType, SpirvValue x, Specification.Op op)
     {
         // We handle matrix specifically in this case (auto loop doesn't work since it's not per item)
         // So we simply run OpAny/OpAll on each column and then get a vector with all the bool to run through the normal path
@@ -716,7 +716,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var parameterType = context.ReverseTypes[x.TypeId].WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
 
-        var instruction = builder.Insert(new OpAny(context.GetOrRegister(functionType.ReturnType), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpAny(context.GetOrRegister(resultType), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
