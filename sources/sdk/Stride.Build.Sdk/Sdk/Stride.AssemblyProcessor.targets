@@ -64,6 +64,55 @@
              AssemblyFile="$(StrideAssemblyProcessorTempPath)"
              Condition="'$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true'" />
 
+  <!-- Parallel-safe copy: serializes concurrent MSBuild workers populating the same content-hash
+       temp dir. A FileShare.None lock file gates the writer; a sentinel marker lets latecomers
+       skip without taking the lock. Avoids races where one worker overwrites a DLL another
+       worker has already loaded via UsingTask. -->
+  <UsingTask TaskName="StrideEnsureAssemblyProcessorCopied"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourceDir Required="true" />
+      <DestDir Required="true" />
+      <MarkerFile Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (System.IO.File.Exists(MarkerFile)) return true;
+        System.IO.Directory.CreateDirectory(DestDir);
+        var lockFile = MarkerFile + ".lock";
+        var deadline = System.DateTime.UtcNow.AddMinutes(2);
+        while (!System.IO.File.Exists(MarkerFile))
+        {
+            try
+            {
+                using (new System.IO.FileStream(lockFile, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.Write, System.IO.FileShare.None))
+                {
+                    if (!System.IO.File.Exists(MarkerFile))
+                    {
+                        foreach (var src in System.IO.Directory.GetFiles(SourceDir))
+                        {
+                            var dest = System.IO.Path.Combine(DestDir, System.IO.Path.GetFileName(src));
+                            if (!System.IO.File.Exists(dest))
+                                System.IO.File.Copy(src, dest, overwrite: false);
+                        }
+                        System.IO.File.WriteAllText(MarkerFile, "");
+                    }
+                }
+                break;
+            }
+            catch (System.IO.IOException)
+            {
+                if (System.DateTime.UtcNow > deadline)
+                    throw;
+                System.Threading.Thread.Sleep(50);
+            }
+        }
+        return true;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
   <!-- ================================================================ -->
   <!-- Main Assembly Processor Target -->
   <!-- ================================================================ -->
@@ -119,13 +168,11 @@
       <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
-    <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking) -->
-    <ItemGroup>
-      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)"
-          DestinationFolder="$(StrideAssemblyProcessorTempBasePath)"
-          Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
+    <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking).
+         Parallel-safe via cross-process file lock + sentinel marker. -->
+    <StrideEnsureAssemblyProcessorCopied SourceDir="$(StrideAssemblyProcessorBasePath)"
+                                          DestDir="$(StrideAssemblyProcessorTempBasePath)"
+                                          MarkerFile="$(StrideAssemblyProcessorTempBasePath).copy-complete" />
 
     <!-- Step 5: Execute processor -->
     <Message Condition="'$(StrideAssemblyProcessorDev)' != 'true'"
