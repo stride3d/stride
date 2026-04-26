@@ -72,8 +72,9 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileSincos(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue s, SpirvValue c, TextLocation location = default)
     {
         // sincos(x, out s, out c): compute sin and cos separately, store to out params
-        var sinVal = CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLSin, x);
-        var cosVal = CompileGLSLFloatUnaryCall(table, context, builder, functionType, Specification.GLSLOp.GLSLCos, x);
+        var sinCosType = functionType with { ReturnType = context.ReverseTypes[x.TypeId] };
+        var sinVal = CompileGLSLFloatUnaryCall(table, context, builder, sinCosType, Specification.GLSLOp.GLSLSin, x);
+        var cosVal = CompileGLSLFloatUnaryCall(table, context, builder, sinCosType, Specification.GLSLOp.GLSLCos, x);
         builder.Insert(new OpStore(s.Id, sinVal.Id, null, []));
         builder.Insert(new OpStore(c.Id, cosVal.Id, null, []));
         return new();
