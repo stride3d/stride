@@ -140,7 +140,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     /// 0 would return true for a surface that is at most 90 degrees away from <paramref name="groundNormal"/>,
     /// and 1 would return true only when a surface matches <paramref name="groundNormal"/> exactly.
     /// </param>
-    protected bool GroundTest(NVector3 groundNormal, float threshold = 0f)
+    protected bool GroundTest(NVector3 groundNormal, float threshold = 0.1f)
     {
         IsGrounded = false;
         if (Simulation == null || Contacts.Count == 0)
