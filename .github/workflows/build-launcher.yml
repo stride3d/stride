@@ -53,7 +53,7 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.Launcher.sln `
-            -m:1 -nr:false `
+            -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
