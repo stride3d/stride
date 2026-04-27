@@ -313,7 +313,7 @@ namespace Stride.UI.Controls
             var absoluteValue = rawValue - Minimum;
             var step = (Maximum - Minimum) / TickFrequency;
             var times = MathF.Round(absoluteValue / step);
-            return times * step;
+            return times * step + Minimum;
         }
 
         /// <summary>
