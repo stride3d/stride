@@ -19,7 +19,6 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.utility" />
   </ItemGroup>

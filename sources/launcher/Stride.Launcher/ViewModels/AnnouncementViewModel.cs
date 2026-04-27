@@ -1,79 +1,70 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.IO;
-using System.Linq;
+
 using System.Reflection;
-using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 
-namespace Stride.LauncherApp.ViewModels
+namespace Stride.Launcher.ViewModels;
+
+public sealed class AnnouncementViewModel : DispatcherViewModel
 {
-    internal class AnnouncementViewModel : DispatcherViewModel
+    private readonly string announcementName;
+    private readonly ILauncherSettingsService _settings;
+    private bool dontShowAgain;
+    private bool validated = true;
+
+    public AnnouncementViewModel(IViewModelServiceProvider serviceProvider, string announcementName)
+        : base(serviceProvider)
     {
-        private readonly LauncherViewModel launcher;
-        private readonly string announcementName;
-        private bool validated = true;
-        private bool dontShowAgain;
-
-        public AnnouncementViewModel(LauncherViewModel launcher, string announcementName)
-            : base(launcher.SafeArgument(nameof(launcher)).ServiceProvider)
+        _settings = serviceProvider.Get<ILauncherSettingsService>();
+        this.announcementName = announcementName;
+        if (!_settings.IsTaskCompleted(TaskName))
         {
-            this.launcher = launcher;
-            this.announcementName = announcementName;
-            if (!LauncherViewModel.HasDoneTask(TaskName))
-            {
-                MarkdownAnnouncement = Initialize(announcementName);
-            }
-            // We want to explicitely trigger the property change notification for the view storyboard
-            Dispatcher.InvokeAsync(() => Validated = false);
-            CloseAnnouncementCommand = new AnonymousCommand(ServiceProvider, CloseAnnouncement);
+            MarkdownAnnouncement = Initialize(announcementName);
         }
 
-        private void CloseAnnouncement()
+        CloseAnnouncementCommand = new AnonymousCommand(ServiceProvider, CloseAnnouncement);
+        // We want to explicitly trigger the property change notification for the view storyboard
+        Validated = false;
+    }
+
+    public bool DontShowAgain { get { return dontShowAgain; } set { SetValue(ref dontShowAgain, value); } }
+
+    public string? MarkdownAnnouncement { get; }
+
+    public bool Validated { get { return validated; } set { SetValue(ref validated, value); } }
+
+    private string TaskName => "Announcement" + announcementName;
+
+    public ICommandBase CloseAnnouncementCommand { get; }
+
+    private void CloseAnnouncement()
+    {
+        Validated = true;
+        if (DontShowAgain)
         {
-            Validated = true;
-            if (DontShowAgain)
-            {
-                LauncherViewModel.SaveTaskAsDone(TaskName);
-            }
+            _settings.MarkTaskCompleted(TaskName);
         }
+    }
 
-        public string MarkdownAnnouncement { get; }
-
-        public bool Validated { get { return validated; } set { SetValue(ref validated, value); } }
-
-        public bool DontShowAgain { get { return dontShowAgain; } set { SetValue(ref dontShowAgain, value); } }
-
-        public ICommandBase CloseAnnouncementCommand { get; }
-
-        private string TaskName => GetTaskName(announcementName);
-
-        public static string GetTaskName(string announcementName)
+    private static string? Initialize(string announcementName)
+    {
+        try
         {
-            return "Announcement" + announcementName;
-        }
-
-        private static string Initialize(string announcementName)
-        {
-            try
-            {
-                var executingAssembly = Assembly.GetExecutingAssembly();
-                var path = Assembly.GetExecutingAssembly().GetManifestResourceNames().Single(x => x.EndsWith(announcementName + ".md"));
-                using (var stream = executingAssembly.GetManifestResourceStream(path))
-                {
-                    if (stream == null)
-                        return null;
-
-                    using var reader = new StreamReader(stream);
-                    return reader.ReadToEnd();
-                }
-            }
-            catch (Exception)
-            {
+            var executingAssembly = Assembly.GetExecutingAssembly();
+            var path = Assembly.GetExecutingAssembly().GetManifestResourceNames().Single(x => x.EndsWith(announcementName + ".md"));
+            using var stream = executingAssembly.GetManifestResourceStream(path);
+            if (stream is null)
                 return null;
-            }
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 }
