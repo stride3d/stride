@@ -107,7 +107,6 @@
     <PackageVersion Include="MarkView.Avalonia.Mermaid" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="MarkView.Avalonia.Svg" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="MarkView.Avalonia.SyntaxHighlighting" Version="$(AvaloniaMarkViewVersion)" />
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
