@@ -546,7 +546,14 @@
                               <Button Command="{Binding OpenCommand}"
                                       IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                       HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
                                       HorizontalContentAlignment="Stretch">
+                                <Button.ContextMenu>
+                                  <ContextMenu>
+                                    <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                    <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
+                                  </ContextMenu>
+                                </Button.ContextMenu>
                                 <DockPanel Margin="8,4">
                                   <DockPanel DockPanel.Dock="Bottom">
                                     <!-- Update dropdown -->
@@ -584,12 +591,6 @@
                                   </DockPanel>
                                 </DockPanel>
                               </Button>
-                              <Border.ContextMenu>
-                                <ContextMenu>
-                                  <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
-                                  <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
-                                </ContextMenu>
-                              </Border.ContextMenu>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>

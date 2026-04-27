@@ -33,9 +33,11 @@ These are behavioural differences that were not preserved during the port and ca
 
 *(Three items previously listed here — `/LauncherWindowHandle` always zero, empty `MainWindow.OnClosing`, and the unpersistent `TabControl.SelectedIndex` — have been resolved. See the 2026-04-22 `feat(launcher): …` commits for the window-lifecycle restoration.)*
 
-### Recent-project row has an offset hit-test for right-click
+### ~~Recent-project row has an offset hit-test for right-click~~ — Fixed
 
-Observed on Linux during the 2026-04-22 cross-platform-services smoke: right-clicking on a recent-project row does not open the context menu at the row's visible position. The hit-test lands a few pixels lower than the rendered content, so the menu only appears when the user clicks *below* the visible row. Not present in master (where hit-testing was WPF-native and correct). Likely an Avalonia layout discrepancy in the recent-projects panel of [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) — the `Border.ContextMenu` or one of its parent containers has a vertical offset between its rendered bounds and its input bounds. Not caused by Phase 1 items; filed here so it isn't lost.
+~~Observed on Linux during the 2026-04-22 cross-platform-services smoke: right-clicking on a recent-project row does not open the context menu at the row's visible position. The hit-test lands a few pixels lower than the rendered content, so the menu only appears when the user clicks *below* the visible row.~~
+
+Fixed (2026-04-27): the `ContextMenu` was attached to the outer `Border` wrapper, not to the `Button` that visually fills the row. On Linux, right-click events on the `Button` did not reliably bubble up to `Border.ContextMenu`. Moved the `ContextMenu` to the `Button` directly and added `VerticalAlignment="Stretch"` so the button fills the full row height — right-click now registers wherever the row is visible.
 
 ### ~~`InstallLatestVersion` fell through when already processing~~ — Fixed (2026-05-02)
 
