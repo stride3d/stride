@@ -5,6 +5,8 @@ VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 16.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher", "..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj", "{78695DE1-E621-45DF-975D-CFD407081E23}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher.Tests", "..\sources\launcher\Stride.Launcher.Tests\Stride.Launcher.Tests.csproj", "{835D46B3-1E85-4D28-9F25-A1BD7A2C30F7}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics", "..\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj", "{1F01E12A-50B7-4092-B30A-DEE9638FB753}"
@@ -99,6 +101,10 @@ Global
 		{3B613E66-671E-4049-8EF5-43CDAA549210}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B613E66-671E-4049-8EF5-43CDAA549210}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B613E66-671E-4049-8EF5-43CDAA549210}.Release|Any CPU.Build.0 = Release|Any CPU
+		{835D46B3-1E85-4D28-9F25-A1BD7A2C30F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{835D46B3-1E85-4D28-9F25-A1BD7A2C30F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{835D46B3-1E85-4D28-9F25-A1BD7A2C30F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{835D46B3-1E85-4D28-9F25-A1BD7A2C30F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
