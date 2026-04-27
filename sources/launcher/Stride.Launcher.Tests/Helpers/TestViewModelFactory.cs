@@ -10,7 +10,8 @@ internal static class TestViewModelFactory
     {
         var settings = new InMemoryLauncherSettings();
         var dialog = new FakeDialogService();
-        var serviceProvider = new ViewModelServiceProvider([dialog, settings]);
+        var dispatcher = new FakeDispatcherService();
+        var serviceProvider = new ViewModelServiceProvider([dispatcher, dialog, settings]);
         var vm = new MainViewModel(serviceProvider, settings);
         return (vm, settings, dialog);
     }
