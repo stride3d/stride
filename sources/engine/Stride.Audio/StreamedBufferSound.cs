@@ -16,11 +16,28 @@ namespace Stride.Audio
     {
         private readonly MediaSynchronizer scheduler;
         private readonly string mediaDataUrl;
+        private readonly ICustomBufferAudioSource audioSource;
         private readonly long startPosition;
         private readonly long length;
 
         private float speedFactor = 1f;
-        
+
+        public StreamedBufferSound(AudioEngine engine, ICustomBufferAudioSource audioSource, bool spatialized)
+        {
+            AttachEngine(engine);
+
+            this.scheduler = default;
+            this.mediaDataUrl = default;
+            this.startPosition = default;
+            this.length = default;
+            this.audioSource = audioSource;
+
+            InitializeImpl();
+
+            NumberOfPackets = 1;
+            Spatialized = spatialized;
+        }
+
         public StreamedBufferSound(AudioEngine engine, MediaSynchronizer scheduler, string mediaDataUrl, long startPosition, long length, bool spatialized)
         {
             AttachEngine(engine);
@@ -29,6 +46,7 @@ namespace Stride.Audio
             this.mediaDataUrl = mediaDataUrl;
             this.startPosition = startPosition;
             this.length = length;
+            this.audioSource = null;
 
             InitializeImpl();
 
@@ -71,7 +89,7 @@ namespace Stride.Audio
 
             CheckNotDisposed();
 
-            var newInstance = new SoundInstanceStreamedBuffer(scheduler, this, mediaDataUrl, startPosition, length, listener, useHrtf, directionalFactor, environment)
+            var newInstance = new SoundInstanceStreamedBuffer(scheduler, this, mediaDataUrl, startPosition, length, listener, useHrtf, directionalFactor, environment, audioSource)
             {
                 Name = Name + " - Instance " + intancesCreationCount,
             };
