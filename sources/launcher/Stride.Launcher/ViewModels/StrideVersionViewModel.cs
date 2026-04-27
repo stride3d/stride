@@ -5,7 +5,6 @@ using NuGet.Frameworks;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
-using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -75,7 +74,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             try
             {
                 // If preferred framework exists in our list, select it
-                var preferredFramework = LauncherSettings.PreferredFramework;
+                var preferredFramework = Launcher.Settings.PreferredFramework;
                 if (Frameworks.Contains(preferredFramework))
                 {
                     SelectedFramework = preferredFramework;
