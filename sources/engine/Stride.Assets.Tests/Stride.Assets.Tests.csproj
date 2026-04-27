@@ -15,6 +15,7 @@
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>GuidGenerator.cs</Link>
     </Compile>
+    <Compile Include="SpriteFont\RuntimeSignedDistanceFieldDiagnosticsTests.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />

@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: 8D9A0F2D-2C9A-4F59-B8C1-0F4A6E6B9D11
+AssetTypeName: SpriteFontAsset
+Name: "Runtime SDF"
+Scope: Asset
+Description: A runtime signed-distance-field sprite font asset in which glyphs are generated at runtime from the embedded font file
+Group: Font
+Order: -70
+Icon: ..\.sdtpl\SpriteFont.png
+DefaultOutputName: SpriteFont
+FactoryTypeName: RuntimeSignedDistanceFieldSpriteFontFactory

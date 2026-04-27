@@ -1,10 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.IO;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Graphics.Font;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
@@ -92,12 +94,23 @@ namespace Stride.Editor.Thumbnails
                     // Get the exact size of the font rendered with the desired size
                     typeNameSize = Font.MeasureString(TitleText, desiredFontSize);
 
-                    // force pre-generation of the glyph
+                    // Force pre-generation of the glyphs
                     Font.PreGenerateGlyphs(TitleText, new Vector2(desiredFontSize, desiredFontSize));
                 }
 
                 // the title text
-                SpriteBatch.DrawString(Font, TitleText, desiredFontSize, thumbnailSize/2, FontColor, 0, typeNameSize/2, scale*Vector2.One, SpriteEffects.None, 1, TextAlignment.Center);
+                SpriteBatch.DrawString(
+                    Font,
+                    TitleText,
+                    desiredFontSize,
+                    thumbnailSize / 2,
+                    FontColor,
+                    0,
+                    typeNameSize / 2,
+                    scale * Vector2.One,
+                    SpriteEffects.None,
+                    1,
+                    TextAlignment.Center);
             }
         }
     }
