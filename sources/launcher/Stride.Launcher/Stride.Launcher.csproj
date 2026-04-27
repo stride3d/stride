@@ -78,4 +78,8 @@
   </ItemGroup>
 
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Stride.Launcher.Tests" />
+  </ItemGroup>
 </Project>

@@ -9,6 +9,7 @@ using MarkView.Avalonia;
 using MarkView.Avalonia.Rendering;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 using Stride.Launcher.ViewModels;
 using Stride.Launcher.Views;
 
@@ -97,7 +98,8 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName }
+            new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName },
+            new LauncherSettingsService(),
         };
         return new ViewModelServiceProvider(services);
     }
