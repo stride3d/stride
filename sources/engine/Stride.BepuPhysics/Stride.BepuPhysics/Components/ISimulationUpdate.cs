@@ -15,11 +15,6 @@ namespace Stride.BepuPhysics.Components;
 public interface ISimulationUpdate : IComponent<ISimulationUpdate.SimUpdateProcessor, ISimulationUpdate>
 {
     /// <summary>
-    /// The entity this component belongs to, used with <see cref="SimulationSelector"/>
-    /// </summary>
-    Entity Entity { get; }
-
-    /// <summary>
     /// The simulation which will call <see cref="SimulationUpdate"/> and <see cref="AfterSimulationUpdate"/> when it updates
     /// </summary>
     /// <remarks>

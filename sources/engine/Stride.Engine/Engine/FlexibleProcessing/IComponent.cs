@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+
 namespace Stride.Engine.FlexibleProcessing
 {
     /// <summary>
@@ -11,6 +13,16 @@ namespace Stride.Engine.FlexibleProcessing
     /// <typeparam name="TThis">The type name implementing this interface</typeparam>
     public interface IComponent<TProcessor, TThis> : IMarkedComponent where TProcessor : IComponent<TProcessor, TThis>.IProcessor, new() where TThis : IComponent<TProcessor, TThis>
     {
+        /// <summary>
+        /// EntityComponent.Entity
+        /// </summary>
+        Entity Entity { get; }
+
+        /// <summary>
+        /// EntityComponent.Id
+        /// </summary>
+        Guid Id { get; }
+
         public interface IProcessor : IProcessorBase
         {
             /// <summary> Occurs right after a component is added to the scene </summary>
