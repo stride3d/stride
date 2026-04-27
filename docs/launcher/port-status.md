@@ -129,7 +129,7 @@ These change observable behaviour on both Windows and Linux and should ship firs
 
 ### Phase 2 — feature restoration
 
-1. **Restore `.md → .html` URL rewriting** in the `OnLinkClicked` handler in [App.axaml.cs](../../sources/launcher/Stride.Launcher/App.axaml.cs) before calling `Process.Start`.
+1. ~~**Restore `.md → .html` URL rewriting** in the `OnLinkClicked` handler in [App.axaml.cs](../../sources/launcher/Stride.Launcher/App.axaml.cs) before calling `Process.Start`.~~ **Done** (2026-04-27): `OnLinkClicked` now rewrites `.md` → `.html` before `Process.Start`.
 2. **Decide on `.NET 10.0` runtime probe for Windows.** Either embed it as a self-contained publish (no probe needed), or add a small `PrerequisitesValidator` replacement that checks the runtime and surfaces a friendly message. Document the decision in [packaging.md](packaging.md).
 3. **Review `MinimalApp` paths.** Exercise the crash-report dialog and the "already running" dialog on both platforms and confirm they behave like master, or document the new behaviour.
 4. **Migration cleanup for users upgrading from the WPF launcher.** The commented-out `RevokeAllPrivacyPolicy` at [Launcher.cs:174](../../sources/launcher/Stride.Launcher/Launcher.cs#L174) is kept as a placeholder — when uninstalling on a machine that previously had the WPF launcher, clean up any privacy-policy / telemetry state left behind (registry keys, settings files). Scope to be decided.
@@ -155,11 +155,18 @@ Not required for parity, but on the horizon:
 
 The launcher has no unit or integration tests today. Bootstrap a test project for the launcher, leveraging Avalonia's headless-platform support so tests can exercise real views (bindings, commands, dialogs, keyboard/mouse input) without a display server.
 
-1. **Bootstrap `Stride.Launcher.Tests`.** New csproj alongside `Stride.Launcher`, matching the test framework the rest of `stride-xplat` uses. Reference `Avalonia.Headless` (core) and `Avalonia.Headless.XUnit` / `Avalonia.Headless.NUnit` as appropriate.
-2. **View-model tests.** Cover the testable surfaces added in Phases 1 and 2, starting with:
-   - `MainViewModel.TryCloseAsync` — no processing / keep-open / close-anyway branches, with an in-memory `IDialogService`.
-   - `MainViewModel.CurrentTab` setter — writes to `LauncherSettings.CurrentTab` and persists.
-   - One-shot-task storage (`HasDoneTask` / `SaveTaskAsDone`) after Phase 1 item (d).
+1. ~~**Bootstrap `Stride.Launcher.Tests`.**~~ **Done** (2026-04-27): `Stride.Launcher.Tests.csproj` created under `sources/launcher/Stride.Launcher.Tests/`, using xUnit, added to `Stride.Launcher.sln`. Helpers: `InMemoryLauncherSettings`, `FakeDialogService`, `FakeDispatcherService`, `TestViewModelFactory`. To enable internal access, `Stride.Launcher.csproj` uses `<InternalsVisibleTo Include="Stride.Launcher.Tests" />`.
+
+   **Prerequisite — `ILauncherSettingsService`** (2026-04-27): introduced to break the direct `LauncherSettings.*` static coupling that would otherwise make view-model tests impossible. `LauncherSettingsService` wraps the real settings; all usages in `MainViewModel`, `AnnouncementViewModel`, `StrideVersionViewModel`, and `MainView.axaml.cs` have been migrated. `MainViewModel` gained an internal test constructor that accepts both `IViewModelServiceProvider` and `ILauncherSettingsService`, skipping NuGet/network/file-system initialisation.
+
+2. ~~**View-model tests** (partial).~~ **Done** (2026-04-27): 6 tests in [MainViewModelTests.cs](../../sources/launcher/Stride.Launcher.Tests/MainViewModelTests.cs), all passing:
+   - `HasDoneTask` returns `false` before any task is recorded, `true` after `SaveTaskAsDone`.
+   - `SaveTaskAsDone` is idempotent (does not double-save).
+   - `CurrentTab` setter persists the value and calls `Save()` exactly once; no save on no-change.
+   - `TryCloseAsync` returns `true`, does not invoke the dialog, and saves settings when no version is processing.
+
+   Deferred: `TryCloseAsync` keep-open / close-anyway branches require constructing a `StrideVersionViewModel` with a real `NugetStore` — tracked as follow-up.
+
 3. **Avalonia headless integration tests.** Exercise the real `MainWindow` + `MainView`:
    - `Opened` fires → `MainViewModel.WindowHandle` is non-zero on Windows, zero on Linux.
    - `TabControl` selection change propagates to `LauncherSettings.CurrentTab`.
