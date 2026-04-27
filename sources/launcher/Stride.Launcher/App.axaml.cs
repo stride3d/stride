@@ -79,7 +79,10 @@ public partial class App : Application
         {
             try
             {
-                Process.Start(new ProcessStartInfo(e.Url) { UseShellExecute = true });
+                var url = e.Url.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
+                    ? e.Url[..^3] + ".html"
+                    : e.Url;
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch
             {

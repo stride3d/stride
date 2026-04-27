@@ -37,15 +37,13 @@ These are behavioural differences that were not preserved during the port and ca
 
 Observed on Linux during the 2026-04-22 cross-platform-services smoke: right-clicking on a recent-project row does not open the context menu at the row's visible position. The hit-test lands a few pixels lower than the rendered content, so the menu only appears when the user clicks *below* the visible row. Not present in master (where hit-testing was WPF-native and correct). Likely an Avalonia layout discrepancy in the recent-projects panel of [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) — the `Border.ContextMenu` or one of its parent containers has a vertical offset between its rendered bounds and its input bounds. Not caused by Phase 1 items; filed here so it isn't lost.
 
-### `OpenHyperlinkCommand` lost `.md → .html` rewriting
+### ~~`OpenHyperlinkCommand` lost `.md → .html` rewriting~~ — Fixed (Phase 2)
 
-Master's `Views/Commands.cs`:
+~~Master's `Views/Commands.cs`:~~
 
-```csharp
-Process.Start(new ProcessStartInfo(url.ReplaceLast(".md", ".html")) { UseShellExecute = true });
-```
+~~Process.Start(new ProcessStartInfo(url.ReplaceLast(".md", ".html")) { UseShellExecute = true });~~
 
-Current [App.axaml.cs:82](../../sources/launcher/Stride.Launcher/App.axaml.cs#L82) passes the URL verbatim. Release-note and doc URLs that reference `.md` files on the Stride docs site now open the raw markdown source instead of the rendered HTML page.
+Fixed: [App.axaml.cs](../../sources/launcher/Stride.Launcher/App.axaml.cs) `OnLinkClicked` now rewrites URLs ending in `.md` to `.html` before calling `Process.Start`.
 
 ### ~~Announcement overlay lost its slide animation~~ — Fixed (Phase 3)
 
