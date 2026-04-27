@@ -107,15 +107,15 @@ namespace Stride.Assets.Scripts
             slot.Owner = null;
         }
 
-        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot> e)
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    OnSlotAdd((Slot)e.Item);
+                    OnSlotAdd(e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    OnSlotRemove((Slot)e.Item);
+                    OnSlotRemove(e.Item);
                     break;
                 default:
                     throw new NotSupportedException();

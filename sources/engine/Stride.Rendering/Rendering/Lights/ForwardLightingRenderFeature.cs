@@ -686,19 +686,19 @@ namespace Stride.Rendering.Lights
             return lightGroup;
         }
 
-        private void LightRenderers_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void LightRenderers_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<LightGroupRendererBase> e)
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                 {
-                    var item = e.Item as LightGroupRendererBase;
+                    var item = e.Item;
                     item?.Initialize(Context);
                     break;
                 }
                 case NotifyCollectionChangedAction.Remove:
                 {
-                    var item = e.OldItem as LightGroupRendererBase;
+                    var item = e.OldItem;
                     item?.Unload();
                     break;
                 }
