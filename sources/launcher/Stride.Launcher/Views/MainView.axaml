@@ -34,7 +34,7 @@
     <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
 
-  <Grid>
+  <Grid ClipToBounds="True">
     <DockPanel>
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
@@ -513,8 +513,7 @@
 
           <Grid Grid.Column="1"
                 ColumnDefinitions="*, *"
-                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
-                IsVisible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
             <!-- SECOND COLUMN -->
             <Border Grid.Column="0">
               <!-- Recent projects  -->
@@ -683,14 +682,35 @@
 
           <!-- Release notes -->
           <Grid Grid.Column="1"
-                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
-            <DockPanel>
-              <DockPanel>
-                <Button />
-                <TextBlock />
+                Classes="rn-slide"
+                Classes.visible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
+                IsHitTestVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
+                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
+            <Grid.Styles>
+              <Style Selector="Grid.rn-slide.visible">
+                <Setter Property="RenderTransform" Value="translateX(0)"/>
+              </Style>
+              <Style Selector="Grid.rn-slide:not(.visible)">
+                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+              </Style>
+            </Grid.Styles>
+            <Grid.Transitions>
+              <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+              </Transitions>
+            </Grid.Transitions>
+            <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
+              <DockPanel DockPanel.Dock="Top">
+                <Button DockPanel.Dock="Right"
+                        Classes="TransparentButton"
+                        Margin="8"
+                        Command="{Binding ActiveReleaseNotes.ToggleCommand}"
+                        Content="×" FontSize="20" />
+                <TextBlock Margin="15,8"
+                           Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
+                           FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
-              <Grid>
+              <Grid Margin="{StaticResource BorderThicknessTile}">
                 <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
                                    IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
@@ -706,7 +726,22 @@
       </Border>
     </DockPanel>
     <!-- Announcements -->
-    <Border IsVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+    <Border Classes="ann-slide"
+            Classes.visible="{Binding Announcement, Converter={sd:ObjectToBool}}"
+            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+      <Border.Styles>
+        <Style Selector="Border.ann-slide.visible">
+          <Setter Property="RenderTransform" Value="translateX(0)"/>
+        </Style>
+        <Style Selector="Border.ann-slide:not(.visible)">
+          <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+        </Style>
+      </Border.Styles>
+      <Border.Transitions>
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+        </Transitions>
+      </Border.Transitions>
       <vw:Announcement DataContext="{Binding Announcement}" />
     </Border>
   </Grid>

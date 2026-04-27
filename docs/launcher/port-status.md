@@ -47,15 +47,19 @@ Process.Start(new ProcessStartInfo(url.ReplaceLast(".md", ".html")) { UseShellEx
 
 Current [App.axaml.cs:82](../../sources/launcher/Stride.Launcher/App.axaml.cs#L82) passes the URL verbatim. Release-note and doc URLs that reference `.md` files on the Stride docs site now open the raw markdown source instead of the rendered HTML page.
 
-### Announcement overlay lost its slide animation
+### ~~Announcement overlay lost its slide animation~~ — Fixed (Phase 3)
 
-Master's `Announcement.xaml` wrapped its content in a `Grid` with a `TranslateTransform.X` driven by a `DoubleAnimation` (0.5s, `AccelerationRatio=0.2`, `DecelerationRatio=0.1`) via `Trigger.EnterActions` / `ExitActions` on the `IsEnabled` property. The panel slid in from the right and out to the right.
+~~Master's `Announcement.xaml` wrapped its content in a `Grid` with a `TranslateTransform.X` driven by a `DoubleAnimation` (0.5s, `AccelerationRatio=0.2`, `DecelerationRatio=0.1`) via `Trigger.EnterActions` / `ExitActions` on the `IsEnabled` property. The panel slid in from the right and out to the right.~~
 
-Current [Announcement.axaml](../../sources/launcher/Stride.Launcher/Views/Announcement.axaml) is a plain `DockPanel` with no transform and no animation — the overlay pops in and out discretely.
+~~Current [Announcement.axaml](../../sources/launcher/Stride.Launcher/Views/Announcement.axaml) is a plain `DockPanel` with no transform and no animation — the overlay pops in and out discretely.~~
 
-### Release-notes panel lost its slide animation
+Fixed: the announcement overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) now uses a `TransformOperationsTransition` (`translateX(0)` ↔ `translateX(100%)`, 0.5s, `CubicEaseOut`) driven by `Classes.visible`.
 
-Master's `LauncherWindow.xaml` had a dedicated right-side column whose visibility was driven by `ActiveReleaseNotes.IsActive` and whose `TranslateTransform.X` was animated with the same 0.5s easing as the announcement. Current release-notes view appears/disappears without animation.
+### ~~Release-notes panel lost its slide animation~~ — Fixed (Phase 3)
+
+~~Master's `LauncherWindow.xaml` had a dedicated right-side column whose visibility was driven by `ActiveReleaseNotes.IsActive` and whose `TranslateTransform.X` was animated with the same 0.5s easing as the announcement. Current release-notes view appears/disappears without animation.~~
+
+Fixed: the release-notes `Grid` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) now uses the same `TransformOperationsTransition` approach, driven by `ActiveReleaseNotes.IsActive`.
 
 ### "Show in Explorer" is hard-wired to `explorer.exe`
 
@@ -71,13 +75,17 @@ The menu item is visible on Linux but invocation will fail. Needs a platform swi
 
 Master's `Launcher.cs` prepared these environment variables so legacy Stride ≤ 3.0 Game Studio builds could resolve the install root. Removed on the current branch. Probably acceptable given Stride 2.x / 3.0 is EOL, but worth an explicit decision.
 
-### `CurrentToolTip` shared status-line behavior
+### ~~`CurrentToolTip` shared status-line behavior~~ — Already present
 
-Master had a `BindCurrentToolTipStringBehavior` wired on every control that updated a shared `MainViewModel.CurrentToolTip` property on hover (a status-bar-style "explain what this control does" line). The binding and the property are both gone from the current branch. Minor UX regression.
+~~Master had a `BindCurrentToolTipStringBehavior` wired on every control that updated a shared `MainViewModel.CurrentToolTip` property on hover (a status-bar-style "explain what this control does" line). The binding and the property are both gone from the current branch.~~
 
-### `StaysOpenContextMenu` / alternate-versions `Popup`
+`BindCurrentToolTipStringBehavior` is implemented in `Stride.Core.Presentation.Avalonia.Behaviors` and is already wired on every relevant control in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). `MainViewModel.CurrentToolTip` is present and bound in the status bar. Not a regression.
 
-Master rendered alternate versions in a `Popup` + `ToggleButton` with a custom `StaysOpenContextMenu` class (coerced `IsOpen`) so the popup didn't close on item clicks. Current branch renders them as a nested `ItemsControl` directly in the main list, which works but is a different interaction model. Not a functional loss — call out here so we don't mistakenly "restore" the popup without a reason.
+### ~~`StaysOpenContextMenu` / alternate-versions `Popup`~~ — Already resolved
+
+~~Master rendered alternate versions in a `Popup` + `ToggleButton` with a custom `StaysOpenContextMenu` class so the popup didn't close on item clicks. Current branch renders them as a nested `ItemsControl` directly in the main list.~~
+
+The current branch does use a `ToggleButton` + `Popup` with `IsLightDismissEnabled="True"`. An `EventTriggerBehavior` on each item's `Click` event fires `ChangePropertyAction` to set `Popup.IsOpen = False`, which replicates the `StaysOpenContextMenu` behaviour in Avalonia. Not a regression.
 
 ## Features removed without a replacement
 
@@ -132,10 +140,10 @@ These change observable behaviour on both Windows and Linux and should ship firs
 
 Nice-to-have UX polish. The entries below all map to Avalonia `Transitions` on the relevant `TranslateTransform.X` / `Opacity`, which is how animations are expressed in Avalonia (versus WPF's `Storyboard`/`DoubleAnimation`).
 
-1. **Announcement slide-in/out** — `TranslateTransform.X` transition, 0.5s, cubic ease-out (matches master's `AccelerationRatio=0.2 DecelerationRatio=0.1`).
-2. **Release-notes panel slide** — same approach, bound to `ActiveReleaseNotes.IsActive`.
-3. **`CurrentToolTip` status-line behavior** — port `BindCurrentToolTipStringBehavior` as an Avalonia attached behaviour.
-4. **Optional: revisit alternate-versions UX.** Decide whether the current inline-list works or whether to restore the master popup (needs an Avalonia equivalent to `StaysOpenContextMenu`).
+1. ~~**Announcement slide-in/out**~~ **Done**: `TransformOperationsTransition` on `RenderTransform` (`translateX(0)` ↔ `translateX(100%)`), 0.5s, `CubicEaseOut`. Implemented via CSS-class binding (`Classes.visible`) on the overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). Root `Grid` gained `ClipToBounds="True"` to prevent the panel from showing while off-screen.
+2. ~~**Release-notes panel slide**~~ **Done**: Same approach — `TransformOperationsTransition` on the release-notes `Grid` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml), bound to `ActiveReleaseNotes.IsActive`. The main-content grid's `IsVisible` binding was replaced with `IsEnabled`-only (layout stays; the release-notes panel renders on top while sliding in).
+3. ~~**`CurrentToolTip` status-line behavior**~~ **Already done** (pre-existing): `BindCurrentToolTipStringBehavior` is implemented in `Stride.Core.Presentation.Avalonia` and wired on every relevant control in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). `MainViewModel.CurrentToolTip` property also present.
+4. ~~**Optional: revisit alternate-versions UX.**~~ **Already done** (pre-existing): The current branch uses a `ToggleButton` + `Popup` with `IsLightDismissEnabled="True"` and an `EventTriggerBehavior` that closes the popup on item click — functionally equivalent to the master `StaysOpenContextMenu` approach.
 
 ### Phase 4 — platform expansion
 
