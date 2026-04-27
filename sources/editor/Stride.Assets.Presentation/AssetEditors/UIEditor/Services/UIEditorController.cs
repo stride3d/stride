@@ -116,6 +116,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
                 return false;
 
             rootElements.ForEach(r => RootElements[r.Id] = r);
+            foreach (var root in rootElements)
+                DisableDropDownInteraction(root);
 
             var resolution = uiDesign.Resolution;
             var size = resolution / DesignDensity;
@@ -209,6 +211,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
             EnsureAssetAccess();
 
             var gameSidePart = ClonePartForGameSide(parent.Asset.Asset, assetSidePart);
+            DisableDropDownInteraction(gameSidePart);
             return InvokeAsync(() =>
             {
                 Logger.Debug($"Adding element {assetSidePart.Id} to game-side scene");
@@ -422,6 +425,28 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
         private UIComponent GetUIComponent()
         {
             return GetEntityByName(UIEntityName)?.Get<UIComponent>();
+        }
+
+        /// <summary>
+        /// Recursively traverses the visual tree rooted at <paramref name="element"/> and disables
+        /// popup interaction on every <see cref="DropDown"/> found.
+        /// </summary>
+        /// <remarks>
+        /// In the editor, <see cref="DropDown"/> popups open but render only the background — item text
+        /// is not visible. This is a workaround that prevents the popup from opening so the control
+        /// remains in a consistent state during editing. Runtime behavior is unaffected.
+        /// </remarks>
+        /// <param name="element">The root of the visual sub-tree to search. Must not be <see langword="null"/>.</param>
+        private static void DisableDropDownInteraction(UIElement element)
+        {
+            if (element is DropDown dropDown)
+            {
+                dropDown.IsInteractable = false;
+                return;
+            }
+            var children = element.VisualChildren;
+            for (var i = 0; i < children.Count; i++)
+                DisableDropDownInteraction(children[i]);
         }
 
         /// <summary>
