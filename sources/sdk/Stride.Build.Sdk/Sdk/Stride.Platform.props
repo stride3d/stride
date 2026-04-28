@@ -47,6 +47,23 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Local Developer Settings (in-source only) -->
+  <!-- ================================================================ -->
+  <!-- Anchored on crowdin.yml at the repo root; absent for end-users consuming the SDK
+       from NuGet, so the import no-ops there. The file is gitignored at build/Stride.Local.props
+       and gets auto-created from Stride.Local.props.template by the _StrideBootstrapLocalProps
+       target in Sdk.targets — so the first build runs with SDK defaults and the local file
+       is picked up from the second build onward. Imports here so its values can override
+       the $(StridePlatform)-keyed StrideGraphicsApis defaults below. -->
+  <PropertyGroup>
+    <_StrideRepoRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildThisFileDirectory)', 'crowdin.yml'))</_StrideRepoRoot>
+    <_StrideLocalProps Condition="'$(_StrideRepoRoot)' != ''">$(_StrideRepoRoot)\build\Stride.Local.props</_StrideLocalProps>
+    <_StrideLocalPropsTemplate>$(MSBuildThisFileDirectory)Stride.Local.props.template</_StrideLocalPropsTemplate>
+  </PropertyGroup>
+
+  <Import Project="$(_StrideLocalProps)" Condition="'$(_StrideLocalProps)' != '' And Exists('$(_StrideLocalProps)')" />
+
+  <!-- ================================================================ -->
   <!-- StridePlatforms Default Detection -->
   <!-- ================================================================ -->
   <PropertyGroup>

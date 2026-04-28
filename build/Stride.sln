@@ -49,6 +49,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Build", "00-Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
 		Stride.build = Stride.build
+		Stride.Local.props = Stride.Local.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"
@@ -334,6 +335,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Build.Sdk", "Stride.
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Frameworks.targets
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Graphics.props
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.GraphicsApi.InnerBuild.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.GraphicsApi.InnerBuild.targets
+		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Local.props.template = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Local.props.template
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.NativeBuildMode.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.NativeBuildMode.props
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.PackageInfo.targets = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.PackageInfo.targets
 		..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.props = ..\sources\sdk\Stride.Build.Sdk\Sdk\Stride.Platform.props

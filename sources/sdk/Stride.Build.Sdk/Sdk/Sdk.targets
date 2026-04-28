@@ -244,6 +244,22 @@
   </Target>
 
   <!-- ================================================================ -->
+  <!-- Local.props Bootstrap (in-source only) -->
+  <!-- ================================================================ -->
+  <!-- Copies Local.props.template to the repo root on first build/restore. _StrideLocalProps
+       and _StrideLocalPropsTemplate are populated in Stride.Platform.props; both are empty
+       for end-users consuming the SDK from NuGet (no crowdin.yml anchor), so this no-ops.
+       Runs before Restore and Build to cover the dotnet build, dotnet restore, and
+       no-restore flows. Imports happen during evaluation, so the just-written file is
+       picked up on the next invocation, not the current one (first build uses defaults). -->
+  <Target Name="_StrideBootstrapLocalProps"
+          BeforeTargets="Restore;Build"
+          Condition="'$(_StrideLocalProps)' != '' And !Exists('$(_StrideLocalProps)') And Exists('$(_StrideLocalPropsTemplate)')">
+    <Copy SourceFiles="$(_StrideLocalPropsTemplate)" DestinationFiles="$(_StrideLocalProps)" />
+    <Message Importance="High" Text="Created $(_StrideLocalProps) from template — edit it to customize local build settings." />
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Configuration Validation -->
   <!-- ================================================================ -->
   <Target Name="_StrideValidateConfiguration" BeforeTargets="Build">

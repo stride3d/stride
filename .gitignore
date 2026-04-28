@@ -160,3 +160,6 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
+
+# Auto-generated local developer settings (Stride.Platform.props bootstrap)
+/build/Stride.Local.props

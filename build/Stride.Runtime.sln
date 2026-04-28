@@ -35,6 +35,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
 		Stride.build = Stride.build
+		Stride.Local.props = Stride.Local.props
 		Stride.Build.props = Stride.Build.props
 		Stride.Build.targets = Stride.Build.targets
 		Stride.Core.Build.props = Stride.Core.Build.props
