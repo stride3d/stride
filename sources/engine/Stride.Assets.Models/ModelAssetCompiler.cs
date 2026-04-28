@@ -67,6 +67,7 @@ namespace Stride.Assets.Models
             importModelCommand.MergeMeshes = asset.MergeMeshes;
             importModelCommand.DeduplicateMaterials = asset.DeduplicateMaterials;
             importModelCommand.ModelModifiers = asset.Modifiers;
+            importModelCommand.NodeFilter = asset.NodeFilter;
 
             if (skeleton != null)
             {

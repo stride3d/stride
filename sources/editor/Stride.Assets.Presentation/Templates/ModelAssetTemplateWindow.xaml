@@ -50,6 +50,15 @@
         </StackPanel>
       </StackPanel>
     </Border>
+    <Border Background="{StaticResource EmphasisColorBrush}" Margin="20,0">
+      <TextBlock Text="{sd:Localize Hierarchy}" Margin="20,10" FontSize="16"/>
+    </Border>
+    <Border Margin="20,10,20,20">
+      <StackPanel>
+        <CheckBox Content="{sd:Localize Split model by hierarchy (generates prefab), Context=Button}" IsChecked="{Binding SplitModelByHierarchy}" Margin="5"/>
+        <TextBlock Text="{sd:Localize When enabled\, each node in the source file becomes a separate model asset and a prefab is generated that mirrors the original hierarchy.}" Margin="25,0,5,5" TextWrapping="Wrap" FontSize="11" Foreground="Gray"/>
+      </StackPanel>
+    </Border>
     <UniformGrid Rows="1" Margin="20">
       <Button Content="{sd:Localize OK, Context=Button}" Margin="0,0,20,0" Padding="8" Click="ButtonOk" IsDefault="True"/>
       <Button Content="{sd:Localize Cancel, Context=Button}" Padding="8" Click="ButtonCancel" IsCancel="True"/>

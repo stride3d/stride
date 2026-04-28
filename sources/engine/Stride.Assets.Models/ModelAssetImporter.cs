@@ -12,6 +12,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Textures;
 using Stride.Rendering;
@@ -24,6 +25,7 @@ namespace Stride.Assets.Models
     public abstract class ModelAssetImporter : AssetImporterBase
     {
         public static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelAssetImporter));
+        public static readonly PropertyKey<bool> SplitModelByHierarchyKey = new PropertyKey<bool>("SplitModelByHierarchy", typeof(ModelAssetImporter));
 
         public override IEnumerable<Type> RootAssetTypes
         {
@@ -41,6 +43,7 @@ namespace Stride.Assets.Models
             {
                 yield return typeof(MaterialAsset);
                 yield return typeof(TextureAsset);
+                yield return typeof(PrefabAsset);
             }
         }
 
@@ -104,11 +107,33 @@ namespace Stride.Assets.Models
                 ImportMaterials(rawAssetReferences, entityInfo.Materials);
             }
 
+            // Check if hierarchy splitting is requested
+            if (!importParameters.InputParameters.TryGet(SplitModelByHierarchyKey, out var splitByHierarchy))
+                splitByHierarchy = false;
+
             ModelAsset modelAsset = null;
             // 4. Model
             if (isImportingModel)
             {
-                modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+                if (splitByHierarchy && entityInfo.SceneHierarchy != null && entityInfo.SceneHierarchy.Nodes.Count > 0)
+                {
+                    // Split the model into per-node assets and generate a prefab
+                    var splitResult = HierarchyModelSplitter.SplitModelByHierarchy(
+                        localPath, localPath, entityInfo, rawAssetReferences, skeletonAsset);
+
+                    rawAssetReferences.AddRange(splitResult.ModelAssets);
+
+                    if (splitResult.PrefabAsset != null)
+                        rawAssetReferences.Add(splitResult.PrefabAsset);
+
+                    // Use the first model asset for animation preview, if any
+                    if (splitResult.ModelAssets.Count > 0)
+                        modelAsset = (ModelAsset)splitResult.ModelAssets[0].Asset;
+                }
+                else
+                {
+                    modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+                }
             }
 
             // 5. Animation
