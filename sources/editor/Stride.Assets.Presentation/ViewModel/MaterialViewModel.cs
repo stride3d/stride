@@ -10,10 +10,9 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
-using Stride.Core.Shaders.Ast;
-using Stride.Core.Shaders.Ast.Stride;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
@@ -93,27 +92,27 @@ namespace Stride.Assets.Presentation.ViewModel
             UpdateCompositionNodes(shader, node, ownerNode);
         }
 
-        private void UpdateGenerics<T>(ShaderClassType shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
+        private void UpdateGenerics<T>(ShaderClass shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
             where T : class, IComputeNode
         {
             var genericsNode = ownerNode[nameof(ComputeShaderClassBase<T>.Generics)].Target;
             var keysToRemove = new List<string>(node.Generics.Keys);
-            if (shader != null)
+            if (shader != null && shader.Generics != null)
             {
-                foreach (var generic in shader.ShaderGenerics)
+                foreach (var generic in shader.Generics.Parameters)
                 {
-                    var parameterType = ComputeShaderClassHelper.GetComputeColorParameterType(generic.Type.Name.Text);
+                    var parameterType = ComputeShaderClassHelper.GetComputeColorParameterType(generic.TypeName.Name);
                     if (parameterType == null)
                         continue;
 
-                    var index = new NodeIndex(generic.Name.Text);
+                    var index = new NodeIndex(generic.Name.Name);
                     if (genericsNode.Indices.Any(x => Equals(x, index)))
                     {
                         var value = genericsNode.Retrieve(index);
                         if (parameterType.IsInstanceOfType(value))
                         {
                             // This generic already exists and has the correct type, keep it in the list
-                            keysToRemove.Remove(generic.Name);
+                            keysToRemove.Remove(generic.Name.Name);
                         }
                         else
                         {
@@ -139,24 +138,23 @@ namespace Stride.Assets.Presentation.ViewModel
             }
         }
 
-        private void UpdateCompositionNodes<T>(ShaderClassType shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
+        private void UpdateCompositionNodes<T>(ShaderClass shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
             where T : class, IComputeNode
         {
             var keysToRemove = new List<object>(node.CompositionNodes.Keys);
             var compositionNodesNode = ownerNode[nameof(ComputeShaderClassBase<T>.CompositionNodes)].Target;
             if (shader != null)
             {
-                // TODO: is it enough detect compositions?
-                foreach (var member in shader.Members.OfType<Variable>().Where(x => x.Type is TypeName && x.Type.TypeInference?.TargetType == null))
+                foreach (var member in shader.Elements.OfType<ShaderMember>().Where(x => x.IsCompose))
                 {
                     // ComputeColor only
-                    if (member.Type.Name.Text == "ComputeColor")
+                    if (member.TypeName.Name == "ComputeColor")
                     {
-                        var index = new NodeIndex(member.Name.Text);
+                        var index = new NodeIndex(member.Name.Name);
                         if (compositionNodesNode.Indices.Any(x => Equals(x, index)))
                         {
                             // This composition node already exists, keep it in the list
-                            keysToRemove.Remove(member.Name.Text);
+                            keysToRemove.Remove(member.Name.Name);
                         }
                         else
                         {

@@ -48,43 +48,58 @@ public class EffectDescriptorSetReflection
     public static EffectDescriptorSetReflection New(GraphicsDevice graphicsDevice, EffectBytecode effectBytecode, List<string> effectDescriptorSetSlots, string defaultSetSlot)
     {
         var descriptorSetLayouts = new EffectDescriptorSetReflection(defaultSetSlot);
+        var reflection = effectBytecode.Reflection;
 
-        // Find resource groups
-        // TODO: We should precompute most of that at compile time in BytecodeReflection. Jjust waiting for format to be more stable
+        // ResourceGroups are pre-grouped and pre-ordered at compile time
         foreach (var effectDescriptorSetSlot in effectDescriptorSetSlots)
         {
-            // Find all resources related to this slot name
-            // NOTE: Ordering is mirrored by GLSL layout in Vulkan
+            var group = reflection.FindResourceGroup(effectDescriptorSetSlot, defaultSetSlot);
+            if (group == null)
+            {
+                descriptorSetLayouts.AddLayout(effectDescriptorSetSlot, null);
+                continue;
+            }
+
             var descriptorSetLayoutBuilder = new DescriptorSetLayoutBuilder();
             bool hasBindings = false;
 
-            var resourceBindingsBySlot = effectBytecode.Reflection.ResourceBindings
-                // Resource bindings of a group with the same name as the slot,
-                // or to no group/to Globals group if default slot is used
-                .Where(x => x.ResourceGroup == effectDescriptorSetSlot ||
-                            (effectDescriptorSetSlot == defaultSetSlot && (x.ResourceGroup is null or "Globals")))
-                .GroupBy(x => (x.KeyInfo.Key, x.Class, x.Type, ElementType: x.ElementType.Type, x.SlotCount, x.LogicalGroup))
-                // NOTE: Putting Constant Buffers first for now
-                .OrderBy(x => x.Key.Class == EffectParameterClass.ConstantBuffer ? 0 : 1);
+            AddGroupEntries(graphicsDevice, group, descriptorSetLayoutBuilder, ref hasBindings);
 
-            foreach (var resourceBinding in resourceBindingsBySlot)
+            // When building the default set slot, also include entries from unnamed/Globals groups
+            // (resources without an explicit resource group). This avoids mutating
+            // EffectBytecode.Reflection while ensuring those resources are bound.
+            if (effectDescriptorSetSlot == defaultSetSlot)
             {
-                SamplerState samplerState = null;
-                if (resourceBinding.Key.Class == EffectParameterClass.Sampler)
+                foreach (var fallbackGroup in reflection.ResourceGroups)
                 {
-                    var matchingSamplerState = effectBytecode.Reflection.SamplerStates.FirstOrDefault(x => x.Key == resourceBinding.Key.Key);
-                    if (matchingSamplerState is not null)
-                        samplerState = SamplerState.New(graphicsDevice, in matchingSamplerState.Description);
+                    if (fallbackGroup != group && fallbackGroup.Name is null or "Globals")
+                        AddGroupEntries(graphicsDevice, fallbackGroup, descriptorSetLayoutBuilder, ref hasBindings);
                 }
-                hasBindings = true;
-
-                descriptorSetLayoutBuilder.AddBinding(resourceBinding.Key.Key, resourceBinding.Key.LogicalGroup, resourceBinding.Key.Class, resourceBinding.Key.Type, resourceBinding.Key.ElementType, resourceBinding.Key.SlotCount, samplerState);
             }
 
             descriptorSetLayouts.AddLayout(effectDescriptorSetSlot, hasBindings ? descriptorSetLayoutBuilder : null);
         }
 
         return descriptorSetLayouts;
+    }
+
+    private static void AddGroupEntries(GraphicsDevice graphicsDevice, EffectResourceGroupDescription group, DescriptorSetLayoutBuilder builder, ref bool hasBindings)
+    {
+        foreach (var entry in group.Entries)
+        {
+            // Note: we do NOT skip entries with Stages == None here.
+            // Unused resources must still occupy their slot in the descriptor set layout
+            // to preserve logical group offsets used by render features.
+            // The ResourceBinder handles this correctly — it simply won't create
+            // binding operations for entries with no matching stage.
+
+            SamplerState samplerState = null;
+            if (entry.Class == EffectParameterClass.Sampler && entry.SamplerStateDescription.HasValue)
+                samplerState = SamplerState.New(graphicsDevice, entry.SamplerStateDescription.Value);
+
+            hasBindings = true;
+            builder.AddBinding(entry.KeyInfo.Key, entry.LogicalGroup, entry.Class, entry.Type, entry.ElementType.Type, entry.SlotCount, samplerState);
+        }
     }
 
     private EffectDescriptorSetReflection(string defaultSetSlot)

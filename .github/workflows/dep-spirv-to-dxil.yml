@@ -1,9 +1,5 @@
 name: "Dep: Build spirv_to_dxil (Mesa)"
 
-# Skeleton workflow — the full implementation lives on the sdsl-rewrite branch.
-# This exists on master only so the workflow is triggerable via workflow_dispatch
-# with the expected inputs. Checkout the sdsl-rewrite branch ref to run the real build.
-
 on:
   workflow_dispatch:
     inputs:
@@ -17,11 +13,117 @@ on:
         required: false
 
 jobs:
-  placeholder:
-    name: Skeleton (run on sdsl-rewrite branch for real build)
-    runs-on: ubuntu-latest
+  build-windows:
+    name: Build spirv_to_dxil (Windows x64)
+    runs-on: windows-2025-vs2026
     steps:
-      - name: Notice
+      - name: Checkout Stride (for patch file)
+        uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: build/deps/spirv-to-dxil
+
+      - name: Clone Mesa
+        shell: pwsh
         run: |
-          echo "This is a skeleton. The real build is on the sdsl-rewrite branch."
-          echo "Trigger this workflow against that branch ref to run the actual build."
+          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          # Keep LF line endings — our patch is LF, and on Windows runners
+          # autocrlf=true would otherwise add CR which breaks `git apply`.
+          git -C mesa-src config core.autocrlf false
+          git -C mesa-src config core.eol lf
+          git -C mesa-src remote add origin $url
+          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Apply Stride pipeline patch
+        shell: pwsh
+        working-directory: mesa-src
+        run: |
+          git apply --3way --verbose "${{ github.workspace }}/stride-src/build/deps/spirv-to-dxil/mesa-pipeline.patch"
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja mako pyyaml packaging
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure Mesa
+        shell: cmd
+        working-directory: mesa-src
+        run: |
+          set PYTHONUTF8=1
+          meson setup _build ^
+            --default-library=shared ^
+            --buildtype=release ^
+            --wrap-mode=default ^
+            -Dc_args="/wd4189" ^
+            -Dcpp_args="/wd4189" ^
+            -Dshared-glapi=disabled ^
+            -Dgles1=disabled ^
+            -Dgles2=disabled ^
+            -Dopengl=false ^
+            -Degl=disabled ^
+            -Dglx=disabled ^
+            -Dvulkan-drivers= ^
+            -Dgallium-drivers= ^
+            -Dplatforms= ^
+            -Dmicrosoft-clc=disabled ^
+            -Dspirv-to-dxil=true ^
+            -Dbuild-tests=false ^
+            -Dllvm=disabled
+
+      - name: Build
+        shell: cmd
+        working-directory: mesa-src
+        run: |
+          set PYTHONUTF8=1
+          meson compile -C _build src/microsoft/spirv_to_dxil/spirv_to_dxil:shared_library
+
+      - name: Install UPX
+        shell: pwsh
+        run: |
+          $ver = "4.2.4"
+          $url = "https://github.com/upx/upx/releases/download/v${ver}/upx-${ver}-win64.zip"
+          Invoke-WebRequest -Uri $url -OutFile upx.zip
+          Expand-Archive upx.zip -DestinationPath upx
+          echo "$PWD\upx\upx-${ver}-win64" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Compress DLL
+        shell: pwsh
+        run: |
+          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter spirv_to_dxil.dll | Select-Object -First 1
+          $before = (Get-Item $dll.FullName).Length
+          upx --best --lzma $dll.FullName
+          $after = (Get-Item $dll.FullName).Length
+          Write-Host "Before: $([math]::Round($before/1MB,2)) MB"
+          Write-Host "After: $([math]::Round($after/1MB,2)) MB"
+
+      - name: Collect DLL
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter spirv_to_dxil.dll | Select-Object -First 1
+          Copy-Item $dll.FullName out/spirv_to_dxil.dll
+          $pdb = Get-ChildItem -Recurse mesa-src/_build -Filter spirv_to_dxil.pdb -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($pdb) { Copy-Item $pdb.FullName out/spirv_to_dxil.pdb }
+          # Record commits for traceability
+          $mesaCommit = git -C mesa-src rev-parse HEAD
+          $mesaUrl = git -C mesa-src config --get remote.origin.url
+          @(
+            "Mesa: $mesaUrl @ $mesaCommit"
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)"
+          ) | Out-File out/VERSION.txt
+          Get-ChildItem out
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirv_to_dxil-win-x64
+          path: out/

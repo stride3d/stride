@@ -112,6 +112,8 @@ namespace Stride.Graphics
             (UpdatingCommandList, otherResource.UpdatingCommandList)           = (otherResource.UpdatingCommandList, UpdatingCommandList);
             (NativeMemory, otherResource.NativeMemory)                         = (otherResource.NativeMemory, NativeMemory);
             (NativePipelineStageMask, otherResource.NativePipelineStageMask)   = (otherResource.NativePipelineStageMask, NativePipelineStageMask);
+            (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)               = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
+            (LayoutTracker, otherResource.LayoutTracker)                       = (otherResource.LayoutTracker, LayoutTracker);
         }
     }
 }

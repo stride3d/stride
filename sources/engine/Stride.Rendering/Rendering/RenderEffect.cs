@@ -37,6 +37,13 @@ namespace Stride.Rendering
         public PipelineState PipelineState;
 
         /// <summary>
+        /// True if the pipeline writes depth (DepthBufferWriteEnable) or stencil (StencilWriteMask != 0).
+        /// Captured from the PipelineStateDescription when the PipelineState is first built, used by
+        /// RenderSystem.Draw to auto-detect a stage's depth access mode before worker fan-out.
+        /// </summary>
+        public bool WritesDepth;
+
+        /// <summary>
         /// Validates if effect needs to be compiled or recompiled.
         /// </summary>
         public EffectValidator EffectValidator;

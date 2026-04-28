@@ -97,7 +97,15 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Compare an image against a reference file.
         /// </summary>
-        public static bool CompareImage(Image image, string testFilename)
+        public static bool CompareImage(Image image, string testFilename) => CompareImage(image, testFilename, 2);
+
+        /// <summary>
+        /// Send the data of the test to the server.
+        /// </summary>
+        /// <param name="image">The image to send.</param>
+        /// <param name="testFilename">The expected filename.</param>
+        /// <param name="allowedDiff">Maximum per-channel difference allowed before a pixel is considered different.</param>
+        public static bool CompareImage(Image image, string testFilename, int allowedDiff)
         {
             return CompareImage(image, testFilename, out _);
         }

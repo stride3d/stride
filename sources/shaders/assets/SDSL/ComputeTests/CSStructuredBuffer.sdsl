@@ -1,0 +1,31 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Base shader holding the StructuredBuffer declarations. Matches the
+// TransformationInstancing pattern where buffers live on a dependency class.
+shader CSStructuredBufferBase
+{
+    struct Entry
+    {
+        float4x4 Matrix;
+    };
+
+    rgroup PerDraw.Test
+    {
+        stage StructuredBuffer<Entry>   InEntries;
+        stage RWStructuredBuffer<Entry> OutEntries;
+    }
+};
+
+shader CSStructuredBuffer : CSStructuredBufferBase
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint i = streams.DispatchThreadId.x;
+        OutEntries[i].Matrix = InEntries[i].Matrix;
+    }
+};

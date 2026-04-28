@@ -231,17 +231,22 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture3D()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
-
             PerformTest(
                 game =>
                 {
                     var device = game.GraphicsDevice;
 
-                    // Check Texture creation with an array of data, with usage default to later allow SetData
-                    var data = new byte[32 * 32 * 32];
-                    data[0] = 255;
-                    data[31] = 1;
+                    // Check Texture creation with an array of data, with usage default to later allow SetData.
+                    // Encode (slice, row, col) into each byte so that any misalignment of slice or row
+                    // start in the upload/readback path produces a recognisable mismatch: byte ==
+                    // (sliceIndex * 17 ^ rowIndex * 3 ^ colIndex). The 17/3 multipliers keep slice and
+                    // row contributions distinct mod 256.
+                    const int width = 32, height = 32, depth = 32;
+                    var data = new byte[width * height * depth];
+                    for (int s = 0; s < depth; s++)
+                    for (int r = 0; r < height; r++)
+                    for (int c = 0; c < width; c++)
+                        data[s * width * height + r * width + c] = (byte)((s * 17) ^ (r * 3) ^ c);
 
                     var texture = Texture.New3D(device, width: 32, height: 32, depth: 32, PixelFormat.R8_UNorm, data, usage: GraphicsResourceUsage.Default);
 

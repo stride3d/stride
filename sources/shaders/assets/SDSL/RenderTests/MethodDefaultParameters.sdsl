@@ -1,0 +1,26 @@
+// PSMain(ExpectedResult=#04070000)
+
+namespace Stride.Shaders.Tests;
+
+shader MethodDefaultParametersBase
+{
+    float TestInherited(int a, int b = 5)
+    {
+        return a + b;
+    }
+}
+
+shader MethodDefaultParameters : MethodDefaultParametersBase
+{
+    stream float4 ColorTarget : SV_Target0;
+    
+    float TestLocal(int a, int b = 3)
+    {
+        return a + b;
+    }
+
+	void PSMain()
+	{
+		streams.ColorTarget = float4(TestLocal(1), TestInherited(2), 0, 0) / 255.0;
+	}
+};

@@ -152,7 +152,7 @@ namespace Stride.Graphics
             };
             var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 6);
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
-            // Surface extensions are optional at instance creation (not available with headless ICDs like SwiftShader).
+            // Surface extensions are optional at instance creation (not available with headless ICDs).
             // They are validated later when a swapchain is actually created.
             var desiredExtensionNames = new HashSet<VkUtf8String>();
             HasSurfaceSupport = availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -281,17 +281,16 @@ namespace Stride.Graphics
         private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
-            Debug.WriteLine($"Vulkan: {severity} {message}");
+            Debug.WriteLine($"[Vulkan] {severity}: {message}");
 
-            // Redirect warnings and errors to log
-            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
-            {
+            if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Error)
                 Log.Error($"[Vulkan] {message}");
-            }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
-            {
+            else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Warning)
                 Log.Warning($"[Vulkan] {message}");
-            }
+            else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Info)
+                Log.Info($"[Vulkan] {message}");
+            else
+                Log.Debug($"[Vulkan] {message}");
 
             return VK_FALSE;
         }

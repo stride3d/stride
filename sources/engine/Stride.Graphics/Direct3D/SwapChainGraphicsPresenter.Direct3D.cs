@@ -343,13 +343,13 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        public override void BeginDraw(CommandList commandList)
-        {
-        }
-
-        /// <inheritdoc/>
         public override void EndDraw(CommandList commandList, bool present)
         {
+            // Transition the back-buffer to Present so the upcoming IDXGISwapChain::Present sees
+            // it in the required layout. Skipped when the caller won't Present (no-draw frames,
+            // headless tests) — the back buffer stays in its current layout for next frame.
+            if (present)
+                commandList.ResourceBarrierTransition(BackBuffer, BarrierLayout.Present);
         }
 
         /// <inheritdoc/>

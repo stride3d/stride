@@ -81,7 +81,7 @@ public enum AppContextType
 
     /// <summary>
     ///   The <c>Game</c> runs in headless mode without a window or display.
-    ///   Used for automated testing with software renderers (e.g. SwiftShader).
+    ///   Used for automated testing with software renderers (e.g. Lavapipe).
     /// </summary>
     Headless,
 }

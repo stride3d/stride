@@ -65,13 +65,16 @@ namespace Stride.Rendering
             mixin child GBuffer;
         }
 
+        // Depth-only sub-effects don't need lighting; declare them before StrideLighting
+        // so alpha-discard variants don't pull the lighting chain through base.PSMain().
+        mixin child ShadowMapCaster;
+        mixin child ShadowMapCasterParaboloid;
+        mixin child ShadowMapCasterCubeMap;
+        mixin child ZPrepass;
+
         // -----------------------------------------------
         // Add direct and environment light groups
         // -----------------------------------------------
         mixin StrideLighting;
-
-        mixin child ShadowMapCaster;
-        mixin child ShadowMapCasterParaboloid;
-        mixin child ShadowMapCasterCubeMap;
     };
 }

@@ -1,0 +1,13 @@
+// PSMain(ExpectedResult=#FF007FFF)
+
+namespace Stride.Shaders.Tests;
+
+shader ConstantFloat4Return
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(255.0, 0.0, 127.0, 255.0) / 255.0;
+    }
+}

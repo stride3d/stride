@@ -63,8 +63,8 @@ public static class EffectBytecodeToSourceCodeWriter
 
         string strideDefine = graphicsPlatform switch
         {
-            GraphicsPlatform.Direct3D11 or
-            GraphicsPlatform.Direct3D12 => "STRIDE_GRAPHICS_API_DIRECT3D",
+            GraphicsPlatform.Direct3D11 => "STRIDE_GRAPHICS_API_DIRECT3D11",
+            GraphicsPlatform.Direct3D12 => "STRIDE_GRAPHICS_API_DIRECT3D12",
             GraphicsPlatform.Vulkan => "STRIDE_GRAPHICS_API_VULKAN",
 
             _ => "undefined"

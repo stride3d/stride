@@ -32,36 +32,12 @@ namespace Stride.Graphics
         internal CpuDescriptorHandle NativeUnorderedAccessView;
 
         /// <summary>
-        ///   The current Direct3D 12 Resource State of the Graphics Resource.
-        /// </summary>
-        internal ResourceStates NativeResourceState;
-
-        /// <summary>
         ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
         /// </summary>
         /// <value>
         ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
         /// </value>
         protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
-
-
-        /// <summary>
-        ///   Determines if the Graphics Resource needs to perform a state transition in order to reach the target state.
-        /// </summary>
-        /// <param name="targeState">The destination Graphics Resource state.</param>
-        /// <returns>
-        ///   <see langword="true"/> if a transition is needed to reach the target state;
-        ///   otherwise, <see langword="false"/>.
-        /// </returns>
-        internal bool IsTransitionNeeded(ResourceStates targeState)
-        {
-            // If 'targeState' is a subset of 'before', then there's no need for a transition
-
-            // NOTE: ResourceStates.Common is an oddball state that doesn't follow the ResourceStates
-            //       pattern of having exactly one bit set so we need to special case these
-            return NativeResourceState != targeState &&
-                ((NativeResourceState | targeState) != NativeResourceState || targeState == ResourceStates.Common);
-        }
 
         /// <inheritdoc/>
         internal override void SwapInternal(GraphicsResourceBase other)
@@ -74,7 +50,8 @@ namespace Stride.Graphics
             (UpdatingCommandList, otherResource.UpdatingCommandList)             = (otherResource.UpdatingCommandList, UpdatingCommandList);
             (NativeShaderResourceView, otherResource.NativeShaderResourceView)   = (otherResource.NativeShaderResourceView, NativeShaderResourceView);
             (NativeUnorderedAccessView, otherResource.NativeUnorderedAccessView) = (otherResource.NativeUnorderedAccessView, NativeUnorderedAccessView);
-            (NativeResourceState, otherResource.NativeResourceState)             = (otherResource.NativeResourceState, NativeResourceState);
+            (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)                 = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
+            (LayoutTracker, otherResource.LayoutTracker)                         = (otherResource.LayoutTracker, LayoutTracker);
         }
     }
 }

@@ -1,17 +1,18 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Shadows
 {
     /// <summary>
     /// Shadow map caster with pixel shader performing alpha discard test.
+    /// Runs the material surface chain to populate shadingColorAlpha but never writes ColorTarget,
+    /// so the resulting PS has no SV_Target output (depth-only).
     /// </summary>
-    shader ShadowMapCasterAlphaDiscard : Transformation, ShaderBase, PositionStream, MaterialPixelStream
+    shader ShadowMapCasterAlphaDiscard : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream
     {
         override stage void PSMain()
         {
-            base.PSMain();
-
-            clip(streams.ColorTarget.a - streams.matAlphaDiscard);
+            this.Shading();
+            clip(streams.shadingColorAlpha - streams.matAlphaDiscard);
         }
     };
 }

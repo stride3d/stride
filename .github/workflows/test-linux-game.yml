@@ -33,6 +33,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -43,17 +44,24 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: true
-      - name: Register SwiftShader ICD
+      - name: Register Lavapipe ICD (Windows host, for asset compilation)
         shell: pwsh
         run: |
+          # Build runs on Windows (CompilerApp needs Windows-only native libs), but produces
+          # Linux binaries. CompilerApp invokes a local Vulkan device during asset compilation,
+          # so it needs a Windows-registered ICD here. The win-x64 Lavapipe .dll is shipped
+          # inside the same NuGet package consumed by the tests; just register it.
           dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
-          $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader_icd.json -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
-          if ($icd) {
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter vulkan_lvp.dll -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+          if ($dll) {
+            $icdPath = Join-Path $dll.DirectoryName "lvp_icd.json"
+            $dllPath = $dll.FullName -replace '\\', '\\\\'
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.3.0`"}}"
             New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
-            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered SwiftShader ICD: $($icd.FullName)"
+            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
+            Write-Host "Registered Lavapipe ICD: $icdPath"
           } else {
-            Write-Warning "SwiftShader ICD not found in NuGet cache"
+            Write-Warning "Lavapipe DLL not found in NuGet cache"
           }
       - name: Build GPU tests (targeting Linux/Vulkan)
         run: |
@@ -83,8 +91,7 @@ jobs:
           # Remove Windows/macOS native libs that are useless on Linux
           Get-ChildItem bin/Tests -Recurse -Include `
             'd3dcompiler_47.dll','freeimage.dll','FreeImage.dll','freetype.dll', `
-            'Silk.NET.Direct3D11.dll','Silk.NET.Direct3D12.dll','Silk.NET.Direct3D.Compilers.dll', `
-            'glslangValidator.exe' |
+            'Silk.NET.Direct3D11.dll','Silk.NET.Direct3D12.dll','Silk.NET.Direct3D.Compilers.dll' |
             Remove-Item -Force
           # Remove macOS dylibs and Windows PDBs for native libs
           Get-ChildItem bin/Tests -Recurse -Include '*.dylib','freetype.pdb' |
@@ -97,7 +104,7 @@ jobs:
           retention-days: 1
 
   # Non-GPU game tests (run once, no graphics API dependency)
-  # Note: some tests still create a GraphicsDevice, so libvulkan1 + SwiftShader are needed.
+  # Note: some tests still create a GraphicsDevice, so libvulkan1 + Lavapipe are needed.
   Game-Common:
     name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
@@ -109,6 +116,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -130,18 +138,23 @@ jobs:
           # Artifact download doesn't preserve Unix execute permissions
           find bin/Tests -name "*.bin" -exec chmod +x {} \;
           find bin/Tests -name "*.so" -exec chmod +x {} \;
-      - name: Register SwiftShader ICD
+      - name: Fetch & register Lavapipe ICD (from NuGet cache)
         run: |
-          # Find SwiftShader in any test output and create ICD JSON
-          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
+          # Pull the lavapipe NuGet package into the user-level cache without
+          # needing it copied into bin/Tests. A throwaway project pins the package
+          # into ~/.nuget/packages/stride.dependencies.lavapipe/<ver>/.
+          mkdir -p /tmp/lavapipe-fetch
+          dotnet new classlib -o /tmp/lavapipe-fetch -n LavapipeFetch --force >/dev/null
+          dotnet add /tmp/lavapipe-fetch/LavapipeFetch.csproj package Stride.Dependencies.Lavapipe
+          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
           if [ -n "$LIB" ]; then
             LIB_ABS=$(readlink -f "$LIB")
-            ICD_JSON="$PWD/vk_swiftshader_icd.json"
-            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            ICD_JSON="$PWD/lvp_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
             echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
-            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+            echo "Registered Lavapipe ICD: $ICD_JSON -> $LIB_ABS"
           else
-            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+            echo "::warning::Lavapipe libvulkan_lvp.so not found in NuGet cache"
           fi
       - name: Test
         if: always()
@@ -153,6 +166,7 @@ jobs:
             bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
             bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
+            '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
@@ -163,6 +177,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-common
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -171,7 +192,7 @@ jobs:
           path: tests/local/
           if-no-files-found: ignore
 
-  # GPU game tests (Vulkan via SwiftShader)
+  # GPU game tests (Vulkan via Lavapipe)
   Game-GPU:
     name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     needs: Build
@@ -184,13 +205,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1
+          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1 xvfb
+      - name: Start virtual display
+        run: |
+          # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,
+          # which Stride's GraphicsDevice requires even for pure offscreen rendering.
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
       - name: Download test binaries
         uses: actions/download-artifact@v4
         with:
@@ -201,17 +229,24 @@ jobs:
           # Artifact download doesn't preserve Unix execute permissions
           find bin/Tests -name "*.bin" -exec chmod +x {} \;
           find bin/Tests -name "*.so" -exec chmod +x {} \;
-      - name: Register SwiftShader ICD
+      - name: Fetch & register Lavapipe ICD (from NuGet cache)
         run: |
-          LIB=$(find bin/Tests -name libvk_swiftshader.so | head -1)
+          # The test binaries ship without the 70+ MB vulkan_lvp.so (ExcludeAssets="native"),
+          # so pull the package into ~/.nuget/packages/ here. Also write an ICD eagerly as a
+          # safety net — the managed Stride.Dependencies.Lavapipe module initializer would
+          # otherwise do this at first use, but an explicit export makes CI logs clearer.
+          mkdir -p /tmp/lavapipe-fetch
+          dotnet new classlib -o /tmp/lavapipe-fetch -n LavapipeFetch --force >/dev/null
+          dotnet add /tmp/lavapipe-fetch/LavapipeFetch.csproj package Stride.Dependencies.Lavapipe
+          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
           if [ -n "$LIB" ]; then
             LIB_ABS=$(readlink -f "$LIB")
-            ICD_JSON="$PWD/vk_swiftshader_icd.json"
-            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.1.0\"}}" > "$ICD_JSON"
+            ICD_JSON="$PWD/lvp_icd.json"
+            echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
             echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
-            echo "Registered SwiftShader ICD: $ICD_JSON -> $LIB_ABS"
+            echo "Registered Lavapipe ICD: $ICD_JSON -> $LIB_ABS"
           else
-            echo "::warning::SwiftShader libvk_swiftshader.so not found in test binaries"
+            echo "::warning::Lavapipe libvulkan_lvp.so not found in NuGet cache"
           fi
       - name: Test
         if: always()
@@ -224,6 +259,7 @@ jobs:
             bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
             bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
+            '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
@@ -234,6 +270,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-vulkan
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4

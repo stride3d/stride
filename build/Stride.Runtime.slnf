@@ -17,18 +17,20 @@
       "..\\sources\\engine\\Stride.Particles\\Stride.Particles.csproj",
       "..\\sources\\engine\\Stride.Physics\\Stride.Physics.csproj",
       "..\\sources\\engine\\Stride.Rendering\\Stride.Rendering.csproj",
-      "..\\sources\\engine\\Stride.Shaders.Compiler\\Stride.Shaders.Compiler.csproj",
-      "..\\sources\\engine\\Stride.Shaders.Parser\\Stride.Shaders.Parser.csproj",
-      "..\\sources\\engine\\Stride.Shaders\\Stride.Shaders.csproj",
       "..\\sources\\engine\\Stride.SpriteStudio.Runtime\\Stride.SpriteStudio.Runtime.csproj",
       "..\\sources\\engine\\Stride.UI\\Stride.UI.csproj",
       "..\\sources\\engine\\Stride.Video\\Stride.Video.csproj",
       "..\\sources\\engine\\Stride.VirtualReality\\Stride.VirtualReality.csproj",
       "..\\sources\\engine\\Stride.Voxels\\Stride.Voxels.csproj",
       "..\\sources\\engine\\Stride\\Stride.csproj",
-      "..\\sources\\tools\\Stride.FreeImage\\Stride.FreeImage.csproj",
-      "..\\sources\\shaders\\Irony\\Irony.csproj",
-      "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj"
+      "..\\sources\\shaders\\Stride.Shaders\\Stride.Shaders.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Compilers\\Stride.Shaders.Compilers.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Parsers\\Stride.Shaders.Parsers.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Spirv.Core\\Stride.Shaders.Spirv.Core.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Generators\\Stride.Shaders.Generators.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Generators.Internal\\Stride.Shaders.Generators.Internal.csproj",
+      "..\\sources\\shaders\\Stride.Shaders.Spirv.Generators\\Stride.Shaders.Spirv.Generators.csproj",
+      "..\\sources\\tools\\Stride.FreeImage\\Stride.FreeImage.csproj"
     ]
   }
 }

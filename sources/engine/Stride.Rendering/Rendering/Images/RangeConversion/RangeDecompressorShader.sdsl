@@ -9,14 +9,11 @@ namespace Stride.Rendering.Images
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 			
-			float3 linearColor = color;
-
 			// reverse karis tone map:
 			float targetRange = 1.0;
-			float maxComponent = max(max(linearColor.r, linearColor.g), linearColor.b);
-			maxComponent = min(maxComponent, 2047.0f / 2048.0f);
+			float maxComponent = max(max(color.r, color.g), color.b);
 			float denominator = 1 - maxComponent / targetRange;
-			float3 reverseKaris = linearColor / denominator;
+			float3 reverseKaris = denominator > 0 ? color / denominator : color;
 			
 			// write output for the rest of the post effects:
 			return float4(reverseKaris, 1.0);

@@ -1,0 +1,190 @@
+diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
+index 1a8e6e2dee3..14b0f115dc8 100644
+--- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
++++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
+@@ -126,3 +126,140 @@ spirv_to_dxil_get_version()
+    }
+    return 0;
+ }
++
++/*
++ * Stride addition: multi-stage linked compile.
++ *
++ * Compiles all stages of a pipeline together so that dead-code elimination
++ * of inter-stage varyings doesn't break the DXIL I/O signature matching.
++ */
++bool
++spirv_to_dxil_pipeline(const struct spirv_to_dxil_stage_input *stages,
++                       unsigned stage_count,
++                       enum dxil_validator_version validator_version_max,
++                       const struct dxil_spirv_runtime_conf *conf,
++                       const struct dxil_spirv_logger *logger,
++                       struct dxil_spirv_object *out_dxils)
++{
++   if (stage_count == 0 || stage_count > MESA_SHADER_STAGES)
++      return false;
++
++   glsl_type_singleton_init_or_ref();
++
++   struct nir_to_dxil_options opts = {
++      .environment = DXIL_ENVIRONMENT_VULKAN,
++      .shader_model_max = conf->shader_model_max,
++      .validator_version_max = validator_version_max,
++   };
++
++   const struct spirv_to_nir_options *spirv_opts = dxil_spirv_nir_get_spirv_options();
++   nir_shader_compiler_options nir_options;
++   const unsigned supported_bit_sizes = 16 | 32 | 64;
++   dxil_get_nir_compiler_options(&nir_options, conf->shader_model_max, supported_bit_sizes, supported_bit_sizes);
++   nir_options.lower_base_vertex = conf->first_vertex_and_base_instance_mode != DXIL_SPIRV_SYSVAL_TYPE_ZERO;
++
++   /* Map stage->nir and original input index (to write output back) */
++   nir_shader *nirs[MESA_SHADER_STAGES] = { NULL };
++   int input_index_by_stage[MESA_SHADER_STAGES];
++   for (int i = 0; i < MESA_SHADER_STAGES; ++i)
++      input_index_by_stage[i] = -1;
++
++   bool success = true;
++
++   /* Parse all stages */
++   for (unsigned i = 0; i < stage_count; ++i) {
++      dxil_spirv_shader_stage stage = stages[i].stage;
++      if (stage == DXIL_SPIRV_SHADER_NONE || stage == DXIL_SPIRV_SHADER_KERNEL ||
++          stage >= MESA_SHADER_STAGES) {
++         success = false;
++         goto cleanup;
++      }
++      if (nirs[stage]) {
++         /* Duplicate stage */
++         success = false;
++         goto cleanup;
++      }
++      nir_shader *nir = spirv_to_nir(
++         stages[i].words, stages[i].word_count, NULL, 0,
++         (mesa_shader_stage)stage, stages[i].entry_point_name,
++         spirv_opts, &nir_options);
++      if (!nir) {
++         success = false;
++         goto cleanup;
++      }
++      nir_validate_shader(nir, "Validate SPIR-V to NIR output");
++      /* Mark all I/O variables as always active so that nir_remove_dead_variables
++       * doesn't strip them. This preserves the I/O signatures across stages, which is
++       * required for D3D12 pipeline state validation (especially for HS<->DS where the
++       * control point and patch constant signatures must match exactly).
++       *
++       * Also keeps HS outputs alive when only read by the patch-constant function
++       * (which the kill pass otherwise treats as unused since they aren't read by DS),
++       * and keeps DS dummy inputs alive (added by Stride to match HS-internal outputs).
++       *
++       * Must happen BEFORE dxil_spirv_nir_prep, since that runs nir_remove_dead_variables
++       * itself and would strip our dummies before they get a chance to be marked.
++       */
++      nir_foreach_variable_with_modes(var, nir, nir_var_shader_in | nir_var_shader_out)
++         var->data.always_active_io = true;
++      dxil_spirv_nir_prep(nir);
++      nirs[stage] = nir;
++      input_index_by_stage[stage] = (int)i;
++   }
++
++   /* Run per-stage passes */
++   struct dxil_spirv_metadata metadata[MESA_SHADER_STAGES] = { 0 };
++   for (int stage = 0; stage < MESA_SHADER_STAGES; ++stage) {
++      if (!nirs[stage])
++         continue;
++      dxil_spirv_nir_passes(nirs[stage], conf, &metadata[stage]);
++   }
++
++   /* Link consecutive stages (later -> earlier). For each stage with a
++    * previous stage present, call dxil_spirv_nir_link. This removes unused
++    * outputs/inputs and reassigns driver_location consistently across stage
++    * boundaries, matching what spirv2dxil.c does.
++    */
++   for (int cur = MESA_SHADER_FRAGMENT; cur >= MESA_SHADER_VERTEX; --cur) {
++      if (!nirs[cur])
++         continue;
++      for (int prev = cur - 1; prev >= MESA_SHADER_VERTEX; --prev) {
++         if (!nirs[prev])
++            continue;
++         struct dxil_spirv_metadata link_meta = { 0 };
++         dxil_spirv_nir_link(nirs[cur], nirs[prev], conf, &link_meta);
++         break;
++      }
++   }
++
++   struct dxil_logger logger_inner = {
++      .priv = logger->priv,
++      .log = logger->log,
++   };
++
++   /* Emit DXIL for each stage in pipeline order */
++   for (int stage = 0; stage < MESA_SHADER_STAGES; ++stage) {
++      if (!nirs[stage])
++         continue;
++      int out_index = input_index_by_stage[stage];
++      struct blob dxil_blob;
++      if (!nir_to_dxil(nirs[stage], &opts, &logger_inner, &dxil_blob)) {
++         if (dxil_blob.allocated)
++            blob_finish(&dxil_blob);
++         success = false;
++         goto cleanup;
++      }
++      out_dxils[out_index].metadata = metadata[stage];
++      blob_finish_get_buffer(&dxil_blob, &out_dxils[out_index].binary.buffer,
++                             &out_dxils[out_index].binary.size);
++   }
++
++cleanup:
++   for (int stage = 0; stage < MESA_SHADER_STAGES; ++stage) {
++      if (nirs[stage])
++         ralloc_free(nirs[stage]);
++   }
++   glsl_type_singleton_decref();
++
++   return success;
++}
+diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.def b/src/microsoft/spirv_to_dxil/spirv_to_dxil.def
+index 62851f2160b..1c6f26c7a3a 100644
+--- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.def
++++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.def
+@@ -2,3 +2,4 @@ EXPORTS
+     spirv_to_dxil
+     spirv_to_dxil_free
+     spirv_to_dxil_get_version
++    spirv_to_dxil_pipeline
+diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.h b/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
+index 00b18849e41..902716c6221 100644
+--- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
++++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
+@@ -236,6 +236,31 @@ spirv_to_dxil(const uint32_t *words, size_t word_count,
+               const struct dxil_spirv_logger *logger,
+               struct dxil_spirv_object *out_dxil);
+ 
++/**
++ * Input descriptor for a single stage in a linked pipeline compile.
++ */
++struct spirv_to_dxil_stage_input {
++   const uint32_t *words;
++   size_t word_count;
++   dxil_spirv_shader_stage stage;
++   const char *entry_point_name;
++};
++
++/**
++ * Compile all shader stages of a pipeline together, linking between
++ * stages so that unused varyings are stripped consistently and DXIL
++ * I/O signatures match across stage boundaries.
++ *
++ * out_dxils[i] receives the compiled DXIL for stages[i].
++ */
++bool
++spirv_to_dxil_pipeline(const struct spirv_to_dxil_stage_input *stages,
++                       unsigned stage_count,
++                       enum dxil_validator_version validator_version_max,
++                       const struct dxil_spirv_runtime_conf *conf,
++                       const struct dxil_spirv_logger *logger,
++                       struct dxil_spirv_object *out_dxils);
++
+ /**
+  * Free the buffer allocated by spirv_to_dxil.
+  */

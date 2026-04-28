@@ -150,21 +150,24 @@ namespace Stride.Graphics
         {
             bool hasInitData = dataPointer != IntPtr.Zero;
 
-            // TODO: D3D12: Where should that go longer term? Should it be precomputed for future use? (cost would likely be additional check on SetDescriptorSets/Draw)
-            NativeResourceState = ResourceStates.Common;
+            // Final post-init state derived from the buffer's flags. Consumed by
+            // CreateCommittedResource and the init-time copy-queue barrier — D3D12 creation
+            // is a ResourceStates API. Runtime transitions go through LayoutTracker /
+            // BarrierLayout in ResourceBarrierTransition.
             var bufferFlags = bufferDescription.BufferFlags;
+            var desiredResourceState = ResourceStates.Common;
 
             if (bufferFlags.HasFlag(BufferFlags.ConstantBuffer))
-                NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
+                desiredResourceState |= ResourceStates.VertexAndConstantBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.IndexBuffer))
-                NativeResourceState |= ResourceStates.IndexBuffer;
+                desiredResourceState |= ResourceStates.IndexBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.VertexBuffer))
-                NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
+                desiredResourceState |= ResourceStates.VertexAndConstantBuffer;
 
             if (bufferFlags.HasFlag(BufferFlags.ShaderResource))
-                NativeResourceState |= ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
+                desiredResourceState |= ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
 
             if (bufferFlags.HasFlag(BufferFlags.StructuredBuffer))
             {
@@ -173,9 +176,10 @@ namespace Stride.Graphics
             }
 
             if (bufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
-                NativeResourceState |= ResourceStates.IndirectArgument;
+                desiredResourceState |= ResourceStates.IndirectArgument;
 
             var heapType = HeapType.Default;
+            IsHostVisibleHeap = false;
             if (Usage == GraphicsResourceUsage.Staging)
             {
                 // Per our own definition of staging resource (read-back only)
@@ -183,18 +187,20 @@ namespace Stride.Graphics
                     throw new InvalidOperationException("D3D12: Staging buffers can't be created with initial data.");
 
                 heapType = HeapType.Readback;
-                NativeResourceState = ResourceStates.CopyDest;
+                desiredResourceState = ResourceStates.CopyDest;
+                IsHostVisibleHeap = true;
             }
             else if (Usage == GraphicsResourceUsage.Dynamic)
             {
                 heapType = HeapType.Upload;
-                NativeResourceState = ResourceStates.GenericRead;
+                desiredResourceState = ResourceStates.GenericRead;
+                IsHostVisibleHeap = true;
             }
 
             // TODO: D3D12: Move to a global allocator in bigger committed resources
             var heap = new HeapProperties { Type = heapType };
 
-            var initialResourceState = heapType != HeapType.Default ? NativeResourceState : ResourceStates.Common;
+            var initialResourceState = heapType != HeapType.Default ? desiredResourceState : ResourceStates.Common;
 
             // If the resource must be initialized with data, it is initially in the state
             // CopyDest so we can copy from an upload buffer
@@ -206,6 +212,14 @@ namespace Stride.Graphics
                                                                                  out ComPtr<ID3D12Resource> buffer);
             if (result.IsFailure)
                 result.Throw();
+
+            // Defer-release the previous native resource — SetNativeDeviceChild otherwise
+            // leaks the prior ref on repeated Recreate. Avoid OnDestroyed so Destroyed doesn't fire.
+            if (NativeDeviceChild.IsNotNull())
+            {
+                GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, NativeResource);
+                UnsetNativeDeviceChild();
+            }
 
             SetNativeDeviceChild(buffer.AsDeviceChild());
             GPUVirtualAddress = NativeResource.GetGPUVirtualAddress();
@@ -227,18 +241,15 @@ namespace Stride.Graphics
                     NativeResource.Unmap(Subresource: 0, pWrittenRange: ref NullRef<D3D12Range>());
                 }
             }
-            else if (heapType == HeapType.Default)
+            else if (heapType == HeapType.Default && hasInitData)
             {
-                ComPtr<ID3D12Resource> uploadResource = default;
-                int uploadOffset = 0;
-
-                if (hasInitData)
-                {
-                    // Copy data to the upload heap for later inter-resource copy
-                    // TODO: D3D12: Move that to a shared upload heap
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
-                }
+                // Default-heap buffer with init data: upload via the copy queue through
+                // Common → CopyDest → Common. The resource must end in Common so the first
+                // runtime enhanced Barrier can take over — non-Common initial states are
+                // rejected by the D3D12 enhanced/legacy interop check.
+                // TODO: D3D12: Move that to a shared upload heap
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
+                MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                 var commandList = GraphicsDevice.NativeCopyCommandList;
 
@@ -250,26 +261,9 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                    resourceBarrier.Transition.PResource = NativeResource;
-                    resourceBarrier.Transition.Subresource = 0;
-
-                    if (hasInitData)
-                    {
-                        // Switch resource to CopyDest state
-                        resourceBarrier.Transition.StateBefore = initialResourceState;
-                        resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
-                        commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
-
-                        // Copy from the upload heap to the actual resource
-                        commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
-                    }
-
-                    // Once initialized, transition the Buffer to its final state
-                    resourceBarrier.Transition.StateBefore = hasInitData ? ResourceStates.CopyDest : initialResourceState;
-                    resourceBarrier.Transition.StateAfter = NativeResourceState;
-
-                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+                    // Buffers implicitly promote to CopyDest and decay back to Common at
+                    // ExecuteCommandLists — no explicit barriers needed.
+                    commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
 
                     result = commandList.Close();
 
@@ -283,7 +277,12 @@ namespace Stride.Graphics
                 }
             }
 
-            LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeResourceState), 1);
+            // Default-heap buffers live in Common — non-default heaps live in their
+            // creation-time state (GenericRead for Upload / CopyDest for Readback) and
+            // are skipped by runtime barrier code via IsHostVisibleHeap.
+            LayoutTracker.Initialize(heapType == HeapType.Default
+                ? BarrierLayout.Common
+                : BarrierMapping.ToBarrierLayout(desiredResourceState), 1);
 
             NativeShaderResourceView = GetShaderResourceView(ViewFormat);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewFormat);

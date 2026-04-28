@@ -36,7 +36,13 @@ internal class HeadlessGraphicsPresenter : GraphicsPresenter
     protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
     {
         DepthStencilBuffer?.Dispose();
-        DepthStencilBuffer = Texture.New2D(GraphicsDevice, width, height, format, TextureFlags.DepthStencil);
+        // Expose the depth buffer as a shader resource so scene passes that sample depth
+        // (soft-edge particles, SSAO, light shafts, ...) get a valid SRV view. Without it,
+        // Vulkan leaves NativeImageView = Null and descriptor writes hit VUID 02997.
+        var flags = TextureFlags.DepthStencil;
+        if (GraphicsDevice.Features.HasDepthAsSRV)
+            flags |= TextureFlags.ShaderResource;
+        DepthStencilBuffer = Texture.New2D(GraphicsDevice, width, height, format, flags);
     }
 
     protected override void Destroy()

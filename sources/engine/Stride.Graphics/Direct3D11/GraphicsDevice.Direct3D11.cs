@@ -338,6 +338,15 @@ namespace Stride.Graphics
 
                 if (result.IsSuccess && infoQueue.IsNotNull())
                 {
+                    // RenderDoc intercepts ID3D11InfoQueue with a stub that drops every call (see
+                    // DummyID3D11InfoQueue in renderdoc/driver/d3d11/d3d11_device.cpp). The filter
+                    // install and message drain below will appear to succeed but emit nothing,
+                    // so warn the user upfront.
+                    if (Win32.GetModuleHandle("renderdoc.dll") != 0)
+                    {
+                        Log.Warning("[D3D11] RenderDoc detected — D3D11 debug-layer messages will not surface through the logger (RenderDoc returns a stub ID3D11InfoQueue)");
+                    }
+
                     nativeInfoQueue = infoQueue;
 
                     infoQueue.SetMessageCountLimit(1000);

@@ -8,13 +8,14 @@ namespace Stride.Rendering.Images
     /// </summary>
     internal shader FogEffect : ImageEffectShader
     {
-        stage float FogStart;
-        stage float Density;
-        stage float zFar;
-        stage float zNear;
-        stage bool skipBG;
+        stage float FogStart = 0.0f;
+        stage float Density = 1.0f;
+        stage float zFar = 1000.0f;
+        stage float zNear = 0.1f;
+        stage bool skipBG = false;
 
-        stage float3 FogColor;
+        [Color]
+        stage float3 FogColor = float3(1.0, 1.0, 1.0);
         stage Texture2D DepthTexture;
 
         stage override float4 Shading() 

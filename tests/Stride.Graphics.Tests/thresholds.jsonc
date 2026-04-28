@@ -1,0 +1,19 @@
+// Image comparison thresholds for Stride.Graphics.Tests
+// Built-in default (no file needed): any pixel with diff >= 3 fails.
+// Only add entries here for images that need relaxed thresholds.
+//
+// Format:
+//   image    - image filename (required, or omit for suite-wide default)
+//   platform - "Windows", "Linux", "macOS" (optional, omit = any)
+//   api      - "Vulkan", "Direct3D11", "Direct3D12" (optional, omit = any)
+//   device   - "SwiftShader", "WARP", GPU name (optional, omit = any)
+//   allow    - max allowed pixel counts per diff range (e.g. "1-2": 500, "16+": 2)
+[
+  {
+    // Jittered ray-marching in PostEffectBoundingRay samples a hash of view-space
+    // position; a handful of pixels land near integer hash boundaries and flip
+    // run-to-run, most visibly on Lavapipe.
+    "image": "TestLightShafts.png",
+    "allow": { "3+": 10 }
+  }
+]

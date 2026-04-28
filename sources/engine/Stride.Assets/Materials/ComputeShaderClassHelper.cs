@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-using Stride.Core.Shaders.Ast.Stride;
-using Stride.Shaders.Parser.Mixins;
-using Stride.Core.Shaders.Utility;
+using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Assets.Materials
 {
@@ -32,22 +33,21 @@ namespace Stride.Assets.Materials
             return type;
         }
 
-        public static ShaderClassType ParseReferencedShader<T>(this ComputeShaderClassBase<T> node, IDictionary<string, string> projectShaders)
+        public static ShaderClass ParseReferencedShader<T>(this ComputeShaderClassBase<T> node, IDictionary<string, string> projectShaders)
             where T : class, IComputeNode
         {
-            ShaderClassType shader = null;
-
             string source;
             if (projectShaders.TryGetValue(node.MixinReference, out source))
             {
-                var logger = new LoggerResult();
                 try
                 {
-                    shader = ShaderLoader.ParseSource(source, logger);
-                    if (logger.HasErrors)
-                    {
+                    var parsed = SDSLParser.Parse(source);
+                    if (parsed.Errors.Count > 0)
                         return null;
-                    }
+                    if (parsed.AST is not ShaderFile sf)
+                        return null;
+
+                    return sf.RootDeclarations.Concat(sf.Namespaces.SelectMany(x => x.Declarations)).OfType<ShaderClass>().SingleOrDefault();
                 }
                 catch
                 {
@@ -56,7 +56,7 @@ namespace Stride.Assets.Materials
                 }
             }
 
-            return shader;
+            return null;
         }
     }
 }

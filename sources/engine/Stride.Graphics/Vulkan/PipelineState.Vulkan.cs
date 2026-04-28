@@ -47,8 +47,16 @@ namespace Stride.Graphics
         private unsafe void Recreate()
         {
             // Note: important to pin this so that stages[x].Name is valid during this whole function
-            fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
-                RecreateInner();
+            try
+            {
+                fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
+                    RecreateInner();
+            }
+            catch (InvalidOperationException ex) when (Description.EffectBytecode?.Stages is { Length: > 0 } stages)
+            {
+                var entryPoints = string.Join(", ", stages.Select(s => $"{s.Stage}:{Encoding.UTF8.GetString(s.EntryPoint).TrimEnd('\0')}"));
+                throw new InvalidOperationException($"{ex.Message} (bytecode {stages[0].Id} [{entryPoints}])", ex);
+            }
         }
 
         private unsafe void RecreateInner()
@@ -61,7 +69,7 @@ namespace Stride.Graphics
             CreatePipelineLayout(Description);
 
             // Create shader stages
-            var stages = CreateShaderStages(Description, out var inputAttributeNames);
+            var stages = CreateShaderStages(Description);
 
             if (IsCompute)
             {
@@ -98,15 +106,15 @@ namespace Stride.Graphics
 
                     VulkanConvertExtensions.ConvertPixelFormat(inputElement.Format, out var format, out var size, out var isCompressed);
 
-                    var location = inputAttributeNames.FirstOrDefault(x => x.Value == inputElement.SemanticName && inputElement.SemanticIndex == 0 || x.Value == inputElement.SemanticName + inputElement.SemanticIndex);
-                    if (location.Value != null)
+                    var inputAttribute = Description.EffectBytecode.Reflection.InputAttributes.FirstOrDefault(x => x.SemanticName == inputElement.SemanticName && x.SemanticIndex == inputElement.SemanticIndex);
+                    if (inputAttribute.SemanticName != null)
                     {
                         inputAttributes[inputAttributeCount++] = new VkVertexInputAttributeDescription
                         {
                             format = format,
                             offset = (uint)inputElement.AlignedByteOffset,
                             binding = (uint)inputElement.InputSlot,
-                            location = (uint)location.Key
+                            location = (uint)inputAttribute.Location
                         };
                     }
 
@@ -128,7 +136,7 @@ namespace Stride.Graphics
                     primitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType)
                 };
 
-                // TODO VULKAN: Tessellation and multisampling
+                // TODO VULKAN: Multisampling
                 var multisampleState = new VkPipelineMultisampleStateCreateInfo
                 {
                     sType = VkStructureType.PipelineMultisampleStateCreateInfo,
@@ -137,7 +145,8 @@ namespace Stride.Graphics
 
                 var tessellationState = new VkPipelineTessellationStateCreateInfo
                 {
-                    sType = VkStructureType.PipelineTessellationStateCreateInfo
+                    sType = VkStructureType.PipelineTessellationStateCreateInfo,
+                    patchControlPoints = (uint)(Description.PrimitiveType >= PrimitiveType.PatchList && Description.PrimitiveType < PrimitiveType.PatchList + 32 ? Description.PrimitiveType - PrimitiveType.PatchList + 1 : 0),
                 };
 
                 var rasterizationState = CreateRasterizationState(Description.RasterizerState);
@@ -212,7 +221,6 @@ namespace Stride.Graphics
                         layout = NativeLayout,
                         stageCount = (uint)stages.Length,
                         pStages = stages.Length > 0 ? fStages : null,
-                        //tessellationState = &tessellationState,
                         pVertexInputState = &vertexInputState,
                         pInputAssemblyState = &inputAssemblyState,
                         pRasterizationState = &rasterizationState,
@@ -221,19 +229,17 @@ namespace Stride.Graphics
                         pColorBlendState = &colorBlendState,
                         pDynamicState = &dynamicState,
                         pViewportState = &viewportState,
+                        pTessellationState = &tessellationState,
                         renderPass = NativeRenderPass,
-                        subpass = 0
+                        subpass = 0,
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
                         GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
 
-            // Cleanup shader modules
-            foreach (var stage in stages)
-            {
-                GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stage.module, allocator: null);
-            }
+            // Cleanup shader modules (since module is shared between each stage, cleaning first stage is enough)
+            GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stages[0].module, allocator: null);
         }
 
         /// <inheritdoc/>
@@ -283,6 +289,19 @@ namespace Stride.Graphics
                 }
             }
 
+            // A pipeline that disables depth writes AND doesn't write stencil is compatible with
+            // DepthStencilReadOnlyOptimal, which is also a valid layout for shader sampling. Using
+            // that layout here lets a depth buffer be bound simultaneously as read-only attachment
+            // and as a SampledImage (e.g. soft-edge particles sampling the scene depth) without
+            // triggering VUID-vkCmdBeginRenderPass-initialLayout-00900.
+            var dss = pipelineStateDescription.DepthStencilState;
+            bool depthReadOnly = hasDepthStencilAttachment
+                && !dss.DepthBufferWriteEnable
+                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
+            var depthLayout = depthReadOnly
+                ? VkImageLayout.DepthStencilReadOnlyOptimal
+                : VkImageLayout.DepthStencilAttachmentOptimal;
+
             if (hasDepthStencilAttachment)
             {
                 attachments[attachmentCount - 1] = new VkAttachmentDescription
@@ -293,8 +312,8 @@ namespace Stride.Graphics
                     storeOp = VkAttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
                     stencilLoadOp = VkAttachmentLoadOp.DontCare, // TODO VULKAN: Handle stencil
                     stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                    initialLayout = VkImageLayout.DepthStencilAttachmentOptimal,
-                    finalLayout = VkImageLayout.DepthStencilAttachmentOptimal
+                    initialLayout = depthLayout,
+                    finalLayout = depthLayout
                 };
             }
 
@@ -305,7 +324,7 @@ namespace Stride.Graphics
                 var depthAttachmentReference = new VkAttachmentReference
                 {
                     attachment = (uint)attachments.Length - 1,
-                    layout = VkImageLayout.DepthStencilAttachmentOptimal
+                    layout = depthLayout
                 };
 
                 var subpass = new VkSubpassDescription
@@ -362,19 +381,19 @@ namespace Stride.Graphics
         private unsafe void CreatePipelineLayout(PipelineStateDescription pipelineStateDescription)
         {
             // Remap descriptor set indices to those in the shader. This ordering generated by the ShaderCompiler
-            var resourceGroups = pipelineStateDescription.EffectBytecode.Reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
+            var resourceGroups = pipelineStateDescription.EffectBytecode.Reflection.ResourceGroups.Select(g => g.Name).ToList();
             ResourceGroupCount = resourceGroups.Count;
 
             var layouts = pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts;
 
-            // Get binding indices used by the shader
-            var destinationBindings = pipelineStateDescription.EffectBytecode.Stages
-                .SelectMany(x => ReadShaderBytecode(x.Data).ResourceBindings)
-                .GroupBy(x => x.Key, x => x.Value)
-                .ToDictionary(x => x.Key, x => x.First());
+            // Get binding indices used by the shader (from ResourceGroups entries)
+            var destinationBindings = new Dictionary<string, EffectResourceEntry>();
+            foreach (var group in pipelineStateDescription.EffectBytecode.Reflection.ResourceGroups)
+                foreach (var entry in group.Entries)
+                    destinationBindings[entry.KeyInfo.KeyName] = entry;
 
-            var maxBindingIndex = destinationBindings.Max(x => x.Value);
-            var destinationEntries = new DescriptorSetLayoutBuilder.Entry[maxBindingIndex + 1];
+            var maxBindingIndex = destinationBindings.Count > 0 ? destinationBindings.Max(x => x.Value.SlotStart + x.Value.SlotCount) : 0;
+            var destinationEntries = new DescriptorSetLayoutBuilder.Entry[maxBindingIndex];
 
             DescriptorBindingMapping = new List<DescriptorSetInfo>();
 
@@ -395,9 +414,11 @@ namespace Stride.Graphics
 
                     if (destinationBindings.TryGetValue(sourceEntry.Key.Name, out var destinationBinding))
                     {
-                        destinationEntries[destinationBinding] = sourceEntry;
+                        if (destinationBinding.SlotCount != 1)
+                            throw new NotImplementedException();
+                        destinationEntries[destinationBinding.SlotStart] = sourceEntry;
 
-                        // No need to umpdate immutable samplers
+                        // No need to update immutable samplers
                         if (sourceEntry.Class == EffectParameterClass.Sampler && sourceEntry.ImmutableSampler != null)
                         {
                             continue;
@@ -407,22 +428,13 @@ namespace Stride.Graphics
                         {
                             SourceSet = layoutIndex,
                             SourceBinding = sourceBinding,
-                            DestinationBinding = destinationBinding,
+                            DestinationBinding = destinationBinding.SlotStart,
                             DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(sourceEntry.Class, sourceEntry.Type),
                             ResourceElementIsInteger = sourceEntry.ElementType != EffectParameterType.Float && sourceEntry.ElementType != EffectParameterType.Double
                         });
                     }
                 }
             }
-
-            // Create default sampler, used by texture and buffer loads
-            destinationEntries[0] = new DescriptorSetLayoutBuilder.Entry
-            {
-                Class = EffectParameterClass.Sampler,
-                Type = EffectParameterType.Sampler,
-                ImmutableSampler = GraphicsDevice.SamplerStates.PointWrap,
-                ArraySize = 1
-            };
 
             // Create descriptor set layout
             NativeDescriptorSetLayout = DescriptorSetLayout.CreateNativeDescriptorSetLayout(GraphicsDevice, destinationEntries, out DescriptorTypeCounts);
@@ -438,33 +450,36 @@ namespace Stride.Graphics
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout));
         }
 
-        private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
+        private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription)
         {
             var stages = pipelineStateDescription.EffectBytecode.Stages;
             var nativeStages = new VkPipelineShaderStageCreateInfo[stages.Length];
 
             IsCompute = false;
 
-            inputAttributeNames = null;
+            // Create shader module (shared by all stages)
+            var shaderBytecode = stages[0].Data;
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode, allocator: null, out var shaderModule));
 
             for (int i = 0; i < stages.Length; i++)
             {
-                var shaderBytecode = ReadShaderBytecode(stages[i].Data);
-                if (stages[i].Stage == ShaderStage.Vertex)
-                    inputAttributeNames = shaderBytecode.InputAttributeNames;
-                if (stages[i].Stage == ShaderStage.Compute)
+                var stage = stages[i];
+                if (!stage.Data.SequenceEqual(shaderBytecode))
+                    throw new InvalidOperationException("Vulkan: bytecode is expected to be the same for all stages");
+
+                if (stage.Stage == ShaderStage.Compute)
                     IsCompute = true;
 
-                fixed (byte* entryPointPointer = &defaultEntryPoint[0])
+                fixed (byte* entryPointPointer = &stage.EntryPoint[0])
                 {
                     // Create stage
                     nativeStages[i] = new VkPipelineShaderStageCreateInfo
                     {
                         sType = VkStructureType.PipelineShaderStageCreateInfo,
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
-                        pName = entryPointPointer
+                        pName = entryPointPointer,
+                        module = shaderModule,
                     };
-                    GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module));
                 }
             }
 

@@ -42,6 +42,15 @@ namespace Stride.Rendering
         [DefaultValue(null)]
         public RenderStageFilter Filter { get; set; }
 
+        /// <summary>
+        /// Declares how pipelines in this stage access the depth attachment. Used by the backend
+        /// to pre-transition the depth buffer on the orchestrating (main) command list before
+        /// parallel worker recording, avoiding a cross-CB layout race for stages that are
+        /// homogeneous in depth access.
+        /// </summary>
+        [DataMemberIgnore]
+        public RenderStageDepthAccess DepthAccess { get; set; } = RenderStageDepthAccess.Auto;
+
         public RenderStage()
         {
             Id = Guid.NewGuid();
@@ -74,5 +83,20 @@ namespace Stride.Rendering
         {
             return Name;
         }
+    }
+
+    /// <summary>
+    /// How pipelines in a <see cref="RenderStage"/> access the depth-stencil attachment.
+    /// </summary>
+    public enum RenderStageDepthAccess
+    {
+        /// <summary>Detect from the stage's render nodes on each frame (default). See RenderSystem.Draw.</summary>
+        Auto,
+        /// <summary>All pipelines in the stage write depth (most opaque, shadow, z-prepass passes).</summary>
+        Write,
+        /// <summary>All pipelines in the stage only read depth (transparent with depth-test-only).</summary>
+        Read,
+        /// <summary>Stage has a mix of write/read pipelines — backend can't pre-transition safely.</summary>
+        Mixed,
     }
 }

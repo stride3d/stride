@@ -14,9 +14,6 @@
     <Compile Remove="Compiler\CubemapEffect.sdfx.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Compiler\CubemapEffect.sdfx" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />

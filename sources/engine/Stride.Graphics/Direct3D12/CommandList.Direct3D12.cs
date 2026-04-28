@@ -39,12 +39,19 @@ namespace Stride.Graphics
         private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
+        // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
+        private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
+
+        // Per-CL layout state. Seeded from GraphicsResource.LayoutTracker on first touch; used by
+        // ResourceBarrierTransition so the read path can't race concurrent writes. Writes still
+        // mirror to the shared tracker (matches Vulkan 03a246a1b8).
+        private readonly Dictionary<GraphicsResource, SubresourceLayoutTracker> cbLayouts = new();
 
         // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
         private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = [];
 
-        internal readonly Queue<ComPtr<ID3D12GraphicsCommandList>> NativeCommandLists = new();
+        internal readonly Queue<ComPtr<ID3D12GraphicsCommandList7>> NativeCommandLists = new();
 
         private CompiledCommandList currentCommandList;
 
@@ -139,6 +146,8 @@ namespace Stride.Graphics
             srvMapping.Clear();
             samplerMapping.Clear();
 
+            cbLayouts.Clear();
+
             currentCommandList.Builder = this;
             currentCommandList.SrvHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
             currentCommandList.SamplerHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
@@ -157,7 +166,7 @@ namespace Stride.Graphics
             {
                 scoped ref var nullInitialPipelineState = ref NullRef<ID3D12PipelineState>();
 
-                if (NativeCommandLists.TryDequeue(out ComPtr<ID3D12GraphicsCommandList> nativeCommandList))
+                if (NativeCommandLists.TryDequeue(out ComPtr<ID3D12GraphicsCommandList7> nativeCommandList))
                 {
                     currentCommandList.NativeCommandList = nativeCommandList;
 
@@ -170,7 +179,7 @@ namespace Stride.Graphics
                 {
                     var commandAllocator = currentCommandList.NativeCommandAllocator;
                     HResult result = NativeDevice.CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, ref nullInitialPipelineState,
-                                                                    out ComPtr<ID3D12GraphicsCommandList> commandList);
+                                                                    out ComPtr<ID3D12GraphicsCommandList7> commandList);
                     if (result.IsFailure)
                         result.Throw();
 
@@ -186,8 +195,6 @@ namespace Stride.Graphics
         /// </summary>
         public partial void Flush()
         {
-            FlushResourceBarriers();
-
             var commandList = Close();
             GraphicsDevice.ExecuteCommandList(commandList);
         }
@@ -275,18 +282,6 @@ namespace Stride.Graphics
         /// <param name="renderTargetViews">The Render Targets to bind.</param>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargetViews)
         {
-            // Transition render targets and depth-stencil to the correct state
-            for (int i = 0; i < renderTargetViews.Length; ++i)
-            {
-                var rt = renderTargetViews[i];
-                ResourceBarrierTransition(rt, BarrierLayout.RenderTarget, GetTextureSubresource(rt));
-            }
-
-            if (depthStencilBuffer is not null)
-                ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite, GetTextureSubresource(depthStencilBuffer));
-
-            FlushResourceBarriers();
-
             int renderTargetCount = renderTargetViews.Length;
 
             var renderTargetHandles = stackalloc CpuDescriptorHandle[renderTargetCount];
@@ -400,47 +395,8 @@ namespace Stride.Graphics
         /// </remarks>
         private void PrepareDraw()
         {
-            TransitionDescriptorResources();
             FlushResourceBarriers();
             SetViewportImpl();
-        }
-
-        /// <summary>
-        ///   Transitions all resources bound in descriptor sets to the correct state for shader access.
-        ///   SRV resources are transitioned to PixelShaderResource | NonPixelShaderResource,
-        ///   UAV resources are transitioned to UnorderedAccess.
-        /// </summary>
-        private void TransitionDescriptorResources()
-        {
-            if (boundDescriptorSets is null)
-                return;
-
-            for (int i = 0; i < boundDescriptorSets.Length; i++)
-            {
-                var tracking = boundDescriptorSets[i].Tracking;
-                if (tracking is null)
-                    continue;
-
-                var resources = tracking.Resources;
-                var isUAV = tracking.IsUAV;
-
-                for (int j = 0; j < resources.Length; j++)
-                {
-                    var resource = resources[j];
-                    if (resource is null)
-                        continue;
-
-                    // Skip resources on upload/readback heaps (GenericRead/CopyDest) — they can't be transitioned
-                    if (resource.NativeResourceState == ResourceStates.GenericRead ||
-                        resource.NativeResourceState == ResourceStates.CopyDest)
-                        continue;
-
-                    if (isUAV[j])
-                        ResourceBarrierTransition(resource, BarrierLayout.UnorderedAccess);
-                    else
-                        ResourceBarrierTransition(resource, BarrierLayout.ShaderResource);
-                }
-            }
         }
 
         /// <summary>
@@ -596,13 +552,19 @@ namespace Stride.Graphics
             if (resource is Texture { ParentTexture: not null } textureView)
                 resource = textureView.ParentTexture;
 
-            if (resource.LayoutTracker.NeedsTransition(subresource, newLayout))
+            // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
+            // perSubresource array.
+            ref var tracker = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cbLayouts, resource, out bool exists);
+            if (!exists)
+                tracker = resource.LayoutTracker.Clone();
+
+            if (tracker.NeedsTransition(subresource, newLayout))
             {
                 // When per-subresource tracking is active and a whole-resource transition is requested,
                 // only emit barriers for subresources that actually differ
-                if (subresource == uint.MaxValue && resource.LayoutTracker.HasPerSubresourceTracking)
+                if (subresource == uint.MaxValue && tracker.HasPerSubresourceTracking)
                 {
-                    var layouts = resource.LayoutTracker.PerSubresourceLayouts;
+                    var layouts = tracker.PerSubresourceLayouts;
                     for (int i = 0; i < layouts.Length; i++)
                     {
                         if (layouts[i] != newLayout)
@@ -616,113 +578,67 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    pendingBarriers.Add(new ResourceBarrierDescription(resource, resource.LayoutTracker.Get(subresource), newLayout)
+                    pendingBarriers.Add(new ResourceBarrierDescription(resource, tracker.Get(subresource), newLayout)
                     {
                         Subresource = subresource
                     });
                 }
 
-                resource.LayoutTracker.Set(subresource, newLayout);
-                resource.NativeResourceState = BarrierMapping.ToResourceStates(newLayout);
+                tracker.Set(subresource, newLayout);
+                resource.LayoutTracker = tracker;
             }
         }
 
-        [Obsolete("Use BarrierLayout overload instead.")]
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            ResourceBarrierTransition(resource, BarrierMapping.ToBarrierLayout((ResourceStates)newState));
-        }
-
         /// <summary>
-        ///   Flushes all pending Graphics Resource barriers.
+        ///   Flushes all pending Graphics Resource barriers using D3D12 Enhanced Barriers.
         /// </summary>
-        /// <remarks>
-        ///   This method processes all pending resource barriers, applying them. This is to to ensure
-        ///   that all queued resource transitions are executed.
-        /// </remarks>
         private unsafe void FlushResourceBarriers()
         {
             int count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
-            // Coalesce duplicate barriers for the same resource+subresource.
-            // Sort by (Resource, Subresource), then merge consecutive entries:
-            // keep the first LayoutBefore and the last LayoutAfter, drop no-ops.
+            // Dedup on (resource, subresource) in O(n) with insertion order preserved.
+            // A→B followed by B→C collapses to A→C; A→B→A collapses to A→A (dropped below).
             if (count > 1)
             {
-                pendingBarriers.Sort(static (a, b) =>
-                {
-                    int cmp = RuntimeHelpers.GetHashCode(a.Resource).CompareTo(RuntimeHelpers.GetHashCode(b.Resource));
-                    return cmp != 0 ? cmp : a.Subresource.CompareTo(b.Subresource);
-                });
-
+                barrierCoalesceMap.Clear();
                 int write = 0;
-                for (int read = 1; read < count; read++)
+                for (int read = 0; read < count; read++)
                 {
-                    if (pendingBarriers[write].Resource == pendingBarriers[read].Resource &&
-                        pendingBarriers[write].Subresource == pendingBarriers[read].Subresource)
+                    var desc = pendingBarriers[read];
+                    var key = (desc.Resource, desc.Subresource);
+                    if (barrierCoalesceMap.TryGetValue(key, out int existing))
                     {
-                        // Merge: keep LayoutBefore from [write], take LayoutAfter from [read]
-                        var merged = pendingBarriers[write];
-                        merged.LayoutAfter = pendingBarriers[read].LayoutAfter;
-                        pendingBarriers[write] = merged;
+                        var merged = pendingBarriers[existing];
+                        merged.LayoutAfter = desc.LayoutAfter;
+                        pendingBarriers[existing] = merged;
                     }
                     else
                     {
-                        // Keep previous entry only if it's not a no-op (A→B→A)
-                        if (pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter)
-                            write++;
-                        pendingBarriers[write] = pendingBarriers[read];
+                        barrierCoalesceMap[key] = write;
+                        pendingBarriers[write++] = desc;
                     }
                 }
 
-                // Final entry: keep if not a no-op
-                count = pendingBarriers[write].LayoutBefore != pendingBarriers[write].LayoutAfter ? write + 1 : write;
+                // Drop no-ops in-place.
+                int finalCount = 0;
+                for (int i = 0; i < write; i++)
+                {
+                    var desc = pendingBarriers[i];
+                    if (desc.LayoutBefore != desc.LayoutAfter)
+                        pendingBarriers[finalCount++] = desc;
+                }
+
+                count = finalCount;
                 if (count < pendingBarriers.Count)
                     pendingBarriers.RemoveRange(count, pendingBarriers.Count - count);
             }
 
-            count = pendingBarriers.Count;
             if (count == 0)
                 return;
 
-            if (GraphicsDevice.SupportsEnhancedBarriers)
-                FlushResourceBarriersEnhanced(count);
-            else
-                FlushResourceBarriersLegacy(count);
-        }
-
-        private unsafe void FlushResourceBarriersLegacy(int count)
-        {
-            scoped Span<ResourceBarrier> barriers = stackalloc ResourceBarrier[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                var desc = pendingBarriers[i];
-
-                barriers[i] = new ResourceBarrier
-                {
-                    Type = ResourceBarrierType.Transition,
-                    Flags = ResourceBarrierFlags.None,
-                    Transition = new ResourceTransitionBarrier
-                    {
-                        PResource = desc.Resource.NativeResource,
-                        Subresource = desc.Subresource,
-                        StateBefore = BarrierMapping.ToResourceStates(desc.LayoutBefore),
-                        StateAfter = BarrierMapping.ToResourceStates(desc.LayoutAfter),
-                    }
-                };
-            }
-
-            pendingBarriers.Clear();
-
-            currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint)count, barriers);
-        }
-
-        private unsafe void FlushResourceBarriersEnhanced(int count)
-        {
-            // Separate texture and buffer barriers
+            // Split texture and buffer barriers — D3D12 Enhanced requires separate BarrierGroups.
             scoped Span<D3D12TextureBarrier> textureBarriers = stackalloc D3D12TextureBarrier[count];
             scoped Span<D3D12BufferBarrier> bufferBarriers = stackalloc D3D12BufferBarrier[count];
             int textureCount = 0;
@@ -732,18 +648,25 @@ namespace Stride.Graphics
             {
                 var desc = pendingBarriers[i];
 
+                var syncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore);
+                var syncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter);
+                var accessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore);
+                var accessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter);
+
                 if (desc.Resource is Texture)
                 {
                     textureBarriers[textureCount++] = new D3D12TextureBarrier
                     {
-                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
-                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
-                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
-                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        SyncBefore = syncBefore,
+                        SyncAfter = syncAfter,
+                        AccessBefore = accessBefore,
+                        AccessAfter = accessAfter,
                         LayoutBefore = BarrierMapping.ToEnhancedLayout(desc.LayoutBefore),
                         LayoutAfter = BarrierMapping.ToEnhancedLayout(desc.LayoutAfter),
                         PResource = desc.Resource.NativeResource,
-                        Subresources = D3D12SubresourceRange.All,
+                        Subresources = desc.Subresource == uint.MaxValue
+                            ? D3D12SubresourceRange.All
+                            : D3D12SubresourceRange.Single(desc.Subresource),
                         Flags = 0,
                     };
                 }
@@ -751,10 +674,10 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferCount++] = new D3D12BufferBarrier
                     {
-                        SyncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore),
-                        SyncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter),
-                        AccessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore),
-                        AccessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter),
+                        SyncBefore = syncBefore,
+                        SyncAfter = syncAfter,
+                        AccessBefore = accessBefore,
+                        AccessAfter = accessAfter,
                         PResource = desc.Resource.NativeResource,
                         Offset = 0,
                         Size = ulong.MaxValue, // Entire buffer
@@ -793,8 +716,7 @@ namespace Stride.Graphics
 
                 if (groupCount > 0)
                 {
-                    var commandList7 = (ID3D12GraphicsCommandList7*)currentCommandList.NativeCommandList.Handle;
-                    commandList7->Barrier((uint)groupCount, (BarrierGroup*)groups);
+                    currentCommandList.NativeCommandList.Barrier((uint)groupCount, (BarrierGroup*)groups);
                 }
             }
         }

@@ -1,0 +1,33 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\build\submodules\CppNet8\*.cs" LinkBase="CppNet" />
+    <Compile Include="..\..\..\build\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\CppReader.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\CppTask.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\InputLexerSource.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\TokenSnifferSource.cs" />
+    <None Remove="gen_intrin_main.txt" />
+    <AdditionalFiles Include="gen_intrin_main.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Generators.Internal\Stride.Shaders.Generators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <!-- SPIRV-Tools: in-process spirv-val + spirv-opt via Stride's combined stride_spirv_tools native library. -->
+    <PackageReference Include="Stride.Dependencies.SPIRVTools" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <StrideBuildTags>*</StrideBuildTags>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RootNamespace>Stride.Shaders</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>
