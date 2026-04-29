@@ -138,6 +138,8 @@ namespace Stride.Graphics
             if (currentCommandList.Builder is not null)
                 return;
 
+            DebugScopeResetForNewRecording();
+
             FlushResourceBarriers();
             ResetSrvHeap(createNewHeap: true);
             ResetSamplerHeap(createNewHeap: true);
@@ -393,10 +395,12 @@ namespace Stride.Graphics
         /// <remarks>
         ///    This method is called before each Draw() method to setup the correct Viewport.
         /// </remarks>
-        private void PrepareDraw()
+        private void PrepareDraw(bool isDispatch = false)
         {
             FlushResourceBarriers();
             SetViewportImpl();
+
+            RecordDebugCounter(isDispatch ? DebugCounterKind.Dispatch : DebugCounterKind.Draw);
         }
 
         /// <summary>
@@ -547,6 +551,8 @@ namespace Stride.Graphics
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             Debug.Assert(resource is not null, "Resource must not be null.");
+
+            RecordDebugCounter(DebugCounterKind.Barrier);
 
             // Texture views share the native resource of their parent; barrier the parent instead
             if (resource is Texture { ParentTexture: not null } textureView)
@@ -919,7 +925,7 @@ namespace Stride.Graphics
         /// <param name="threadCountZ">Number of thread groups in the Z dimension.</param>
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
-            PrepareDraw(); // TODO: PrepareDraw for Compute dispatch?
+            PrepareDraw(isDispatch: true); // TODO: PrepareDraw for Compute dispatch?
 
             currentCommandList.NativeCommandList.Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
         }
@@ -1094,6 +1100,11 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
+            // Scope tracking lives on GraphicsDevice (single-rendering-thread mutation).
+            // Tier 1 (stack) is always on — used to annotate validation log messages.
+            // Tier 2 (tree) is added when IsDebugMode is set.
+            GraphicsDevice.PushDebugScope(name);
+
             if (!IsDebugMode)
                 return;
 
@@ -1118,6 +1129,8 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
+            GraphicsDevice.PopDebugScope();
+
             if (!IsDebugMode)
                 return;
 
@@ -1162,6 +1175,7 @@ namespace Stride.Graphics
             currentCommandList.NativeCommandList.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView,
                                                                        (ClearFlags) options, depth, stencil,
                                                                        NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1182,6 +1196,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref clearColorFloats,
                                                                         NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1209,6 +1224,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1236,6 +1252,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1263,6 +1280,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1290,6 +1308,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1317,6 +1336,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1344,6 +1364,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            RecordDebugCounter(DebugCounterKind.Clear);
         }
 
         /// <summary>
@@ -1402,6 +1423,8 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(destination);
+
+            RecordDebugCounter(DebugCounterKind.Copy);
 
             // Copy Texture -> Texture
             if (source is Texture sourceTexture &&
@@ -1625,6 +1648,8 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(sourceMultiSampledTexture);
             ArgumentNullException.ThrowIfNull(destinationTexture);
 
+            RecordDebugCounter(DebugCounterKind.Copy);
+
             if (!sourceMultiSampledTexture.IsMultiSampled)
                 throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultiSampledTexture));
 
@@ -1695,6 +1720,8 @@ namespace Stride.Graphics
         public void CopyRegion(GraphicsResource source, int sourceSubResourceIndex, ResourceRegion? sourceRegion,
                                GraphicsResource destination, int destinationSubResourceIndex, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
+            RecordDebugCounter(DebugCounterKind.Copy);
+
             if (source is Texture sourceTexture &&
                 destination is Texture destinationTexture)
             {

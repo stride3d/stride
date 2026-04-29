@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -843,6 +844,10 @@ namespace Stride.Graphics
         {
         }
 
+        // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
+        // called once per frame when the outermost BeginProfile scope closes.
+        partial void DrainDebugMessages() => FlushDebugMessages();
+
         /// <summary>
         ///   Drains all pending D3D12 debug messages from the InfoQueue and logs them.
         /// </summary>
@@ -852,6 +857,7 @@ namespace Stride.Graphics
                 return;
 
             var numMessages = nativeInfoQueue->GetNumStoredMessages();
+            bool sawDrawIssue = false;
             for (ulong i = 0; i < numMessages; i++)
             {
                 nuint messageLength = 0;
@@ -868,22 +874,47 @@ namespace Stride.Graphics
 
                     var description = Marshal.PtrToStringAnsi((nint) message->PDescription) ?? "(no description)";
 
-                    Debug.WriteLine($"D3D12: {message->Severity} {description}");
+                    // The native debug layer already prints these to OutputDebugString, so we
+                    // don't echo via Debug.WriteLine — that's a third copy in the same sink.
+
+                    // Categories that fire during draw/dispatch recording or GPU execution benefit
+                    // from a scope annotation and tree dump — initialization, shader compile,
+                    // PSO/heap creation messages don't.
+                    bool isDrawCategory = message->Category is MessageCategory.StateSetting
+                                                            or MessageCategory.Execution
+                                                            or MessageCategory.ResourceManipulation;
+
+                    var prefix = isDrawCategory ? GetDrainTimeScopePrefix() : null;
 
                     switch (message->Severity)
                     {
                         case MessageSeverity.Corruption:
                         case MessageSeverity.Error:
-                            Log.Error($"[D3D12] {message->Severity}: {description}");
+                            DebugLog.Error($"{prefix}{description}");
+                            if (isDrawCategory) sawDrawIssue = true;
                             break;
                         case MessageSeverity.Warning:
-                            Log.Warning($"[D3D12] {description}");
+                            DebugLog.Warning($"{prefix}{description}");
+                            if (isDrawCategory) sawDrawIssue = true;
                             break;
                     }
                 }
             }
 
+            if (sawDrawIssue)
+                DebugDumpTree();
+
             nativeInfoQueue->ClearStoredMessages();
+        }
+
+        /// <summary>
+        ///   Returns a "[scope]: " prefix for log messages — the leaf of the active scope stack.
+        ///   The full path is in the tree dump's "Active scope:" line; per-message we keep it short.
+        /// </summary>
+        private string GetDrainTimeScopePrefix()
+        {
+            if (debugScopeStack.Count == 0) return "";
+            return $"[{debugScopeStack.Peek()}]: ";
         }
 
         /// <summary>
@@ -964,6 +995,15 @@ namespace Stride.Graphics
                 nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
                 CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+
+                if (IsDebugMode)
+                {
+                    // Aggregate this CL's per-scope counters into the device-wide scope tree.
+                    // We don't drain debug messages here — that happens once per frame in
+                    // PopDebugScope when the outermost scope closes, so the tree is complete
+                    // and no misleading "active scope" annotation is shown on per-message logs.
+                    DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
+                }
             }
 
             RecycleCommandListResources(commandList, commandListFenceValue + 1);
