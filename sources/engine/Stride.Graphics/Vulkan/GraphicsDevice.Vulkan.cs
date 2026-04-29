@@ -421,11 +421,18 @@ namespace Stride.Graphics
             uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
             uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
 
+            // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
+            var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
+            {
+                sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
+            };
+
             // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
             // Check if the feature is supported before requesting it
             var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
             {
                 sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
+                pNext = &shaderFloat16Int8Features,
             };
             // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
             var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
@@ -443,7 +450,10 @@ namespace Stride.Graphics
             if (!timelineSemaphoreFeatures.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
-            timelineSemaphoreFeatures.pNext = &uniformBufferStandardLayoutFeature;
+            // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
+            shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
+            timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
+            shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
 
             // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
             void* pNextChainHead = &timelineSemaphoreFeatures;
