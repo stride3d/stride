@@ -1,2 +1,4 @@
-Mesa: https://gitlab.freedesktop.org/mesa/mesa.git @ aa2bc8d2d88e65dcfb046a8ff11db1f0000d4a8a
-Stride: https://github.com/stride3d/stride @ ae6aa351cff4c7d810eae21d0bed6801c515f05f (for workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)
+Local debug build (debugoptimized, no UPX, with PDB)
+Mesa: stride/spirv-to-dxil-tcs-fixes @ 50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6
+Stride patch: build/deps/spirv-to-dxil/mesa-pipeline.patch (applied + spirv_to_nir arity fix)
+Built: 2026-04-29

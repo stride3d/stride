@@ -156,7 +156,9 @@ namespace Stride.Shaders.Compiler
 
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
             if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(
-                ResourcesRegisterSeparate: effectParameters.Platform is not GraphicsPlatform.Vulkan,
+                // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
+                // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
+                ResourcesRegisterSeparate: effectParameters.Platform is GraphicsPlatform.Direct3D11,
                 StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
@@ -546,11 +548,17 @@ namespace Stride.Shaders.Compiler
         {
             var runtimeConf = new RuntimeConf
             {
+                // Mesa-injected CBVs for sysvals/push-constants. Both go in a high register space
+                // so they can't collide with Stride's resources (which all live in space 0).
                 runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
+                push_constant_cbv = { base_shader_register = 1, register_space = 31 },
                 yzflip_mode = FlipMode.YZFlipNone,
-                shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
+                // SM 6.2 minimum so mesa can lower native 16-bit types (Float16/Int16) when a
+                // shader uses `half`. Mesa only ramps individual shaders up to 6.2 on demand.
+                shader_model_max = dxil_shader_model.SHADER_MODEL_6_2,
             };
-            var logger = new DXILSpirvLogger();
+            _spvLogSink?.Clear();
+            var logger = new DXILSpirvLogger { log = &SpvLogCallback };
 
             // Allocate native buffers for entry point names (UTF-8 null-terminated)
             var entryPointNameBuffers = new byte[entryPoints.Count][];
@@ -593,7 +601,12 @@ namespace Stride.Shaders.Compiler
                     }
 
                     if (!Spv2DXIL.spirv_to_dxil_pipeline(stages, entryPoints.Count, ValidatorVersion.DXIL_VALIDATOR_1_4, ref runtimeConf, ref logger, outputs))
-                        throw new InvalidOperationException("spirv_to_dxil_pipeline failed");
+                    {
+                        var dumpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"stride-dxil-fail-{Guid.NewGuid():N}.spv");
+                        System.IO.File.WriteAllBytes(dumpPath, spirvBytecode.ToArray());
+                        var diag = _spvLogSink is { Length: > 0 } sb ? sb.ToString().TrimEnd() : "(no diagnostics from spirv_to_dxil)";
+                        throw new InvalidOperationException($"spirv_to_dxil_pipeline failed; SPIR-V dumped to {dumpPath}\n{diag}");
+                    }
 
                     for (int i = 0; i < entryPoints.Count; i++)
                     {
@@ -610,6 +623,21 @@ namespace Stride.Shaders.Compiler
                         if (nameHandles[i].IsAllocated) nameHandles[i].Free();
                 }
             }
+        }
+
+        // Thread-local sink for messages mesa logs through DXILSpirvLogger.log during a single
+        // CompileDxilPipeline call. Drained into the exception text on failure.
+        [ThreadStatic] private static StringBuilder _spvLogSink;
+
+        [System.Runtime.InteropServices.UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static unsafe void SpvLogCallback(void* priv, byte* message)
+        {
+            if (message is null)
+                return;
+            var sink = _spvLogSink ??= new StringBuilder();
+            int len = 0;
+            while (message[len] != 0) len++;
+            sink.AppendLine(Encoding.UTF8.GetString(message, len));
         }
 
         /// <summary>
