@@ -21,12 +21,12 @@
   <!-- ================================================================ -->
   <PropertyGroup>
     <!-- Build all graphics APIs when StrideGraphicsApiDependent or building all -->
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">Vulkan</StrideDefaultGraphicsApi>
   </PropertyGroup>
 
   <!-- Some platforms only have a single graphics API.
@@ -59,14 +59,6 @@
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
-    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGLES' ">
-    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES</StrideGraphicsApiDefines>
-  </PropertyGroup>
-
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
   </PropertyGroup>
@@ -80,8 +72,8 @@
   <!-- Graphics API Output Path Adjustment (Stride.targets:40-46) -->
   <!-- ================================================================ -->
   <!-- When building for multiple graphics APIs, each API gets its own output subdirectory.
-       Skip for test projects (IsTestProject=true) which manage their own output paths. -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(IsTestProject)' != 'true'">
+       Test projects using the Stride test SDK override OutputPath after this import. -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>

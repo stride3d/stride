@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 using Stride.Core;
@@ -82,12 +83,48 @@ namespace Stride.Graphics.Font
                         throw new InvalidOperationException("The rendered character is too big for the cache texture");
                 }
             }
-            // updload the bitmap on the texture (if the size in the bitmap is not null)
+            // Upload the bitmap to the atlas texture, with a 1px transparent border extending
+            // beyond the allocated region to clear any stale pixels from previously freed glyphs.
+            // This overlaps into neighbors' transparent borders (which are also zeroed), so no
+            // glyph data is corrupted. Prevents bilinear filtering artifacts when scaling fonts.
             if (character.Bitmap.Rows != 0 && character.Bitmap.Width != 0)
             {
-                var dataBox = new DataBox(character.Bitmap.Buffer, character.Bitmap.Pitch, character.Bitmap.Pitch * character.Bitmap.Rows);
-                var region = new ResourceRegion(character.Glyph.Subrect.Left, character.Glyph.Subrect.Top, 0, character.Glyph.Subrect.Right, character.Glyph.Subrect.Bottom, 1);
-                commandList.UpdateSubResource(cacheTextures[0], 0, dataBox, region);
+                var texW = cacheTextures[0].ViewWidth;
+                var texH = cacheTextures[0].ViewHeight;
+
+                // Expand the upload region by 1px on each side, clamped to texture bounds
+                int left = Math.Max(0, character.Glyph.Subrect.Left - 1);
+                int top = Math.Max(0, character.Glyph.Subrect.Top - 1);
+                int right = Math.Min(texW, character.Glyph.Subrect.Right + 1);
+                int bottom = Math.Min(texH, character.Glyph.Subrect.Bottom + 1);
+                int expandedW = right - left;
+                int expandedH = bottom - top;
+
+                // Build expanded buffer: zero-filled, with the glyph bitmap copied into the center
+                var expandedSize = expandedW * expandedH;
+                var expandedBuffer = ArrayPool<byte>.Shared.Rent(expandedSize);
+                Array.Clear(expandedBuffer, 0, expandedSize);
+                int offsetX = character.Glyph.Subrect.Left - left;
+                int offsetY = character.Glyph.Subrect.Top - top;
+                unsafe
+                {
+                    var src = (byte*)character.Bitmap.Buffer;
+                    for (int y = 0; y < character.Bitmap.Rows; y++)
+                    {
+                        var srcRow = src + y * character.Bitmap.Pitch;
+                        var dstOffset = (y + offsetY) * expandedW + offsetX;
+                        for (int x = 0; x < character.Bitmap.Width; x++)
+                            expandedBuffer[dstOffset + x] = srcRow[x];
+                    }
+
+                    fixed (byte* pExpanded = expandedBuffer)
+                    {
+                        var dataBox = new DataBox((nint)pExpanded, expandedW, expandedSize);
+                        var region = new ResourceRegion(left, top, 0, right, bottom, 1);
+                        commandList.UpdateSubResource(cacheTextures[0], 0, dataBox, region);
+                    }
+                }
+                ArrayPool<byte>.Shared.Return(expandedBuffer);
             }
 
             // update the glyph data

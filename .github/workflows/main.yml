@@ -28,6 +28,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
+permissions:
+  checks: write
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -75,18 +79,16 @@ jobs:
     strategy:
       matrix:
         build-type: [Release]
-        graphics-api: [OpenGL, Vulkan]
     uses: ./.github/workflows/build-linux-runtime.yml
     secrets: inherit
     with:
       build-type: ${{ matrix.build-type }}
-      graphics-api: ${{ matrix.graphics-api }}
 
   Windows-Runtime:
     strategy:
       matrix:
         build-type: [Release]
-        graphics-api: [Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan]
+        graphics-api: [Direct3D11, Direct3D12, Vulkan]
     uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
@@ -104,6 +106,20 @@ jobs:
   Windows-Tests-Game:
     needs: Windows-Runtime
     uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Linux-Tests-Simple:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-simple.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Linux-Tests-Game:
+    needs: Linux-Runtime
+    uses: ./.github/workflows/test-linux-game.yml
     secrets: inherit
     with:
       build-type: Debug

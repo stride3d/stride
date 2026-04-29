@@ -653,7 +653,7 @@ namespace Stride.Graphics
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
         /// </remarks>
-        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout)
+        public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             // Nothing to do
         }

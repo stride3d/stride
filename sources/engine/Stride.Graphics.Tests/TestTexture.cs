@@ -190,9 +190,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture2DUnorderedAccess()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGL);
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
-
             PerformTest(
                 game =>
                 {
@@ -231,9 +228,11 @@ namespace Stride.Graphics.Tests
                 GraphicsProfile.Level_11_0); // Force to use Level11 in order to use UnorderedAccessViews
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestTexture3D()
         {
+            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
+
             PerformTest(
                 game =>
                 {
@@ -325,8 +324,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestDepthStencilBuffer()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
-
             PerformTest(
                 game =>
                 {
@@ -365,8 +362,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact(Skip = "Clear on a Read-Only Depth-Stencil Buffer should be undefined or throw exception; we should rewrite this test to do actual rendering with ReadOnly depth stencil bound?")]
         public void TestDepthStencilBufferWithNativeReadonly()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
-
             PerformTest(
                 game =>
                 {
@@ -402,17 +397,11 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadSave(ImageFileType sourceFormat)
         {
-            Skip.If(Platform.Type == PlatformType.Android && (
-                // TODO: Remove this when mipmap copy is supported on OpenGL by the engine
-                sourceFormat is ImageFileType.Stride or ImageFileType.Dds ||
-                // TODO: Remove when the Tiff format is supported on Android
-                sourceFormat == ImageFileType.Tiff),
-                reason: "Unsupported case for Android");
-
             Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
 
             // TODO: Remove this when Load/Save methods are implemented for these types
             Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformTest(
                 game =>
@@ -467,6 +456,7 @@ namespace Stride.Graphics.Tests
             // TODO: Remove this when Load/Save methods are implemented for these types
             Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, reason: "Load/Save not implemented for this format");
+            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformDrawTest(
                 (game, context) =>
@@ -499,10 +489,7 @@ namespace Stride.Graphics.Tests
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestGetData(GraphicsProfile profile, GraphicsResourceUsage usage)
         {
-            // TODO: Modify this when when supported on OpenGL
             var testArray = profile >= GraphicsProfile.Level_10_0;
-            // TODO: Remove this limitation when GetData is fixed on OpenGL ES for mip-levels other than 0
-            var mipmaps = GraphicsDevice.Platform == GraphicsPlatform.OpenGLES && profile < GraphicsProfile.Level_10_0 ? 1 : 3;
 
             PerformTest(
                 game =>
@@ -516,12 +503,12 @@ namespace Stride.Graphics.Tests
                         : [ TextureFlags.None ];
 
                     var pixelFormat = PixelFormat.R8G8B8A8_UNorm;
-                    var data = CreateDebugTextureData(width, height, mipmaps, arraySize, pixelFormat, DefaultColorComputer);
+                    var data = CreateDebugTextureData(width, height, 3, arraySize, pixelFormat, DefaultColorComputer);
 
                     foreach (var flag in flags)
                     {
-                        using var texture = CreateDebugTexture(game.GraphicsDevice, data, width, height, mipmaps, arraySize, pixelFormat, flag, usage);
-                        CheckDebugTextureData(game.GraphicsContext, texture, width, height, mipmaps, arraySize, pixelFormat, flag, usage, DefaultColorComputer);
+                        using var texture = CreateDebugTexture(game.GraphicsDevice, data, width, height, 3, arraySize, pixelFormat, flag, usage);
+                        CheckDebugTextureData(game.GraphicsContext, texture, width, height, 3, arraySize, pixelFormat, flag, usage, DefaultColorComputer);
                     }
                 },
                 profile);
@@ -534,10 +521,7 @@ namespace Stride.Graphics.Tests
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestCopy(GraphicsProfile profile, GraphicsResourceUsage usageSource)
         {
-            // TODO: Modify this when when supported on OpenGL
             var testArray = profile >= GraphicsProfile.Level_10_0;
-            // TODO: Remove this limitation when GetData is fixed on OpenGL ES for mip-levels other than 0
-            var mipmaps = GraphicsDevice.Platform == GraphicsPlatform.OpenGLES && profile < GraphicsProfile.Level_10_0 ? 1 : 3;
 
             PerformTest(
                 game =>
@@ -557,7 +541,7 @@ namespace Stride.Graphics.Tests
                                 ? ColorComputerR8
                                 : DefaultColorComputer;
 
-                            var data = CreateDebugTextureData(width, height, mipmaps, arraySize, pixelFormat, colorComputer);
+                            var data = CreateDebugTextureData(width, height, 3, arraySize, pixelFormat, colorComputer);
 
                             TextureFlags[] sourceFlags = usageSource == GraphicsResourceUsage.Default
                                 ? [ TextureFlags.ShaderResource, TextureFlags.RenderTarget, TextureFlags.RenderTarget | TextureFlags.ShaderResource ]
@@ -565,12 +549,12 @@ namespace Stride.Graphics.Tests
 
                             foreach (var flag in sourceFlags)
                             {
-                                using var texture = CreateDebugTexture(game.GraphicsDevice, data, width, height, mipmaps, arraySize, pixelFormat, flag, usageSource);
+                                using var texture = CreateDebugTexture(game.GraphicsDevice, data, width, height, 3, arraySize, pixelFormat, flag, usageSource);
                                 using var copyTexture = destinationStaged ? texture.ToStaging() : texture.Clone();
 
                                 game.GraphicsContext.CommandList.Copy(texture, copyTexture);
 
-                                CheckDebugTextureData(game.GraphicsContext, copyTexture, width, height, mipmaps, arraySize, pixelFormat, flag, usageSource, colorComputer);
+                                CheckDebugTextureData(game.GraphicsContext, copyTexture, width, height, 3, arraySize, pixelFormat, flag, usageSource, colorComputer);
                             }
                         }
                     }

@@ -9,8 +9,11 @@
     <repository type="git" url="https://github.com/stride3d/stride" />
   </metadata>
   <files>
-    <file src="vk_swiftshader.dll" target="runtimes/win-x64/native/" />
-    <file src="vk_swiftshader_icd.json" target="build/" />
-    <file src="Stride.Dependencies.SwiftShader.targets" target="build/" />
+    <file src="win-x64/vk_swiftshader.dll" target="runtimes/win-x64/native/" />
+    <file src="win-x64/vk_swiftshader_icd.json" target="runtimes/win-x64/native/" />
+    <file src="linux-x64/libvk_swiftshader.so" target="runtimes/linux-x64/native/" />
+    <file src="linux-x64/vk_swiftshader_icd.json" target="runtimes/linux-x64/native/" />
+    <file src="osx-arm64/libvk_swiftshader.dylib" target="runtimes/osx-arm64/native/" />
+    <file src="osx-arm64/vk_swiftshader_icd.json" target="runtimes/osx-arm64/native/" />
   </files>
 </package>

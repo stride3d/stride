@@ -229,7 +229,8 @@ public abstract class GraphicsPresenter : ComponentBase
         Description.BackBufferFormat = format;
 
         ResizeBackBuffer(width, height, format);
-        ResizeDepthStencilBuffer(width, height, DepthStencilBuffer.ViewFormat);
+        if (DepthStencilBuffer != null)
+            ResizeDepthStencilBuffer(width, height, DepthStencilBuffer.ViewFormat);
 
         GraphicsDevice.End();
     }
