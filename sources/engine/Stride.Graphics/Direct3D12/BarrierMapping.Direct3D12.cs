@@ -77,6 +77,9 @@ internal static class BarrierMapping
     /// </summary>
     internal static D3D12BarrierAccess ToEnhancedAccess(BarrierLayout layout) => layout switch
     {
+        // LayoutBefore=UNDEFINED requires AccessBefore=NO_ACCESS (with SyncBefore=NONE).
+        // The same pairing is required when used as the After side.
+        BarrierLayout.Undefined => D3D12BarrierAccess.NoAccess,
         BarrierLayout.RenderTarget => D3D12BarrierAccess.RenderTarget,
         BarrierLayout.DepthStencilWrite => D3D12BarrierAccess.DepthStencilWrite,
         BarrierLayout.DepthStencilRead => D3D12BarrierAccess.DepthStencilRead,
@@ -94,6 +97,7 @@ internal static class BarrierMapping
     /// </summary>
     internal static D3D12BarrierSync ToEnhancedSync(BarrierLayout layout) => layout switch
     {
+        BarrierLayout.Undefined => D3D12BarrierSync.None,
         BarrierLayout.RenderTarget => D3D12BarrierSync.RenderTarget,
         BarrierLayout.DepthStencilWrite => D3D12BarrierSync.DepthStencil,
         BarrierLayout.DepthStencilRead => D3D12BarrierSync.DepthStencil,
