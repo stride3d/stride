@@ -304,22 +304,31 @@ namespace Stride.Graphics
 
             if (ViewFlags.HasFlag(BufferFlags.ShaderResource))
             {
+                // The DXIL produced by mesa's spirv_to_dxil lowers SPIR-V SSBOs to ByteAddressBuffer
+                // (DXIL_RESOURCE_KIND_RAW_BUFFER) regardless of whether the original SDSL declared
+                // them as StructuredBuffer<T>. Binding a structured-buffer SRV (StructureByteStride > 0)
+                // to a ByteAddressBuffer DXIL slot has undefined access bounds per the D3D12 spec —
+                // observed clamp on NVIDIA is NumElements * 16 bytes, hiding ~3/4 of the buffer.
+                // Always emit raw SRVs for buffers flagged as ShaderResource so byte-addressed
+                // access from DXIL covers the full buffer.
+                bool useRawView = ViewFlags.HasFlag(BufferFlags.RawBuffer)
+                    || ViewFlags.HasFlag(BufferFlags.StructuredBuffer);
+
                 var description = new ShaderResourceViewDesc
                 {
                     Shader4ComponentMapping = 0x00001688,
-                    Format = (Format) viewFormat,
+                    Format = useRawView ? Format.FormatR32Typeless : (Format) viewFormat,
                     ViewDimension = SrvDimension.Buffer,
                     Buffer = new()
                     {
-                        NumElements = (uint) ElementCount,
                         FirstElement = 0,
-                        Flags = BufferSrvFlags.None,
-                        StructureByteStride = (uint) StructureByteStride
+                        NumElements = useRawView
+                            ? (uint) (SizeInBytes / 4)
+                            : (uint) ElementCount,
+                        Flags = useRawView ? BufferSrvFlags.Raw : BufferSrvFlags.None,
+                        StructureByteStride = useRawView ? 0u : (uint) StructureByteStride,
                     }
                 };
-
-                if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
-                    description.Buffer.Flags |= BufferSrvFlags.Raw;
 
                 srv = GraphicsDevice.ShaderResourceViewAllocator.Allocate();
                 NativeDevice.CreateShaderResourceView(NativeResource, in description, srv);
@@ -343,25 +352,26 @@ namespace Stride.Graphics
 
             if (ViewFlags.HasFlag(BufferFlags.UnorderedAccess))
             {
+                // Mesa's spirv_to_dxil emits writable SSBOs as RWByteAddressBuffer; mirror the
+                // SRV-side decision and always use raw UAV views for structured / raw buffers.
+                bool useRawView = ViewFlags.HasFlag(BufferFlags.RawBuffer)
+                    || ViewFlags.HasFlag(BufferFlags.StructuredBuffer);
+
                 var description = new UnorderedAccessViewDesc
                 {
-                    Format = (Format) viewFormat,
+                    Format = useRawView ? Format.FormatR32Typeless : (Format) viewFormat,
                     ViewDimension = UavDimension.Buffer,
                     Buffer = new()
                     {
-                        NumElements = (uint) ElementCount,
                         FirstElement = 0,
-                        Flags = BufferUavFlags.None,
-                        StructureByteStride = (uint) StructureByteStride,
+                        NumElements = useRawView
+                            ? (uint) (SizeInBytes / 4)
+                            : (uint) ElementCount,
+                        Flags = useRawView ? BufferUavFlags.Raw : BufferUavFlags.None,
+                        StructureByteStride = useRawView ? 0u : (uint) StructureByteStride,
                         CounterOffsetInBytes = 0
                     }
                 };
-
-                if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
-                {
-                    description.Buffer.Flags |= BufferUavFlags.Raw;
-                    description.Format = Format.FormatR32Typeless;
-                }
 
                 uav = GraphicsDevice.UnorderedAccessViewAllocator.Allocate(1);
 
@@ -370,7 +380,7 @@ namespace Stride.Graphics
                 NativeDevice.CreateUnorderedAccessView(NativeResource, pCounterResource: null, in description, uav);
             }
             return uav;
-        }}
+        }
     }
-
+}
 #endif
