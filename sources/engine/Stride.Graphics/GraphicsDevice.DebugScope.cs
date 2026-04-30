@@ -37,6 +37,17 @@ public partial class GraphicsDevice
     internal bool debugSawDrawIssue;
 
     /// <summary>
+    ///   When <see langword="true"/>, the backend has GPU-side validation enabled
+    ///   (D3D11/D3D12 GPU-based validation, Vulkan GPU-Assisted Validation). Messages from
+    ///   those modes arrive asynchronously to recording, so per-leaf scope attribution is
+    ///   unreliable. Backends should skip leaf <c>Errors</c>/<c>Warnings</c> increments and the
+    ///   <c>[scope]:</c> log prefix when this is set, but still log the message and dump the
+    ///   tree. Defaults to <see langword="false"/> — Stride doesn't enable any of those modes
+    ///   today.
+    /// </summary>
+    public bool DebugGpuValidationEnabled { get; set; }
+
+    /// <summary>
     ///   Pushes a scope onto the active scope stack. Backend BeginProfile implementations call
     ///   this. Tier 1 (stack) is always maintained; Tier 2 (tree) only when IsDebugMode is set.
     /// </summary>

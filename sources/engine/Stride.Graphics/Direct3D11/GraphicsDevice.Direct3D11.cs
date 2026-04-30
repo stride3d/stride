@@ -483,14 +483,15 @@ namespace Stride.Graphics
             // D3D11 has no synchronous-callback API. CPU-side validation is synchronous with the
             // API call, so as long as we drain at every scope transition (BeginProfile/EndProfile)
             // the leaf at drain time matches the leaf at message time. If GPU-based validation is
-            // ever enabled (D3D11_GPU_BASED_VALIDATION), GBV messages arrive asynchronously and
-            // would be misattributed — we'd need to detect that mode and skip per-leaf increments.
+            // turned on (DebugGpuValidationEnabled = true), GBV messages arrive asynchronously
+            // via the InfoQueue at fence completion — skip leaf attribution in that mode.
             bool isDrawCategory = message.Category is MessageCategory.StateSetting
                                                    or MessageCategory.Execution
                                                    or MessageCategory.ResourceManipulation;
+            bool attributable = isDrawCategory && !DebugGpuValidationEnabled;
             string scopePrefix = "";
             DebugScopeFrame leaf = null;
-            if (isDrawCategory)
+            if (attributable)
             {
                 leaf = GetDebugCurrentFrame();
                 var leafName = GetDebugLeafScopeName();

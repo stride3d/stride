@@ -906,16 +906,21 @@ namespace Stride.Graphics
             if (handle.Target is not GraphicsDevice device) return;
 
             var desc = Marshal.PtrToStringAnsi((IntPtr)description) ?? "(no description)";
-            var leafName = device.GetDebugLeafScopeName();
-            var scope = leafName is not null ? $"[{leafName}]: " : "";
             bool isDrawCategory = category is MessageCategory.StateSetting
                                             or MessageCategory.Execution
                                             or MessageCategory.ResourceManipulation;
 
+            // GPU-based validation messages arrive asynchronously — the active scope at callback
+            // time isn't the one that issued the offending command. Skip leaf attribution and
+            // scope prefix in that mode to avoid misleading the user.
+            bool attributable = !device.DebugGpuValidationEnabled;
+            var leafName = attributable ? device.GetDebugLeafScopeName() : null;
+            var scope = leafName is not null ? $"[{leafName}]: " : "";
+
             // Attribute to the active leaf so the tree dump can flag exactly which scope fired
             // — particularly useful when several scopes share a name (e.g. ImageMultiScaler's
             // chain of "Down2" passes).
-            var leaf = device.debugCurrentFrame;
+            var leaf = attributable ? device.debugCurrentFrame : null;
 
             switch (severity)
             {

@@ -287,9 +287,13 @@ namespace Stride.Graphics
             // Performance categories are draw-relevant; General is mostly init/shutdown noise.
             var device = GraphicsDevice.DebugMessengerDevice;
             bool isDrawCategory = (types & (VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance)) != 0;
+            // GPU-Assisted Validation messages arrive on a worker thread after the GPU completes
+            // the offending draw — scope attribution is meaningless. Skip prefix/leaf bumps when
+            // that mode is on; the tree dump still fires from the draw-issue flag below.
+            bool attributable = device is not null && !device.DebugGpuValidationEnabled;
             string scopePrefix = "";
             DebugScopeFrame leaf = null;
-            if (device is not null)
+            if (attributable)
             {
                 leaf = device.GetDebugCurrentFrame();
                 var leafName = device.GetDebugLeafScopeName();
