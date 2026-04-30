@@ -43,25 +43,28 @@
   <ItemGroup>
     <PackageVersion Include="JetBrains.Rider.PathLocator" Version="1.0.12" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageVersion Include="Microsoft.NET.StringTools" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <!-- 18.3.3 matches what .NET 10 SDK 10.0.202 ships. -->
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="18.3.3" />
+    <PackageVersion Include="Microsoft.Build" Version="18.3.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.3.3" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.12" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.3.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.3.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.6" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="NuGet.Commands" Version="7.0.0" />
-    <PackageVersion Include="NuGet.Configuration" Version="7.0.0" />
-    <PackageVersion Include="NuGet.PackageManagement" Version="7.0.0" />
-    <PackageVersion Include="NuGet.Protocol" Version="7.0.0" />
-    <PackageVersion Include="NuGet.Resolver" Version="7.0.0" />
+    <!-- 7.3.1 matches what .NET 10 SDK 10.0.202 ships. -->
+    <PackageVersion Include="NuGet.Commands" Version="7.3.1" />
+    <PackageVersion Include="NuGet.Configuration" Version="7.3.1" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="7.3.1" />
+    <PackageVersion Include="NuGet.Protocol" Version="7.3.1" />
+    <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
     <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
