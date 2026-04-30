@@ -480,10 +480,11 @@ namespace Stride.Graphics
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            // Drain happens after the call that fired the message (D3D11 has no callback API).
-            // The current leaf might be wrong if scopes changed between fire and drain — we use
-            // it best-effort. Render-hot paths drain at end-of-frame, so attribution works for
-            // errors that fire near the end of a scope and stay open for the dump.
+            // D3D11 has no synchronous-callback API. CPU-side validation is synchronous with the
+            // API call, so as long as we drain at every scope transition (BeginProfile/EndProfile)
+            // the leaf at drain time matches the leaf at message time. If GPU-based validation is
+            // ever enabled (D3D11_GPU_BASED_VALIDATION), GBV messages arrive asynchronously and
+            // would be misattributed — we'd need to detect that mode and skip per-leaf increments.
             bool isDrawCategory = message.Category is MessageCategory.StateSetting
                                                    or MessageCategory.Execution
                                                    or MessageCategory.ResourceManipulation;

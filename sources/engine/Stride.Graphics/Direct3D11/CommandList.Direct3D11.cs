@@ -863,6 +863,13 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
+            // Drain the InfoQueue before the scope state changes so any messages queued since
+            // the last scope transition are attributed to the still-current leaf. D3D11's
+            // CPU-side validator fires synchronously with the API call, so this is exact.
+            // (GPU-based validation, if ever enabled, would defer messages and break this — see
+            // OnDeviceInfoQueueMessage's note.)
+            if (GraphicsDevice.IsDebugMode)
+                GraphicsDevice.ProcessInfoQueueMessages();
             GraphicsDevice.PushDebugScope(name);
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)
@@ -875,6 +882,9 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
+            // Drain before pop so the closing scope is still the leaf — see BeginProfile note.
+            if (GraphicsDevice.IsDebugMode)
+                GraphicsDevice.ProcessInfoQueueMessages();
             GraphicsDevice.PopDebugScope();
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)

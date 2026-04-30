@@ -71,10 +71,20 @@ public partial class GraphicsDevice
     ///   into the tree) and before <c>Present</c>. Drains backend debug messages, dumps the
     ///   scope tree if any error fired, then resets the tree for the next frame.
     /// </summary>
+    /// <summary>
+    ///   Test toggle: when <see langword="true"/>, the scope tree is dumped every frame even
+    ///   if no validation issue fired. Useful for verifying counter values (e.g. <c>CLs=N</c>
+    ///   parallelism markers) against a known-clean scene. Off by default; flip it from a
+    ///   breakpoint or a debug-only command for ad-hoc inspection.
+    /// </summary>
+    internal static bool DebugAlwaysDumpTree;
+
     internal void DebugEndFrame()
     {
         if (!IsDebugMode)
             return;
+        if (DebugAlwaysDumpTree)
+            debugSawDrawIssue = true;
         DrainDebugMessages();
         debugTreeRoot = null;
         debugCurrentFrame = null;
