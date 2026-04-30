@@ -539,8 +539,9 @@ namespace Stride.Graphics
         /// <remarks>
         ///    This method is called before each Draw() method to setup the correct Viewport.
         /// </remarks>
-        private void PrepareDraw()
+        private void PrepareDraw(bool isDispatch = false)
         {
+            RecordDebugCounter(isDispatch ? DebugCounterKind.Dispatch : DebugCounterKind.Draw);
             SetViewportImpl();
         }
 
@@ -687,7 +688,7 @@ namespace Stride.Graphics
         /// <param name="threadCountZ">Number of thread groups in the Z dimension.</param>
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
-            PrepareDraw(); // TODO: PrepareDraw for Compute dispatch?
+            PrepareDraw(isDispatch: true); // TODO: PrepareDraw for Compute dispatch?
 
             nativeDeviceContext->Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
         }
@@ -706,7 +707,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(indirectBuffer);
 
-            PrepareDraw(); // TODO: PrepareDraw for Compute dispatch?
+            PrepareDraw(isDispatch: true); // TODO: PrepareDraw for Compute dispatch?
 
             nativeDeviceContext->DispatchIndirect(indirectBuffer.NativeBuffer, (uint) offsetInBytes);
         }
@@ -862,6 +863,7 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
+            GraphicsDevice.PushDebugScope(name);
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)
                 nativeDeviceProfiler->BeginEvent(name);
@@ -873,6 +875,7 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
+            GraphicsDevice.PopDebugScope();
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)
                 nativeDeviceProfiler->EndEvent();
@@ -892,6 +895,7 @@ namespace Stride.Graphics
         public void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
             ArgumentNullException.ThrowIfNull(depthStencilBuffer);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             var flags = options.HasFlag(DepthStencilClearOptions.DepthBuffer) ? ClearFlag.Depth : 0;
 
@@ -916,6 +920,7 @@ namespace Stride.Graphics
         public void Clear(Texture renderTarget, Color4 color)
         {
             ArgumentNullException.ThrowIfNull(renderTarget);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             scoped Span<float> colorFloats = color.AsSpan<Color4, float>(elementCount: 4);
             nativeDeviceContext->ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref colorFloats.GetReference());
@@ -931,6 +936,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, Vector4 value)
         {
             ArgumentNullException.ThrowIfNull(buffer);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (buffer.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
@@ -948,6 +954,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, Int4 value)
         {
             ArgumentNullException.ThrowIfNull(buffer);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (buffer.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
@@ -965,6 +972,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, UInt4 value)
         {
             ArgumentNullException.ThrowIfNull(buffer);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (buffer.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
@@ -982,6 +990,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, Vector4 value)
         {
             ArgumentNullException.ThrowIfNull(texture);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (texture.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Texture supporting UAV", nameof(texture));
@@ -999,6 +1008,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, Int4 value)
         {
             ArgumentNullException.ThrowIfNull(texture);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (texture.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Texture supporting UAV", nameof(texture));
@@ -1016,6 +1026,7 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, UInt4 value)
         {
             ArgumentNullException.ThrowIfNull(texture);
+            RecordDebugCounter(DebugCounterKind.Clear);
 
             if (texture.NativeUnorderedAccessView.IsNull())
                 throw new ArgumentException("Expecting a Texture supporting UAV", nameof(texture));
@@ -1035,6 +1046,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(destination);
+            RecordDebugCounter(DebugCounterKind.Copy);
 
             nativeDeviceContext->CopyResource(destination.NativeResource, source.NativeResource);
         }
@@ -1100,6 +1112,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(sourceMultiSampledTexture);
             ArgumentNullException.ThrowIfNull(destinationTexture);
+            RecordDebugCounter(DebugCounterKind.Copy);
 
             if (!sourceMultiSampledTexture.IsMultiSampled)
                 throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultiSampledTexture));
@@ -1165,6 +1178,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(destination);
+            RecordDebugCounter(DebugCounterKind.Copy);
 
             if (sourceRegion is ResourceRegion srcResourceRegion)
             {
@@ -1203,6 +1217,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(sourceBuffer);
             ArgumentNullException.ThrowIfNull(destinationBuffer);
+            RecordDebugCounter(DebugCounterKind.Copy);
 
             nativeDeviceContext->CopyStructureCount(destinationBuffer.NativeBuffer, (uint) destinationOffsetInBytes, sourceBuffer.NativeUnorderedAccessView);
         }

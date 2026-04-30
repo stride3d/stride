@@ -480,17 +480,34 @@ namespace Stride.Graphics
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            Debug.WriteLine($"D3D11: {message.Severity} {description}");
+            // Drain happens after the call that fired the message (D3D11 has no callback API).
+            // The current leaf might be wrong if scopes changed between fire and drain — we use
+            // it best-effort. Render-hot paths drain at end-of-frame, so attribution works for
+            // errors that fire near the end of a scope and stay open for the dump.
+            bool isDrawCategory = message.Category is MessageCategory.StateSetting
+                                                   or MessageCategory.Execution
+                                                   or MessageCategory.ResourceManipulation;
+            string scopePrefix = "";
+            DebugScopeFrame leaf = null;
+            if (isDrawCategory)
+            {
+                leaf = GetDebugCurrentFrame();
+                var leafName = GetDebugLeafScopeName();
+                if (leafName is not null) scopePrefix = $"[{leafName}]: ";
+            }
 
-            // Log warnings and errors to Stride logger
             switch (message.Severity)
             {
                 case MessageSeverity.Corruption:
                 case MessageSeverity.Error:
-                    Log.Error($"[D3D11] {message.Severity}: {description}");
+                    DebugLog.Error($"[D3D11] {scopePrefix}{description}");
+                    if (leaf is not null) leaf.Errors++;
+                    if (isDrawCategory) debugSawDrawIssue = true;
                     break;
                 case MessageSeverity.Warning:
-                    Log.Warning($"[D3D11] {description}");
+                    DebugLog.Warning($"[D3D11] {scopePrefix}{description}");
+                    if (leaf is not null) leaf.Warnings++;
+                    if (isDrawCategory) debugSawDrawIssue = true;
                     break;
             }
 
@@ -537,6 +554,23 @@ namespace Stride.Graphics
 
                 OnDeviceInfoQueueMessage(in message);
             }
+        }
+
+        // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
+        // called once per frame from DebugEndFrame. D3D11 has no synchronous-callback equivalent
+        // of ID3D12InfoQueue1, so we poll the InfoQueue here. Aggregation of the immediate CL's
+        // localCounters runs first so the tree has data when the dump fires.
+        partial void DrainDebugMessages()
+        {
+            if (InternalMainCommandList is not null)
+                DebugAggregateLocalCounters(InternalMainCommandList.DebugScopeExtractLocalCounters());
+
+            if (nativeInfoQueue is not null)
+                ProcessInfoQueueMessages();
+
+            if (debugSawDrawIssue)
+                DebugDumpTree();
+            debugSawDrawIssue = false;
         }
 
         /// <summary>
