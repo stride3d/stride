@@ -57,19 +57,21 @@ public partial class GraphicsDevice
             debugCurrentFrame.ClosedByPop = true;
             debugCurrentFrame = debugCurrentFrame.Parent;
         }
+    }
 
-        // Drain pending debug messages once per frame when the outermost scope closes. With
-        // queue-poll backends (D3D12 InfoQueue, D3D11 InfoQueue) this is the cleanest moment:
-        // the scope tree is fully built and there's no active scope to mislead the annotation.
-        // Until ID3D12InfoQueue1 callback mode lands, we accept the latency vs precision trade.
-        if (IsDebugMode && debugScopeStack.Count == 0)
-        {
-            DrainDebugMessages();
-            // Always reset — drain only clears the tree if it dumped (errors fired). For clean
-            // frames the tree would accumulate across frames otherwise. Works headlessly too.
-            debugTreeRoot = null;
-            debugCurrentFrame = null;
-        }
+    /// <summary>
+    ///   Marks the end of the rendering frame. Called by the game loop after the frame's
+    ///   command lists have been submitted (so per-CL counter aggregation has already merged
+    ///   into the tree) and before <c>Present</c>. Drains backend debug messages, dumps the
+    ///   scope tree if any error fired, then resets the tree for the next frame.
+    /// </summary>
+    internal void DebugEndFrame()
+    {
+        if (!IsDebugMode)
+            return;
+        DrainDebugMessages();
+        debugTreeRoot = null;
+        debugCurrentFrame = null;
     }
 
     /// <summary>
@@ -148,9 +150,15 @@ public partial class GraphicsDevice
     private static void AppendTree(StringBuilder sb, DebugScopeFrame frame, int depth)
     {
         sb.Append(' ', depth * 2);
+        // Visual marker so offending scopes pop out at a glance when scanning the tree.
+        if (frame.Errors > 0)
+            sb.Append("[!] ");
+        else if (frame.Warnings > 0)
+            sb.Append("[?] ");
         sb.Append(frame.Name ?? "(unnamed)");
 
-        bool any = (frame.Draws | frame.Dispatches | frame.Clears | frame.Copies | frame.Barriers) != 0
+        bool any = (frame.Draws | frame.Dispatches | frame.Clears | frame.Copies | frame.Barriers
+                    | frame.Errors | frame.Warnings) != 0
                    || frame.ExecutedCLs > 1;
         if (any)
         {
@@ -163,6 +171,8 @@ public partial class GraphicsDevice
                 sb.Append(key).Append('=').Append(v);
                 first = false;
             }
+            AppendStat("Errors", frame.Errors);
+            AppendStat("Warnings", frame.Warnings);
             AppendStat("Draws", frame.Draws);
             AppendStat("Dispatches", frame.Dispatches);
             AppendStat("Clears", frame.Clears);

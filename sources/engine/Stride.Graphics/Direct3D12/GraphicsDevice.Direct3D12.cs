@@ -34,6 +34,12 @@ namespace Stride.Graphics
         private static bool debugLayerLoaded = false;
 
         private ID3D12InfoQueue* nativeInfoQueue;
+        private ID3D12InfoQueue1* nativeInfoQueue1;
+        private uint debugMessageCallbackCookie;
+        private GCHandle debugMessageContext;
+        // Set by the callback when a draw-relevant validation message arrives within a scope.
+        // Consumed by DrainDebugMessages at the next scope-empty transition.
+        private bool debugSawDrawIssue;
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -530,6 +536,24 @@ namespace Stride.Graphics
 
                         // Keep reference to drain messages to log
                         nativeInfoQueue = infoQueue;
+
+                        // ID3D12InfoQueue1 (Win10 21H2+) lets us register a synchronous callback so
+                        // each message arrives on the API-call thread with the scope stack intact —
+                        // perfect attribution for validation errors. Falls back to queue-poll when
+                        // the interface isn't available.
+                        HResult callbackResult = infoQueue.QueryInterface(out ComPtr<ID3D12InfoQueue1> infoQueue1);
+                        if (callbackResult.IsSuccess && infoQueue1.IsNotNull())
+                        {
+                            nativeInfoQueue1 = infoQueue1;
+                            debugMessageContext = GCHandle.Alloc(this, GCHandleType.Weak);
+                            uint cookie = 0;
+                            nativeInfoQueue1->RegisterMessageCallback(
+                                new PfnMessageFunc(&OnDebugMessageCallback),
+                                MessageCallbackFlags.FlagNone,
+                                (void*)(IntPtr)debugMessageContext,
+                                ref cookie);
+                            debugMessageCallbackCookie = cookie;
+                        }
                     }
                     debugDevice.Release();
                 }
@@ -611,9 +635,9 @@ namespace Stride.Graphics
             //
             // Requires D3D12 Enhanced Barriers. Throws if unsupported.
             //
-            // Minimum requirements: Windows 10 1909+ with Agility SDK, or Windows 11. Driver
-            // floors: NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox
-            // Series X|S are supported.
+            // Minimum requirements: Windows 10 21H2 (build 19044) or Windows 11 — we use the
+            // system d3d12.dll, no Agility SDK is embedded. Driver floors: NVIDIA 531.18+,
+            // AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox Series X|S are supported.
             //
             void RequireEnhancedBarriersSupport()
             {
@@ -628,7 +652,7 @@ namespace Stride.Graphics
                     throw new GraphicsDeviceException(
                         "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
                         "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+) " +
-                        "or run on Windows 11 / Windows 10 with the Agility SDK.");
+                        "and run on Windows 10 21H2 or Windows 11.");
                 }
             }
         }
@@ -826,6 +850,15 @@ namespace Stride.Graphics
                     debugDevice.Release();
                 }
 
+                if (nativeInfoQueue1 is not null)
+                {
+                    if (debugMessageCallbackCookie != 0)
+                        nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
+                    debugMessageCallbackCookie = 0;
+                    SafeRelease(ref nativeInfoQueue1);
+                }
+                if (debugMessageContext.IsAllocated)
+                    debugMessageContext.Free();
                 SafeRelease(ref nativeInfoQueue);
             }
 
@@ -846,15 +879,76 @@ namespace Stride.Graphics
 
         // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
         // called once per frame when the outermost BeginProfile scope closes.
-        partial void DrainDebugMessages() => FlushDebugMessages();
+        partial void DrainDebugMessages()
+        {
+            if (nativeInfoQueue1 is not null)
+            {
+                // Callback mode — messages were already logged inline. Just dump the tree if any
+                // draw-relevant issue fired during this scope cycle, then reset the flag.
+                if (debugSawDrawIssue)
+                    DebugDumpTree();
+                debugSawDrawIssue = false;
+                return;
+            }
+            // Queue-poll fallback for older Windows without ID3D12InfoQueue1.
+            FlushDebugMessages();
+        }
+
+        /// <summary>
+        ///   Synchronous callback invoked by the D3D12 debug layer (ID3D12InfoQueue1) on the thread
+        ///   that triggered the validation message. Logs with the active scope leaf as prefix and
+        ///   flags relevant categories so the next DrainDebugMessages dumps the scope tree.
+        /// </summary>
+        [System.Runtime.InteropServices.UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static void OnDebugMessageCallback(MessageCategory category, MessageSeverity severity, MessageID id, byte* description, void* context)
+        {
+            if (context is null) return;
+            var handle = GCHandle.FromIntPtr((IntPtr)context);
+            if (handle.Target is not GraphicsDevice device) return;
+
+            var desc = Marshal.PtrToStringAnsi((IntPtr)description) ?? "(no description)";
+            var scope = device.debugScopeStack.Count > 0 ? $"[{device.debugScopeStack.Peek()}]: " : "";
+            bool isDrawCategory = category is MessageCategory.StateSetting
+                                            or MessageCategory.Execution
+                                            or MessageCategory.ResourceManipulation;
+
+            // Attribute to the active leaf so the tree dump can flag exactly which scope fired
+            // — particularly useful when several scopes share a name (e.g. ImageMultiScaler's
+            // chain of "Down2" passes).
+            var leaf = device.debugCurrentFrame;
+
+            switch (severity)
+            {
+                case MessageSeverity.Corruption:
+                case MessageSeverity.Error:
+                    DebugLog.Error($"{scope}{desc}");
+                    if (leaf is not null) leaf.Errors++;
+                    if (isDrawCategory) device.debugSawDrawIssue = true;
+                    break;
+                case MessageSeverity.Warning:
+                    DebugLog.Warning($"{scope}{desc}");
+                    if (leaf is not null) leaf.Warnings++;
+                    if (isDrawCategory) device.debugSawDrawIssue = true;
+                    break;
+            }
+        }
 
         /// <summary>
         ///   Drains all pending D3D12 debug messages from the InfoQueue and logs them.
+        ///   When the ID3D12InfoQueue1 callback is active, the callback is the authoritative
+        ///   logger and tree-dump trigger — we just clear the queue here so messages don't
+        ///   accumulate (they'd otherwise be reported a second time with mid-frame attribution).
         /// </summary>
         internal void FlushDebugMessages()
         {
             if (nativeInfoQueue is null)
                 return;
+
+            if (nativeInfoQueue1 is not null)
+            {
+                nativeInfoQueue->ClearStoredMessages();
+                return;
+            }
 
             var numMessages = nativeInfoQueue->GetNumStoredMessages();
             bool sawDrawIssue = false;

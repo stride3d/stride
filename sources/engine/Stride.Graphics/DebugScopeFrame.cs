@@ -41,6 +41,13 @@ internal sealed class DebugScopeFrame
     /// </summary>
     public int ExecutedCLs;
     /// <summary>
+    ///   Validation errors/warnings attributed to this scope (only when running with the
+    ///   ID3D12InfoQueue1 callback path, where the active leaf at message time is known).
+    ///   The queue-poll fallback can't attribute, so these stay zero there.
+    /// </summary>
+    public int Errors;
+    public int Warnings;
+    /// <summary>
     ///   <see langword="true"/> once a matching <c>EndProfile</c> ran; <see langword="false"/> if the scope
     ///   was still open when its containing tree was dumped (= the active scope at error time).
     /// </summary>

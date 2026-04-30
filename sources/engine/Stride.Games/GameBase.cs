@@ -828,6 +828,10 @@ namespace Stride.Games
                 // Close command list
                 GraphicsContext.CommandList.Flush();
 
+                // After the frame's submits have aggregated their per-CL counters into the
+                // scope tree, render it (if any validation issue fired) and reset for next frame.
+                GraphicsDevice.DebugEndFrame();
+
                 // Present (if necessary)
                 graphicsDeviceManager.EndDraw(present);
 
