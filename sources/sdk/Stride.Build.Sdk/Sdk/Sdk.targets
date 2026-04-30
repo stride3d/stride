@@ -169,8 +169,6 @@
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
   </Target>
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
