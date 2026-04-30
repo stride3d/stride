@@ -40,6 +40,23 @@ namespace Stride.Graphics
         // Set by the callback when a draw-relevant validation message arrives within a scope.
         // Consumed by DrainDebugMessages at the next scope-empty transition.
 
+        // GBV message IDs from D3D12_MESSAGE_ID, populated lazily via reflection so the scan
+        // only runs in debug mode (callback never fires in release → Value is never queried).
+        // Robust against SDK additions to the GBV enum range.
+        private static readonly Lazy<System.Collections.Generic.HashSet<MessageID>> gbvMessageIds = new(BuildGbvMessageIdSet);
+
+        private static System.Collections.Generic.HashSet<MessageID> BuildGbvMessageIdSet()
+        {
+            var set = new System.Collections.Generic.HashSet<MessageID>();
+            foreach (var name in Enum.GetNames<MessageID>())
+            {
+                if (name.Contains("Gpubased", StringComparison.OrdinalIgnoreCase)
+                    && Enum.TryParse<MessageID>(name, out var id))
+                    set.Add(id);
+            }
+            return set;
+        }
+
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
         /// </summary>
@@ -910,10 +927,11 @@ namespace Stride.Graphics
                                             or MessageCategory.Execution
                                             or MessageCategory.ResourceManipulation;
 
-            // GPU-based validation messages arrive asynchronously — the active scope at callback
-            // time isn't the one that issued the offending command. Skip leaf attribution and
-            // scope prefix in that mode to avoid misleading the user.
-            bool attributable = !device.DebugGpuValidationEnabled;
+            // GBV messages arrive asynchronously, so leaf attribution would be wrong. We detect
+            // them by ID via the reflection-built set. The DebugGpuValidationEnabled override
+            // is a kill switch for cases the heuristic misses.
+            bool isGbv = device.DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(id);
+            bool attributable = !isGbv;
             var leafName = attributable ? device.GetDebugLeafScopeName() : null;
             var scope = leafName is not null ? $"[{leafName}]: " : "";
 
@@ -922,18 +940,20 @@ namespace Stride.Graphics
             // chain of "Down2" passes).
             var leaf = attributable ? device.debugCurrentFrame : null;
 
+            // Tree dump only fires for attributable messages — a tree without [!] markers is
+            // noise, so GBV-only frames stay quiet (just the log lines).
             switch (severity)
             {
                 case MessageSeverity.Corruption:
                 case MessageSeverity.Error:
                     DebugLog.Error($"{scope}{desc}");
                     if (leaf is not null) leaf.Errors++;
-                    if (isDrawCategory) device.debugSawDrawIssue = true;
+                    if (isDrawCategory && attributable) device.debugSawDrawIssue = true;
                     break;
                 case MessageSeverity.Warning:
                     DebugLog.Warning($"{scope}{desc}");
                     if (leaf is not null) leaf.Warnings++;
-                    if (isDrawCategory) device.debugSawDrawIssue = true;
+                    if (isDrawCategory && attributable) device.debugSawDrawIssue = true;
                     break;
             }
         }
@@ -982,9 +1002,11 @@ namespace Stride.Graphics
                     bool isDrawCategory = message->Category is MessageCategory.StateSetting
                                                             or MessageCategory.Execution
                                                             or MessageCategory.ResourceManipulation;
+                    bool isGbv = DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(message->ID);
+                    bool attributable = !isGbv;
 
                     string prefix = null;
-                    if (isDrawCategory)
+                    if (isDrawCategory && attributable)
                     {
                         var leafName = GetDebugLeafScopeName();
                         prefix = leafName is not null ? $"[{leafName}]: " : null;
@@ -995,11 +1017,11 @@ namespace Stride.Graphics
                         case MessageSeverity.Corruption:
                         case MessageSeverity.Error:
                             DebugLog.Error($"{prefix}{description}");
-                            if (isDrawCategory) sawDrawIssue = true;
+                            if (isDrawCategory && attributable) sawDrawIssue = true;
                             break;
                         case MessageSeverity.Warning:
                             DebugLog.Warning($"{prefix}{description}");
-                            if (isDrawCategory) sawDrawIssue = true;
+                            if (isDrawCategory && attributable) sawDrawIssue = true;
                             break;
                     }
                 }

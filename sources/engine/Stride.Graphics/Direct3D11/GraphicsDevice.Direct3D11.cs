@@ -40,6 +40,23 @@ namespace Stride.Graphics
 
         private ID3D11InfoQueue* nativeInfoQueue;
 
+        // GBV message IDs from D3D11_MESSAGE_ID, populated lazily via reflection so the scan
+        // only runs in debug mode (InfoQueue draining never happens in release → Value is
+        // never queried). Robust against SDK additions to the GBV enum range.
+        private static readonly Lazy<System.Collections.Generic.HashSet<MessageID>> gbvMessageIds = new(BuildGbvMessageIdSet);
+
+        private static System.Collections.Generic.HashSet<MessageID> BuildGbvMessageIdSet()
+        {
+            var set = new System.Collections.Generic.HashSet<MessageID>();
+            foreach (var name in Enum.GetNames<MessageID>())
+            {
+                if (name.Contains("Gpubased", StringComparison.OrdinalIgnoreCase)
+                    && Enum.TryParse<MessageID>(name, out var id))
+                    set.Add(id);
+            }
+            return set;
+        }
+
         /// <summary>
         ///   Gets the internal Direct3D 11 Device.
         /// </summary>
@@ -481,14 +498,14 @@ namespace Stride.Graphics
             var description = descriptionSpan.GetString();
 
             // D3D11 has no synchronous-callback API. CPU-side validation is synchronous with the
-            // API call, so as long as we drain at every scope transition (BeginProfile/EndProfile)
-            // the leaf at drain time matches the leaf at message time. If GPU-based validation is
-            // turned on (DebugGpuValidationEnabled = true), GBV messages arrive asynchronously
-            // via the InfoQueue at fence completion — skip leaf attribution in that mode.
+            // API call, so draining at every BeginProfile/EndProfile gives accurate leaf
+            // attribution. GBV messages arrive asynchronously and we detect them by ID via the
+            // reflection-built set. DebugGpuValidationEnabled is the kill-switch override.
             bool isDrawCategory = message.Category is MessageCategory.StateSetting
                                                    or MessageCategory.Execution
                                                    or MessageCategory.ResourceManipulation;
-            bool attributable = isDrawCategory && !DebugGpuValidationEnabled;
+            bool isGbv = DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(message.ID);
+            bool attributable = isDrawCategory && !isGbv;
             string scopePrefix = "";
             DebugScopeFrame leaf = null;
             if (attributable)
@@ -504,12 +521,12 @@ namespace Stride.Graphics
                 case MessageSeverity.Error:
                     DebugLog.Error($"[D3D11] {scopePrefix}{description}");
                     if (leaf is not null) leaf.Errors++;
-                    if (isDrawCategory) debugSawDrawIssue = true;
+                    if (attributable) debugSawDrawIssue = true;
                     break;
                 case MessageSeverity.Warning:
                     DebugLog.Warning($"[D3D11] {scopePrefix}{description}");
                     if (leaf is not null) leaf.Warnings++;
-                    if (isDrawCategory) debugSawDrawIssue = true;
+                    if (attributable) debugSawDrawIssue = true;
                     break;
             }
 

@@ -287,10 +287,20 @@ namespace Stride.Graphics
             // Performance categories are draw-relevant; General is mostly init/shutdown noise.
             var device = GraphicsDevice.DebugMessengerDevice;
             bool isDrawCategory = (types & (VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance)) != 0;
-            // GPU-Assisted Validation messages arrive on a worker thread after the GPU completes
-            // the offending draw — scope attribution is meaningless. Skip prefix/leaf bumps when
-            // that mode is on; the tree dump still fires from the draw-issue flag below.
-            bool attributable = device is not null && !device.DebugGpuValidationEnabled;
+
+            // GPU-Assisted Validation (instrumented shaders, results read back on a worker)
+            // arrives asynchronously to recording. The Khronos validation layer tags those with
+            // ID names containing "GPU-AV"/"GPUAV"/"GPU-Assisted". Skip attribution and the
+            // tree-dump trigger so GBV-only frames stay quiet.
+            bool isGbv = device is not null && device.DebugGpuValidationEnabled;
+            if (!isGbv && pCallbackData->pMessageIdName != null)
+            {
+                var idName = new VkUtf8String(pCallbackData->pMessageIdName).ToString();
+                isGbv = idName.Contains("GPU-AV", StringComparison.Ordinal)
+                     || idName.Contains("GPUAV", StringComparison.Ordinal)
+                     || idName.Contains("GPU-Assisted", StringComparison.Ordinal);
+            }
+            bool attributable = device is not null && !isGbv;
             string scopePrefix = "";
             DebugScopeFrame leaf = null;
             if (attributable)
@@ -305,13 +315,13 @@ namespace Stride.Graphics
             {
                 GraphicsDevice.DebugLog.Error($"[Vulkan] {scopePrefix}{message}");
                 if (leaf is not null) leaf.Errors++;
-                if (device is not null && isDrawCategory) device.debugSawDrawIssue = true;
+                if (device is not null && isDrawCategory && attributable) device.debugSawDrawIssue = true;
             }
             else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Warning)
             {
                 GraphicsDevice.DebugLog.Warning($"[Vulkan] {scopePrefix}{message}");
                 if (leaf is not null) leaf.Warnings++;
-                if (device is not null && isDrawCategory) device.debugSawDrawIssue = true;
+                if (device is not null && isDrawCategory && attributable) device.debugSawDrawIssue = true;
             }
             else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Info)
             {

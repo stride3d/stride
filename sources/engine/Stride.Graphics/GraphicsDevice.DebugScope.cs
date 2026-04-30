@@ -37,13 +37,12 @@ public partial class GraphicsDevice
     internal bool debugSawDrawIssue;
 
     /// <summary>
-    ///   When <see langword="true"/>, the backend has GPU-side validation enabled
-    ///   (D3D11/D3D12 GPU-based validation, Vulkan GPU-Assisted Validation). Messages from
-    ///   those modes arrive asynchronously to recording, so per-leaf scope attribution is
-    ///   unreliable. Backends should skip leaf <c>Errors</c>/<c>Warnings</c> increments and the
-    ///   <c>[scope]:</c> log prefix when this is set, but still log the message and dump the
-    ///   tree. Defaults to <see langword="false"/> — Stride doesn't enable any of those modes
-    ///   today.
+    ///   Kill switch that forces every validation message to be treated as GPU-side and skip
+    ///   leaf attribution / tree-dump triggering. Backends already detect GPU-side messages
+    ///   per-message (D3D11/D3D12 via the <c>D3D*_MESSAGE_ID_GPU_BASED_VALIDATION_*</c>
+    ///   enum entries; Vulkan via <c>pMessageIdName</c>), so this is only needed if those
+    ///   heuristics ever miss a backend's GBV namespace and produce noisy misattributed
+    ///   dumps. Defaults to <see langword="false"/>; Stride doesn't enable any GBV mode today.
     /// </summary>
     public bool DebugGpuValidationEnabled { get; set; }
 
