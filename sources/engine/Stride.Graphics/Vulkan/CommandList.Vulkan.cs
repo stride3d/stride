@@ -83,6 +83,7 @@ namespace Stride.Graphics
             // New command list ID so resources know they need to re-issue barriers
             CommandListId = System.Threading.Interlocked.Increment(ref GraphicsDevice.NextCommandListId);
 
+            DebugScopeResetForNewRecording();
             CleanupRenderPass();
             boundDescriptorSets.Clear();
             currentCbLayouts.Clear();
@@ -290,6 +291,8 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException">Cannot GraphicsDevice.Draw*() without an effect being previously applied with Effect.Apply() method</exception>
         private unsafe void PrepareDraw()
         {
+            RecordDebugCounter(DebugCounterKind.Draw);
+
             // Transition resources to correct layouts before starting the render pass
             TransitionBoundResources();
 
@@ -582,6 +585,8 @@ namespace Stride.Graphics
         // to emit precise barriers. Not currently hit by the engine's rendering pipeline.
         public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
+            RecordDebugCounter(DebugCounterKind.Barrier);
+
             if (resource is Texture texture)
             {
                 if (texture.ParentTexture != null)
@@ -692,6 +697,7 @@ namespace Stride.Graphics
         /// <inheritdoc />
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
+            RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
             TransitionBoundResources();
             BindPipeline();
@@ -706,6 +712,7 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information bytes.</param>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
+            RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
             TransitionBoundResources();
             BindPipeline();
@@ -836,6 +843,7 @@ namespace Stride.Graphics
         /// <param name="name">The name.</param>
         public unsafe void BeginProfile(Color4 profileColor, string name)
         {
+            GraphicsDevice.PushDebugScope(name);
             if (GraphicsDevice.IsProfilingSupported)
             {
                 var bytes = System.Text.Encoding.ASCII.GetBytes(name);
@@ -858,6 +866,7 @@ namespace Stride.Graphics
         /// </summary>
         public void EndProfile()
         {
+            GraphicsDevice.PopDebugScope();
             if (GraphicsDevice.IsProfilingSupported)
             {
                 GraphicsDevice.NativeDeviceApi.vkCmdDebugMarkerEndEXT(currentCommandList.NativeCommandBuffer);
@@ -888,6 +897,7 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException"></exception>
         public unsafe void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
+            RecordDebugCounter(DebugCounterKind.Clear);
             // Barriers need to be global to command buffer
             CleanupRenderPass();
 
@@ -923,6 +933,7 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">renderTarget</exception>
         public unsafe void Clear(Texture renderTarget, Color4 color)
         {
+            RecordDebugCounter(DebugCounterKind.Clear);
             // TODO VULKAN: Detect if inside render pass. If so, NativeCommandBuffer.ClearAttachments()
             // Barriers need to be global to command buffer
             CleanupRenderPass();
@@ -1019,6 +1030,7 @@ namespace Stride.Graphics
         private unsafe void ClearReadWriteImpl(Texture texture, VkClearColorValue clearValue)
         {
             ArgumentNullException.ThrowIfNull(texture);
+            RecordDebugCounter(DebugCounterKind.Clear);
             CleanupRenderPass();
 
             var clearRange = texture.NativeResourceRange;
@@ -1033,6 +1045,7 @@ namespace Stride.Graphics
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
         {
+            RecordDebugCounter(DebugCounterKind.Copy);
             // TODO VULKAN: One copy per mip level
 
             if (source is Texture sourceTexture && destination is Texture destinationTexture)
@@ -1231,6 +1244,7 @@ namespace Stride.Graphics
 
         public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
+            RecordDebugCounter(DebugCounterKind.Copy);
             // TODO VULKAN: One copy per mip level
 
             if (source is Texture sourceTexture && destination is Texture destinationTexture)

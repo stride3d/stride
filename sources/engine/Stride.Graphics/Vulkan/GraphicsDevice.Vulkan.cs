@@ -33,6 +33,11 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
+        // The instance-level VK_EXT_debug_utils messenger doesn't know which device a validation
+        // message belongs to, so we keep a single weak reference and route through it. Stride
+        // typically runs one device; multi-device debugging would need per-device messengers.
+        internal static GraphicsDevice DebugMessengerDevice;
+
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
         internal VkQueue NativeCommandQueue;
@@ -292,6 +297,12 @@ namespace Stride.Graphics
                 };
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                {
+                    for (int i = 0; i < count; i++)
+                        DebugAggregateLocalCounters(commandLists[i].Builder.DebugScopeExtractLocalCounters());
+                }
             }
 
             // Collect resources
@@ -315,6 +326,17 @@ namespace Stride.Graphics
         /// </summary>
         private unsafe partial void InitializePostFeatures()
         {
+            if (IsDebugMode)
+                DebugMessengerDevice = this;
+        }
+
+        // Vulkan messages fire synchronously through the messenger callback, which logs them
+        // inline. End-of-frame drain just dumps the scope tree if anything fired.
+        partial void DrainDebugMessages()
+        {
+            if (debugSawDrawIssue)
+                DebugDumpTree();
+            debugSawDrawIssue = false;
         }
 
         private partial string GetRendererName() => rendererName;
@@ -659,6 +681,9 @@ namespace Stride.Graphics
 
         private unsafe void ReleaseDevice()
         {
+            if (ReferenceEquals(DebugMessengerDevice, this))
+                DebugMessengerDevice = null;
+
             EmptyTexelBufferInt.Dispose();
             EmptyTexelBufferInt = null;
             EmptyTexelBufferFloat.Dispose();
@@ -749,6 +774,9 @@ namespace Stride.Graphics
                 };
                 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                    DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
             }
 
             // Collect resources

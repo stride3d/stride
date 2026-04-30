@@ -39,7 +39,6 @@ namespace Stride.Graphics
         private GCHandle debugMessageContext;
         // Set by the callback when a draw-relevant validation message arrives within a scope.
         // Consumed by DrainDebugMessages at the next scope-empty transition.
-        private bool debugSawDrawIssue;
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -907,7 +906,8 @@ namespace Stride.Graphics
             if (handle.Target is not GraphicsDevice device) return;
 
             var desc = Marshal.PtrToStringAnsi((IntPtr)description) ?? "(no description)";
-            var scope = device.debugScopeStack.Count > 0 ? $"[{device.debugScopeStack.Peek()}]: " : "";
+            var leafName = device.GetDebugLeafScopeName();
+            var scope = leafName is not null ? $"[{leafName}]: " : "";
             bool isDrawCategory = category is MessageCategory.StateSetting
                                             or MessageCategory.Execution
                                             or MessageCategory.ResourceManipulation;
@@ -978,7 +978,12 @@ namespace Stride.Graphics
                                                             or MessageCategory.Execution
                                                             or MessageCategory.ResourceManipulation;
 
-                    var prefix = isDrawCategory ? GetDrainTimeScopePrefix() : null;
+                    string prefix = null;
+                    if (isDrawCategory)
+                    {
+                        var leafName = GetDebugLeafScopeName();
+                        prefix = leafName is not null ? $"[{leafName}]: " : null;
+                    }
 
                     switch (message->Severity)
                     {
@@ -1001,15 +1006,6 @@ namespace Stride.Graphics
             nativeInfoQueue->ClearStoredMessages();
         }
 
-        /// <summary>
-        ///   Returns a "[scope]: " prefix for log messages — the leaf of the active scope stack.
-        ///   The full path is in the tree dump's "Active scope:" line; per-message we keep it short.
-        /// </summary>
-        private string GetDrainTimeScopePrefix()
-        {
-            if (debugScopeStack.Count == 0) return "";
-            return $"[{debugScopeStack.Peek()}]: ";
-        }
 
         /// <summary>
         ///   Logs DRED (Device Removed Extended Data) information after a device removal event.

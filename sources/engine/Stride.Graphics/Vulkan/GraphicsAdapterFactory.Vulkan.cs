@@ -281,16 +281,42 @@ namespace Stride.Graphics
         private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
-            Debug.WriteLine($"[Vulkan] {severity}: {message}");
+
+            // If a GraphicsDevice is active in debug mode, route through its scope-aware logger
+            // so messages get a "[scope]:" prefix and the leaf gets attribution. Validation +
+            // Performance categories are draw-relevant; General is mostly init/shutdown noise.
+            var device = GraphicsDevice.DebugMessengerDevice;
+            bool isDrawCategory = (types & (VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance)) != 0;
+            string scopePrefix = "";
+            DebugScopeFrame leaf = null;
+            if (device is not null)
+            {
+                leaf = device.GetDebugCurrentFrame();
+                var leafName = device.GetDebugLeafScopeName();
+                if (leafName is not null)
+                    scopePrefix = $"[{leafName}]: ";
+            }
 
             if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Error)
-                Log.Error($"[Vulkan] {message}");
+            {
+                GraphicsDevice.DebugLog.Error($"[Vulkan] {scopePrefix}{message}");
+                if (leaf is not null) leaf.Errors++;
+                if (device is not null && isDrawCategory) device.debugSawDrawIssue = true;
+            }
             else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Warning)
-                Log.Warning($"[Vulkan] {message}");
+            {
+                GraphicsDevice.DebugLog.Warning($"[Vulkan] {scopePrefix}{message}");
+                if (leaf is not null) leaf.Warnings++;
+                if (device is not null && isDrawCategory) device.debugSawDrawIssue = true;
+            }
             else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Info)
+            {
                 Log.Info($"[Vulkan] {message}");
+            }
             else
+            {
                 Log.Debug($"[Vulkan] {message}");
+            }
 
             return VK_FALSE;
         }

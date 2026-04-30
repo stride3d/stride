@@ -31,6 +31,12 @@ public partial class GraphicsDevice
     private DebugScopeFrame debugCurrentFrame;
 
     /// <summary>
+    ///   Set by backend message callbacks/poll loops when a draw-relevant validation issue
+    ///   fires during the current frame. Cleared after dump in <see cref="DebugEndFrame"/>.
+    /// </summary>
+    internal bool debugSawDrawIssue;
+
+    /// <summary>
     ///   Pushes a scope onto the active scope stack. Backend BeginProfile implementations call
     ///   this. Tier 1 (stack) is always maintained; Tier 2 (tree) only when IsDebugMode is set.
     /// </summary>
@@ -82,6 +88,13 @@ public partial class GraphicsDevice
 
     /// <summary>The currently-open scope frame, or <see langword="null"/> if no scope is active.</summary>
     internal DebugScopeFrame GetDebugCurrentFrame() => debugCurrentFrame;
+
+    /// <summary>
+    ///   Name of the innermost active scope, or <see langword="null"/> if no scope is active.
+    ///   Used as a short prefix on individual log messages; <see cref="GetDebugActiveScopePath"/>
+    ///   gives the full root→leaf path for the tree dump's footer.
+    /// </summary>
+    internal string GetDebugLeafScopeName() => debugScopeStack.Count > 0 ? debugScopeStack.Peek() : null;
 
     /// <summary>
     ///   Returns the active scope path (root → leaf) as a single string, or <see langword="null"/>
