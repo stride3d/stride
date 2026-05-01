@@ -15,7 +15,7 @@ namespace Stride.Graphics.SDL
 
         private Silk.NET.SDL.Window* sdlHandle;
 
-#region Initialization
+        #region Initialization
 
         private static readonly object initLock = new();
 
@@ -95,11 +95,10 @@ namespace Stride.Graphics.SDL
                 // Create the SDL window and then extract the native handle.
                 sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
             }
-            
 
             if (sdlHandle == null)
             {
-                throw new Exception("Cannot allocate SDL Window: " + SDL.GetErrorS()); 
+                throw new Exception("Cannot allocate SDL Window: " + SDL.GetErrorS());
             }
 
             SysWMInfo info = default;
@@ -127,6 +126,13 @@ namespace Stride.Graphics.SDL
             {
                 Handle = (IntPtr)info.Info.Cocoa.Window;
             }
+
+            var displayIndex = SDL.GetWindowDisplayIndex(sdlHandle);
+            if (displayIndex == -1)
+                displayIndex = 0;
+
+            DisplayIndex = displayIndex;
+
             Application.RegisterWindow(this);
             Application.ProcessEvents();
         }
@@ -343,7 +349,7 @@ namespace Stride.Graphics.SDL
             }
             set { SDL.SetWindowSize(sdlHandle, value.Width, value.Height); }
         }
-        
+
         /// <summary>
         /// The opacity of the window.
         /// </summary>
@@ -468,6 +474,30 @@ namespace Stride.Graphics.SDL
             }
         }
 
+        /// <summary>
+        /// DPI (dots per inch) of the Window.
+        /// </summary>
+        public float Dpi
+        {
+            get
+            {
+                float ddpi, hdpi, vdpi;
+
+                if (SDL.GetDisplayDPI(DisplayIndex, &ddpi, &hdpi, &vdpi) != 0)
+                {
+                    // Failed to get DPI, return a default value of 96 which is the standard DPI for many platforms.
+                    return 96.0f;
+                }
+
+                return ddpi;
+            }
+        }
+
+        /// <summary>
+        /// DPI scaling factor of the Window. 100 % corresponds to a DPI of 96.
+        /// </summary>
+        public float DpiScale => Dpi / 96.0f;
+
         public void SetRelativeMouseMode(bool enabled)
         {
             SDL.SetRelativeMouseMode(enabled ? SdlBool.True : SdlBool.False);
@@ -511,6 +541,7 @@ namespace Stride.Graphics.SDL
         public event WindowEventDelegate MouseLeaveActions;
         public event WindowEventDelegate FocusGainedActions;
         public event WindowEventDelegate FocusLostActions;
+        public event WindowEventDelegate DisplayChangedActions;
         public event DropEventDelegate DropFileActions;
 
         /// <summary>
@@ -576,7 +607,7 @@ namespace Stride.Graphics.SDL
                 case EventType.Fingerup:
                     FingerReleaseActions?.Invoke(e.Tfinger);
                     break;
-                
+
                 case EventType.Dropfile:
                     DropFileActions?.Invoke(Silk.NET.Core.Native.SilkMarshal.PtrToString((IntPtr)e.Drop.File, Silk.NET.Core.Native.NativeStringEncoding.UTF8));
                     break;
@@ -632,10 +663,25 @@ namespace Stride.Graphics.SDL
                         case WindowEventID.FocusLost:
                             FocusLostActions?.Invoke(e.Window);
                             break;
-                    }
+
+                        case WindowEventID.DisplayChanged:
+                            OnDisplayChanged(e.Window);
+                            break;
+                        }
                     break;
                 }
             }
+        }
+
+        private void OnDisplayChanged(WindowEvent e)
+        {
+            var displayIndex = SDL.GetWindowDisplayIndex(sdlHandle);
+            if (displayIndex == -1)
+                displayIndex = 0;
+
+            DisplayIndex = displayIndex;
+
+            DisplayChangedActions?.Invoke(e);
         }
 
         /// <summary>
@@ -655,6 +701,11 @@ namespace Stride.Graphics.SDL
         public IntPtr Display { get; private set; }
 
         /// <summary>
+        /// Index of the display where the current Window is being shown.
+        /// </summary>
+        public int DisplayIndex { get; private set; }
+
+        /// <summary>
         /// Surface of current Window (valid only for Android).
         /// </summary>
         public IntPtr Surface { get; private set; }
@@ -672,7 +723,8 @@ namespace Stride.Graphics.SDL
             get { return SdlHandle != IntPtr.Zero; }
         }
 
-#region Disposal
+        #region Disposal
+
         ~Window()
         {
             Dispose(false);
@@ -712,7 +764,7 @@ namespace Stride.Graphics.SDL
                 Handle = IntPtr.Zero;
             }
         }
-  
+
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {

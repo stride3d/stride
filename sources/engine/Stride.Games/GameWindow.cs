@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -73,6 +73,11 @@ namespace Stride.Games
         public event EventHandler<EventArgs> FullscreenChanged;
 
         /// <summary>
+        /// Occurs when the DPI configuration of this window has changed.
+        /// </summary>
+        public event EventHandler<EventArgs> DpiChanged;
+
+        /// <summary>
         /// Occurs before the window gets destroyed.
         /// </summary>
         public event EventHandler<EventArgs> Closing;
@@ -127,7 +132,7 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
         public abstract bool Visible { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the opacity of the window.
         /// </summary>
@@ -174,7 +179,7 @@ namespace Stride.Games
         /// <summary>
         /// The size the window should have when switching from fullscreen to windowed mode.
         /// To get the current actual size use <see cref="ClientBounds"/>.
-        /// This gets overwritten when the user resizes the window. 
+        /// This gets overwritten when the user resizes the window.
         /// </summary>
         public Int2 PreferredWindowedSize { get; set; } = new Int2(768, 432);
 
@@ -215,6 +220,18 @@ namespace Stride.Games
             isFullscreen = isReallyFullscreen;
         }
 
+        /// <summary>
+        ///   Gets the DPI scale factor of the display where this window is currently displayed,
+        ///   which is used to convert between physical pixels and device-independent pixels (DIPs).
+        /// </summary>
+        public float DpiScale { get; protected set; } = 1.0f; // 100 % = 96 DPI
+
+        /// <summary>
+        ///   Gets the dots per inch (DPI) of the display where this window is currently displayed
+        ///   in the horizontal and vertical directions.
+        /// </summary>
+        public Int2 Dpi { get; protected set; } = new Int2(96); // 96 DPI (baseline DPI for Windows and many other platforms)
+
         #endregion
 
         #region Public Methods and Operators
@@ -241,7 +258,7 @@ namespace Stride.Games
         internal Action RunCallback;
 
         internal Action ExitCallback;
-        
+
         private bool isFullscreen;
 
         internal abstract void Run();
@@ -284,9 +301,9 @@ namespace Stride.Games
         {
             if (!isFullscreen)
             {
-                // Update preferred windowed size in windowed mode 
+                // Update preferred windowed size in windowed mode
                 var resizeSize = ClientBounds.Size;
-                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height);
             }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
@@ -314,6 +331,12 @@ namespace Stride.Games
         protected void OnDisableFullScreen(object source, EventArgs e)
         {
             IsFullscreen = false;
+        }
+
+        protected void OnDpiChanged(object source, EventArgs e)
+        {
+            var handler = DpiChanged;
+            handler?.Invoke(this, e);
         }
 
         protected void OnClosing(object source, EventArgs e)

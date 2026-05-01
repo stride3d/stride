@@ -109,7 +109,7 @@ namespace Stride.Games
 
             window.ClientSize = new Size2(width, height);
 
-            window.MouseEnterActions += WindowOnMouseEnterActions;   
+            window.MouseEnterActions += WindowOnMouseEnterActions;
             window.MouseLeaveActions += WindowOnMouseLeaveActions;
 
             var gameForm = window as GameFormSDL;
@@ -120,7 +120,7 @@ namespace Stride.Games
                 gameForm.SizeChanged += OnClientSizeChanged;
                 gameForm.CloseActions += GameForm_CloseActions;
                 gameForm.FullscreenToggle += OnFullscreenToggle;
-                
+                gameForm.DisplayChangedActions += WindowOnDisplayChangedActions;
             }
             else
             {
@@ -378,6 +378,14 @@ namespace Stride.Games
                 // Check for non-window control
                 return false;
             }
+        }
+
+        private void WindowOnDisplayChangedActions(WindowEvent sdlWindowEvent)
+        {
+            Dpi = new Int2((int) window.Dpi);
+            DpiScale = window.DpiScale;
+
+            OnDpiChanged(this, EventArgs.Empty);
         }
 
         protected override void Destroy()

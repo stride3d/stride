@@ -173,6 +173,18 @@ public sealed unsafe partial class GraphicsOutput
     /// </summary>
     public Vector2 WhitePoint { get; }
 
+    /// <summary>
+    ///   Gets the DPI scale factor of the display attached to this output, which is used
+    ///   to convert between physical pixels and device-independent pixels (DIPs).
+    /// </summary>
+    public float DpiScale { get; }
+
+    /// <summary>
+    ///   Gets the dots per inch (DPI) of the display attached to this output
+    ///   in the horizontal and vertical directions.
+    /// </summary>
+    public Int2 Dpi { get; }
+
 
     /// <summary>
     ///   Initializes a new instance of <see cref="GraphicsOutput"/>.
@@ -220,6 +232,10 @@ public sealed unsafe partial class GraphicsOutput
             ModeRotation.Rotate270 => DisplayRotation.Rotate270,
             _ => DisplayRotation.Default
         };
+
+        GetDpiForMonitor(MonitorHandle, out int dpiX, out int dpiY);
+        Dpi = new Int2(dpiX, dpiY);
+        DpiScale = dpiX / 96.0f;
 
         if (dxgiOutputVersion >= 6)
         {
@@ -311,6 +327,31 @@ public sealed unsafe partial class GraphicsOutput
                 return StringMarshal.GetString(&displayDevice.DeviceString.e0);
             }
             return null;
+        }
+
+        //
+        // Attempts to get the DPI for the monitor associated with this output using Win32 API.
+        //
+        static void GetDpiForMonitor(nint hMonitor, out int dpiX, out int dpiY)
+        {
+            uint x, y;
+
+            // Windows 8.1+: shcore!GetDpiForMonitor
+            // TODO: Consider using GetDpiForWindow (Windows 10, version 1607+) as a fallback, which can be more accurate in multi-monitor setups with different DPI settings.
+            // TODO: Consider a fallback to GetDeviceCaps(LOGPIXELSX/Y) via a DC if GetDpiForMonitor is not available, which is the traditional way to get DPI on older Windows versions.
+            HResult result = Win32.GetDpiForMonitor(hMonitor, Win32.MDT_EFFECTIVE_DPI, &x, &y);
+
+            if (result.IsSuccess)
+            {
+                dpiX = (int) x;
+                dpiY = (int) y;
+            }
+            else
+            {
+                // Defaults to 96 dpi, which corresponds to 100% scaling
+                dpiX = 96;
+                dpiY = 96;
+            }
         }
     }
 
