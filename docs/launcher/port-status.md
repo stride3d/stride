@@ -37,6 +37,24 @@ These are behavioural differences that were not preserved during the port and ca
 
 Observed on Linux during the 2026-04-22 cross-platform-services smoke: right-clicking on a recent-project row does not open the context menu at the row's visible position. The hit-test lands a few pixels lower than the rendered content, so the menu only appears when the user clicks *below* the visible row. Not present in master (where hit-testing was WPF-native and correct). Likely an Avalonia layout discrepancy in the recent-projects panel of [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) — the `Border.ContextMenu` or one of its parent containers has a vertical offset between its rendered bounds and its input bounds. Not caused by Phase 1 items; filed here so it isn't lost.
 
+### ~~`InstallLatestVersion` fell through when already processing~~ — Fixed (2026-05-02)
+
+`MainViewModel.InstallLatestVersion` was missing a `return` after showing the "install already in progress" dialog, so `latestVersion.DownloadCommand.Execute()` ran unconditionally even when a download was already running.
+
+Fixed: added `return` after the dialog + `IsEnabled = false` branch in [MainViewModel.cs](../../sources/launcher/Stride.Launcher/ViewModels/MainViewModel.cs).
+
+### ~~`AnnouncementViewModel` close did not dismiss the overlay~~ — Fixed (2026-05-02)
+
+`CloseAnnouncement()` set `Validated = true` and optionally saved the "don't show again" flag, but never caused `MainViewModel.Announcement` to be set to `null`. The overlay's `Classes.visible` binding in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) depends on `Announcement != null`, so clicking **OK** had no visual effect. This was latent only because `DisplayReleaseAnnouncement()` is currently a no-op placeholder.
+
+Fixed: the `Announcement` setter in [MainViewModel.cs](../../sources/launcher/Stride.Launcher/ViewModels/MainViewModel.cs) now subscribes to `AnnouncementViewModel.PropertyChanged` and sets `Announcement = null` when `Validated` becomes `true`.
+
+### ~~Self-update force-reinstall ran on Linux~~ — Fixed (2026-05-02)
+
+`SelfUpdater.UpdateLauncherFiles` probed every update package for a `force-reinstall:` line without checking the OS. On Linux this would download a Windows `StrideSetup.exe` and fail at `Process.Start`. The issue was not guarded anywhere despite being flagged as a known gap in [self-update.md](self-update.md) and Phase 4.
+
+Fixed: the entire force-reinstall block in [SelfUpdater.cs](../../sources/launcher/Stride.Launcher/Services/SelfUpdater.cs) is now wrapped in `if (OperatingSystem.IsWindows())`. On Linux the probe is skipped and the normal in-place file-swap path runs instead.
+
 ### ~~`OpenHyperlinkCommand` lost `.md → .html` rewriting~~ — Fixed (Phase 2)
 
 ~~Master's `Views/Commands.cs`:~~
@@ -149,7 +167,7 @@ Not required for parity, but on the horizon:
 
 1. **Linux packaging.** `dotnet publish -r linux-x64 --self-contained` produces a tree today. Decide on distribution format: tarball, AppImage, Flatpak, or `.deb` / `.rpm`. Update [packaging.md](packaging.md).
 2. **macOS support.** No RID yet. Needs `osx-x64` / `osx-arm64` targets, `.app` bundle layout, codesigning / notarization, and window chrome review.
-3. **Self-update on Linux.** The `force-reinstall` path downloads `StrideSetup.exe` — Windows-only. Options: (a) a Linux-only code path that downloads the matching `.tar.gz` / AppImage and replaces the install in place, or (b) "update via your package manager" documented as the intended path. Mentioned in [self-update.md](self-update.md) and [cross-platform.md](cross-platform.md).
+3. **Self-update on Linux.** The `force-reinstall` path is now gated to `OperatingSystem.IsWindows()` (fixed 2026-05-02), so Linux no longer attempts to download `StrideSetup.exe`. The normal in-place file-swap path runs on Linux, but a full `force-reinstall` (breaking-change upgrade) has no Linux equivalent yet. Options: (a) a Linux-only code path that downloads the matching `.tar.gz` / AppImage and replaces the install in place, or (b) "update via your package manager" documented as the intended path. Mentioned in [self-update.md](self-update.md) and [cross-platform.md](cross-platform.md).
 
 ### Phase 5 — test infrastructure
 

@@ -143,7 +143,27 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public ObservableList<DocumentationPageViewModel> ActiveDocumentationPages => ActiveVersion.Yield().Concat(StrideVersions).OfType<StrideStoreVersionViewModel>().FirstOrDefault()?.DocumentationPages;
 
-    public AnnouncementViewModel Announcement { get { return announcement; } set { SetValue(ref announcement, value); } }
+    public AnnouncementViewModel Announcement
+    {
+        get { return announcement; }
+        set
+        {
+            var previous = announcement;
+            if (SetValue(ref announcement, value))
+            {
+                if (previous is not null)
+                    previous.PropertyChanged -= OnAnnouncementValidated;
+                if (value is not null)
+                    value.PropertyChanged += OnAnnouncementValidated;
+            }
+        }
+    }
+
+    private void OnAnnouncementValidated(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AnnouncementViewModel.Validated) && announcement?.Validated == true)
+            Announcement = null;
+    }
 
     public bool IsOffline { get { return isOffline; } set { SetValue(ref isOffline, value); } }
 
@@ -675,6 +695,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.InstallAlreadyInProgress, MessageBoxButton.OK, MessageBoxImage.Information);
             InstallLatestVersionCommand.IsEnabled = false;
+            return;
         }
 
         latestVersion.DownloadCommand.Execute();

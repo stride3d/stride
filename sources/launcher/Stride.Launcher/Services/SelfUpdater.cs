@@ -120,26 +120,30 @@ public static class SelfUpdater
         var packageId = productAttribute!.Product;
         var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
 
-        try
+        // Force-reinstall downloads a Windows installer (StrideSetup.exe) — skip the probe on non-Windows.
+        if (OperatingSystem.IsWindows())
         {
-            // First, check if there is a package forcing us to download new installer
-            const string reinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
-            var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, reinstallUrlPattern));
-            if (reinstallPackage is not null)
+            try
             {
-                var regexMatch = Regex.Match(reinstallPackage.Description, reinstallUrlPattern);
-                var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
-                if (version < minimumVersion)
+                // First, check if there is a package forcing us to download new installer
+                const string reinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
+                var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, reinstallUrlPattern));
+                if (reinstallPackage is not null)
                 {
-                    var installerDownloadUrl = regexMatch.Groups[2].Value;
-                    await DownloadAndInstallNewVersion(dispatcher, dialogService, installerDownloadUrl);
-                    return;
+                    var regexMatch = Regex.Match(reinstallPackage.Description, reinstallUrlPattern);
+                    var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
+                    if (version < minimumVersion)
+                    {
+                        var installerDownloadUrl = regexMatch.Groups[2].Value;
+                        await DownloadAndInstallNewVersion(dispatcher, dialogService, installerDownloadUrl);
+                        return;
+                    }
                 }
             }
-        }
-        catch (Exception e)
-        {
-            await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+            catch (Exception e)
+            {
+                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // If there is a mandatory intermediate upgrade, take it, otherwise update straight to latest version
