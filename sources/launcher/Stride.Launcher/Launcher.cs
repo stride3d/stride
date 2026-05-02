@@ -171,8 +171,6 @@ internal static class Launcher
                 }
             }
 
-            //PrivacyPolicyHelper.RevokeAllPrivacyPolicy(); // FIXME: xplat-launcher
-
             return LauncherErrorCode.Success;
         }
         catch (Exception)

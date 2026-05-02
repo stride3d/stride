@@ -29,7 +29,7 @@ Advanced Installer projects ([Prerequisites/](../../sources/launcher/Prerequisit
 
 ## Telemetry and privacy policy
 
-Both `Stride.Metrics` / `MetricsClient` (telemetry) and `PrivacyPolicyHelper` (first-run consent prompt, uninstall-time revoke) have been **intentionally and permanently removed** from the launcher. They will not be ported. A commented-out `PrivacyPolicyHelper.RevokeAllPrivacyPolicy()` with a `FIXME: xplat-launcher` marker still exists at [Launcher.cs:174](../../sources/launcher/Stride.Launcher/Launcher.cs#L174); keep it for now — uninstall may still need logic to clean up privacy-policy state left behind on machines that had the previous WPF launcher installed.
+Both `Stride.Metrics` / `MetricsClient` (telemetry) and `PrivacyPolicyHelper` (first-run consent prompt, uninstall-time revoke) have been **intentionally and permanently removed** from the launcher. They will not be ported. No cleanup of legacy privacy-policy state is performed on uninstall — telemetry was removed, so any residual registry keys or settings files from the old WPF launcher are harmless orphans and do not need to be scrubbed.
 
 ## Launcher ↔ GameStudio IPC
 

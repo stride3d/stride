@@ -129,7 +129,7 @@ Captured here so reviewers don't try to "revert" them:
 | Presentation lib | `Stride.Core.Presentation.Wpf` | `Stride.Core.Presentation.Avalonia` | Avalonia port |
 | Markdown | Markdig via WPF renderer | `MarkView.Avalonia` | Avalonia port |
 | Telemetry | `Stride.Metrics` / `MetricsClient` wrapping the run, `MetricsHelper.NotifyDownload*` around every package op | Removed | **Intentional, permanent** — the xplat launcher does not ship telemetry |
-| Privacy policy | `PrivacyPolicyHelper.EnsurePrivacyPolicyStride40()` on startup, `RevokeAllPrivacyPolicy()` on uninstall | Removed | **Intentional, permanent** — the consent flow is no longer needed since telemetry is gone. `Launcher.cs:174` still has a commented-out `RevokeAllPrivacyPolicy` with a `FIXME: xplat-launcher` marker; keep it for now as a placeholder — uninstall may still need logic to clean up privacy-policy state left behind on machines that had the previous WPF launcher installed |
+| Privacy policy | `PrivacyPolicyHelper.EnsurePrivacyPolicyStride40()` on startup, `RevokeAllPrivacyPolicy()` on uninstall | Removed | **Intentional, permanent** — the consent flow is no longer needed since telemetry is gone. No uninstall cleanup is performed; any residual registry keys / settings files from the old WPF launcher are harmless orphans |
 
 ## Roadmap
 
@@ -150,7 +150,7 @@ These change observable behaviour on both Windows and Linux and should ship firs
 1. ~~**Restore `.md → .html` URL rewriting** in the `OnLinkClicked` handler in [App.axaml.cs](../../sources/launcher/Stride.Launcher/App.axaml.cs) before calling `Process.Start`.~~ **Done** (2026-04-27): `OnLinkClicked` now rewrites `.md` → `.html` before `Process.Start`.
 2. **Decide on `.NET 10.0` runtime probe for Windows.** Either embed it as a self-contained publish (no probe needed), or add a small `PrerequisitesValidator` replacement that checks the runtime and surfaces a friendly message. Document the decision in [packaging.md](packaging.md).
 3. **Review `MinimalApp` paths.** Exercise the crash-report dialog and the "already running" dialog on both platforms and confirm they behave like master, or document the new behaviour.
-4. **Migration cleanup for users upgrading from the WPF launcher.** The commented-out `RevokeAllPrivacyPolicy` at [Launcher.cs:174](../../sources/launcher/Stride.Launcher/Launcher.cs#L174) is kept as a placeholder — when uninstalling on a machine that previously had the WPF launcher, clean up any privacy-policy / telemetry state left behind (registry keys, settings files). Scope to be decided.
+4. ~~**Migration cleanup for users upgrading from the WPF launcher.**~~ **Closed (2026-05-02):** decided not to clean up legacy privacy-policy / telemetry state on uninstall. Telemetry was removed entirely, so any residual registry keys or settings files from the old WPF launcher are harmless orphans. The commented-out `RevokeAllPrivacyPolicy` placeholder in `Launcher.cs` has been deleted.
 
 ### Phase 3 — visual parity
 
