@@ -12,6 +12,12 @@
     <!-- Mark as test project for dotnet test -->
     <IsTestProject>true</IsTestProject>
 
+    <!-- Test projects don't need to produce NuGet packages. Local property only — do NOT
+         let it propagate to referenced projects (e.g. Stride.Core.Assets.CompilerApp), which
+         still need their own .nupkg in bin\packages\ for the test's AssetCompiler run. The
+         ProjectReference metadata below adds this to GlobalPropertiesToRemove to be sure. -->
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+
     <!-- Tests are executables (for asset compilation, native libs, etc.) -->
     <OutputType>WinExe</OutputType>
     <StrideIsExecutable>true</StrideIsExecutable>
@@ -20,6 +26,11 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+
+    <!-- Set RuntimeIdentifier from StrideTestRuntimeIdentifier to avoid NETSDK1134
+         (cannot pass -r or RuntimeIdentifier at solution level in .NET 10+) -->
+    <RuntimeIdentifier Condition="'$(StrideTestRuntimeIdentifier)' != ''">$(StrideTestRuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained Condition="'$(StrideTestRuntimeIdentifier)' != ''">false</SelfContained>
 
     <!-- Allow unsafe code (common in tests) -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -53,7 +64,7 @@
   <!-- ================================================================ -->
   <!-- Output path set in props so dotnet test can resolve the DLL. -->
   <PropertyGroup>
-    <OutputPath>$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+    <!-- OutputPath is set in Sdk.targets (before .NET SDK import) where $(AssemblyName) is available. -->
 
     <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' == ''">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
     <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' != ''">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>

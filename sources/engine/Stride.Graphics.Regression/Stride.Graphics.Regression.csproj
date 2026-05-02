@@ -2,6 +2,9 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- This is a test helper library, not a test project. xunit.runner.visualstudio sets
+         IsTestProject=true which breaks StrideGraphicsApiDependent output paths. -->
+    <IsTestProject>false</IsTestProject>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>

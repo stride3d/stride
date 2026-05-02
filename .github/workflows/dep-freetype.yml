@@ -262,13 +262,12 @@ jobs:
 
           # Version info
           COMMIT=$(git -C freetype-src rev-parse HEAD)
-          cat > $OUT/VERSION.txt <<EOF
-FreeType ${{ github.event.inputs.freetype-version }}
-Repository: https://github.com/freetype/freetype
-Commit: $COMMIT
-Built: $(date -u +%Y-%m-%d)
-Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-EOF
+          printf 'FreeType %s\nRepository: https://github.com/freetype/freetype\nCommit: %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.freetype-version }}" \
+            "$COMMIT" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
 
       - name: List contents
         run: find freetype-out -type f | sort

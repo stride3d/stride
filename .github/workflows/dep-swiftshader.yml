@@ -8,7 +8,7 @@ on:
         required: false
 
 jobs:
-  build:
+  build-windows:
     name: Build SwiftShader (Windows x64)
     runs-on: windows-2025-vs2026
     env:
@@ -28,17 +28,140 @@ jobs:
         shell: pwsh
         run: |
           cmake -S swiftshader-src -B swiftshader-build -Thost=x64 -DSWIFTSHADER_BUILD_TESTS=OFF -DSWIFTSHADER_BUILD_BENCHMARKS=OFF
-          cmake --build swiftshader-build --config RelWithDebInfo --target vk_swiftshader
+          cmake --build swiftshader-build --config Release --target vk_swiftshader
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: swiftshader-win-x64
+          path: |
+            swiftshader-build/**/vk_swiftshader.dll
+            swiftshader-build/**/vk_swiftshader_icd.json
+
+  build-linux:
+    name: Build SwiftShader (Linux x64)
+    runs-on: ubuntu-24.04
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout SwiftShader
+        uses: actions/checkout@v4
+        with:
+          repository: google/swiftshader
+          submodules: recursive
+          path: swiftshader-src
+
+      - name: Build
+        run: |
+          cmake -S swiftshader-src -B swiftshader-build -DCMAKE_BUILD_TYPE=Release -DSWIFTSHADER_BUILD_TESTS=OFF -DSWIFTSHADER_BUILD_BENCHMARKS=OFF
+          cmake --build swiftshader-build --target vk_swiftshader -- -j$(nproc)
+
+      - name: Collect build output
+        run: |
+          mkdir -p swiftshader-out
+          find swiftshader-build -maxdepth 2 -name "libvk_swiftshader.so" -exec cp {} swiftshader-out/ \;
+          find swiftshader-build -maxdepth 2 -name "vk_swiftshader_icd.json" -exec cp {} swiftshader-out/ \;
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: swiftshader-linux-x64
+          path: swiftshader-out/
+
+  build-macos:
+    name: Build SwiftShader (macOS ARM64)
+    runs-on: macos-15
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout SwiftShader
+        uses: actions/checkout@v4
+        with:
+          repository: google/swiftshader
+          submodules: recursive
+          path: swiftshader-src
+
+      - name: Build
+        run: |
+          cmake -S swiftshader-src -B swiftshader-build -DCMAKE_BUILD_TYPE=Release -DSWIFTSHADER_BUILD_TESTS=OFF -DSWIFTSHADER_BUILD_BENCHMARKS=OFF
+          cmake --build swiftshader-build --target vk_swiftshader -- -j$(sysctl -n hw.ncpu)
+
+      - name: Collect build output
+        run: |
+          mkdir -p swiftshader-out
+          find swiftshader-build -maxdepth 2 -name "libvk_swiftshader.dylib" -exec cp {} swiftshader-out/ \;
+          find swiftshader-build -maxdepth 2 -name "vk_swiftshader_icd.json" -exec cp {} swiftshader-out/ \;
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: swiftshader-osx-arm64
+          path: swiftshader-out/
+
+  pack:
+    name: Pack & Publish NuGet
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout SwiftShader (for commit hash)
+        uses: actions/checkout@v4
+        with:
+          repository: google/swiftshader
+          path: swiftshader-src
+          fetch-depth: 1
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swiftshader-win-x64
+          path: artifacts/win-x64
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swiftshader-linux-x64
+          path: artifacts/linux-x64
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swiftshader-osx-arm64
+          path: artifacts/osx-arm64
 
       - name: Prepare package contents
         shell: pwsh
         run: |
           $destDir = "build/deps/swiftshader"
-          Copy-Item swiftshader-build/RelWithDebInfo/vk_swiftshader.dll $destDir/
-          # ICD JSON is generated in a platform-specific directory by cmake
-          $icdJson = Get-ChildItem -Recurse -Path swiftshader-build -Filter vk_swiftshader_icd.json | Select-Object -First 1
-          if (-not $icdJson) { throw "vk_swiftshader_icd.json not found in build output" }
-          Copy-Item $icdJson.FullName $destDir/
+
+          # Windows
+          New-Item -Path "$destDir/win-x64" -ItemType Directory -Force | Out-Null
+          $winDll = Get-ChildItem -Recurse -Path artifacts/win-x64 -Filter vk_swiftshader.dll | Select-Object -First 1
+          Copy-Item $winDll.FullName "$destDir/win-x64/"
+          $winIcd = Get-ChildItem -Recurse -Path artifacts/win-x64 -Filter vk_swiftshader_icd.json | Select-Object -First 1
+          Copy-Item $winIcd.FullName "$destDir/win-x64/"
+
+          # Linux
+          New-Item -Path "$destDir/linux-x64" -ItemType Directory -Force | Out-Null
+          $linuxSo = Get-ChildItem -Recurse -Path artifacts/linux-x64 -Filter libvk_swiftshader.so | Select-Object -First 1
+          Copy-Item $linuxSo.FullName "$destDir/linux-x64/"
+          $linuxIcd = Get-ChildItem -Recurse -Path artifacts/linux-x64 -Filter vk_swiftshader_icd.json | Select-Object -First 1
+          Copy-Item $linuxIcd.FullName "$destDir/linux-x64/"
+
+          # macOS
+          New-Item -Path "$destDir/osx-arm64" -ItemType Directory -Force | Out-Null
+          $macDylib = Get-ChildItem -Recurse -Path artifacts/osx-arm64 -Filter libvk_swiftshader.dylib | Select-Object -First 1
+          Copy-Item $macDylib.FullName "$destDir/osx-arm64/"
+          $macIcd = Get-ChildItem -Recurse -Path artifacts/osx-arm64 -Filter vk_swiftshader_icd.json | Select-Object -First 1
+          Copy-Item $macIcd.FullName "$destDir/osx-arm64/"
 
       - name: Pack NuGet
         shell: pwsh
@@ -52,7 +175,7 @@ jobs:
             -OutputDirectory nupkg
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
-      - name: Upload artifact
+      - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: Stride.Dependencies.SwiftShader.nupkg
@@ -60,7 +183,7 @@ jobs:
 
   publish:
     name: Sign & Publish to NuGet.org
-    needs: build
+    needs: pack
     runs-on: windows-2025-vs2026
     environment: production
     steps:

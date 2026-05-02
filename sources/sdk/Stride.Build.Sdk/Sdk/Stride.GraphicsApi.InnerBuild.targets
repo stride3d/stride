@@ -29,7 +29,8 @@
   <!-- ================================================================ -->
   <Target Name="_StrideQueryGraphicsApis" Returns="@(_StrideGraphicsApisItemsInternal)" Condition="'$(StrideProjectType)' != 'Cpp'">
     <ItemGroup Condition="'$(StrideGraphicsApis)' != ''">
-      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+      <!-- Unescape first so a command-line '%3B' separator survives as real item splits. -->
+      <_StrideGraphicsApisItemsInternal Include="$([MSBuild]::Unescape($(StrideGraphicsApis)))" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
     <ItemGroup Condition="'$(StrideGraphicsApis)' == ''">
       <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApi)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
@@ -59,12 +60,14 @@
       </_InnerBuildProjects>
     </ItemGroup>
 
-    <!-- Graphics-API-dependent: query each TFM for its graphics APIs -->
+    <!-- Graphics-API-dependent: query each TFM for its graphics APIs. Don't strip
+         StrideGraphicsApi here — doing so would create a distinct project-instance cache
+         entry with no StrideGraphicsApi, which later Build dispatches from transitive callers
+         would race against the with-SGA entry created by DispatchToInnerBuilds. -->
     <MSBuild Projects="$(MSBuildProjectFile)"
              Condition="'$(StrideGraphicsApiDependent)' == 'true'"
              BuildInParallel="$(BuildInParallel)"
              Properties="TargetFramework=%(_TargetFrameworkNormalized.Identity)"
-             RemoveProperties="StrideGraphicsApi"
              Targets="_StrideQueryGraphicsApis">
       <Output ItemName="_StrideGraphicsApisItems" TaskParameter="TargetOutputs" />
     </MSBuild>
@@ -82,44 +85,72 @@
   <!-- ================================================================ -->
   <!-- Project reference Graphics API propagation                       -->
   <!-- ================================================================ -->
-  <!-- Detects if referenced projects are StrideGraphicsApiDependent
-       and injects StrideGraphicsApi into their SetTargetFramework.
-       For non-dependent references, removes StrideGraphicsApi to
-       prevent unnecessary rebuilds. -->
-  <Target Name="_StrideQueryGraphicsApiDependent" Returns="@(_StrideGraphicsApiDependentItemsInternal)" Condition="'$(StrideProjectType)' != 'Cpp'">
-    <ItemGroup>
-      <_StrideGraphicsApiDependentItemsInternal Include="stride_fake_graphics_api" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
-    </ItemGroup>
+  <!-- For each ProjectReference, route StrideGraphicsApi based on whether the *target*
+       project is API-dep (matched by filename, so transitive refs auto-promoted by the
+       .NET SDK from project.assets.json classify correctly — they don't carry any per-ref
+       metadata we could use). Keep in sync with projects that set
+       StrideGraphicsApiDependent=true. -->
+  <PropertyGroup>
+    <!-- Semicolon-delimited list of API-dep projects that are referenced by other projects
+         (and therefore need consumer-side SGA routing). Surrounded by ; for substring-safe
+         .Contains(';%(Filename);') lookup (so ';Stride.Graphics;' never matches
+         ';Stride.Graphics.Regression;'). Leaf API-dep projects (e.g., Stride.*.Tests.*)
+         are intentionally excluded — they declare StrideGraphicsApiDependent=true for their
+         own per-API output paths but nothing references them, so no routing is needed.
+         Consistency enforced by _StrideValidateGraphicsApiDependentProjectList below. -->
+    <_StrideGraphicsApiDependentProjectList>;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Games;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Input;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.VirtualReality;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Video;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.Regression;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.RenderDocPlugin;</_StrideGraphicsApiDependentProjectList>
+    <!-- Current API for this evaluation. In an API-dep inner build this is the dispatched
+         API (set via global from _ComputeTargetFrameworkItems); in a non-API-dep build it
+         falls back to the first entry of StrideGraphicsApis so A(API-dep)→B(non-API-dep)→
+         C(API-dep) chains still route with a valid API. -->
+    <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
+    <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == '' And '$(StrideGraphicsApis)' != ''">$([MSBuild]::Unescape($(StrideGraphicsApis)).Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
+    <!-- TFMs where Stride.Graphics.targets disables per-API dispatch (single inner build,
+         no StrideGraphicsApi in cache key). Consumer refs at these TFMs must NOT add
+         StrideGraphicsApi, or they'd diverge from the callee's own outer→inner dispatch. -->
+    <_StrideGraphicsApiDependentDisabledAtCurrentTF Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' Or '$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'">true</_StrideGraphicsApiDependentDisabledAtCurrentTF>
+  </PropertyGroup>
+
+  <!-- Consistency checks on the _StrideGraphicsApiDependentProjectList. Skipped on TFMs where Stride.Graphics.targets
+       overrides StrideGraphicsApiDependent (iOS/Android/UWP) since the flag's in-memory value
+       no longer matches the user's csproj declaration. -->
+  <Target Name="_StrideValidateGraphicsApiDependentProjectList" BeforeTargets="Build"
+          Condition="'$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
+    <!-- If I'm in the list, my csproj must declare the flag. Catches incomplete SDK list edits. -->
+    <Error Condition="$(_StrideGraphicsApiDependentProjectList.Contains(';$(MSBuildProjectName);')) And '$(StrideGraphicsApiDependent)' != 'true'"
+           Text="$(MSBuildProjectName) is listed in _StrideGraphicsApiDependentProjectList (Stride.GraphicsApi.InnerBuild.targets) but its csproj doesn't set &lt;StrideGraphicsApiDependent&gt;true&lt;/StrideGraphicsApiDependent&gt;. Either add the flag or remove from the list." />
+    <!-- If I directly reference an API-dep project (by inspecting its csproj content), that
+         project must be in the list. Catches new API-dep libraries that nobody registered.
+         Only scans direct refs (no transitive), so leaf test projects don't false-alarm. -->
+    <Error Condition="'%(ProjectReference.FullPath)' != '' And $([System.IO.File]::ReadAllText('%(ProjectReference.FullPath)').Contains('&lt;StrideGraphicsApiDependent&gt;true&lt;/StrideGraphicsApiDependent&gt;')) And !$(_StrideGraphicsApiDependentProjectList.Contains(';%(ProjectReference.Filename);'))"
+           Text="$(MSBuildProjectName) directly references %(ProjectReference.Filename) which sets &lt;StrideGraphicsApiDependent&gt;true&lt;/StrideGraphicsApiDependent&gt;, but %(ProjectReference.Filename) is not in _StrideGraphicsApiDependentProjectList (Stride.GraphicsApi.InnerBuild.targets). Add it there so consumer refs don't race under parallel build." />
   </Target>
 
-  <Target Name="_StrideProjectReferenceGraphicsApiDependent" BeforeTargets="PrepareProjectReferences">
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
-             BuildInParallel="$(BuildInParallel)"
-             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework);"
-             RemoveProperties="StrideGraphicsApi"
-             Targets="_StrideQueryGraphicsApiDependent"
-             SkipNonexistentTargets="true">
-      <Output ItemName="_StrideGraphicsApiDependentItems" TaskParameter="TargetOutputs" />
-    </MSBuild>
-    <PropertyGroup>
-      <!-- Transmit current graphics API. This is useful in case we have transitions such as:
-           Direct3D12 -> ProjectWithoutGraphicsApi -> Direct3D12
-           otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
-      <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
-      <!-- Fallback in case the project without graphics API is the project initiating the build. -->
-      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
-      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
-      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
-    </PropertyGroup>
+  <!-- Runs at target time so _MSBuildProjectReferenceExistent is fully populated (direct
+       refs, SDK-auto-added refs, AND transitive refs from project.assets.json).
+       AdditionalProperties is the cache-key-contributing channel: the MSBuild task engine
+       reads it from item metadata automatically at dispatch time. SetTargetFramework also
+       works but has a side effect of setting SkipGetTargetFrameworkProperties=true, which
+       bypasses TFM negotiation and breaks cases like Games[net10.0-windows]→Graphics[net10.0]. -->
+  <Target Name="_StrideAnnotateProjectReferences" BeforeTargets="_GetProjectReferenceTargetFrameworkProperties;PrepareProjectReferences"
+          Condition="'$(_StrideGraphicsApiCurrent)' != '' And '$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
     <ItemGroup>
-      <_MSBuildProjectReferenceExistent Remove="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" />
-      <_MSBuildProjectReferenceExistent Include="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" Condition="'%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)' != 'true'" />
-      <_MSBuildProjectReferenceExistent Include="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" Condition="'%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)' == 'true'">
-        <StrideGraphicsApiDependent>%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
-        <StrideGraphicsApi>$(_StrideGraphicsApiCurrent)</StrideGraphicsApi>
-        <SetTargetFramework>%(_StrideGraphicsApiDependentItems.SetTargetFramework);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</SetTargetFramework>
+      <!-- API-dep ref: pass the current API so consumer and callee share a per-API cache entry. -->
+      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
+                                        Condition="$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
+        <AdditionalProperties>%(_MSBuildProjectReferenceExistent.AdditionalProperties);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</AdditionalProperties>
       </_MSBuildProjectReferenceExistent>
-      <_MSBuildProjectReferenceExistent Condition="'%(_MSBuildProjectReferenceExistent.StrideGraphicsApiDependent)' != 'true'">
+      <!-- Non-API-dep ref: strip StrideGraphicsApi so different-API callers collapse to one
+           cache entry per (project, TF) instead of racing on a shared obj/ path. -->
+      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
+                                        Condition="!$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
         <GlobalPropertiesToRemove>%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);StrideGraphicsApi</GlobalPropertiesToRemove>
       </_MSBuildProjectReferenceExistent>
     </ItemGroup>

@@ -32,6 +32,7 @@ public static partial class NativeLibraryHelper
     // Map of loaded libraries to their handles
     private static readonly Dictionary<string, nint> loadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock loadedLibrariesLock = new();
+    private static bool globalResolverRegistered;
 
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
@@ -131,6 +132,15 @@ public static partial class NativeLibraryHelper
 #if STRIDE_PLATFORM_DESKTOP
         lock (loadedLibrariesLock)
         {
+            // Register a global resolver once so [DllImport] from any assembly
+            // can find libraries preloaded by full path (needed on Linux where
+            // dlopen("/full/path/lib.so") doesn't make dlopen("lib") find it).
+            if (!globalResolverRegistered)
+            {
+                globalResolverRegistered = true;
+                System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
+            }
+
             // If already loaded, just exit as we want to load it just once
             if (loadedLibraries.ContainsKey(libraryName))
             {
@@ -175,6 +185,19 @@ public static partial class NativeLibraryHelper
                 }
             }
 
+            // Also try with 'lib' prefix in runtimes path (Linux/macOS native libs use lib prefix)
+            if (Platform.Type != PlatformType.Windows && !libraryName.StartsWith("lib", StringComparison.Ordinal))
+            {
+                if (TryFindLibraryPath(ownerType, "lib" + libraryNameWithExtension, out libraryFilename))
+                {
+                    if (NativeLibrary.TryLoad(libraryFilename!, out nint result))
+                    {
+                        AddLoadedLibrary(libraryName, result);
+                        return;
+                    }
+                }
+            }
+
             // Finally, try the default loading mechanism (https://docs.microsoft.com/en-us/dotnet/core/dependency-loading/loading-unmanaged)
             if (NativeLibrary.TryLoad(libraryName, ownerType.Assembly, searchPath: null, out nint handle))
             {
@@ -209,7 +232,8 @@ public static partial class NativeLibraryHelper
         }
 
         //
-        // Adds the loaded library to the dictionary and logs the loading event.
+        // Adds the loaded library to the dictionary, registers a DllImport resolver
+        // for the owner assembly, and logs the loading event.
         //
         void AddLoadedLibrary(string name, nint handle)
         {
@@ -316,6 +340,19 @@ public static partial class NativeLibraryHelper
             var libraryNameWithExtension = Path.GetFileName(libraryPath);
             nativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
             nativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
+        }
+    }
+
+    /// <summary>
+    /// Global resolver for [DllImport] calls — returns preloaded library handles.
+    /// On Linux, dlopen with a full path doesn't make the library findable by bare name,
+    /// so DllImport("freetype") won't find a preloaded "/path/to/libfreetype.so" without this.
+    /// </summary>
+    private static IntPtr ResolvePreloadedLibrary(Assembly assembly, string name)
+    {
+        lock (loadedLibrariesLock)
+        {
+            return loadedLibraries.TryGetValue(name, out var handle) ? handle : IntPtr.Zero;
         }
     }
 

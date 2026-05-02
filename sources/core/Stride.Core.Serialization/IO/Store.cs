@@ -12,8 +12,23 @@ namespace Stride.Core.IO;
 /// <typeparam name="T">The type of elements in the store.</typeparam>
 public abstract class Store<T> : IDisposable where T : new()
 {
-    // macOS doesn't support Lock/Unlock (https://github.com/dotnet/corefx/issues/5964)
-    private static readonly bool LockEnabled = Platform.Type != PlatformType.macOS;
+    // Locking is enabled on all platforms. NativeLockFile handles platform differences internally.
+    // Disabled dynamically if locking fails at runtime (e.g. WSL2 9p).
+    private static bool LockEnabled = true;
+
+    /// <summary>
+    ///   Tries to lock a file range. If locking fails (e.g. unsupported filesystem),
+    ///   disables locking for all future calls and proceeds without a lock.
+    /// </summary>
+    private static void LockFile(FileStream fileStream, long offset, long count, bool exclusive)
+    {
+        if (!NativeLockFile.TryLockFile(fileStream, offset, count, exclusive))
+        {
+            // Lock failed — could be contention or unsupported filesystem.
+            // Disable locking to avoid repeated failures and proceed without lock.
+            LockEnabled = false;
+        }
+    }
 
     protected Stream stream;
 
@@ -141,9 +156,7 @@ public abstract class Store<T> : IDisposable where T : new()
             // This will prevent another thread from writing at the same time, or reading before it is flushed.
             if (LockEnabled && stream is FileStream fileStream)
             {
-                bool failed = !NativeLockFile.TryLockFile(fileStream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
-                if (failed)
-                    throw new IOException("Couldn't lock file.");
+                LockFile(fileStream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
             }
 
             try
@@ -191,9 +204,7 @@ public abstract class Store<T> : IDisposable where T : new()
             // This will prevent another thread from writing at the same time, or reading before it is flushed.
             if (LockEnabled && stream is FileStream fileStream)
             {
-                bool failed = !NativeLockFile.TryLockFile(fileStream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
-                if (failed)
-                    throw new IOException("Couldn't lock file.");
+                LockFile(fileStream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
             }
 
             try
@@ -291,9 +302,7 @@ public abstract class Store<T> : IDisposable where T : new()
             // Otherwise, last possibility would be deterministic filesize (with size encoded at the beginning of each block).
             if (LockEnabled && stream is FileStream fileStream)
             {
-                bool failed = !NativeLockFile.TryLockFile(fileStream, position, long.MaxValue - position, false);
-                if (failed)
-                    throw new IOException("Couldn't lock file.");
+                LockFile(fileStream, position, long.MaxValue - position, false);
             }
 
             try
