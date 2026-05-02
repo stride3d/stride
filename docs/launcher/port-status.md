@@ -17,7 +17,7 @@ The core is in place:
 - Recent projects + MRU integration with Game Studio.
 - VSIX discovery via `VisualStudioVersions` (no-op on Linux, by design).
 - `ShowBetaVersions` toggle with Avalonia `Interaction.Behaviors` / `DataTriggerBehavior` (ported correctly).
-- Recent-project context menu with *Show in Explorer* / *Remove from list* (menu ported; *Show in Explorer* implementation is still Windows-only, see below).
+- Recent-project context menu with *Show in Explorer* / *Remove from list* (menu ported; *Show in Explorer* is cross-platform — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback).
 - Alternate-versions sub-list (ported as a nested `ItemsControl`, no longer a `Popup`).
 - Localization resx / Urls resx.
 
@@ -71,7 +71,7 @@ Fixed: [App.axaml.cs](../../sources/launcher/Stride.Launcher/App.axaml.cs) `OnLi
 
 ~~Current [Announcement.axaml](../../sources/launcher/Stride.Launcher/Views/Announcement.axaml) is a plain `DockPanel` with no transform and no animation — the overlay pops in and out discretely.~~
 
-Fixed: the announcement overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) now uses a `TransformOperationsTransition` (`translateX(0)` ↔ `translateX(100%)`, 0.5s, `CubicEaseOut`) driven by `Classes.visible`.
+Fixed: the announcement overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) now uses a `TransformOperationsTransition` (`translateX(0)` ↔ `translateX(100%)`, 1s, `CubicEaseOut`) driven by `Classes.visible`.
 
 ### ~~Release-notes panel lost its slide animation~~ — Fixed (Phase 3)
 
@@ -79,15 +79,17 @@ Fixed: the announcement overlay `Border` in [MainView.axaml](../../sources/launc
 
 Fixed: the release-notes `Grid` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) now uses the same `TransformOperationsTransition` approach, driven by `ActiveReleaseNotes.IsActive`.
 
-### "Show in Explorer" is hard-wired to `explorer.exe`
+### ~~"Show in Explorer" is hard-wired to `explorer.exe`~~ — Fixed (Phase 1)
 
-[RecentProjectViewModel.cs:72](../../sources/launcher/Stride.Launcher/ViewModels/RecentProjectViewModel.cs#L72):
+~~[RecentProjectViewModel.cs:72](../../sources/launcher/Stride.Launcher/ViewModels/RecentProjectViewModel.cs#L72):~~
 
 ```csharp
 var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{fullPath.ToOSPath()}") { UseShellExecute = true };
 ```
 
-The menu item is visible on Linux but invocation will fail. Needs a platform switch (`xdg-open {dir}` on Linux, `open -R {path}` on macOS).
+~~The menu item is visible on Linux but invocation will fail. Needs a platform switch (`xdg-open {dir}` on Linux, `open -R {path}` on macOS).~~
+
+Fixed: `RecentProjectViewModel.Explore` has a full platform switch — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `org.freedesktop.FileManager1.ShowItems` with `xdg-open {parent-dir}` fallback. See [cross-platform.md](cross-platform.md) § Recent-project "Show in Explorer".
 
 ### `SiliconStudioStrideDir` / `StrideDir` env vars no longer seeded
 
@@ -160,8 +162,8 @@ These change observable behaviour on both Windows and Linux and should ship firs
 
 Nice-to-have UX polish. The entries below all map to Avalonia `Transitions` on the relevant `TranslateTransform.X` / `Opacity`, which is how animations are expressed in Avalonia (versus WPF's `Storyboard`/`DoubleAnimation`).
 
-1. ~~**Announcement slide-in/out**~~ **Done**: `TransformOperationsTransition` on `RenderTransform` (`translateX(0)` ↔ `translateX(100%)`), 0.5s, `CubicEaseOut`. Implemented via CSS-class binding (`Classes.visible`) on the overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). Root `Grid` gained `ClipToBounds="True"` to prevent the panel from showing while off-screen.
-2. ~~**Release-notes panel slide**~~ **Done**: Same approach — `TransformOperationsTransition` on the release-notes `Grid` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml), bound to `ActiveReleaseNotes.IsActive`. The main-content grid's `IsVisible` binding was replaced with `IsEnabled`-only (layout stays; the release-notes panel renders on top while sliding in).
+1. ~~**Announcement slide-in/out**~~ **Done**: `TransformOperationsTransition` on `RenderTransform` (`translateX(0)` ↔ `translateX(100%)`), 1s, `CubicEaseOut`. Implemented via CSS-class binding (`Classes.visible`) on the overlay `Border` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). Root `Grid` gained `ClipToBounds="True"` to prevent the panel from showing while off-screen.
+2. ~~**Release-notes panel slide**~~ **Done**: Same approach — `TransformOperationsTransition` on the release-notes `Grid` in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml), bound to `ActiveReleaseNotes.IsActive`, 1s, `CubicEaseOut`. The main-content grid's `IsVisible` binding was replaced with `IsEnabled`-only (layout stays; the release-notes panel renders on top while sliding in).
 3. ~~**`CurrentToolTip` status-line behavior**~~ **Already done** (pre-existing): `BindCurrentToolTipStringBehavior` is implemented in `Stride.Core.Presentation.Avalonia` and wired on every relevant control in [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml). `MainViewModel.CurrentToolTip` property also present.
 4. ~~**Optional: revisit alternate-versions UX.**~~ **Already done** (pre-existing): The current branch uses a `ToggleButton` + `Popup` with `IsLightDismissEnabled="True"` and an `EventTriggerBehavior` that closes the popup on item click — functionally equivalent to the master `StaysOpenContextMenu` approach.
 
