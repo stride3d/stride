@@ -41,8 +41,9 @@ public abstract class YamlSerializerBase : IDisposable
 
     private void AssemblyRegistered(object? sender, AssemblyRegisteredEventArgs e)
     {
-        // Process only our own assemblies
-        if (!e.Categories.Contains(AssemblyCommonCategories.Engine))
+        // Process engine and asset assemblies, since asset YAML tag resolution depends on both.
+        if (!e.Categories.Contains(AssemblyCommonCategories.Engine) &&
+            !e.Categories.Contains(AssemblyCommonCategories.Assets))
             return;
 
         lock (Lock)
@@ -56,8 +57,9 @@ public abstract class YamlSerializerBase : IDisposable
 
     private void AssemblyUnregistered(object? sender, AssemblyRegisteredEventArgs e)
     {
-        // Process only our own assemblies
-        if (!e.Categories.Contains(AssemblyCommonCategories.Engine))
+        // Process engine and asset assemblies, since asset YAML tag resolution depends on both.
+        if (!e.Categories.Contains(AssemblyCommonCategories.Engine) &&
+            !e.Categories.Contains(AssemblyCommonCategories.Assets))
             return;
 
         lock (Lock)

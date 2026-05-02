@@ -50,6 +50,34 @@ namespace Stride.Graphics.Font
             };
         }
 
+        public SpriteFont NewRuntimeSignedDistanceField(
+            float defaultSize,
+            string fontName,
+            FontStyle style,
+            int pixelRange,
+            int padding,
+            bool useKerning,
+            float extraSpacing,
+            float extraLineSpacing,
+            char defaultCharacter)
+        {
+            return new RuntimeSignedDistanceFieldSpriteFont
+            {
+                Size = defaultSize,
+                DefaultCharacter = defaultCharacter,
+
+                FontName = fontName,
+                Style = style,
+
+                PixelRange = pixelRange,
+                Padding = padding,
+
+                UseKerning = useKerning,
+                ExtraSpacing = extraSpacing,
+                ExtraLineSpacing = extraLineSpacing,
+            };
+        }
+
         public SpriteFont NewScalable(float size, IList<Glyph> glyphs, IList<Texture> textures, float baseOffset, float defaultLineSpacing, IList<Kerning> kernings = null, float extraSpacing = 0, float extraLineSpacing = 0, char defaultCharacter = ' ')
         {
             if (textures == null) throw new ArgumentNullException("textures");
