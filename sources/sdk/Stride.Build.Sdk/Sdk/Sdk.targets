@@ -169,6 +169,11 @@
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
+    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
+         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
+         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
+    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
+               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
