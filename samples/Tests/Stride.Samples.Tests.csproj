@@ -35,9 +35,6 @@
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\sources\editor\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
-    <ProjectReference Include="..\..\sources\engine\Stride.Games.Testing\Stride.Games.Testing.csproj" />
-    <ProjectReference Include="..\..\sources\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
-    <ProjectReference Include="..\..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj" />
   </ItemGroup>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
