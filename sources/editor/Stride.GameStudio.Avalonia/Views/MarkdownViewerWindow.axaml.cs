@@ -3,25 +3,21 @@
 
 using Avalonia;
 using Avalonia.Controls;
-using Markdown.Avalonia;
+using MarkView.Avalonia;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
 public partial class MarkdownViewerWindow : Window
 {
-    private MarkdownScrollViewer? _markdownViewer;
-
     public MarkdownViewerWindow(string markdownText, string title = "Markdown Viewer")
     {
         InitializeComponent();
 
         Title = title;
 
-        _markdownViewer = this.FindControl<MarkdownScrollViewer>("MarkdownViewer");
-
-        if (_markdownViewer is not null)
+        if (MarkdownViewer is not null)
         {
-            _markdownViewer.Markdown = markdownText;
+            MarkdownViewer.Markdown = markdownText;
         }
         else
         {

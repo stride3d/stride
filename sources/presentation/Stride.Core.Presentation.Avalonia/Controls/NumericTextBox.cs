@@ -139,7 +139,7 @@ public sealed class NumericTextBox : TemplatedControl
         }
     }
 
-    protected override void OnLostFocus(RoutedEventArgs e)
+    protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         CommitInput(true);
         base.OnLostFocus(e);

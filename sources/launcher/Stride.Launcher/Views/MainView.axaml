@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:mv="using:MarkView.Avalonia"
              xmlns:p="using:Stride.Core.Presentation.Avalonia.Services"
              xmlns:l="using:Stride.Launcher.Assets.Localization"
              xmlns:srv="using:Stride.Launcher.Services"
@@ -691,8 +691,8 @@
                 <TextBlock />
               </DockPanel>
               <Grid>
-                <md:MarkdownScrollViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
-                                         IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
+                <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
+                                   IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
                            IsVisible="{Binding ActiveReleaseNotes.IsUnavailable}" />

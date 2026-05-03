@@ -213,7 +213,7 @@ public class SearchComboBox : SelectingItemsControl
         listBox.AddHandler(PointerReleasedEvent, ListBoxPointerReleased, RoutingStrategies.Tunnel);
     }
 
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         base.OnGotFocus(e);
         if (OpenDropDownOnFocus && !listBoxClicking)
@@ -240,8 +240,8 @@ public class SearchComboBox : SelectingItemsControl
             IsAlternative = false;
         }
     }
-    
-    protected override void OnLostFocus(RoutedEventArgs e)
+
+    protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         base.OnLostFocus(e);
 

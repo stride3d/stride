@@ -6,6 +6,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Microsoft.Build.Locator;
 using Stride.Core.Diagnostics;
