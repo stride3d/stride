@@ -9,7 +9,9 @@ using Stride.Shaders.Parser.Utility;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Hlsl;
 using Stride.Core.Shaders.Utility;
+using Stride.Core.Shaders.Ast.Stride;
 using Stride.Core.Shaders.Visitor;
+using Stride.Shaders.Parser.Utility;
 
 using ParameterQualifier = Stride.Core.Shaders.Ast.ParameterQualifier;
 
@@ -350,7 +352,7 @@ namespace Stride.Shaders.Parser.Mixins
                 }
 
                 var method = mixin.LocalVirtualTable.Methods.FirstOrDefault(x => x.Method.Name.Text == name && x.Method is MethodDefinition);
-                if (method != null && (count == 0 || method.Method.Qualifiers.Contains(StrideStorageQualifier.Clone)))
+                if (method is not null && (count == 0 || method.Method.Qualifiers.Contains(StrideStorageQualifier.Clone)))
                     return method.Method as MethodDefinition;
             }
             return null;

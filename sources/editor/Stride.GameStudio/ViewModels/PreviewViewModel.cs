@@ -17,7 +17,6 @@ namespace Stride.GameStudio.ViewModels
         private readonly SessionViewModel session;
 
         private IAssetPreviewService previewService;
-        private object previewObject;
 
         public PreviewViewModel(SessionViewModel session)
             : base(session.SafeArgument(nameof(session)).ServiceProvider)
@@ -31,7 +30,7 @@ namespace Stride.GameStudio.ViewModels
 
         public CommandBase RenderPreviewCommand { get; }
 
-        public object PreviewObject { get { return previewObject; } private set { SetValue(ref previewObject, value); } }
+        public object PreviewObject { get; private set { SetValue(ref field, value); } }
 
         private IAssetPreviewService PreviewService
         {

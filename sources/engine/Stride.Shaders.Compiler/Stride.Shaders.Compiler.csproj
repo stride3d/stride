@@ -1,10 +1,8 @@
 <Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
   </PropertyGroup>
@@ -19,7 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
-    <PackageReference Include="SharpDX.D3DCompiler" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
@@ -27,12 +26,12 @@
       <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
-    <StrideContent Include="..\..\..\deps\glslang\**\glslangValidator*.*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+    <StrideNativeLib Include="..\..\..\deps\glslang\**\glslangValidator*.*">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </StrideContent>
+    </StrideNativeLib>
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

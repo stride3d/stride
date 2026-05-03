@@ -13,7 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-
+using Stride.Assets;
+using Stride.Assets.Presentation;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
@@ -26,15 +27,19 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
-using Stride.Assets.Presentation;
 using Stride.Editor.Build;
-using Stride.Editor.Engine;
 using Stride.Editor.Preview;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Plugin;
+using Stride.GameStudio.Services;
 using Stride.GameStudio.View;
+using Stride.GameStudio.ViewModels;
 using Stride.Graphics;
 using Stride.Metrics;
 using Stride.PrivacyPolicy;
@@ -42,12 +47,6 @@ using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
-using Stride.GameStudio.Helpers;
-using Stride.GameStudio.ViewModels;
-using Stride.GameStudio.Plugin;
-using Stride.GameStudio.Services;
-using Stride.Core.Presentation.ViewModels;
-using Stride.Core.Presentation.Services;
 
 namespace Stride.GameStudio;
 
@@ -59,6 +58,7 @@ public static class Program
     private static Dispatcher mainDispatcher;
     private static RenderDocManager renderDocManager;
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
+    private static bool enableThumbnailServices = true;
 
     [STAThread]
     public static void Main()
@@ -106,8 +106,22 @@ public static class Program
                     }
                     else if (args[i] == "/DebugEditorGraphics")
                     {
-                        EmbeddedGame.DebugMode = true;
+                        StrideConfig.GraphicsDebugMode = true;
                     }
+                    else if (args[i] == "/DisableThumbnails")
+                    {
+                        enableThumbnailServices = false;
+                    }
+                    else if (args[i] == "/DisablePreview")
+                    {
+                        GameStudioPreviewService.DisablePreview = true;
+                    }
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+                    else if (args[i] == "/PixGpuCapturer")
+                    {
+                        WinPixNative.LoadPixGpuCapturer();
+                    }
+#endif
                     else if (args[i] == "/RenderDoc")
                     {
                         // TODO: RenderDoc is not working here (when not in debug)
@@ -236,7 +250,8 @@ public static class Program
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
-            AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+            var strideEditorPlugin = (StrideEditorPlugin)AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+            strideEditorPlugin.EnableThumbnailService = enableThumbnailServices;
 
             // Attempt to load the startup session, if available
             if (!UPath.IsNullOrEmpty(initialSessionPath))

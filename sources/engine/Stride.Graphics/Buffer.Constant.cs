@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,89 +22,105 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
         /// <summary>
-        /// Constant buffer helper methods.
+        ///   Helper methods for creating <strong>Constant Buffers</strong>.
         /// </summary>
+        /// <remarks>
+        ///   A <strong>Constant Buffer</strong> is a <see cref="Buffer"/> that is used to pass shader constants / parameters to shaders.
+        ///   They have fast access due to special hardware optimizations, being read-only to shaders, and being of a limited size
+        ///   (64 kB usually).
+        /// </remarks>
+        /// <seealso cref="Buffer"/>
+        /// <seealso cref="Buffer{T}"/>
         public static class Constant
         {
             /// <summary>
-            /// Creates a new constant buffer with a default <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> of a given size.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="size">The size in bytes.</param>
-            /// <param name="usage">The usage.</param>
-            /// <returns>A constant buffer</returns>
-            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
+            /// <param name="bufferSize">Size of the Buffer in bytes.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Dynamic"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer New(GraphicsDevice device, int bufferSize, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
             {
-                return Buffer.New(device, size, BufferFlags.ConstantBuffer, usage);
+                return Buffer.New(device, bufferSize, BufferFlags.ConstantBuffer, usage);
             }
 
             /// <summary>
-            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
             /// </summary>
-            /// <typeparam name="T">Type of the constant buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <returns>A constant buffer</returns>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
             public static Buffer<T> New<T>(GraphicsDevice device) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic);
+                return Buffer.New<T>(device, elementCount: 1, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic);
             }
 
             /// <summary>
-            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the constant buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the constant buffer.</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A constant buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
+            /// <param name="value">The value to initialize the Constant Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Dynamic"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.ConstantBuffer, usage);
+                return Buffer.New(device, in value, BufferFlags.ConstantBuffer, usage);
             }
 
             /// <summary>
-            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the constant buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the constant buffer.</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A constant buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
+            /// <param name="data">The data to initialize the Constant Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Dynamic"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.ConstantBuffer, usage:usage);
+                return Buffer.New(device, data, BufferFlags.ConstantBuffer, usage:usage);
             }
 
             /// <summary>
-            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> with initial data.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the constant buffer.</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A constant buffer</returns>
-            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
+            /// <param name="data">The data to initialize the Constant Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Dynamic"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> data, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
             {
-                return Buffer.New(device, value, 0, BufferFlags.ConstantBuffer, usage:usage);
+                return Buffer.New(device, data, elementSize: 0, BufferFlags.ConstantBuffer, usage:usage);
             }
 
             /// <summary>
-            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            ///   Creates a new <strong>Constant Buffer</strong> with initial data.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the constant buffer.</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A constant buffer</returns>
-            [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
+            /// <param name="dataPointer">The data pointer to the data to initialize the Constant Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Dynamic"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            [Obsolete("This method is obsolete. Use the span-based methods instead")]
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
             {
-                return Buffer.New(device, value, 0, BufferFlags.ConstantBuffer, usage);
+                return Buffer.New(device, dataPointer, 0, BufferFlags.ConstantBuffer, usage);
             }
         }
     }

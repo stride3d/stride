@@ -610,13 +610,13 @@ namespace Stride.Rendering
 
                         if (effect != null)
                         {
-                            RenderEffectReflection renderEffectReflection;
-                            if (!InstantiatedEffects.TryGetValue(effect, out renderEffectReflection))
-                            {
-                                renderEffectReflection = new RenderEffectReflection();
+                            var effectBytecode = effect.Bytecode;
 
+                            if (!InstantiatedEffects.TryGetValue(effect, out RenderEffectReflection renderEffectReflection))
+                            {
                                 // Build root signature automatically from reflection
-                                renderEffectReflection.DescriptorReflection = EffectDescriptorSetReflection.New(RenderSystem.GraphicsDevice, effect.Bytecode, effectDescriptorSetSlots, "PerFrame");
+                                renderEffectReflection = new();
+                                renderEffectReflection.DescriptorReflection = EffectDescriptorSetReflection.New(RenderSystem.GraphicsDevice, effect.Bytecode, effectDescriptorSetSlots, defaultSetSlot: "PerFrame");
                                 renderEffectReflection.ResourceGroupDescriptions = new ResourceGroupDescription[renderEffectReflection.DescriptorReflection.Layouts.Count];
 
                                 // Compute ResourceGroup hashes
@@ -626,13 +626,13 @@ namespace Stride.Rendering
                                     if (descriptorSet.Layout == null)
                                         continue;
 
-                                    var constantBufferReflection = effect.Bytecode.Reflection.ConstantBuffers.FirstOrDefault(x => x.Name == descriptorSet.Name);
+                                    var constantBufferReflection = effectBytecode.Reflection.ConstantBuffers.FirstOrDefault(x => x.Name == descriptorSet.Name);
 
                                     renderEffectReflection.ResourceGroupDescriptions[index] = new ResourceGroupDescription(descriptorSet.Layout, constantBufferReflection);
                                 }
 
                                 renderEffectReflection.RootSignature = RootSignature.New(RenderSystem.GraphicsDevice, renderEffectReflection.DescriptorReflection);
-                                renderEffectReflection.BufferUploader.Compile(RenderSystem.GraphicsDevice, renderEffectReflection.DescriptorReflection, effect.Bytecode);
+                                renderEffectReflection.BufferUploader.Compile(RenderSystem.GraphicsDevice, renderEffectReflection.DescriptorReflection, effectBytecode);
 
                                 // Prepare well-known descriptor set layouts
                                 renderEffectReflection.PerDrawLayout = CreateDrawResourceGroupLayout(renderEffectReflection.ResourceGroupDescriptions[perDrawDescriptorSetSlot.Index], renderEffect.State);
@@ -664,7 +664,7 @@ namespace Stride.Rendering
                                     layoutMapping[layoutMappingIndex++] = index;
                                 }
 
-                                renderEffectReflection.FallbackUpdaterLayout = new EffectParameterUpdaterLayout(RenderSystem.GraphicsDevice, effect, layouts);
+                                renderEffectReflection.FallbackUpdaterLayout = new EffectParameterUpdaterLayout(RenderSystem.GraphicsDevice, effectBytecode, layouts);
                                 renderEffectReflection.FallbackResourceGroupMapping = layoutMapping;
                             }
 
@@ -797,7 +797,7 @@ namespace Stride.Rendering
                     renderNode.EffectObjectNode = new EffectObjectNodeReference(effectObjectNodeIndex);
 
                     renderNode.RenderEffect = renderEffect;
-                    
+
                     // Bind well-known descriptor sets
                     var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
                     ResourceGroupPool[descriptorSetPoolOffset + perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;

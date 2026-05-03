@@ -88,7 +88,7 @@ namespace Stride.Assets.Textures.Packing
 
                 results[bestAlgorithm] = new List<AtlasTextureLayout>(atlasTextureLayouts);
 
-                foreach (var heuristicMethod in (TexturePackingMethod[])Enum.GetValues(typeof(TexturePackingMethod)))
+                foreach (var heuristicMethod in Enum.GetValues<TexturePackingMethod>())
                 {
                     if (heuristicMethod == TexturePackingMethod.Best || heuristicMethod == TexturePackingMethod.BestShortSideFit)
                         continue;

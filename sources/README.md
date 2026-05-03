@@ -1,8 +1,21 @@
 Stride Sources
 =============
 
-Folders and projects layout
----------------------------
+## Build System
+
+All Stride projects import the MSBuild SDK files directly from source. The props import uses `GetDirectoryNameOfFileAbove` to locate `Directory.Build.props` without relying on any pre-set property; the targets import uses `$(StrideRoot)` (set by `sources/Directory.Build.props`, available by that point in the evaluation). See [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md) for details.
+
+Three SDK packages are defined in `sources/sdk/`:
+
+| Package | Purpose |
+|---------|---------|
+| **Stride.Build.Sdk** | Core SDK for all projects — platform detection, graphics API multi-targeting, assembly processor, dependencies |
+| **Stride.Build.Sdk.Editor** | Additional properties for editor/presentation projects |
+| **Stride.Build.Sdk.Tests** | Test infrastructure — xunit integration, test launcher code generation |
+
+For detailed SDK documentation, see [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md).
+
+## Folders and Projects Layout
 
 ### core ###
 
@@ -18,11 +31,10 @@ Folders and projects layout
    Micro-threading library based on C# 5.0 async (a.k.a. stackless programming)
 * __Stride.Core.AssemblyProcessor__:
    Internal tool used to patch assemblies to add various features, such as Serialization auto-generation, various memory/pinning operations, module initializers, etc...
-   
+
 ### presentation ###
 
 * __Stride.Core.Presentation__: WPF UI library (themes, controls such as propertygrid, behaviors, etc...)
-* __Stride.Core.SampleApp__: Simple property grid example.
 * __Stride.Core.Quantum__: Advanced ViewModel library that gives ability to synchronize view-models over network (w/ diff), and at requested time intervals. That way, view models can be defined within engine without any UI dependencies.
 
 ### buildengine ###
@@ -35,43 +47,47 @@ Folders and projects layout
 
 * __Irony__: Parsing library, used by Stride.Core.Shaders. Should later be replaced by ANTLR4.
 * __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
-* __Irony.GrammarExplorer__: As the name suggests, language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test the newly introduced features
+* __Irony.GrammarExplorer__: Language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test newly introduced features
 
-### targets ###
+### sdk ###
 
-* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, etc...), and define behaviors and targets globally. Extensible.
+* MSBuild SDK packages that provide build logic for all Stride projects. See [Build System](#build-system) above.
 
-----------
-
-Use in your project
--------------------
+## Use in your project
 
 ### Source repository ###
 
-There is two options to integrate this repository in your own repository:
+There are two options to integrate this repository in your own repository:
 
-* __git subtree__ [documentation](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.txt) and [blog post](http://psionides.eu/2010/02/04/sharing-code-between-projects-with-git-subtree/)
+* __git subtree__ [documentation](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.adoc)
 * __git submodule__
 
 ### Basic use ###
 
-Simply add the projects you want to use directly in your Visual Studio solution.
+Projects import the Stride MSBuild SDK files directly from source:
+
+```xml
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>
+```
+
+The props import uses `GetDirectoryNameOfFileAbove` because `$(StrideRoot)` is not yet available at that point (it is set by `sources/Directory.Build.props`, which is discovered during the SDK initialization triggered by the props import itself). The targets import at the bottom uses `$(StrideRoot)` because `Directory.Build.props` has been evaluated by then.
 
 ### Optional: Activate assembly processor ###
 
-If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, you need to use __Stride.Core.AssemblyProcessor__.
-
-Steps:
-
-* Include both __Stride.Core.AssemblyProcessor__ and __Stride.Core.AssemblyProcessor.Common__ in your solution.
-* Add either a __Stride.Core.PostSettings.Local.targets__ or a __YourSolutionName.PostSettings.Local.targets__ in your solution folder, with this content:
+If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, enable the assembly processor in your project file:
 
 ```xml
-<!-- Build file pre-included automatically by all projects in the solution -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
-    <!-- Enable assembly processor -->
-    <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
 ```

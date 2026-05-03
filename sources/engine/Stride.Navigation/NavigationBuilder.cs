@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -96,7 +96,7 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         }
         
         // Find walkable triangles and rasterize into heightfield
-        triAreas = RcCommons.MarkWalkableTriangles(context, buildSettings.AgentMaxSlope, verts, indices, numTriangles, new RcAreaModification(RcAreaModification.RC_AREA_FLAGS_MASK));
+        triAreas = RcRecast.MarkWalkableTriangles(context, buildSettings.AgentMaxSlope, verts, indices, numTriangles, new RcAreaModification(RcAreaModification.RC_AREA_FLAGS_MASK));
         RcRasterizations.RasterizeTriangles(context,  verts, indices, triAreas, numTriangles, solid, walkableClimb);
         
         // Filter walkable surfaces.
@@ -129,7 +129,7 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         // Update poly flags from areas.
         for (int i = 0; i < polyMesh.npolys; ++i)
         {
-            if (polyMesh.areas[i] ==  RcConstants.RC_WALKABLE_AREA)
+            if (polyMesh.areas[i] ==  RcRecast.RC_WALKABLE_AREA)
                 polyMesh.areas[i] = 0;
 
             if (polyMesh.areas[i] == 0)

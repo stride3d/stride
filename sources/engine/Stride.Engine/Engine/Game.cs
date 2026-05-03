@@ -231,6 +231,11 @@ namespace Stride.Engine
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
 
+#if DEBUG
+            // If DEBUG, default to initializing the graphics device in debug mode
+            GraphicsDeviceManager.DeviceCreationFlags |= DeviceCreationFlags.Debug;
+#endif
+
             AutoLoadDefaultSettings = true;
         }
 
@@ -268,9 +273,8 @@ namespace Stride.Engine
                     // Set ShaderProfile even if AutoLoadDefaultSettings is false (because that is what shaders in effect logs are compiled against, even if actual instantiated profile is different)
                     if (renderingSettings.DefaultGraphicsProfile > 0)
                     {
-                        var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
-                        if (!deviceManager.ShaderProfile.HasValue)
-                            deviceManager.ShaderProfile = renderingSettings.DefaultGraphicsProfile;
+                        var deviceManager = (GraphicsDeviceManager) graphicsDeviceManager;
+                        deviceManager.ShaderProfile ??= renderingSettings.DefaultGraphicsProfile;
                     }
 
                     Services.AddService<IGameSettingsService>(this);
@@ -329,6 +333,7 @@ namespace Stride.Engine
             }
         }
 
+        /// <inheritdoc/>
         protected override void Initialize()
         {
             // ---------------------------------------------------------
@@ -369,7 +374,7 @@ namespace Stride.Engine
             // If requested in game settings, compile effects remotely and/or notify new shader requests
             EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
 
-            // Setup shader compiler settings from a compilation mode. 
+            // Setup shader compiler settings from a compilation mode.
             // TODO: We might want to provide overrides on the GameSettings to specify debug and/or optim level specifically.
             if (Settings != null)
                 EffectSystem.SetCompilationMode(Settings.CompilationMode);

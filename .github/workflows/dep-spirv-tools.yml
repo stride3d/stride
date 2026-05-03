@@ -1,0 +1,30 @@
+name: "Dep: Build & Deploy SPIRV-Tools"
+
+# Skeleton workflow — the full implementation lives on a feature branch.
+# This exists on master only so the workflow is triggerable via workflow_dispatch
+# with the expected inputs. Checkout the feature branch ref to run the real build.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: SPIRV-Tools git URL
+        default: https://github.com/KhronosGroup/SPIRV-Tools.git
+        required: false
+      ref:
+        description: SPIRV-Tools ref (branch, tag, SHA)
+        default: main
+        required: false
+      version:
+        description: NuGet package version (leave empty for date-based)
+        required: false
+
+jobs:
+  placeholder:
+    name: Skeleton (run on feature branch for real build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: |
+          echo "This is a skeleton. The real build lives on a feature branch."
+          echo "Trigger this workflow against that branch ref to run the actual build."

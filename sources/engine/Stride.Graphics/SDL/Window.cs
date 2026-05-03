@@ -17,25 +17,45 @@ namespace Stride.Graphics.SDL
 
 #region Initialization
 
-        /// <summary>
-        /// Initializes static members of the <see cref="Window"/> class.
-        /// </summary>
-        static Window()
-        {
-            SDL = Silk.NET.SDL.Sdl.GetApi();
+        private static readonly object initLock = new();
 
-            // jklawreszuk: Workaround for wayland (see #2487 for more details)  
+        /// <summary>
+        /// Ensures SDL is initialized. Deferred from static constructor to avoid initializing
+        /// SDL when running in headless mode (no display available).
+        /// </summary>
+        internal static void EnsureInitialized()
+        {
+            if (SDL != null)
+                return;
+
+            lock (initLock)
+            {
+                if (SDL != null)
+                    return;
+
+                InitializeSDL();
+            }
+        }
+
+        private static void InitializeSDL()
+        {
+            var sdl = Silk.NET.SDL.Sdl.GetApi();
+
+            // jklawreszuk: Workaround for wayland (see #2487 for more details)
             // TODO: Wayland SDL_EGL_MakeCurrent does not cover multi-context scenario (https://github.com/libsdl-org/SDL/issues/9072)
             if (OperatingSystem.IsLinux())
-                SDL.SetHint("SDL_VIDEODRIVER", "x11");
+                sdl.SetHint("SDL_VIDEODRIVER", "x11");
 
-            SDL.Init(Sdl.InitEverything);
+            sdl.Init(Sdl.InitEverything);
 
-            // Pass first mouse event when user clicked on window 
-            SDL.SetHint(Sdl.HintMouseFocusClickthrough, "1");
+            // Pass first mouse event when user clicked on window
+            sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
 
             // Don't leave fullscreen on focus loss
-            SDL.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, "0");
+            sdl.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, "0");
+
+            // Publish after full initialization (double-checked lock pattern)
+            SDL = sdl;
         }
 
         /// <summary>
@@ -51,10 +71,10 @@ namespace Stride.Graphics.SDL
         /// <param name="parent">Parent window handle</param>
         public Window(string title, IntPtr parent)
         {
+            EnsureInitialized();
+
             WindowFlags flags = WindowFlags.AllowHighdpi;
-#if STRIDE_GRAPHICS_API_OPENGL
-            flags |= WindowFlags.Opengl;
-#elif STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
             flags |= WindowFlags.Vulkan;
 #endif
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
@@ -68,22 +88,7 @@ namespace Stride.Graphics.SDL
             {
                 void* parentPtr = parent.ToPointer();
 
-                if (flags.HasFlag(WindowFlags.WindowOpengl))
-                {
-                    // SDL doesn't create OpenGL context when using SDL_CreateWindowFrom.
-                    // See https://wiki.libsdl.org/SDL_CreateWindowFrom
-                    // and https://gamedev.stackexchange.com/a/119903.
-                    var dummy = SDL.CreateWindow($"{title} - OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
-                    var addrStr = new IntPtr(dummy).ToString("X");
-                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, addrStr);
-                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
-                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, string.Empty);
-                    SDL.DestroyWindow(dummy);
-                }
-                else
-                {
-                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
-                }
+                sdlHandle = SDL.CreateWindowFrom(parentPtr);
             }
             else // no parent window
             {
@@ -91,10 +96,6 @@ namespace Stride.Graphics.SDL
                 sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
             }
             
-
-#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            GraphicsAdapter.DefaultWindow = sdlHandle;
-#endif
 
             if (sdlHandle == null)
             {
@@ -372,7 +373,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-#if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
                 SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Size2(w, h);
@@ -398,7 +399,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-#if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
                 SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Rectangle(0, 0, w, h);

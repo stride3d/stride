@@ -1,5 +1,5 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
 
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -46,5 +46,6 @@
   </ItemGroup>
 
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

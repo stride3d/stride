@@ -19,14 +19,12 @@ namespace Stride.Core.Presentation.Behaviors
     [ContentProperty("Rules")]
     public class MultiOverrideCursorBehavior : Behavior<FrameworkElement>, IAddChild
     {
-        private readonly CursorOverrideRuleCollection rules;
-
         public MultiOverrideCursorBehavior()
         {
-            rules = new CursorOverrideRuleCollection();
+            Rules = new CursorOverrideRuleCollection();
         }
 
-        public CursorOverrideRuleCollection Rules { get { ReadPreamble(); return rules; } }
+        public CursorOverrideRuleCollection Rules { get { ReadPreamble(); return field; } }
 
         void IAddChild.AddChild([NotNull] object value)
         {

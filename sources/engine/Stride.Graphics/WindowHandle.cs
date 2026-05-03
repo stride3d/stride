@@ -4,39 +4,30 @@
 using System;
 using Stride.Games;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Encapsulates a platform-specific window handle.
+/// </summary>
+/// <param name="context">The context type, indicating the platform and UI framework.</param>
+/// <param name="nativeWindow">
+///   The native window instance (e.g. a Windows Forms' <c>Form</c>, a SDL's <c>SDLWindow</c>, etc.).
+/// </param>
+/// <param name="handle">The associated handle of <paramref name="nativeWindow"/>.</param>
+public class WindowHandle(AppContextType context, object nativeWindow, IntPtr handle)
 {
     /// <summary>
-    /// A platform specific window handle.
+    ///   The context type, indicating the platform and graphics API.
     /// </summary>
-    public class WindowHandle
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WindowHandle"/> class.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="nativeWindow">The native window instance (Winforms, SDLWindow, ...).</param>
-        /// <param name="handle">The associated handle of <paramref name="nativeWindow"/>.</param>
-        public WindowHandle(AppContextType context, object nativeWindow, IntPtr handle)
-        {
-            Context = context;
-            NativeWindow = nativeWindow;
-            Handle = handle;
-        }
+    public readonly AppContextType Context = context;
 
-        /// <summary>
-        /// The context.
-        /// </summary>
-        public readonly AppContextType Context;
+    /// <summary>
+    ///   Gets the native window as an opaque <see cref="object"/>.
+    /// </summary>
+    public object NativeWindow { get; } = nativeWindow;
 
-        /// <summary>
-        /// The native windows as an opaque <see cref="System.Object"/>.
-        /// </summary>
-        public object NativeWindow { get; }
-
-        /// <summary>
-        /// The associated platform specific handle of <seealso cref="NativeWindow"/>.
-        /// </summary>
-        public IntPtr Handle { get; }
-    }
+    /// <summary>
+    ///   Gets the associated platform-specific handle of <seealso cref="NativeWindow"/>.
+    /// </summary>
+    public IntPtr Handle { get; } = handle;
 }

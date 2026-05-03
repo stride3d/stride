@@ -73,7 +73,7 @@ namespace Stride.Updater
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void SetBlittable(IntPtr obj, IntPtr data)
         {
-            Utilities.CopyWithAlignmentFallback((void*)obj, (void*)data, (uint)Size);
+            MemoryUtilities.CopyWithAlignmentFallback((void*)obj, (void*)data, (uint)Size);
         }
 
         /// <summary>

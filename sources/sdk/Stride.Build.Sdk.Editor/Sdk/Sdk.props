@@ -1,0 +1,9 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Import Base Stride SDK -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk\Sdk\Sdk.props" />
+
+  <!-- Editor Framework Definitions -->
+  <Import Project="Stride.Editor.Frameworks.props" />
+
+</Project>

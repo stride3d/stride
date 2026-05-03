@@ -12,7 +12,7 @@ public class DefaultAssetFactory<T> : AssetFactory<T> where T : Asset
 {
     public static T Create()
     {
-        return (T)Activator.CreateInstance(typeof(T))!;
+        return Activator.CreateInstance<T>()!;
     }
 
     /// <inheritdoc/>

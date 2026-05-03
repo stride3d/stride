@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,10 @@ namespace Stride.Data
         public static string DeviceModel = string.Empty;
 
         [DataMember]
-        public List<ConfigurationOverride> Configurations = new List<ConfigurationOverride>();
+        public List<ConfigurationOverride> Configurations = [];
 
         [DataMember]
-        public List<string> PlatformFilters = new List<string>(); 
+        public List<string> PlatformFilters = [];
 
         public T Get<T>() where T : Configuration, new()
         {

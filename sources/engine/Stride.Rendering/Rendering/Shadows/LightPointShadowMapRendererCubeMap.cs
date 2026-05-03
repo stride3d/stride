@@ -247,6 +247,7 @@ namespace Stride.Rendering.Shadows
                 var boundingBox2 = (BoundingBox)boundingBox;
                 bool shadowMapCreated = false;
                 int lightIndex = 0;
+                shadowMapTexture = null;
 
                 for (int i = 0; i < currentLights.Count; ++i)
                 {
@@ -281,7 +282,7 @@ namespace Stride.Rendering.Shadows
                     }
                 }
 
-                parameters.Set(shadowMapTextureKey, shadowMapTexture);
+                parameters.Set(shadowMapTextureKey, shadowMapTexture ?? context.GraphicsDevice.GetSharedDepthTexture());
                 parameters.Set(shadowMapTextureSizeKey, shadowMapTextureSize);
                 parameters.Set(shadowMapTextureTexelSizeKey, shadowMapTextureTexelSize);
 

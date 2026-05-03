@@ -31,11 +31,11 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
             if (disposing)
             {
                 if (AssociatedNode.Node != null)
-            {
-                ((IAssetNode)AssociatedNode.Node).OverrideChanging -= OnOverrideChanging;
-                ((IAssetNode)AssociatedNode.Node).OverrideChanged -= OnOverrideChanged;
+                {
+                    ((IAssetNode)AssociatedNode.Node).OverrideChanging -= OnOverrideChanging;
+                    ((IAssetNode)AssociatedNode.Node).OverrideChanged -= OnOverrideChanged;
+                }
             }
-        }
         }
 
         public new IAssetNodePresenter this[string childName] => (IAssetNodePresenter)base[childName];

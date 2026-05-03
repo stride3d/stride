@@ -247,7 +247,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         if (game.Input.IsKeyPressed(SceneEditorSettings.SwitchGizmo.GetValue()))
                         {
                             var current = activeTransformation;
-                            var next = (int)(current + 1) % Enum.GetValues(typeof(Transformation)).Length;
+                            var next = (int)(current + 1) % Enum.GetValues<Transformation>().Length;
                             await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = (Transformation)next);
                         }
                     }

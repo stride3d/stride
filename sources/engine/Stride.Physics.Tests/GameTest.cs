@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
@@ -18,41 +17,24 @@ namespace Stride.Physics.Tests
     /// </summary>
     public class GameTest : GameTestBase
     {
-        const int PhysicsTestVersion = 1; // NUnit3 switch
-
         /// <summary>
         ///  The <see cref="IndividualTestVersion"/> can be defined per test when only one of them is affected
         /// </summary>
         protected int IndividualTestVersion;
 
-        // Local screenshots
-        private readonly string assemblyName;
         private readonly string testName;
-        private readonly string platformName;
-        private int screenShots;
-
         private readonly GraphicsProfile overrideGraphicsProfile;
 
         public GameTest(string name, GraphicsProfile profile = GraphicsProfile.Level_9_3)
         {
-            screenShots = 0;
             testName = name;
-            assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-            if (Platform.Type == PlatformType.Windows)
-            {
-                //  SaveTexture is only defined for windows
-                platformName = "Windows";
-                Directory.CreateDirectory("screenshots\\");
-            }
 
             AutoLoadDefaultSettings = true; // Note! This will override the preferred graphics profile so save it for later
             overrideGraphicsProfile = profile;
-            
+
             IsFixedTimeStep = true;
             ForceOneUpdatePerDraw = true;
             IsDrawDesynchronized = false;
-            // This still doesn't work IsDrawDesynchronized = false; // Double negation!
             TargetElapsedTime = TimeSpan.FromTicks(10000000 / 60); // target elapsed time is by default 60Hz
         }
 
@@ -83,57 +65,9 @@ namespace Stride.Physics.Tests
             SceneSystem.SceneInstance = new SceneInstance(Services, assetManager.Load<Scene>(testName));
         }
 
-        protected override void RegisterTests()
-        {
-            base.RegisterTests();
-
-            // Take a screenshot after 60 frames
-            FrameGameSystem.TakeScreenshot(60);
-        }
-
         protected override void Update(GameTime gameTime)
         {
-            // Do not update the state while a screenshot is being requested
-            if (ScreenshotRequested)
-                return;
-
             base.Update(gameTime);
-
-//            if (gameTime.FrameCount == 60)
-//            {
-//                RequestScreenshot();
-//            }
-//
-//            if (gameTime.FrameCount >= 65)
-//            {
-//                Exit();
-//            }
-        }
-
-        protected bool ScreenshotRequested = false;
-        protected void RequestScreenshot()
-        {
-            ScreenshotRequested = true;
-        }
-
-        protected void SaveCurrentFrameBufferToHdd()
-        {
-            // SaveTexture is only defined for Windows and is only used to test the screenshots locally
-            var filename = "screenshots\\" + assemblyName + "." + platformName + "_" + testName + "_" + screenShots + ".png";
-            screenShots++;
-
-            SaveTexture(GraphicsDevice.Presenter.BackBuffer, filename);
-        }
-
-        protected override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-
-            if (!ScreenshotRequested)
-                return;
-
-            SaveCurrentFrameBufferToHdd();
-            ScreenshotRequested = false;
         }
     }
 }

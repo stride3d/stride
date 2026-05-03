@@ -33,21 +33,21 @@ namespace Stride.Core.Assets.Editor.Services
         /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
         public static object CreateReference(AssetViewModel asset, Type referenceType)
         {
-            if (asset != null)
+            if (asset is null)
+                return null;
+
+            if (UrlReferenceBase.IsUrlReferenceType(referenceType))
+                return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
+
+            if (AssetRegistry.CanBeAssignedToContentTypes(referenceType, checkIsUrlType: false))
             {
-                if (UrlReferenceBase.IsUrlReferenceType(referenceType))
-                    return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
-
-                if (AssetRegistry.CanBeAssignedToContentTypes(referenceType, checkIsUrlType: false))
-                {
-                    var assetType = asset.AssetItem.Asset.GetType();
-                    var contentType = AssetRegistry.GetContentType(assetType);
-                    return contentType.IsAssignableTo(referenceType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.AssetItem.Id, asset.AssetItem.Location) : null;
-                }
-
-                if (referenceType.IsAssignableTo(typeof(AssetReference)))
-                    return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
+                var assetType = asset.AssetItem.Asset.GetType();
+                var contentType = AssetRegistry.GetContentType(assetType);
+                return contentType.IsAssignableTo(referenceType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.AssetItem.Id, asset.AssetItem.Location) : null;
             }
+
+            if (referenceType.IsAssignableTo(typeof(AssetReference)))
+                return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
 
             return null;
         }

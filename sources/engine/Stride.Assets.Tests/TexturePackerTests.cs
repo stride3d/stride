@@ -1,10 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Xunit;
@@ -532,7 +528,7 @@ namespace Stride.Assets.Tests
         {
             // save
             Directory.CreateDirectory(ImageOutputPath);
-            outputImage.Save(new FileStream(ImageOutputPath + fileName + extension.ToFileExtension(), FileMode.Create), extension); 
+            outputImage.Save(new FileStream(ImageOutputPath + fileName + extension.ToFileExtension(), FileMode.Create), extension);
 
             // Compare
             using(var texTool = new TextureTool())
@@ -547,7 +543,7 @@ namespace Stride.Assets.Tests
         {
             if (outputImage.Description != referenceImage.Description)
                 return false;
-            
+
             unsafe
             {
                 var ptr1 = (Color*)outputImage.DataPointer;
@@ -752,7 +748,7 @@ namespace Stride.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes * width * height);
             Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);
@@ -781,7 +777,7 @@ namespace Stride.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes * width * height);
             Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);

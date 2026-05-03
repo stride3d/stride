@@ -18,9 +18,9 @@ namespace Stride.Rendering.Images
     {
         private MutablePipelineState pipelineState;
         private bool pipelineStateDirty = true;
-        private BlendStateDescription blendState = BlendStateDescription.Default;
-        private DepthStencilStateDescription depthStencilState = DepthStencilStateDescription.Default;
-        private RasterizerStateDescription rasterizerState = RasterizerStateDescription.Default;
+        private BlendStateDescription blendState = BlendStates.Default;
+        private DepthStencilStateDescription depthStencilState = DepthStencilStates.Default;
+        private RasterizerStateDescription rasterizerState = RasterizerStates.Default;
         private EffectBytecode previousBytecode;
         private bool delaySetRenderTargets;
 

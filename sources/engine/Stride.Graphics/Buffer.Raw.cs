@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,99 +22,120 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
         /// <summary>
-        /// Raw buffer helper methods.
+        ///   Helper methods for creating <strong>Raw Buffers</strong>.
         /// </summary>
         /// <remarks>
-        /// Example in HLSL: ByteAddressBuffer or RWByteAddressBuffer for raw buffers supporting unordered access.
+        ///   A <strong>Raw Buffer</strong> is a <see cref="Buffer"/> that can be read in shaders as raw bytes.
+        ///   They are unformatted Buffers that can be accessed at byte level.
+        ///   <para>
+        ///     An example of this kind of Buffer in SDSL would be:
+        ///     <code>
+        ///       ByteAddressBuffer bab;
+        ///       RWByteAddressBuffer rwbab; // For Raw Buffers supporting unordered access
+        ///     </code>
+        ///   </para>
         /// </remarks>
+        /// <seealso cref="Buffer"/>
+        /// <seealso cref="Buffer{T}"/>
         public static class Raw
         {
             /// <summary>
-            /// Creates a new Raw buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            ///   Creates a new <strong>Raw Buffer</strong> of a given size.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="size">The size in bytes.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage.</param>
-            /// <returns>A Raw buffer</returns>
-            public static Buffer New(GraphicsDevice device, int size, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="bufferSize">Size of the Buffer in bytes.</param>
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer New(GraphicsDevice device, int bufferSize, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, size, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, bufferSize, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
-            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            ///   Creates a new <strong>Raw Buffer</strong>.
             /// </summary>
-            /// <typeparam name="T">Type of the Raw buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage.</param>
-            /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New<T>(device, elementCount: 1, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
-            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            ///   Creates a new <strong>Raw Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the Raw buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Raw buffer.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            /// <param name="value">The value to initialize the Raw Buffer.</param>
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, in value, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
-            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            ///   Creates a new <strong>Raw Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the Raw buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Raw buffer.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            /// <param name="data">The data to initialize the Raw Buffer.</param>
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.RawBuffer | additionalBindings, usage:usage);
+                return Buffer.New(device, (ReadOnlySpan<T>) data, BufferFlags.RawBuffer | additionalFlags, PixelFormat.None, usage);
             }
 
             /// <summary>
-            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            ///   Creates a new <strong>Raw Buffer</strong> with initial data.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Raw buffer.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Raw buffer</returns>
-            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="data">The data to initialize the Raw Buffer.</param>
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> data, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage:usage);
+                return Buffer.New(device, data, elementSize: 0, BufferFlags.RawBuffer | additionalFlags, PixelFormat.None, usage);
             }
 
             /// <summary>
-            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            ///   Creates a new <strong>Raw Buffer</strong> with initial data.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Raw buffer.</param>
-            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Raw buffer</returns>
-            [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="dataPointer">The data pointer to the data to initialize the Raw Buffer.</param>
+            /// <param name="additionalFlags">Additional flags. For example, you can specify <see cref="BufferFlags.IndexBuffer"/> to create a combined Raw/Index Buffer.</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            [Obsolete("This method is obsolete. Use the span-based methods instead")]
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, dataPointer, elementSize: 0, BufferFlags.RawBuffer | additionalFlags, usage);
             }
         }
     }

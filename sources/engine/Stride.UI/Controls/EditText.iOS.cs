@@ -10,6 +10,7 @@ using UIKit;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Games;
+using Stride.Input;
 using Stride.UI.Events;
 
 namespace Stride.UI.Controls
@@ -127,7 +128,6 @@ namespace Stride.UI.Controls
             currentActiveEditText.IsSelectionActive = false;
             barView.Hidden = true;
             overlayView.Hidden = true;
-            FocusedElement = null;
 
             if (currentActiveEditText != null)
             {
@@ -171,7 +171,7 @@ namespace Stride.UI.Controls
         {
         }
 
-        private void ActivateEditTextImpl()
+        private void ActivateEditTextImpl(InputManager inputManager)
         {
             EnsureGameContext();
 
@@ -199,7 +199,7 @@ namespace Stride.UI.Controls
             return replacementSize < 0 || theTextField.Text.Length + replacementSize <= MaxLength;
         }
 
-        private void DeactivateEditTextImpl()
+        private void DeactivateEditTextImpl(InputManager inputManager)
         {
             attachedTextField.EditingChanged -= TextFieldOnValueChanged;
             attachedTextField.ShouldChangeCharacters -= ShouldChangeCharacters;

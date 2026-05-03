@@ -1,40 +1,39 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using Stride.Core;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// This class represents a graphics adapter.
+    ///   Represents a display subsystem (including one or more GPUs, DACs and video memory).
+    ///   A display subsystem is often referred to as a video card, however, on some machines the display subsystem is part of the motherboard.
     /// </summary>
+    /// <remarks>
+    ///   To enumerate the <see cref="GraphicsAdapter"/>s that are available in the system, see <see cref="GraphicsAdapterFactory"/>.
+    /// </remarks>
     public sealed partial class GraphicsAdapter : ComponentBase
     {
-        private readonly GraphicsOutput[] outputs;
+        private readonly GraphicsOutput[] graphicsOutputs;
 
         /// <summary>
-        /// Gets the <see cref="GraphicsOutput"/> attached to this adapter
+        ///   Gets the <see cref="GraphicsOutput"/>s attached to this adapter.
         /// </summary>
-        /// <returns>The <see cref="GraphicsOutput"/> attached to this adapter.</returns>
-        public GraphicsOutput[] Outputs
-        {
-            get
-            {
-                return outputs;
-            }
-        }
+        public ReadOnlySpan<GraphicsOutput> Outputs => graphicsOutputs;
 
         /// <summary>
-        /// Return the description of this adapter
+        ///   Gets the unique identifier of this <see cref="GraphicsAdapter"/>.
         /// </summary>
-        /// <returns></returns>
+        public long AdapterUid { get; }
+
+
+        /// <summary>
+        ///   Returns the description of this <see cref="GraphicsAdapter"/>.
+        /// </summary>
         public override string ToString()
         {
             return Description;
         }
-
-        /// <summary>
-        /// The unique id in the form of string of this device
-        /// </summary>
-        public string AdapterUid { get; internal set; }
     }
 }

@@ -65,7 +65,7 @@ public class TexturePreview : PreviewFromSpriteBatch<TextureAsset>
         if (texture == null)
             yield break;
 
-        for (var i = 1; i < texture.Description.MipLevels; ++i)
+        for (var i = 1; i < texture.Description.MipLevelCount; ++i)
             yield return i;
     }
 

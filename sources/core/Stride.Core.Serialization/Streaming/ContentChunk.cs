@@ -90,7 +90,7 @@ public sealed class ContentChunk
             stream.Position = Location;
 
 #if USE_UNMANAGED
-            var chunkBytes = Utilities.AllocateMemory(Size);
+            var chunkBytes = MemoryUtilities.Allocate(Size);
 
             var bufferCapacity = Math.Min(8192u, (uint)Size);
             var buffer = new byte[bufferCapacity];
@@ -104,7 +104,7 @@ public sealed class ContentChunk
                     var read = (uint)stream.Read(buffer, 0, (int)Math.Min(count, bufferCapacity));
                     if (read <= 0)
                         break;
-                    Utilities.CopyWithAlignmentFallback(chunkBytesPtr, bufferStart, read);
+                    MemoryUtilities.CopyWithAlignmentFallback(chunkBytesPtr, bufferStart, read);
                     chunkBytesPtr += read;
                     count -= read;
                 } while (count > 0);
@@ -130,7 +130,7 @@ public sealed class ContentChunk
         if (data != IntPtr.Zero)
         {
 #if USE_UNMANAGED
-            Utilities.FreeMemory(data);
+            MemoryUtilities.Free(data);
 #else
                 handle.Free();
 #endif

@@ -80,14 +80,6 @@ namespace Stride.Core.Presentation
         private const string MarkerOl = @"\d+[.]";
         private int listLevel;
 
-        private Style codeStyle;
-        private Style documentStyle;
-        private Style heading1Style;
-        private Style heading2Style;
-        private Style heading3Style;
-        private Style heading4Style;
-        private Style imageStyle;
-
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -162,25 +154,25 @@ namespace Stride.Core.Presentation
         public bool StrictBoldItalic { get { return (bool)GetValue(StrictBoldItalicProperty); } set { SetValue(StrictBoldItalicProperty, value.Box()); } }
 
         [CanBeNull]
-        private Style CodeStyle => codeStyle ?? (codeStyle = TryFindStyle(CodeStyleKey));
+        private Style CodeStyle => field ??= TryFindStyle(CodeStyleKey);
 
         [CanBeNull]
-        private Style DocumentStyle => documentStyle ?? (documentStyle = TryFindStyle(DocumentStyleKey));
+        private Style DocumentStyle => field ??= TryFindStyle(DocumentStyleKey);
 
         [CanBeNull]
-        private Style Heading1Style => heading1Style ?? (heading1Style = TryFindStyle(Heading1StyleKey));
+        private Style Heading1Style => field ??= TryFindStyle(Heading1StyleKey);
 
         [CanBeNull]
-        private Style Heading2Style => heading2Style ?? (heading2Style = TryFindStyle(Heading2StyleKey));
+        private Style Heading2Style => field ??= TryFindStyle(Heading2StyleKey);
 
         [CanBeNull]
-        private Style Heading3Style => heading3Style ?? (heading3Style = TryFindStyle(Heading3StyleKey));
+        private Style Heading3Style => field ??= TryFindStyle(Heading3StyleKey);
 
         [CanBeNull]
-        private Style Heading4Style => heading4Style ?? (heading4Style = TryFindStyle(Heading4StyleKey));
+        private Style Heading4Style => field ??= TryFindStyle(Heading4StyleKey);
 
         [CanBeNull]
-        private Style ImageStyle => imageStyle ?? (imageStyle = TryFindStyle(ImageStyleKey));
+        private Style ImageStyle => field ??= TryFindStyle(ImageStyleKey);
 
         [CanBeNull]
         private Style TryFindStyle(object resourceKey)
@@ -267,8 +259,7 @@ namespace Stride.Core.Presentation
         {
             // in other words [this] and [this[also]] and [this[also[too]]]
             // up to _nestDepth
-            return nestedBracketsPattern
-                ?? (nestedBracketsPattern = RepeatString(@"
+            return nestedBracketsPattern ??= RepeatString(@"
                     (?>              # Atomic matching
                        [^\[\]]+      # Anything other than brackets
                      |
@@ -276,7 +267,7 @@ namespace Stride.Core.Presentation
                            ", NestDepth) + RepeatString(
                     @" \]
                     )*"
-                    , NestDepth));
+                , NestDepth);
         }
 
         private static string nestedParensPattern;
@@ -289,16 +280,15 @@ namespace Stride.Core.Presentation
         {
             // in other words (this) and (this(also)) and (this(also(too)))
             // up to _nestDepth
-            return nestedParensPattern
-                ?? (nestedParensPattern = RepeatString(@"
+            return nestedParensPattern ??= RepeatString(@"
                     (?>              # Atomic matching
                        [^()\s]+      # Anything other than parens or whitespace
                      |
                        \(
                            ", NestDepth) + RepeatString(
-                    @" \)
+                @" \)
                     )*"
-                    , NestDepth));
+                , NestDepth);
         }
 
 

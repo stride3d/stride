@@ -1,11 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+
 namespace Stride.Core;
 
 /// <summary>
-/// Describes the platform operating system.
+///   Defines the platform Stride is running on.
 /// </summary>
+/// <remarks>
+///   The platform can define <strong>the target operating system</strong> or <strong>environment</strong>
+///   where the application is running.
+/// </remarks>
 #if STRIDE_ASSEMBLY_PROCESSOR
 // To avoid a CS1503 error when compiling projects that are using both the AssemblyProcessor
 // and Stride.Core.
@@ -27,35 +33,32 @@ public enum PlatformType
     Shared,
 
     /// <summary>
-    /// The windows desktop OS.
+    ///   The Windows operating system for desktop applications.
     /// </summary>
     Windows,
 
     /// <summary>
-    /// The android OS.
+    ///   The Android operating system for mobile devices and tablets.
     /// </summary>
     Android,
 
-#pragma warning disable SA1300 // Element must begin with upper-case letter
     /// <summary>
-    /// The iOS.
+    ///   The iOS operating system for Apple mobile devices such as iPhone and iPad.
     /// </summary>
     iOS,
-#pragma warning restore SA1300 // Element must begin with upper-case letter
 
     /// <summary>
-    /// The Universal Windows Platform (UWP).
+    ///   The Universal Windows Platform (UWP) for applications that run on Windows 10 and later devices, and XBox gaming consoles.
     /// </summary>
     UWP,
 
     /// <summary>
-    /// The Linux OS.
+    ///   The Linux operating system, typically used for servers and desktops.
     /// </summary>
     Linux,
 
-#pragma warning disable SA1300 // Element must begin with upper-case letter
     /// <summary>
-    /// macOS
+    ///   The macOS operating system for Apple desktop and laptop computers.
     /// </summary>
-    macOS,
+    macOS
 }

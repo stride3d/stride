@@ -1,161 +1,174 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Flags specifying which resources and features are supported for a given <see cref="PixelFormat"/>
+///   for a <see cref="GraphicsDevice"/>.
+/// </summary>
+/// <remarks>
+///   For more information, see <see cref="GraphicsDevice.Features"/>.
+/// </remarks>
+[Flags]
+public enum FormatSupport : int
 {
+    None = 0,
+
     /// <summary>
-    /// <p>Which resources are supported for a given format and given device (see <strong><see cref="SharpDX.Direct3D11.Device.CheckFormatSupport"/></strong> and <strong><see cref="SharpDX.Direct3D11.Device.CheckFeatureSupport"/></strong>).</p>
+    ///   The format can be used as a Buffer resource.
     /// </summary>
-    [Flags]
-    public enum FormatSupport : int
-    {
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Buffer = unchecked((int)1),
+    Buffer = 1,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        InputAssemblyVertexBuffer = unchecked((int)2),
+    /// <summary>
+    ///   The format can be used as a Vertex Buffer in input assembly.
+    /// </summary>
+    InputAssemblyVertexBuffer = 2,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        InputAssemblyIndexBuffer = unchecked((int)4),
+    /// <summary>
+    ///   The format can be used as an Index Buffer in input assembly.
+    /// </summary>
+    InputAssemblyIndexBuffer = 4,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        StreamOutputBuffer = unchecked((int)8),
+    /// <summary>
+    ///   The format can be used as a Stream-output Buffer.
+    /// </summary>
+    StreamOutputBuffer = 8,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Texture1D = unchecked((int)16),
+    /// <summary>
+    ///   The format can be used as a 1D Texture.
+    /// </summary>
+    Texture1D = 16,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Texture2D = unchecked((int)32),
+    /// <summary>
+    ///   The format can be used as a 2D Texture.
+    /// </summary>
+    Texture2D = 32,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Texture3D = unchecked((int)64),
+    /// <summary>
+    ///   The format can be used as a 3D Texture.
+    /// </summary>
+    Texture3D = 64,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        TextureCube = unchecked((int)128),
+    /// <summary>
+    ///   The format can be used as a Cube Texture.
+    /// </summary>
+    TextureCube = 128,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderLoad = unchecked((int)256),
+    /// <summary>
+    ///   The format can be loaded in a Shader.
+    /// </summary>
+    ShaderLoad = 256,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderSample = unchecked((int)512),
+    /// <summary>
+    ///   The format can be sampled in a Shader.
+    /// </summary>
+    ShaderSample = 512,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderSampleComparison = unchecked((int)1024),
+    /// <summary>
+    ///   The format can be used for comparison sampling in a Shader.
+    /// </summary>
+    ShaderSampleComparison = 1024,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderSampleMonoText = unchecked((int)2048),
+    /// <summary>
+    ///   The format can be used for monochrome text sampling in a Shader.
+    /// </summary>
+    ShaderSampleMonoText = 2048,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Mip = unchecked((int)4096),
+    /// <summary>
+    ///   The format supports mipmaps.
+    /// </summary>
+    Mip = 4096,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        MipAutogen = unchecked((int)8192),
+    /// <summary>
+    ///   The format supports automatic mipmap generation.
+    /// </summary>
+    MipAutogen = 8192,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        RenderTarget = unchecked((int)16384),
+    /// <summary>
+    ///   The format can be used as a Render Target.
+    /// </summary>
+    RenderTarget = 16384,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Blendable = unchecked((int)32768),
+    /// <summary>
+    ///   The format supports blending as a Render Target.
+    /// </summary>
+    Blendable = 32768,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        DepthStencil = unchecked((int)65536),
+    /// <summary>
+    ///   The format can be used as a Depth-Stencil Buffer.
+    /// </summary>
+    DepthStencil = 65536,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        CpuLockable = unchecked((int)131072),
+    /// <summary>
+    ///   The format can be locked for CPU access.
+    /// </summary>
+    CpuLockable = 131072,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        MultisampleResolve = unchecked((int)262144),
+    /// <summary>
+    ///   The format supports multisample resolve operations.
+    /// </summary>
+    MultisampleResolve = 262144,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        Display = unchecked((int)524288),
+    /// <summary>
+    ///   The format can be used for display scan-out (to present to the screen).
+    /// </summary>
+    Display = 524288,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        CastWithinBitLayout = unchecked((int)1048576),
+    /// <summary>
+    ///   The format can be cast within a bit layout.
+    /// </summary>
+    CastWithinBitLayout = 1048576,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        MultisampleRendertarget = unchecked((int)2097152),
+    /// <summary>
+    ///   The format can be used as a multisample Render Target.
+    /// </summary>
+    MultisampleRendertarget = 2097152,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        MultisampleLoad = unchecked((int)4194304),
+    /// <summary>
+    ///   The format supports multisample load operations.
+    /// </summary>
+    MultisampleLoad = 4194304,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderGather = unchecked((int)8388608),
+    /// <summary>
+    ///   The format supports gather operations in a Shader.
+    /// </summary>
+    ShaderGather = 8388608,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        BackBufferCast = unchecked((int)16777216),
+    /// <summary>
+    ///   The format can be cast to a Back-Buffer.
+    /// </summary>
+    BackBufferCast = 16777216,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        TypedUnorderedAccessView = unchecked((int)33554432),
+    /// <summary>
+    ///   The format supports typed Unordered Access Views.
+    /// </summary>
+    TypedUnorderedAccessView = 33554432,
 
-        /// <summary>
-        /// No documentation.
-        /// </summary>
-        ShaderGatherComparison = unchecked((int)67108864),
+    /// <summary>
+    ///   The format supports gather comparison operations in a Shader.
+    /// </summary>
+    ShaderGatherComparison = 67108864,
 
-        DecoderOutput = 134217728,
+    /// <summary>
+    ///   The format can be used as a decoder output.
+    /// </summary>
+    DecoderOutput = 134217728,
 
-        VideoProcessorOutput = 268435456,
+    /// <summary>
+    ///   The format can be used as a video processor output.
+    /// </summary>
+    VideoProcessorOutput = 268435456,
 
-        VideoProcessorInput = 536870912,
+    /// <summary>
+    ///   The format can be used as a video processor input.
+    /// </summary>
+    VideoProcessorInput = 536870912,
 
-        VideoEncoder = 1073741824,
-
-        /// <summary>
-        /// None.
-        /// </summary>
-        None = unchecked((int)0),
-    }
+    /// <summary>
+    ///   The format can be used as a video encoder.
+    /// </summary>
+    VideoEncoder = 1073741824
 }

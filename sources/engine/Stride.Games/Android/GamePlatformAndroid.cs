@@ -59,7 +59,7 @@ namespace Stride.Games
             var gameWindowAndroid = gameWindow as GameWindowSDL;
             if (gameWindowAndroid != null)
             {
-                var graphicsAdapter = GraphicsAdapterFactory.Default;
+                var graphicsAdapter = GraphicsAdapterFactory.DefaultAdapter;
                 var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
                 var preferredGraphicsProfiles = preferredParameters.PreferredGraphicsProfile;
                 foreach (var featureLevel in preferredGraphicsProfiles)
@@ -70,7 +70,7 @@ namespace Stride.Games
                         // Everything is already created at this point, just transmit what has been done
                         var deviceInfo = new GraphicsDeviceInformation
                         {
-                            Adapter = GraphicsAdapterFactory.Default,
+                            Adapter = GraphicsAdapterFactory.DefaultAdapter,
                             GraphicsProfile = featureLevel,
                             PresentationParameters = new PresentationParameters(preferredParameters.PreferredBackBufferWidth, preferredParameters.PreferredBackBufferHeight,
                                 gameWindowAndroid.NativeWindow)
@@ -95,7 +95,7 @@ namespace Stride.Games
 
         public override void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            // TODO: Check when it needs to be disabled on iOS (OpenGL)?
+            // TODO: Check when it needs to be disabled on Android?
             // Force to resize the gameWindow
             //gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
         }

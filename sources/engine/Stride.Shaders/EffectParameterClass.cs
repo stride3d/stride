@@ -1,87 +1,87 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 
-namespace Stride.Shaders
+namespace Stride.Shaders;
+
+/// <summary>
+///   Defines the class of a Effect / Shader parameter.
+/// </summary>
+/// <remarks>
+///   The class of a Effect / Shader parameter is not a C# <see langword="class"/>; it identifies the kind of variable
+///   such as <strong>scalar</strong>, <strong>vector</strong>, <strong>object</strong>, and so on.
+/// </remarks>
+[DataContract]
+public enum EffectParameterClass : byte
 {
     /// <summary>
-    /// Values that identify the class of a shader variable.
+    ///   The Shader parameter is a <strong>scalar value</strong>.
     /// </summary>
-    /// <remarks>
-    /// The class of a shader variable is not a programming class; the class identifies the variable class such as scalar, vector, object, and so on.
-    /// </remarks>
-    [DataContract]
-    public enum EffectParameterClass : byte
-    {
-        /// <summary>
-        /// <dd> <p>The shader variable is a scalar.</p> </dd>
-        /// </summary>
-        Scalar = unchecked((int)0),
+    Scalar = 0,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a vector.</p> </dd>
-        /// </summary>
-        Vector = unchecked((int)1),
+    /// <summary>
+    ///   The Shader parameter is a <strong>vector value</strong>.
+    /// </summary>
+    Vector = 1,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a row-major matrix.</p> </dd>
-        /// </summary>
-        MatrixRows = unchecked((int)2),
+    /// <summary>
+    ///   The Shader parameter is a <strong>row-major matrix</strong>.
+    /// </summary>
+    MatrixRows = 2,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a column-major matrix.</p> </dd>
-        /// </summary>
-        MatrixColumns = unchecked((int)3),
+    /// <summary>
+    ///   The Shader parameter is a <strong>column-major matrix</strong>.
+    /// </summary>
+    MatrixColumns = 3,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is an object.</p> </dd>
-        /// </summary>
-        Object = unchecked((int)4),
+    /// <summary>
+    ///   The Shader parameter is an <strong>object</strong>.
+    /// </summary>
+    Object = 4,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a structure.</p> </dd>
-        /// </summary>
-        Struct = unchecked((int)5),
+    /// <summary>
+    ///   The Shader parameter is a <strong>structure</strong>.
+    /// </summary>
+    Struct = 5,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a class.</p> </dd>
-        /// </summary>
-        InterfaceClass = unchecked((int)6),
+    /// <summary>
+    ///   The Shader parameter is a <strong>class</strong>.
+    /// </summary>
+    InterfaceClass = 6,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is an interface.</p> </dd>
-        /// </summary>
-        InterfacePointer = unchecked((int)7),
+    /// <summary>
+    ///   The Shader parameter is an <strong>interface</strong>.
+    /// </summary>
+    InterfacePointer = 7,
 
-        /// <summary>
-        /// A sampler state object.
-        /// </summary>
-        Sampler = unchecked((int)8),
+    /// <summary>
+    ///   The Shader parameter is a <strong>Sampler State object</strong>.
+    /// </summary>
+    Sampler = 8,
 
-        /// <summary>
-        /// A shader resource view.
-        /// </summary>
-        ShaderResourceView = unchecked((int)9),
+    /// <summary>
+    ///   The Shader parameter is a <strong>Shader Resource View</strong>.
+    /// </summary>
+    ShaderResourceView = 9,
 
-        /// <summary>
-        /// A constant buffer
-        /// </summary>
-        ConstantBuffer = unchecked((int)10),
+    /// <summary>
+    ///   The Shader parameter is a <strong>Constant Buffer</strong>.
+    /// </summary>
+    ConstantBuffer = 10,
 
-        /// <summary>
-        /// A constant buffer
-        /// </summary>
-        TextureBuffer = unchecked((int)11),
+    /// <summary>
+    ///   The Shader parameter is a <strong>Texture</strong>.
+    /// </summary>
+    TextureBuffer = 11,
 
-        /// <summary>
-        /// An unordered access view
-        /// </summary>
-        UnorderedAccessView = unchecked((int)12),
+    /// <summary>
+    ///   The Shader parameter is an <strong>Unordered Access View</strong>.
+    /// </summary>
+    UnorderedAccessView = 12,
 
-        /// <summary>
-        /// <dd> <p>The shader variable is a vector.</p> </dd>
-        /// </summary>
-        Color = unchecked((int)13),
-
-    }
+    /// <summary>
+    ///   The Shader parameter is a vector value that represents a <strong>color</strong>.
+    /// </summary>
+    Color = 13
 }

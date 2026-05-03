@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,37 +23,36 @@
 
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Service providing access to the <see cref="GraphicsDevice"/> and events that can be
+///   subscribed to be notified of when the device is created, reset, or disposed.
+/// </summary>
+public interface IGraphicsDeviceService
 {
     /// <summary>
-    /// Service providing method to access GraphicsDevice life-cycle.
+    ///   Occurs when a device is created.
     /// </summary>
-    public interface IGraphicsDeviceService
-    {
-        /// <summary>
-        /// Occurs when a device is created.
-        /// </summary>
-        event EventHandler<EventArgs> DeviceCreated;
+    event EventHandler<EventArgs> DeviceCreated;
 
-        /// <summary>
-        /// Occurs when a device is disposing.
-        /// </summary>
-        event EventHandler<EventArgs> DeviceDisposing;
+    /// <summary>
+    ///   Occurs when a device is being disposed.
+    /// </summary>
+    event EventHandler<EventArgs> DeviceDisposing;
 
-        /// <summary>
-        /// Occurs when a device is reseted.
-        /// </summary>
-        event EventHandler<EventArgs> DeviceReset;
+    /// <summary>
+    ///   Occurs when a device has been reset.
+    /// </summary>
+    event EventHandler<EventArgs> DeviceReset;
 
-        /// <summary>
-        /// Occurs when a device is resetting.
-        /// </summary>
-        event EventHandler<EventArgs> DeviceResetting;
+    /// <summary>
+    ///   Occurs when a device is going to be reset.
+    /// </summary>
+    event EventHandler<EventArgs> DeviceResetting;
 
-        /// <summary>
-        /// Gets the current graphcs device.
-        /// </summary>
-        /// <value>The graphics device.</value>
-        GraphicsDevice GraphicsDevice { get; }
-    }
+    /// <summary>
+    ///   Gets the current Graphcs Device.
+    /// </summary>
+    GraphicsDevice GraphicsDevice { get; }
 }

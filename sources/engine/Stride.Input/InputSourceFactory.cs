@@ -44,10 +44,12 @@ namespace Stride.Input
                     return new InputSourceUWP(uwpContext.Control);
 #endif
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-                case AppContextType.Desktop:
+                case AppContextType.DesktopWinForms:
                     var winformsContext = (GameContextWinforms)context;
                     return new InputSourceWinforms(winformsContext.Control);
 #endif
+                case AppContextType.Headless:
+                    return null; // No input source in headless mode
                 default:
                     throw new InvalidOperationException("GameContext type is not supported by the InputManager");
             }

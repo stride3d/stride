@@ -25,7 +25,7 @@ class ReferencedAssemblySerializerProcessor : ICecilSerializerProcessor
         if (!processedAssemblies.Add(assembly))
             return;
 
-        // TODO: Add a flag for ComplexSerializer and transmit it properly (it needs different kind of analysis)
+        // TODO: Add a flag for generated serializers and transmit it properly (it needs different kind of analysis)
 
         // Let's recurse over referenced assemblies
         foreach (var referencedAssemblyName in assembly.MainModule.AssemblyReferences.ToArray())
@@ -80,8 +80,8 @@ class ReferencedAssemblySerializerProcessor : ICecilSerializerProcessor
 
             if (dataSerializerType == null)
             {
-                // TODO: We should avoid calling GenerateSerializer now just to have the dataSerializerType (we should do so only in a second step)
-                serializableTypeInfo = context.GenerateSerializer(dataType, profile: profile);
+                // TODO: We should avoid calling ResolveSerializer now just to have the dataSerializerType (we should do so only in a second step)
+                serializableTypeInfo = context.ResolveSerializer(dataType, profile: profile);
                 if (serializableTypeInfo == null)
                     throw new InvalidOperationException(string.Format("Can't find serializer for type {0}", dataType));
                 serializableTypeInfo.Local = local;
@@ -91,7 +91,7 @@ class ReferencedAssemblySerializerProcessor : ICecilSerializerProcessor
             else
             {
                 // Add it to list of serializable types
-                serializableTypeInfo = new CecilSerializerContext.SerializableTypeInfo(dataSerializerType, local, mode) { ExistingLocal = local, Inherited = inherited, ComplexSerializer = complexSerializer };
+                serializableTypeInfo = new CecilSerializerContext.SerializableTypeInfo(dataSerializerType, local, mode) { ExistingLocal = local, Inherited = inherited, IsGeneratedSerializer = complexSerializer };
                 context.AddSerializableType(dataType, serializableTypeInfo, profile);
             }
         }

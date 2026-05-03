@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Graphics;
 
 namespace Stride.Rendering
@@ -126,43 +125,37 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Holds current viewports and render targets.
+        ///   Holds a captured snapshot of Viewports and Render Targets set in a Command List.
         /// </summary>
         private class RenderTargetsState
         {
-            private const int MaxRenderTargetCount = 8;
-            private const int MaxViewportAndScissorRectangleCount = 16;
-
             public int RenderTargetCount;
             public int ViewportCount;
 
-            public readonly Viewport[] Viewports = new Viewport[MaxViewportAndScissorRectangleCount];
-            public readonly Texture[] RenderTargets = new Texture[MaxRenderTargetCount];
+            public readonly Viewport[] Viewports = new Viewport[CommandList.MaxViewportAndScissorRectangleCount];
+            public readonly Texture[] RenderTargets = new Texture[CommandList.MaxRenderTargetCount];
             public Texture DepthStencilBuffer;
 
             public void Capture(CommandList commandList)
             {
-                RenderTargetCount = commandList.RenderTargetCount;
-                ViewportCount = commandList.ViewportCount;
                 DepthStencilBuffer = commandList.DepthStencilBuffer;
-                
-                // TODO: Backup scissor rectangles and restore them
-                
-                for (int i = 0; i < RenderTargetCount; i++)
-                {
-                    RenderTargets[i] = commandList.RenderTargets[i];
-                }
 
-                for (int i = 0; i < ViewportCount; i++)
-                {
-                    Viewports[i] = commandList.Viewports[i];
-                }
+                RenderTargetCount = commandList.RenderTargetCount;
+                commandList.RenderTargets.CopyTo(RenderTargets);
+
+                ViewportCount = commandList.ViewportCount;
+                commandList.Viewports.CopyTo(Viewports);
+
+                // TODO: Backup scissor rectangles and restore them
             }
 
             public void Restore(CommandList commandList)
             {
-                commandList.SetRenderTargets(DepthStencilBuffer, RenderTargetCount, RenderTargets);
-                commandList.SetViewports(ViewportCount, Viewports);
+                scoped ReadOnlySpan<Texture> renderTargetsToRestore = RenderTargets.AsSpan(0, RenderTargetCount);
+                commandList.SetRenderTargets(DepthStencilBuffer, renderTargetsToRestore);
+
+                scoped ReadOnlySpan<Viewport> viewportsToRestore = Viewports.AsSpan(0, ViewportCount);
+                commandList.SetViewports(viewportsToRestore);
             }
         }
 

@@ -33,7 +33,7 @@ namespace Stride.Assets.Skyboxes
             Services.AddService<IContentManager>(Content);
             Services.AddService(Content);
 
-            GraphicsDevice = GraphicsDevice.New();
+            GraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
             GraphicsDeviceService = new GraphicsDeviceServiceLocal(Services, GraphicsDevice);
             Services.AddService(GraphicsDeviceService);
 
@@ -91,7 +91,7 @@ namespace Stride.Assets.Skyboxes
             var parameters = context.Parameters;
             var skybox = result.Skybox;
             skybox.Parameters = parameters;
-            
+
             var cubemap = asset.CubeMap;
             if (cubemap == null)
             {
@@ -145,8 +145,8 @@ namespace Stride.Assets.Skyboxes
             textureSize = (int)Math.Pow(2, Math.Round(Math.Log(textureSize, 2)));
             if (textureSize < 64) textureSize = 64;
 
-            // TODO: Add support for HDR 32bits 
-            var filteringTextureFormat = skyboxTexture.Format.IsHDR() ? skyboxTexture.Format : PixelFormat.R8G8B8A8_UNorm;
+            // TODO: Add support for HDR 32bits
+            var filteringTextureFormat = skyboxTexture.Format.IsHDR ? skyboxTexture.Format : PixelFormat.R8G8B8A8_UNorm;
 
             //var outputTexture = Texture.New2D(graphicsDevice, 256, 256, skyboxTexture.Format, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess, 6);
             using (var outputTexture = Texture.New2D(context.GraphicsDevice, textureSize, textureSize, true, filteringTextureFormat, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 6))

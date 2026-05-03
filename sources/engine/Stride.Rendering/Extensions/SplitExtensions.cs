@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Graphics;
 using Stride.Graphics.Data;
@@ -125,7 +124,7 @@ namespace Stride.Extensions
                         {
                             //copy vertex buffer
                             foreach (var index in splitInfo.UsedIndices)
-                                Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     destination: newVertexBufferPtr + stride * splitInfo.IndexRemapping[index],
                                     source: vertexBufferPtr + stride * index,
                                     byteCount: (uint)stride);

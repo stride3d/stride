@@ -28,7 +28,7 @@ namespace Stride.Games
     /// </remarks>
     internal unsafe class SDLMessageLoop : IMessageLoop
     {
-        private static Sdl SDL = Window.SDL;
+        private static Sdl SDL => Window.SDL;
 
         private Window control;
         private bool isControlAlive;
@@ -137,7 +137,6 @@ namespace Stride.Games
             if (form == null) throw new ArgumentNullException(nameof(form));
             if (renderCallback == null) throw new ArgumentNullException(nameof(renderCallback));
 
-            form.Show();
             using (var renderLoop = new SDLMessageLoop(form))
             {
                 while (renderLoop.NextFrame())

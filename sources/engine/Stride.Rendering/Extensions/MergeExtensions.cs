@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Graphics;
@@ -91,7 +90,7 @@ namespace Stride.Extensions
                     var sourceBuffer = meshDrawData.VertexBuffers[0].Buffer.GetSerializationData();
                     fixed (byte* sourceBufferDataStart = &sourceBuffer.Content[0])
                     {
-                        Utilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart, (uint)sourceBuffer.Content.Length);
+                        MemoryUtilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart, (uint)sourceBuffer.Content.Length);
                         destBufferDataCurrent += sourceBuffer.Content.Length;
                     }
                 }
@@ -135,7 +134,7 @@ namespace Stride.Extensions
 
                         fixed (byte* sourceBufferDataStart = &sourceBufferContent[0])
                         {
-                            Utilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart,
+                            MemoryUtilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart,
                                 (uint)sourceBufferContent.Length);
                             destBufferDataCurrent += sourceBufferContent.Length;
                         }

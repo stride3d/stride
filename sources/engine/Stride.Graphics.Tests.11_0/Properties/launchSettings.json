@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Software": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    },
+    "GPU": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "STRIDE_TESTS_GPU": "1"
+      },
+      "nativeDebugging": true
+    }
+  }
+}

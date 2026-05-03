@@ -246,9 +246,10 @@ public class TestUFile
         Assert.Equal(file1.GetDirectoryAndFileNameWithoutExtension(), file2.GetDirectoryAndFileNameWithoutExtension());
     }
 
-    [Fact]
+    [SkippableFact]
     public void IsAbsolute_ChecksPathCorrectly()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         Assert.False(new UFile("test.txt").IsAbsolute);
         Assert.True(new UFile("/test.txt").IsAbsolute);
         Assert.True(new UFile("C:/test.txt").IsAbsolute);
@@ -296,9 +297,10 @@ public class TestUFile
         Assert.Equal("../../../e/f/g/test.txt", relative.FullPath);
     }
 
-    [Fact]
+    [SkippableFact]
     public void MakeRelative_WithDrives_HandlesCorrectly()
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Drive letter paths require Windows");
         var anchor = new UDirectory("C:/a/b/c");
 
         // Test direct relative

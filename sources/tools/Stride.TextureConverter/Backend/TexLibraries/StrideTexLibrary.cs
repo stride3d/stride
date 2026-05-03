@@ -210,7 +210,7 @@ namespace Stride.TextureConverter.TexLibraries
                         {
                             for (int j = 0; j < ct; ++j)
                             {
-                                Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     (void*)sdImage.PixelBuffer[ct2].DataPointer,
                                     (void*)sdImage.PixelBuffer[j + i * SubImagePerArrayElement].DataPointer,
                                     (uint)sdImage.PixelBuffer[j + i * SubImagePerArrayElement].BufferStride);
@@ -268,7 +268,7 @@ namespace Stride.TextureConverter.TexLibraries
                         for (int i = 0; i < image.ArraySize * newMipMapCount; ++i)
                         {
                             if (i == newMipMapCount || (i > newMipMapCount && (i % newMipMapCount == 0))) j += gap;
-                            Utilities.CopyWithAlignmentFallback((void*)sdImage.PixelBuffer[i].DataPointer, (void*)image.SubImageArray[j].Data, (uint)image.SubImageArray[j].DataSize);
+                            MemoryUtilities.CopyWithAlignmentFallback((void*)sdImage.PixelBuffer[i].DataPointer, (void*)image.SubImageArray[j].Data, (uint)image.SubImageArray[j].DataSize);
                             ++j;
                         }
                     }
@@ -305,7 +305,7 @@ namespace Stride.TextureConverter.TexLibraries
                     throw new InvalidOperationException("Image size different than expected.");
                 }
 
-                Utilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
+                MemoryUtilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
             }
 
             using (var fileStream = new FileStream(request.FilePath, FileMode.Create, FileAccess.Write))
@@ -367,7 +367,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new InvalidOperationException("Image size different than expected.");
             }
 
-            Utilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
+            MemoryUtilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
 
             request.XkImage = sdImage;
         }
@@ -420,7 +420,7 @@ namespace Stride.TextureConverter.TexLibraries
             var bufferStepFactor = request.KeepMipMap ? 1 : inputImage.Description.MipLevels;
             int imageCount = inputImage.PixelBuffer.Count / bufferStepFactor;
             image.SubImageArray = new TexImage.SubImage[imageCount];
-            
+
             for (int i = 0; i < imageCount; ++i)
             {
                 image.SubImageArray[i] = new TexImage.SubImage();

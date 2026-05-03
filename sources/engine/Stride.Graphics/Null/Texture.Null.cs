@@ -1,13 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_NULL 
+#if STRIDE_GRAPHICS_API_NULL
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// Base class for texture resources.
-    /// </summary>
     public partial class Texture
     {
         /// <summary>
@@ -38,22 +35,40 @@ namespace Stride.Graphics
             return false;
         }
 
-        internal void SwapInternal(Texture other)
+        /// <summary>
+        ///   Swaps the Texture's internal data with another Texture.
+        /// </summary>
+        /// <param name="other">The other Texture.</param>
+        internal partial void SwapInternal(Texture other)
         {
             NullHelper.ToImplement();
         }
 
-        private void InitializeFromImpl(DataBox[] dataBoxes = null)
+        /// <summary>
+        ///   Initializes the Texture from the specified data.
+        /// </summary>
+        /// <param name="dataBoxes">
+        ///   An array of <see cref="DataBox"/> structures pointing to the data for all the subresources to
+        ///   initialize for the Texture.
+        /// </param>
+        private partial void InitializeFromImpl(DataBox[] dataBoxes)
         {
             NullHelper.ToImplement();
         }
 
-        private void OnRecreateImpl()
+        /// <summary>
+        ///   Perform platform-specific recreation of the Texture.
+        /// </summary>
+        private partial void OnRecreateImpl()
         {
             NullHelper.ToImplement();
         }
 
-        private bool IsFlipped()
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        private partial bool IsFlipped()
         {
             NullHelper.ToImplement();
             return false;
@@ -65,5 +80,5 @@ namespace Stride.Graphics
             return format;
         }
     }
-} 
+}
 #endif

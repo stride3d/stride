@@ -59,7 +59,7 @@ namespace Stride.Rendering.Shadows
         public void PrepareAsRenderTarget(CommandList commandList)
         {
             // Switch to render target
-            commandList.ResourceBarrierTransition(Texture, GraphicsResourceState.DepthWrite);
+            commandList.ResourceBarrierTransition(Texture, BarrierLayout.DepthStencilWrite);
 
             if (clearNeeded)
             {
@@ -71,7 +71,7 @@ namespace Stride.Rendering.Shadows
 
         public void PrepareAsShaderResourceView(CommandList commandList)
         {
-            commandList.ResourceBarrierTransition(Texture, GraphicsResourceState.PixelShaderResource);
+            commandList.ResourceBarrierTransition(Texture, BarrierLayout.ShaderResource);
         }
     }
 }

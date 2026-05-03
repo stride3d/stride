@@ -250,7 +250,7 @@ namespace Stride.Particles.Rendering
 
             var renderParticleNodeData = RenderData.GetData(renderParticleNodeKey);
 
-            var mappedVertices = commandList.MapSubresource(particleBufferContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, particleBufferContext.VertexBufferSize);
+            var mappedVertices = commandList.MapSubResource(particleBufferContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, particleBufferContext.VertexBufferSize);
             var sharedBufferPtr = mappedVertices.DataBox.DataPointer;
 
             //for (int renderNodeIndex = 0; renderNodeIndex < RenderNodes.Count; renderNodeIndex++)
@@ -274,7 +274,7 @@ namespace Stride.Particles.Rendering
                 renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
             });
 
-            commandList.UnmapSubresource(mappedVertices);
+            commandList.UnmapSubResource(mappedVertices);
         }
 
         /// <inheritdoc/>
@@ -448,7 +448,7 @@ namespace Stride.Particles.Rendering
                     {
                         var commandList = renderDrawContext.CommandList;
 
-                        var mappedIndices = commandList.MapSubresource(IndexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, IndexBufferSize);
+                        var mappedIndices = commandList.MapSubResource(IndexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, IndexBufferSize);
                         var indexPointer = mappedIndices.DataBox.DataPointer;
 
                         int indexStructSize = sizeof(short);
@@ -465,7 +465,7 @@ namespace Stride.Particles.Rendering
                             *(short*)(indexPointer + indexStructSize * i++) = (short)(k + 3);
                         }
 
-                        commandList.UnmapSubresource(mappedIndices);
+                        commandList.UnmapSubResource(mappedIndices);
                     }
                 }
             }

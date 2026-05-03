@@ -65,17 +65,23 @@
     <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
   </PropertyGroup>
 
-  <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
-  <PropertyGroup>
-    <StrideMSBuildTaskTargetFramework>netstandard2.0</StrideMSBuildTaskTargetFramework>
-    <!-- First try NuGet layout, then git checkout -->
-    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
-    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
-    <StrideMSBuildTaskAssemblyHash Condition="Exists('$(StrideMSBuildTaskSourcePath)')">$([System.IO.File]::ReadAllText('$(StrideMSBuildTaskSourcePath).hash'))</StrideMSBuildTaskAssemblyHash>
-    <StrideMSBuildTaskTempPath>$(TEMP)\Stride\MSBuildTasks\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks-$(StrideMSBuildTaskAssemblyHash).dll</StrideMSBuildTaskTempPath>
-  </PropertyGroup>
-
-  <UsingTask AssemblyFile="$(StrideMSBuildTaskTempPath)" TaskName="Stride.MSBuild.Tasks.SortItems"/>
+  <!-- Inline sort task: ordinal-sort an item list. Used to make WriteLinesToFile output
+       deterministic (glob enumeration order is unspecified). -->
+  <UsingTask TaskName="StrideSortItems"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <InputItems  ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutputItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        OutputItems = InputItems.OrderBy(x => x.ItemSpec, System.StringComparer.Ordinal).ToArray();
+        return true;
+      ]]></Code>
+    </Task>
+  </UsingTask>
   <!-- Import up-to-date check file to skip asset build altogether if everything is still up to date
        Details: https://github.com/dotnet/project-system/blob/16.3.1/docs/up-to-date-check.md -->
   <Target Name="_StrideCollectUpToDateCheckInputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
@@ -86,12 +92,10 @@
     <CreateItem Include="@(StrideAssetInputRaw)">
       <Output TaskParameter="Include" ItemName="StrideAssetInputUnsorted" />
     </CreateItem>
-    <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
-    <Copy SourceFiles="$(StrideMSBuildTaskSourcePath)" DestinationFiles="$(StrideMSBuildTaskTempPath)" Condition="!Exists('$(StrideMSBuildTaskTempPath)')" />
     <!-- We need to sort to make sure expanded list is written to only if there's an actual change (rather than simply non-deterministic file enumeration order) -->
-    <SortItems InputItems="@(StrideAssetInputUnsorted)">
+    <StrideSortItems InputItems="@(StrideAssetInputUnsorted)">
       <Output TaskParameter="OutputItems" ItemName="StrideAssetInput" />
-    </SortItems>
+    </StrideSortItems>
       
     <!-- Write expanded list (use WriteOnlyWhenDifferent to keep timestamp if no changes) -->
     <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(StrideAssetInput)" WriteOnlyWhenDifferent="true"/>
@@ -131,6 +135,22 @@
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+  </Target>
+
+  <!-- In-tree consumers invoke CompilerApp.exe via ProjectReference. CompilerApp's own
+       Stride.NuGetResolver needs Stride.Core.Assets.CompilerApp.<version>.nupkg in
+       bin\packages\ to resolve its runtime dep graph. Under parallel MSBuild, the normal
+       AfterTargets=Build Pack chain isn't guaranteed to complete before another consumer's
+       StrideCompileAsset fires. Dispatch Pack explicitly here so it's done before we run
+       CompilerApp.exe. Gated by the source-tree existence check — NuGet-package consumers
+       already have the .nupkg. -->
+  <Target Name="_StrideEnsureCompilerAppPacked"
+          BeforeTargets="StrideCompileAsset"
+          Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
+             Targets="Pack"
+             Properties="TargetFrameworks=$(StrideXplatEditorTargetFramework);TargetFramework=$(StrideXplatEditorTargetFramework)"
+             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi" />
   </Target>
 
   <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">

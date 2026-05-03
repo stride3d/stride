@@ -63,8 +63,8 @@ namespace Stride.Graphics.Tests
             float height = 0f;
 
             fontManager.GetFontInfo("Risaltyp_024", FontStyle.Regular, out lineSpacing, out baseLine, out width, out height);
-            Assert.Equal(4444f / 4096f, lineSpacing);
-            Assert.Equal(3233f / 4096f, baseLine);
+            Assert.Equal(4465f / 4096f, lineSpacing);
+            Assert.Equal(3245f / 4096f, baseLine);
             Assert.Equal(3657f / 4096f, width);
             Assert.Equal(4075f / 4096f, height);
 

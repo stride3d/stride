@@ -5,18 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
     using System.Drawing;
     using System.Drawing.Imaging;
-    using SharpDX.DirectWrite;
-    using Factory = SharpDX.DirectWrite.Factory;
 
-    // This code was originally taken from DirectXTk but rewritten with DirectWrite
-    // for more accuracy in font rendering
-    internal class SignedDistanceFieldFontImporter : IFontImporter
+    internal unsafe class SignedDistanceFieldFontImporter : IFontImporter
     {
         // Properties hold the imported font data.
         public IEnumerable<Glyph> Glyphs { get; private set; }
@@ -34,14 +33,6 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <summary>
         /// Generates and load a SDF font glyph using the msdfgen.exe
         /// </summary>
-        /// <param name="c">Character code</param>
-        /// <param name="width">Width of the output glyph</param>
-        /// <param name="height">Height of the output glyph</param>
-        /// <param name="offsetX">Left side offset of the glyph from the image border in design unit</param>
-        /// <param name="offsetY">Bottom side offset of the glyph from the image border in design unit</param>
-        /// <param name="scaleX">Scale factor to convert from 'shape unit' to 'pixel unit' on x-axis</param>
-        /// <param name="scaleY">Scale factor to convert from 'shape unit' to 'pixel unit' on y-axis</param>
-        /// <returns></returns>
         private Bitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
         {
             try
@@ -96,7 +87,6 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// Msdfgen will produce an inverted picture on occasion.
         /// Because we use offset we can easily detect if the corner pixel has negative (correct) or positive distance (incorrect)
         /// </summary>
-        /// <param name="bitmap"></param>
         private void Normalize(Bitmap bitmap)
         {
             // Case 1 - corner pixel is negative (outside), do not invert
@@ -139,75 +129,95 @@ namespace Stride.Assets.SpriteFont.Compiler
             Directory.CreateDirectory(tempDir);
 #endif
 
-            var factory = new Factory();
+            NativeLibraryHelper.PreloadLibrary("freetype", typeof(SignedDistanceFieldFontImporter));
 
-            FontFace fontFace = options.FontSource.GetFontFace();
+            int err = FreeTypeNative.FT_Init_FreeType(out var library);
+            if (err != 0)
+                throw new InvalidOperationException($"Failed to initialize FreeType library (error {err})");
 
-            var fontMetrics = fontFace.Metrics;
+            try
+            {
+                var fontData = File.ReadAllBytes(fontSource);
+                var handle = GCHandle.Alloc(fontData, GCHandleType.Pinned);
 
-            // Create a bunch of GDI+ objects.
-            var fontSize = options.FontType.Size;
+                try
+                {
+                    FT_FaceRec* face;
+                    fixed (byte* ptr = fontData)
+                    {
+                        err = FreeTypeNative.FT_New_Memory_Face(library, ptr, new CLong(fontData.Length), new CLong(0), out face);
+                        if (err != 0)
+                            throw new InvalidOperationException($"Failed to load font '{fontSource}' (FreeType error {err})");
+                    }
 
-            var glyphList = new List<Glyph>();
+                    try
+                    {
+                        var fontSize = options.FontType.Size;
 
-            // Remap the LineMap coming from the font with a user defined remapping
-            // Note:
-            // We are remapping the lineMap to allow to shrink the LineGap and to reposition it at the top and/or bottom of the
-            // font instead of using only the top
-            // According to http://stackoverflow.com/questions/13939264/how-to-determine-baseline-position-using-directwrite#comment27947684_14061348
-            // (The response is from a MSFT employee), the BaseLine should be = LineGap + Ascent but this is not what
-            // we are experiencing when comparing with MSWord (LineGap + Ascent seems to offset too much.)
-            //
-            // So we are first applying a factor to the line gap:
-            //     NewLineGap = LineGap * LineGapFactor
-            var lineGap = fontMetrics.LineGap * options.LineGapFactor;
+                        // FreeType metrics are in font units; convert to pixels
+                        float unitsToPixels = fontSize / face->units_per_EM;
 
-            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
-            // Store the font height.
-            LineSpacing = (lineGap + fontMetrics.Ascent + fontMetrics.Descent) * pixelPerDesignUnit;
+                        var lineGap = (face->height - face->ascender + face->descender) * options.LineGapFactor;
+                        LineSpacing = (lineGap + face->ascender - face->descender) * unitsToPixels;
+                        BaseLine = (lineGap * options.LineGapBaseLineFactor + face->ascender) * unitsToPixels;
 
-            // And then the baseline is also changed in order to allow the linegap to be distributed between the top and the
-            // bottom of the font:
-            //     BaseLine = NewLineGap * LineGapBaseLineFactor
-            BaseLine = (lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) * pixelPerDesignUnit;
+                        // Set font size for glyph metric queries (26.6 fixed-point, 72 dpi)
+                        var charSize = new CLong((int)(fontSize * 64));
+                        FreeTypeNative.FT_Set_Char_Size(face, charSize, charSize, 72, 72);
 
-            // Generate SDF bitmaps for each character in turn.
-            foreach (var character in characters)
-                glyphList.Add(ImportGlyph(fontFace, character, fontMetrics, fontSize));
+                        var glyphList = new List<Glyph>();
+                        foreach (var character in characters)
+                            glyphList.Add(ImportGlyph(face, character, fontSize));
 
-            Glyphs = glyphList;
-
-            factory.Dispose();
+                        Glyphs = glyphList;
+                    }
+                    finally
+                    {
+                        FreeTypeNative.FT_Done_Face(face);
+                    }
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+            finally
+            {
+                FreeTypeNative.FT_Done_FreeType(library);
+            }
         }
 
         /// <summary>
         /// Imports a single glyph as a bitmap using the msdfgen to convert it to a signed distance field image
         /// </summary>
-        /// <param name="fontFace">FontFace, use to obtain the metrics for the glyph</param>
-        /// <param name="character">The glyph's character code</param>
-        /// <param name="fontMetrics">Font metrics, used to obtain design units scale</param>
-        /// <param name="fontSize">Requested font size. The bigger, the more precise the SDF image is going to be</param>
-        /// <returns></returns>
-        private Glyph ImportGlyph(FontFace fontFace, char character, FontMetrics fontMetrics, float fontSize)
+        private Glyph ImportGlyph(FT_FaceRec* face, char character, float fontSize)
         {
-            var indices = fontFace.GetGlyphIndices(new int[] { character });
+            var glyphIndex = FreeTypeNative.FT_Get_Char_Index(face, character);
 
-            var metrics = fontFace.GetDesignGlyphMetrics(indices, isSideways: false);
-            var metric = metrics[0];
+            // Load glyph to get metrics (no rendering needed — msdfgen does that)
+            if (glyphIndex == 0 || FreeTypeNative.FT_Load_Glyph(face, glyphIndex, (int)FreeTypeLoadFlags.Default) != 0)
+            {
+                return new Glyph(character, new Bitmap(1, 1, PixelFormat.Format32bppArgb))
+                {
+                    XOffset = 0, YOffset = 0, XAdvance = 0,
+                };
+            }
 
-            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
-            float fontWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * pixelPerDesignUnit;
-            float fontHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * pixelPerDesignUnit;
+            ref FT_Glyph_Metrics metrics = ref face->glyph->metrics;
 
-            float fontOffsetXPx = metric.LeftSideBearing * pixelPerDesignUnit;
-            float fontOffsetYPx = (metric.TopSideBearing - metric.VerticalOriginY) * pixelPerDesignUnit;
+            // FreeType glyph metrics are in 26.6 fixed-point
+            float horiBearingX = metrics.horiBearingX.Value / 64.0f;
+            float horiBearingY = metrics.horiBearingY.Value / 64.0f;
+            float glyphWidth = metrics.width.Value / 64.0f;
+            float glyphHeight = metrics.height.Value / 64.0f;
+            float advanceWidth = metrics.horiAdvance.Value / 64.0f;
 
-            float advanceWidthPx = metric.AdvanceWidth * pixelPerDesignUnit;
-            //var advanceHeight = metric.AdvanceHeight * pixelPerDesignUnit;
+            float fontOffsetXPx = horiBearingX;
+            float fontOffsetYPx = -horiBearingY; // FreeType Y-up to screen Y-down
 
             const int MarginPx = 2;     // Buffer zone for the sdf image to avoid clipping
-            int bitmapWidthPx = (int)Math.Ceiling(fontWidthPx) + (2 * MarginPx);
-            int bitmapHeightPx = (int)Math.Ceiling(fontHeightPx) + (2 * MarginPx);
+            int bitmapWidthPx = (int)Math.Ceiling(glyphWidth) + (2 * MarginPx);
+            int bitmapHeightPx = (int)Math.Ceiling(glyphHeight) + (2 * MarginPx);
 
             float bitmapOffsetXPx = fontOffsetXPx - MarginPx;
             float bitmapOffsetYPx = fontOffsetYPx - MarginPx;
@@ -219,42 +229,39 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
             else
             {
-                // sdfPixelPerDesignUnit is hardcoded from the import in this code
+                // msdfgen uses its own coordinate system (1/64 design units by default)
                 // https://github.com/stride3d/msdfgen/blob/1af188c77822e447fe8e412420fe0fe05b782b38/ext/import-font.cpp#L126-L150
-                const float sdfPixelPerDesignUnit = 1 / 64f;      // msdf default coordinate scale
-                float boundLeft = metric.LeftSideBearing * sdfPixelPerDesignUnit;
-                //float boundRight = (metric.AdvanceWidth - metric.RightSideBearing) * sdfPixelPerDesignUnit;
-                //float boundTop = (metric.VerticalOriginY - metric.TopSideBearing) * sdfPixelPerDesignUnit;
-                float boundBottom = (metric.VerticalOriginY  - (metric.AdvanceHeight - metric.BottomSideBearing)) * sdfPixelPerDesignUnit;
+                const float sdfPixelPerDesignUnit = 1 / 64f;
 
-                float glyphWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * sdfPixelPerDesignUnit;
-                float glyphHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * sdfPixelPerDesignUnit;
+                // Convert FreeType 26.6 metrics back to font design units for msdfgen
+                float designHoriBearingX = metrics.horiBearingX.Value / 64.0f / (fontSize / face->units_per_EM);
+                float designVertOriginY = horiBearingY / (fontSize / face->units_per_EM); // approximate
+                float designAdvanceHeight = (glyphHeight + (horiBearingY - fontOffsetYPx - glyphHeight)) / (fontSize / face->units_per_EM);
+                float designBottomBearing = 0; // approximate — not critical for SDF
+
+                float boundLeft = designHoriBearingX * sdfPixelPerDesignUnit;
+                float boundBottom = (designVertOriginY - designAdvanceHeight + designBottomBearing) * sdfPixelPerDesignUnit;
+
+                float sdfGlyphWidth = glyphWidth / (fontSize / face->units_per_EM) * sdfPixelPerDesignUnit;
+                float sdfGlyphHeight = glyphHeight / (fontSize / face->units_per_EM) * sdfPixelPerDesignUnit;
 
                 // Need to scale from msdfgen's 'shape unit' into the final bitmap's space
-                float scaleX = fontWidthPx / glyphWidthPx;
-                float scaleY = fontHeightPx / glyphHeightPx;
+                float scaleX = sdfGlyphWidth != 0 ? glyphWidth / sdfGlyphWidth : 1;
+                float scaleY = sdfGlyphHeight != 0 ? glyphHeight / sdfGlyphHeight : 1;
 
                 // Note: msdfgen uses coordinates from bottom-left corner
-                // so offsetY needs to calculate the offset such that it snaps to the top side of the bitmap (+ margin space)
                 float offsetX = (MarginPx / scaleX) - boundLeft;
-                float offsetY = ((bitmapHeightPx - MarginPx) / scaleY) - glyphHeightPx - boundBottom;
+                float offsetY = ((bitmapHeightPx - MarginPx) / scaleY) - sdfGlyphHeight - boundBottom;
 
                 bitmap = LoadSDFBitmap(character, bitmapWidthPx, bitmapHeightPx, offsetX, offsetY, scaleX, scaleY);
             }
 
-            var glyph = new Glyph(character, bitmap)
+            return new Glyph(character, bitmap)
             {
                 XOffset = bitmapOffsetXPx,
-                XAdvance = advanceWidthPx,
+                XAdvance = advanceWidth,
                 YOffset = bitmapOffsetYPx,
             };
-
-            return glyph;
-        }
-
-        private static byte LinearToGamma(byte color)
-        {
-            return (byte)(Math.Pow(color / 255.0f, 1 / 2.2f) * 255.0f);
         }
     }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Stride.Dependencies.SpirvCross</id>
+    <version>$version$</version>
+    <authors>Stride Contributors</authors>
+    <description>SPIRV-Cross shared library for Stride SPIR-V to HLSL/GLSL translation. Built from stride3d/SPIRV-Cross commit $commit$.</description>
+    <license type="expression">Apache-2.0</license>
+    <repository type="git" url="https://github.com/stride3d/stride" />
+  </metadata>
+  <files>
+    <file src="win-x64/spirv-cross.dll" target="runtimes/win-x64/native/" />
+    <!-- Add more platforms as needed:
+    <file src="linux-x64/libspirv-cross.so" target="runtimes/linux-x64/native/" />
+    <file src="osx-arm64/libspirv-cross.dylib" target="runtimes/osx-arm64/native/" />
+    -->
+  </files>
+</package>

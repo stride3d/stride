@@ -61,6 +61,5 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
                 await session.Dispatcher.InvokeAsync(() => session.ActiveAssetView.SelectAssetCommand.Execute(asset));
             }
         }
-
     }
 }

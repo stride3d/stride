@@ -3,8 +3,6 @@
 
 #if STRIDE_GRAPHICS_API_NULL
 
-using System;
-
 namespace Stride.Graphics
 {
     /// <summary>
@@ -21,7 +19,7 @@ namespace Stride.Graphics
         public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
         {
             NullHelper.ToImplement();
-            return default(DisplayMode);
+            return default;
         }
 
         /// <summary>
@@ -43,4 +41,5 @@ namespace Stride.Graphics
         }
     }
 }
+
 #endif

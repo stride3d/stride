@@ -14,7 +14,7 @@ namespace Stride.Graphics.SDL
     /// </summary>
     public unsafe class Cursor
     {
-        private static Sdl SDL = Window.SDL;
+        private static Sdl SDL => Window.SDL;
 
 #region Initialization
         /// <summary>

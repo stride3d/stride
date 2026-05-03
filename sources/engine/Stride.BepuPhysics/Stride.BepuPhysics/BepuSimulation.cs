@@ -18,6 +18,7 @@ using Stride.Core.Threading;
 using Stride.Core;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Stride.Core.MicroThreading;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
@@ -43,6 +44,7 @@ public sealed class BepuSimulation : IDisposable
     private TimeSpan _softStartRemainingDuration;
     private bool _softStartScheduled = false;
     private UrlReference<Scene>? _associatedScene = null;
+    private Scheduler? _scheduler;
     private AwaitRunner _preTickRunner = new();
     private AwaitRunner _postTickRunner = new();
 
@@ -335,13 +337,23 @@ public sealed class BepuSimulation : IDisposable
     /// Yields execution until right before the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter NextUpdate() => new TickAwaiter(_preTickRunner);
+    public TickAwaiter NextUpdate()
+    {
+        if (Scheduler.CurrentMicroThread is null || SynchronizationContext.Current is null)
+            throw new Exception($"{nameof(NextUpdate)} cannot be called out of the micro-thread context.");
+        return new TickAwaiter(_preTickRunner, Scheduler.CurrentMicroThread, SynchronizationContext.Current);
+    }
 
     /// <summary>
     /// Yields execution until right after the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter AfterUpdate() => new TickAwaiter(_postTickRunner);
+    public TickAwaiter AfterUpdate()
+    {
+        if (Scheduler.CurrentMicroThread is null || SynchronizationContext.Current is null)
+            throw new Exception($"{nameof(AfterUpdate)} cannot be called out of the micro-thread context.");
+        return new TickAwaiter(_postTickRunner, Scheduler.CurrentMicroThread, SynchronizationContext.Current);
+    }
 
     /// <summary>
     /// Whether a physics test with <paramref name="mask"/> against <paramref name="collidable"/> should be performed or entirely ignored
@@ -366,7 +378,7 @@ public sealed class BepuSimulation : IDisposable
     public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
         if (handler.HitInformation.HasValue)
         {
             result = handler.HitInformation.Value;
@@ -397,7 +409,7 @@ public sealed class BepuSimulation : IDisposable
         fixed (HitInfoStack* ptr = &buffer[0])
         {
             var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
-            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
             return new (buffer[..handler.Head], new ManagedConverter(this));
         }
     }
@@ -414,7 +426,7 @@ public sealed class BepuSimulation : IDisposable
     public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
     }
 
     /// <summary>
@@ -557,7 +569,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Called by the BroadPhase.GetOverlaps to collect all encountered collidables.
     /// </summary>
-    struct BroadPhaseOverlapEnumerator : IBreakableForEach<CollidableReference>
+    private struct BroadPhaseOverlapEnumerator : IBreakableForEach<CollidableReference>
     {
         public QuickList<CollidableReference> References;
         //The enumerator never gets stored into unmanaged memory, so it's safe to include a reference type instance.
@@ -574,7 +586,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Provides callbacks for filtering and data collection to the CollisionBatcher we'll be using to test query shapes against the detected environment.
     /// </summary>
-    struct BatcherCallbacks<T> : ICollisionCallbacks where T : IOverlapCollector
+    private struct BatcherCallbacks<T> : ICollisionCallbacks where T : IOverlapCollector
     {
         public required CollisionMask CollisionMask;
         public required QuickList<CollidableReference> References;
@@ -605,7 +617,7 @@ public sealed class BepuSimulation : IDisposable
         }
     }
 
-    unsafe void OverlapInner<TShape, TCollector>(in TShape shape, in SRigidPose pose, CollisionMask collisionMask, ref TCollector collector) where TShape : unmanaged, IConvexShape where TCollector : IOverlapCollector
+    private unsafe void OverlapInner<TShape, TCollector>(in TShape shape, in SRigidPose pose, CollisionMask collisionMask, ref TCollector collector) where TShape : unmanaged, IConvexShape where TCollector : IOverlapCollector
     {
         fixed (TShape* queryShapeData = &shape)
         {
@@ -622,7 +634,7 @@ public sealed class BepuSimulation : IDisposable
 
             try
             {
-                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, ref broadPhaseEnumerator);
+                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, BufferPool, ref broadPhaseEnumerator);
 
                 var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, new()
                 {
@@ -749,49 +761,14 @@ public sealed class BepuSimulation : IDisposable
 
     private void SyncActiveTransformsWithPhysics()
     {
+        var job = new SyncTransformsJob(Simulation.Bodies, this);
         if (ParallelUpdate)
         {
-            Dispatcher.For(0, Simulation.Bodies.ActiveSet.Count, (i) => SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this));
+            Dispatcher.ForBatched(Simulation.Bodies.ActiveSet.Count, job);
         }
         else
         {
-            for (int i = 0; i < Simulation.Bodies.ActiveSet.Count; i++)
-            {
-                SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this);
-            }
-        }
-
-        static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
-        {
-            var collidable = bepuSim.GetComponent(body.Handle);
-
-            for (var item = collidable.Parent; item != null; item = item.Parent)
-            {
-                if (item.BodyReference is { } bRef)
-                {
-                    // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
-                    // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
-                    SyncTransformsWithPhysics(bRef, bepuSim);
-                    // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
-                    // It's not that likely but should still be documented as suboptimal somewhere
-                    item.Entity.Transform.Parent.UpdateWorldMatrix();
-                }
-            }
-
-            var localPosition = body.Pose.Position.ToStride();
-            var localRotation = body.Pose.Orientation.ToStride();
-
-            var entityTransform = collidable.Entity.Transform;
-            if (entityTransform.Parent is { } parent)
-            {
-                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
-                var iRotation = Quaternion.Invert(parentEntityRotation);
-                localPosition = Vector3.Transform(localPosition - parentEntityPosition, iRotation);
-                localRotation = localRotation * iRotation;
-            }
-
-            entityTransform.Rotation = localRotation;
-            entityTransform.Position = localPosition - Vector3.Transform(collidable.CenterOfMass, localRotation);
+            job.Process(0, Simulation.Bodies.ActiveSet.Count);
         }
     }
 
@@ -801,44 +778,14 @@ public sealed class BepuSimulation : IDisposable
         // a value of 0.5 means that we're halfway to the next physics update, just have to wait for the same amount of time.
         var interpolationFactor = (float)(_remainingUpdateTime.TotalSeconds / FixedTimeStep.TotalSeconds);
         interpolationFactor = MathF.Min(interpolationFactor, 1f);
+        var job = new InterpolateTransformsJob(interpolationFactor, _interpolatedBodies);
         if (ParallelUpdate)
         {
-            Dispatcher.For(0, _interpolatedBodies.Count, i => InterpolateBody(_interpolatedBodies[i], interpolationFactor));
+            Dispatcher.ForBatched(_interpolatedBodies.Count, job);
         }
         else
         {
-            foreach (var body in _interpolatedBodies)
-            {
-                InterpolateBody(body, interpolationFactor);
-            }
-        }
-
-        static void InterpolateBody(BodyComponent body, float interpolationFactor)
-        {
-            // Have to go through our parents to make sure they're up-to-date since we're reading from the parent's world matrix
-            // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
-            for (var item = body.Parent; item != null; item = item.Parent)
-            {
-                if (item is BodyComponent parentBody && parentBody.InterpolationMode != InterpolationMode.None)
-                {
-                    InterpolateBody(parentBody, interpolationFactor); // This one will take care of his parents too.
-                    // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
-                    // It's not that likely but should still be documented as suboptimal somewhere
-                    parentBody.Entity.Transform.Parent.UpdateWorldMatrix();
-                    break;
-                }
-            }
-
-            if (body.InterpolationMode == InterpolationMode.Extrapolated)
-                interpolationFactor += 1f;
-
-            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor).ToStride();
-            // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
-            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
-
-            body.WorldToLocal(ref interpolatedPosition, ref interpolatedRotation);
-            body.Entity.Transform.Position = interpolatedPosition;
-            body.Entity.Transform.Rotation = interpolatedRotation;
+            job.Process(0, _interpolatedBodies.Count);
         }
     }
 
@@ -864,6 +811,86 @@ public sealed class BepuSimulation : IDisposable
     internal void UnregisterInterpolated(BodyComponent body)
     {
         _interpolatedBodies.Remove(body);
+    }
+
+    private readonly struct InterpolateTransformsJob(float interpolationFactor, List<BodyComponent> bodies) : Dispatcher.IBatchJob
+    {
+        public void Process(int start, int endExclusive)
+        {
+            for (int i = start; i < endExclusive; i++)
+            {
+                InterpolateBody(bodies[i], interpolationFactor);
+            }
+        }
+
+        private static void InterpolateBody(BodyComponent body, float interpolationFactor)
+        {
+            // Have to go through our parents to make sure they're up-to-date since we're reading from the parent's world matrix
+            // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+            for (var parent = body.Parent; parent != null; parent = parent.Parent)
+            {
+                if (parent.InterpolationMode != InterpolationMode.None)
+                {
+                    InterpolateBody(parent, interpolationFactor); // This one will take care of his parents too.
+                    // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
+                    // It's not that likely but should still be documented as suboptimal somewhere
+                    parent.Entity.Transform.UpdateWorldMatrix();
+                    break;
+                }
+            }
+
+            if (body.InterpolationMode == InterpolationMode.Extrapolated)
+                interpolationFactor += 1f;
+
+            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor).ToStride();
+            // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
+            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
+
+            body.WorldToLocal(ref interpolatedPosition, ref interpolatedRotation);
+            body.Entity.Transform.Position = interpolatedPosition;
+            body.Entity.Transform.Rotation = interpolatedRotation;
+        }
+    }
+
+    private readonly struct SyncTransformsJob(Bodies bodies, BepuSimulation bepuSimulation) : Dispatcher.IBatchJob
+    {
+        public void Process(int start, int endExclusive)
+        {
+            for (int i = start; i < endExclusive; i++)
+            {
+                var bepuBody = bodies.GetBodyReference(bodies.ActiveSet.IndexToHandle[i]);
+                var strideBody = bepuSimulation.GetComponent(bepuBody);
+                SyncTransformsWithPhysics(bepuBody, strideBody);
+            }
+        }
+
+        private static void SyncTransformsWithPhysics(in BodyReference body, BodyComponent component)
+        {
+            if (component.Parent?.BodyReference is { } bRef)
+            {
+                // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+                // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+                SyncTransformsWithPhysics(bRef, component.Parent);
+                // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
+                // It's not that likely but should still be documented as suboptimal somewhere
+                component.Parent.Entity.Transform.UpdateWorldMatrix();
+            }
+
+            var localPosition = body.Pose.Position.ToStride();
+            var localRotation = body.Pose.Orientation.ToStride();
+
+            var entityTransform = component.Entity.Transform;
+            if (entityTransform.Parent is { } parent)
+            {
+                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+                var iRotation = Quaternion.Invert(parentEntityRotation);
+                localPosition = Vector3.Transform(localPosition - parentEntityPosition, iRotation);
+                localRotation = localRotation * iRotation;
+            }
+
+            entityTransform.Rotation = localRotation;
+            entityTransform.Position = localPosition - Vector3.Transform(component.CenterOfMass, localRotation);
+        }
     }
 
     /// <summary>
@@ -952,14 +979,14 @@ public sealed class BepuSimulation : IDisposable
     internal class AwaitRunner
     {
         private Lock _addLock = new();
-        private List<Action> _scheduled = new();
-        private List<Action> _processed = new();
+        private List<(Action action, SynchronizationContext context)> _scheduled = new();
+        private List<(Action action, SynchronizationContext context)> _processed = new();
 
-        public void Add(Action a)
+        public void Add(Action action, SynchronizationContext context)
         {
             lock (_addLock)
             {
-                _scheduled.Add(a);
+                _scheduled.Add((action, context));
             }
         }
 
@@ -970,8 +997,19 @@ public sealed class BepuSimulation : IDisposable
                 (_processed, _scheduled) = (_scheduled, _processed);
             }
 
-            foreach (var item in _processed)
-                item.Invoke();
+            foreach (var (action, context) in _processed)
+            {
+                var previousSyncContext = SynchronizationContext.Current;
+                SynchronizationContext.SetSynchronizationContext(context);
+                try
+                {
+                    action.Invoke();
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(previousSyncContext);
+                }
+            }
 
             _processed.Clear();
         }
@@ -980,20 +1018,30 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Await this struct to continue during a physics tick
     /// </summary>
-    public struct TickAwaiter : INotifyCompletion
+    public readonly struct TickAwaiter : INotifyCompletion
     {
-        private AwaitRunner _runner;
+        private readonly AwaitRunner _runner;
+        private readonly MicroThread _microThread;
+        private readonly SynchronizationContext _context;
 
-        internal TickAwaiter(AwaitRunner runner)
+        internal TickAwaiter(AwaitRunner runner, MicroThread microThread, SynchronizationContext context)
         {
             _runner = runner;
+            _microThread = microThread;
+            _context = context;
         }
 
-        public bool IsCompleted => false; // Forces the awaiter to call OnCompleted() right away to schedule asynchronous method continuation with our runner
+        public bool IsCompleted
+        {
+            get
+            {
+                return _microThread.IsOver;
+            }
+        }
 
-        public void OnCompleted(Action continuation) => _runner.Add(continuation);
+        public void OnCompleted(Action continuation) => _runner.Add(continuation, _context);
 
-        public void GetResult() { }
+        public void GetResult() => _microThread.CancellationToken.ThrowIfCancellationRequested();
 
         public TickAwaiter GetAwaiter() => this;
     }

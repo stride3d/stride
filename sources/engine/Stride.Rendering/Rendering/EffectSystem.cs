@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -63,9 +62,8 @@ namespace Stride.Rendering
         {
             base.Initialize();
 
-
             // Get graphics device service
-            base.InitGraphicsDeviceService();
+            InitializeGraphicsDeviceService();
 
 #if STRIDE_PLATFORM_DESKTOP
             Enabled = true;
@@ -99,7 +97,7 @@ namespace Stride.Rendering
             }
 
 #if STRIDE_PLATFORM_DESKTOP
-            if (directoryWatcher != null)
+            if (directoryWatcher is not null)
             {
                 directoryWatcher.Modified -= FileModifiedEvent;
                 directoryWatcher.Dispose();
@@ -127,7 +125,7 @@ namespace Stride.Rendering
                 return cachedEffects.ContainsKey(effect.Bytecode);
             }
         }
-        
+
         /// <summary>
         /// Loads the effect.
         /// </summary>
@@ -138,8 +136,8 @@ namespace Stride.Rendering
         /// <exception cref="System.InvalidOperationException">Could not compile shader. Need fallback.</exception>
         public TaskOrResult<Effect> LoadEffect(string effectName, CompilerParameters compilerParameters)
         {
-            if (effectName == null) throw new ArgumentNullException("effectName");
-            if (compilerParameters == null) throw new ArgumentNullException("compilerParameters");
+            ArgumentNullException.ThrowIfNull(effectName);
+            ArgumentNullException.ThrowIfNull(compilerParameters);
 
             // Setup compilation parameters
             // GraphicsDevice might have been not valid until this point, which is why we compute platform and profile only at this point
@@ -156,7 +154,7 @@ namespace Stride.Rendering
             // Only take the sub-effect
             var bytecode = compilerResult.Bytecode;
 
-            if (bytecode.Task != null && !bytecode.Task.IsCompleted)
+            if (bytecode.Task?.IsCompleted is false)
             {
                 // Ensure the continuation is scheduled on the thread pool or we might end up in a dead lock when then calling thread
                 // is already waiting on the result
@@ -175,10 +173,9 @@ namespace Stride.Rendering
 
         private static void CheckResult(LoggerResult compilerResult)
         {
-            // Check errors
             if (compilerResult.HasErrors)
             {
-                throw new InvalidOperationException("Could not compile shader. See error messages." + compilerResult.ToText());
+                throw new InvalidOperationException("Could not compile shader. See error messages: " + compilerResult.ToText());
             }
         }
 
@@ -192,9 +189,9 @@ namespace Stride.Rendering
 
                 if (effectBytecodeCompilerResult.CompilationLog.HasErrors)
                 {
-                    // Unregister result (or should we keep it so that failure never change?)
-                    List<CompilerResults> effectCompilerResults;
-                    if (earlyCompilerCache.TryGetValue(effectName, out effectCompilerResults))
+                    // Unregister result
+                    // TODO: Should we keep it so that failure never change?
+                    if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
                     {
                         effectCompilerResults.Remove(compilerResult);
                     }
@@ -202,9 +199,8 @@ namespace Stride.Rendering
 
                 CheckResult(effectBytecodeCompilerResult.CompilationLog);
 
-                var bytecode = effectBytecodeCompilerResult.Bytecode;
-                if (bytecode == null)
-                    throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
+                var bytecode = effectBytecodeCompilerResult.Bytecode
+                    ?? throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
 
                 if (!cachedEffects.TryGetValue(bytecode, out effect))
                 {
@@ -221,14 +217,13 @@ namespace Stride.Rendering
                             var pathUrl = storagePath + "/path";
                             if (FileProvider.FileExists(pathUrl))
                             {
-                                using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
-                                using (var reader = new StreamReader(pathStream))
-                                {
-                                    filePath = reader.ReadToEnd();
-                                }
-                            }                            
+                                using var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
+                                using var reader = new StreamReader(pathStream);
+
+                                filePath = reader.ReadToEnd();
+                            }
                         }
-                        if (filePath != null)
+                        if (filePath is not null)
                             directoryWatcher.Track(filePath);
                     }
 #endif
@@ -240,34 +235,36 @@ namespace Stride.Rendering
         private CompilerResults GetCompilerResults(string effectName, CompilerParameters compilerParameters)
         {
             // Compile shader
-            var isXkfx = ShaderMixinManager.Contains(effectName);
+            var isSdfx = ShaderMixinManager.Contains(effectName);
 
             // getting the effect from the used parameters only makes sense when the source files are the same
             // TODO: improve this by updating earlyCompilerCache - cache can still be relevant
 
             CompilerResults compilerResult = null;
 
-            if (isXkfx)
+            if (isSdfx)
             {
                 // perform an early test only based on the parameters
                 compilerResult = GetShaderFromParameters(effectName, compilerParameters);
             }
 
-            if (compilerResult == null)
+            if (compilerResult is null)
             {
-                var source = isXkfx ? new ShaderMixinGeneratorSource(effectName) : (ShaderSource)new ShaderClassSource(effectName);
+                var source = isSdfx
+                    ? new ShaderMixinGeneratorSource(effectName)
+                    : (ShaderSource) new ShaderClassSource(effectName);
+
                 compilerResult = compiler.Compile(source, compilerParameters);
 
                 EffectUsed?.Invoke(new EffectCompileRequest(effectName, new CompilerParameters(compilerParameters)), compilerResult);
 
-                if (!compilerResult.HasErrors && isXkfx)
+                if (!compilerResult.HasErrors && isSdfx)
                 {
                     lock (earlyCompilerCache)
                     {
-                        List<CompilerResults> effectCompilerResults;
-                        if (!earlyCompilerCache.TryGetValue(effectName, out effectCompilerResults))
+                        if (!earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
                         {
-                            effectCompilerResults = new List<CompilerResults>();
+                            effectCompilerResults = [];
                             earlyCompilerCache.Add(effectName, effectCompilerResults);
                         }
 
@@ -365,7 +362,7 @@ namespace Stride.Rendering
                     return null;
 
                 // Compiler Parameters are supposed to be created in the same order every time, so we just check if they were created in the same order (ParameterKeyInfos) with same values (ObjectValues)
-                
+
                 // TODO GRAPHICS REFACTOR we could probably compute a hash for faster lookup
                 foreach (var compiledResults in compilerResultsList)
                 {
@@ -394,9 +391,9 @@ namespace Stride.Rendering
                         {
                             var object1 = parameters.ObjectValues[parameterKeyInfo.BindingSlot + i];
                             var object2 = compiledParameters.ObjectValues[compiledParameterKeyInfo.BindingSlot + i];
-                            if (object1 == null && object2 == null)
+                            if (object1 is null && object2 is null)
                                 continue;
-                            if ((object1 == null && object2 != null) || (object2 == null && object1 != null))
+                            if ((object1 is null && object2 is not null) || (object2 is null && object1 is not null))
                                 goto different;
                             if (!object1.Equals(object2))
                                 goto different;

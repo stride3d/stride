@@ -23,7 +23,7 @@ namespace Stride.Core.Presentation.MarkupExtensions
         /// <param name="key">A string representing the key.</param>
         public KeyExtension([NotNull] string key)
         {
-            Key = (Key)Enum.Parse(typeof(Key), key, true);
+            Key = Enum.Parse<Key>(key, true);
         }
 
         /// <inheritdoc/>

@@ -40,15 +40,8 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Use grayscale antialiasing
         /// </summary>
-        /// <userdoc>Uses several levels of gray smooth the character edges. 
-        /// 'ClearType' .</userdoc>
+        /// <userdoc>Uses several levels of gray to smooth character edges.</userdoc>
         Grayscale = Default,
-
-        /// <summary>
-        /// Use cleartype antialiasing.
-        /// </summary>
-        /// <userdoc>Uses the display red/green/blue sub-pixels to smooth character edges</userdoc>
-        ClearType,
 
         /// <summary>
         /// Don't use any antialiasing

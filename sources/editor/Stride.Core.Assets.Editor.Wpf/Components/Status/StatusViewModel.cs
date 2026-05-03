@@ -72,7 +72,7 @@ namespace Stride.Core.Assets.Editor.Components.Status
                         if (CurrentJob == job)
                         {
                             job = null;
-                            foreach (JobPriority priority in Enum.GetValues(typeof(JobPriority)).Cast<JobPriority>().Reverse())
+                            foreach (JobPriority priority in Enum.GetValues<JobPriority>().Cast<JobPriority>().Reverse())
                             {
                                 var nextJob = jobList.LastOrDefault(x => x.Value.Priority == priority).Value;
                                 if (nextJob != null)

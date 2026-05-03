@@ -1,14 +1,11 @@
 <Project>
-
-  <Import Project="..\..\targets\Stride.Core.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
 
   <PropertyGroup>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
-    <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <RootNamespace>Stride.Core.Presentation</RootNamespace>
@@ -49,5 +46,5 @@
     <Resource Include="Resources\Images\warning-32.png" />
   </ItemGroup>
 
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

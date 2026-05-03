@@ -121,7 +121,7 @@ namespace Stride.Assets.Navigation
                 asset = value;
                 assetUrl = url;
                 
-                Version = 1; // Removed separate debug model stored in the navigation mesh
+                Version = 2;
             }
 
             protected override void ComputeParameterHash(BinarySerializationWriter writer)
@@ -331,7 +331,7 @@ namespace Stride.Assets.Navigation
                                                 object loadedHeightfieldInitialData;
                                                 if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
                                                 {
-                                                    loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
+                                                    loadedHeightfieldInitialData = contentManager.Load<Heightmap>(assetReference.Url);
                                                     loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
                                                 }
                                                 heightmapSource.Heightmap = loadedHeightfieldInitialData as Heightmap;

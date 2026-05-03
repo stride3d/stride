@@ -102,7 +102,7 @@ public class TestHybridDictionary
         var result = dictionary.Remove("key1");
 
         Assert.True(result);
-        Assert.Equal(1, dictionary.Count);
+        Assert.Single(dictionary);
         Assert.False(dictionary.ContainsKey("key1"));
     }
 
@@ -115,7 +115,7 @@ public class TestHybridDictionary
         var result = dictionary.Remove("key2");
 
         Assert.False(result);
-        Assert.Equal(1, dictionary.Count);
+        Assert.Single(dictionary);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class TestHybridDictionary
 
         dictionary.Clear();
 
-        Assert.Equal(0, dictionary.Count);
+        Assert.Empty(dictionary);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class TestHybridDictionary
         foreach (var kvp in dictionary)
         {
             count++;
-            Assert.True(kvp.Key.StartsWith("key"));
+            Assert.StartsWith("key", kvp.Key);
         }
 
         Assert.Equal(3, count);

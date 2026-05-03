@@ -12,7 +12,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\AnimatedModel.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup> 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AnimatedModel.Game\AnimatedModel.Game.csproj" />
   </ItemGroup>

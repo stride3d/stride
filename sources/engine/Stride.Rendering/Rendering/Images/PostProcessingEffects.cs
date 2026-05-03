@@ -452,7 +452,7 @@ namespace Stride.Rendering.Images
                 colorTransformsGroup.Parameters.Set(LuminanceEffect.LuminanceResult, new LuminanceResult(luminanceEffect.AverageLuminance, luminanceTexture));
 
                 if (luminanceTexture != null)
-                    context.CommandList.ResourceBarrierTransition(luminanceTexture, GraphicsResourceState.PixelShaderResource);
+                    context.CommandList.ResourceBarrierTransition(luminanceTexture, BarrierLayout.ShaderResource);
             }
 
             if (BrightFilter.Enabled && (Bloom.Enabled || LightStreak.Enabled || LensFlare.Enabled))

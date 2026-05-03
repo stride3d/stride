@@ -100,7 +100,7 @@ public class ThumbnailGenerator : IDisposable
         Services.AddService<IContentManager>(ContentManager);
         Services.AddService(ContentManager);
 
-        GraphicsDevice = GraphicsDevice.New();
+        GraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
         GraphicsContext = new GraphicsContext(GraphicsDevice);
         GraphicsCommandList = GraphicsContext.CommandList;
         Services.AddService(GraphicsContext);

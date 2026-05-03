@@ -171,7 +171,7 @@ namespace Stride.Rendering.Lights
             var shaderData = shaderDataPool.Add();
             lightShadowMap.ShaderData = shaderData;
 
-            shaderData.ProjectiveTextureMipMapLevel = (float)(lightParameters.ProjectionTexture.MipLevels - 1) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
+            shaderData.ProjectiveTextureMipMapLevel = (float)(lightParameters.ProjectionTexture.MipLevelCount - 1) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
             shaderData.WorldToTextureUV = ComputeWorldToTextureUVMatrix(lightComponent); // View-projection matrix without offset to cascade.
         }
 
@@ -275,7 +275,7 @@ namespace Stride.Rendering.Lights
 
                         // We use the maximum number of mips instead of the actual number,
                         // so things like video textures behave more consistently when changing the number of mip maps to generate.
-                        int maxMipMapCount = Texture.CountMips(lightParameters.ProjectionTexture.Width, lightParameters.ProjectionTexture.Height);
+                        int maxMipMapCount = Texture.CountMipLevels(lightParameters.ProjectionTexture.Width, lightParameters.ProjectionTexture.Height);
                         float projectiveTextureMipMapLevel = (float)(maxMipMapCount - 1) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
                         projectionTextureMipMapLevels[lightIndex] = projectiveTextureMipMapLevel;
                         transitionAreas[lightIndex] = Math.Max(spotLight.TransitionArea, 0.001f);   // Keep the value just above zero. This is to prevent some issues with the "smoothstep()" function on OpenGL and OpenGL ES.

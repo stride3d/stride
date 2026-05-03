@@ -207,7 +207,7 @@ namespace Stride.Core.Presentation.Controls
             return new Matrix(array);
         }
 
-        protected override Matrix? UpateValueFromFloat(float value)
+        protected override Matrix? UpdateValueFromFloat(float value)
         {
             return new Matrix(value);
         }

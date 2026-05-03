@@ -144,7 +144,7 @@ namespace Stride.Assets.Presentation.Templates
             scriptContent = scriptContent.Replace("##Namespace##", parameters.Namespace);
             scriptContent = scriptContent.Replace("##Scriptname##", location.GetFileNameWithoutExtension());
 
-            var asset = (ScriptSourceFileAsset)ObjectFactoryRegistry.NewInstance(typeof(ScriptSourceFileAsset));
+            var asset = ObjectFactoryRegistry.NewInstance<ScriptSourceFileAsset>();
             asset.Id = SourceCodeAsset.GenerateIdFromLocation(parameters.Package.Meta.Name, location);
             asset.Text = scriptContent;
             yield return new AssetItem(location, asset);

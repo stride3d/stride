@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Runtime.CompilerServices;
-using SharpFont;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -19,7 +17,7 @@ namespace Stride.Graphics.Font
         private readonly int pitch;
         private readonly int grayLevels;
 
-        private readonly PixelMode pixelMode;
+        private readonly FreeTypePixelMode pixelMode;
 
         private readonly IntPtr buffer;
 
@@ -42,15 +40,15 @@ namespace Stride.Graphics.Font
         /// <param name="rows">The height of the bitmap</param>
         /// <param name="pitch">The pitch of the bitmap</param>
         /// <param name="grayLevels">The number of gray levels of the bitmap</param>
-        public CharacterBitmap(IntPtr data, ref Int2 borderSize, int width, int rows, int pitch, int grayLevels, PixelMode pixelMode)
+        public CharacterBitmap(IntPtr data, ref Int2 borderSize, int width, int rows, int pitch, int grayLevels, FreeTypePixelMode pixelMode)
         {
             // add one empty border to each side of the bitmap
             width += 2 * borderSize.X;
             rows += 2 * borderSize.Y;
 
-            buffer = Utilities.AllocateMemory(width * rows, 1);
+            buffer = MemoryUtilities.Allocate(width * rows, 1);
 
-            if (pixelMode == PixelMode.Mono)
+            if (pixelMode == FreeTypePixelMode.Mono)
                 CopyAndAddBordersFromMono(data, buffer, ref borderSize, width, rows, pitch);
             else
                 CopyAndAddBordersFromGrays(data, buffer, ref borderSize, width, rows);
@@ -68,8 +66,8 @@ namespace Stride.Graphics.Font
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = width * borderSize.Y;
-            Utilities.Clear((byte*)dataBytes, (uint)resetBorderLineSize);
-            Utilities.Clear((byte*)dataBytes + width * rows - resetBorderLineSize, (uint)resetBorderLineSize); // set last border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes, (uint)resetBorderLineSize);
+            MemoryUtilities.Clear((byte*)dataBytes + width * rows - resetBorderLineSize, (uint)resetBorderLineSize); // set last border lines to null
 
             var src = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
@@ -104,8 +102,8 @@ namespace Stride.Graphics.Font
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = (uint)(width * borderSize.Y);
-            Utilities.Clear((byte*)dataBytes, resetBorderLineSize); // set first border lines to null 
-            Utilities.Clear((byte*)dataBytes + rows * width - resetBorderLineSize, resetBorderLineSize); // set last border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes, resetBorderLineSize); // set first border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes + rows * width - resetBorderLineSize, resetBorderLineSize); // set last border lines to null
 
             var rowSrc = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
@@ -221,7 +219,7 @@ namespace Stride.Graphics.Font
 
         /// <summary>
         /// Gets the number of gray levels used in the bitmap. This field is only used with
-        /// <see cref="SharpFont.PixelMode.Gray"/>.
+        /// <see cref="FreeTypePixelMode.Gray"/>.
         /// </summary>
         public int GrayLevels
         {
@@ -237,7 +235,7 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Gets the pixel mode, i.e., how pixel bits are stored.
         /// </summary>
-        public PixelMode PixelMode
+        public FreeTypePixelMode PixelMode
         {
             get
             {
@@ -253,7 +251,7 @@ namespace Stride.Graphics.Font
             if (IsDisposed)
                 return;
 
-            Utilities.FreeMemory(buffer);
+            MemoryUtilities.Free(buffer);
 
             disposed = true;
         }

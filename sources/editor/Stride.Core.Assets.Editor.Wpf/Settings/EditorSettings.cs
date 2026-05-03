@@ -72,11 +72,6 @@ namespace Stride.Core.Assets.Editor.Settings
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Usage Analytics")}",
                 Description = Tr._p("Settings", "Anonymous usage analytics to help the Stride community improve the software. Statistics on installation, version-specific usage, and platform popularity. The data is open-source at https://metrics.stride3d.net")
             };
-            StoreCrashEmail = new SettingsKey<string>("Interface/StoreCrashEmail", SettingsContainer, "")
-            {
-                DisplayName = $"{Interface}/{Tr._p("Settings", "Crash report e-mail")}",
-                Description = Tr._p("Settings", "Crash report e-mail"),
-            };
             Language = new SettingsKey<SupportedLanguage>("Interface/Language", SettingsContainer, SupportedLanguage.MachineDefault)
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Language")}",
@@ -111,8 +106,6 @@ namespace Stride.Core.Assets.Editor.Settings
         public static SettingsKey<bool> AutoReloadAssemblies { get; }
 
         public static SettingsKey<bool> AskBeforeSavingNewScripts { get; }
-
-        public static SettingsKey<string> StoreCrashEmail { get; }
 
         public static SettingsKey<SupportedLanguage> Language { get; }
 

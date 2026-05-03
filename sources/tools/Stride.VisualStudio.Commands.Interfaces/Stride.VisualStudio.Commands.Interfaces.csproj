@@ -1,6 +1,5 @@
 <Project>
-  <Import Project="..\..\targets\Stride.props" />
-
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFrameworks>$(StrideEditorTargetFramework);net472</TargetFrameworks>
     <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
@@ -10,6 +9,5 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="ServiceWire" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

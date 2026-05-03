@@ -15,6 +15,8 @@ using Stride.Core.Mathematics;
 using Xunit;
 using Stride.Engine;
 using Stride.Graphics.Regression;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Stride.BepuPhysics.Tests
 {
@@ -119,6 +121,56 @@ namespace Stride.BepuPhysics.Tests
                 c.A = null;
 
                 Assert.False(c.Attached);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void ThreadContextTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                var thread = Thread.CurrentThread;
+
+                game.ScreenShotAutomationEnabled = false;
+
+                var e1 = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var e2 = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var e3 = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new EntityComponent[] { e1, e2, e3 }.Select(x => new Entity { x }));
+
+                await Task.Run(() =>
+                {
+                    Assert.NotEqual(Thread.CurrentThread, thread);
+                });
+
+                Assert.Equal(Thread.CurrentThread, thread);
+
+                await e1.Simulation!.AfterUpdate();
+
+                Assert.Equal(Thread.CurrentThread, thread);
+
+                await Task.Run(() =>
+                {
+                    Assert.NotEqual(Thread.CurrentThread, thread);
+                });
+
+                Assert.Equal(Thread.CurrentThread, thread);
+
+                await e1.Simulation!.NextUpdate();
+
+                Assert.Equal(Thread.CurrentThread, thread);
+
+                await Task.Run(() =>
+                {
+                    Assert.NotEqual(Thread.CurrentThread, thread);
+                });
+
+                Assert.Equal(Thread.CurrentThread, thread);
 
                 game.Exit();
             });
@@ -293,7 +345,7 @@ namespace Stride.BepuPhysics.Tests
                 while (contactE.Exit == false)
                     await simulation.AfterUpdate();
 
-                Assert.NotEmpty(contactE.ImpactForces.Where(x => x.Length() > 100));
+                Assert.Contains(contactE.ImpactForces, x => x.Length() > 100);
 
                 game.Exit();
             });

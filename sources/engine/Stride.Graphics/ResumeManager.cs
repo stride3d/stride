@@ -47,7 +47,7 @@ namespace Stride.Graphics
                 {
                     if (resource.OnPause())
                         resource.LifetimeState = GraphicsResourceLifetimeState.Paused;
-                } 
+                }
             }
         }
 
@@ -62,7 +62,7 @@ namespace Stride.Graphics
                         resource.OnResume();
                         resource.LifetimeState = GraphicsResourceLifetimeState.Active;
                     }
-                } 
+                }
             }
         }
 
@@ -108,23 +108,30 @@ namespace Stride.Graphics
                     // Attach the list of objects that could not be recreated to the exception.
                     var destroyedObjects = graphicsDevice.Resources.Where(x => x.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
                     throw new InvalidOperationException("Could not recreate all objects.") { Data = { { "DestroyedObjects", destroyedObjects } } };
-                } 
+                }
             }
         }
 
-        public void OnDestroyed()
+        /// <summary>
+        ///   Called when the Resume Manager is being destroyed.
+        /// </summary>
+        /// <param name="immediately">
+        ///   A value indicating whether the resources used by the Resume Manager should be destroyed immediately
+        ///   (<see langword="true"/>), or if it can be deferred until it's safe to do so (<see langword="false"/>).
+        /// </param>
+        public void OnDestroyed(bool immediately = false)
         {
             lock (graphicsDevice.Resources)
             {
                 foreach (var resource in graphicsDevice.Resources)
                 {
-                    resource.OnDestroyed();
+                    resource.OnDestroyed(immediately);
                     resource.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
-                } 
+                }
             }
 
             // Clear various graphics device internal states (input layouts, FBOs, etc...)
-            graphicsDevice.OnDestroyed();
+            graphicsDevice.OnDestroyed(immediately);
         }
 
         public void OnReload()
@@ -141,7 +148,7 @@ namespace Stride.Graphics
                             resource.LifetimeState = GraphicsResourceLifetimeState.Active;
                         }
                     }
-                } 
+                }
             }
         }
     }

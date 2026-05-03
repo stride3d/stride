@@ -20,7 +20,6 @@ namespace Stride.Core.Presentation.Behaviors
     /// </summary>
     public class OnPropertyChangedCommandBehavior : Behavior<FrameworkElement>
     {
-        private string propertyName;
         private readonly DependencyPropertyWatcher propertyWatcher = new DependencyPropertyWatcher();
         private DependencyProperty dependencyProperty;
 
@@ -48,7 +47,7 @@ namespace Stride.Core.Presentation.Behaviors
         /// Gets or sets the name of the dependency property that will trigger the associated command.
         /// </summary>
         /// <remarks>Changing this property after the behavior has been attached will have no effect.</remarks>
-        public string PropertyName { get { return propertyName; } set { if (AssociatedObject == null) propertyName = value; } }
+        public string PropertyName { get { return field; } set { if (AssociatedObject == null) field = value; } }
 
         /// <summary>
         /// Gets or sets the command to execute when the property is modified.

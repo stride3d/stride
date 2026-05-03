@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -73,7 +72,7 @@ namespace Stride.Extensions
 
                 foreach (var index in sortedIndices)
                 {
-                    Utilities.CopyWithAlignmentFallback(
+                    MemoryUtilities.CopyWithAlignmentFallback(
                         destination: newIndexBufferPointer,
                         source: oldIndexDataStart + index * polyIndicesSize,
                         byteCount: polyIndicesSize);

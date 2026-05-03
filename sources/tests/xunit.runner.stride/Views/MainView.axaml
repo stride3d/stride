@@ -7,7 +7,11 @@
              x:Class="xunit.runner.stride.Views.MainView"
              x:DataType="vm:MainViewModel">
   <DockPanel DataContext="{Binding Tests}">
-    <CheckBox DockPanel.Dock="Top" Content="Interactive Mode" IsChecked="{Binding IsInteractiveMode}"/>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+      <CheckBox Content="Interactive Mode" IsChecked="{Binding IsInteractiveMode}" IsEnabled="{Binding HasInteractiveMode}"/>
+		<Separator Opacity="0" Width="10"/>
+      <CheckBox Content="Force Save Image" IsChecked="{Binding IsForceSaveImage}" IsEnabled="{Binding HasForceSaveImage}"/>
+    </StackPanel>
     <ProgressBar DockPanel.Dock="Top"
                  Height="16"
                  Minimum="0" Maximum="100" Value="{Binding TestCompletion}" />

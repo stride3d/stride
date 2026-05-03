@@ -32,7 +32,7 @@ namespace FreeImageAPI
 				FreeImage.GetBPP(dib) * FreeImage.GetWidth(dib) :
 				typeof(T) == typeof(FI4BIT) ?
 				FreeImage.GetBPP(dib) * FreeImage.GetWidth(dib) / 4 :
-				(FreeImage.GetBPP(dib) * FreeImage.GetWidth(dib)) / (Marshal.SizeOf(typeof(T)) * 8)))
+				(FreeImage.GetBPP(dib) * FreeImage.GetWidth(dib)) / (Marshal.SizeOf<T>() * 8)))
 		{
 		}
 

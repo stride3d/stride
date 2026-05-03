@@ -287,6 +287,19 @@ public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<Object
     /// <param name="buffer">The byte buffer.</param>
     /// <returns>The hash of the object.</returns>
     /// <exception cref="System.ArgumentNullException">buffer</exception>
+    public static ObjectId FromBytes(ReadOnlySpan<byte> buffer)
+    {
+        var builder = new ObjectIdBuilder();
+        builder.Write(buffer);
+        return builder.ComputeHash();
+    }
+
+    /// <summary>
+    /// Computes a hash from a byte buffer.
+    /// </summary>
+    /// <param name="buffer">The byte buffer.</param>
+    /// <returns>The hash of the object.</returns>
+    /// <exception cref="System.ArgumentNullException">buffer</exception>
     public static ObjectId FromBytes(byte[] buffer)
     {
 #if NET7_0_OR_GREATER

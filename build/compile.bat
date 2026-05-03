@@ -50,11 +50,11 @@ if %ERRORLEVEL% NEQ 0 (
     echo Cannot find msbuild.
     goto exit
 )
-rem Check that msbuild is version 15 or greater
+rem Check that msbuild is version 17 or greater (VS 2022+)
 for /f "tokens=1 delims=." %%i in ('msbuild /nologo /version') do set __BuildVersion=%%i
 
-if %__BuildVersion% LSS 15 (
-    echo MSbuild version 15 or greater is required
+if %__BuildVersion% LSS 17 (
+    echo MSBuild version 17 or greater is required (Visual Studio 2022+)
     goto exit
 )
 
@@ -71,12 +71,12 @@ call :compile
 set __SkipTestBuild=%__OldSkipTestBuild%
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Stride.Android.sln
+set Project=Stride.Android.slnf
 set _platform_target=Android
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Stride.iOS.sln
+set Project=Stride.iOS.slnf
 set _platform_target=iPhone
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit

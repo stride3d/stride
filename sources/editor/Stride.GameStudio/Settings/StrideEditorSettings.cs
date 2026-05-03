@@ -51,10 +51,6 @@ namespace Stride.GameStudio
             {
                 DisplayName = $"{Remote}/{Tr._p("Settings", "X Display")}"
             };
-            UseCoreCLR = new SettingsKey<bool>("Remote/UseCoreCLR", EditorSettings.SettingsContainer, false)
-            {
-                DisplayName = $"{Remote}/{Tr._p("Settings", "Use CoreCLR")}"
-            };
         }
 
         public static SettingsKey<UFile> StartupSession { get; }
@@ -93,11 +89,6 @@ namespace Stride.GameStudio
         /// Name of display where game will be launched on remote <seealso cref="Host"/>.
         /// </summary>
         public static SettingsKey<string> Display { get; }
-
-        /// <summary>
-        /// Name of display where game will be launched on remote <seealso cref="Host"/>.
-        /// </summary>
-        public static SettingsKey<bool> UseCoreCLR { get; }
 
         /// <summary>
         /// Save settings

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -87,7 +86,7 @@ namespace Stride.Rendering.ProceduralModels
 
         public void Generate(IServiceRegistry services, Model model)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            ArgumentNullException.ThrowIfNull(model);
 
             var needsTempDevice = false;
             var graphicsDevice = services?.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
@@ -147,7 +146,7 @@ namespace Stride.Rendering.ProceduralModels
             var meshDraw = new MeshDraw();
 
             var layout = result.Layout;
-            var vertexBuffer = result.VertexBuffer;
+            var vertexBufferData = result.VertexBuffer;
             var indices = data.Indices;
 
             if (indices.Length < 0xFFFF)
@@ -179,11 +178,12 @@ namespace Stride.Rendering.ProceduralModels
                 }
             }
 
-            meshDraw.VertexBuffers = new[] { new VertexBufferBinding(Buffer.New(graphicsDevice, vertexBuffer, BufferFlags.VertexBuffer).RecreateWith(vertexBuffer), layout, data.Vertices.Length) };
+            var vertexBuffer = Buffer.New(graphicsDevice, vertexBufferData, BufferFlags.VertexBuffer, GraphicsResourceUsage.Default);
+            meshDraw.VertexBuffers = [ new VertexBufferBinding(vertexBuffer.RecreateWith(vertexBufferData), layout, data.Vertices.Length) ];
             if (needsTempDevice)
             {
-                var vertexData = BufferData.New(BufferFlags.VertexBuffer, vertexBuffer);
-                meshDraw.VertexBuffers = new[] { new VertexBufferBinding(vertexData.ToSerializableVersion(), layout, data.Vertices.Length) };
+                var vertexData = BufferData.New(BufferFlags.VertexBuffer, vertexBufferData);
+                meshDraw.VertexBuffers = [ new VertexBufferBinding(vertexData.ToSerializableVersion(), layout, data.Vertices.Length) ];
             }
 
             meshDraw.DrawCount = indices.Length;

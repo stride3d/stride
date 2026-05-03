@@ -29,4 +29,5 @@
 - [ ] All new and existing tests passed.
 - [ ] **I have built and run the editor to try this change out.**
 
-<!-- Consider opening a draft PR for initial review. -->
+<!--- Open this PR as a draft if it isn't ready yet, you can do so by clicking on the arrow next to the 'Create pull request' button. -->
+<!--- You will be able to set it back as ready to be reviewed anytime after it has been created. -->

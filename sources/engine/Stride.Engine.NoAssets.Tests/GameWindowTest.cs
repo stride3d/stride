@@ -2,29 +2,30 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
-using Stride.Core.Mathematics;
-using Stride.Graphics;
-using Stride.Graphics.Regression;
-using Stride.Rendering.Sprites;
+
 using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics.Regression;
 using Stride.Games;
 
 namespace Stride.Engine.Tests
 {
     public class GameWindowTest : GameTestBase
     {
-        [Theory]
-        [InlineData(AppContextType.Desktop)]
+        [SkippableTheory]
+        [InlineData(AppContextType.DesktopWinForms)]
         [InlineData(AppContextType.DesktopSDL)]
         public void RenderToWindow(AppContextType contextType)
         {
+            Skip.If(Platform.Type == PlatformType.Linux && contextType == AppContextType.DesktopWinForms, reason: "WinForms not available on Linux");
+
             PerformTest(game =>
             {
                 var context = GameContextFactory.NewGameContext(contextType, isUserManagingRun: true);
                 var windowRenderer = new GameWindowRenderer(game.Services, context)
                 {
                     PreferredBackBufferWidth = 640,
-                    PreferredBackBufferHeight = 480,
+                    PreferredBackBufferHeight = 480
                 };
                 windowRenderer.Initialize();
                 ((IContentable)windowRenderer).LoadContent();
@@ -34,9 +35,8 @@ namespace Stride.Engine.Tests
 
                 windowRenderer.BeginDraw();
                 game.GraphicsContext.CommandList.Clear(windowRenderer.Presenter.BackBuffer, Color.Blue);
-                windowRenderer.EndDraw();
-
                 game.SaveImage(windowRenderer.Presenter.BackBuffer, "Clear");
+                windowRenderer.EndDraw();
 
                 windowRenderer.Dispose();
             });

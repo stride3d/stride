@@ -25,9 +25,9 @@ namespace Stride.TextureConverter
             int widthCount = width;
             int heightCount = height;
 
-            int bpp = fmt.SizeInBits();
+            int bpp = fmt.SizeInBits;
 
-            if (fmt.IsCompressed())
+            if (fmt.IsCompressed)
             {
                 widthCount = Math.Max(1, (width + 3) / 4);
                 heightCount = Math.Max(1, (height + 3) / 4);
@@ -35,7 +35,7 @@ namespace Stride.TextureConverter
 
                 slicePitch = rowPitch * heightCount;
             }
-            else if (fmt.IsPacked())
+            else if (fmt.IsPacked)
             {
                 rowPitch = ((width + 1) >> 1) * 4;
 
@@ -44,7 +44,7 @@ namespace Stride.TextureConverter
             else
             {
                 if (bpp == 0)
-                    bpp = fmt.SizeInBits();
+                    bpp = fmt.SizeInBits;
 
                 rowPitch = (width * bpp + 7) / 8;
                 slicePitch = rowPitch * height;
@@ -61,7 +61,7 @@ namespace Stride.TextureConverter
         /// </returns>
         public static bool IsInSameChannelOrder(PixelFormat format1, PixelFormat format2)
         {
-            return format1.IsBGRAOrder() && format2.IsBGRAOrder() || format1.IsRGBAOrder() && format2.IsRGBAOrder();
+            return format1.IsBgraOrder && format2.IsBgraOrder || format1.IsRgbaOrder && format2.IsRgbaOrder;
         }
     }
 }

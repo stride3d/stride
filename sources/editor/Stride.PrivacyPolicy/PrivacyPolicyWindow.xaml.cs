@@ -38,9 +38,11 @@ namespace Stride.PrivacyPolicy
 
         private void ButtonPrivacyPolicyAccepted(object sender, RoutedEventArgs e)
         {
-            if (PrivacyPolicyAccepted)
-                PrivacyPolicyHelper.AcceptStride40();
-
+            if (PrivacyPolicyAccepted && !PrivacyPolicyHelper.AcceptStride40())
+            {
+                MessageBox.Show("Failed to save Stride 4.0 agreement.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            
             Close();
         }
 

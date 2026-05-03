@@ -19,12 +19,12 @@ internal static class Module
             {
                 try
                 {
-                    return NativeLibraryHelper.PreloadLibrary(name, typeof(T));
+                    NativeLibraryHelper.PreloadLibrary(name, typeof(T));
                 }
                 catch (Exception)
                 {
-                    return nint.Zero;
                 }
+                return NativeLibraryHelper.ResolvePreloadedLibrary(typeof(T).Assembly, name);
             });
         }
     }

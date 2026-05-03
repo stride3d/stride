@@ -1,0 +1,27 @@
+name: "Dep: Build spirv_to_dxil (Mesa)"
+
+# Skeleton workflow — the full implementation lives on the sdsl-rewrite branch.
+# This exists on master only so the workflow is triggerable via workflow_dispatch
+# with the expected inputs. Checkout the sdsl-rewrite branch ref to run the real build.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Mesa git URL
+        default: https://gitlab.freedesktop.org/mesa/mesa.git
+        required: false
+      ref:
+        description: Mesa ref to build (branch, tag, SHA, or refs/merge-requests/<id>/head)
+        default: main
+        required: false
+
+jobs:
+  placeholder:
+    name: Skeleton (run on sdsl-rewrite branch for real build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: |
+          echo "This is a skeleton. The real build is on the sdsl-rewrite branch."
+          echo "Trigger this workflow against that branch ref to run the actual build."

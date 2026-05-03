@@ -67,6 +67,9 @@ changelog:
     - title: 🖥️ UI
       labels:
         - area-UI
+    - title: 🤖 AI
+      labels:
+        - area-AI
     - title: 💪 Other Changes
       labels:
         - "*"

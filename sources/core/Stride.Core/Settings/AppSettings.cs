@@ -6,7 +6,7 @@ namespace Stride.Core.Settings;
 /// <summary>
 /// Collection of runtime loaded application settings. See also <seealso cref="AppSettingsManager"/>.
 /// </summary>
-[DataContract("AppSettings")]
+[DataContract(nameof(AppSettings))]
 public sealed class AppSettings : IEnumerable<object>
 {
     /// <summary>

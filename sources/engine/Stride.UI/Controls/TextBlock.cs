@@ -254,7 +254,7 @@ namespace Stride.UI.Controls
 
             var sizeRatio = LayoutingContext.RealVirtualResolutionRatio;
             var measureFontSize = new Vector2(sizeRatio.Y * ActualTextSize); // we don't want letters non-uniform ratio
-            var realSize = Font.MeasureString(ref textToMeasure, ref measureFontSize);
+            var realSize = Font.MeasureString(textToMeasure, measureFontSize);
 
             // force pre-generation if synchronous generation is required
             if (SynchronousCharacterGeneration)

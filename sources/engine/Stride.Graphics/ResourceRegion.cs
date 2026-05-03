@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,55 +23,78 @@
 
 using System.Runtime.InteropServices;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Defines a 3D box with integer coordinates, represented as the coordinates of its minimum (left, top, front)
+///   and maximum (right, bottom, back) corners.
+/// </summary>
+/// <remarks>
+///   The values for <see cref="Right"/>, <see cref="Bottom"/>, and <see cref="Back"/> are each one pixel
+///   past the end of the pixels that are included in the box region.
+///   <para/>
+///   That is, the values for <see cref="Left"/>, <see cref="Top"/>, and <see cref="Front"/> are included
+///   in the box region while the values for <see cref="Right"/>, <see cref="Bottom"/>, and <see cref="Back"/>
+///   are excluded from the box region.
+///   <para/>
+///   For example, for a box that is one pixel wide, where <c>(Right - Left) == 1</c>, the box region includes
+///   the left pixel but not the right pixel.
+/// </remarks>
+/// <remarks>
+///   Initializes a new resource region structure from its coordinates.
+/// </remarks>
+/// <param name="left">The X position of the left hand side of the box.</param>
+/// <param name="top">The Y position of the top of the box.</param>
+/// <param name="front">The Z position of the front of the box.</param>
+/// <param name="right">The X position of the right hand side of the box.</param>
+/// <param name="bottom">The Y position of the bottom of the box.</param>
+/// <param name="back">The Z position of the back of the box.</param>
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public partial struct ResourceRegion(int left, int top, int front, int right, int bottom, int back)
 {
     /// <summary>
-    /// <p>Defines a 3D box.</p>
+    ///   The X position of the left hand side of the box.
     /// </summary>
-    /// <remarks>
-    /// <p>The following diagram shows a 3D box, where the origin is the left, front, top corner.</p><p></p><p>The values for <strong>right</strong>, <strong>bottom</strong>, and <strong>back</strong> are each one pixel past the end of the pixels that are included in the box region.  That is, the values for <strong>left</strong>, <strong>top</strong>, and <strong>front</strong> are included in the box region while the values for right, bottom, and back are excluded from the box region. For example, for a box that is one pixel wide, (right - left) == 1; the box region includes the left pixel but not the right pixel.</p>
-    /// </remarks>
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public partial struct ResourceRegion
-    {
-        public ResourceRegion(int left, int top, int front, int right, int bottom, int back)
-        {
-            Left = left;
-            Top = top;
-            Front = front;
-            Right = right;
-            Bottom = bottom;
-            Back = back;
-        }
+    public int Left = left;
 
-        /// <summary>
-        /// <dd> <p>The x position of the left hand side of the box.</p> </dd>
-        /// </summary>
-        public int Left;
+    /// <summary>
+    ///   The Y position of the top of the box.
+    /// </summary>
+    public int Top = top;
 
-        /// <summary>
-        /// <dd> <p>The y position of the top of the box.</p> </dd>
-        /// </summary>
-        public int Top;
+    /// <summary>
+    ///   The Z position of the front of the box.
+    /// </summary>
+    public int Front = front;
 
-        /// <summary>
-        /// <dd> <p>The z position of the front of the box.</p> </dd>
-        /// </summary>
-        public int Front;
+    /// <summary>
+    ///   The X position of the right hand side of the box.
+    /// </summary>
+    public int Right = right;
 
-        /// <summary>
-        /// <dd> <p>The x position of the right hand side of the box.</p> </dd>
-        /// </summary>
-        public int Right;
+    /// <summary>
+    ///   The Y position of the bottom of the box.
+    /// </summary>
+    public int Bottom = bottom;
 
-        /// <summary>
-        /// <dd> <p>The y position of the bottom of the box.</p> </dd>
-        /// </summary>
-        public int Bottom;
+    /// <summary>
+    ///   The Z position of the back of the box.
+    /// </summary>
+    public int Back = back;
 
-        /// <summary>
-        /// <dd> <p>The z position of the back of the box.</p> </dd>
-        /// </summary>
-        public int Back;
-    }
+
+    /// <summary>
+    ///   Gets the width of the box (i.e. <c><see cref="Right"/> - <see cref="Left"/></c>).
+    /// </summary>
+    public readonly int Width => Right - Left;
+
+    /// <summary>
+    ///   Gets the height of the box (i.e. <c><see cref="Bottom"/> - <see cref="Top"/></c>).
+    /// </summary>
+    public readonly int Height => Bottom - Top;
+
+    /// <summary>
+    ///   Gets the depth of the box (i.e. <c><see cref="Back"/> - <see cref="Front"/></c>).
+    /// </summary>
+    public readonly int Depth => Back - Front;
 }

@@ -80,7 +80,6 @@ jobs:
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ needs.Setup.outputs.build-type }} \
             -p:StridePlatforms=Linux \
-            -p:StrideGraphicsApis=OpenGL \
             -p:StrideSkipUnitTests=true \
             -p:StrideSkipAutoPack=true
 
@@ -91,19 +90,18 @@ jobs:
     needs: Setup
     if: ${{ needs.Setup.outputs.platform == 'Windows' }} 
     name: Windows (${{ needs.Setup.outputs.build-type }})
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
-      - uses: microsoft/setup-msbuild@v2
+          dotnet-version: '10.0.x'
       - name: Build
         run: |
-          msbuild build\Stride.Editor.Avalonia.slnf `
-            -restore -m:1 -nr:false `
+          dotnet build build\Stride.Editor.Avalonia.slnf `
+            -restore -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ needs.Setup.outputs.build-type }} `
             -p:StridePlatforms=Windows `

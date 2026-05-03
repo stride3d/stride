@@ -1,0 +1,156 @@
+<Window x:Class="Stride.Editor.CrashReport.CrashReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="380" Width="580"
+        Topmost="True"
+        SizeToContent="Height"
+        MaxHeight="380"
+        Background="{DynamicResource BackgroundBrush}" 
+        Title="Report your crash"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+  <Window.Resources>
+    <ResourceDictionary>
+        <DrawingGroup x:Key="ICrashReportImage">
+            <DrawingGroup.ClipGeometry>
+                <RectangleGeometry Rect="0.0,0.0,96.0,96.0"/>
+            </DrawingGroup.ClipGeometry>
+            <DrawingGroup Transform="0.24517827,0.0,0.0,0.24517827,0.92585455,1.5050045">
+                <DrawingGroup>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="#fc000000">
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 43.365 321.985 c -4.271 -4.496 -5.347 -6.285 -5.5 -18.485 c -0.079 -6.314 0.052 -34.04 0.066 -37 c 0.263 -55.672 -0.905 -56.1 3.354 -65.809 c 10.49 -23.915 26.24 -25.707 27.572 -26.176 c 1.809 -0.638 1.396 -1.157 1.12 -3.033 c -1.139 -7.745 3.646 -13.085 -4.08 -11.709 c -26.624 4.742 -24.197 24.377 -33.273 30.379 c -3.244 2.147 -8.554 -3.08 -9.447 -4.806 c -2.101 -4.062 3.789 -16.576 8.928 -23.673 c 6.996 -9.66 14.478 -11.752 17.806 -14.105 c 2.989 -2.114 -2.82 -2.262 -3.883 -13.086 c -0.523 -5.319 4.084 -12.357 10.9 -14.739 c 10.16 -3.551 16.556 3.972 17.653 5.038 c 3.615 3.514 4.27 2.004 9.275 1.963 c 14.194 -0.117 15.196 0.94 16.19 2.631 c 3.947 6.717 -0.697 14.018 5.829 13.355 c 4 -0.407 3.976 -0.245 7.973 -0.108 c 4.525 0.156 5.078 -2.701 10.167 -4.637 c 3.298 -1.255 34.503 -9.511 34.807 -9.589 c 10.063 -2.574 13.308 -3.163 15.112 7.091 c 0.439 2.499 0.575 20.807 0.221 29.028 c -0.295 6.835 -4.344 9.658 -6.312 9.937 c -2.048 0.291 -34.964 -8.471 -43.926 -11.193 c -5.535 -1.681 -5.032 -4.438 -10.072 -4.491 c -9.193 -0.095 -9.473 -1.04 -10.662 0.095 c -1.217 1.16 -0.957 12.126 -0.928 12.606 c 0.221 3.662 1.393 3.1 4.543 4.195 c 11.465 3.985 18.603 13.041 23.49 23.644 c 4.482 9.724 3.862 11.44 3.826 65.192 c -0.034 50.65 1.095 52.391 -6.516 58.69 c -4.112 3.402 -4.58 3.755 -54.748 3.706 c -23.159 -0.022 -23.77 0.142 -29.485 -4.911 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 227.654 160.735 c 1.015 0.087 0.966 0.194 1.975 0.17 c 1.94 -0.047 1.944 0.709 1.946 0.88 c 0.003 0.463 -0.933 0.571 -0.93 1.034 c -0.22 -0.173 0.104 -0.661 -0.117 -0.834 c -0.115 -0.091 -0.132 -0.023 -1.803 -0.315 c -0.357 -0.312 -0.714 -0.623 -1.071 -0.935 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 280.792 143.806 c 0.414 -0.166 0.632 -0.67 1.047 -0.836 c 0.318 -0.127 0.702 -0.103 1.026 0.008 c 0.601 0.206 0.387 0.535 1.022 0.696 c 0.519 0.131 0.458 -0.322 0.959 -0.196 l -1.102 0.655 c -1.483 -0.285 -1.455 -0.34 -2.952 -0.327 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 279.806 143.611 l 0.986 0.195 c 1.497 -0.013 1.469 0.042 2.952 0.327 c -1.557 0.263 -1.578 0.668 -2.838 0.149 c -0.397 -0.164 -0.703 -0.508 -1.1 -0.671 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 284.02 189.449 c 0.13 0.156 0.396 0.153 0.527 0.309 c 0.289 0.347 0.006 0.859 1.31 0.819 c 0.322 -0.01 0.628 -0.162 0.949 -0.172 c -0.386 0.149 -0.645 0.543 -1.031 0.692 c -0.135 0.051 -0.968 0.372 -1.618 -0.8 c -0.139 -0.25 0.002 -0.598 -0.137 -0.848 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 356.112 194.15 l 0.792 0.277 c 0.355 0.314 0.71 0.628 1.065 0.941 c -0.142 -0.023 -1.785 -0.289 -1.785 -0.289 c -0.235 -0.203 0.163 -0.726 -0.072 -0.929 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 228.725 161.67 c 1.671 0.292 1.688 0.224 1.803 0.315 c 0.221 0.173 -0.103 0.661 0.117 0.834 c -0.64 -0.383 -1.28 -0.766 -1.92 -1.149 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 355.034 193.233 c 1.011 0.508 0.963 0.51 1.87 1.194 l -0.792 -0.277 c -0.359 -0.306 -0.719 -0.611 -1.078 -0.917 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry Figures="m 359.926 154.815 c -0.684 0.252 -1.369 0.505 -2.054 0.757 c 0.685 -0.252 1.37 -0.505 2.054 -0.757 z"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                    <DrawingGroup>
+                        <DrawingGroup>
+                            <GeometryDrawing Brush="#fffc365b">
+                                <GeometryDrawing.Geometry>
+                                    <PathGeometry Figures="m 206.148 98.952 l 79.08 -46.577 l 75.862 44.531 l -79.086 46.573 z" FillRule="Nonzero"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#fffc365b">
+                                <GeometryDrawing.Geometry>
+                                    <PathGeometry Figures="m 202.746 145.422 v -40.575 l 75.945 44.578 V 190 Z" FillRule="Nonzero"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#fffc365b">
+                                <GeometryDrawing.Geometry>
+                                    <PathGeometry Figures="m 285.314 190.001 v -40.575 l 37.973 -22.289 l 34.561 20.288 l -72.534 42.577 z" FillRule="Nonzero"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#fffc365b">
+                                <GeometryDrawing.Geometry>
+                                    <PathGeometry Figures="M 361.259 190.001 L 330.01 171.659 L 361.259 153.315 Z" FillRule="Nonzero"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#fffc365b">
+                                <GeometryDrawing.Geometry>
+                                    <PathGeometry Figures="m 281.809 243.233 l -80.871 -47.194 l 38.245 -21.582 l 42.82 25.381 l 41.282 -24.233 l 37.042 21.463 z" FillRule="Nonzero"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                        </DrawingGroup>
+                    </DrawingGroup>
+                </DrawingGroup>
+            </DrawingGroup>
+        </DrawingGroup>
+        <DrawingImage Drawing="{StaticResource ICrashReportImage}" x:Key="CrashReportImage"/>
+    </ResourceDictionary>
+  </Window.Resources>
+
+  <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+    
+        <Image Source="{StaticResource CrashReportImage}"/>
+        
+        <TextBlock Grid.Column="1" TextWrapping="WrapWithOverflow" Margin="10,0,0,0">
+          Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}"/> has crashed.
+          Please help us improve Stride by sending information about this crash through Github Issues.
+        </TextBlock>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Margin="0,10,0,0">
+
+          <Button x:Name="buttonViewLog" Content="View report"
+                  Width="100" Margin="0,0,10,0"
+                  Click="ButtonViewLog_Click" />
+          
+          <Button Content="Copy report"
+                  Width="100" Margin="0,0,10,0"
+                  Click="ButtonCopyReport_Click" />
+
+            <Button Content="Save report"
+                    Width="100" Margin="0,0,10,0"
+                    Click="ButtonSaveReport_Click" />
+
+            <Button Content="Open Github Issues"
+                    Width="140" Margin="0,0,10,0"
+                    HorizontalAlignment="Right"
+                    Click="ButtonOpenGithubIssues_Click" />
+        </StackPanel>
+
+        <TextBox Grid.Row="3" Grid.ColumnSpan="2"
+                 Visibility="Collapsed"
+                 Margin="0,10,0,0"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 Name="textBoxLog" />
+    </Grid>
+</Window>

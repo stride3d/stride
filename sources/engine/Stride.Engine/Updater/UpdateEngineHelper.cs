@@ -26,78 +26,17 @@ namespace Stride.Updater
             => ((nint*)Unsafe.AsPointer(ref o))[0];
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe T PointerToObject<T>(nint address) where T : class
-            #if false
-            ldarga.s address
-            conv.u
-            nop         // call !!0& Unsafe::AsRef(void*) /* ldarg.0; ret */
-            ldobj !!T
-            ret
-            #endif
             => Unsafe.AsRef<T>(&address);
         /// <summary>Copies the value out of the pinned box.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe T PointerToStruct<T>(nint address) where T : struct
-            #if false
-            ldarga.s address
-            conv.u
-            nop         // call !!0& Unsafe::AsRef<object>(void*) /* ldarg.0; ret */
-            ldind.ref
-            unbox.any !!T
-            ret
-            #endif
             => (T)Unsafe.AsRef<object>(&address);
         /// <summary>Obtains a reference to the object at the specified address,
         /// then unboxes the value of type <typeparamref name="T"/> and
         /// returns the controlled-mutability managed pointer.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe ref T RefBoxedStruct<T>(nint address) where T : struct
-            #if false
-            ldarga.s address
-            conv.u
-            nop         // call !!0& Unsafe::AsRef<object>(void*) /* ldarg.0; ret */
-            ldobj System.Object
-            unbox !!T
-            ret
-            #endif
             => ref Unsafe.Unbox<T>(PointerToObject<object>(address));
-
-        [Obsolete("Use ObjectToPointer instead.")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IntPtr ObjectToPtr(object obj)
-        {
-#if IL
-            ldarg obj
-            conv.i
-            ret
-#endif
-            throw new NotImplementedException();
-        }
-
-        [Obsolete("Use PointerToObject instead.")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T PtrToObject<T>(IntPtr obj) where T : class
-        {
-#if IL
-            object convObj; // TEMP XAMARIN AOT FIX -- DOES NOT WORK FOR VALUE TYPE PROPERTIES
-            ldarg obj
-            stloc convObj // TEMP XAMARIN AOT FIX -- DOES NOT WORK FOR VALUE TYPE PROPERTIES
-            ldloc convObj // TEMP XAMARIN AOT FIX -- DOES NOT WORK FOR VALUE TYPE PROPERTIES
-            ret
-#endif
-            throw new NotImplementedException();
-        }
-
-        [Obsolete("Use Unsafe.Unbox instead.")]
-        [MethodImpl(MethodImplOptions.NoInlining)] // Needed for Xamarin AOT
-        public static IntPtr Unbox<T>(object obj)
-        {
-#if IL
-            ldarg obj
-            unbox !!T
-            ret
-#endif
-            throw new NotImplementedException();
-        }
 
         private static int ComputeArrayFirstElementOffset()
         {

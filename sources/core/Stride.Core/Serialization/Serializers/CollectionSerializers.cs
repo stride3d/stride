@@ -323,7 +323,7 @@ public class BlittableArraySerializer<T> : ArraySerializer<T> where T : unmanage
     {
         var span = MemoryMarshal.Cast<T, byte>(array.AsSpan());
         if (mode == ArchiveMode.Deserialize)
-            stream.UnderlyingStream.Read(span);
+            stream.UnderlyingStream.ReadExactly(span);
         else if (mode == ArchiveMode.Serialize)
             stream.UnderlyingStream.Write(span);
     }

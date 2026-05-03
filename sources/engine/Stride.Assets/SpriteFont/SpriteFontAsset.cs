@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Yaml;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -17,9 +18,10 @@ namespace Stride.Assets.SpriteFont
     [CategoryOrder(10, "Font")]
     [CategoryOrder(30, "Rendering")]
     [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.PackageName, "2.0.0.0", "2.1.0.0", typeof(ClearTypeToGrayscaleUpgrader))]
     public partial class SpriteFontAsset : Asset
     {
-        private const string CurrentVersion = "2.0.0.0";
+        private const string CurrentVersion = "2.1.0.0";
 
         /// <summary>
         /// The default file extension used by the <see cref="SpriteFontAsset"/>.
@@ -111,5 +113,19 @@ namespace Stride.Assets.SpriteFont
         [DataMemberRange(-500, 500, 1, 10, 2)]
         [Display(null, "Rendering")]
         public float LineGapBaseLineFactor { get; set; } = 1.0f;
+
+        private class ClearTypeToGrayscaleUpgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                var fontType = asset.FontType;
+                if (fontType == null)
+                    return;
+
+                string antiAlias = fontType.AntiAlias;
+                if (antiAlias == "ClearType")
+                    fontType.AntiAlias = "Default";
+            }
+        }
     }
 }

@@ -1,0 +1,106 @@
+name: Unlist Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to unlist (e.g. 4.3.0.2286-beta01)
+        required: true
+        type: string
+      dry-run:
+        description: Dry run (list packages without unlisting)
+        default: true
+        type: boolean
+
+jobs:
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release permissions
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
+          if [ "$STATUS" = "fail" ]; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Unlisting requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  Unlist:
+    name: Unlist ${{ inputs.version }}
+    needs: Validate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Find and unlist Stride packages
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}"
+          $dryRun = $${{ inputs.dry-run }}
+
+          # Query NuGet for all packages owned by Stride
+          $searchUrl = "https://api-v2v3search-0.nuget.org/query?q=owner:stride&take=500&prerelease=true"
+          $results = Invoke-RestMethod -Uri $searchUrl
+          $stridePackages = $results.data | Where-Object { $_.id -like "Stride*" } | Select-Object -ExpandProperty id
+
+          echo "Found $($stridePackages.Count) Stride packages on NuGet.org"
+
+          $found = @()
+          $notFound = @()
+
+          foreach ($id in $stridePackages) {
+            # Check if this specific version exists
+            $versionUrl = "https://api.nuget.org/v3-flatcontainer/$($id.ToLower())/index.json"
+            try {
+              $versions = Invoke-RestMethod -Uri $versionUrl -ErrorAction Stop
+              if ($versions.versions -contains $version.ToLower()) {
+                $found += $id
+              }
+            } catch {
+              # Package version listing failed, skip
+            }
+          }
+
+          echo ""
+          echo "## Packages with version $version : $($found.Count)"
+          foreach ($id in $found) {
+            echo "  - $id"
+          }
+
+          if ($dryRun) {
+            echo ""
+            echo "** DRY RUN - no packages were unlisted **"
+            echo "Uncheck 'Dry run' to actually unlist these packages."
+          } else {
+            echo ""
+            $failed = @()
+            foreach ($id in $found) {
+              echo "Unlisting $id $version..."
+              dotnet nuget delete $id $version --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --non-interactive
+              if ($LASTEXITCODE -ne 0) { $failed += $id }
+            }
+
+            if ($failed.Count -gt 0) {
+              echo ""
+              echo "::error::Failed to unlist $($failed.Count) packages: $($failed -join ', ')"
+              exit 1
+            }
+
+            echo ""
+            echo "Successfully unlisted $($found.Count) packages for version $version"
+          }
+
+          # Step summary
+          echo "## Unlist Release" >> $env:GITHUB_STEP_SUMMARY
+          echo "**Version:** $version" >> $env:GITHUB_STEP_SUMMARY
+          echo "**Mode:** $(if ($dryRun) { 'Dry run' } else { 'Live' })" >> $env:GITHUB_STEP_SUMMARY
+          echo "**Packages:** $($found.Count)" >> $env:GITHUB_STEP_SUMMARY
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+          $found | ForEach-Object { echo $_ >> $env:GITHUB_STEP_SUMMARY }
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}

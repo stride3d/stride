@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using Stride.Core.Serialization;
@@ -40,14 +41,14 @@ internal class DtMeshDataSerializer(SerializationStream stream)
             if (isNull)
                 continue;
             
-            for (int i = 0; i < 3; i++)
-            {
-                stream.Write(t.bmin[i]);
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                stream.Write(t.bmax[i]);
-            }
+            stream.Write(t.bmin.X);
+            stream.Write(t.bmin.Y);
+            stream.Write(t.bmin.Z);
+
+            stream.Write(t.bmax.X);
+            stream.Write(t.bmax.Y);
+            stream.Write(t.bmax.Z);
+
             stream.Write(t.i);
         }
     }
@@ -173,10 +174,13 @@ internal class DtMeshDataSerializer(SerializationStream stream)
                 continue;
             }
             var node = new DtBVNode();
-            for (int j = 0; j < 3; j++) 
-                node.bmin[j] = stream.Read<int>();
-            for (int j = 0; j < 3; j++) 
-                node.bmax[j] = stream.Read<int>();
+            node.bmin.X = stream.Read<int>();
+            node.bmin.Y = stream.Read<int>();
+            node.bmin.Z = stream.Read<int>();
+
+            node.bmax.X = stream.Read<int>();
+            node.bmax.Y = stream.Read<int>();
+            node.bmax.Z = stream.Read<int>();
             node.i = stream.Read<int>();
             
             arr[i] = node;
@@ -207,7 +211,7 @@ internal class DtMeshDataSerializer(SerializationStream stream)
         int count = stream.Read<int>();
         var arr = new DtPolyDetail[count];
         for (int i = 0; i < count; i++)
-            arr[i] = new DtPolyDetail(stream.Read<int>(),stream.Read<int>(),stream.Read<int>(),stream.Read<int>());
+            arr[i] = new DtPolyDetail(stream.Read<int>(),stream.Read<int>(),stream.Read<byte>(),stream.Read<byte>());
         return arr;
     }
 

@@ -11,15 +11,6 @@ namespace Stride.GameStudio.ViewModels
     /// </summary>
     public class EditionPanelViewModel : DispatcherViewModel
     {
-        private bool sessionExplorerPanelVisible = true;
-        private bool assetViewPanelVisible = true;
-        private bool referencesPanelVisible = true;
-        private bool assetPreviewPanelVisible = true;
-        private bool propertyGridPanelVisible = true;
-        private bool actionHistoryPanelVisible = true;
-        private bool assetLogPanelVisible = true;
-        private bool buildLogPanelVisible = true;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EditionPanelViewModel"/> class.
         /// </summary>
@@ -32,42 +23,42 @@ namespace Stride.GameStudio.ViewModels
         /// <summary>
         /// Gets or sets whether the session explorer panel is visible.
         /// </summary>
-        public bool SessionExplorerPanelVisible { get { return sessionExplorerPanelVisible; } set { SetValue(ref sessionExplorerPanelVisible, value, GameStudioInternalSettings.SessionExplorerPanelVisible); } }
+        public bool SessionExplorerPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.SessionExplorerPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the asset view panel is visible.
         /// </summary>
-        public bool AssetViewPanelVisible { get { return assetViewPanelVisible; } set { SetValue(ref assetViewPanelVisible, value, GameStudioInternalSettings.AssetViewPanelVisible); } }
+        public bool AssetViewPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.AssetViewPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the references panel is visible.
         /// </summary>
-        public bool ReferencesPanelVisible { get { return referencesPanelVisible; } set { SetValue(ref referencesPanelVisible, value, GameStudioInternalSettings.ReferencesPanelVisible); } }
+        public bool ReferencesPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.ReferencesPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the preview panel is visible.
         /// </summary>
-        public bool AssetPreviewPanelVisible { get { return assetPreviewPanelVisible; } set { SetValue(ref assetPreviewPanelVisible, value, GameStudioInternalSettings.AssetPreviewPanelVisible); } }
+        public bool AssetPreviewPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.AssetPreviewPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the property grid panel is visible.
         /// </summary>
-        public bool PropertyGridPanelVisible { get { return propertyGridPanelVisible; } set { SetValue(ref propertyGridPanelVisible, value, GameStudioInternalSettings.PropertyGridPanelVisible); } }
+        public bool PropertyGridPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.PropertyGridPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the action history panel is visible.
         /// </summary>
-        public bool ActionHistoryPanelVisible { get { return actionHistoryPanelVisible; } set { SetValue(ref actionHistoryPanelVisible, value, GameStudioInternalSettings.ActionHistoryPanelVisible); } }
+        public bool ActionHistoryPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.ActionHistoryPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the asset log panel is visible.
         /// </summary>
-        public bool AssetLogPanelVisible { get { return assetLogPanelVisible; } set { SetValue(ref assetLogPanelVisible, value, GameStudioInternalSettings.AssetLogPanelVisible); } }
+        public bool AssetLogPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.AssetLogPanelVisible); } } = true;
 
         /// <summary>
         /// Gets or sets whether the build log panel is visible.
         /// </summary>
-        public bool BuildLogPanelVisible { get { return buildLogPanelVisible; } set { SetValue(ref buildLogPanelVisible, value, GameStudioInternalSettings.BuildLogPanelVisible); } }
+        public bool BuildLogPanelVisible { get; set { SetValue(ref field, value, GameStudioInternalSettings.BuildLogPanelVisible); } } = true;
 
         /// <summary>
         /// Loads the visible/hidden status of each panel from the settings.

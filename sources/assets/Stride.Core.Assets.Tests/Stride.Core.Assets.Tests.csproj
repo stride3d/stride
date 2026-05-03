@@ -1,26 +1,13 @@
 <Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\core\Stride.Core.Design.Tests\TestMemberPathBase.cs">
@@ -60,5 +47,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

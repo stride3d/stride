@@ -1,0 +1,120 @@
+name: Release VS Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Code sign packages
+        default: true
+        type: boolean
+      deploy:
+        description: Deploy to NuGet.org
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-vspackage-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
+          if [ "$STATUS" = "fail" ]; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  Package:
+    name: Package VS Extension
+    needs: Validate
+    runs-on: windows-2025-vs2026
+    environment: production
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            10.0.x
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build VS Package
+        run: |
+          msbuild build\Stride.build `
+            /t:VSIXPlugin `
+            /bl /m /nr:false `
+            /p:StrideSign=${{ inputs.sign }}
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $nupkg = Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | Select-Object -First 1
+          if ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$') {
+            echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Upload VSIX artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: bin/vsix/*.nupkg
+          if-no-files-found: error
+          retention-days: 30
+
+  Deploy:
+    name: Deploy VS Package
+    if: ${{ inputs.deploy && inputs.sign }}
+    needs: Package
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download VSIX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix
+          path: bin/vsix
+
+      - name: Push to NuGet
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | ForEach-Object {
+            echo "Pushing $($_.Name)..."
+            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          }
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}

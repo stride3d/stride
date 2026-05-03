@@ -114,7 +114,7 @@ namespace Stride.Rendering.Compositing
         /// </summary>
         /// <remarks>
         /// This is needed by some effects such as particles soft edges.
-        /// 
+        ///
         /// On recent platforms that can bind depth buffer as read-only (<see cref="GraphicsDeviceFeatures.HasDepthAsReadOnlyRT"/>), depth buffer will be used as is. Otherwise, a copy will be generated.
         /// </remarks>
         [DefaultValue(true)]
@@ -138,12 +138,8 @@ namespace Stride.Rendering.Compositing
                 actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax);
 
                 // Note: we cannot support MSAA on DX10 now
-                if (GraphicsDevice.Features.HasMultisampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
-                    GraphicsDevice.Platform != GraphicsPlatform.OpenGL &&
-                    GraphicsDevice.Platform != GraphicsPlatform.OpenGLES)
+                if (GraphicsDevice.Features.HasMultiSampleDepthAsSRV == false)
                 {
-                    // OpenGL has MSAA support on every version.
-                    // OpenGL ES has MSAA support starting from version 3.0.
                     // Direct3D has MSAA support starting from version 11 because it requires multisample depth buffers as shader resource views.
                     // Therefore we force-disable MSAA on any platform that doesn't support MSAA.
 
@@ -201,7 +197,7 @@ namespace Stride.Rendering.Compositing
                         {
                             if (overlay != null && overlay.Texture != null)
                             {
-                                overlay.Overlay = VRSettings.VRDevice.CreateOverlay(overlay.Texture.Width, overlay.Texture.Height, overlay.Texture.MipLevels, (int)overlay.Texture.MultisampleCount);
+                                overlay.Overlay = VRSettings.VRDevice.CreateOverlay(overlay.Texture.Width, overlay.Texture.Height, overlay.Texture.MipLevelCount, (int)overlay.Texture.MultisampleCount);
                             }
                         }
                     }
@@ -646,7 +642,8 @@ namespace Stride.Rendering.Compositing
                         var vrFullFrameSize = VRSettings.VRDevice.ActualRenderFrameSize;
                         var desiredRenderTargetSize = !hasPostEffects ? vrFullFrameSize : new Size2(vrFullFrameSize.Width / 2, vrFullFrameSize.Height);
                         if (hasPostEffects || desiredRenderTargetSize.Width != currentRenderTarget.Width || desiredRenderTargetSize.Height != currentRenderTarget.Height)
-                            drawContext.CommandList.SetRenderTargets(null, null); // force to create and bind a new render target
+                            // Force to create and bind a new render target
+                            drawContext.CommandList.SetRenderTargets([]);
 
                         PrepareRenderTargets(drawContext, desiredRenderTargetSize);
 
@@ -687,7 +684,7 @@ namespace Stride.Rendering.Compositing
                                     }
                                 }
 
-                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
+                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                                 if (!hasPostEffects && !isWindowsMixedReality) // need to change the viewport between each eye
                                 {
@@ -746,7 +743,7 @@ namespace Stride.Rendering.Compositing
 
                     using (drawContext.PushRenderTargetsAndRestore())
                     {
-                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
+                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                         // Clear render target and depth stencil
                         Clear?.Draw(drawContext);
@@ -782,8 +779,10 @@ namespace Stride.Rendering.Compositing
             if (!BindDepthAsResourceDuringTransparentRendering)
                 return null;
 
-            var depthStencil = context.CommandList.DepthStencilBuffer;
-            var depthStencilSRV = context.Resolver.ResolveDepthStencil(context.CommandList.DepthStencilBuffer);
+            var commandList = context.CommandList;
+
+            var depthStencil = commandList.DepthStencilBuffer;
+            var depthStencilSRV = context.Resolver.ResolveDepthStencil(commandList.DepthStencilBuffer);
 
             var renderView = context.RenderContext.RenderView;
 
@@ -795,7 +794,7 @@ namespace Stride.Rendering.Compositing
                 }
             }
 
-            context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            commandList.SetRenderTargets(depthStencilView: null, commandList.RenderTargets);
 
             var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
             if (depthStencilROCached != this.depthStencilROCached)
@@ -804,7 +803,7 @@ namespace Stride.Rendering.Compositing
                 this.depthStencilROCached?.Dispose();
                 this.depthStencilROCached = depthStencilROCached;
             }
-            context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            commandList.SetRenderTargets(depthStencilROCached, commandList.RenderTargets);
 
             return depthStencilSRV;
         }
@@ -855,7 +854,7 @@ namespace Stride.Rendering.Compositing
                     currentRenderTargets[index] = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(textureDescription));
                 }
 
-                drawContext.CommandList.ResourceBarrierTransition(currentRenderTargets[index], GraphicsResourceState.RenderTarget);
+                drawContext.CommandList.ResourceBarrierTransition(currentRenderTargets[index], BarrierLayout.RenderTarget);
             }
 
             // Prepare depth buffer
@@ -869,7 +868,7 @@ namespace Stride.Rendering.Compositing
                 var textureDescription = TextureDescription.New2D(description.Width, description.Height, 1, description.Format, TextureFlags.DepthStencil | TextureFlags.ShaderResource, 1, GraphicsResourceUsage.Default, actualMultisampleCount);
                 currentDepthStencil = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(textureDescription));
             }
-            drawContext.CommandList.ResourceBarrierTransition(currentDepthStencil, GraphicsResourceState.DepthWrite);
+            drawContext.CommandList.ResourceBarrierTransition(currentDepthStencil, BarrierLayout.DepthStencilWrite);
         }
 
         /// <summary>

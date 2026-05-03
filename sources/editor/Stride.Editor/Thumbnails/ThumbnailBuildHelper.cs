@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Editor.Resources;
@@ -50,7 +51,7 @@ public class ThumbnailBuildHelper : IDisposable
         // If first time, let's create graphics device and resources
         if (staticGraphicsDevice == null)
         {
-            staticGraphicsDevice = GraphicsDevice.New();
+            staticGraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
             staticSpriteBatch = new SpriteBatch(staticGraphicsDevice);
         }
 

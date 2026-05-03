@@ -144,7 +144,7 @@ namespace Stride.Rendering.Lights
                 int specularCubemapLevels = 0;
                 if (specularCubemap != null)
                 {
-                    specularCubemapLevels = specularCubemap.MipLevels;
+                    specularCubemapLevels = specularCubemap.MipLevelCount;
                 }
 
                 // global parameters

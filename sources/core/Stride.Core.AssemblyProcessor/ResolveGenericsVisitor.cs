@@ -65,6 +65,21 @@ class ResolveGenericsVisitor : CecilTypeReferenceVisitor
         return result;
     }
 
+    /// <summary>
+    /// Creates a visitor that maps generic parameters from <paramref name="source"/> to <paramref name="target"/>.
+    /// Returns null if the source has no generic parameters.
+    /// </summary>
+    public static ResolveGenericsVisitor? FromMapping(IGenericParameterProvider source, IGenericParameterProvider target)
+    {
+        if (source.GenericParameters.Count == 0)
+            return null;
+
+        var mapping = new Dictionary<TypeReference, TypeReference>();
+        for (int i = 0; i < source.GenericParameters.Count; i++)
+            mapping[source.GenericParameters[i]] = target.GenericParameters[i];
+        return new ResolveGenericsVisitor(mapping);
+    }
+
     public override TypeReference Visit(GenericParameter type)
     {
         TypeReference typeParent = type;

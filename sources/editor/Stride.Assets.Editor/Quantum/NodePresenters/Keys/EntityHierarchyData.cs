@@ -11,8 +11,8 @@ namespace Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 internal static class EntityHierarchyData
 {
     public const string EntityComponentAvailableTypes = nameof(EntityComponentAvailableTypes);
-    public static readonly PropertyKey<IEnumerable<AbstractNodeType>> EntityComponentAvailableTypesKey = new(EntityComponentAvailableTypes, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty));
+    public static readonly PropertyKey<IEnumerable<AbstractNodeType>> EntityComponentAvailableTypesKey = new(EntityComponentAvailableTypes, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperties<AbstractNodeType>));
 
     public const string EntityComponentAvailableTypeGroups = nameof(EntityComponentAvailableTypeGroups);
-    public static readonly PropertyKey<IEnumerable<AbstractNodeTypeGroup>> EntityComponentAvailableTypeGroupsKey = new(EntityComponentAvailableTypeGroups, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty));
+    public static readonly PropertyKey<IEnumerable<AbstractNodeTypeGroup>> EntityComponentAvailableTypeGroupsKey = new(EntityComponentAvailableTypeGroups, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperties<AbstractNodeTypeGroup>));
 }

@@ -34,7 +34,8 @@ public sealed class SessionNodeUpdater : AssetNodePresenterUpdaterBase
         if (AssetRegistry.CanPropertyHandleAssets(node.Type, out var assetTypes))
         {
             var thumbnailService = session.ServiceProvider.TryGet<IThumbnailService>();
-            node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, thumbnailService is not null && !assetTypes.All(thumbnailService.HasStaticThumbnail));
+            if (thumbnailService != null)
+                node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, thumbnailService is not null && !assetTypes.All(thumbnailService.HasStaticThumbnail));
         }
     }
 }

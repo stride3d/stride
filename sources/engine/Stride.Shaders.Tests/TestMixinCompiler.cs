@@ -48,7 +48,7 @@ namespace Stride.Shaders.Tests
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shading"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Transformation"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Utils"));
-            var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.OpenGL } };
+            var compilerParameters = CreateCompilerParameters(GraphicsPlatform.Direct3D11);
 
             var layers = new MaterialBlendLayers();
             layers.Add(new MaterialBlendLayer
@@ -115,7 +115,7 @@ namespace Stride.Shaders.Tests
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shading"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Transformation"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Utils"));
-            var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
+            var compilerParameters = CreateCompilerParameters(GraphicsPlatform.Direct3D11);
             var results = compiler.Compile(new ShaderClassSource("TestStream"), compilerParameters);
 
             Assert.False(results.HasErrors);
@@ -133,7 +133,7 @@ namespace Stride.Shaders.Tests
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Mixins"));
 
-            var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
+            var compilerParameters = CreateCompilerParameters(GraphicsPlatform.Direct3D11);
 
             var subCompute1Key = TestABC.TestParameters.UseComputeColor2.ComposeWith("SubCompute1");
             var subCompute2Key = TestABC.TestParameters.UseComputeColor2.ComposeWith("SubCompute2");
@@ -225,48 +225,24 @@ namespace Stride.Shaders.Tests
                 compiler.SourceDirectories.Add("assets/shaders");
                 var compilerCache = new EffectCompilerCache(compiler, database);
 
-                var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
+                var compilerParameters = CreateCompilerParameters(GraphicsPlatform.Direct3D11);
 
                 left = compilerCache.Compile(new ShaderMixinGeneratorSource("SimpleEffect"), compilerParameters);
                 right = compilerCache.Compile(new ShaderMixinGeneratorSource("SimpleEffect"), compilerParameters);
             }
         }
 
-        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
-        public void TestGlslCompiler()
+
+        /// <summary>
+        ///   Creates the compiler parameters for the specified graphics platform.
+        /// </summary>
+        /// <param name="platform">The graphics platform.</param>
+        /// <returns>The created <see cref="CompilerParameters"/>.</returns>
+        private static CompilerParameters CreateCompilerParameters(GraphicsPlatform platform)
         {
-            VirtualFileSystem.RemountFileSystem("/shaders", "../../../../shaders");
-            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Stride.Graphics/Shaders");
-            VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
-
-
-            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
-
-            compiler.SourceDirectories.Add("shaders");
-            compiler.SourceDirectories.Add("compiler");
-            compiler.SourceDirectories.Add("baseShaders");
-
-            var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.OpenGL } };
-
-            var results = compiler.Compile(new ShaderMixinGeneratorSource("ToGlslEffect"), compilerParameters);
-        }
-
-        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
-        public void TestGlslESCompiler()
-        {
-            VirtualFileSystem.RemountFileSystem("/shaders", "../../../../shaders");
-            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Stride.Graphics/Shaders");
-            VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
-
-            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
-
-            compiler.SourceDirectories.Add("shaders");
-            compiler.SourceDirectories.Add("compiler");
-            compiler.SourceDirectories.Add("baseShaders");
-
-            var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.OpenGLES } };
-
-            var results = compiler.Compile(new ShaderMixinGeneratorSource("ToGlslEffect"), compilerParameters);
+            var compilerParameters = new CompilerParameters();
+            compilerParameters.EffectParameters.Platform = platform;
+            return compilerParameters;
         }
     }
 }

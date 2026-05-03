@@ -20,13 +20,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+
 using System;
 using System.Globalization;
 using System.Windows.Forms;
-#if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_API_NULL
-using SharpDX.Win32;
-#endif
 using System.Runtime.InteropServices;
 
 namespace Stride.Games
@@ -213,7 +212,6 @@ namespace Stride.Games
             if (form == null) throw new ArgumentNullException("form");
             if (renderCallback == null) throw new ArgumentNullException("renderCallback");
 
-            form.Show();
             using (var renderLoop = new WindowsMessageLoop(form) { UseApplicationDoEvents = useApplicationDoEvents })
             {
                 while (renderLoop.NextFrame())
