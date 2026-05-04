@@ -1,0 +1,44 @@
+<Project>
+  <!--
+    Sample-wide harness wiring for the screenshot regression pipeline.
+
+    The harness lives in Stride.Games.AutoTesting; per-sample test scripts live in
+    <Sample>.Game/Tests/ScreenshotTest.cs and gate themselves on `#if STRIDE_AUTOTESTING`.
+    When -p:StrideAutoTesting=true is passed, we set the conditional define, add the harness
+    PackageReference, and inject a generated bootstrap that force-loads the harness assembly
+    (typeof(...) alone doesn't trigger module init).
+
+    The `#if` gate keeps the test files harmless when the property isn't set — including for the
+    internal asset compile that SampleGenerator runs during template regeneration, which doesn't
+    propagate StrideAutoTesting and would otherwise fail to find Stride.Games.AutoTesting.
+  -->
+  <PropertyGroup Condition="'$(StrideAutoTesting)' == 'true'">
+    <DefineConstants>$(DefineConstants);STRIDE_AUTOTESTING</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')">
+    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.1" PrivateAssets="contentfiles;analyzers" />
+    <Compile Include="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" />
+  </ItemGroup>
+  <!-- Pin WARP for reproducible D3D11/D3D12 captures across CI and dev machines. -->
+  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">
+    <PackageReference Include="Microsoft.Direct3D.WARP" Version="1.0.18" GeneratePathProperty="true" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+  <Target Name="_StrideEnsureAutoTestingBootstrap" Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_StrideAutoTestingBootstrapContent>
+using System.Runtime.CompilerServices%3B
+using Stride.Games.AutoTesting%3B
+
+internal static class _AutoTestingHarnessBootstrap
+{
+    [ModuleInitializer]
+    public static void ForceLoadHarness() =&gt; AutoTestingBootstrap.EnsureLoaded()%3B
+}
+</_StrideAutoTestingBootstrapContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" Lines="$(_StrideAutoTestingBootstrapContent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+</Project>

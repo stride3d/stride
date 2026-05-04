@@ -355,7 +355,8 @@ at full size and full measure";
             }
             else if (input.IsKeyPressed(Keys.Left) || input.IsKeyPressed(Keys.Right))
             {
-                currentTime = 0;
+                // Skip the fade-in when paused so the new screen is immediately readable.
+                currentTime = isPlaying ? 0 : FadeInDuration;
                 currentScreenIndex = (currentScreenIndex + (input.IsKeyPressed(Keys.Left) ? -1 : +1) + screenRenderers.Count) % screenRenderers.Count;
             }
         }
@@ -377,9 +378,6 @@ at full size and full measure";
         /// <returns></returns>
         private void UpdateAnimatedFontParameters()
         {
-            if (!isPlaying)
-                return;
-
             animatedFontAlpha = GetVaryingValue(1.6f * currentTime);
             animatedFontRotation = 2f * currentTime * (float)Math.PI;
             animatedFontPosition = GetVirtualPosition(0.5f, 0.65f) + 160 * new Vector2(1.5f * (float)Math.Cos(1.5f * currentTime), (float)Math.Sin(1.5f * currentTime));
