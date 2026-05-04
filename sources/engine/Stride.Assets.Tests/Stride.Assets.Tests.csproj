@@ -26,7 +26,7 @@
     <Compile Include="TexturePackerTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\data\tests\factory\factory.fbx">
+    <Content Include="..\..\data\tests\Factory\factory.fbx">
       <Link>app_data\Stride.Assets.Tests\factory.fbx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -34,7 +34,7 @@
       <Link>app_data\Stride.Assets.Tests\knight.fbx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\data\tests\factory\TX-Factory_Ground.dds">
+    <Content Include="..\..\data\tests\Factory\TX-Factory_Ground.dds">
       <Link>app_data\Stride.Assets.Tests\TX-Factory_Ground.dds</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
