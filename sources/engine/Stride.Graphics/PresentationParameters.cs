@@ -195,6 +195,12 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     public ColorSpace ColorSpace;
 
     /// <summary>
+    ///   When set, the presenter honours <see cref="BackBufferWidth"/> / <see cref="BackBufferHeight"/>
+    ///   as-is and skips any clamp to the host window's client area.
+    /// </summary>
+    public bool SkipBackBufferClampToWindow;
+
+    /// <summary>
     ///   The color space type used for the Graphics Presenter output.
     /// </summary>
     /// <remarks>
