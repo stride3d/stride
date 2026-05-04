@@ -199,10 +199,10 @@ namespace Stride.UI
             if (routedEvent == null) throw new ArgumentNullException(nameof(routedEvent));
             if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-            if (!eventsToHandlers.ContainsKey(routedEvent))
-                eventsToHandlers[routedEvent] = new List<RoutedEventHandlerInfo>();
+            if (!eventsToHandlers.TryGetValue(routedEvent, out List<RoutedEventHandlerInfo> handlerInfos))
+                eventsToHandlers[routedEvent] = handlerInfos = new List<RoutedEventHandlerInfo>();
 
-            eventsToHandlers[routedEvent].Add(new RoutedEventHandlerInfo<T>(handler, handledEventsToo));
+            handlerInfos.Add(new RoutedEventHandlerInfo<T>(handler, handledEventsToo));
         }
 
         /// <summary>
@@ -216,10 +216,10 @@ namespace Stride.UI
             if (routedEvent == null) throw new ArgumentNullException(nameof(routedEvent));
             if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-            if (!eventsToHandlers.ContainsKey(routedEvent))
+            if (!eventsToHandlers.TryGetValue(routedEvent, out List<RoutedEventHandlerInfo> handlerInfos))
                 return;
 
-            eventsToHandlers[routedEvent].Remove(new RoutedEventHandlerInfo<T>(handler));
+            handlerInfos.Remove(new RoutedEventHandlerInfo<T>(handler));
         }
 
         private readonly Dictionary<RoutedEvent, List<RoutedEventHandlerInfo>> eventsToHandlers = new Dictionary<RoutedEvent, List<RoutedEventHandlerInfo>>();

@@ -182,9 +182,9 @@ namespace Stride.Core.ProjectTemplating
                             object oldPlatform = null;
                             if (fileItem.CurrentPlatform != null)
                             {
-                                if (expandoOptionsAsDictionary.ContainsKey(nameof(fileItem.CurrentPlatform)))
+                                if (expandoOptionsAsDictionary.TryGetValue(nameof(fileItem.CurrentPlatform), out object currentPlatform))
                                 {
-                                    oldPlatform = expandoOptionsAsDictionary[nameof(fileItem.CurrentPlatform)];
+                                    oldPlatform = currentPlatform;
                                 }
                                 expandoOptionsAsDictionary[nameof(fileItem.CurrentPlatform)] = fileItem.CurrentPlatform;
                             }

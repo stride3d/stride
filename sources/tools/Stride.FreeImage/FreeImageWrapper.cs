@@ -3827,10 +3827,7 @@ namespace FreeImageAPI
 		/// <param name="mdhandle">The handle to close.</param>
 		public static void FindCloseMetadata(FIMETADATA mdhandle)
 		{
-			if (metaDataSearchHandler.ContainsKey(mdhandle))
-			{
-				metaDataSearchHandler.Remove(mdhandle);
-			}
+			metaDataSearchHandler.Remove(mdhandle);
 			FindCloseMetadata_(mdhandle);
 		}
 
