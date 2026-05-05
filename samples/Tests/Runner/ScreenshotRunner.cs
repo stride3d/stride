@@ -258,6 +258,10 @@ public static class ScreenshotRunner
         if (!process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds)))
         {
             try { process.Kill(entireProcessTree: true); } catch { }
+            // Kill returns before the OS finishes tearing down the process and releasing its file
+            // handles; without this WaitForExit the caller races the kernel and intermittently
+            // fails to copy / overwrite files the killed process had open.
+            try { process.WaitForExit(TimeSpan.FromSeconds(10)); } catch { }
             log.WriteLine($"[runner] killed after {timeoutSeconds}s timeout");
             return false;
         }

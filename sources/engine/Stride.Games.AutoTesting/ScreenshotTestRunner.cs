@@ -144,10 +144,16 @@ internal sealed class ScreenshotTestRunner
         }
 
         // Mirror error stream into error.log alongside the test artifacts.
+        // FileShare.ReadWrite|Delete so the orchestrator can copy / overwrite this file while we
+        // still hold it open — otherwise a forced timeout-kill races against the orchestrator's
+        // artifact copy and triggers IOException("file is being used by another process").
         try
         {
             var errorLogPath = Path.Combine(outputDir, ErrorLogName);
-            var errorLog = new StreamWriter(File.Create(errorLogPath)) { AutoFlush = true };
+            var errorLogStream = new FileStream(
+                errorLogPath, FileMode.Create, FileAccess.Write,
+                FileShare.ReadWrite | FileShare.Delete);
+            var errorLog = new StreamWriter(errorLogStream) { AutoFlush = true };
             Console.SetError(new TeeWriter(Console.Error, errorLog));
         }
         catch
