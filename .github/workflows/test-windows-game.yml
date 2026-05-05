@@ -25,10 +25,6 @@ on:
         default: Debug
         type: string
 
-permissions:
-  checks: write
-  contents: read
-
 
 concurrency:
   group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -59,7 +55,7 @@ jobs:
           dotnet build build\Stride.Tests.Game.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
+            -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
@@ -72,12 +68,13 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: phoenix-actions/test-reporting@v15
         with:
           name: 'Test Report: Windows Game Common'
           path: TestResults/*.trx
           reporter: dotnet-trx
-          token: ${{ secrets.GITHUB_TOKEN }}
+          output-to: step-summary
+          list-tests: 'failed'
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -157,7 +154,7 @@ jobs:
           dotnet build build\Stride.Tests.Game.GPU.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
+            -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
@@ -174,12 +171,13 @@ jobs:
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: phoenix-actions/test-reporting@v15
         with:
           name: 'Test Report: Windows Game ${{ matrix.graphics-api }}'
           path: TestResults/*.trx
           reporter: dotnet-trx
-          token: ${{ secrets.GITHUB_TOKEN }}
+          output-to: step-summary
+          list-tests: 'failed'
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh

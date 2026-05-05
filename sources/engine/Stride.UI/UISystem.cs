@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Stride.Core;
 using Stride.Games;
@@ -14,7 +15,7 @@ namespace Stride.UI
     /// <summary>
     /// Interface of the UI system.
     /// </summary>
-    public class UISystem : GameSystemBase, IService
+    public class UISystem : GameSystemBase, IService, IInputEventListener<PointerEvent>
     {
         internal UIBatch Batch { get; private set; }
 
@@ -25,6 +26,14 @@ namespace Stride.UI
         internal DepthStencilStateDescription DecreaseStencilValueState { get; private set; }
 
         private InputManager input;
+
+        // UI picking runs in Draw but events are routed in Update; with IsFixedTimeStep+slow Draw,
+        // the next Update can clear InputManager.PointerEvents before Draw consumes them. Buffer
+        // pointer events here so they survive across catch-up Updates and are drained per-Draw.
+        private readonly List<PointerEvent> pendingPointerEvents = new List<PointerEvent>();
+        internal IReadOnlyList<PointerEvent> PendingPointerEvents => pendingPointerEvents;
+        internal void ClearPendingPointerEvents() => pendingPointerEvents.Clear();
+        void IInputEventListener<PointerEvent>.ProcessEvent(PointerEvent inputEvent) => pendingPointerEvents.Add(inputEvent);
 
         /// <summary>
         /// Represents the UI-element currently under the mouse cursor.
@@ -50,6 +59,7 @@ namespace Stride.UI
             base.Initialize();
 
             input = Services.GetService<InputManager>();
+            input?.AddListener(this);
 
             Enabled = true;
             Visible = false;
@@ -63,6 +73,8 @@ namespace Stride.UI
 
         protected override void Destroy()
         {
+            input?.RemoveListener(this);
+
             if (Game != null) // thumbnail system has no game
             {
                 Game.Activated -= OnApplicationResumed;

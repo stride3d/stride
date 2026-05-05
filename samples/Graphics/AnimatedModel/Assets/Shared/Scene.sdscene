@@ -174,7 +174,7 @@ Hierarchy:
                     585d445ca1707649a8887bbb03ccca41: !UIComponent
                         Id: 5c445d58-70a1-4976-a888-7bbb03ccca41
                         Page: 0c8d34ec-5a72-42f6-9203-6096216ec54a:Page
-                        Resolution: {X: 1136.0, Y: 640.0, Z: 1000.0}
+                        Resolution: {X: 640.0, Y: 1136.0, Z: 1000.0}
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                         ResolutionStretch: FixedWidthFixedHeight
                         RenderGroup: Group1

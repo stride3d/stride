@@ -32,11 +32,43 @@
   <!-- ================================================================ -->
 
   <!-- List dependency files from .ssdeps -->
+  <!-- When the current build targets a specific StrideGraphicsApi, drop candidate paths whose
+       parent directory is a non-current API folder. Otherwise a non-API-dependent middle project
+       (say Stride.Engine, built with default API=Direct3D11) re-exports its CopyLocal'd
+       Stride.Graphics.ssdeps through the reference graph, and the direct API-dependent reference
+       also provides one — both land on the same filename in the output folder and race. -->
   <Target Name="_StrideListDepsFiles" DependsOnTargets="ResolveAssemblyReferences">
     <ItemGroup>
       <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferencePath.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferenceDependencyPaths.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(StrideGraphicsApi)' != ''">
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D11\')) And '$(StrideGraphicsApi)' != 'Direct3D11'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D12\')) And '$(StrideGraphicsApi)' != 'Direct3D12'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Vulkan\')) And '$(StrideGraphicsApi)' != 'Vulkan'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGL\')) And '$(StrideGraphicsApi)' != 'OpenGL'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGLES\')) And '$(StrideGraphicsApi)' != 'OpenGLES'" />
+    </ItemGroup>
+    <ItemGroup>
       <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Filter transitive CopyToOutput items coming from non-API-dependent project references.
+       They would otherwise pull the default-API variant (e.g. Direct3D11) of API-dependent
+       side files (Stride.Graphics.ssdeps, Stride.VirtualReality.ssdeps, and the native libs
+       they manifest) through the reference graph, colliding in the consumer's output folder
+       with the direct API-dependent reference's correct variant. -->
+  <Target Name="_StrideFilterTransitiveCopyToOutputDirectoryItems"
+          BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways"
+          DependsOnTargets="GetCopyToOutputDirectoryItems"
+          Condition="'$(StrideGraphicsApi)' != ''">
+    <ItemGroup>
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D11\')) And '$(StrideGraphicsApi)' != 'Direct3D11'" />
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D12\')) And '$(StrideGraphicsApi)' != 'Direct3D12'" />
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Vulkan\')) And '$(StrideGraphicsApi)' != 'Vulkan'" />
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGL\')) And '$(StrideGraphicsApi)' != 'OpenGL'" />
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGLES\')) And '$(StrideGraphicsApi)' != 'OpenGLES'" />
     </ItemGroup>
   </Target>
 

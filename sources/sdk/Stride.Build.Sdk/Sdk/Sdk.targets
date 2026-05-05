@@ -89,10 +89,13 @@
   <!-- ================================================================ -->
   <!-- Stride.Core.CompilerServices Roslyn Analyzer -->
   <!-- ================================================================ -->
+  <!-- Stride.Core.CompilerServices is single-TF (netstandard2.0), so an explicit
+       SetTargetFramework is redundant — and harmful: it forces TargetFramework into the
+       consumer-ref dispatch globals, producing a cache key distinct from the slnf-direct
+       outer dispatch (which has no TF global). Both then race on obj/. -->
   <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
     <ProjectReference Include="$(StrideRoot)sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
                       OutputItemType="Analyzer"
-                      SetTargetFramework="TargetFramework=netstandard2.0"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
@@ -166,8 +169,11 @@
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
+    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
+         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
+         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
+    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
+               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
@@ -228,7 +234,6 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
-             Targets="Build;Pack"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
     </MSBuild>
   </Target>
