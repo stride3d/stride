@@ -498,7 +498,6 @@ namespace Stride.Rendering.Compositing
                 // Note: Baking lightprobe before GBuffer prepass because we are updating some cbuffer parameters needed by Opaque pass that GBuffer pass might upload early
                 PrepareLightprobeConstantBuffer(context);
 
-                // TODO: Temporarily using ShadowMap shader
                 using (drawContext.QueryManager.BeginProfile(Color.Green, CompositingProfilingKeys.GBuffer))
                 using (drawContext.PushRenderTargetsAndRestore())
                 {

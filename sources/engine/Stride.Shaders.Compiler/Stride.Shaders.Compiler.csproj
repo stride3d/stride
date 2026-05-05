@@ -1,5 +1,4 @@
-<Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+﻿<Project>
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
@@ -16,7 +15,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" />
+    <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
@@ -24,11 +25,6 @@
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
       <Link>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</Link>
       <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </StrideNativeLib>
-    <StrideNativeLib Include="..\..\..\deps\glslang\**\glslangValidator*.*">
-      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
-      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>

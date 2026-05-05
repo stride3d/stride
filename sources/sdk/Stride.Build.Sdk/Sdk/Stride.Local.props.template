@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Stride local developer settings.
+    This file is auto-generated at the repository root and gitignored — your edits stay local.
+    Each setting only applies if not already set externally (CI, command line, environment).
+    Edit values below to taste; remove a property entirely to fall back to the SDK default.
+  -->
+
+  <PropertyGroup>
+    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <StrideGraphicsApiDependentBuildAll Condition="'$(StrideGraphicsApiDependentBuildAll)' == ''">false</StrideGraphicsApiDependentBuildAll>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <!-- Valid values: Direct3D11, Direct3D12, Vulkan, Null. Semicolon-separated for
+         multi-API builds (e.g. Direct3D11;Vulkan); single value skips the multi-API loop. -->
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+  </PropertyGroup>
+</Project>

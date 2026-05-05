@@ -128,6 +128,21 @@ internal struct D3D12SubresourceRange
         FirstPlane = 0,
         NumPlanes = 0,
     };
+
+    /// <summary>
+    ///   A range targeting a single subresource by its flat index.
+    /// </summary>
+    public static D3D12SubresourceRange Single(uint subresourceIndex) => new()
+    {
+        // Per D3D12 spec: when NumMipLevels is 0, IndexOrFirstMipLevel is interpreted as a
+        // single flat subresource index (matches D3D12_RESOURCE_BARRIER semantics).
+        IndexOrFirstMipLevel = subresourceIndex,
+        NumMipLevels = 0,
+        FirstArraySlice = 0,
+        NumArraySlices = 0,
+        FirstPlane = 0,
+        NumPlanes = 0,
+    };
 }
 
 /// <summary>
@@ -140,6 +155,40 @@ internal unsafe struct D3D12BarrierGroup
     public uint NumBarriers;
     // Union: pointer to TextureBarrier[], BufferBarrier[], or GlobalBarrier[]
     public void* PBarriers;
+}
+
+internal static unsafe class EnhancedBarriers
+{
+    /// <summary>
+    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources).
+    /// </summary>
+    public static void TextureBarrier(
+        ID3D12GraphicsCommandList7* commandList,
+        ID3D12Resource* resource,
+        D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
+        D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter,
+        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter)
+    {
+        var barrier = new D3D12TextureBarrier
+        {
+            SyncBefore = syncBefore,
+            SyncAfter = syncAfter,
+            AccessBefore = accessBefore,
+            AccessAfter = accessAfter,
+            LayoutBefore = layoutBefore,
+            LayoutAfter = layoutAfter,
+            PResource = resource,
+            Subresources = D3D12SubresourceRange.All,
+            Flags = 0,
+        };
+        var group = new D3D12BarrierGroup
+        {
+            Type = D3D12BarrierType.Texture,
+            NumBarriers = 1,
+            PBarriers = &barrier,
+        };
+        commandList->Barrier(1, (BarrierGroup*)&group);
+    }
 }
 
 #endif

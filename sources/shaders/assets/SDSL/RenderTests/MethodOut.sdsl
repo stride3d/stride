@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#7D7D7D7D)
+
+namespace Stride.Shaders.Tests;
+
+shader MethodOut
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void Test(out float4 test)
+    {
+        test = float4(127.0, 127.0, 127.0, 127.0) / 255.0;
+    }
+
+    void Test2(inout float4 test)
+    {
+        test -= 2.0 / 255.0;
+    }
+
+    void PSMain()
+    {
+        Test(streams.ColorTarget);
+        Test2(streams.ColorTarget);
+    }
+}

@@ -22,7 +22,7 @@
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
-    <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
+    <ProjectReference Include="..\..\shaders\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

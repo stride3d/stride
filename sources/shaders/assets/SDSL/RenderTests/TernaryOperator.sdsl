@@ -1,0 +1,34 @@
+// PSMain(ExpectedResult=#FF0000FF, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#FF0000FF, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=4))
+
+namespace Stride.Shaders.Tests;
+
+shader TernaryOperator
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0.0, 0.0, 0.0, 0.0);
+
+        float4 v1 = float4(1.0, 0.0, 0.0, 1.0);
+
+        // Those two should use OpSelect
+        if (Test1 == 1)
+            streams.ColorTarget = v1 > 0.5 ? 1.0 : 0.0;
+        if (Test1 == 2)
+            streams.ColorTarget = v1 > 0.5 ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 0.0);
+        // Those two should use OpBranch
+        if (Test1 == 3)
+            streams.ColorTarget = v1.x > 0.5 ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 0.0);
+        if (Test1 == 4)
+            streams.ColorTarget = v1.y > 0.5 ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 0.0);
+    }
+}

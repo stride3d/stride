@@ -1,0 +1,32 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StrideBuildTags>*</StrideBuildTags>
+    <!-- Fail the build on any source-generator exception (CS8785) so generator issues surface clearly. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8785</WarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- <Compile Include="../../submodules/SpirvHeaders/include/spirv/unified1/spirv.cs" /> -->
+    <PackageReference Include="CommunityToolkit.HighPerformance" />
+    <ProjectReference Include="../Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Extensions\spirv.sdsl.grammar-ext.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\spirv.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\spirv.core.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.glsl.std.450.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.opencl.std.100.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-gcn-shader.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-ballot.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-trinary-minmax.grammar.json" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvRegistry\specs\unified1\SPIRV.html" />
+    <AdditionalFiles Include="..\..\..\build\submodules\SpirvRegistry\specs\unified1\GLSL.std.450.html" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

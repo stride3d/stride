@@ -483,5 +483,8 @@ namespace Stride.Graphics
         ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
         /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink);
+
+        /// <summary>Maximum frames the CPU is allowed to be ahead of the GPU (bounds deferred-release queues).</summary>
+        internal const int MaxFramesInFlight = 3;
     }
 }

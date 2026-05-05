@@ -19,6 +19,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
+using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -74,6 +75,12 @@ namespace Stride.Graphics.Regression
         ///   is reached in the <see cref="Update"/> method, the Game will exit.
         /// </summary>
         public int StopOnFrameCount { get; set; }
+
+        /// <summary>
+        ///   Maximum per-channel color difference (0-255) allowed when comparing images.
+        ///   Default is 2. Increase for tests with expected minor numerical differences.
+        /// </summary>
+        public int ImageComparisonTolerance { get; set; } = 2;
 
         /// <summary>
         ///   Gets or sets the name of the test. It will be reflected in the saved images.
@@ -228,7 +235,6 @@ namespace Stride.Graphics.Regression
         {
             TestGameLogger.Info(@"Saving the Back-Buffer");
 
-            // TODO: GRAPHICS REFACTOR: Switched to presenter backbuffer, need to check if it's good
             var backBuffer = GraphicsDevice.Presenter.BackBuffer;
             using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
             SaveImage(image, testName);
@@ -875,7 +881,7 @@ namespace Stride.Graphics.Regression
             {
                 deviceName = GraphicsDevice.Platform switch
                 {
-                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    GraphicsPlatform.Vulkan => "Lavapipe",
                     _ => "WARP"
                 };
             }

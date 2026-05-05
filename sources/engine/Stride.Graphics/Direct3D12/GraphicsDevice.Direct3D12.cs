@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -33,6 +34,28 @@ namespace Stride.Graphics
         private static bool debugLayerLoaded = false;
 
         private ID3D12InfoQueue* nativeInfoQueue;
+        private ID3D12InfoQueue1* nativeInfoQueue1;
+        private uint debugMessageCallbackCookie;
+        private GCHandle debugMessageContext;
+        // Set by the callback when a draw-relevant validation message arrives within a scope.
+        // Consumed by DrainDebugMessages at the next scope-empty transition.
+
+        // GBV message IDs from D3D12_MESSAGE_ID, populated lazily via reflection so the scan
+        // only runs in debug mode (callback never fires in release → Value is never queried).
+        // Robust against SDK additions to the GBV enum range.
+        private static readonly Lazy<System.Collections.Generic.HashSet<MessageID>> gbvMessageIds = new(BuildGbvMessageIdSet);
+
+        private static System.Collections.Generic.HashSet<MessageID> BuildGbvMessageIdSet()
+        {
+            var set = new System.Collections.Generic.HashSet<MessageID>();
+            foreach (var name in Enum.GetNames<MessageID>())
+            {
+                if (name.Contains("Gpubased", StringComparison.OrdinalIgnoreCase)
+                    && Enum.TryParse<MessageID>(name, out var id))
+                    set.Add(id);
+            }
+            return set;
+        }
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -45,11 +68,6 @@ namespace Stride.Graphics
 
         private bool simulateReset = false;
         private string rendererName;
-
-        /// <summary>
-        ///   Whether D3D12 Enhanced Barriers are supported by the device.
-        /// </summary>
-        internal bool SupportsEnhancedBarriers;
 
         private ID3D12Device* nativeDevice;
         private ID3D12CommandQueue* nativeCommandQueue;
@@ -71,6 +89,18 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12CommandQueue> NativeCommandQueue => ToComPtr(nativeCommandQueue);
+
+        /// <summary>
+        ///   Serializes the native-queue submit sequence (fence inc + ExecuteCommandLists + Signal)
+        ///   across all paths that submit to it. Mirrors Vulkan's QueueLock.
+        /// </summary>
+        internal readonly object QueueLock = new();
+
+        /// <summary>
+        ///   Highest <see cref="CopyFence"/> value already waited on from a main-queue submit.
+        ///   Starts at 1 so the first submit doesn't wait on an unsignaled value.
+        /// </summary>
+        private ulong lastGPUSyncCopyFenceToCommandFence = 1;
 
         /// <summary>
         ///   The requested graphics profile for the Graphics Device.
@@ -103,7 +133,7 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D12CommandAllocator> NativeCopyCommandAllocator => ToComPtr(nativeCopyCommandAllocator);
 
-        private ID3D12GraphicsCommandList* nativeCopyCommandList;
+        private ID3D12GraphicsCommandList7* nativeCopyCommandList;
 
         /// <summary>
         ///   Gets the internal Direct3D 12 Command List used for copy commands.
@@ -112,7 +142,7 @@ namespace Stride.Graphics
         ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
-        internal ComPtr<ID3D12GraphicsCommandList> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
+        internal ComPtr<ID3D12GraphicsCommandList7> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
 
         internal object NativeCopyCommandListLock = new();
 
@@ -274,6 +304,13 @@ namespace Stride.Graphics
         {
             FrameFence.Signal(nativeCommandQueue, FrameFence.NextFenceValue);
             FrameFence.NextFenceValue++;
+
+            // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
+            if (FrameFence.NextFenceValue > (ulong)MaxFramesInFlight)
+            {
+                FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
+                FrameTemporaryResources.ReleaseCompleted(FrameFence);
+            }
         }
 
         /// <summary>
@@ -307,24 +344,33 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(commandLists);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(count, commandLists.Length);
 
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
-
-            // Recycle resources
             var commandListToExecute = stackalloc ID3D12CommandList*[count];
-            for (int index = 0; index < count; index++)
+
+            lock (QueueLock)
             {
-                var commandList = commandLists[index];
-                commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
-                RecycleCommandListResources(commandList, commandListFenceValue + 1);
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+
+                for (int index = 0; index < count; index++)
+                {
+                    var commandList = commandLists[index];
+                    commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
+                    RecycleCommandListResources(commandList, commandListFenceValue + 1);
+                }
+
+                if (commandListFenceValue > 0)
+                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+
+                var copyFenceValue = CopyFence.NextFenceValue;
+                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
+                {
+                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
+                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+                }
+
+                nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
+
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
             }
-
-            if (commandListFenceValue > 0)
-                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
-
-            // Submit and signal the fence
-            nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
-
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
 
             if (IsDebugMode)
                 FlushDebugMessages();
@@ -415,7 +461,7 @@ namespace Stride.Graphics
                 CurrentFeatureLevel = featureLevel;
 
                 // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
-                CheckEnhancedBarriersSupport();
+                RequireEnhancedBarriersSupport();
 
                 break;
             }
@@ -459,6 +505,15 @@ namespace Stride.Graphics
 
                     if (result.IsSuccess && infoQueue.IsNotNull())
                     {
+                        // RenderDoc intercepts ID3D12InfoQueue with a stub that drops every call (see
+                        // DummyID3D12InfoQueue in renderdoc/driver/d3d12/d3d12_device.h). The filter
+                        // install and message drain below will appear to succeed but emit nothing,
+                        // so warn the user upfront.
+                        if (Win32.GetModuleHandle("renderdoc.dll") != 0)
+                        {
+                            Log.Warning("[D3D12] RenderDoc detected — D3D12 debug-layer messages will not surface through the logger (RenderDoc returns a stub ID3D12InfoQueue)");
+                        }
+
                         var disabledMessages = stackalloc MessageID[]
                         {
                             // These happens when a Render Target's or Depth-Stencil Buffer's clear values are different
@@ -472,7 +527,12 @@ namespace Stride.Graphics
 
                             // These happen when capturing with VS diagnostics
                             MessageID.MapInvalidNullrange,
-                            MessageID.UnmapInvalidNullrange
+                            MessageID.UnmapInvalidNullrange,
+
+                            // Perf hint when a submitted CL contains only barrier commands; happens e.g. at
+                            // frame end after a screenshot flushes the CL and only the Present transition
+                            // remains.
+                            MessageID.NonOptimalBarrierOnlyExecuteCommandLists,
                         };
 
                         // Disable irrelevant debug layer warnings
@@ -481,7 +541,7 @@ namespace Stride.Graphics
                             AllowList = new Silk.NET.Direct3D12.InfoQueueFilterDesc(),
                             DenyList = new Silk.NET.Direct3D12.InfoQueueFilterDesc
                             {
-                                NumIDs = 5,
+                                NumIDs = 6,
                                 PIDList = disabledMessages
                             }
                         };
@@ -492,6 +552,24 @@ namespace Stride.Graphics
 
                         // Keep reference to drain messages to log
                         nativeInfoQueue = infoQueue;
+
+                        // ID3D12InfoQueue1 (Win10 21H2+) lets us register a synchronous callback so
+                        // each message arrives on the API-call thread with the scope stack intact —
+                        // perfect attribution for validation errors. Falls back to queue-poll when
+                        // the interface isn't available.
+                        HResult callbackResult = infoQueue.QueryInterface(out ComPtr<ID3D12InfoQueue1> infoQueue1);
+                        if (callbackResult.IsSuccess && infoQueue1.IsNotNull())
+                        {
+                            nativeInfoQueue1 = infoQueue1;
+                            debugMessageContext = GCHandle.Alloc(this, GCHandleType.Weak);
+                            uint cookie = 0;
+                            nativeInfoQueue1->RegisterMessageCallback(
+                                new PfnMessageFunc(&OnDebugMessageCallback),
+                                MessageCallbackFlags.FlagNone,
+                                (void*)(IntPtr)debugMessageContext,
+                                ref cookie);
+                            debugMessageCallbackCookie = cookie;
+                        }
                     }
                     debugDevice.Release();
                 }
@@ -517,7 +595,7 @@ namespace Stride.Graphics
             nativeCopyCommandAllocator = commandAllocator;
 
             result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
-                                                     out ComPtr<ID3D12GraphicsCommandList> commandList);
+                                                     out ComPtr<ID3D12GraphicsCommandList7> commandList);
             if (result.IsFailure)
                 result.Throw();
 
@@ -571,30 +649,26 @@ namespace Stride.Graphics
             }
 
             //
-            // Checks if the device supports D3D12 Enhanced Barriers.
+            // Requires D3D12 Enhanced Barriers. Throws if unsupported.
             //
-            void CheckEnhancedBarriersSupport()
+            // Minimum requirements: Windows 10 21H2 (build 19044) or Windows 11 — we use the
+            // system d3d12.dll, no Agility SDK is embedded. Driver floors: NVIDIA 531.18+,
+            // AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox Series X|S are supported.
+            //
+            void RequireEnhancedBarriersSupport()
             {
-                // D3D12_FEATURE_D3D12_OPTIONS12 = 41
-                // The struct has EnhancedBarriersSupported as a BOOL at a known offset.
-                // Since Silk.NET may not have this struct, we use raw CheckFeatureSupport.
-                const int D3D12_FEATURE_D3D12_OPTIONS12 = 41;
-
-                // D3D12_FEATURE_DATA_D3D12_OPTIONS12 is a large struct; EnhancedBarriersSupported
-                // is at byte offset 8 (after MSAAAlignedCountSupported and RelaxedFormatCasting BoolS).
-                // We allocate enough space and read the BOOL at offset 8.
-                Span<byte> options12 = stackalloc byte[64]; // oversized to be safe
-                options12.Clear();
-
-                fixed (byte* pOptions = options12)
+                // CheckFeatureSupport validates the struct size exactly — passing an oversized
+                // buffer returns E_INVALIDARG and the query silently fails. Use the Silk.NET
+                // struct + ref overload so size and field offsets stay correct.
+                var options12 = default(FeatureDataD3D12Options12);
+                HResult hr = nativeDevice->CheckFeatureSupport(Silk.NET.Direct3D12.Feature.D3D12Options12, ref options12,
+                                                                (uint) sizeof(FeatureDataD3D12Options12));
+                if (!hr.IsSuccess || !options12.EnhancedBarriersSupported)
                 {
-                    HResult hr = nativeDevice->CheckFeatureSupport((Silk.NET.Direct3D12.Feature) D3D12_FEATURE_D3D12_OPTIONS12,
-                                                                    pOptions, (uint) options12.Length);
-                    if (hr.IsSuccess)
-                    {
-                        // EnhancedBarriersSupported is a BOOL (4 bytes) at offset 8
-                        SupportsEnhancedBarriers = *(int*)(pOptions + 8) != 0;
-                    }
+                    throw new GraphicsDeviceException(
+                        "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
+                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+) " +
+                        "and run on Windows 10 21H2 or Windows 11.");
                 }
             }
         }
@@ -694,19 +768,22 @@ namespace Stride.Graphics
         /// </remarks>
         internal ulong ExecuteAndWaitCopyQueueGPU()
         {
-            var copyFenceValue = CopyFence.NextFenceValue++;
-            var nextCopyFenceValue = copyFenceValue + 1;
+            lock (QueueLock)
+            {
+                var copyFenceValue = CopyFence.NextFenceValue++;
+                var nextCopyFenceValue = copyFenceValue + 1;
 
-            // For now, we execute everything on the non-copy Command Queue otherwise ResourceBarrier won't work
-            // Improvement: on Copy Queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
-            //              on Graphics Queue: Wait for Signal and then ResourceBarrier
-            //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-            var commandList = (ID3D12CommandList*) nativeCopyCommandList;
-            nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
+                // For now, we execute everything on the non-copy Command Queue otherwise ResourceBarrier won't work
+                // Improvement: on Copy Queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
+                //              on Graphics Queue: Wait for Signal and then ResourceBarrier
+                //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
+                var commandList = (ID3D12CommandList*) nativeCopyCommandList;
+                nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
 
-            CopyFence.Signal(NativeCommandQueue, nextCopyFenceValue);
+                CopyFence.Signal(NativeCommandQueue, nextCopyFenceValue);
 
-            return nextCopyFenceValue;
+                return nextCopyFenceValue;
+            }
         }
 
         /// <summary>
@@ -789,6 +866,15 @@ namespace Stride.Graphics
                     debugDevice.Release();
                 }
 
+                if (nativeInfoQueue1 is not null)
+                {
+                    if (debugMessageCallbackCookie != 0)
+                        nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
+                    debugMessageCallbackCookie = 0;
+                    SafeRelease(ref nativeInfoQueue1);
+                }
+                if (debugMessageContext.IsAllocated)
+                    debugMessageContext.Free();
                 SafeRelease(ref nativeInfoQueue);
             }
 
@@ -807,15 +893,90 @@ namespace Stride.Graphics
         {
         }
 
+        // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
+        // called once per frame when the outermost BeginProfile scope closes.
+        partial void DrainDebugMessages()
+        {
+            if (nativeInfoQueue1 is not null)
+            {
+                // Callback mode — messages were already logged inline. Just dump the tree if any
+                // draw-relevant issue fired during this scope cycle, then reset the flag.
+                if (debugSawDrawIssue)
+                    DebugDumpTree();
+                debugSawDrawIssue = false;
+                return;
+            }
+            // Queue-poll fallback for older Windows without ID3D12InfoQueue1.
+            FlushDebugMessages();
+        }
+
+        /// <summary>
+        ///   Synchronous callback invoked by the D3D12 debug layer (ID3D12InfoQueue1) on the thread
+        ///   that triggered the validation message. Logs with the active scope leaf as prefix and
+        ///   flags relevant categories so the next DrainDebugMessages dumps the scope tree.
+        /// </summary>
+        [System.Runtime.InteropServices.UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static void OnDebugMessageCallback(MessageCategory category, MessageSeverity severity, MessageID id, byte* description, void* context)
+        {
+            if (context is null) return;
+            var handle = GCHandle.FromIntPtr((IntPtr)context);
+            if (handle.Target is not GraphicsDevice device) return;
+
+            var desc = Marshal.PtrToStringAnsi((IntPtr)description) ?? "(no description)";
+            bool isDrawCategory = category is MessageCategory.StateSetting
+                                            or MessageCategory.Execution
+                                            or MessageCategory.ResourceManipulation;
+
+            // GBV messages arrive asynchronously, so leaf attribution would be wrong. We detect
+            // them by ID via the reflection-built set. The DebugGpuValidationEnabled override
+            // is a kill switch for cases the heuristic misses.
+            bool isGbv = device.DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(id);
+            bool attributable = !isGbv;
+            var leafName = attributable ? device.GetDebugLeafScopeName() : null;
+            var scope = leafName is not null ? $"[{leafName}]: " : "";
+
+            // Attribute to the active leaf so the tree dump can flag exactly which scope fired
+            // — particularly useful when several scopes share a name (e.g. ImageMultiScaler's
+            // chain of "Down2" passes).
+            var leaf = attributable ? device.debugCurrentFrame : null;
+
+            // Tree dump only fires for attributable messages — a tree without [!] markers is
+            // noise, so GBV-only frames stay quiet (just the log lines).
+            switch (severity)
+            {
+                case MessageSeverity.Corruption:
+                case MessageSeverity.Error:
+                    DebugLog.Error($"{scope}{desc}");
+                    if (leaf is not null) leaf.Errors++;
+                    if (isDrawCategory && attributable) device.debugSawDrawIssue = true;
+                    break;
+                case MessageSeverity.Warning:
+                    DebugLog.Warning($"{scope}{desc}");
+                    if (leaf is not null) leaf.Warnings++;
+                    if (isDrawCategory && attributable) device.debugSawDrawIssue = true;
+                    break;
+            }
+        }
+
         /// <summary>
         ///   Drains all pending D3D12 debug messages from the InfoQueue and logs them.
+        ///   When the ID3D12InfoQueue1 callback is active, the callback is the authoritative
+        ///   logger and tree-dump trigger — we just clear the queue here so messages don't
+        ///   accumulate (they'd otherwise be reported a second time with mid-frame attribution).
         /// </summary>
         internal void FlushDebugMessages()
         {
             if (nativeInfoQueue is null)
                 return;
 
+            if (nativeInfoQueue1 is not null)
+            {
+                nativeInfoQueue->ClearStoredMessages();
+                return;
+            }
+
             var numMessages = nativeInfoQueue->GetNumStoredMessages();
+            bool sawDrawIssue = false;
             for (ulong i = 0; i < numMessages; i++)
             {
                 nuint messageLength = 0;
@@ -832,23 +993,46 @@ namespace Stride.Graphics
 
                     var description = Marshal.PtrToStringAnsi((nint) message->PDescription) ?? "(no description)";
 
-                    Debug.WriteLine($"D3D12: {message->Severity} {description}");
+                    // The native debug layer already prints these to OutputDebugString, so we
+                    // don't echo via Debug.WriteLine — that's a third copy in the same sink.
+
+                    // Categories that fire during draw/dispatch recording or GPU execution benefit
+                    // from a scope annotation and tree dump — initialization, shader compile,
+                    // PSO/heap creation messages don't.
+                    bool isDrawCategory = message->Category is MessageCategory.StateSetting
+                                                            or MessageCategory.Execution
+                                                            or MessageCategory.ResourceManipulation;
+                    bool isGbv = DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(message->ID);
+                    bool attributable = !isGbv;
+
+                    string prefix = null;
+                    if (isDrawCategory && attributable)
+                    {
+                        var leafName = GetDebugLeafScopeName();
+                        prefix = leafName is not null ? $"[{leafName}]: " : null;
+                    }
 
                     switch (message->Severity)
                     {
                         case MessageSeverity.Corruption:
                         case MessageSeverity.Error:
-                            Log.Error($"[D3D12] {message->Severity}: {description}");
+                            DebugLog.Error($"{prefix}{description}");
+                            if (isDrawCategory && attributable) sawDrawIssue = true;
                             break;
                         case MessageSeverity.Warning:
-                            Log.Warning($"[D3D12] {description}");
+                            DebugLog.Warning($"{prefix}{description}");
+                            if (isDrawCategory && attributable) sawDrawIssue = true;
                             break;
                     }
                 }
             }
 
+            if (sawDrawIssue)
+                DebugDumpTree();
+
             nativeInfoQueue->ClearStoredMessages();
         }
+
 
         /// <summary>
         ///   Logs DRED (Device Removed Extended Data) information after a device removal event.
@@ -909,20 +1093,36 @@ namespace Stride.Graphics
         /// </returns>
         internal ulong ExecuteCommandListInternal(CompiledCommandList commandList)
         {
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
+            ulong commandListFenceValue;
+            lock (QueueLock)
+            {
+                commandListFenceValue = CommandListFence.NextFenceValue++;
 
-            if (commandListFenceValue > 0)
-                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+                if (commandListFenceValue > 0)
+                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
-            // Submit and signal fence
-            var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
-            nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
+                var copyFenceValue = CopyFence.NextFenceValue;
+                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
+                {
+                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
+                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+                }
 
-            // Wait on GPU side to complete so that the next Command List (i.e. for a draw)
-            // can access the newly copied resources
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+                var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
+                nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
-            // Recycle resources
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+
+                if (IsDebugMode)
+                {
+                    // Aggregate this CL's per-scope counters into the device-wide scope tree.
+                    // We don't drain debug messages here — that happens once per frame in
+                    // PopDebugScope when the outermost scope closes, so the tree is complete
+                    // and no misleading "active scope" annotation is shown on per-message logs.
+                    DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
+                }
+            }
+
             RecycleCommandListResources(commandList, commandListFenceValue + 1);
 
             return commandListFenceValue + 1;

@@ -31,8 +31,6 @@ jobs:
       matrix:
         graphics-api: [Direct3D11, Direct3D12, Vulkan]
     runs-on: windows-2025-vs2026
-    # TODO: drop continue-on-error once D3D12 and Vulkan captures are stable.
-    continue-on-error: ${{ matrix.graphics-api != 'Direct3D11' }}
     env:
       # Software rendering is the default in the autotesting harness; set STRIDE_TESTS_GPU=1 to opt into the GPU.
       STRIDE_TESTS_RENDERDOC: "error"
@@ -43,6 +41,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
 
       - uses: actions/setup-dotnet@v4
         with:

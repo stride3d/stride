@@ -1,0 +1,32 @@
+// PSMain(ExpectedResult=#01010101)
+
+namespace Stride.Shaders.Tests;
+
+// Base shader with a non-stage helper method
+shader CallNonStageFromStageMethodInheritedBase
+{
+    float4 ComputeColor()
+    {
+        return float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}
+
+// Stage method calls non-stage method from an inherited shader.
+// This tests that ImportStageOnly correctly imports the parent fully
+// when a stage method references its non-stage members.
+shader CallNonStageFromStageMethodInherited : CallNonStageFromStageMethodInheritedBase
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = ComputeColor();
+    }
+}

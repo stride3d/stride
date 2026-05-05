@@ -53,9 +53,14 @@ shader TessellationBase : ShaderBase, TransformationBase, MaterialDomainStream, 
         // However, not sure if we can do tessellation directly through ShadingPosition interpolation (in which case we wouldn't need to do it in domain shader either)
         float2 screenPosition0 = GetScreenSpacePosition(input[uCPID].PositionWS, ViewSize.x, ViewSize.y);
         float2 screenPosition1 = GetScreenSpacePosition(input[NextCPID].PositionWS, ViewSize.x, ViewSize.y);
-        
-        // Screen space tessellation based on desired triangle size
-        streams.oppositeEdgeLOD = distance(screenPosition0, screenPosition1) / DesiredTriangleSize;
+
+        // Screen space tessellation based on desired triangle size. Guard against
+        // degenerate patches whose two CPs are coincident in world space — compare
+        // input positions directly (exact equality on vertex-buffer inputs is robust
+        // across backends, whereas fast-math may produce a tiny non-zero value from
+        // distance() in screen space and leave the patch uncullable).
+        bool coincident = all(input[uCPID].PositionWS.xyz == input[NextCPID].PositionWS.xyz);
+        streams.oppositeEdgeLOD = coincident ? 0.0f : distance(screenPosition0, screenPosition1) / DesiredTriangleSize;
 
         output = streams;
     }
@@ -121,7 +126,7 @@ shader TessellationBase : ShaderBase, TransformationBase, MaterialDomainStream, 
     
     stage void TessellateHull(InputPatch<Input, InputControlPointCount> input, uint uCPID, uint NextCPID) {}
     stage void TessellateHullConstant(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) {}
-    stage float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) {}
+    stage float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) { return 0.0f; }
     stage void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords) {}
     stage void TessellateDomain() {}
 };

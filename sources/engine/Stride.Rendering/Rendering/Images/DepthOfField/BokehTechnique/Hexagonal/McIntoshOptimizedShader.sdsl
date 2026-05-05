@@ -3,8 +3,6 @@
 
 namespace Stride.Rendering.Images
 {
-    compose DepthAwareDirectionalBlurShader blurShader;
-
     /// <summary>
     /// Optimized version of the McIntosh bokeh effect. 
     /// Based on a first blur pass, computes the 2 diagonal blurs and keeps the minimum. 

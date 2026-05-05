@@ -69,7 +69,7 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Graphics API Output Path Adjustment (Stride.targets:40-46) -->
+  <!-- Graphics API Output Path Adjustment -->
   <!-- ================================================================ -->
   <!-- When building for multiple graphics APIs, each API gets its own output subdirectory.
        Test projects using the Stride test SDK override OutputPath after this import. -->

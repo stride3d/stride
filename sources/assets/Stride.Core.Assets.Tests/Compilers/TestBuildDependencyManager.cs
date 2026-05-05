@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
@@ -171,7 +172,7 @@ public class TestBuildDependencyManager : CompilerTestBase
     {
         if (ex != null)
         {
-            throw ex;
+            ExceptionDispatchInfo.Capture(ex).Throw();
         }
     }
 

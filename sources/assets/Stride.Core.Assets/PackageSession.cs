@@ -1042,7 +1042,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                             project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                             vsProjs.Add(projectFullPath, project);
                         }
-                        var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == projectInclude);
+                        var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && x.EvaluatedInclude == projectInclude);
                         if (projectItem?.IsImported == false)
                         {
                             project.RemoveItem(projectItem);
@@ -1056,7 +1056,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                             File.Delete(generatedAbsolutePath);
 
                             var generatedInclude = assetItem.GetGeneratedInclude();
-                            var generatedItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == generatedInclude);
+                            var generatedItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && x.EvaluatedInclude == generatedInclude);
                             if (generatedItem is not null)
                             {
                                 project.RemoveItem(generatedItem);

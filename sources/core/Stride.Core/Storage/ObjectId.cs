@@ -34,6 +34,11 @@ public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<Object
     private uint hash3;
     private uint hash4;
 
+    public uint Hash1 => hash1;
+    public uint Hash2 => hash2;
+    public uint Hash3 => hash3;
+    public uint Hash4 => hash4;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectId"/> struct.
     /// </summary>

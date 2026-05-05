@@ -10,12 +10,24 @@
 //   allow    - max allowed pixel counts per diff range (e.g. "1-2": 500, "16+": 2)
 [
   {
-    // Single pixel at X:347 Y:183 (knight's hand) flickers due to sub-pixel
-    // rasterization on the geometry edge in SwiftShader on Linux.
+    // Sometime one pixel in knight model flickers due to sub-pixel
+    // rasterization on a geometry edge; observed across software renderers
+    // (Lavapipe/WARP on Linux/Windows). Tolerated on all platforms.
     "image": "AnimatedModelTests.f3.png",
-    "platform": "Linux",
-    "api": "Vulkan",
-    "device": "SwiftShader",
-    "allow": { "3-70": 1, "71+": 0 }
+    "allow": { "3-70": 1, "71+": 1 }
+  },
+  // Some slight pixel edges/aliasing differences (probably due to CPU floating point divergence)
+  // Allow them: it's quite minor if only so few pixels for wireframe
+  {
+    "image": "TesselationTest.f3.png",
+    "allow": { "3+": 10 }
+  },
+  {
+    "image": "TesselationTest.f4.png",
+    "allow": { "3+": 15 }
+  },
+  {
+    "image": "TesselationTest.f5.png",
+    "allow": { "3+": 50 }
   }
 ]

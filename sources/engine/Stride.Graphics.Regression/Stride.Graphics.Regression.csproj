@@ -24,7 +24,25 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" />
-    <PackageReference Include="Stride.Dependencies.SwiftShader" Condition="'$(StrideGraphicsApi)' == 'Vulkan'" />
+    <!--
+      Keep the small managed DLL (and its ModuleInitializer) but skip the 70+ MB
+      vulkan_lvp.{dll,so,dylib} copy into every test's bin/. The native is located at runtime
+      from the NuGet package cache by Lavapipe.LocateLibrary.
+        ExcludeAssets="native" — don't copy it into *this* project's output.
+        PrivateAssets="native" — don't let it flow into transitive consumers (test projects) either.
+    -->
+    <PackageReference Include="Stride.Dependencies.Lavapipe" ExcludeAssets="native" PrivateAssets="native" />
+
+    <!-- Pin WARP (software rasterizer) for reproducible D3D11/D3D12 test runs across CI and dev machines.
+         Side-loaded via d3d10warp.dll next to the test host .exe — same DLL covers both D3D11 and D3D12.
+         Skipped on Vulkan/Null builds so Linux outputs stay slim. Dev/test use only (no redistribution).
+         GeneratePathProperty is needed because the package uses build/native/ layout (C++ convention),
+         which NuGet does not auto-import into C# projects. -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true"
+                      Condition="'$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12'" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
 
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />

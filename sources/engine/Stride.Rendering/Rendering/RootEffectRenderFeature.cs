@@ -626,7 +626,21 @@ namespace Stride.Rendering
                                     if (descriptorSet.Layout == null)
                                         continue;
 
-                                    var constantBufferReflection = effectBytecode.Reflection.ConstantBuffers.FirstOrDefault(x => x.Name == descriptorSet.Name);
+                                    var resourceGroup = effectBytecode.Reflection.FindResourceGroup(descriptorSet.Name);
+                                    var constantBufferReflection = resourceGroup?.ConstantBuffer;
+
+                                    // For the default set slot, also check unnamed/Globals groups for a cbuffer
+                                    if (constantBufferReflection == null && descriptorSet.Name == "PerFrame")
+                                    {
+                                        foreach (var fallbackGroup in effectBytecode.Reflection.ResourceGroups)
+                                        {
+                                            if (fallbackGroup.Name is null or "Globals" && fallbackGroup.ConstantBuffer != null)
+                                            {
+                                                constantBufferReflection = fallbackGroup.ConstantBuffer;
+                                                break;
+                                            }
+                                        }
+                                    }
 
                                     renderEffectReflection.ResourceGroupDescriptions[index] = new ResourceGroupDescription(descriptorSet.Layout, constantBufferReflection);
                                 }
@@ -846,6 +860,12 @@ namespace Stride.Rendering
 
                         mutablePipelineState.Update();
                         renderEffect.PipelineState = mutablePipelineState.CurrentState;
+
+                        // Snapshot depth-write state so RenderSystem.Draw can auto-detect the
+                        // stage's depth access mode (pre-barrier Read vs Write) before dispatch.
+                        var dss = pipelineState.DepthStencilState;
+                        renderEffect.WritesDepth = dss.DepthBufferWriteEnable
+                            || (dss.StencilEnable && dss.StencilWriteMask != 0);
                     }
 
                     RenderNodes[renderNodeReference.Index] = renderNode;

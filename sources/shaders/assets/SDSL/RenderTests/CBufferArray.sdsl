@@ -1,0 +1,18 @@
+// PSMain(ExpectedResult=#03050709, cbuffer.Test=(Test2=(3,5,7,9)))
+
+namespace Stride.Shaders.Tests;
+
+shader CBufferArray
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    { 
+        int Test2[4];
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(Test2[0], Test2[1], Test2[2], Test2[3]) / 255.0;
+    }
+}

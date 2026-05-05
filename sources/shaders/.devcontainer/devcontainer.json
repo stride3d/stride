@@ -1,0 +1,22 @@
+{
+    "name": ".NET 9 dev container",
+    "image": "mcr.microsoft.com/dotnet/sdk:9.0",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.vscodeintellicode-csharp",
+                "ms-vscode.vscode-node-azure-pack",
+                "Ionide.Ionide-fsharp"
+            ],
+            "settings": {
+                "terminal.integrated.shell.linux": "/usr/bin/pwsh" 
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/powershell:1": {}
+    },
+    "postStartCommand": "git submodule update --init"
+}

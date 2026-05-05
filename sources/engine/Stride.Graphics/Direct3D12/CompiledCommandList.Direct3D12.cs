@@ -20,7 +20,7 @@ public unsafe partial struct CompiledCommandList
     /// <summary>
     ///   The internal native Direct3D 12 Command List for graphics commands.
     /// </summary>
-    internal ComPtr<ID3D12GraphicsCommandList> NativeCommandList;
+    internal ComPtr<ID3D12GraphicsCommandList7> NativeCommandList;
     /// <summary>
     ///   The internal native Direct3D 12 Command Allocator for graphics commands.
     /// </summary>

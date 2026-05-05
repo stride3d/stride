@@ -94,4 +94,15 @@ internal struct SubresourceLayoutTracker
     ///   Gets the per-subresource array. Only valid when <see cref="HasPerSubresourceTracking"/> is true.
     /// </summary>
     internal readonly ReadOnlySpan<BarrierLayout> PerSubresourceLayouts => perSubresource;
+
+    /// <summary>
+    ///   Returns an independent copy (a plain struct copy aliases the <see cref="perSubresource"/> array).
+    /// </summary>
+    public readonly SubresourceLayoutTracker Clone()
+    {
+        var clone = this;
+        if (perSubresource != null)
+            clone.perSubresource = (BarrierLayout[])perSubresource.Clone();
+        return clone;
+    }
 }

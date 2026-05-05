@@ -27,7 +27,7 @@ using Stride.Core.Annotations;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine", "Xenko", "Xenko.Core", "Xenko.Engine" }, "3.1.0.0", CurrentVersion)]
+    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion)]
     public partial class StridePackageUpgrader : PackageUpgrader
     {
         // Should match Stride.nupkg
@@ -297,6 +297,82 @@ namespace Stride.Assets
                                 isProjectDirty = true;
                             }
                         }
+                    }
+
+                    if (dependency.Version.MinVersion < new PackageVersion("4.4.0.0") && solutionProject != null)
+                    {
+                        // .sdsl/.sdfx generated C# files used to be written next to the source by a custom
+                        // MSBuild tool. They are now produced by a Roslyn source generator into obj/. Rename
+                        // the on-disk siblings to .bak (recoverable, inert in build) and strip leftover
+                        // csproj items / Generator metadata.
+                        var projectDir = projectFullPath.GetFullDirectory().ToOSPath();
+                        int renamedCount = 0;
+                        foreach (var file in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))
+                        {
+                            if (!(file.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase)
+                                || file.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase)))
+                                continue;
+
+                            // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
+                            var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
+                            if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
+                                || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                                || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
+                                || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            try
+                            {
+                                File.Move(file, file + ".bak", overwrite: true);
+                                log.Info($"Renamed legacy generated shader file: {rel} -> {rel}.bak");
+                                renamedCount++;
+                            }
+                            catch (Exception e)
+                            {
+                                log.Warning($"Could not rename legacy generated shader file [{rel}]", e);
+                            }
+                        }
+
+                        // Strip leftover csproj item nodes referencing .sdsl.cs / .sdfx.cs paths
+                        foreach (var item in project.Xml.ItemGroups
+                            .SelectMany(g => g.Items)
+                            .Where(x =>
+                            {
+                                var path = x.Include ?? x.Update ?? string.Empty;
+                                return path.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase)
+                                    || path.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase);
+                            })
+                            .ToArray())
+                        {
+                            item.Parent.RemoveChild(item);
+                            isProjectDirty = true;
+                        }
+
+                        // Strip obsolete Generator/LastGenOutput metadata from .sdsl/.sdfx items.
+                        // Walk the project XML directly — project.Items returns evaluated items
+                        // (including ones from imported SDK props), which can't be mutated.
+                        foreach (var item in project.Xml.ItemGroups
+                            .SelectMany(g => g.Items)
+                            .Where(x =>
+                            {
+                                var path = x.Include ?? x.Update ?? string.Empty;
+                                return path.EndsWith(".sdsl", StringComparison.OrdinalIgnoreCase)
+                                    || path.EndsWith(".sdfx", StringComparison.OrdinalIgnoreCase);
+                            })
+                            .ToArray())
+                        {
+                            foreach (var metadata in item.Metadata.ToArray())
+                            {
+                                if (metadata.Name == "Generator" || metadata.Name == "LastGenOutput")
+                                {
+                                    item.RemoveChild(metadata);
+                                    isProjectDirty = true;
+                                }
+                            }
+                        }
+
+                        if (renamedCount > 0)
+                            log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
                     }
 
                     if (isProjectDirty)

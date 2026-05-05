@@ -1,0 +1,585 @@
+﻿using CommunityToolkit.HighPerformance.Buffers;
+using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using static Stride.Shaders.Spirv.Specification;
+
+namespace Stride.Shaders.Spirv.Processing;
+
+
+
+
+/// <summary>
+/// Remove duplicate simple types.
+/// </summary>
+public class TypeDuplicateHelper
+{
+    public int[] FindItemsWithTypes(SpirvBuffer buffer, params Span<Op> ops)
+    {
+        var itemCount = 0;
+        for (var index = 0; index < buffer.Count; index++)
+        {
+            var i = buffer[index];
+            if (ops.Contains(i.Op))
+                itemCount++;
+        }
+        var result = new int[itemCount];
+        itemCount = 0;
+        for (var index = 0; index < buffer.Count; index++)
+        {
+            var i = buffer[index];
+            if (ops.Contains(i.Op))
+                result[itemCount++] = index;
+        }
+        return result;
+    }
+
+    // Note: Target is only for OpName and OpMember
+    record struct InstructionSortHelper(Op Op, int Index, OpData Data)
+    {
+        public InstructionSortHelper(OpDataIndex i) : this(i.Op, i.Index, i.Data) { }
+
+        public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
+    }
+
+    class OperationComparer(SpirvContext Context, bool UseIndices) : IComparer<InstructionSortHelper>
+    {
+        private static int RemapOp(Op op)
+        {
+            // Make sure all OpName and OpMember are contiguous
+            return op switch
+            {
+                Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString
+                    or Op.OpDecorate or Op.OpDecorateString => -1,
+                _ => (int)op,
+            };
+        }
+
+        public int Compare(InstructionSortHelper x, InstructionSortHelper y)
+        {
+            var comparison = RemapOp(x.Op).CompareTo(RemapOp(y.Op));
+            if (comparison != 0)
+                return comparison;
+
+            // Special values for searching bounds
+            if (UseIndices)
+            {
+                if (x.Index == -1 || y.Index == int.MaxValue)
+                    return -1;
+                if (y.Index == -1 || x.Index == int.MaxValue)
+                    return 1;
+            }
+
+            // Only for OpName and OpMember: we sort by target
+            // Note: RemapOp earlier made sure we sort first per Target then OpCode, i.e.:
+            // OpName %3 "Test"
+            // OpDecorate %3 ....
+            // OpName %4 "Test2"
+            if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
+            {
+                comparison = (x.Data.Memory.Span[1]).CompareTo(y.Data.Memory.Span[1]);
+                if (comparison != 0)
+                    return comparison;
+            }
+
+            // Only process types that we care about
+            // For arrays, we have some additional checks: same name and member info
+            if (x.Op == Op.OpTypeArray)
+            {
+                comparison = x.Data.Memory.Span[2].CompareTo(y.Data.Memory.Span[2]);
+                if (comparison != 0)
+                    return comparison;
+
+                comparison = CompareIntConstant(Context, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            // Standard ResultType/ResultId instructions: ignore ResultId (Span[2]) and compare the rest
+            else if (x.Op == Op.OpGenericParameterSDSL || OpCheckDuplicateForConstant(x.Op))
+            {
+                comparison = x.Data.Memory.Span[1].CompareTo(y.Data.Memory.Span[1]);
+                if (comparison != 0)
+                    return comparison;
+
+                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[3..], y.Data.Memory.Span[3..]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            else if (OpCheckDuplicateForTypesAndImport(x.Op))
+            {
+                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            else if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
+            {
+                // Use actual op (they were all remapped to same ID in RemapOp() to be grouped by TargetId first)
+                comparison = x.Op.CompareTo(y.Op);
+                if (comparison != 0)
+                    return comparison;
+
+                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory != null ? x.Data.Memory.Span[2..] : [], y.Data.Memory != null ? y.Data.Memory.Span[2..] : []);
+                if (comparison != 0)
+                    return comparison;
+            }
+
+            comparison = UseIndices ? x.Index.CompareTo(y.Index) : 0;
+            return comparison;
+        }
+    }
+
+    private static int CompareIntConstant(SpirvContext context, int id1, int id2)
+    {
+        if (id1 == id2)
+            return 0;
+
+        var value1Success = context.TryGetConstantValue(id1, out var value1, out _);
+        var value2Success = context.TryGetConstantValue(id2, out var value2, out _);
+
+        return (value1Success, value2Success) switch
+        {
+            // Both succeeds: compare values
+            (true, true) => Convert.ToInt32(value1!).CompareTo(Convert.ToInt32(value2!)),
+            // Only one succeeds (use bool order)
+            (true, false) or (false, true) => value1Success.CompareTo(value2Success),
+            // Both fails: use ID
+            (false, false) => id1.CompareTo(id2),
+        };
+    }
+
+    private SpirvContext context;
+    private List<InstructionSortHelper> instructionsByOp;
+    private List<InstructionSortHelper> namesByOp;
+    private OperationComparer comparerSort;
+    private OperationComparer comparerInsert;
+    private bool namesSorted;
+
+    public TypeDuplicateHelper(SpirvContext context)
+    {
+        this.context = context;
+        instructionsByOp = new();
+        namesByOp = new();
+        namesSorted = false;
+        foreach (var i in context)
+        {
+            GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
+        }
+
+        comparerSort = new OperationComparer(context, true);
+        namesByOp.Sort(comparerSort);
+        instructionsByOp.Sort(comparerSort);
+
+        comparerInsert = new OperationComparer(context, false);
+    }
+
+    public OpDataIndex InsertInstruction(int index, OpData data)
+    {
+        var result = context.Insert(index, data);
+
+        // Adjust indices (optimization: we skip if we added at last index)
+        if (index != context.Count - 1)
+        {
+            var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
+            for (int i = 0; i < namesByOp.Count; i++)
+            {
+                ref var inst = ref namesByOpSpan[i];
+                if (inst.Index >= index)
+                    inst.Index++;
+            }
+
+            var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
+            for (int i = 0; i < instructionsByOp.Count; i++)
+            {
+                ref var inst = ref instructionsByOpSpan[i];
+                if (inst.Index >= index)
+                    inst.Index++;
+            }
+        }
+
+        // Add new item
+        var targetList = GetTargetList(data);
+        var newItem = new InstructionSortHelper(data.Op, index, data);
+        var sortedInsertionIndex = targetList.BinarySearch(newItem, comparerSort);
+        // Since comparerSort uses Index as last key, it should never be an exact match
+        if (sortedInsertionIndex >= 0)
+            throw new InvalidOperationException();
+        targetList.Insert(~sortedInsertionIndex, newItem);
+
+        return result;
+    }
+
+    public void RemoveInstructionAt(int index, bool dispose)
+    {
+        context.RemoveAt(index, dispose);
+
+        // Adjust indices and remove at same time
+        var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
+        for (int i = 0; i < namesByOp.Count; i++)
+        {
+            ref var inst = ref namesByOpSpan[i];
+            if (inst.Index > index)
+                inst.Index--;
+            else if (inst.Index == index)
+                namesByOp.RemoveAt(i--);
+        }
+        var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
+        for (int i = 0; i < instructionsByOp.Count; i++)
+        {
+            ref var inst = ref instructionsByOpSpan[i];
+            if (inst.Index > index)
+                inst.Index--;
+            else if (inst.Index == index)
+                instructionsByOp.RemoveAt(i--);
+        }
+    }
+
+    /// <summary>
+    /// Re-sorts namesByOp after external mutations (e.g. RemapIds) that change target IDs in the buffer.
+    /// </summary>
+    public void ResortDecorations()
+    {
+        namesByOp.Sort(comparerSort);
+    }
+
+    private List<InstructionSortHelper> GetTargetList(OpData data)
+    {
+        switch (data.Op)
+        {
+            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString
+                or Op.OpDecorate or Op.OpDecorateString:
+                // Target is always in operand 1 for all those instructions
+                return namesByOp;
+            default:
+                return instructionsByOp;
+        }
+    }
+
+    private List<InstructionSortHelper> GetSortedNames()
+    {
+        // If any name was added, sort them
+        if (!namesSorted)
+        {
+            namesByOp.Sort(comparerSort);
+            namesSorted = true;
+        }
+        return namesByOp;
+    }
+
+    public static bool OpCheckDuplicateForTypesAndImport(Op op)
+    {
+        return op == Op.OpTypeVoid
+            || op == Op.OpTypeInt
+            || op == Op.OpTypeFloat
+            || op == Op.OpTypeBool
+            || op == Op.OpTypeVector
+            || op == Op.OpTypeMatrix
+            || op == Op.OpTypeArray
+            || op == Op.OpTypeRuntimeArray
+            || op == Op.OpTypePointer
+            || op == Op.OpTypeFunction
+            || op == Op.OpTypeFunctionSDSL
+            || op == Op.OpTypeImage
+            || op == Op.OpTypeSampler
+            || op == Op.OpTypeSampledImage
+            || op == Op.OpTypeGenericSDSL
+            || op == Op.OpTypeStreamsSDSL
+            || op == Op.OpTypeGeometryStreamOutputSDSL
+            || op == Op.OpTypePatchSDSL
+            || op == Op.OpImportShaderSDSL
+            || op == Op.OpImportVariableSDSL
+            || op == Op.OpImportFunctionSDSL
+            || op == Op.OpImportStructSDSL
+            || op == Op.OpExtInstImport;
+    }
+
+    public static bool OpCheckDuplicateForConstant(Op op)
+    {
+        return op == Op.OpConstant
+            || op == Op.OpConstantTrue
+            || op == Op.OpConstantFalse
+            || op == Op.OpConstantNull
+            || op == Op.OpConstantSampler
+            || op == Op.OpConstantComposite
+            || op == Op.OpConstantStringSDSL
+            || op == Op.OpSpecConstant
+            || op == Op.OpSpecConstantComposite
+            || op == Op.OpSpecConstantTrue
+            || op == Op.OpSpecConstantFalse
+            || op == Op.OpSpecConstantOp;
+    }
+
+    public (int Start, int End) FindDecorationRange(int targetId)
+    {
+        var span = CollectionsMarshal.AsSpan(namesByOp);
+        int lo = 0, hi = namesByOp.Count - 1, start = namesByOp.Count;
+        while (lo <= hi)
+        {
+            int mid = lo + (hi - lo) / 2;
+            if (span[mid].Data.Memory.Span[1] < targetId)
+                lo = mid + 1;
+            else if (span[mid].Data.Memory.Span[1] > targetId)
+                hi = mid - 1;
+            else { start = mid; hi = mid - 1; }
+        }
+        int end = start;
+        while (end < namesByOp.Count && span[end].Data.Memory.Span[1] == targetId)
+            end++;
+        return (start, end);
+    }
+
+    /// <summary>
+    /// Compares decorations for two type IDs and removes the duplicate side.
+    /// Returns true if all decorations matched, false if there was a mismatch.
+    /// </summary>
+    /// <summary>
+    /// Merges decorations when deduplicating types. Removes the removeId's decorations
+    /// and returns a list of decorations that only exist on one side (mismatches).
+    /// Each entry is (Data, OnKeepOnly: true if only on keepId, false if only on removeId).
+    /// Remove-side OpData are clones that the caller should dispose.
+    /// </summary>
+    public List<(OpData Data, bool OnKeepOnly)>? MergeTypeDecorations(int keepId, int removeId)
+    {
+        var (keepStart, keepEnd) = FindDecorationRange(keepId);
+        var (removeStart, removeEnd) = FindDecorationRange(removeId);
+
+        List<(OpData Data, bool OnKeepOnly)>? mismatches = null;
+        var span = CollectionsMarshal.AsSpan(namesByOp);
+
+        // Check: every removeId decoration has a match in keepId
+        for (int r = removeStart; r < removeEnd; r++)
+        {
+            ref var rInst = ref span[r];
+            bool found = false;
+            for (int k = keepStart; k < keepEnd; k++)
+            {
+                ref var kInst = ref span[k];
+                if (kInst.Op == rInst.Op
+                    && MemoryExtensions.SequenceEqual(kInst.Data.Memory.Span[2..], rInst.Data.Memory.Span[2..]))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (rInst.Op is Op.OpName)
+                {
+                    // OpName mismatches are harmless — just adopt the remove-side name onto keepId
+                    var clone = new OpData(rInst.Data.Memory.Span);
+                    clone.Memory.Span[1] = keepId;
+                    var insertIndex = keepStart < namesByOp.Count ? namesByOp[keepStart].Index : 0;
+                    namesByOp.Insert(keepEnd, new InstructionSortHelper { Op = clone.Op, Index = insertIndex, Data = clone });
+                    keepEnd++;
+                    // Inserting before the remove range shifts its indices
+                    if (keepEnd <= removeStart + 1) // +1 because keepEnd was just incremented
+                    {
+                        removeStart++;
+                        removeEnd++;
+                        r++;
+                    }
+                    span = CollectionsMarshal.AsSpan(namesByOp); // re-acquire after mutation
+                }
+                else
+                    (mismatches ??= []).Add((new OpData(rInst.Data.Memory.Span), false));
+            }
+        }
+        // Check reverse: every keepId decoration has a match in removeId
+        for (int k = keepStart; k < keepEnd; k++)
+        {
+            ref var kInst = ref span[k];
+            if (kInst.Op is Op.OpName)
+                continue; // OpName on keep-side is always fine
+            bool found = false;
+            for (int r = removeStart; r < removeEnd; r++)
+            {
+                ref var rInst = ref span[r];
+                if (rInst.Op == kInst.Op
+                    && MemoryExtensions.SequenceEqual(rInst.Data.Memory.Span[2..], kInst.Data.Memory.Span[2..]))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                (mismatches ??= []).Add((kInst.Data, true));
+        }
+
+        // Nop and remove the removeId's decorations
+        for (int r = removeEnd - 1; r >= removeStart; r--)
+        {
+            SetOpNop(namesByOp[r].Data.Memory.Span);
+            namesByOp.RemoveAt(r);
+        }
+
+        return mismatches;
+    }
+
+    public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
+    {
+        var searchKey = new InstructionSortHelper { Op = data.Op, Index = -1, Data = data };
+        var index = instructionsByOp.BinarySearch(searchKey, comparerInsert);
+
+        if (index >= 0)
+        {
+            foundData = new(instructionsByOp[index].Index, context.GetBuffer());
+            return true;
+        }
+
+        foundData = default;
+        return false;
+    }
+
+    public void RemoveDuplicateImageTypes(params SpirvBuffer[] additionalBuffers)
+    {
+        var buffer = context.GetBuffer();
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeImage, Op.OpTypeImage, true, comparerSort, additionalBuffers);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeSampledImage, Op.OpTypeSampledImage, true, comparerSort, additionalBuffers);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparerSort, additionalBuffers);
+    }
+
+    public void RemoveDuplicates()
+    {
+        var buffer = context.GetBuffer();
+
+        // Note: We process instruction by types depending on their dependencies
+        // i.e. a OpTypeFloat being unified means a OpTypeVector depending on it might too
+
+        // Covers OpTypeVoid, OpTypeBool, OpTypeInt, OpTypeFloat at the same time (no interdependencies)
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVoid, Op.OpTypeFloat, false, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeVector, true, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeMatrix, Op.OpTypeMatrix, true, comparerSort);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeArray, Op.OpTypeRuntimeArray, true, comparerSort);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeStruct, Op.OpTypeStruct, true, comparerSort);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparerSort);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericSDSL, Op.OpTypeGenericSDSL, true, comparerSort);
+
+        // Note: due to RemapOp, this will also cover OpMemberDecorate and OpMemberName
+        ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
+    }
+
+    /// <summary>
+    /// Finds all instructions in the [startOp..endOp] range using binary search on the sorted list,
+    /// optionally re-sorts them (needed after previous ReplaceRefs may have changed operand values),
+    /// then delegates to ProcessSortedInstructions for dedup.
+    /// </summary>
+    private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
+    {
+        var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = startOp, Index = -1 }, comparer);
+        var end = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = endOp, Index = int.MaxValue }, comparer);
+
+        if (sort)
+        {
+            // Sort again, but only those instructions (as previous replacements with ReplaceRefs might have changed order)
+            instructionsByOp.Sort(start, end - start, comparer);
+        }
+
+        ProcessSortedInstructions(buffer, instructionsByOp, start, end, comparer, additionalBuffers);
+    }
+
+    /// <summary>
+    /// Walks a sorted range of instructions, groups consecutive duplicates (same opcode and operands),
+    /// keeps the first of each group, NOPs the rest, and rewrites all IdRef references in the buffer
+    /// (and any additionalBuffers) to point to the kept instruction's IdResult.
+    /// For decoration ops (OpName, OpDecorate, etc.), duplicates are simply NOPed without ref replacement
+    /// since they use Target rather than IdResult.
+    /// </summary>
+    private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
+    {
+        for (var firstIndex = start; firstIndex < end;)
+        {
+            var i = buffer[instructionsByOp[firstIndex].Index];
+
+            // Find first item that is different
+            int lastIndex;
+            for (lastIndex = firstIndex + 1; lastIndex < end; ++lastIndex)
+            {
+                var j = instructionsByOp[lastIndex];
+                var isTargetBased = i.Op == Op.OpName || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString
+                    || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString;
+                var firstMemoryIndex = isTargetBased ? 1 : 2;
+                var same = i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Data.Memory.Span[firstMemoryIndex..], j.Data.Memory.Span[firstMemoryIndex..]);
+                if (!same)
+                    break;
+            }
+
+            // At least 2 similar items?
+            if (lastIndex - firstIndex > 1)
+            {
+                bool isOpWithResultId = i.Op == Op.OpName || i.Op == Op.OpMemberName
+                    || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString
+                    || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString;
+
+                // Build list of IdResult matching first instruction
+                Span<int> matchingRefs = new int[lastIndex - (firstIndex + 1)];
+                for (var index = firstIndex + 1; index < lastIndex; ++index)
+                {
+                    var j = buffer[instructionsByOp[index].Index].Data;
+                    if (!isOpWithResultId)
+                        matchingRefs[index - (firstIndex + 1)] = j.IdResult ?? throw new InvalidOperationException();
+                    SetOpNop(j.Memory.Span);
+                }
+
+                // Replace all IdResult at once to the one of first instruction
+                if (!isOpWithResultId)
+                {
+                    var canonicalId = i.Data.IdResult ?? throw new InvalidOperationException();
+                    ReplaceRefs(matchingRefs, canonicalId, buffer);
+                    if (additionalBuffers != null)
+                        foreach (var extra in additionalBuffers)
+                            ReplaceRefs(matchingRefs, canonicalId, extra);
+                }
+            }
+
+            // Restart from last different instruction
+            firstIndex = lastIndex;
+        }
+    }
+
+    static void ReplaceRefs(Span<int> from, int to, SpirvBuffer buffer)
+    {
+        foreach (var i in buffer)
+        {
+            var opcode = i.Op;
+            foreach (var op in i.Data)
+            {
+                if (op.Kind == OperandKind.IdRef || op.Kind == OperandKind.IdScope || op.Kind == OperandKind.IdMemorySemantics)
+                {
+                    foreach (ref var w in op.Words)
+                    {
+                        if (from.Contains(w))
+                            w = to;
+                    }
+                }
+                else if (op.Kind == OperandKind.IdResultType && from.Contains(op.Words[0]))
+                    op.Words[0] = to;
+                else if (op.Kind == OperandKind.PairIdRefLiteralInteger && from.Contains(op.Words[0]))
+                    op.Words[0] = to;
+                else if (op.Kind == OperandKind.PairLiteralIntegerIdRef && from.Contains(op.Words[1]))
+                    op.Words[1] = to;
+                else if (op.Kind == OperandKind.PairIdRefIdRef)
+                {
+                    op.Words[0] = from.Contains(op.Words[0]) ? to : op.Words[0];
+                    op.Words[1] = from.Contains(op.Words[1]) ? to : op.Words[1];
+                }
+            }
+        }
+    }
+
+    static void SetOpNop(Span<int> words)
+    {
+        words[0] = words.Length << 16;
+        words[1..].Clear();
+    }
+}

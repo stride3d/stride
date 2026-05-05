@@ -131,7 +131,7 @@ namespace Stride.Graphics
                 devicePointer = (nint) GraphicsMarshal.GetNativeDevice(graphicsDevice).Handle;
 #elif STRIDE_GRAPHICS_API_VULKAN
             // RenderDoc Vulkan capture uses NULL (wildcard) for the device pointer.
-            // Passing VkInstance.Handle crashes with some ICDs (e.g. SwiftShader).
+            // Passing VkInstance.Handle crashes with some ICDs.
 #endif
             return devicePointer;
         }

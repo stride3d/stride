@@ -263,6 +263,24 @@ namespace Stride.Graphics
         public bool IsUnorderedAccess => ViewFlags.HasFlag(TextureFlags.UnorderedAccess);
 
         /// <summary>
+        ///   Computes the initial <see cref="BarrierLayout"/> a texture should be created in
+        ///   based on its <see cref="Texture.Usage"/> and <see cref="TextureFlags"/>. Used by
+        ///   platform backends to seed <c>LayoutTracker</c> at resource creation.
+        /// </summary>
+        internal BarrierLayout GetInitialBarrierLayout()
+        {
+            if (Usage == GraphicsResourceUsage.Staging)
+                return BarrierLayout.CopyDest;
+            if (IsDepthStencil)
+                return BarrierLayout.DepthStencilWrite;
+            if (IsRenderTarget)
+                return BarrierLayout.RenderTarget;
+            if (IsShaderResource)
+                return BarrierLayout.ShaderResource;
+            return BarrierLayout.Common;
+        }
+
+        /// <summary>
         ///   Gets a value indicating if the Texture is a multi-sampled Texture.
         /// </summary>
         /// <value>

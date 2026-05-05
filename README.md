@@ -63,7 +63,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 2. **Open the solution:**
    - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2026.
    - Build the `Stride.GameStudio` project in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
-   - _Optionally_, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+   - For mobile work, open `Stride.Android.slnf` or `Stride.iOS.slnf` (filtered subsets of `Stride.sln`).
 
 > [!WARNING]
 > **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.

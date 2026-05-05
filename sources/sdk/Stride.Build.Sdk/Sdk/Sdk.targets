@@ -77,13 +77,21 @@
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
-  <!-- Configure .sdsl and .sdfx files with their code generators,
-       and mark generated .cs files as dependent on their source shader -->
-  <ItemGroup>
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+  <!-- Auto-discover .sdsl/.sdfx files, register them as AdditionalFiles for the
+       Roslyn source generator, mark generated .cs as dependent, and tag the files
+       with the VS Custom Tool generator for older projects that still use it.
+       Projects that contain .sdsl/.sdfx files as test inputs or other non-shader
+       content can set EnableDefaultStrideShaderItems=false to opt out. -->
+  <PropertyGroup>
+    <EnableDefaultStrideShaderItems Condition="'$(EnableDefaultStrideShaderItems)' == ''">true</EnableDefaultStrideShaderItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableDefaultStrideShaderItems)' == 'true'">
+    <None Remove="**\*.sdsl" />
+    <None Remove="**\*.sdfx" />
+    <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="@(StrideShaderFiles)" />
+    <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(StrideRoot)sources\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- ================================================================ -->
@@ -236,6 +244,22 @@
              BuildInParallel="$(BuildInParallel)"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
     </MSBuild>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Local.props Bootstrap (in-source only) -->
+  <!-- ================================================================ -->
+  <!-- Copies Local.props.template to the repo root on first build/restore. _StrideLocalProps
+       and _StrideLocalPropsTemplate are populated in Stride.Platform.props; both are empty
+       for end-users consuming the SDK from NuGet (no crowdin.yml anchor), so this no-ops.
+       Runs before Restore and Build to cover the dotnet build, dotnet restore, and
+       no-restore flows. Imports happen during evaluation, so the just-written file is
+       picked up on the next invocation, not the current one (first build uses defaults). -->
+  <Target Name="_StrideBootstrapLocalProps"
+          BeforeTargets="Restore;Build"
+          Condition="'$(_StrideLocalProps)' != '' And !Exists('$(_StrideLocalProps)') And Exists('$(_StrideLocalPropsTemplate)')">
+    <Copy SourceFiles="$(_StrideLocalPropsTemplate)" DestinationFiles="$(_StrideLocalProps)" />
+    <Message Importance="High" Text="Created $(_StrideLocalProps) from template — edit it to customize local build settings." />
   </Target>
 
   <!-- ================================================================ -->

@@ -25,13 +25,18 @@ namespace Stride.Graphics
         internal int ConstantBufferDataPlacementAlignment;
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
-        internal readonly ConcurrentPool<List<Texture>> StagingResourceLists = new ConcurrentPool<List<Texture>>(() => new List<Texture>());
+        internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
 
         private bool simulateReset = false;
         private string rendererName;
+
+        // The instance-level VK_EXT_debug_utils messenger doesn't know which device a validation
+        // message belongs to, so we keep a single weak reference and route through it. Stride
+        // typically runs one device; multi-device debugging would need per-device messengers.
+        internal static GraphicsDevice DebugMessengerDevice;
 
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
@@ -220,6 +225,13 @@ namespace Stride.Graphics
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
+
+            // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
+            if (FrameFence.NextFenceValue > (ulong)MaxFramesInFlight)
+            {
+                FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
+                graphicsResourceLinkCollector.Release();
+            }
         }
 
         /// <summary>
@@ -285,6 +297,12 @@ namespace Stride.Graphics
                 };
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                {
+                    for (int i = 0; i < count; i++)
+                        DebugAggregateLocalCounters(commandLists[i].Builder.DebugScopeExtractLocalCounters());
+                }
             }
 
             // Collect resources
@@ -308,6 +326,17 @@ namespace Stride.Graphics
         /// </summary>
         private unsafe partial void InitializePostFeatures()
         {
+            if (IsDebugMode)
+                DebugMessengerDevice = this;
+        }
+
+        // Vulkan messages fire synchronously through the messenger callback, which logs them
+        // inline. End-of-frame drain just dumps the scope tree if anything fired.
+        partial void DrainDebugMessages()
+        {
+            if (debugSawDrawIssue)
+                DebugDumpTree();
+            debugSawDrawIssue = false;
         }
 
         private partial string GetRendererName() => rendererName;
@@ -374,26 +403,20 @@ namespace Stride.Graphics
                 pQueuePriorities = &queuePriorities,
             };
 
-            var enabledFeature = new VkPhysicalDeviceFeatures
-            {
-                fillModeNonSolid = true,
-                shaderClipDistance = true,
-                shaderCullDistance = true,
-                samplerAnisotropy = true,
-                depthClamp = true,
-            };
-
             NativeInstanceApi.vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);
 
-            if (deviceFeatures.shaderStorageImageReadWithoutFormat)
+            // Only request features that the device actually supports
+            var enabledFeature = new VkPhysicalDeviceFeatures
             {
-                enabledFeature.shaderStorageImageReadWithoutFormat = true;
-            }
-
-            if (deviceFeatures.shaderStorageImageWriteWithoutFormat)
-            {
-                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
-            }
+                fillModeNonSolid = deviceFeatures.fillModeNonSolid,
+                shaderClipDistance = deviceFeatures.shaderClipDistance,
+                shaderCullDistance = deviceFeatures.shaderCullDistance,
+                samplerAnisotropy = deviceFeatures.samplerAnisotropy,
+                depthClamp = deviceFeatures.depthClamp,
+                tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
+                shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
+                shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
+            };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
@@ -415,30 +438,59 @@ namespace Stride.Graphics
                 IsProfilingSupported = true;
             }
 
+            // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
+            var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();
+            uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
+            uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
+
+            // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
+            var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
+            {
+                sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
+            };
+
             // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
             // Check if the feature is supported before requesting it
             var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
             {
                 sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
+                pNext = &shaderFloat16Int8Features,
+            };
+            // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
+            var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
+                pNext = &timelineSemaphoreFeatures,
             };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = &multiviewFeatures,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
             if (!timelineSemaphoreFeatures.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-
-            // Re-set to request the feature
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
+            // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
+            shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
+            timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
+            shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
+
+            // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
+            void* pNextChainHead = &timelineSemaphoreFeatures;
+            if (multiviewFeatures.multiview)
+            {
+                multiviewFeatures.multiviewGeometryShader = VkBool32.False;
+                multiviewFeatures.multiviewTessellationShader = VkBool32.False;
+                pNextChainHead = &multiviewFeatures;
+            }
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = pNextChainHead,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
@@ -629,6 +681,9 @@ namespace Stride.Graphics
 
         private unsafe void ReleaseDevice()
         {
+            if (ReferenceEquals(DebugMessengerDevice, this))
+                DebugMessengerDevice = null;
+
             EmptyTexelBufferInt.Dispose();
             EmptyTexelBufferInt = null;
             EmptyTexelBufferFloat.Dispose();
@@ -719,6 +774,9 @@ namespace Stride.Graphics
                 };
                 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                    DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
             }
 
             // Collect resources

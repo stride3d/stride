@@ -1,0 +1,48 @@
+// PSMain(ExpectedResult=#03050A0A, cbuffer.PerView=(Data=(3.0, 5.0)))
+
+namespace Stride.Shaders.Tests;
+
+shader ExternalClass<int TArraySize>
+{
+    cbuffer PerView
+    {
+        stage float Data[TArraySize];
+    };
+}
+
+shader CompositionBase
+{
+	abstract float4 Compute();
+};
+
+
+shader CompositionGenerics<int TArraySize>
+{
+	override float4 Compute()
+	{
+		return float4(ExternalClass<TArraySize>.Data[0], ExternalClass<TArraySize>.Data[1], 10.0, 10.0) / 255.0;
+	}
+};
+
+shader GenericsExternalShader
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	compose CompositionBase ShadingColor0;
+
+	stage float4 Shading()
+    {
+        return ShadingColor0.Compute();
+    }
+ 
+	void PSMain()
+	{
+		streams.ColorTarget = Shading();
+	}
+};
+
+effect GenericsExternal
+{
+	mixin GenericsExternalShader;
+	mixin compose ShadingColor0 = CompositionGenerics<2>;
+}

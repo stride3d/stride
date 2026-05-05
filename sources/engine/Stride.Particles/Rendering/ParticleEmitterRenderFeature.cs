@@ -223,11 +223,12 @@ namespace Stride.Particles.Rendering
                 var materialInfo = renderParticleEmitter.ParticleMaterialInfo;
                 var materialParameters = material.Parameters;
 
-                if (!MaterialRenderFeature.UpdateMaterial(RenderSystem, context, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
+                var resources = MaterialRenderFeature.UpdateMaterial(RenderSystem, context, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                if (resources == null)
                     continue;
 
                 var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
-                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
             }
 
             particleBufferContext.AllocateBuffers(context, totalVertexBufferSize, highestIndexCount);

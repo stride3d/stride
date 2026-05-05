@@ -152,7 +152,7 @@ namespace Stride.Graphics
             };
             var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 6);
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
-            // Surface extensions are optional at instance creation (not available with headless ICDs like SwiftShader).
+            // Surface extensions are optional at instance creation (not available with headless ICDs).
             // They are validated later when a swapchain is actually created.
             var desiredExtensionNames = new HashSet<VkUtf8String>();
             HasSurfaceSupport = availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -281,16 +281,55 @@ namespace Stride.Graphics
         private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
-            Debug.WriteLine($"Vulkan: {severity} {message}");
 
-            // Redirect warnings and errors to log
-            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
+            // If a GraphicsDevice is active in debug mode, route through its scope-aware logger
+            // so messages get a "[scope]:" prefix and the leaf gets attribution. Validation +
+            // Performance categories are draw-relevant; General is mostly init/shutdown noise.
+            var device = GraphicsDevice.DebugMessengerDevice;
+            bool isDrawCategory = (types & (VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance)) != 0;
+
+            // GPU-Assisted Validation (instrumented shaders, results read back on a worker)
+            // arrives asynchronously to recording. The Khronos validation layer tags those with
+            // ID names containing "GPU-AV"/"GPUAV"/"GPU-Assisted". Skip attribution and the
+            // tree-dump trigger so GBV-only frames stay quiet.
+            bool isGbv = device is not null && device.DebugGpuValidationEnabled;
+            if (!isGbv && pCallbackData->pMessageIdName != null)
             {
-                Log.Error($"[Vulkan] {message}");
+                var idName = new VkUtf8String(pCallbackData->pMessageIdName).ToString();
+                isGbv = idName.Contains("GPU-AV", StringComparison.Ordinal)
+                     || idName.Contains("GPUAV", StringComparison.Ordinal)
+                     || idName.Contains("GPU-Assisted", StringComparison.Ordinal);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
+            bool attributable = device is not null && !isGbv;
+            string scopePrefix = "";
+            DebugScopeFrame leaf = null;
+            if (attributable)
             {
-                Log.Warning($"[Vulkan] {message}");
+                leaf = device.GetDebugCurrentFrame();
+                var leafName = device.GetDebugLeafScopeName();
+                if (leafName is not null)
+                    scopePrefix = $"[{leafName}]: ";
+            }
+
+            if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Error)
+            {
+                GraphicsDevice.DebugLog.Error($"[Vulkan] {scopePrefix}{message}");
+                if (leaf is not null) leaf.Errors++;
+                if (device is not null && isDrawCategory && attributable) device.debugSawDrawIssue = true;
+            }
+            else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Warning)
+            {
+                GraphicsDevice.DebugLog.Warning($"[Vulkan] {scopePrefix}{message}");
+                if (leaf is not null) leaf.Warnings++;
+                if (device is not null && isDrawCategory && attributable) device.debugSawDrawIssue = true;
+            }
+            else if (severity >= VkDebugUtilsMessageSeverityFlagsEXT.Info)
+            {
+                Log.Info($"[Vulkan] {message}");
+            }
+            else
+            {
+                Log.Debug($"[Vulkan] {message}");
             }
 
             return VK_FALSE;

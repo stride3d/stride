@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,7 +38,7 @@ namespace NUnitAsync
             // if there was an exception, throw it on the caller thread, not the
             // sta thread.
             if (item.ExecutedWithException)
-                throw item.Exception;
+                ExceptionDispatchInfo.Capture(item.Exception).Throw();
         }
 
         public override void Post(SendOrPostCallback d, object state)

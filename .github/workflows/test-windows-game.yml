@@ -37,6 +37,7 @@ jobs:
   Game-Common:
     name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
@@ -45,6 +46,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -65,6 +67,7 @@ jobs:
           dotnet test build\Stride.Tests.Game.slnf `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
@@ -75,6 +78,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-game-common
+          path: TestResults/
+          if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -89,6 +99,7 @@ jobs:
   Game-GraphicsApi:
     name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -97,16 +108,18 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
-      # Crash dump collection (covers 3 crash types):
+      # Crash dump collection (covers 3 crash types) — all dumps land under TestResults/
+      # alongside the .trx logs and the blame-hang dumps from `dotnet test`.
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
-      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"            # Shared dump directory for all crash types
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\TestResults"            # Shared dump directory for all crash types
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
-      DOTNET_DbgMiniDumpType: "1"                                                    # MiniDumpNormal
-      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"  # Type 2: dump path
+      DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -116,10 +129,10 @@ jobs:
           # WER DontShowUI: suppress dialogs without disabling dump generation
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
           # WER LocalDumps: capture native crashes (type 3)
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          $dumpDir = "${{ github.workspace }}\TestResults"
           New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
       - name: Install Vulkan SDK
         if: matrix.graphics-api == 'Vulkan'
@@ -129,25 +142,25 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: true
-      - name: Register SwiftShader ICD
+      - name: Register Lavapipe ICD
         if: matrix.graphics-api == 'Vulkan'
         shell: pwsh
         run: |
-          # Restore with StrideGraphicsApi=Vulkan so the conditional SwiftShader PackageReference is evaluated
-          # (Stride's custom multi-build targets don't run during restore)
+          # CompilerApp needs a Vulkan device at build time (Skybox asset compilation).
+          # Runtime tests are served by the Lavapipe module initializer; this step is
+          # only for the pre-runtime CompilerApp invocation, so we register an ICD here.
+          # Restore first so the package is in the NuGet cache.
           dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
-          # Find SwiftShader DLL in NuGet cache and register an ICD before build
-          # (CompilerApp needs SwiftShader at build time for Skybox asset compilation)
-          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader.dll -ErrorAction SilentlyContinue | Select-Object -First 1
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter vulkan_lvp.dll -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
           if ($dll) {
-            $icdPath = Join-Path $dll.DirectoryName "vk_swiftshader_icd.json"
+            $icdPath = Join-Path $dll.DirectoryName "lvp_icd.json"
             $dllPath = $dll.FullName -replace '\\', '\\\\'
-            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.0.5`"}}"
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.3.0`"}}"
             New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
             New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered SwiftShader ICD: $icdPath"
+            Write-Host "Registered Lavapipe ICD: $icdPath"
           } else {
-            Write-Warning "SwiftShader DLL not found in NuGet cache"
+            Write-Warning "Lavapipe DLL not found in NuGet cache"
           }
       - name: Build
         run: |
@@ -165,6 +178,7 @@ jobs:
           dotnet test build\Stride.Tests.Game.GPU.slnf `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
@@ -182,8 +196,8 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
-          if (Get-ChildItem $dumpDir -Filter *.dmp -ErrorAction SilentlyContinue) {
+          $dumpDir = "${{ github.workspace }}\TestResults"
+          if (Get-ChildItem $dumpDir -Recurse -Filter *.dmp -ErrorAction SilentlyContinue) {
             $symDir = Join-Path $dumpDir "symbols"
             New-Item -Path $symDir -ItemType Directory -Force | Out-Null
             Get-ChildItem bin -Recurse -Include *.pdb,*.dll,*.exe | Copy-Item -Destination $symDir
@@ -196,10 +210,10 @@ jobs:
           name: test-artifacts-game-${{ matrix.graphics-api }}
           path: tests/local/
           if-no-files-found: ignore
-      - name: Upload crash dumps
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crash-dumps-game-${{ matrix.graphics-api }}
-          path: crash-dumps/
+          name: test-results-game-${{ matrix.graphics-api }}
+          path: TestResults/
           if-no-files-found: ignore

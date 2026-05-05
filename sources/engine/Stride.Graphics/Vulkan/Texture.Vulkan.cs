@@ -127,6 +127,7 @@ namespace Stride.Graphics
                 if (isNotOwningResources)
                     throw new InvalidOperationException();
 
+                IsHostVisibleHeap = true;
                 NativeAccessMask = VkAccessFlags.HostRead | VkAccessFlags.HostWrite;
 
                 NativePipelineStageMask = VkPipelineStageFlags.Host;
@@ -152,13 +153,9 @@ namespace Stride.Graphics
                 if (NativeImage != VkImage.Null)
                     throw new InvalidOperationException();
 
-                NativeLayout =
-                    IsRenderTarget ? VkImageLayout.ColorAttachmentOptimal :
-                    IsDepthStencil ? VkImageLayout.DepthStencilAttachmentOptimal :
-                    IsShaderResource ? VkImageLayout.ShaderReadOnlyOptimal :
-                    VkImageLayout.General;
-
-                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(NativeLayout), ArraySize * MipLevelCount);
+                var initialLayout = GetInitialBarrierLayout();
+                NativeLayout = BarrierMapping.ToVkImageLayout(initialLayout);
+                LayoutTracker.Initialize(initialLayout, ArraySize * MipLevelCount);
 
                 if (NativeLayout == VkImageLayout.TransferDstOptimal)
                     NativeAccessMask = VkAccessFlags.TransferRead;
@@ -306,10 +303,14 @@ namespace Stride.Graphics
                 var blockSize = Format.BlockSize;
                 var alignmentMask = (blockSize < 4 ? 4 : blockSize) - 1;
 
+                // SlicePitch in a DataBox is the size of one depth slice; for 3D textures the
+                // full subresource size is SlicePitch * Depth. Account for that or the upload
+                // buffer is undersized and slices 1..Depth-1 read stale ring-buffer bytes.
                 int totalSize = dataBoxes.Length * alignmentMask;
                 for (int i = 0; i < dataBoxes.Length; i++)
                 {
-                    totalSize += dataBoxes[i].SlicePitch;
+                    var mipSlice = i % MipLevelCount;
+                    totalSize += dataBoxes[i].SlicePitch * GetMipMapDescription(mipSlice).Depth;
                 }
 
                 var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out var uploadResource, out var uploadOffset);
@@ -338,12 +339,14 @@ namespace Stride.Graphics
                     int arraySlice = i / MipLevelCount;
                     int mipSlice = i % MipLevelCount;
                     var mipMapDescription = GetMipMapDescription(mipSlice);
+                    // Full subresource = one slice (slicePitch) * Depth; for 2D Depth==1.
+                    var subresourceSize = slicePitch * mipMapDescription.Depth;
 
                     var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) subresourceSize);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {
@@ -373,8 +376,8 @@ namespace Stride.Graphics
                         GraphicsDevice.NativeDeviceApi.vkCmdCopyBufferToImage(commandBuffer, uploadResource, NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                     }
 
-                    uploadMemory += slicePitch;
-                    uploadOffset += slicePitch;
+                    uploadMemory += subresourceSize;
+                    uploadOffset += subresourceSize;
                 }
 
                 if (Usage == GraphicsResourceUsage.Staging)

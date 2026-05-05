@@ -30,6 +30,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -48,6 +49,7 @@ jobs:
           dotnet test build\Stride.Tests.Simple.slnf `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
@@ -58,3 +60,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-simple
+          path: TestResults/
+          if-no-files-found: ignore

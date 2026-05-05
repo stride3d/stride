@@ -83,6 +83,35 @@
   </Target>
 
   <!-- ================================================================ -->
+  <!-- Override GetTargetFrameworksWithPlatformFromInnerBuilds          -->
+  <!-- ================================================================ -->
+  <!-- Original: Microsoft.Common.CrossTargeting.targets
+       The standard implementation invokes GetTargetFrameworksWithPlatformForSingleTargetFramework
+       once per @(_InnerBuildProjects). With our _ComputeTargetFrameworkItems override producing
+       one entry per (TFM x StrideGraphicsApi) under StrideGraphicsApiDependent=true, that path
+       reports duplicate TFMs (e.g. "net10.0;net10.0;net10.0" for 3 APIs on net10.0) to consumer
+       reference resolution. CLI builds bypass it via _StrideAnnotateProjectReferences below, but
+       VS design-time builds query GetReferenceNearestTargetFrameworkTask, which calls this and
+       errors on duplicates. Override to invoke once per UNIQUE TFM, dropping the API dimension
+       that's internal to our build dispatch. _InnerBuildProjects is unchanged (still per-API
+       for actual build/pack), so multi-API dispatch keeps working. -->
+  <Target Name="GetTargetFrameworksWithPlatformFromInnerBuilds"
+          DependsOnTargets="_ComputeTargetFrameworkItems">
+    <ItemGroup>
+      <_StrideInnerBuildProjectsTfmOnly Include="$(MSBuildProjectFile)">
+        <AdditionalProperties>TargetFramework=%(_TargetFrameworkNormalized.Identity)</AdditionalProperties>
+      </_StrideInnerBuildProjectsTfmOnly>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_StrideInnerBuildProjectsTfmOnly)"
+             Condition="'@(_StrideInnerBuildProjectsTfmOnly)' != ''"
+             Targets="GetTargetFrameworksWithPlatformForSingleTargetFramework"
+             BuildInParallel="$(BuildInParallel)">
+      <Output ItemName="_TargetFrameworkInfo" TaskParameter="TargetOutputs" />
+    </MSBuild>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Project reference Graphics API propagation                       -->
   <!-- ================================================================ -->
   <!-- For each ProjectReference, route StrideGraphicsApi based on whether the *target*

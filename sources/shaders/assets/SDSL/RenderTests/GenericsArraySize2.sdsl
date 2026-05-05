@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#03050709, cbuffer.Test=(Test2=(3,5,7,9)))
+
+namespace Stride.Shaders.Tests;
+
+shader GenericsArrayBase2<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
+{
+    static const int TArraySize = TArraySizeHalf2 + TArraySizeHalf2;
+    cbuffer Test
+    { 
+        int Test2[TArraySize];
+    }
+}
+
+shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySizeHalf>
+{
+    stream float4 ColorTarget : SV_Target0;
+    static const int TArraySize2 = TArraySize;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(Test2[0], Test2[1], Test2[2], Test2[3]) / 255.0;
+    }
+}
+
+effect GenericsArraySize2
+{
+	mixin GenericsArrayBase<2>;
+}

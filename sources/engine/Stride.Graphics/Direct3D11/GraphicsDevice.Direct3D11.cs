@@ -40,6 +40,23 @@ namespace Stride.Graphics
 
         private ID3D11InfoQueue* nativeInfoQueue;
 
+        // GBV message IDs from D3D11_MESSAGE_ID, populated lazily via reflection so the scan
+        // only runs in debug mode (InfoQueue draining never happens in release → Value is
+        // never queried). Robust against SDK additions to the GBV enum range.
+        private static readonly Lazy<System.Collections.Generic.HashSet<MessageID>> gbvMessageIds = new(BuildGbvMessageIdSet);
+
+        private static System.Collections.Generic.HashSet<MessageID> BuildGbvMessageIdSet()
+        {
+            var set = new System.Collections.Generic.HashSet<MessageID>();
+            foreach (var name in Enum.GetNames<MessageID>())
+            {
+                if (name.Contains("Gpubased", StringComparison.OrdinalIgnoreCase)
+                    && Enum.TryParse<MessageID>(name, out var id))
+                    set.Add(id);
+            }
+            return set;
+        }
+
         /// <summary>
         ///   Gets the internal Direct3D 11 Device.
         /// </summary>
@@ -338,6 +355,15 @@ namespace Stride.Graphics
 
                 if (result.IsSuccess && infoQueue.IsNotNull())
                 {
+                    // RenderDoc intercepts ID3D11InfoQueue with a stub that drops every call (see
+                    // DummyID3D11InfoQueue in renderdoc/driver/d3d11/d3d11_device.cpp). The filter
+                    // install and message drain below will appear to succeed but emit nothing,
+                    // so warn the user upfront.
+                    if (Win32.GetModuleHandle("renderdoc.dll") != 0)
+                    {
+                        Log.Warning("[D3D11] RenderDoc detected — D3D11 debug-layer messages will not surface through the logger (RenderDoc returns a stub ID3D11InfoQueue)");
+                    }
+
                     nativeInfoQueue = infoQueue;
 
                     infoQueue.SetMessageCountLimit(1000);
@@ -471,17 +497,36 @@ namespace Stride.Graphics
             var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
             var description = descriptionSpan.GetString();
 
-            Debug.WriteLine($"D3D11: {message.Severity} {description}");
+            // D3D11 has no synchronous-callback API. CPU-side validation is synchronous with the
+            // API call, so draining at every BeginProfile/EndProfile gives accurate leaf
+            // attribution. GBV messages arrive asynchronously and we detect them by ID via the
+            // reflection-built set. DebugGpuValidationEnabled is the kill-switch override.
+            bool isDrawCategory = message.Category is MessageCategory.StateSetting
+                                                   or MessageCategory.Execution
+                                                   or MessageCategory.ResourceManipulation;
+            bool isGbv = DebugGpuValidationEnabled || gbvMessageIds.Value.Contains(message.ID);
+            bool attributable = isDrawCategory && !isGbv;
+            string scopePrefix = "";
+            DebugScopeFrame leaf = null;
+            if (attributable)
+            {
+                leaf = GetDebugCurrentFrame();
+                var leafName = GetDebugLeafScopeName();
+                if (leafName is not null) scopePrefix = $"[{leafName}]: ";
+            }
 
-            // Log warnings and errors to Stride logger
             switch (message.Severity)
             {
                 case MessageSeverity.Corruption:
                 case MessageSeverity.Error:
-                    Log.Error($"[D3D11] {message.Severity}: {description}");
+                    DebugLog.Error($"[D3D11] {scopePrefix}{description}");
+                    if (leaf is not null) leaf.Errors++;
+                    if (attributable) debugSawDrawIssue = true;
                     break;
                 case MessageSeverity.Warning:
-                    Log.Warning($"[D3D11] {description}");
+                    DebugLog.Warning($"[D3D11] {scopePrefix}{description}");
+                    if (leaf is not null) leaf.Warnings++;
+                    if (attributable) debugSawDrawIssue = true;
                     break;
             }
 
@@ -528,6 +573,23 @@ namespace Stride.Graphics
 
                 OnDeviceInfoQueueMessage(in message);
             }
+        }
+
+        // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
+        // called once per frame from DebugEndFrame. D3D11 has no synchronous-callback equivalent
+        // of ID3D12InfoQueue1, so we poll the InfoQueue here. Aggregation of the immediate CL's
+        // localCounters runs first so the tree has data when the dump fires.
+        partial void DrainDebugMessages()
+        {
+            if (InternalMainCommandList is not null)
+                DebugAggregateLocalCounters(InternalMainCommandList.DebugScopeExtractLocalCounters());
+
+            if (nativeInfoQueue is not null)
+                ProcessInfoQueueMessages();
+
+            if (debugSawDrawIssue)
+                DebugDumpTree();
+            debugSawDrawIssue = false;
         }
 
         /// <summary>
