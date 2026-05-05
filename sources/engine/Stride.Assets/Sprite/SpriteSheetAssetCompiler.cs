@@ -131,6 +131,27 @@ namespace Stride.Assets.Sprite
                 writer.Write(TextureSerializationData.Version);
             }
 
+            public override IEnumerable<ObjectUrl> GetInputFiles()
+            {
+                if (Parameters.SheetAsset.Packing.Enabled)
+                {
+                    // When packing, source images are read directly from disk
+                    foreach (var sprite in Parameters.SheetAsset.Sprites)
+                    {
+                        if (sprite.Source != null && File.Exists(sprite.Source))
+                            yield return new ObjectUrl(UrlType.File, sprite.Source);
+                    }
+                }
+                else
+                {
+                    // When not packing, textures are compiled by TextureConvertCommands so re-run when they change
+                    foreach (var textureUrl in Parameters.ImageToTextureUrl.Values)
+                    {
+                        yield return new ObjectUrl(UrlType.Content, textureUrl);
+                    }
+                }
+            }
+
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
