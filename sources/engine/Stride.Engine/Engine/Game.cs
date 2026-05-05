@@ -310,7 +310,7 @@ namespace Stride.Engine
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
-            if (gameCreation)
+            if (gameCreation && !deviceManager.SkipBackBufferClampToWindow)
             {
                 //if our device width or height is actually smaller then requested we use the device one
                 deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
@@ -318,7 +318,7 @@ namespace Stride.Engine
             }
 
             //these might get triggered even during game runtime, resize, orientation change
-            if (renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
+            if (!deviceManager.SkipBackBufferClampToWindow && renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
             {
                 var deviceAr = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
 

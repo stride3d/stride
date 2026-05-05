@@ -436,8 +436,11 @@ namespace Stride.Graphics
             // Create swapchain
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
 
-            Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
-            Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
+            if (!Description.SkipBackBufferClampToWindow)
+            {
+                Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
+                Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
+            }
 
             // Buffer count
             uint desiredImageCount = Math.Max(surfaceCapabilities.minImageCount, 2);
