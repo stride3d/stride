@@ -15,7 +15,8 @@ namespace Stride.Games
     /// </summary>
     public class GameFormSDL : Window
     {
-#region Initialization
+        #region Initialization
+
         /// <summary>
         /// Initializes a new instance of the 'GameForm' class.
         /// </summary>
@@ -39,9 +40,11 @@ namespace Stride.Games
             RestoredActions += GameForm_RestoredActions;
             KeyDownActions += GameFormSDL_KeyDownActions;
         }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Occurs when [app activated].
         /// </summary>
@@ -75,6 +78,7 @@ namespace Stride.Games
         #endregion
 
         #region Implementation
+
         // TODO: The code below is taken from GameForm.cs of the Windows Desktop implementation. This needs reviewing
         private FormWindowState previousWindowState;
 

@@ -15,8 +15,12 @@
   <!-- ================================================================ -->
   <!-- Platform Defines - Desktop Frameworks -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)'">
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
+
+    <StridePlatformDefines Condition="'$(StridePlatform)' == 'Windows'">$(StridePlatformDefines);STRIDE_PLATFORM_WINDOWS</StridePlatformDefines>
+    <StridePlatformDefines Condition="'$(StridePlatform)' == 'Linux'">$(StridePlatformDefines);STRIDE_PLATFORM_LINUX</StridePlatformDefines>
+    <StridePlatformDefines Condition="'$(StridePlatform)' == 'macOS'">$(StridePlatformDefines);STRIDE_PLATFORM_MACOS</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
