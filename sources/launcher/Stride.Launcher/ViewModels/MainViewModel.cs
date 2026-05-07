@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Win32;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
@@ -11,6 +10,7 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Windows;
 using Stride.Launcher.Assets.Localization;
 using Stride.Launcher.Services;
 
@@ -32,15 +32,22 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private bool isSynchronizing = true;
     private string currentToolTip;
     private readonly List<(DateTime Time, MessageLevel Level, string Message)> logMessages = [];
-    private bool autoCloseLauncher = LauncherSettings.CloseLauncherAutomatically;
+    private readonly ILauncherSettingsService _settings;
+    private bool autoCloseLauncher;
+    private int currentTab;
     private bool lastActiveVersionRestored;
     private AnnouncementViewModel announcement;
     private bool isVisible;
     private bool showBetaVersions;
 
+    internal ILauncherSettingsService Settings => _settings;
+
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
+        _settings = serviceProvider.Get<ILauncherSettingsService>();
+        autoCloseLauncher = _settings.CloseLauncherAutomatically;
+        currentTab = _settings.CurrentTab;
         DependentProperties.Add("ActiveVersion", ["ActiveDocumentationPages"]);
         store = Launcher.InitializeNugetStore();
         store.Logger = this;
@@ -76,7 +83,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             }
         });
 
-        foreach (var devVersion in LauncherSettings.DeveloperVersions)
+        foreach (var devVersion in _settings.DeveloperVersions)
         {
             var version = new StrideDevVersionViewModel(this, store, null, devVersion, false);
             strideVersions.Add(version);
@@ -85,6 +92,20 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         LoadRecentProjects();
         uninstallHelper = new(serviceProvider, store);
         GameStudioSettings.RecentProjectsUpdated += (sender, e) => Dispatcher.InvokeAsync(LoadRecentProjects).Forget();
+    }
+
+    /// <summary>Test-only constructor. Skips NuGet, network, and file-system initialisation.</summary>
+    internal MainViewModel(IViewModelServiceProvider serviceProvider, ILauncherSettingsService settings)
+        : base(serviceProvider)
+    {
+        _settings = settings;
+        autoCloseLauncher = settings.CloseLauncherAutomatically;
+        currentTab = settings.CurrentTab;
+        newsPages = [];
+        currentToolTip = string.Empty;
+        activeReleaseNotes = null!;
+        store = null!;
+        uninstallHelper = null!;
     }
 
     public void Dispose()
@@ -122,7 +143,27 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public ObservableList<DocumentationPageViewModel> ActiveDocumentationPages => ActiveVersion.Yield().Concat(StrideVersions).OfType<StrideStoreVersionViewModel>().FirstOrDefault()?.DocumentationPages;
 
-    public AnnouncementViewModel Announcement { get { return announcement; } set { SetValue(ref announcement, value); } }
+    public AnnouncementViewModel Announcement
+    {
+        get { return announcement; }
+        set
+        {
+            var previous = announcement;
+            if (SetValue(ref announcement, value))
+            {
+                if (previous is not null)
+                    previous.PropertyChanged -= OnAnnouncementValidated;
+                if (value is not null)
+                    value.PropertyChanged += OnAnnouncementValidated;
+            }
+        }
+    }
+
+    private void OnAnnouncementValidated(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AnnouncementViewModel.Validated) && announcement?.Validated == true)
+            Announcement = null;
+    }
 
     public bool IsOffline { get { return isOffline; } set { SetValue(ref isOffline, value); } }
 
@@ -143,7 +184,33 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
-    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => LauncherSettings.CloseLauncherAutomatically = value); } }
+    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
+
+    public string PreferredFramework
+    {
+        get => _settings.PreferredFramework;
+        set
+        {
+            if (_settings.PreferredFramework != value)
+            {
+                _settings.PreferredFramework = value;
+                _settings.Save();
+            }
+        }
+    }
+
+    public int CurrentTab
+    {
+        get => currentTab;
+        set
+        {
+            if (SetValue(ref currentTab, value))
+            {
+                _settings.CurrentTab = value;
+                _settings.Save();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or Sets the visibility status of this instance.
@@ -339,7 +406,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
                 if (!lastActiveVersionRestored)
                 {
-                    var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == LauncherSettings.ActiveVersion);
+                    var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == _settings.ActiveVersion);
                     if (restoredVersion is not null)
                     {
                         ActiveVersion = restoredVersion;
@@ -571,6 +638,9 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         if (AutoCloseLauncher)
         {
+            // WindowHandle is a Win32 HWND populated by MainWindow.OnOpened on Windows only.
+            // On Linux it stays IntPtr.Zero — Game Studio's parser tolerates 0. See
+            // MainWindow.OnOpened for what needs to change when xplat-GameStudio lands.
             argument = $"/LauncherWindowHandle {WindowHandle} {argument}";
         }
 
@@ -609,8 +679,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             StartStudioCommand.IsEnabled = ActiveVersion is not null && ActiveVersion.CanStart;
             //Save settings because launcher maybe have not been closed
-            LauncherSettings.ActiveVersion = ActiveVersion is not null ? ActiveVersion.Name : "";
-            LauncherSettings.Save();
+            _settings.ActiveVersion = ActiveVersion is not null ? ActiveVersion.Name : "";
+            _settings.Save();
         });
     }
 
@@ -625,6 +695,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.InstallAlreadyInProgress, MessageBoxButton.OK, MessageBoxImage.Information);
             InstallLatestVersionCommand.IsEnabled = false;
+            return;
         }
 
         latestVersion.DownloadCommand.Execute();
@@ -650,34 +721,57 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         Dispatcher.Invoke(() => NewsPages = new(sortedPages));
     }
 
-    public static bool HasDoneTask(string taskName)
+    public bool HasDoneTask(string taskName) => _settings.IsTaskCompleted(taskName);
+
+    public void SaveTaskAsDone(string taskName) => _settings.MarkTaskCompleted(taskName);
+
+    private const int KeepOpenResult = 0;
+    private const int CloseAnywayResult = 1;
+
+    /// <summary>
+    /// Determines whether the launcher can close right now, prompting the user to confirm
+    /// if any Stride version is currently being downloaded or installed, and persists
+    /// settings before returning <c>true</c>.
+    /// </summary>
+    /// <returns><c>true</c> if the caller should proceed with closing the window; <c>false</c> if the user chose to keep the launcher open.</returns>
+    public async Task<bool> TryCloseAsync()
     {
-        // FIXME xplat-editor get that information from a config file on Linux (e.g. under /etc) and MacOS
-        if (OperatingSystem.IsWindows())
+        if (StrideVersions.Any(v => v.IsProcessing))
         {
-            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\");
-            if (subkey is not null)
+            var buttons = new[]
             {
-                var value = (string?)subkey.GetValue(taskName);
-                return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+                new DialogButtonInfo
+                {
+                    Content = Strings.CloseAnyway,
+                    Result = CloseAnywayResult,
+                },
+                new DialogButtonInfo
+                {
+                    Content = Strings.KeepLauncherOpen,
+                    IsDefault = true,
+                    IsCancel = true,
+                    Key = "Escape",
+                    Result = KeepOpenResult,
+                },
+            };
+
+            var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(
+                Strings.CloseLauncherInProgressMessage,
+                buttons,
+                MessageBoxImage.Warning);
+
+            if (result == KeepOpenResult)
+            {
+                return false;
             }
-            return false;
         }
 
+        _settings.ActiveVersion = ActiveVersion?.Name ?? string.Empty;
+        _settings.Save();
         return true;
     }
 
-    public static void SaveTaskAsDone(string taskName)
-    {
-        // FIXME xplat-editor store that information to a config file on Linux (e.g. under /etc) and MacOS
-        if (OperatingSystem.IsWindows())
-        {
-            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\");
-            subkey?.SetValue(taskName, "True");
-        }
-    }
+    internal void AddVersionForTest(StrideVersionViewModel version) => strideVersions.Add(version);
 
     private void DisplayReleaseAnnouncement()
     {

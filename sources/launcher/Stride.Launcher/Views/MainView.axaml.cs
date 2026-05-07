@@ -4,7 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Stride.Core.CodeEditorSupport.VisualStudio;
-using Stride.Launcher.Services;
+using Stride.Launcher.ViewModels;
 
 namespace Stride.Launcher.Views;
 
@@ -17,10 +17,11 @@ public partial class MainView : UserControl
 
     private void FrameworkChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (FrameworkSelector.SelectedItem is string framework && LauncherSettings.PreferredFramework != framework)
+        if (DataContext is MainViewModel vm
+            && FrameworkSelector.SelectedItem is string framework
+            && vm.PreferredFramework != framework)
         {
-            LauncherSettings.PreferredFramework = framework;
-            LauncherSettings.Save();
+            vm.PreferredFramework = framework;
         }
     }
 

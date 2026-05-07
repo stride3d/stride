@@ -9,6 +9,7 @@ using MarkView.Avalonia;
 using MarkView.Avalonia.Rendering;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 using Stride.Launcher.ViewModels;
 using Stride.Launcher.Views;
 
@@ -81,7 +82,10 @@ public partial class App : Application
         {
             try
             {
-                Process.Start(new ProcessStartInfo(e.Url) { UseShellExecute = true });
+                var url = e.Url.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
+                    ? e.Url[..^3] + ".html"
+                    : e.Url;
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch
             {
@@ -96,7 +100,8 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName }
+            new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName },
+            new LauncherSettingsService(),
         };
         return new ViewModelServiceProvider(services);
     }

@@ -16,8 +16,11 @@ public static class LauncherSettings
     private static readonly SettingsKey<string> PreferredFrameworkKey = new("Internal/Launcher/PreferredFramework", SettingsContainer, "net10.0");
     private static readonly SettingsKey<int> CurrentTabKey = new("Internal/Launcher/CurrentTabSessions", SettingsContainer, 0);
     private static readonly SettingsKey<List<UDirectory>> DeveloperVersionsKey = new("Internal/Launcher/DeveloperVersions", SettingsContainer, () => new List<UDirectory>());
+    private static readonly SettingsKey<List<string>> CompletedTasksKey = new("Internal/Launcher/CompletedTasks", SettingsContainer, () => new List<string>());
 
     private static readonly string LauncherConfigPath = Path.Combine(EditorPath.UserDataPath, "LauncherSettings.conf");
+
+    private static List<string> completedTasks = [];
 
     static LauncherSettings()
     {
@@ -27,6 +30,7 @@ public static class LauncherSettings
         PreferredFramework = PreferredFrameworkKey.GetValue();
         CurrentTab = CurrentTabKey.GetValue();
         DeveloperVersions = DeveloperVersionsKey.GetValue();
+        completedTasks = CompletedTasksKey.GetValue();
     }
 
     public static void Save()
@@ -35,6 +39,7 @@ public static class LauncherSettings
         ActiveVersionKey.SetValue(ActiveVersion);
         PreferredFrameworkKey.SetValue(PreferredFramework);
         CurrentTabKey.SetValue(CurrentTab);
+        CompletedTasksKey.SetValue(completedTasks);
         SettingsContainer.SaveSettingsProfile(SettingsContainer.CurrentProfile, LauncherConfigPath);
     }
 
@@ -47,6 +52,19 @@ public static class LauncherSettings
     public static string PreferredFramework { get; set; }
 
     public static int CurrentTab { get; set; }
+
+    public static IReadOnlyCollection<string> CompletedTasks => completedTasks;
+
+    public static bool IsTaskCompleted(string taskName) => completedTasks.Contains(taskName);
+
+    public static void MarkTaskCompleted(string taskName)
+    {
+        if (!completedTasks.Contains(taskName))
+        {
+            completedTasks.Add(taskName);
+            Save();
+        }
+    }
 
     private static string GetLatestLauncherConfigPath()
     {
