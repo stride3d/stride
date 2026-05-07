@@ -13,8 +13,8 @@ public sealed class TimeSpanEditor : TemplatedControl
     public static readonly StyledProperty<TimeSpan?> ValueProperty =
         AvaloniaProperty.Register<TimeSpanEditor, TimeSpan?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
-    public static readonly StyledProperty<string?> WatermarkProperty =
-        AvaloniaProperty.Register<DateTimeEditor, string?>(nameof(Watermark));
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        AvaloniaProperty.Register<DateTimeEditor, string?>(nameof(PlaceholderText));
 
     public static readonly StyledProperty<int?> DaysProperty =
         AvaloniaProperty.Register<TimeSpanEditor, int?>(nameof(Days), defaultBindingMode: BindingMode.TwoWay);
@@ -34,10 +34,10 @@ public sealed class TimeSpanEditor : TemplatedControl
         set => SetValue(ValueProperty, value);
     }
 
-    public string? Watermark
+    public string? PlaceholderText
     {
-        get => GetValue(WatermarkProperty);
-        set => SetValue(WatermarkProperty, value);
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     public int? Days

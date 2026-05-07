@@ -48,8 +48,8 @@ public sealed class NumericTextBox : TemplatedControl
     public static readonly StyledProperty<double?> ValueProperty =
         AvaloniaProperty.Register<NumericTextBox, double?>(nameof(Value), 0.0, defaultBindingMode: BindingMode.TwoWay);
 
-    public static readonly StyledProperty<string?> WatermarkProperty =
-        TextBox.WatermarkProperty.AddOwner<NumericTextBox>();
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        TextBox.PlaceholderTextProperty.AddOwner<NumericTextBox>();
 
     public static readonly RoutedEvent<NumericTextBoxValueChangedEventArgs> ValueChangedEvent =
         RoutedEvent.Register<NumericTextBox, NumericTextBoxValueChangedEventArgs>(nameof(ValueChanged), RoutingStrategies.Bubble);
@@ -90,10 +90,10 @@ public sealed class NumericTextBox : TemplatedControl
         set => SetValue(ValueProperty, value);
     }
 
-    public string? Watermark
+    public string? PlaceholderText
     {
-        get => GetValue(WatermarkProperty);
-        set => SetValue(WatermarkProperty, value);
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     public event EventHandler<NumericTextBoxValueChangedEventArgs>? ValueChanged

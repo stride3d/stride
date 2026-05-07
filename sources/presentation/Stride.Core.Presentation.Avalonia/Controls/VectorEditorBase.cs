@@ -13,8 +13,8 @@ public abstract class VectorEditorBase : TemplatedControl
     public static readonly StyledProperty<int> DecimalPlacesProperty =
         AvaloniaProperty.Register<VectorEditorBase, int>(nameof(DecimalPlaces), -1);
 
-    public static readonly StyledProperty<string?> WatermarkProperty =
-        AvaloniaProperty.Register<VectorEditorBase, string?>(nameof(Watermark));
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        AvaloniaProperty.Register<VectorEditorBase, string?>(nameof(PlaceholderText));
 
     public int DecimalPlaces
     {
@@ -22,10 +22,10 @@ public abstract class VectorEditorBase : TemplatedControl
         set => SetValue(DecimalPlacesProperty, value);
     }
 
-    public string? Watermark
+    public string? PlaceholderText
     {
-        get => GetValue(WatermarkProperty);
-        set => SetValue(WatermarkProperty, value);
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     public abstract void ResetValue();

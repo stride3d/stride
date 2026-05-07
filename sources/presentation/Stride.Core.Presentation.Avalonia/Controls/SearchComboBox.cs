@@ -93,10 +93,10 @@ public class SearchComboBox : SelectingItemsControl
         AvaloniaProperty.Register<SearchComboBox, string?>(nameof(SearchText), defaultBindingMode: BindingMode.TwoWay);
 
     /// <summary>
-    /// Identifies the <see cref="Watermark"/> styled property.
+    /// Identifies the <see cref="PlaceholderText"/> styled property.
     /// </summary>
-    public static readonly StyledProperty<string?> WatermarkProperty =
-        TextBox.WatermarkProperty.AddOwner<SearchComboBox>();
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        TextBox.PlaceholderTextProperty.AddOwner<SearchComboBox>();
 
     /// <summary>
     /// The command invoked on selection when <see cref="AlternativeModifiers"/> are active.
@@ -175,10 +175,10 @@ public class SearchComboBox : SelectingItemsControl
     /// <summary>
     /// The placeholder text displayed when the search box is empty.
     /// </summary>
-    public string? Watermark
+    public string? PlaceholderText
     {
-        get => GetValue(WatermarkProperty);
-        set => SetValue(WatermarkProperty, value);
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
