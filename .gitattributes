@@ -37,6 +37,7 @@ glslangValidator filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.tar.gz filter=lfs diff=lfs merge=lfs -text
 *.vsix filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
 
 # 3D formats
 *.max filter=lfs diff=lfs merge=lfs -text

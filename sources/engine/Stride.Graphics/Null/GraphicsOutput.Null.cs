@@ -16,7 +16,7 @@ namespace Stride.Graphics
         /// <param name="targetProfiles">The target profile, as available formats are different depending on the feature level.</param>
         /// <param name="mode">The mode.</param>
         /// <returns>Returns the closes display mode.</returns>
-        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
+        public DisplayMode FindClosestMatchingDisplayMode(ReadOnlySpan<GraphicsProfile> targetProfiles, DisplayMode mode)
         {
             NullHelper.ToImplement();
             return default;

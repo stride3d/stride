@@ -1,0 +1,96 @@
+name: Test Samples (Update Baselines)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Workflow run ID to pull capture artifacts from (the daily test-samples-screenshots run whose captures should become the new baselines). Empty = latest successful run."
+        type: string
+        default: ''
+      branch_name:
+        description: "Branch name to push the baseline update to (auto-generated if empty)."
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  Update:
+    name: Refresh tests/Stride.Samples.Tests baselines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          # Need full history for the auto-generated branch name to be stable.
+          fetch-depth: 0
+
+      - name: Resolve target run id
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ github.event.inputs.run_id }}" ]; then
+            echo "run_id=${{ github.event.inputs.run_id }}" >> "$GITHUB_OUTPUT"
+          else
+            # Latest successful run of the daily capture workflow.
+            run_id=$(gh run list \
+              --workflow=test-samples-screenshots.yml \
+              --status=success \
+              --limit=1 \
+              --json databaseId \
+              --jq '.[0].databaseId')
+            if [ -z "$run_id" ]; then
+              echo "No successful test-samples-screenshots run found." >&2
+              exit 1
+            fi
+            echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download D3D11 capture artifact from run ${{ steps.resolve.outputs.run_id }}
+        # Baselines are sourced from D3D11 only — that's the gating matrix entry. D3D12/Vulkan
+        # are best-effort; their captures should not become the baseline reference.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p captures
+          gh run download ${{ steps.resolve.outputs.run_id }} \
+            --name screenshots-Direct3D11 \
+            --dir ./captures
+          # Layout: captures/screenshot-out/<sample>/screenshots/<frame>.png
+          find captures -maxdepth 4 -type d | head -40
+
+      - name: Refresh tests/Stride.Samples.Tests/<Sample>/<frame>.png from captures
+        run: |
+          set -e
+          changed=0
+          for sample_dir in captures/screenshot-out/*/; do
+            sample=$(basename "$sample_dir")
+            src="$sample_dir/screenshots"
+            [ -d "$src" ] || continue
+            dest="tests/Stride.Samples.Tests/$sample"
+            mkdir -p "$dest"
+            for png in "$src"/*.png; do
+              [ -f "$png" ] || continue
+              cp "$png" "$dest/"
+              changed=$((changed + 1))
+            done
+          done
+          echo "Replaced $changed baseline PNG(s)."
+
+      - name: Open PR with refreshed baselines
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "tests/Stride.Samples.Tests: refresh screenshot baselines from run ${{ steps.resolve.outputs.run_id }}"
+          title: "Refresh sample screenshot baselines (run ${{ steps.resolve.outputs.run_id }})"
+          body: |
+            Automated baseline refresh from the captures of `test-samples-screenshots.yml`
+            run [#${{ steps.resolve.outputs.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.resolve.outputs.run_id }}).
+
+            Diff this PR against the previous baselines visually before merging — every PNG
+            replacement here becomes the new "approved" reference for daily comparison.
+          branch: ${{ github.event.inputs.branch_name || format('baselines/refresh-{0}', steps.resolve.outputs.run_id) }}
+          delete-branch: true
+          add-paths: tests/Stride.Samples.Tests/**/*.png

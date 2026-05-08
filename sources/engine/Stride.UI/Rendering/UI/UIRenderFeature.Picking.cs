@@ -38,7 +38,9 @@ namespace Stride.Rendering.UI
         partial void PickingClear()
         {
             // clear the list of compacted pointer events of time frame
-            ClearPointerEvents();
+            compactedPointerEvents.Clear();
+            // Drain the UI-side pointer event buffer; events have now been consumed by this Draw.
+            uiSystem?.ClearPendingPointerEvents();
         }
 
         partial void PickingPrepare()
@@ -49,14 +51,18 @@ namespace Stride.Rendering.UI
 
         private void CompactPointerEvents()
         {
-            if (input == null) // no input for thumbnails
+            // Source events from UISystem's per-Draw buffer rather than InputManager.PointerEvents:
+            // the latter is reset every Update, so when several catch-up Updates run between Draws
+            // (IsFixedTimeStep + slow renderer) events would be cleared before picking sees them.
+            var events = uiSystem?.PendingPointerEvents;
+            if (events == null) // no UISystem for thumbnails
                 return;
 
             // compact all the move events of the frame together
             var aggregatedTranslation = Vector2.Zero;
-            for (var index = 0; index < input.PointerEvents.Count; ++index)
+            for (var index = 0; index < events.Count; ++index)
             {
-                var pointerEvent = input.PointerEvents[index];
+                var pointerEvent = events[index];
 
                 if (pointerEvent.EventType != PointerEventType.Moved)
                 {
@@ -67,18 +73,13 @@ namespace Stride.Rendering.UI
 
                 aggregatedTranslation += pointerEvent.DeltaPosition;
 
-                if (index + 1 >= input.PointerEvents.Count || input.PointerEvents[index + 1].EventType != PointerEventType.Moved)
+                if (index + 1 >= events.Count || events[index + 1].EventType != PointerEventType.Moved)
                 {
                     var compactedMoveEvent = pointerEvent.Clone();
                     compactedMoveEvent.DeltaPosition = aggregatedTranslation;
                     compactedPointerEvents.Add(compactedMoveEvent);
                 }
             }
-        }
-
-        private void ClearPointerEvents()
-        {
-            compactedPointerEvents.Clear();
         }
 
         /// <summary>

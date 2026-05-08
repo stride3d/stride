@@ -1,0 +1,168 @@
+name: Test Samples (Screenshots)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  schedule:
+    # Daily at 04:00 UTC.
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: test-samples-screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Run:
+    name: Capture & compare all samples (${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || 'Debug' }})
+    # Single job per graphics API: the harness + orchestrator + comparator are sample-agnostic, so a
+    # matrix-per-sample would build the engine 15× for the same artifacts. Sequential capture
+    # via xunit's DisableParallelization keeps total compute low (~1× engine build + ~5 min of
+    # actual sample runs) at comparable wall-clock to a 15-parallel matrix. Per-API parallelism
+    # is unavoidable (each API needs its own engine build).
+    strategy:
+      fail-fast: false
+      matrix:
+        graphics-api: [Direct3D11, Direct3D12, Vulkan]
+    runs-on: windows-2025-vs2026
+    # TODO: drop continue-on-error once D3D12 and Vulkan captures are stable.
+    continue-on-error: ${{ matrix.graphics-api != 'Direct3D11' }}
+    env:
+      # Software rendering is the default in the autotesting harness; set STRIDE_TESTS_GPU=1 to opt into the GPU.
+      STRIDE_TESTS_RENDERDOC: "error"
+      DOTNET_DbgEnableMiniDump: "1"
+      DOTNET_DbgMiniDumpType: "1"
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Configure crash dumps
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
+
+      # nuget.config declares `bin/packages` as the `stride-local` source. NuGet validates every
+      # source path at restore time; on a fresh CI checkout that dir doesn't exist yet (it gets
+      # populated by Stride's auto-pack-deploy on first build), so we materialize it as empty.
+      - name: Pre-create bin/packages so restore doesn't fail on missing local source
+        shell: pwsh
+        run: New-Item -ItemType Directory -Path bin/packages -Force | Out-Null
+
+      # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
+      # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
+      # Locally this works because the dev's user config has Stride.AutoPackDeploy's
+      # %LocalAppData%\Stride\NugetDev as a source. CI's runneradmin user has no such config,
+      # so add bin/packages explicitly to the user config. --configfile forces the write to
+      # the user config rather than walking up to the workspace's nuget.config (which would
+      # conflict with the existing 'stride-local' source declared there).
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # Stride.Games.AutoTesting must be built explicitly so its auto-pack-deploy lands the .nupkg
+      # in bin/packages — the sample projects consume it via <PackageReference>, not via the
+      # ProjectReference graph the test project would otherwise transitively pull. The engine
+      # is built with StrideGraphicsApis pinned to the matrix entry so the resulting nupkg only
+      # contains binaries for that API; the regenerated samples then link against those.
+      - name: Build harness assembly (packs Stride.Games.AutoTesting into bin/packages)
+        run: |
+          dotnet build sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj `
+            -p:StrideNativeBuildMode=Clang `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+
+      # Install Stride.Dependencies.Lavapipe and register its ICD with the Vulkan loader
+      # so the samples' Vulkan path resolves a software driver on the CI runner (no GPU).
+      # On Windows the loader reads HKLM\SOFTWARE\Khronos\Vulkan\Drivers — VK_DRIVER_FILES
+      # env var alone isn't reliable across runner Vulkan SDK versions. Mirrors the
+      # SwiftShader registration in test-windows-game.yml.
+      - name: Install Lavapipe and register its Vulkan ICD (Vulkan only)
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          $tmpDir = "${{ runner.temp }}\lavapipe-fetch"
+          New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+          Set-Content -Path "$tmpDir\LavapipeFetch.csproj" -Value '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>'
+          dotnet add "$tmpDir\LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
+          $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter "lvp_icd*.json" -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+          if (-not $icd) { throw "Lavapipe ICD not found in NuGet cache after restore." }
+          New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+          New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
+          Write-Host "Registered Lavapipe ICD: $($icd.FullName)"
+
+      # Builds the test project plus its transitive ProjectReferences. StrideGraphicsApi (singular)
+      # selects the test SDK output path; StrideGraphicsApis (plural) keeps the engine deps aligned
+      # with the harness build above.
+      - name: Build test project
+        run: |
+          dotnet build samples\Tests\Stride.Samples.Tests.csproj `
+            -p:StrideNativeBuildMode=Clang `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+
+      - name: Run sample screenshot tests
+        env:
+          # Comparator opts a few non-deterministic tests (ParticlesSample, SpriteStudioDemo,
+          # AnimatedModel) into a Claude vision second-opinion when LPIPS is over threshold.
+          # Key is bound to a budget-capped Anthropic workspace; the fallback only runs on
+          # frames that already failed LPIPS so cost is bounded even when noisy.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          dotnet test samples\Tests\Stride.Samples.Tests.csproj `
+            --no-build `
+            --filter "FullyQualifiedName~Stride.Samples.Tests.SampleScreenshotTests" `
+            --logger "trx;LogFileName=screenshots.trx" `
+            --results-directory TestResults `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+
+      - name: Publish test report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Sample screenshot regression (${{ matrix.graphics-api }})'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+
+      - name: Upload test artifacts (captures + done.json + TRX)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.graphics-api }}
+          path: |
+            screenshot-out/
+            TestResults/
+          if-no-files-found: warn
+
+      - name: Upload crash dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-dumps-${{ matrix.graphics-api }}
+          path: crash-dumps/
+          if-no-files-found: ignore
