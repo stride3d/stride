@@ -54,7 +54,6 @@ jobs:
         run: |
           dotnet build build\Stride.Tests.Game.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
@@ -153,7 +152,6 @@ jobs:
         run: |
           dotnet build build\Stride.Tests.Game.GPU.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

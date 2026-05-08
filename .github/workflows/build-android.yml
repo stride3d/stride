@@ -89,7 +89,6 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.Android.slnf `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Android `

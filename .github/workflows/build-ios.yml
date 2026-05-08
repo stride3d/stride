@@ -57,7 +57,6 @@ jobs:
       - name: Build
         run: |
           dotnet build build\Stride.iOS.slnf `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

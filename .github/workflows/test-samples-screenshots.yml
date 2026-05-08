@@ -86,7 +86,6 @@ jobs:
       - name: Build harness assembly (packs Stride.Games.AutoTesting into bin/packages)
         run: |
           dotnet build sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
@@ -117,7 +116,6 @@ jobs:
       - name: Build test project
         run: |
           dotnet build samples\Tests\Stride.Samples.Tests.csproj `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
