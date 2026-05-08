@@ -1,0 +1,59 @@
+name: Check Parallel Build
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/check-parallel-build.yml'
+      - 'build/tools/ParallelBuildAuditor/**'
+      - 'build/Stride.sln'
+      - 'sources/**/*.csproj'
+      - 'sources/**/*.targets'
+      - 'sources/**/*.props'
+      - 'Directory.Build.props'
+      - 'Directory.Build.targets'
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # 04:00 UTC daily
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-parallel-build:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: Detect property-leak duplicate builds
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build ParallelBuildAuditor
+        run: dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:m
+
+      - name: Build Stride.sln (capturing binlog)
+        # Continue on build error: even partial binlog data is enough for leak detection
+        # (and Stride.sln contains native vcxproj projects that may fail under dotnet build).
+        continue-on-error: true
+        run: |
+          dotnet build build\Stride.sln `
+            -bl:parallel-audit.binlog `
+            -p:StrideNativeBuildMode=Clang `
+            -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true
+
+      - name: Run ParallelBuildAuditor
+        run: dotnet run --project build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release --no-build -- parallel-audit.binlog
+
+      - name: Upload binlog on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-audit-binlog
+          path: parallel-audit.binlog
+          retention-days: 14
