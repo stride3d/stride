@@ -20,6 +20,7 @@ The core is in place:
 - Recent-project context menu with *Show in Explorer* / *Remove from list* (menu ported; *Show in Explorer* is cross-platform — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback).
 - Alternate-versions sub-list (ported as a nested `ItemsControl`, no longer a `Popup`).
 - Localization resx / Urls resx.
+- **Preferred-editor selector**: when both `Stride.GameStudio.Avalonia.Desktop` (Avalonia) and `Stride.GameStudio` (WPF) packages are installed for the same major.minor version, a `ComboBox` appears in the launcher to choose between them. The selection is persisted as `PreferredEditor` in `LauncherSettings.conf`. `StrideVersionViewModel.UpdateAvailableEditors` scans all installed package paths (primary + alternates via `GetAllInstalledPaths`) to find which executables are available; `LocateMainExecutable` routes to the correct per-editor install directory using the `_editorToInstallPath` map.
 - **Cross-platform launcher ↔ Game Studio IPC**: on Windows the existing `/LauncherWindowHandle` Win32 HWND path is unchanged; on Linux a named-pipe channel (`/LauncherPipe <name>`) is used instead. See [cross-platform.md](cross-platform.md) § Launcher ↔ GameStudio IPC.
 
 ## Flagged gaps (already in [cross-platform.md](cross-platform.md))

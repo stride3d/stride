@@ -206,6 +206,19 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
+    public string PreferredEditor
+    {
+        get => _settings.PreferredEditor;
+        set
+        {
+            if (_settings.PreferredEditor != value)
+            {
+                _settings.PreferredEditor = value;
+                _settings.Save();
+            }
+        }
+    }
+
     public int CurrentTab
     {
         get => currentTab;

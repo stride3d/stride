@@ -234,10 +234,24 @@
                             ItemsSource="{Binding ActiveVersion.Frameworks}"
                             SelectedItem="{Binding ActiveVersion.SelectedFramework}"
                             SelectionChanged="FrameworkChanged"
-                            IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}">
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
+                            IsVisible="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ComboBox x:Name="EditorSelector" Margin="0,4"
+                            HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding ActiveVersion.AvailableEditors}"
+                            SelectedItem="{Binding ActiveVersion.SelectedEditor}"
+                            SelectionChanged="EditorChanged"
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
+                            IsVisible="{Binding ActiveVersion.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={vm:EditorNameConverter}}" />
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
