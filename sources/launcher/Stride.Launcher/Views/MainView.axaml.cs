@@ -25,6 +25,16 @@ public partial class MainView : UserControl
         }
     }
 
+    private void EditorChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm
+            && EditorSelector.SelectedItem is string editor
+            && vm.PreferredEditor != editor)
+        {
+            vm.PreferredEditor = editor;
+        }
+    }
+
     private void VisualStudioDownloadPage_Button_Loaded(object? sender, RoutedEventArgs e)
     {
         if (sender is Button button && VisualStudioVersions.AvailableInstances

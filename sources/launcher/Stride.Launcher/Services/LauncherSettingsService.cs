@@ -25,6 +25,12 @@ internal sealed class LauncherSettingsService : ILauncherSettingsService
         set => LauncherSettings.PreferredFramework = value;
     }
 
+    public string PreferredEditor
+    {
+        get => LauncherSettings.PreferredEditor;
+        set => LauncherSettings.PreferredEditor = value;
+    }
+
     public int CurrentTab
     {
         get => LauncherSettings.CurrentTab;

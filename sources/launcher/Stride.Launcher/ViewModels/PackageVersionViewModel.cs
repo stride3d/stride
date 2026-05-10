@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
@@ -161,6 +162,15 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     }
 
     /// <summary>
+    /// Attempts to install companion packages alongside the primary one (e.g. the Avalonia
+    /// editor alongside the WPF one, or vice versa). Failures are silently ignored so that
+    /// missing companions — which is the normal state once only one editor flavour is
+    /// published — do not block the install.
+    /// </summary>
+    /// <param name="version">The version that was just installed.</param>
+    protected virtual Task TryInstallCompanionsAsync(PackageVersion version) => Task.CompletedTask;
+
+    /// <summary>
     /// Downloads the latest version of this package. If a version is already in the local store, it will be deleted first.
     /// </summary>
     /// <param name="displayErrorMessage">Indicates whether to display error message boxes when an error occurs.</param>
@@ -219,6 +229,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
                     downloadCompleted = true;
                 }
 
+                await TryInstallCompanionsAsync(ServerPackage.Version);
                 AfterDownload();
             }
             catch (Exception e)
