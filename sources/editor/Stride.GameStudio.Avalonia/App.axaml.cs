@@ -26,6 +26,12 @@ namespace Stride.GameStudio.Avalonia;
 
 public partial class App : Application
 {
+    /// <summary>
+    /// When non-null, called once after the main window is first loaded to notify the launcher
+    /// that Game Studio has started. Set by <c>Program.cs</c> in the Desktop project.
+    /// </summary>
+    public static Action? LauncherNotifier;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

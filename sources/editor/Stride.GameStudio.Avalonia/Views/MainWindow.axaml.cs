@@ -57,6 +57,10 @@ public partial class MainWindow : Window
 
     protected override void OnLoaded(RoutedEventArgs _)
     {
+        // Notify the launcher that Game Studio is ready (no-op when not launched from the launcher).
+        App.LauncherNotifier?.Invoke();
+        App.LauncherNotifier = null; // fire once
+
         // Size the window to best fit the current screen size
         InitializeWindowSize();
         return;

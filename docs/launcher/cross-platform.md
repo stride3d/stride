@@ -33,9 +33,16 @@ Both `Stride.Metrics` / `MetricsClient` (telemetry) and `PrivacyPolicyHelper` (f
 
 ## Launcher ↔ GameStudio IPC
 
-When `AutoCloseLauncher` is on, the launcher passes its own Win32 window handle to Game Studio via the `/LauncherWindowHandle <hwnd>` argument. Game Studio uses it later to `PostMessage` back at the launcher and ask it to close itself.
+When `AutoCloseLauncher` is on, the launcher passes IPC information to Game Studio via a CLI argument so Game Studio can signal back once it has started.
 
-The handle is captured in `MainWindow.OnOpened` only when `OperatingSystem.IsWindows()` is true; on Linux it stays `IntPtr.Zero` and Game Studio's parser ignores it. This is fine on the current branch because Game Studio itself is still Windows-only — a separate effort (`xplat-editor`) is porting it to Avalonia. When that lands, the HWND-based channel will need to be replaced with a cross-platform IPC token (named pipe, socket, or similar), passed via a generalised CLI argument. See [port-status.md](port-status.md) Phase 1 for the rationale.
+| Platform | Argument | Mechanism |
+|---|---|---|
+| Windows | `/LauncherWindowHandle <hwnd>` | Game Studio sends a Win32 `WM_CLOSE` message to the launcher's HWND. `MainWindow.OnOpened` captures the HWND via `TryGetPlatformHandle()`. |
+| Linux (and other non-Windows) | `/LauncherPipe <pipeName>` | The launcher starts a `NamedPipeServerStream` and waits for a connection (up to 2 minutes). Game Studio connects via `NamedPipeClientStream` once its main window is loaded and writes one byte. The launcher raises `CloseRequested` and the window closes gracefully. |
+
+Both paths are implemented:
+- **Launcher side:** `MainViewModel.StartStudio` — branches on `OperatingSystem.IsWindows()`. Non-Windows path starts `WaitForGameStudioPipeSignalAsync` and injects `/LauncherPipe <name>`. `MainWindow.axaml.cs` wires `CloseRequested → OnClosingAsync`.
+- **Game Studio side:** `Program.ParseLauncherArgs` (in `Stride.GameStudio.Avalonia.Desktop`) parses both argument styles and sets `App.LauncherNotifier`. `MainWindow.OnLoaded` fires it once.
 
 ## Settings paths
 

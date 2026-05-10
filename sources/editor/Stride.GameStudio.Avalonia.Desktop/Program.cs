@@ -3,6 +3,9 @@
 
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.IO.Pipes;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -36,6 +39,10 @@ internal sealed class Program
             // Listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += OnGlobalMessageLogged;
 
+            // Parse launcher arguments before starting the Avalonia app so that
+            // App.LauncherNotifier is set before the first window opens.
+            ParseLauncherArgs(args);
+
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
         }
@@ -43,6 +50,79 @@ internal sealed class Program
         {
             HandleException(ex, CrashLocation.Main);
         }
+    }
+
+    /// <summary>
+    /// Parses the <c>/LauncherWindowHandle</c> (Windows) and <c>/LauncherPipe</c> (cross-platform)
+    /// arguments injected by the launcher when <c>AutoCloseLauncher</c> is on, and wires up
+    /// <see cref="Stride.GameStudio.Avalonia.App.LauncherNotifier"/> to signal the launcher once
+    /// the main window is loaded.
+    /// </summary>
+    private static void ParseLauncherArgs(string[] args)
+    {
+        IntPtr launcherWindowHandle = IntPtr.Zero;
+        string? launcherPipeName = null;
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "/LauncherWindowHandle" && i + 1 < args.Length)
+            {
+                if (long.TryParse(args[++i], out var hwnd))
+                    launcherWindowHandle = new IntPtr(hwnd);
+            }
+            else if (args[i] == "/LauncherPipe" && i + 1 < args.Length)
+            {
+                launcherPipeName = args[++i];
+            }
+        }
+
+        if (launcherWindowHandle != IntPtr.Zero || launcherPipeName is not null)
+        {
+            var handle = launcherWindowHandle;
+            var pipe = launcherPipeName;
+            Stride.GameStudio.Avalonia.App.LauncherNotifier = () => NotifyLauncher(handle, pipe);
+        }
+    }
+
+    /// <summary>
+    /// Signals the launcher that Game Studio has started.
+    /// On Windows: sends a Win32 <c>WM_CLOSE</c> message to the launcher window handle.
+    /// On other platforms (e.g. Linux): connects to the launcher's named pipe and writes a byte.
+    /// </summary>
+    private static void NotifyLauncher(IntPtr windowHandle, string? pipeName)
+    {
+        if (OperatingSystem.IsWindows() && windowHandle != IntPtr.Zero)
+        {
+            SendCloseMessage(windowHandle);
+            return;
+        }
+
+        if (pipeName is not null)
+        {
+            _ = SendPipeSignalAsync(pipeName);
+        }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static void SendCloseMessage(IntPtr hWnd)
+    {
+        const uint WM_CLOSE = 0x0010;
+        NativeSendMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+    }
+
+    [DllImport("user32.dll", EntryPoint = "SendMessage")]
+    [SupportedOSPlatform("windows")]
+    private static extern IntPtr NativeSendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    private static async Task SendPipeSignalAsync(string pipeName)
+    {
+        try
+        {
+            using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.Out);
+            await client.ConnectAsync(TimeSpan.FromSeconds(10), default);
+            client.WriteByte(1);
+        }
+        catch (Exception) { }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
