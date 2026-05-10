@@ -575,15 +575,18 @@
                                     </Popup>
                                     <TextBlock DockPanel.Dock="Bottom"
                                                Text="{Binding FullPath}"
+                                               TextTrimming="PathSegmentEllipsis"
                                                FontStyle="Italic" />
                                   </DockPanel>
                                   <DockPanel>
                                     <!-- Discovering -->
-                                    <TextBlock Text="{Binding StrideVersionName}"
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{Binding StrideVersionName}"
                                                FontSize="14"
                                                IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
                                     <!-- Unknown -->
-                                    <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{x:Static l:Strings.UnknownVersion}"
                                                FontSize="14"
                                                IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                                     <TextBlock Text="{Binding Name}"
