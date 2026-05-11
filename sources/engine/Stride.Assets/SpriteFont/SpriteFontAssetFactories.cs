@@ -14,7 +14,7 @@ namespace Stride.Assets.SpriteFont
                 FontSource = new SystemFontProvider(),
                 FontType = new OfflineRasterizedSpriteFontType()
                 {
-                    CharacterRegions = { new CharacterRegion(' ', (char)127) }                 
+                    CharacterRegions = { new CharacterRegion(' ', (char)127) }
                 },
             };
         }
@@ -42,7 +42,7 @@ namespace Stride.Assets.SpriteFont
         }
     }
 
-    public class SignedDistanceFieldSpriteFontFactory: AssetFactory<SpriteFontAsset>
+    public class SignedDistanceFieldSpriteFontFactory : AssetFactory<SpriteFontAsset>
     {
         public static SpriteFontAsset Create()
         {
@@ -53,6 +53,23 @@ namespace Stride.Assets.SpriteFont
                 {
                     CharacterRegions = { new CharacterRegion(' ', (char)127) }
                 },
+            };
+        }
+
+        public override SpriteFontAsset New()
+        {
+            return Create();
+        }
+    }
+
+    public class RuntimeSignedDistanceFieldSpriteFontFactory : AssetFactory<SpriteFontAsset>
+    {
+        public static SpriteFontAsset Create()
+        {
+            return new SpriteFontAsset
+            {
+                FontSource = new SystemFontProvider(),
+                FontType = new RuntimeSignedDistanceFieldSpriteFontType(),
             };
         }
 

@@ -194,6 +194,30 @@ namespace Stride.Graphics.Font
         // private fields follow (driver, memory, stream, etc.) — not needed
     }
 
+    // Outline extraction
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal unsafe delegate int FT_Outline_MoveToFunc(FT_Vector* to, nint user);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal unsafe delegate int FT_Outline_LineToFunc(FT_Vector* to, nint user);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal unsafe delegate int FT_Outline_ConicToFunc(FT_Vector* control, FT_Vector* to, nint user);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal unsafe delegate int FT_Outline_CubicToFunc(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, nint user);
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct FT_Outline_Funcs
+    {
+        public nint move_to;
+        public nint line_to;
+        public nint conic_to;
+        public nint cubic_to;
+        public int shift;
+        public CLong delta;
+    }
+
     internal static unsafe class FreeTypeNative
     {
         private const string FreetypeLib = "freetype";
@@ -221,5 +245,11 @@ namespace Stride.Graphics.Font
 
         [DllImport(FreetypeLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int FT_Render_Glyph(FT_GlyphSlotRec* slot, FreeTypeRenderMode render_mode);
+
+        [DllImport(FreetypeLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int FT_Outline_Decompose(
+            FT_Outline* outline,
+            FT_Outline_Funcs* func_interface,
+            nint user);
     }
 }

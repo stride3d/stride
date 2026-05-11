@@ -10,6 +10,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using Stride.Graphics.Font.RuntimeMsdf;
 
 namespace Stride.Graphics.Font
 {
@@ -21,7 +22,7 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Lock both <see cref="generatedBitmaps"/> and <see cref="bitmapsToGenerate"/>.
         /// </summary>
-        private readonly object dataStructuresLock = new object();
+        private readonly Lock dataStructuresLock = new();
 
         /// <summary>
         /// The font data that are currently cached in the registry.
@@ -33,17 +34,17 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// The list of the bitmaps that have already been generated.
         /// </summary>
-        private readonly List<CharacterSpecification> generatedBitmaps = new List<CharacterSpecification>();
+        private readonly List<CharacterSpecification> generatedBitmaps = [];
 
         /// <summary>
         /// The list of the bitmaps that are in generation or to generate
         /// </summary>
-        private readonly Queue<CharacterSpecification> bitmapsToGenerate = new Queue<CharacterSpecification>();
+        private readonly Queue<CharacterSpecification> bitmapsToGenerate = new();
 
         /// <summary>
         /// The <see cref="AutoResetEvent"/> used to signal the bitmap build thread that a build operation is requested.
         /// </summary>
-        private readonly AutoResetEvent bitmapBuildSignal = new AutoResetEvent(false);
+        private readonly AutoResetEvent bitmapBuildSignal = new(false);
 
         /// <summary>
         /// The thread in charge of building the characters bitmaps
@@ -267,11 +268,8 @@ namespace Stride.Graphics.Font
             // free and clear the list of generated bitmaps
             foreach (var character in generatedBitmaps)
             {
-                if (character.Bitmap != null)
-                {
-                    character.Bitmap.Dispose();
-                    character.Bitmap = null;
-                }
+                character.Bitmap?.Dispose();
+                character.Bitmap = null;
             }
             generatedBitmaps.Clear();
 
@@ -379,12 +377,45 @@ namespace Stride.Graphics.Font
                         RenderBitmap(character, fontFace);
                     }
 
-                DequeueRequest:
+                    DequeueRequest:
 
                     // update the generated cached data
                     lock (dataStructuresLock)
                         bitmapsToGenerate.Dequeue();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Extracts a glyph outline (vector shape) for MSDF generation.
+        /// This is intentionally synchronous and protected by the same FreeType lock as bitmap generation.
+        /// If serialization/perf control is needed later, route this request through the existing
+        /// bitmap builder thread and return a copied <see cref="GlyphOutline"/>.
+        /// </summary>
+        public bool TryGetGlyphOutline(
+            string fontFamily,
+            FontStyle fontStyle,
+            Vector2 size, // Use Vector2 as the primary input
+            char character,
+            out GlyphOutline outline,
+            out GlyphOutlineMetrics metrics,
+            FreeTypeLoadFlags loadFlags = FreeTypeLoadFlags.NoBitmap | FreeTypeLoadFlags.NoHinting)
+        {
+            outline = null;
+            metrics = default;
+
+            var fontFace = GetOrCreateFontFace(fontFamily, fontStyle);
+
+            lock (freetypeLock)
+            {
+                SetFontFaceSize(fontFace, size);
+
+                return SharpFontOutlineExtractor.TryExtractGlyphOutline(
+                    fontFace,
+                    (uint)character,
+                    out outline,
+                    out metrics,
+                    loadFlags);
             }
         }
     }

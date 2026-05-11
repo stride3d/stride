@@ -1,3 +1,4 @@
+#nullable enable
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
@@ -15,10 +16,12 @@ namespace Stride.Graphics.Font
     /// </summary>
     public class FontSystem : IFontFactory
     {
-        internal int FrameCount { get; private set; }
-        internal FontManager FontManager { get; private set; }
-        internal GraphicsDevice GraphicsDevice { get; private set; }
-        internal FontCacheManager FontCacheManager { get; private set; }
+        internal int FrameCount { get; private set; } 
+        internal FontManager FontManager { get; private set; } = null!;
+        internal GraphicsDevice GraphicsDevice { get; private set; } = null!;
+        internal FontCacheManager FontCacheManager { get; private set; } = null!;
+        internal FontCacheManagerMsdf FontCacheManagerMsdf { get; private set; } = null!;
+
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
@@ -29,7 +32,7 @@ namespace Stride.Graphics.Font
         /// via <see cref="RuntimeFontProvider.RegisterFont"/>.</para>
         /// <para>Once registered, fonts can be loaded using the <see cref="LoadRuntimeFont"/> method.</para>
         /// </remarks>
-        public RuntimeFontProvider RuntimeFonts { get; private set; }
+        public RuntimeFontProvider RuntimeFonts { get; private set; } = null!;
 
         /// <summary>
         /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="Stride.Graphics.GraphicsDevice" />.
@@ -50,6 +53,7 @@ namespace Stride.Graphics.Font
             GraphicsDevice = graphicsDevice;
             FontManager = new FontManager(fileProviderService);
             FontCacheManager = new FontCacheManager(this);
+            FontCacheManagerMsdf = new FontCacheManagerMsdf(this);
             RuntimeFonts = new RuntimeFontProvider(this);
         }
 
@@ -79,6 +83,7 @@ namespace Stride.Graphics.Font
             // TODO possibly save generated characters bitmaps on the disk
             FontManager.Dispose();
             FontCacheManager.Dispose();
+            FontCacheManagerMsdf.Dispose();
 
             // Dispose create sprite fonts
             foreach (var allocatedSpriteFont in AllocatedSpriteFonts.ToArray())
@@ -130,6 +135,38 @@ namespace Stride.Graphics.Font
                 ExtraLineSpacing = extraLineSpacing,
                 DefaultCharacter = defaultCharacter,
                 FontSystem = this,
+            };
+
+            return font;
+        }
+
+        public SpriteFont NewRuntimeSignedDistanceField(
+           float defaultSize,
+           string fontName,
+           FontStyle style,
+           int pixelRange,
+           int padding,
+           bool useKerning,
+           float extraSpacing,
+           float extraLineSpacing,
+           char defaultCharacter)
+        {
+            var font = new RuntimeSignedDistanceFieldSpriteFont
+            {
+                Size = defaultSize,
+                DefaultCharacter = defaultCharacter,
+
+                FontName = fontName,
+                Style = style,
+
+                PixelRange = pixelRange,
+                Padding = padding,
+
+                UseKerning = useKerning,
+                ExtraSpacing = extraSpacing,
+                ExtraLineSpacing = extraLineSpacing,
+
+                FontSystem = this
             };
 
             return font;

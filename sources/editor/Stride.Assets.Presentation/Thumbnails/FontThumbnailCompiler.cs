@@ -1,14 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
+using Stride.Assets.SpriteFont;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.IO;
-using Stride.Assets.SpriteFont;
 using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
+using Stride.Graphics.Font;
 
 namespace Stride.Assets.Presentation.Thumbnails
 {
@@ -55,12 +56,42 @@ namespace Stride.Assets.Presentation.Thumbnails
 
         protected override void SetThumbnailParameters()
         {
-            Font = LoadedAsset;
             FontSize = 0.75f;
             TitleText = BuildTitleText();
 
-            if (Font != null && Font.FontType == SpriteFontType.SDF)
+            bool usingRasterizedPreviewForRuntimeSdf = false;
+
+            if (LoadedAsset is RuntimeSignedDistanceFieldSpriteFont runtimeSdfFont)
+            {
+                var fontSystem = runtimeSdfFont.FontSystem;
+                if (fontSystem != null)
+                {
+                    Font = fontSystem.NewDynamic(
+                        defaultSize: runtimeSdfFont.Size,
+                        fontName: runtimeSdfFont.FontName,
+                        style: runtimeSdfFont.Style,
+                        antiAliasMode: FontAntiAliasMode.Grayscale,
+                        useKerning: runtimeSdfFont.UseKerning,
+                        extraSpacing: 0,
+                        extraLineSpacing: 0,
+                        defaultCharacter: runtimeSdfFont.DefaultCharacter ?? ' ');
+
+                    usingRasterizedPreviewForRuntimeSdf = true;
+                }
+                else
+                {
+                    Font = LoadedAsset;
+                }
+            }
+            else
+            {
+                Font = LoadedAsset;
+            }
+
+            if (!usingRasterizedPreviewForRuntimeSdf && Font != null && Font.FontType == SpriteFontType.SDF)
                 EffectInstance = UIBatch.SDFSpriteFontEffect;
+            else
+                EffectInstance = null;
         }
 
         protected virtual string BuildTitleText()

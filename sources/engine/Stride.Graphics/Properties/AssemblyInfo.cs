@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Graphics.Serializers" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.ShaderCompiler" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Rendering" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
