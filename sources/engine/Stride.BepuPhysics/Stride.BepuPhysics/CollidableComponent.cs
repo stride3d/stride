@@ -279,6 +279,14 @@ public abstract class CollidableComponent : EntityComponent
 
         Entity.Transform.UpdateWorldMatrix();
         Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
+
+        if (collidableWorldRotation.IsNormalized == false)
+            throw new ArgumentException($"{nameof(collidableWorldRotation)} must be normalized");
+
+        var positionNumerics = collidableWorldTranslation.ToNumeric();
+        if (System.Numerics.Vector3.AllWhereAllBitsSet(System.Numerics.Vector3.IsFinite(positionNumerics)) == false)
+            throw new ArgumentException($"{nameof(collidableWorldTranslation)} must be finite");
+
         var pose = new NRigidPose((collidableWorldTranslation + collidableWorldRotation * CenterOfMass).ToNumeric(), collidableWorldRotation.ToNumeric());
 
         AttachInner(pose, shapeInertia, ShapeIndex);
@@ -465,5 +473,37 @@ public abstract class CollidableComponent : EntityComponent
             return;
 
         Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, ref hitHandler, Simulation.BufferPool);
+    }
+
+    /// <summary>
+    /// Updates <see cref="TransformComponent.Position"/> fields to match these world position and rotation
+    /// </summary>
+    /// <remarks>
+    /// Parent/Scene world matrix is expected to be up to date when calling this.<br/>
+    /// <see cref="CenterOfMass"/> is subtracted from the position; arguments are expected to be in bepu-space.
+    /// </remarks>
+    internal void UpdateTransformationComponent(Vector3 worldPos, Quaternion worldRot)
+    {
+        var entityTransform = Entity.Transform;
+        var parentMatrix = entityTransform.Parent?.WorldMatrix ?? Entity.Scene?.WorldMatrix ?? Matrix.Identity;
+        parentMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+
+        var invParentRot = Quaternion.Invert(parentEntityRotation);
+        var localRot = worldRot * invParentRot;
+        var localPos = Vector3.Transform(worldPos - parentEntityPosition, invParentRot) - Vector3.Transform(CenterOfMass, localRot);
+
+        if (entityTransform.UseTRS)
+        {
+            entityTransform.Position = localPos;
+            entityTransform.Rotation = localRot;
+        }
+        else
+        {
+            Vector3 scale;
+            scale.X = entityTransform.LocalMatrix.Right.Length();
+            scale.Y = entityTransform.LocalMatrix.Up.Length();
+            scale.Z = entityTransform.LocalMatrix.Backward.Length();
+            Matrix.Transformation(ref scale, ref localRot, ref localPos, out entityTransform.LocalMatrix);
+        }
     }
 }
