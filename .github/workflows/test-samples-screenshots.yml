@@ -19,7 +19,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # LPIPS comparator falls back to Claude vision for borderline drift; without ANTHROPIC_API_KEY
+  # (typical on forks) flaky frames would surface as false drift. Skip cleanly when missing.
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has-api-key: ${{ steps.check.outputs.has-api-key }}
+    steps:
+      - id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has-api-key=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-api-key=false" >> $GITHUB_OUTPUT
+            echo "::notice::ANTHROPIC_API_KEY not set; skipping samples screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
+          fi
+
   Run:
+    needs: preflight
+    if: needs.preflight.outputs.has-api-key == 'true'
     name: Capture & compare all samples (${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || 'Debug' }})
     # Single job per graphics API: the harness + orchestrator + comparator are sample-agnostic, so a
     # matrix-per-sample would build the engine 15× for the same artifacts. Sequential capture

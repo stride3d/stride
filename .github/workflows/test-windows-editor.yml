@@ -20,7 +20,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision
+  # as a fallback for borderline cases. Without ANTHROPIC_API_KEY (typical on forks), most flaky
+  # runs would report drift. Skip the suite cleanly so forks don't see misleading failures.
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has-api-key: ${{ steps.check.outputs.has-api-key }}
+    steps:
+      - id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has-api-key=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-api-key=false" >> $GITHUB_OUTPUT
+            echo "::notice::ANTHROPIC_API_KEY not set; skipping editor screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
+          fi
+
   Run:
+    needs: preflight
+    if: needs.preflight.outputs.has-api-key == 'true'
     name: Editor screenshots (${{ github.event.inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
