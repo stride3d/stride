@@ -87,6 +87,29 @@ namespace Stride.Assets.Models
         [Display(Browsable = false)]
         public bool DeduplicateMaterials { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets whether to split the imported model into multiple model assets based on the
+        /// source file's internal node hierarchy, and automatically generate a prefab that mirrors that hierarchy.
+        /// When false (default), the model is imported as a single asset, preserving the existing behavior.
+        /// </summary>
+        /// <userdoc>
+        /// When checked, the model file is split into separate model assets for each node in the source
+        /// hierarchy, and a prefab is generated that mirrors the original scene tree structure.
+        /// This is useful for files authored with a meaningful hierarchy (e.g., vehicle parts, building pieces).
+        /// </userdoc>
+        [DataMember(46)]
+        [DefaultValue(false)]
+        public bool SplitModelByHierarchy { get; set; } = false;
+
+        /// <summary>
+        /// When set, only meshes attached to the listed node indices are included in this model asset.
+        /// Used internally by the hierarchy splitter to produce per-node sub-models from a single source file.
+        /// An empty or null list means "include all meshes" (default behavior).
+        /// </summary>
+        [DataMember(47)]
+        [Display(Browsable = false)]
+        public List<int> NodeFilter { get; set; } = new List<int>();
+
         [DataMember(50)]
         [Category]
         public List<IModelModifier> Modifiers { get; } = new List<IModelModifier>();
