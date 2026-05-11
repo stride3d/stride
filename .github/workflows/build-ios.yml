@@ -1,23 +1,6 @@
 name: Build iOS Runtime
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-ios.yml'
-      - 'build/Stride.iOS.slnf'
-      - 'deps/**'
-      - 'sources/core/**'
-      - 'sources/engine/**'
-      - 'sources/native/**'
-      - 'sources/shaders/**'
-      - 'sources/shared/**'
-      - 'sources/sdk/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -42,7 +25,6 @@ jobs:
   # Build Stride Runtime for iOS
   #
   iOS-Runtime:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:

@@ -1,18 +1,6 @@
 name: Build Windows (Full)
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-windows-full.yml'
-      - 'build/Stride.sln'
-      - 'deps/**'
-      - 'sources/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -37,7 +25,6 @@ jobs:
   # Build Stride for Windows
   #
   Windows:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
