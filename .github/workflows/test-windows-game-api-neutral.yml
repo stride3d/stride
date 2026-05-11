@@ -1,0 +1,70 @@
+name: Test Windows (Game ApiNeutral)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+concurrency:
+  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  Game-ApiNeutral:
+    name: Test Game ApiNeutral (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Disable WER dialogs
+        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Game.slnf `
+            -p:StrideTestRuntimeIdentifier=win-x64 `
+            -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.Game.slnf `
+            --no-build `
+            --logger:trx --results-directory TestResults `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Test Report: Windows Game ApiNeutral'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-api-neutral
+          path: tests/local/
+          if-no-files-found: ignore
