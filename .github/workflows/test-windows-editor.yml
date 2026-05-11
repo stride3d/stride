@@ -1,4 +1,4 @@
-name: Test GameStudio (Editor Screenshots)
+name: Test GameStudio (Screenshots)
 
 on:
   workflow_dispatch:
@@ -10,13 +10,16 @@ on:
         options:
           - Debug
           - Release
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [test-editor-screenshots]
   schedule:
     # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
     # gap from test-samples-screenshots (04:37) so they don't compete for runners.
     - cron: '17 5 * * *'
 
 concurrency:
-  group: test-windows-editor-${{ github.ref }}
+  group: test-windows-editor-${{ github.event.client_payload.pr_number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -52,6 +55,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
 
       - uses: actions/setup-dotnet@v4
         with:

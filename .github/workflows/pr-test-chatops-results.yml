@@ -1,0 +1,138 @@
+name: PR test chatops (results)
+
+# Companion to pr-test-chatops.yml. Two responsibilities:
+#   1. Flip the `chatops/<suite>` commit status on the PR head SHA (from pending → success/failure)
+#      as each individual run completes. SHA is read from a hidden marker in the dispatcher body.
+#   2. Once ALL runs referenced by a single dispatcher comment are done, post one summary comment
+#      pinging the original /test author. Idempotent via a marker appended to the dispatcher body.
+#
+# Deployment: see pr-test-chatops.yml header — uses the same App ID variable + private-key secret.
+
+on:
+  workflow_run:
+    workflows:
+      - "Test GameStudio (Screenshots)"
+      - "Test Samples (Screenshots)"
+      - "Test Windows (Game)"
+      - "Test Windows (Game ApiNeutral)"
+      - "Test Windows (Simple)"
+      - "Test Linux Game (Vulkan)"
+      - "Test Linux (Simple)"
+    types: [completed]
+
+jobs:
+  results:
+    if: github.event.workflow_run.event == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.CHATOPS_APP_ID }}
+          private-key: ${{ secrets.CHATOPS_APP_PRIVATE_KEY }}
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const RESULTS_MARKER = '<!-- chatops-results-posted -->';
+            const runUrl = context.payload.workflow_run.html_url;
+
+            // Find the bot dispatcher comment that references this run URL.
+            // Iterates recently-updated open PRs; for Stride volumes this is fine.
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', per_page: 100, sort: 'updated', direction: 'desc',
+            });
+
+            for (const pr of prs) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: pr.number, per_page: 100,
+              });
+
+              const dispatcher = comments.find(c =>
+                c.user && c.user.type === 'Bot' &&
+                /\/test` dispatched:/.test(c.body || '') &&
+                (c.body || '').includes(runUrl)
+              );
+              if (!dispatcher) continue;
+
+              if ((dispatcher.body || '').includes(RESULTS_MARKER)) {
+                core.info(`Dispatcher ${dispatcher.id} already has results posted; skipping.`);
+                return;
+              }
+
+              // Parse "- `suite`: <run-url>" lines from the dispatcher body.
+              const re = /^- `([^`]+)`: (https:\/\/github\.com\/[^\s/]+\/[^\s/]+\/actions\/runs\/(\d+))/gm;
+              const suites = [];
+              let m;
+              while ((m = re.exec(dispatcher.body)) !== null) {
+                suites.push({ name: m[1], url: m[2], runId: parseInt(m[3]) });
+              }
+              if (suites.length === 0) {
+                core.warning(`No parseable suite lines in dispatcher ${dispatcher.id}; skipping.`);
+                return;
+              }
+
+              const statuses = await Promise.all(suites.map(s =>
+                github.rest.actions.getWorkflowRun({
+                  owner: context.repo.owner, repo: context.repo.repo, run_id: s.runId,
+                }).then(({ data }) => ({ ...s, status: data.status, conclusion: data.conclusion }))
+                  .catch(() => ({ ...s, status: 'unknown', conclusion: null }))
+              ));
+
+              // Flip the per-suite commit status for the run that just completed (regardless of
+              // whether the others are done yet). SHA is captured from the dispatcher body so
+              // statuses land on the commit /test was issued against, even if the PR head moved.
+              const shaMatch = (dispatcher.body || '').match(/<!-- chatops-pr-head-sha:([a-f0-9]+) -->/);
+              const prHeadSha = shaMatch ? shaMatch[1] : null;
+              const completedRunId = context.payload.workflow_run.id;
+              const completed = statuses.find(s => s.runId === completedRunId);
+              if (prHeadSha && completed && completed.status === 'completed') {
+                const stateFor = c => c === 'success' ? 'success' : (c === 'failure' ? 'failure' : 'error');
+                try {
+                  await github.rest.repos.createCommitStatus({
+                    owner: context.repo.owner, repo: context.repo.repo,
+                    sha: prHeadSha,
+                    state: stateFor(completed.conclusion),
+                    context: `chatops/${completed.name}`,
+                    description: completed.conclusion || 'completed',
+                    target_url: completed.url,
+                  });
+                } catch (e) {
+                  core.warning(`Failed to update status for ${completed.name}: ${e.message}`);
+                }
+              }
+
+              const pending = statuses.filter(s => s.status !== 'completed');
+              if (pending.length > 0) {
+                core.info(`${pending.length}/${statuses.length} runs still pending; skipping post.`);
+                return;
+              }
+
+              // Author mention from the dispatcher body header (`@user — ...`).
+              const mentionMatch = (dispatcher.body || '').match(/^@(\S+)/);
+              const userMention = mentionMatch ? `@${mentionMatch[1]} — ` : '';
+
+              const icon = c => c === 'success' ? '✅' : (c === 'cancelled' ? '⚠️' : '❌');
+              const lines = statuses.map(s => `- ${icon(s.conclusion)} \`${s.name}\`: ${s.url}`);
+              const allGreen = statuses.every(s => s.conclusion === 'success');
+              const summary = allGreen ? 'all green' : 'some failed';
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `${userMention}\`/test\` complete (${summary}):\n${lines.join('\n')}`,
+              });
+
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: dispatcher.id,
+                body: dispatcher.body + `\n\n${RESULTS_MARKER}`,
+              });
+
+              return;
+            }
+
+            core.info(`No matching dispatcher comment found for run ${runUrl}.`);

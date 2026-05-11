@@ -27,16 +27,19 @@ on:
       graphics-api:
         default: ''
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, graphics-api, dispatched_by }.
+    types: [test-windows-game]
 
 
 concurrency:
-  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
+  group: test-windows-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
   cancel-in-progress: true
 
 jobs:
   #
   # Game tests - Graphics API-dependent projects (run per API).
-  # API-independent tests live in test-windows-game-common.yml so they run once.
+  # API-independent tests live in test-windows-game-api-neutral.yml so they run once.
   #
   Game-GraphicsApi:
     name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
@@ -44,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: ${{ (github.event.inputs.graphics-api || inputs.graphics-api) != '' && fromJson(format('["{0}"]', github.event.inputs.graphics-api || inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
+        graphics-api: ${{ (github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api) != '' && fromJson(format('["{0}"]', github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
@@ -59,6 +62,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          # Chatops dispatch passes a PR number; check out its merge ref so we test the
+          # post-merge state (works uniformly for same-repo and fork PRs).
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

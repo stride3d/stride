@@ -27,9 +27,6 @@ on:
       - '!crowdin.yml'
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
-  # Chatops bot dispatches this for tests-only re-runs against PR merge refs.
-  repository_dispatch:
-    types: [test-main-ci]
 
 permissions:
   checks: write
@@ -41,8 +38,8 @@ concurrency:
 
 jobs:
   # Per-area path-filter outputs drive the per-job `if:` conditions below.
-  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, repository_dispatch,
-  # push to master) so those run everything regardless of which files changed.
+  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master)
+  # so those run everything regardless of which files changed.
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -158,7 +155,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game-api-neutral.yml
@@ -172,7 +169,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-simple.yml
@@ -185,7 +182,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
@@ -199,7 +196,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D12'].result != 'failure'
       && needs['Windows-Runtime-D3D12'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
@@ -213,7 +210,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-Vulkan'].result != 'failure'
       && needs['Windows-Runtime-Vulkan'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
@@ -227,7 +224,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-simple.yml
@@ -240,7 +237,7 @@ jobs:
     if: |
       always()
       && github.event.pull_request.draft != true
-      && (github.event_name == 'repository_dispatch' || needs.changes.outputs.runtime == 'true')
+      && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-game.yml

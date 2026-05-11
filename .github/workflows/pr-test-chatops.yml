@@ -1,0 +1,215 @@
+name: PR test chatops
+
+# Lets PR commenters dispatch CI workflows on demand. Each dispatched suite lands a `chatops/<suite>`
+# pending commit status on the PR head; pr-test-chatops-results.yml flips it to success/failure
+# when the run completes and posts a summary comment.
+#
+# Authorization: only repo collaborators (OWNER / MEMBER / COLLABORATOR association) can trigger.
+# Tests run against the PR's virtual merge ref (refs/pull/<N>/merge) so same-repo and fork PRs work.
+#
+# === Deployment ===
+# Needs a GitHub App ("stride-chatops" by default) installed on the repo, with permissions:
+#   - Contents: read & write          (repository_dispatch)
+#   - Pull requests: read & write     (comments + reactions)
+#   - Actions: read                   (workflow-run lookups)
+#   - Commit statuses: read & write   (PR check rollup)
+# Then in repo Settings → Secrets and variables → Actions:
+#   - Variable CHATOPS_APP_ID             (the App's numeric ID)
+#   - Secret   CHATOPS_APP_PRIVATE_KEY    (the App's .pem private key, full contents)
+# The companion listener pr-test-chatops-results.yml uses the same App credentials.
+#
+# === Available commands === (post as a PR comment)
+#   /test help                         — show this list in-thread
+#   /test editor                       — Editor screenshot regression
+#   /test samples                      — Sample screenshot regression
+#   /test windows-game                 — All 4 Windows game-test variants (d3d11/d3d12/vulkan/api-neutral)
+#   /test windows-game-d3d11           — One specific Windows game-test API
+#   /test windows-game-d3d12
+#   /test windows-game-vulkan
+#   /test windows-game-api-neutral
+#   /test windows-simple               — Windows simple unit tests
+#   /test windows                      — windows-simple + all 4 windows-game variants
+#   /test linux                        — All Linux test variants
+#   /test linux-game
+#   /test linux-simple
+#   /test e2e                          — editor + samples (end-to-end screenshot suites)
+#
+# Multiple suites in one command: `/test editor samples linux-game`.
+
+on:
+  issue_comment:
+    types: [created]
+
+# Only the preflight "not configured" comment uses GITHUB_TOKEN; the actual /test dispatch
+# flow runs under the App token (which carries its own permissions).
+permissions:
+  pull-requests: write
+
+jobs:
+  dispatch:
+    if: github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/test')
+    runs-on: ubuntu-latest
+    steps:
+      # Friendly fail on unconfigured forks: explain it in a PR comment rather than failing
+      # silently in the Actions tab. Uses the default GITHUB_TOKEN (write perms on issue_comment).
+      - if: vars.CHATOPS_APP_ID == ''
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `\`/test\` bot isn't configured on this repo. See the deployment notes at the top of \`.github/workflows/pr-test-chatops.yml\`.`,
+            });
+            core.setFailed('chatops not configured (CHATOPS_APP_ID variable unset)');
+
+      # Mint a stride-chatops App installation token. Using the App (rather than the default
+      # GITHUB_TOKEN) means dispatched workflow_runs propagate to downstream listeners — GitHub
+      # blocks workflow_run propagation when the dispatcher uses GITHUB_TOKEN. Also gives the
+      # bot its own identity (stride-chatops[bot]) instead of github-actions[bot].
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.CHATOPS_APP_ID }}
+          private-key: ${{ secrets.CHATOPS_APP_PRIVATE_KEY }}
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const SUITES = {
+              'editor':                  { event: 'test-editor-screenshots',      workflow: 'test-windows-editor.yml' },
+              'samples':                 { event: 'test-samples-screenshots',     workflow: 'test-samples-screenshots.yml' },
+              'windows-game-d3d11':      { event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D11' } },
+              'windows-game-d3d12':      { event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D12' } },
+              'windows-game-vulkan':     { event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Vulkan' } },
+              'windows-game-api-neutral':{ event: 'test-windows-game-api-neutral',workflow: 'test-windows-game-api-neutral.yml' },
+              'windows-simple':          { event: 'test-windows-simple',          workflow: 'test-windows-simple.yml' },
+              'linux-game':              { event: 'test-linux-game',              workflow: 'test-linux-game.yml' },
+              'linux-simple':            { event: 'test-linux-simple',            workflow: 'test-linux-simple.yml' },
+            };
+            // Aliases expand recursively (windows → windows-game → windows-game-d3d11, ...).
+            const ALIASES = {
+              'windows-game':    ['windows-game-d3d11', 'windows-game-d3d12', 'windows-game-vulkan', 'windows-game-api-neutral'],
+              'windows':         ['windows-simple', 'windows-game'],
+              'linux':           ['linux-simple', 'linux-game'],
+              'e2e':             ['editor', 'samples'],
+            };
+
+            const author = context.payload.comment.user.login;
+            const body = (context.payload.comment.body || '').trim();
+            const m = body.match(/^\/test\b\s*(.*)$/i);
+            if (!m) return;
+            const args = (m[1] || '').toLowerCase().split(/\s+/).filter(Boolean);
+
+            const post = (text) => github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: text,
+            });
+
+            // /test help — cheat sheet in-thread
+            if (args.length === 1 && args[0] === 'help') {
+              const lines = [
+                'Available test triggers:',
+                ...Object.keys(SUITES).map(k => `- \`/test ${k}\``),
+                '',
+                'Aliases (expand to multiple suites):',
+                ...Object.entries(ALIASES).map(([k, v]) => `- \`/test ${k}\` → ${v.map(s => '`' + s + '`').join(', ')}`),
+                '',
+                'Combine suites: `/test editor samples linux-game`',
+              ];
+              await post(lines.join('\n'));
+              return;
+            }
+
+            // Expand aliases recursively (cycle-safe), validate against SUITES.
+            const expanded = [];
+            const unknown = [];
+            const expand = (name, seen = new Set()) => {
+              if (seen.has(name)) return;
+              seen.add(name);
+              if (ALIASES[name]) ALIASES[name].forEach(c => expand(c, seen));
+              else if (SUITES[name]) expanded.push(name);
+              else unknown.push(name);
+            };
+            for (const a of args) expand(a);
+            const requested = [...new Set(expanded)];
+
+            if (requested.length === 0 || unknown.length > 0) {
+              await post(`@${author} unknown or empty suite. \`/test help\` for the list.${unknown.length ? ` (unknown: ${unknown.map(u => '`' + u + '`').join(', ')})` : ''}`);
+              return;
+            }
+
+            // Authorize: collaborators only
+            const assoc = context.payload.comment.author_association;
+            if (!['OWNER', 'MEMBER', 'COLLABORATOR'].includes(assoc)) {
+              await post(`@${author} \`/test\` requires repo collaborator access.`);
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            });
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              comment_id: context.payload.comment.id, content: 'rocket',
+            });
+
+            const lines = [];
+            for (const suite of requested) {
+              const cfg = SUITES[suite];
+              try {
+                const dispatchAt = new Date();
+                await github.rest.repos.createDispatchEvent({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  event_type: cfg.event,
+                  client_payload: { pr_number: pr.number, pr_head_sha: pr.head.sha, dispatched_by: author, ...(cfg.payload || {}) },
+                });
+
+                // Poll for the run we just kicked off so we can post a link comment.
+                // createDispatchEvent returns 204 with no run id; this is the documented workaround.
+                let run = null;
+                for (let i = 0; i < 10; i++) {
+                  await new Promise(r => setTimeout(r, 2000));
+                  const { data } = await github.rest.actions.listWorkflowRuns({
+                    owner: context.repo.owner, repo: context.repo.repo,
+                    workflow_id: cfg.workflow, event: 'repository_dispatch', per_page: 5,
+                  });
+                  run = (data.workflow_runs || []).find(r => new Date(r.created_at) >= dispatchAt);
+                  if (run) break;
+                }
+                // Format matched by pr-test-chatops-results.yml — keep "`<suite>`: <run-url>" shape stable.
+                lines.push(run
+                  ? `- \`${suite}\`: ${run.html_url}`
+                  : `- \`${suite}\`: dispatched (run link will appear in Checks tab — couldn't capture within 20s)`);
+
+                // Pending commit status — listener flips to success/failure on completion. Only
+                // create it when we have a run URL to link to; otherwise the status would be
+                // stuck pending (the listener has no way to match it back).
+                if (run) {
+                  try {
+                    await github.rest.repos.createCommitStatus({
+                      owner: context.repo.owner, repo: context.repo.repo,
+                      sha: pr.head.sha,
+                      state: 'pending',
+                      context: `chatops/${suite}`,
+                      description: 'Dispatched, awaiting completion',
+                      target_url: run.html_url,
+                    });
+                  } catch (e) {
+                    core.warning(`Failed to set pending status for ${suite}: ${e.message}`);
+                  }
+                }
+              } catch (e) {
+                lines.push(`- \`${suite}\`: failed to dispatch — ${e.message}`);
+              }
+            }
+            // This comment is also load-bearing state for pr-test-chatops-results.yml — it parses
+            // the @author header (for the completion ping), the per-suite run URLs (to detect
+            // "all runs done"), and the hidden chatops-pr-head-sha marker (so status checks land
+            // on the right SHA even if the user pushes more commits). Don't drop the comment just
+            // because the 🚀 reaction + commit statuses already convey "/test was accepted".
+            await post(`@${author} — \`/test\` dispatched:\n${lines.join('\n')}\n\n<!-- chatops-pr-head-sha:${pr.head.sha} -->`);
