@@ -19,7 +19,7 @@ namespace Stride.Assets.Presentation.ValueConverters
             if (string.IsNullOrEmpty(modelNodeLinkComponent?.NodeName))
                 return DependencyProperty.UnsetValue;
 
-            if (modelNodeLinkComponent.Target != null && !string.IsNullOrEmpty(modelNodeLinkComponent.NodeName))
+            if (modelNodeLinkComponent.Target?.Entity != null && !string.IsNullOrEmpty(modelNodeLinkComponent.NodeName))
             {
                 var entity = modelNodeLinkComponent.Target.Entity;
                 return $"{entity.Name}.{modelNodeLinkComponent.NodeName}";
