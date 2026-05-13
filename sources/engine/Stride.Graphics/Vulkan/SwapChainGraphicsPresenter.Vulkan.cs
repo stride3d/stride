@@ -184,11 +184,9 @@ namespace Stride.Graphics
 
                 // Present
                 var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
-                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR)
+                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR || presentResult == VkResult.ErrorSurfaceLostKHR)
                 {
-                    // ErrorOutOfDateKHR: surface no longer compatible (resize, rotation, etc.).
-                    // SuboptimalKHR: present succeeded but the swapchain no longer matches the surface
-                    // optimally (e.g. device rotated). Both recover by recreating the swapchain.
+                    // Resize/rotation (OutOfDate/Suboptimal) or Android suspend (SurfaceLost) — recreate.
                     OnRecreated();
                     return;
                 }
@@ -209,7 +207,7 @@ namespace Stride.Graphics
         {
             // Get next image
             var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
-            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR)
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR || result == VkResult.ErrorSurfaceLostKHR)
             {
                 if (recreateIfFails)
                 {
@@ -382,6 +380,11 @@ namespace Stride.Graphics
 
         private unsafe void CreateSwapChain(int width, int height, PixelFormat desiredFormat)
         {
+            // Surface lost (Android suspend) — recreate from the current native window before any query.
+            var probeResult = GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out _);
+            if (probeResult == VkResult.ErrorSurfaceLostKHR)
+                RecreateSurface();
+
             var formats = new[] { desiredFormat, PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
 
             foreach (var format in formats)
@@ -531,6 +534,18 @@ namespace Stride.Graphics
 
             swapChain = newSwapChain;
             CreateBackBuffers();
+        }
+
+        private unsafe void RecreateSurface()
+        {
+            // Swapchain must be torn down before the surface (Vulkan spec + Android ANativeWindow exclusivity).
+            DestroySwapchain();
+            if (surface != VkSurfaceKHR.Null)
+            {
+                GraphicsDevice.NativeInstanceApi.vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
+                surface = VkSurfaceKHR.Null;
+            }
+            CreateSurface();
         }
 
         private unsafe void CreateSurface()
