@@ -551,6 +551,10 @@ namespace Stride.Graphics
             if (Description.DeviceWindowHandle is null)
                 throw new InvalidOperationException("DeviceWindowHandle cannot be null");
 
+            // D3D presenters don't honor SurfaceRotation (DXGI handles rotation transparently).
+            if (SurfaceRotation != SurfaceRotation.Identity)
+                throw new NotImplementedException($"SurfaceRotation '{SurfaceRotation}' is not supported on Direct3D presenters.");
+
 #if STRIDE_PLATFORM_UWP
             CreateSwapChainForUWP();
 #else

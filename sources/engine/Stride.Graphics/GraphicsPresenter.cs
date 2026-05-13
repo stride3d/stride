@@ -132,6 +132,12 @@ public abstract class GraphicsPresenter : ComponentBase
     public Texture DepthStencilBuffer { get; protected set; }
 
     /// <summary>
+    ///   Surface orientation applied by the presentation engine. Renderer folds this into the
+    ///   projection so the engine can skip its rotation compose pass (Android Vulkan).
+    /// </summary>
+    internal SurfaceRotation SurfaceRotation { get; set; }
+
+    /// <summary>
     ///   Gets the underlying native presenter.
     /// </summary>
     /// <value>
@@ -230,8 +236,9 @@ public abstract class GraphicsPresenter : ComponentBase
         Description.BackBufferFormat = format;
 
         ResizeBackBuffer(width, height, format);
+        // ResizeBackBuffer may clamp/swap (Vulkan pre-rotation); read final size from Description.
         if (DepthStencilBuffer != null)
-            ResizeDepthStencilBuffer(width, height, DepthStencilBuffer.ViewFormat);
+            ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
 
         GraphicsDevice.End();
     }

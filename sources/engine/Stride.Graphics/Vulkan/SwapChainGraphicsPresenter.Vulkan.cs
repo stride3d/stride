@@ -438,13 +438,28 @@ namespace Stride.Graphics
             // Create swapchain
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
 
+            // Match currentTransform so the engine skips the rotation compose pass (saves a vsync
+            // on Android tile-based GPUs). Renderer folds the rotation into the projection.
+            var preTransform = surfaceCapabilities.currentTransform;
+            SurfaceRotation = preTransform switch
+            {
+                VkSurfaceTransformFlagsKHR.Rotate90 => SurfaceRotation.Rotate90,
+                VkSurfaceTransformFlagsKHR.Rotate180 => SurfaceRotation.Rotate180,
+                VkSurfaceTransformFlagsKHR.Rotate270 => SurfaceRotation.Rotate270,
+                _ => SurfaceRotation.Identity,
+            };
+            // With Rotate90/270 the swapchain images are in device-natural orientation: swap W/H.
+            var rotated = SurfaceRotation is SurfaceRotation.Rotate90 or SurfaceRotation.Rotate270;
+            var swapchainWidth = rotated ? (int)surfaceCapabilities.currentExtent.height : (int)surfaceCapabilities.currentExtent.width;
+            var swapchainHeight = rotated ? (int)surfaceCapabilities.currentExtent.width : (int)surfaceCapabilities.currentExtent.height;
+
             if (!Description.SkipBackBufferClampToWindow)
             {
-                Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
-                Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
+                Description.BackBufferWidth = swapchainWidth;
+                Description.BackBufferHeight = swapchainHeight;
                 // The depth-stencil was created with the pre-clamp Description size at presenter
-                // construction (before this method runs); re-size it to match the surface so
-                // attachments don't mismatch the swapchain extent (Android Vulkan, rotated surfaces).
+                // construction (before this method runs); re-size it to match the swapchain extent
+                // so attachments don't mismatch (Android Vulkan, rotated surfaces).
                 if (DepthStencilBuffer != null
                     && (DepthStencilBuffer.Description.Width != Description.BackBufferWidth
                         || DepthStencilBuffer.Description.Height != Description.BackBufferHeight))
@@ -458,17 +473,6 @@ namespace Stride.Graphics
             if (surfaceCapabilities.maxImageCount > 0 && desiredImageCount > surfaceCapabilities.maxImageCount)
             {
                 desiredImageCount = surfaceCapabilities.maxImageCount;
-            }
-
-            // Transform
-            VkSurfaceTransformFlagsKHR preTransform;
-            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.Identity) != 0)
-            {
-                preTransform = VkSurfaceTransformFlagsKHR.Identity;
-            }
-            else
-            {
-                preTransform = surfaceCapabilities.currentTransform;
             }
 
             // Find present mode

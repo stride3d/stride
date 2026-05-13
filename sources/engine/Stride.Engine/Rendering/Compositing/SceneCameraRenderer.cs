@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Graphics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -120,8 +121,17 @@ namespace Stride.Rendering.Compositing
             if (camera == null)
                 return;
 
+            // Presenter rotation (Android Vulkan pre-rotation): fold into projection, flip aspect.
+            // Gated by IsPresenterPass so mirror/VR/sub-scene SCRs are unaffected.
+            var surfaceRotation = context.Tags.Get(GraphicsCompositor.IsPresenterPass)
+                ? context.GraphicsDevice?.Presenter?.SurfaceRotation ?? SurfaceRotation.Identity
+                : SurfaceRotation.Identity;
+            var rotatedAxis = surfaceRotation is SurfaceRotation.Rotate90 or SurfaceRotation.Rotate270;
+
             // Setup viewport size
-            var aspectRatio = currentViewport.AspectRatio;
+            var aspectRatio = rotatedAxis
+                ? currentViewport.Height / currentViewport.Width
+                : currentViewport.AspectRatio;
 
             // Update the aspect ratio
             if (camera.UseCustomAspectRatio)
@@ -139,10 +149,37 @@ namespace Stride.Rendering.Compositing
             renderView.FarClipPlane = camera.FarClipPlane;
             renderView.Frustum = camera.Frustum;
 
+            if (surfaceRotation != SurfaceRotation.Identity)
+            {
+                var rot = GetSurfaceRotationMatrix(surfaceRotation);
+                Matrix.Multiply(ref renderView.Projection, ref rot, out renderView.Projection);
+            }
+
             // Enable frustum culling
             renderView.CullingMode = CameraCullingMode.Frustum;
 
             Matrix.Multiply(ref renderView.View, ref renderView.Projection, out renderView.ViewProjection);
         }
+
+        // Clip-space rotation per VK_SURFACE_TRANSFORM_*_BIT_KHR (row-major).
+        private static Matrix GetSurfaceRotationMatrix(SurfaceRotation rotation) => rotation switch
+        {
+            SurfaceRotation.Rotate90 => new Matrix(
+                 0, -1, 0, 0,
+                 1,  0, 0, 0,
+                 0,  0, 1, 0,
+                 0,  0, 0, 1),
+            SurfaceRotation.Rotate180 => new Matrix(
+                -1,  0, 0, 0,
+                 0, -1, 0, 0,
+                 0,  0, 1, 0,
+                 0,  0, 0, 1),
+            SurfaceRotation.Rotate270 => new Matrix(
+                 0,  1, 0, 0,
+                -1,  0, 0, 0,
+                 0,  0, 1, 0,
+                 0,  0, 0, 1),
+            _ => Matrix.Identity,
+        };
     }
 }
