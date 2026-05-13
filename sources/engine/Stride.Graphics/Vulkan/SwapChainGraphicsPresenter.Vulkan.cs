@@ -184,9 +184,11 @@ namespace Stride.Graphics
 
                 // Present
                 var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
-                if (presentResult == VkResult.ErrorOutOfDateKHR)
+                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR)
                 {
-                    // Likely a window resize; wait for WM_SIZE to be processed next frame
+                    // ErrorOutOfDateKHR: surface no longer compatible (resize, rotation, etc.).
+                    // SuboptimalKHR: present succeeded but the swapchain no longer matches the surface
+                    // optimally (e.g. device rotated). Both recover by recreating the swapchain.
                     OnRecreated();
                     return;
                 }
@@ -207,7 +209,7 @@ namespace Stride.Graphics
         {
             // Get next image
             var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
-            if (result == VkResult.ErrorOutOfDateKHR)
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR)
             {
                 if (recreateIfFails)
                 {
@@ -483,6 +485,15 @@ namespace Stride.Graphics
                 }
             }
 
+            // CompositeAlpha: Android typically only exposes Inherit; pick whichever supported bit
+            // matches the priority (Opaque is the historical default on desktop).
+            var supportedCompositeAlpha = surfaceCapabilities.supportedCompositeAlpha;
+            VkCompositeAlphaFlagsKHR compositeAlpha;
+            if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.Opaque) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque;
+            else if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.PreMultiplied) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.PreMultiplied;
+            else if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.PostMultiplied) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.PostMultiplied;
+            else compositeAlpha = VkCompositeAlphaFlagsKHR.Inherit;
+
             // Create swapchain
             var swapchainCreateInfo = new VkSwapchainCreateInfoKHR
             {
@@ -495,7 +506,7 @@ namespace Stride.Graphics
                 imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate
                 presentMode = swapChainPresentMode,
-                compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque,
+                compositeAlpha = compositeAlpha,
                 minImageCount = desiredImageCount,
                 preTransform = preTransform,
                 oldSwapchain = swapChain,
