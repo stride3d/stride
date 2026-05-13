@@ -442,6 +442,15 @@ namespace Stride.Graphics
             {
                 Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
                 Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
+                // The depth-stencil was created with the pre-clamp Description size at presenter
+                // construction (before this method runs); re-size it to match the surface so
+                // attachments don't mismatch the swapchain extent (Android Vulkan, rotated surfaces).
+                if (DepthStencilBuffer != null
+                    && (DepthStencilBuffer.Description.Width != Description.BackBufferWidth
+                        || DepthStencilBuffer.Description.Height != Description.BackBufferHeight))
+                {
+                    ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
+                }
             }
 
             // Buffer count
