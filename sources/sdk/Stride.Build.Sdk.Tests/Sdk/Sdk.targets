@@ -91,19 +91,30 @@
        and flatten matching ones to the output root. This ensures only the target RID's
        native libs are copied, and they're placed flat for dlopen to find them. -->
   <Target Name="_StrideFilterAndFlattenRuntimes"
-          BeforeTargets="_CopyFilesMarkedCopyLocal;_CopySourceItemsToOutputDirectory"
+          BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways;_CopyFilesMarkedCopyLocal"
+          DependsOnTargets="GetCopyToOutputDirectoryItems"
           Condition="'$(RuntimeIdentifier)' != ''">
     <ItemGroup>
-      <!-- Remove non-matching runtimes/ items -->
-      <None Remove="@(None)"
-          Condition="'%(None.CopyToOutputDirectory)' != '' And
-                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\')) And
-                     !$([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
-      <!-- Flatten matching runtimes/ items to output root -->
-      <None Update="@(None)"
-          Condition="'%(None.CopyToOutputDirectory)' != '' And
-                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
-          Link="%(Filename)%(Extension)" />
+      <!-- Filter source items (None / Content / etc. with CopyToOutputDirectory) -->
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <_SourceItemsToCopyToOutputDirectory Update="@(_SourceItemsToCopyToOutputDirectory)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          TargetPath="%(Filename)%(Extension)" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Update="@(_SourceItemsToCopyToOutputDirectoryAlways)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          TargetPath="%(Filename)%(Extension)" />
+      <!-- Filter ReferenceCopyLocalPaths (NuGet runtime assets + project-reference copies) -->
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <ReferenceCopyLocalPaths Update="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          DestinationSubPath="%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 
