@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
     <ProjectReference Include="..\Stride.Core.IO\Stride.Core.IO.csproj" />
   </ItemGroup>
 

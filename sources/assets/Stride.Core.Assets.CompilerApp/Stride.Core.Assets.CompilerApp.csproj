@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
     <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />

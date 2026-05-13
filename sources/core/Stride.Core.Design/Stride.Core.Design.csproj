@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
+    <ProjectReference Include="..\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
     <ProjectReference Include="..\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
   </ItemGroup>
 
