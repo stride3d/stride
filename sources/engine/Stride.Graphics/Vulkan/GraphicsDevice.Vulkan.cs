@@ -421,7 +421,6 @@ namespace Stride.Graphics
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
             };
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
@@ -432,11 +431,10 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-            if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
-            {
-                desiredExtensionProperties.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-                IsProfilingSupported = true;
-            }
+            // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
+            // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
+            // a VK_EXT_debug_report dependency to satisfy validation.
+            IsProfilingSupported = IsDebugMode && GraphicsAdapterFactory.GetInstance(IsDebugMode).HasDebugUtilsSupport;
 
             // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
             var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();

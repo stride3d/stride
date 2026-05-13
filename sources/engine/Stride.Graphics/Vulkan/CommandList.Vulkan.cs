@@ -850,13 +850,12 @@ namespace Stride.Graphics
 
                 fixed (byte* bytesPointer = &bytes[0])
                 {
-                    var profileColorCopy = profileColor;
-                    var debugMarkerInfo = new VkDebugMarkerMarkerInfoEXT
+                    var labelInfo = new VkDebugUtilsLabelEXT
                     {
-                        sType = VkStructureType.DebugMarkerMarkerInfoEXT,
-                        pMarkerName = bytesPointer
+                        sType = VkStructureType.DebugUtilsLabelEXT,
+                        pLabelName = bytesPointer
                     };
-                    GraphicsDevice.NativeDeviceApi.vkCmdDebugMarkerBeginEXT(currentCommandList.NativeCommandBuffer, &debugMarkerInfo);
+                    GraphicsDevice.NativeInstanceApi.vkCmdBeginDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer, &labelInfo);
                 }
             }
         }
@@ -869,7 +868,7 @@ namespace Stride.Graphics
             GraphicsDevice.PopDebugScope();
             if (GraphicsDevice.IsProfilingSupported)
             {
-                GraphicsDevice.NativeDeviceApi.vkCmdDebugMarkerEndEXT(currentCommandList.NativeCommandBuffer);
+                GraphicsDevice.NativeInstanceApi.vkCmdEndDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer);
             }
         }
         /// <summary>

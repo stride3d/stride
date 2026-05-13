@@ -97,6 +97,7 @@ namespace Stride.Graphics
         internal VkInstanceApi NativeInstanceApi;
         internal bool HasXlibSurfaceSupport;
         internal bool HasSurfaceSupport;
+        internal bool HasDebugUtilsSupport;
 
         // We use GraphicsDevice (similar to OpenGL)
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
@@ -165,9 +166,10 @@ namespace Stride.Graphics
 
             HasXlibSurfaceSupport = desiredExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 
-            bool enableDebugReport = enableValidation && availableExtensionNames.Contains(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-            if (enableDebugReport)
+            bool enableDebugUtils = enableValidation && availableExtensionNames.Contains(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            if (enableDebugUtils)
                 desiredExtensionNames.Add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            HasDebugUtilsSupport = enableDebugUtils;
 
             using VkStringArray ppEnabledLayerNames = new(enabledLayerNames);
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
@@ -191,7 +193,7 @@ namespace Stride.Graphics
             // Create debug messenger only if the extension was actually enabled and the function is available.
             // The Vulkan loader may advertise VK_EXT_debug_utils but fail to provide the function
             // if no validation layers are installed.
-            if (enableDebugReport && NativeInstanceApi.vkCreateDebugUtilsMessengerEXT_ptr != default)
+            if (enableDebugUtils && NativeInstanceApi.vkCreateDebugUtilsMessengerEXT_ptr != default)
             {
                 var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                 {
