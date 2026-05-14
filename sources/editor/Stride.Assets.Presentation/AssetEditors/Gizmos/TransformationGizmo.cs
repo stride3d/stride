@@ -363,7 +363,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     Scale = entity.Transform.Scale,
                     Translation = entity.Transform.Position,
                     Rotation = entity.Transform.Rotation,
-                    InverseParentMatrix = entity.Transform.Parent != null ? Matrix.Invert(entity.Transform.Parent.WorldMatrix) : Matrix.Identity
+                    InverseParentMatrix = inverseParent
                 };
             }
         }
