@@ -12,13 +12,22 @@ using xunit.runner.stride.Views;
 
 namespace xunit.runner.stride;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     internal readonly CancellationTokenSource cts = new();
-    internal Action<bool>? setInteractiveMode;
-    internal Action<bool>? setForceSaveImage;
-    internal Action<string?>? setRenderDocMode;
-    internal Action<Action<ImageCompareResult>>? subscribeImageComparison;
+
+    // Callbacks are process-wide (each runner instance toggles the same per-platform GameTestBase
+    // state). Static so desktop Main and Android MainActivity assign them the same way — no need
+    // for per-instance injection at App.Configure time.
+    public static Action<bool>? SetInteractiveMode;
+    public static Action<bool>? SetForceSaveImage;
+    public static Action<string?>? SetRenderDocMode;
+    public static Action<Action<ImageCompareResult>>? SubscribeImageComparison;
+
+    // Android has no entry assembly; the per-project MainActivity (injected by the Tests SDK
+    // into each test assembly) sets this so test discovery knows where to look. Public because
+    // the setter lives in the test assembly, not in xunit.runner.stride.
+    public static System.Reflection.Assembly? TestAssembly;
 
     public override void Initialize()
     {
@@ -37,14 +46,14 @@ public partial class App : Application
             {
                 Tests =
                 {
-                    SetInteractiveMode = setInteractiveMode,
-                    SetForceSaveImage = setForceSaveImage,
-                    SetRenderDocMode = setRenderDocMode,
+                    SetInteractiveMode = SetInteractiveMode,
+                    SetForceSaveImage = SetForceSaveImage,
+                    SetRenderDocMode = SetRenderDocMode,
                 }
             };
             // Subscribe once for the process lifetime; the launcher wires this to
             // ImageTester.ImageComparisonCompleted.
-            subscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
+            SubscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
             desktop.MainWindow = new MainWindow { Title = ComputeWindowTitle(), DataContext = vm };
             desktop.MainWindow.Closed += (_, __) => cts.Cancel();
             desktop.MainWindow.Show();
@@ -58,9 +67,9 @@ public partial class App : Application
                 {
                     Tests =
                     {
-                        SetInteractiveMode = setInteractiveMode,
-                        SetForceSaveImage = setForceSaveImage,
-                        SetRenderDocMode = setRenderDocMode,
+                        SetInteractiveMode = SetInteractiveMode,
+                        SetForceSaveImage = SetForceSaveImage,
+                        SetRenderDocMode = SetRenderDocMode,
                     }
                 }
             };

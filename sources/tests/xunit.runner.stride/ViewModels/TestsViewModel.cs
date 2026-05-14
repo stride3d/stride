@@ -36,15 +36,20 @@ public sealed record ImageCompareResult(string CurrentPath, string ReferencePath
 
 public class TestsViewModel : ViewModelBase
 {
-    private XunitFrontController Controller { get; }
+    private StrideTestController? Controller { get; }
 
     public TestsViewModel()
     {
-        var assemblyFileName = Assembly.GetEntryAssembly()!.Location;
+        // Desktop launches via Main (entry assembly == test assembly); Android launches via the
+        // per-project MainActivity, which sets App.TestAssembly.
+        var testAssembly = App.TestAssembly ?? Assembly.GetEntryAssembly();
+        if (testAssembly is null)
+        {
+            TestCases.Add(new TestGroupViewModel(this, "No tests were found"));
+            return;
+        }
 
-        // TODO: currently we disable app domain otherwise GameTestBase.ForceInteractiveMode is not kept
-        //       we should find another way to transfer this parameter
-        Controller = new XunitFrontController(AppDomainSupport.Denied, assemblyFileName);
+        Controller = new StrideTestController(testAssembly);
         var sink = new TestDiscoverySink();
         Controller.Find(true, sink, TestFrameworkOptions.ForDiscovery());
         sink.Finished.WaitOne();

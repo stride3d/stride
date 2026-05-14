@@ -16,8 +16,16 @@ public static class StrideXunitRunner
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
+#if !ANDROID
     public static void Main(string[] args, Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null, Action<string?>? setRenderDocMode = null, Action<Action<ImageCompareResult>>? subscribeImageComparison = null)
     {
+        // Stash on App's static slots — Android's MainActivity assigns the same way, so the App
+        // initialization code reads from a single place regardless of entry point.
+        App.SetInteractiveMode = setInteractiveMode;
+        App.SetForceSaveImage = setForceSaveImage;
+        App.SetRenderDocMode = setRenderDocMode;
+        App.SubscribeImageComparison = subscribeImageComparison;
+
         if (IsHeadless())
         {
             setInteractiveMode?.Invoke(false);
@@ -25,21 +33,22 @@ public static class StrideXunitRunner
             return;
         }
 
-        var builder = BuildAvaloniaApp(setInteractiveMode, setForceSaveImage, setRenderDocMode, subscribeImageComparison)
+        var builder = BuildAvaloniaApp()
             .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
         if (builder.Instance is App app)
         {
             app.Run(app.cts.Token);
         }
     }
+#endif
 
     // Discover and run all tests in the entry assembly via XunitFrontController, printing a
     // compact summary so direct exe invocation isn't a no-op. Test Explorer / dotnet test
     // route through the xunit adapter and bypass this path entirely.
     private static int RunHeadless(string[] args)
     {
-        var assemblyFileName = Assembly.GetEntryAssembly()!.Location;
-        using var controller = new XunitFrontController(AppDomainSupport.Denied, assemblyFileName);
+        var testAssembly = App.TestAssembly ?? Assembly.GetEntryAssembly()!;
+        using var controller = new StrideTestController(testAssembly);
 
         using var discoverySink = new TestDiscoverySink();
         controller.Find(includeSourceInformation: false, discoverySink, TestFrameworkOptions.ForDiscovery());
@@ -51,12 +60,17 @@ public static class StrideXunitRunner
             testCases = testCases.Where(filter).ToList();
 
         Console.WriteLine(filter is null
-            ? $"Discovered {discoverySink.TestCases.Count} tests in {Path.GetFileName(assemblyFileName)}"
-            : $"Discovered {discoverySink.TestCases.Count} tests in {Path.GetFileName(assemblyFileName)}, running {testCases.Count} after --filter");
+            ? $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}"
+            : $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}, running {testCases.Count} after --filter");
 
         using var executionSink = new ConsoleExecutionSink();
-        controller.RunTests(testCases, executionSink, TestFrameworkOptions.ForExecution());
+        using var trxSink = new TrxWriter();
+        var composite = new CompositeSink(executionSink, trxSink);
+        controller.RunTests(testCases, composite, TestFrameworkOptions.ForExecution());
         executionSink.Finished.WaitOne();
+        trxSink.Finished.WaitOne();
+
+        trxSink.WriteTo(GetTrxPath(testAssembly));
 
         Console.WriteLine($"Total: {executionSink.Total}, Passed: {executionSink.Passed}, Failed: {executionSink.Failed}, Skipped: {executionSink.Skipped}, Time: {executionSink.ExecutionTime:F2}s");
         return executionSink.Failed > 0 ? 1 : 0;
@@ -98,6 +112,35 @@ public static class StrideXunitRunner
         return null;
     }
 
+    // Headless trx lands next to the gold-image local dir so a single adb pull picks up
+    // both. Desktop runs drop it beside the test binary so dotnet test --logger trx parity
+    // tools find it without extra config.
+    private static string GetTrxPath(Assembly testAssembly)
+    {
+        var name = testAssembly.GetName().Name ?? "tests";
+#if ANDROID
+        var root = Android.App.Application.Context.GetExternalFilesDir(null)!.AbsolutePath;
+        return Path.Combine(root, "tests", "local", name, $"{name}.trx");
+#else
+        var binDir = Path.GetDirectoryName(testAssembly.Location) ?? AppContext.BaseDirectory;
+        return Path.Combine(binDir, "TestResults", $"{name}.trx");
+#endif
+    }
+
+    private sealed class CompositeSink : IMessageSinkWithTypes
+    {
+        private readonly IMessageSinkWithTypes[] inners;
+        public CompositeSink(params IMessageSinkWithTypes[] inners) => this.inners = inners;
+        public bool OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
+        {
+            var keepGoing = true;
+            foreach (var inner in inners)
+                keepGoing &= inner.OnMessageWithTypes(message, messageTypes);
+            return keepGoing;
+        }
+        public void Dispose() { foreach (var inner in inners) (inner as IDisposable)?.Dispose(); }
+    }
+
     private sealed class ConsoleExecutionSink : TestMessageSink
     {
         public int Total;
@@ -127,9 +170,10 @@ public static class StrideXunitRunner
         return Environment.GetEnvironmentVariable("STRIDE_TESTS_INTERACTIVE") != "1";
     }
 
+#if !ANDROID
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp(Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null, Action<string?>? setRenderDocMode = null, Action<Action<ImageCompareResult>>? subscribeImageComparison = null)
-        => AppBuilder.Configure(() => new App { setInteractiveMode = setInteractiveMode, setForceSaveImage = setForceSaveImage, setRenderDocMode = setRenderDocMode, subscribeImageComparison = subscribeImageComparison })
+    public static AppBuilder BuildAvaloniaApp()
+        => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .With(new Win32PlatformOptions
             {
@@ -138,4 +182,5 @@ public static class StrideXunitRunner
             })
             .WithInterFont()
             .LogToTrace();
+#endif
 }

@@ -10,6 +10,7 @@ using Stride.Games;
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using Stride.Core;
 using Stride.Games;
 #endif
 
@@ -81,6 +82,21 @@ namespace Stride.Graphics.Regression
 
 #elif STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
 
+#if STRIDE_PLATFORM_ANDROID
+            // Headless path mirrors desktop: when ScreenShotAutomationEnabled (set from
+            // !ForceInteractiveMode), run offscreen in-process — no AndroidGameTestActivity,
+            // no per-test Activity spawn. Interactive runs fall through to the SDL-window
+            // path below for visual inspection.
+            if (game is GameTestBase { ScreenShotAutomationEnabled: true })
+            {
+                using (game)
+                {
+                    var context = GameContextFactory.NewGameContext(AppContextType.Headless);
+                    game.Run(context);
+                }
+                return;
+            }
+#endif
             lock(uniThreadLock)
             {
                 // Prepare finish callback

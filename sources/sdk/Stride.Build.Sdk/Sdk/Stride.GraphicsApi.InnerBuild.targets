@@ -169,15 +169,23 @@
        works but has a side effect of setting SkipGetTargetFrameworkProperties=true, which
        bypasses TFM negotiation and breaks cases like Games[net10.0-windows]→Graphics[net10.0]. -->
   <Target Name="_StrideAnnotateProjectReferences" BeforeTargets="_GetProjectReferenceTargetFrameworkProperties;PrepareProjectReferences"
-          Condition="'$(_StrideGraphicsApiCurrent)' != '' And '$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
+          Condition="'$(_StrideGraphicsApiCurrent)' != ''">
     <ItemGroup>
-      <!-- API-dep ref: pass the current API so consumer and callee share a per-API cache entry. -->
+      <!-- API-dep ref: pass the current API so consumer and callee share a per-API cache entry.
+           Gated off for TFMs where Stride.Graphics.targets disables per-API dispatch (single
+           inner build, no StrideGraphicsApi in cache key) — adding it would diverge from the
+           callee's own outer→inner dispatch. -->
       <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
-                                        Condition="$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
+                                        Condition="'$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true' And $(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
         <AdditionalProperties>%(_MSBuildProjectReferenceExistent.AdditionalProperties);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</AdditionalProperties>
       </_MSBuildProjectReferenceExistent>
       <!-- Non-API-dep ref: strip StrideGraphicsApi so different-API callers collapse to one
-           cache entry per (project, TF) instead of racing on a shared obj/ path. -->
+           cache entry per (project, TF) instead of racing on a shared obj/ path. Runs on
+           every TFM including Android/iOS/UWP: StrideGraphicsApi can leak in from the
+           consumer's scope and fragment the cache key even when the target has a single
+           runtime API — which causes parallel inner-builds of the same non-API-dep ref
+           (e.g. Stride.Audio) to race in obj/ and crash StrideRunAssemblyProcessor with
+           FileNotFoundException. -->
       <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
                                         Condition="!$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
         <GlobalPropertiesToRemove>%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);StrideGraphicsApi</GlobalPropertiesToRemove>

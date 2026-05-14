@@ -1,13 +1,17 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>$(StrideFramework)</TargetFrameworks>
+    <TargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(TargetFrameworks);$(StrideFrameworkAndroid)</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <IsTestProject>false</IsTestProject>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFramework)'">
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -17,12 +21,19 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
-    <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.utility" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(StrideTargetFramework)' == '$(StrideFramework)'">
+    <PackageReference Include="Avalonia.Desktop" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <PackageReference Include="Avalonia.Android" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
