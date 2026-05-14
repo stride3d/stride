@@ -144,6 +144,19 @@ jobs:
             --results-directory TestResults `
             -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
 
+      # Builds a generated sample via `dotnet build` as a subprocess against the packed
+      # bin/packages feed — the real NuGet-consumer path that in-tree ProjectReference
+      # builds never exercise (sparse NuGet layout, dynamic assembly load, native probing).
+      - name: Run NuGet consumer test
+        if: always()
+        run: |
+          dotnet test tests\editor\Stride.Editor.Tests.csproj `
+            --no-build `
+            --filter "FullyQualifiedName~Stride.Editor.Tests.NuGetConsumerTests" `
+            --logger "trx;LogFileName=nuget-consumer.trx" `
+            --results-directory TestResults `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
       - name: Publish test report
         if: always()
         uses: phoenix-actions/test-reporting@v15

@@ -136,7 +136,7 @@ public class EditorScreenshotTests
     /// internally, so any future generator changes (e.g. silent-upgrade behaviour) flow through.
     /// Returns the absolute .sln path the AutoTesting runner should open.
     /// </summary>
-    private static string GenerateSampleFromTemplate(Guid templateGuid, string sampleName)
+    internal static string GenerateSampleFromTemplate(Guid templateGuid, string sampleName)
     {
         var outputDir = Path.Combine(Path.GetTempPath(), "stride-editor-tests", sampleName);
         if (Directory.Exists(outputDir))
