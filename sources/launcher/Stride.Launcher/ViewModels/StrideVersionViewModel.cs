@@ -158,6 +158,14 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         }
 
         UpdateSelectedEditor();
+        // On non-Windows the Avalonia editor is the only option. Re-evaluate CanStart now
+        // that AvailableEditors is populated (UpdateStatus runs before UpdateAvailableEditors).
+        if (!OperatingSystem.IsWindows())
+        {
+            CanStart = CanDelete && AvailableEditors.Count > 0;
+            if (Launcher.ActiveVersion == this)
+                Launcher.StartStudioCommand.IsEnabled = CanStart;
+        }
     }
 
     private static IEnumerable<string> AllEditorNames()
@@ -276,7 +284,8 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         IsVisible = Launcher.ShowBetaVersions || !IsBeta || CanDelete;
         SetAsActiveCommand.IsEnabled = CanDelete;
         DeleteCommand.IsEnabled = CanDelete;
-        CanStart = CanDelete;
+        // On non-Windows only the Avalonia editor is supported; require it to be present before allowing Start.
+        CanStart = CanDelete && (OperatingSystem.IsWindows() || AvailableEditors.Count > 0);
 
         if (Launcher.ActiveVersion == this)
             Launcher.StartStudioCommand.IsEnabled = CanStart;
