@@ -8,9 +8,29 @@ namespace Stride.Launcher.Views;
 
 public partial class MainWindow : Window
 {
+    private MainViewModel? _subscribedVm;
+
     public MainWindow()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        if (_subscribedVm is not null)
+            _subscribedVm.CloseRequested -= OnCloseRequested;
+
+        _subscribedVm = DataContext as MainViewModel;
+
+        if (_subscribedVm is not null)
+            _subscribedVm.CloseRequested += OnCloseRequested;
+    }
+
+    private void OnCloseRequested(object? sender, EventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+            _ = OnClosingAsync(vm);
     }
 
     protected override void OnOpened(EventArgs e)

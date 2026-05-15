@@ -20,6 +20,7 @@ The core is in place:
 - Recent-project context menu with *Show in Explorer* / *Remove from list* (menu ported; *Show in Explorer* is cross-platform — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback).
 - Alternate-versions sub-list (ported as a nested `ItemsControl`, no longer a `Popup`).
 - Localization resx / Urls resx.
+- **Cross-platform launcher ↔ Game Studio IPC**: on Windows the existing `/LauncherWindowHandle` Win32 HWND path is unchanged; on Linux a named-pipe channel (`/LauncherPipe <name>`) is used instead. See [cross-platform.md](cross-platform.md) § Launcher ↔ GameStudio IPC.
 
 ## Flagged gaps (already in [cross-platform.md](cross-platform.md))
 
@@ -150,6 +151,7 @@ These change observable behaviour on both Windows and Linux and should ship firs
 3. ~~**Persist `LauncherSettings.CurrentTab` on tab change.**~~ **Done** (2026-04-22): `MainViewModel.CurrentTab` persisted-on-set, two-way bound from the `TabControl`.
 4. ~~**Port `HasDoneTask` / `SaveTaskAsDone` to a file under `EditorPath.UserDataPath`.**~~ **Done** (2026-04-22): one-shot task state moved into `Internal/Launcher/CompletedTasks` inside the existing `LauncherSettings.conf`. No migration — pre-existing `HKCU\SOFTWARE\Stride\` keys on Windows become harmless orphans.
 5. ~~**Fix `explorer.exe` hard-coding** in `RecentProjectViewModel.Explore`.~~ **Done** (2026-04-22): platform switch — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback. See [cross-platform.md](cross-platform.md) § Recent-project "Show in Explorer".
+6. ~~**Cross-platform launcher ↔ Game Studio IPC.**~~ **Done** (2026-05-09): on Linux the HWND channel is replaced by a named pipe. `MainViewModel.StartStudio` injects `/LauncherPipe <name>` on non-Windows and starts `WaitForGameStudioPipeSignalAsync`; `Program.ParseLauncherArgs` in `Stride.GameStudio.Avalonia.Desktop` handles both `/LauncherWindowHandle` (Windows) and `/LauncherPipe` (Linux). `App.LauncherNotifier` fires once from `MainWindow.OnLoaded`. See [cross-platform.md](cross-platform.md) § Launcher ↔ GameStudio IPC.
 
 ### Phase 2 — feature restoration
 
