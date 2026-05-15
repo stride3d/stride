@@ -16,6 +16,8 @@ public sealed class EditorNameConverter : OneWayValueConverter<EditorNameConvert
     {
         return (string?)value switch
         {
+            // On non-Windows only Avalonia is available; omit the qualifier since there is nothing to distinguish it from.
+            GameStudioNames.StrideAvalonia when !OperatingSystem.IsWindows() => "Game Studio",
             GameStudioNames.StrideAvalonia => "Game Studio (Avalonia)",
             GameStudioNames.Stride => "Game Studio (WPF)",
             GameStudioNames.Xenko => "Xenko Game Studio",

@@ -303,7 +303,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     protected override async Task TryInstallCompanionsAsync(PackageVersion version)
     {
         var companionIds = new[] { GameStudioNames.StrideAvalonia, GameStudioNames.Stride }
-            .Where(id => id != ServerPackage?.Id);
+            .Where(id => id != ServerPackage?.Id)
+            // WPF (Stride.GameStudio) is Windows-only; skip on other platforms.
+            .Where(id => OperatingSystem.IsWindows() || id != GameStudioNames.Stride);
 
         foreach (var companionId in companionIds)
         {
