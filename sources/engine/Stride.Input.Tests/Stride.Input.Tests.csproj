@@ -1,7 +1,6 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>net10.0-android</TargetFramework>
     <AssemblyName>Stride.Input.Tests</AssemblyName>
     <RootNamespace>Stride.Input.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
@@ -39,5 +38,5 @@
     <None Include="GameAssets\Teapot.sdpromodel" />
     <None Include="Stride.Input.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
 </Project>

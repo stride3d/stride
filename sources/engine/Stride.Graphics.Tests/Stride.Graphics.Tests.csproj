@@ -1,7 +1,6 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Stride.Graphics.Tests</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <StrideCompileAssets>true</StrideCompileAssets>
@@ -19,5 +18,5 @@
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
 </Project>

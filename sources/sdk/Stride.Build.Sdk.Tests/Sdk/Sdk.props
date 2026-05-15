@@ -37,18 +37,37 @@
 
     <!-- Enable assembly processor for test projects -->
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+  </PropertyGroup>
 
-    <!-- Use cross-platform editor target framework by default -->
+  <!-- Multi-platform tests set <StrideMultiPlatformTest>true</StrideMultiPlatformTest> BEFORE
+       this import to opt into multi-TFM. The flag (a) defaults StrideTestPlatforms from the
+       build's StridePlatforms (Stride.Local.props), and (b) suppresses the single-TFM
+       fallback below so the targets-time StrideTestPlatforms expansion in Sdk.targets can
+       drive TargetFrameworks — mirroring the StrideRuntime mechanism in Stride.Frameworks.targets.
+       CLI -p:StrideTestPlatforms=… still overrides (global property). -->
+  <PropertyGroup Condition="'$(StrideMultiPlatformTest)' == 'true' And '$(StrideTestPlatforms)' == ''">
+    <StrideTestPlatforms>$(StridePlatforms)</StrideTestPlatforms>
+  </PropertyGroup>
+
+  <!-- Single-TFM fallback for tests that set neither TargetFramework nor TargetFrameworks
+       (e.g. Stride.Core.Assets.Quantum.Tests). Needed at props time because NuGet restore
+       fails NETSDK1013 otherwise. -->
+  <PropertyGroup Condition="'$(StrideMultiPlatformTest)' != 'true'">
     <TargetFramework Condition="'$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(StrideXplatEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Graphics API Configuration for Tests -->
   <!-- ================================================================ -->
-  <PropertyGroup>
-    <!-- Check if we have test-specific graphics API override -->
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
+  <!-- StrideGraphicsApisTest (set in Stride.Local.props) overrides both list + singular so
+       tests pick the requested API even when Stride.Graphics.props has already set
+       StrideGraphicsApi from StridePlatform via the engine SDK import chain. -->
+  <PropertyGroup Condition="'$(StrideGraphicsApisTest)' != ''">
+    <StrideGraphicsApis>$(StrideGraphicsApisTest)</StrideGraphicsApis>
+    <StrideGraphicsApi>$(StrideGraphicsApisTest.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
+  </PropertyGroup>
 
+  <PropertyGroup>
     <!-- Build list of Graphics API for platforms that support multiple -->
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
@@ -80,6 +99,24 @@
 
     <!-- Asset compilation options for tests -->
     <StrideCompileAssetOptions Condition="'$(StrideCompileAssetOptions)' == ''">--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Android Manifest Defaults                                         -->
+  <!-- ================================================================ -->
+  <!-- Replaces the per-project Properties/AndroidManifest.xml. The .NET Android SDK
+       synthesizes a manifest from these properties when no file is supplied — same shape
+       as the minimal manifest tests previously shipped (single <application> + <uses-sdk>).
+       Per-Activity attributes (Theme, MainLauncher) come from [Activity] attributes on the
+       per-project MainActivity injected by Sdk.targets, not from the manifest.
+       ApplicationId must be a valid Java package name (lowercase, segments not starting
+       with a digit). The regex prefixes digit-starting segments with "api" so projects
+       like Stride.Graphics.Tests.10_0 get a valid id "stride.graphics.tests.api10_0". -->
+  <PropertyGroup>
+    <ApplicationId Condition="'$(ApplicationId)' == ''">$([System.Text.RegularExpressions.Regex]::Replace($(AssemblyName.ToLowerInvariant()), '\.(\d)', '.api$1'))</ApplicationId>
+    <ApplicationTitle Condition="'$(ApplicationTitle)' == ''">$(AssemblyName)</ApplicationTitle>
+    <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
+    <ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0</ApplicationDisplayVersion>
   </PropertyGroup>
 
 </Project>

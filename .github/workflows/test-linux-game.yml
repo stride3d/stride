@@ -172,11 +172,11 @@ jobs:
         if: always()
         run: |
           dotnet vstest \
-            bin/Tests/Stride.Audio.Tests/Linux/Vulkan/Stride.Audio.Tests.dll \
-            bin/Tests/Stride.Engine.NoAssets.Tests/Linux/Vulkan/Stride.Engine.NoAssets.Tests.dll \
-            bin/Tests/Stride.Input.Tests/Linux/Vulkan/Stride.Input.Tests.dll \
-            bin/Tests/Stride.Navigation.Tests/Linux/Vulkan/Stride.Navigation.Tests.dll \
-            bin/Tests/Stride.Particles.Tests/Linux/Vulkan/Stride.Particles.Tests.dll \
+            bin/Tests/Stride.Audio.Tests/Linux-Vulkan/Stride.Audio.Tests.dll \
+            bin/Tests/Stride.Engine.NoAssets.Tests/Linux-Vulkan/Stride.Engine.NoAssets.Tests.dll \
+            bin/Tests/Stride.Input.Tests/Linux-Vulkan/Stride.Input.Tests.dll \
+            bin/Tests/Stride.Navigation.Tests/Linux-Vulkan/Stride.Navigation.Tests.dll \
+            bin/Tests/Stride.Particles.Tests/Linux-Vulkan/Stride.Particles.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
             '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1
@@ -265,12 +265,12 @@ jobs:
         if: always()
         run: |
           dotnet vstest \
-            bin/Tests/Stride.Graphics.Tests/Linux/Vulkan/Stride.Graphics.Tests.dll \
-            bin/Tests/Stride.Graphics.Tests.10_0/Linux/Vulkan/Stride.Graphics.Tests.10_0.dll \
-            bin/Tests/Stride.Graphics.Tests.11_0/Linux/Vulkan/Stride.Graphics.Tests.11_0.dll \
-            bin/Tests/Stride.Engine.Tests/Linux/Vulkan/Stride.Engine.Tests.dll \
-            bin/Tests/Stride.Physics.Tests/Linux/Vulkan/Stride.Physics.Tests.dll \
-            bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
+            bin/Tests/Stride.Graphics.Tests/Linux-Vulkan/Stride.Graphics.Tests.dll \
+            bin/Tests/Stride.Graphics.Tests.10_0/Linux-Vulkan/Stride.Graphics.Tests.10_0.dll \
+            bin/Tests/Stride.Graphics.Tests.11_0/Linux-Vulkan/Stride.Graphics.Tests.11_0.dll \
+            bin/Tests/Stride.Engine.Tests/Linux-Vulkan/Stride.Engine.Tests.dll \
+            bin/Tests/Stride.Physics.Tests/Linux-Vulkan/Stride.Physics.Tests.dll \
+            bin/Tests/Stride.UI.Tests/Linux-Vulkan/Stride.UI.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
             '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full' \
             -- RunConfiguration.MaxCpuCount=1

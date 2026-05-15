@@ -79,15 +79,15 @@ jobs:
       - name: Test
         run: |
           dotnet vstest \
-            bin/Tests/Stride.Core.Tests/Linux/Vulkan/Stride.Core.Tests.dll \
-            bin/Tests/Stride.Core.Mathematics.Tests/Linux/Vulkan/Stride.Core.Mathematics.Tests.dll \
-            bin/Tests/Stride.Core.Design.Tests/Linux/Vulkan/Stride.Core.Design.Tests.dll \
-            bin/Tests/Stride.Core.Yaml.Tests/Linux/Vulkan/Stride.Core.Yaml.Tests.dll \
-            bin/Tests/Stride.Core.CompilerServices.Tests/Linux/Vulkan/Stride.Core.CompilerServices.Tests.dll \
-            bin/Tests/Stride.Core.BuildEngine.Tests/Linux/Vulkan/Stride.Core.BuildEngine.Tests.dll \
-            bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux/Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
-            bin/Tests/Stride.Core.Quantum.Tests/Linux/Vulkan/Stride.Core.Quantum.Tests.dll \
-            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
+            bin/Tests/Stride.Core.Tests/Linux-Vulkan/Stride.Core.Tests.dll \
+            bin/Tests/Stride.Core.Mathematics.Tests/Linux-Vulkan/Stride.Core.Mathematics.Tests.dll \
+            bin/Tests/Stride.Core.Design.Tests/Linux-Vulkan/Stride.Core.Design.Tests.dll \
+            bin/Tests/Stride.Core.Yaml.Tests/Linux-Vulkan/Stride.Core.Yaml.Tests.dll \
+            bin/Tests/Stride.Core.CompilerServices.Tests/Linux-Vulkan/Stride.Core.CompilerServices.Tests.dll \
+            bin/Tests/Stride.Core.BuildEngine.Tests/Linux-Vulkan/Stride.Core.BuildEngine.Tests.dll \
+            bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux-Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
+            bin/Tests/Stride.Core.Quantum.Tests/Linux-Vulkan/Stride.Core.Quantum.Tests.dll \
+            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux-Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
             --logger:trx --ResultsDirectory:TestResults \
             '--Blame:CollectHangDump;TestTimeout=300000;HangDumpType=Full'
       - name: Publish Test Report

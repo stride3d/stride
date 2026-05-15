@@ -119,6 +119,31 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- Strip per-RID compute globals from ProjectReference dispatches    -->
+  <!-- ================================================================ -->
+  <!-- Microsoft.Android.Sdk.AssemblyResolution.targets _ResolveAssemblies dispatches the
+       outer Android build to itself with _ComputeFilesToPublishForRuntimeIdentifiers=true and
+       a bag of _Outer* / Skip* / AppendRuntimeIdentifierToOutputPath / DesignTimeBuild=false
+       globals to compute publish files per RID. Those globals propagate through every
+       transitive ProjectReference as inherited global properties, producing a second MSBuild
+       build-cache key for every shared dependency (Stride.Engine -> Stride.VirtualReality,
+       Stride.Navigation -> Stride.Physics, ...). When test projects build in parallel, the
+       resulting concurrent dispatches collide on the shared dep's obj/ — MSB3030 "X.dll not
+       found", file lock contention on Stride.X.GeneratedMSBuildEditorConfig.editorconfig,
+       XARLP7024 HashFile, etc. Strip on every level of the chain so both regular and per-RID
+       dispatches share a single cache key. -->
+  <Target Name="_StrideStripPerRidGlobalsFromProjectReferences"
+          BeforeTargets="_SplitProjectReferencesByFileExistence"
+          Condition="'$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">
+    <!-- Also strip RuntimeIdentifier* / SelfContained — they're set on test projects and would
+         otherwise propagate to library deps as a cross-RID restore demand they don't need. -->
+    <ItemGroup>
+      <ProjectReference Update="@(ProjectReference)"
+                        UndefineProperties="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;_ComputeFilesToPublishForRuntimeIdentifiers;_OuterIntermediateAssembly;_OuterIntermediateOutputPath;_OuterCustomViewMapFile;_OuterIntermediateSatelliteAssembliesWithTargetPath;_OuterOutputPath;_AndroidNdkDirectory;AppendRuntimeIdentifierToOutputPath;DesignTimeBuild;ResolveAssemblyReferencesFindRelatedSatellites;SkipCompilerExecution" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
@@ -208,6 +233,10 @@
     <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
                Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
+  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
+       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
+       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
+       suppresses Pack in those inner dispatches. No additional gate needed here. -->
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
