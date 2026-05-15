@@ -39,8 +39,6 @@ namespace Stride.Rendering.UI
         {
             // clear the list of compacted pointer events of time frame
             compactedPointerEvents.Clear();
-            // Drain the UI-side pointer event buffer; events have now been consumed by this Draw.
-            uiSystem?.ClearPendingPointerEvents();
         }
 
         partial void PickingPrepare()
