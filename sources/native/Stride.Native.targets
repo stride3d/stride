@@ -27,15 +27,26 @@
     <!--<StrideNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(StridePackageStridePlatformBin)\'))</StrideNativeOutputPath>-->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so; .a; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
   
-    <!-- Auto-disable Windows ARM64 native build in MSVC mode if the VS ARM64 toolset isn't installed.
-         Clang mode always supports ARM64 via bundled clang+lld targeting aarch64-pc-windows-msvc. -->
+    <!-- Auto-disable Windows ARM64 native build if the VS ARM64 toolset isn't installed.
+         MSVC mode: check VCToolsInstallDir for arm64 cl.exe (env var set by Dev Cmd / vcvarsall).
+         Clang mode: probe standard VS install paths for arm64 CRT libs (no env var available). -->
     <_StrideArm64ToolsetMissing Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeMSVC)' == 'true' And !Exists('$(VCToolsInstallDir)bin\Hostx64\arm64\cl.exe')">true</_StrideArm64ToolsetMissing>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeClang)' == 'true' And $([MSBuild]::IsOSPlatform('Windows'))">
+    <_StrideArm64LibProbe Include="$(MSBuildProgramFiles32)\Microsoft Visual Studio\*\*\VC\Tools\MSVC\*\lib\arm64\msvcrt.lib" />
+    <_StrideArm64LibProbe Include="$(ProgramW6432)\Microsoft Visual Studio\*\*\VC\Tools\MSVC\*\lib\arm64\msvcrt.lib" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_StrideArm64LibProbeJoined>@(_StrideArm64LibProbe)</_StrideArm64LibProbeJoined>
+    <_StrideArm64ToolsetMissing Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeClang)' == 'true' And $([MSBuild]::IsOSPlatform('Windows')) And '$(_StrideArm64LibProbeJoined)' == ''">true</_StrideArm64ToolsetMissing>
     <StrideNativeWindowsArm64Enabled Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(_StrideArm64ToolsetMissing)' == 'true'">false</StrideNativeWindowsArm64Enabled>
     <StrideNativeWindowsArm64Enabled Condition="'$(StrideNativeWindowsArm64Enabled)' == ''">true</StrideNativeWindowsArm64Enabled>
   </PropertyGroup>
 
   <Target Name="_StrideWarnArm64ToolsetMissing" BeforeTargets="Build" Condition="'$(_StrideArm64ToolsetMissing)' == 'true' And '$(StrideNativeOutputName)' != ''">
-    <Warning Text="[Stride] Windows ARM64 native build skipped: MSVC ARM64 toolset (cl.exe) not found under '$(VCToolsInstallDir)bin\Hostx64\arm64\'. Install 'MSVC v145 ARM64/ARM64EC build tools' from the VS installer, or set -p:StrideNativeWindowsArm64Enabled=false to silence this warning." />
+    <Warning Text="[Stride] Windows ARM64 native build skipped: MSVC ARM64 toolset not found. Install 'MSVC v145 ARM64/ARM64EC build tools' from the VS installer, or set -p:StrideNativeWindowsArm64Enabled=false to silence this warning." />
   </Target>
 
   <Choose>
