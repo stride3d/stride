@@ -12,6 +12,7 @@ namespace Stride.Data
     [DataContract]
     public class PlatformConfigurations
     {
+        /// <summary>String identifying the rendering device, used for configuration overrides.</summary>
         public static string RendererName { get; set; } = string.Empty;
 
         [DataMember]
@@ -22,54 +23,40 @@ namespace Stride.Data
 
         public T Get<T>() where T : Configuration, new()
         {
-            //find default
+            // Find the default for all platforms and devices
             var config = Configurations.Where(x => x.Platforms == ConfigPlatforms.None).LastOrDefault(x => x.Configuration is T);
 
-            //perform logic by platform and if required even gpu/cpu/specs
+            // Try finding one for the specific platform or hardware configuration
 
-            var platform = ConfigPlatforms.None;
-            switch (Platform.Type)
+            var platform = Platform.Type switch
             {
-                case PlatformType.Shared:
-                    break;
-                case PlatformType.Windows:
-                    platform = ConfigPlatforms.Windows;
-                    break;
-                case PlatformType.Android:
-                    platform = ConfigPlatforms.Android;
-                    break;
-                case PlatformType.iOS:
-                    platform = ConfigPlatforms.iOS;
-                    break;
-                case PlatformType.UWP:
-                    platform = ConfigPlatforms.UWP;
-                    break;
-                case PlatformType.Linux:
-                    platform = ConfigPlatforms.Linux;
-                    break;
-                case PlatformType.macOS:
-                    platform = ConfigPlatforms.macOS;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                PlatformType.Shared => ConfigPlatforms.None,
+                PlatformType.Windows => ConfigPlatforms.Windows,
+                PlatformType.Android => ConfigPlatforms.Android,
+                PlatformType.iOS => ConfigPlatforms.iOS,
+                PlatformType.UWP => ConfigPlatforms.UWP,
+                PlatformType.Linux => ConfigPlatforms.Linux,
+                PlatformType.macOS => ConfigPlatforms.macOS,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
-            //find per platform if available
-            var platformConfig = Configurations.Where(x => x.Platforms.HasFlag(platform) && x.SpecificFilter == -1).LastOrDefault(x => x.Configuration is T);
-            if (platformConfig != null)
+            // Find per platform if available
+            if (Configurations.Where(x => x.Platforms.HasFlag(platform) && x.SpecificFilter == -1)
+                .LastOrDefault(x => x.Configuration is T) is { } platformConfig)
             {
                 config = platformConfig;
             }
 
-            //find per specific renderer settings
-            platformConfig = Configurations.Where(x => x.Platforms.HasFlag(platform) && x.SpecificFilter != -1 && new Regex(PlatformFilters[x.SpecificFilter], RegexOptions.IgnoreCase).IsMatch(RendererName)).LastOrDefault(x => x.Configuration is T);
-            if (platformConfig != null)
+            // Find per specific renderer
+            if (Configurations.Where(x => x.Platforms.HasFlag(platform) && x.SpecificFilter != -1 && new Regex(PlatformFilters[x.SpecificFilter], RegexOptions.IgnoreCase).IsMatch(RendererName))
+                .LastOrDefault(x => x.Configuration is T) is { } rendererConfig)
             {
-                config = platformConfig;
+                config = rendererConfig;
             }
 
             if (config == null)
             {
+                // If the requested configuration doesn't exist, create and add a new one
                 var newInstance = new T();
                 Configurations.Add(new()
                 {
