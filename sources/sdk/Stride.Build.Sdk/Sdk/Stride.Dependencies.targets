@@ -72,9 +72,10 @@
     </ItemGroup>
   </Target>
 
-  <!-- Note: this target Outputs are not real, used so that it gets expanded for each file
-             also, if _StrideDepsFile is empty the target is still called so check for it -->
-  <Target Name="_StrideBuildDependencies" DependsOnTargets="_StrideListDepsFiles" Outputs="%(_StrideDepsFile.Identity)">
+  <!-- Sentinel Outputs (never created) forces the target body to run every build while preserving
+       per-_StrideDepsFile batching needed to populate @(_StrideDependency*) for downstream targets. -->
+  <Target Name="_StrideBuildDependencies" DependsOnTargets="_StrideListDepsFiles"
+          Outputs="$(IntermediateOutputPath)_StrideBuildDependencies-%(_StrideDepsFile.Filename).never">
     <!-- Read dependencies from file -->
     <ReadLinesFromFile File="%(_StrideDepsFile.Identity)" Condition="'%(_StrideDepsFile.Identity)' != ''">
       <Output TaskParameter="Lines" ItemName="_StrideDependencyLocal"/>

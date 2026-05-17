@@ -71,13 +71,15 @@
   <!-- ================================================================ -->
   <!-- Graphics API Output Path Adjustment -->
   <!-- ================================================================ -->
-  <!-- When building for multiple graphics APIs, each API gets its own output subdirectory.
-       Test projects using the Stride test SDK override OutputPath after this import. -->
+  <!-- Per-API output subdirectory. Test projects using the Stride test SDK override OutputPath
+       after this import. $(TargetFramework) is wrapped in a conditional variable so the segment
+       collapses cleanly at outer-build (TargetFramework=''). -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</OutputPath>
+    <_StrideGraphicsApiTfmSegment Condition="'$(TargetFramework)' != ''">$(TargetFramework)\</_StrideGraphicsApiTfmSegment>
+    <IntermediateOutputPath>obj\$(Configuration)\$(_StrideGraphicsApiTfmSegment)$(StrideGraphicsApi)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(_StrideGraphicsApiTfmSegment)$(StrideGraphicsApi)\</OutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
