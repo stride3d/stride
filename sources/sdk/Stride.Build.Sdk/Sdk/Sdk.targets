@@ -35,6 +35,7 @@
   <Import Project="Stride.AssemblyProcessor.targets" />
   <Import Project="Stride.CodeAnalysis.targets" />
   <Import Project="Stride.PackageInfo.targets" />
+  <Import Project="$(StrideRoot)sources\targets\Stride.WorktreeVersion.targets" Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
 
   <!-- ================================================================ -->
   <!-- Disable ValidateExecutableReferences -->

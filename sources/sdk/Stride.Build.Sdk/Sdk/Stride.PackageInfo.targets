@@ -30,4 +30,17 @@
     <None Include="$(MSBuildThisFileDirectory)../nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
   </ItemGroup>
 
+  <!-- Per-checkout NuGet version suffix (producer side). StrideWorktreeSuffix is resolved by
+       StrideEnsureWorktreeVersion in Stride.WorktreeVersion.targets — empty on CI, package
+       builds, and the primary checkout; "-devN" on additional checkouts. Append it to
+       PackageVersion before the pack pipeline reads it so the .nupkg matches the suffix the
+       consumer-side StrideVersion.NuGetVersion const is compiled with. -->
+  <Target Name="StrideAppendWorktreeVersion"
+          DependsOnTargets="StrideEnsureWorktreeVersion"
+          BeforeTargets="GenerateNuspec">
+    <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
+      <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
+    </PropertyGroup>
+  </Target>
+
 </Project>
