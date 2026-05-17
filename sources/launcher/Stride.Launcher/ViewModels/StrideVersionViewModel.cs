@@ -5,7 +5,6 @@ using NuGet.Frameworks;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
-using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -17,6 +16,11 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     private bool isVisible;
     private bool canStart;
     private string? selectedFramework;
+    private string? selectedEditor;
+    // Maps each discovered editor name to its fully-resolved directory (including TFM subfolder).
+    // e.g. "Stride.GameStudio.Avalonia.Desktop" → ".../lib/net10.0"
+    // Populated by UpdateAvailableEditors; consumed by LocateMainExecutable.
+    private readonly Dictionary<string, string> _editorToDir = [];
 
     internal StrideVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor)
         : base(launcher, store, localPackage)
@@ -29,6 +33,18 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
         // Update status if the user changes whether to display beta versions.
         launcher.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(MainViewModel.ShowBetaVersions)) UpdateStatus(); };
+    }
+
+    /// <summary>
+    /// Returns all local install base paths that belong to this version slot.
+    /// The base implementation returns only the primary <see cref="PackageVersionViewModel.InstallPath"/>.
+    /// Subclasses such as <see cref="StrideStoreVersionViewModel"/> override this to also
+    /// include alternate package paths (e.g. a sibling Avalonia or WPF package).
+    /// </summary>
+    protected virtual IEnumerable<string> GetAllInstalledPaths()
+    {
+        if (InstallPath is not null)
+            yield return InstallPath;
     }
 
     protected static string[] GetExecutableNames()
@@ -75,7 +91,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             try
             {
                 // If preferred framework exists in our list, select it
-                var preferredFramework = LauncherSettings.PreferredFramework;
+                var preferredFramework = Launcher.Settings.PreferredFramework;
                 if (Frameworks.Contains(preferredFramework))
                 {
                     SelectedFramework = preferredFramework;
@@ -94,6 +110,78 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
                 SelectedFramework = Frameworks.First();
             }
         }
+        // Always refresh: even if the selected framework didn't change, alternate packages
+        // may have been added or removed since the last call.
+        UpdateAvailableEditors();
+    }
+
+    /// <summary>
+    /// Updates the list of editors available across all installed package paths and restores
+    /// the last preferred editor if it is still available.
+    /// </summary>
+    /// <remarks>
+    /// Each editor (Avalonia, WPF) may live in a different NuGet package directory <em>and</em>
+    /// a different TFM subfolder (e.g. <c>net10.0</c> vs <c>net10.0-windows7.0</c>). This
+    /// method therefore enumerates every <c>tools/&lt;tfm&gt;</c> and <c>lib/&lt;tfm&gt;</c>
+    /// subdirectory under every path returned by <see cref="GetAllInstalledPaths"/> rather than
+    /// filtering by <see cref="SelectedFramework"/>. The resolved per-editor directory is stored
+    /// in <c>_editorToDir</c> and consumed by <see cref="LocateMainExecutable"/>.
+    /// </remarks>
+    private void UpdateAvailableEditors()
+    {
+        AvailableEditors.Clear();
+        _editorToDir.Clear();
+
+        var ext = OperatingSystem.IsWindows() ? ".exe" : ".dll";
+        foreach (var basePath in GetAllInstalledPaths())
+        {
+            foreach (var toplevelFolder in new[] { "tools", "lib" })
+            {
+                var topDir = Path.Combine(basePath, toplevelFolder);
+                if (!Directory.Exists(topDir))
+                    continue;
+
+                foreach (var frameworkDir in Directory.EnumerateDirectories(topDir))
+                {
+                    foreach (var name in AllEditorNames())
+                    {
+                        // First discovery wins: don't overwrite an already-found editor.
+                        if (!_editorToDir.ContainsKey(name) &&
+                            File.Exists(Path.Combine(frameworkDir, $"{name}{ext}")))
+                        {
+                            AvailableEditors.Add(name);
+                            _editorToDir[name] = frameworkDir;
+                        }
+                    }
+                }
+            }
+        }
+
+        UpdateSelectedEditor();
+        // On non-Windows the Avalonia editor is the only option. Re-evaluate CanStart now
+        // that AvailableEditors is populated (UpdateStatus runs before UpdateAvailableEditors).
+        if (!OperatingSystem.IsWindows())
+        {
+            CanStart = CanDelete && AvailableEditors.Count > 0;
+            if (Launcher.ActiveVersion == this)
+                Launcher.StartStudioCommand.IsEnabled = CanStart;
+        }
+    }
+
+    private static IEnumerable<string> AllEditorNames()
+    {
+        yield return GameStudioNames.StrideAvalonia;
+        if (OperatingSystem.IsWindows())
+            yield return GameStudioNames.Stride;
+    }
+
+    private void UpdateSelectedEditor()
+    {
+        var preferred = Launcher.Settings.PreferredEditor;
+        if (AvailableEditors.Contains(preferred))
+            SelectedEditor = preferred;
+        else
+            SelectedEditor = AvailableEditors.FirstOrDefault();
     }
 
     public string PackageSimpleName { get; }
@@ -140,7 +228,27 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
 
     public ObservableList<string> Frameworks { get; } = [];
 
-    public string? SelectedFramework { get { return selectedFramework; } set { SetValue(ref selectedFramework, value); } }
+    public string? SelectedFramework
+    {
+        get => selectedFramework;
+        set
+        {
+            if (SetValue(ref selectedFramework, value))
+                UpdateAvailableEditors();
+        }
+    }
+
+    /// <summary>
+    /// Gets the editors available for the currently selected framework.
+    /// Only populated when the version is installed locally.
+    /// </summary>
+    public ObservableList<string> AvailableEditors { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the editor that will be launched for this version.
+    /// Reflects and writes back to the global <c>PreferredEditor</c> setting.
+    /// </summary>
+    public string? SelectedEditor { get => selectedEditor; set => SetValue(ref selectedEditor, value); }
 
     /// <summary>
     /// Builds a string that represents the given version numbers.
@@ -176,7 +284,8 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         IsVisible = Launcher.ShowBetaVersions || !IsBeta || CanDelete;
         SetAsActiveCommand.IsEnabled = CanDelete;
         DeleteCommand.IsEnabled = CanDelete;
-        CanStart = CanDelete;
+        // On non-Windows only the Avalonia editor is supported; require it to be present before allowing Start.
+        CanStart = CanDelete && (OperatingSystem.IsWindows() || AvailableEditors.Count > 0);
 
         if (Launcher.ActiveVersion == this)
             Launcher.StartStudioCommand.IsEnabled = CanStart;
@@ -191,18 +300,18 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         if (InstallPath is null)
             return null;
 
-        // First, try to use the selected framework
-        if (SelectedFramework is not null)
+        // Use the pre-computed editor → directory map from UpdateAvailableEditors.
+        // Each editor may live in a different package directory and a different TFM subfolder
+        // (e.g. net10.0 for Avalonia, net10.0-windows7.0 for WPF), so we store the fully
+        // resolved directory rather than re-applying SelectedFramework here.
+        foreach (var gameStudioExecutable in GetPreferredExecutableNames())
         {
-            foreach (var toplevelFolder in new[] { "tools", "lib" })
+            var editorName = Path.GetFileNameWithoutExtension(gameStudioExecutable);
+            if (_editorToDir.TryGetValue(editorName, out var dir))
             {
-                var gameStudioDirectory = Path.Combine(InstallPath, toplevelFolder, SelectedFramework);
-                foreach (var gameStudioExecutable in GetExecutableNames())
-                {
-                    var gameStudioPath = Path.Combine(gameStudioDirectory, gameStudioExecutable);
-                    if (File.Exists(gameStudioPath))
-                        return gameStudioPath;
-                }
+                var gameStudioPath = Path.Combine(dir, gameStudioExecutable);
+                if (File.Exists(gameStudioPath))
+                    return gameStudioPath;
             }
         }
 
@@ -220,6 +329,30 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
                 yield return @$"Bin\Windows\{GameStudioNames.Xenko}.exe";
                 yield return @$"Bin\Windows-Direct3D11\{GameStudioNames.Xenko}.exe";
             }
+        }
+    }
+
+    /// <summary>
+    /// Returns the executable file names in preference order: the selected editor first, then the
+    /// remaining editors in their default priority order.
+    /// </summary>
+    private IEnumerable<string> GetPreferredExecutableNames()
+    {
+        var ext = OperatingSystem.IsWindows() ? ".exe" : ".dll";
+        string[] allNames = OperatingSystem.IsWindows()
+            ? [GameStudioNames.StrideAvalonia, GameStudioNames.Stride, GameStudioNames.Xenko]
+            : [GameStudioNames.StrideAvalonia];
+
+        if (SelectedEditor is not null)
+        {
+            yield return $"{SelectedEditor}{ext}";
+            foreach (var name in allNames.Where(n => n != SelectedEditor))
+                yield return $"{name}{ext}";
+        }
+        else
+        {
+            foreach (var name in allNames)
+                yield return $"{name}{ext}";
         }
     }
 

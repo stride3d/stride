@@ -90,39 +90,34 @@ public class TestsViewModel : ViewModelBase
         });
     }
 
-    double testCompletion;
     public double TestCompletion
     {
-        get => testCompletion;
-        set => SetProperty(ref testCompletion, value);
+        get;
+        set => SetValue(ref field, value);
     }
-
-    bool runningTests;
     public bool RunningTests
     {
-        get => runningTests;
-        set => SetProperty(ref runningTests, value);
+        get;
+        set => SetValue(ref field, value);
     }
 
-    bool isInteractiveMode = false;
     public bool IsInteractiveMode
     {
-        get => isInteractiveMode;
+        get;
         set
         {
-            SetProperty(ref isInteractiveMode, value);
-            SetInteractiveMode?.Invoke(isInteractiveMode);
+            SetValue(ref field, value);
+            SetInteractiveMode?.Invoke(field);
         }
     }
 
-    bool isForceSaveImage = false;
     public bool IsForceSaveImage
     {
-        get => isForceSaveImage;
+        get;
         set
         {
-            SetProperty(ref isForceSaveImage, value);
-            SetForceSaveImage?.Invoke(isForceSaveImage);
+            SetValue(ref field, value);
+            SetForceSaveImage?.Invoke(field);
         }
     }
 

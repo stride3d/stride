@@ -34,7 +34,7 @@
     <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
 
-  <Grid>
+  <Grid ClipToBounds="True">
     <DockPanel>
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
@@ -234,10 +234,24 @@
                             ItemsSource="{Binding ActiveVersion.Frameworks}"
                             SelectedItem="{Binding ActiveVersion.SelectedFramework}"
                             SelectionChanged="FrameworkChanged"
-                            IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}">
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
+                            IsVisible="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ComboBox x:Name="EditorSelector" Margin="0,4"
+                            HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding ActiveVersion.AvailableEditors}"
+                            SelectedItem="{Binding ActiveVersion.SelectedEditor}"
+                            SelectionChanged="EditorChanged"
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
+                            IsVisible="{Binding ActiveVersion.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={vm:EditorNameConverter}}" />
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
@@ -513,8 +527,7 @@
 
           <Grid Grid.Column="1"
                 ColumnDefinitions="*, *"
-                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
-                IsVisible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
             <!-- SECOND COLUMN -->
             <Border Grid.Column="0">
               <!-- Recent projects  -->
@@ -547,7 +560,14 @@
                               <Button Command="{Binding OpenCommand}"
                                       IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                       HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
                                       HorizontalContentAlignment="Stretch">
+                                <Button.ContextMenu>
+                                  <ContextMenu>
+                                    <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                    <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
+                                  </ContextMenu>
+                                </Button.ContextMenu>
                                 <DockPanel Margin="8,4">
                                   <DockPanel DockPanel.Dock="Bottom">
                                     <!-- Update dropdown -->
@@ -569,15 +589,18 @@
                                     </Popup>
                                     <TextBlock DockPanel.Dock="Bottom"
                                                Text="{Binding FullPath}"
+                                               TextTrimming="PathSegmentEllipsis"
                                                FontStyle="Italic" />
                                   </DockPanel>
                                   <DockPanel>
                                     <!-- Discovering -->
-                                    <TextBlock Text="{Binding StrideVersionName}"
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{Binding StrideVersionName}"
                                                FontSize="14"
                                                IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
                                     <!-- Unknown -->
-                                    <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{x:Static l:Strings.UnknownVersion}"
                                                FontSize="14"
                                                IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                                     <TextBlock Text="{Binding Name}"
@@ -585,12 +608,6 @@
                                   </DockPanel>
                                 </DockPanel>
                               </Button>
-                              <Border.ContextMenu>
-                                <ContextMenu>
-                                  <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
-                                  <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
-                                </ContextMenu>
-                              </Border.ContextMenu>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -603,7 +620,7 @@
 
             <!-- THIRD COLUMN -->
             <Border Grid.Column="1">
-              <TabControl>
+              <TabControl SelectedIndex="{Binding CurrentTab, Mode=TwoWay}">
                 <TabControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <UniformGrid Rows="1" Height="32" Margin="0,12,0,32"/>
@@ -683,14 +700,35 @@
 
           <!-- Release notes -->
           <Grid Grid.Column="1"
-                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
-            <DockPanel>
-              <DockPanel>
-                <Button />
-                <TextBlock />
+                Classes="rn-slide"
+                Classes.visible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
+                IsHitTestVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
+                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
+            <Grid.Styles>
+              <Style Selector="Grid.rn-slide.visible">
+                <Setter Property="RenderTransform" Value="translateX(0)"/>
+              </Style>
+              <Style Selector="Grid.rn-slide:not(.visible)">
+                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+              </Style>
+            </Grid.Styles>
+            <Grid.Transitions>
+              <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+              </Transitions>
+            </Grid.Transitions>
+            <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
+              <DockPanel DockPanel.Dock="Top">
+                <Button DockPanel.Dock="Right"
+                        Classes="TransparentButton"
+                        Margin="8"
+                        Command="{Binding ActiveReleaseNotes.ToggleCommand}"
+                        Content="×" FontSize="20" />
+                <TextBlock Margin="15,8"
+                           Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
+                           FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
-              <Grid>
+              <Grid Margin="{StaticResource BorderThicknessTile}">
                 <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
                                    IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
@@ -706,7 +744,22 @@
       </Border>
     </DockPanel>
     <!-- Announcements -->
-    <Border IsVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+    <Border Classes="ann-slide"
+            Classes.visible="{Binding Announcement, Converter={sd:ObjectToBool}}"
+            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+      <Border.Styles>
+        <Style Selector="Border.ann-slide.visible">
+          <Setter Property="RenderTransform" Value="translateX(0)"/>
+        </Style>
+        <Style Selector="Border.ann-slide:not(.visible)">
+          <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+        </Style>
+      </Border.Styles>
+      <Border.Transitions>
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+        </Transitions>
+      </Border.Transitions>
       <vw:Announcement DataContext="{Binding Announcement}" />
     </Border>
   </Grid>

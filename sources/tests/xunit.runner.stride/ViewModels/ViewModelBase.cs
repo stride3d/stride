@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -10,47 +9,92 @@ namespace xunit.runner.stride.ViewModels;
 
 public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyChanged
 {
-    public event PropertyChangingEventHandler? PropertyChanging;
-    public event PropertyChangedEventHandler? PropertyChanged;
+    protected readonly Dictionary<string, string[]> DependentProperties = [];
 
-    /// <summary>
-    /// Sets the value of a field to the given value. Both values are compared with the default <see cref="EqualityComparer{T}"/>, and if they are equals,
-    /// this method does nothing. If they are different, the <see cref="PropertyChanging"/> event will be raised first, then the field value will be modified,
-    /// and finally the <see cref="PropertyChanged"/> event will be raised.
-    /// </summary>
-    /// <typeparam name="T">The type of the field.</typeparam>
-    /// <param name="field">A reference to the field to set.</param>
-    /// <param name="value">The new value to set.</param>
-    /// <param name="propertyName">The name of the property that must be notified as changing/changed. Can use <see cref="CallerMemberNameAttribute"/>.</param>
-    /// <returns><c>True</c> if the field was modified and events were raised, <c>False</c> if the new value was equal to the old one and nothing was done.</returns>
-    protected bool SetProperty<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, [CallerMemberName] string propertyName = null!)
+    protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, [CallerMemberName] string propertyName = null!)
+        => SetValue(ref field, value, null, [propertyName]);
+
+    protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, params string[] propertyNames)
+        => SetValue(ref field, value, null, propertyNames);
+
+    protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, Action? updateAction, [CallerMemberName] string propertyName = null!)
+        => SetValue(ref field, value, updateAction, [propertyName]);
+
+    protected virtual bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, Action? updateAction, params string[] propertyNames)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value) == false)
+        if (propertyNames.Length == 0)
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
+
+        if (!EqualityComparer<T>.Default.Equals(field, value))
         {
-            OnPropertyChanging(propertyName);
+            OnPropertyChanging(propertyNames);
             field = value;
-            OnPropertyChanged(propertyName);
+            updateAction?.Invoke();
+            OnPropertyChanged(propertyNames);
             return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// This method will raise the <see cref="PropertyChanging"/> for the provided <paramref name="propertyName"/>.
-    /// </summary>
-    /// <param name="propertyName">The name of the property that is changing.</param>
-    protected virtual void OnPropertyChanging(string propertyName)
+    protected bool SetValue(Action? updateAction, [CallerMemberName] string propertyName = null!)
+        => SetValue(null, updateAction, [propertyName]);
+
+    protected bool SetValue(Action? updateAction, params string[] propertyNames)
+        => SetValue(null, updateAction, propertyNames);
+
+    protected bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, [CallerMemberName] string propertyName = null!)
+        => SetValue(hasChangedFunction, updateAction, [propertyName]);
+
+    protected bool SetValue(bool hasChanged, Action? updateAction, [CallerMemberName] string propertyName = null!)
+        => SetValue(() => hasChanged, updateAction, [propertyName]);
+
+    protected bool SetValue(bool hasChanged, Action? updateAction, params string[] propertyNames)
+        => SetValue(() => hasChanged, updateAction, propertyNames);
+
+    protected virtual bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, params string[] propertyNames)
     {
-        PropertyChanging?.Invoke(this, new(propertyName));
+        if (propertyNames.Length == 0)
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
+
+        var hasChanged = hasChangedFunction?.Invoke() ?? true;
+        if (hasChanged)
+        {
+            OnPropertyChanging(propertyNames);
+            updateAction?.Invoke();
+            OnPropertyChanged(propertyNames);
+        }
+        return hasChanged;
     }
 
-    /// <summary>
-    /// This method will raise the <see cref="PropertyChanged"/> for the provided <paramref name="propertyName"/>.
-    /// </summary>
-    /// <param name="propertyName">The name of the property that has changed.</param>
-    protected virtual void OnPropertyChanged(string propertyName)
+    protected virtual void OnPropertyChanging(params string[] propertyNames)
     {
-        PropertyChanged?.Invoke(this, new(propertyName));
+        var propertyChanging = PropertyChanging;
+        foreach (var propertyName in propertyNames)
+        {
+            propertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+            if (DependentProperties.TryGetValue(propertyName, out var dependentProperties))
+                OnPropertyChanging(dependentProperties);
+        }
     }
+
+    protected virtual void OnPropertyChanged(params string[] propertyNames)
+    {
+        var propertyChanged = PropertyChanged;
+        for (var i = 0; i < propertyNames.Length; ++i)
+        {
+            var propertyName = propertyNames[propertyNames.Length - 1 - i];
+            if (DependentProperties.TryGetValue(propertyName, out var dependentProperties))
+            {
+                var reverseList = new string[dependentProperties.Length];
+                for (var j = 0; j < dependentProperties.Length; ++j)
+                    reverseList[j] = dependentProperties[dependentProperties.Length - 1 - j];
+                OnPropertyChanged(reverseList);
+            }
+            propertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public event PropertyChangingEventHandler? PropertyChanging;
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

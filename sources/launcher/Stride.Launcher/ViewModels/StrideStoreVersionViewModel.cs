@@ -80,6 +80,20 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
 
     public ObservableList<StrideStoreAlternateVersionViewModel> AlternateVersions { get; } = [];
 
+    // All local install paths for this major.minor slot across every package ID (WPF, Avalonia, …).
+    // Populated by UpdateLocalPackage from the full NuGet package group; used by GetAllInstalledPaths.
+    private List<string> _allLocalPackagePaths = [];
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Returns the install paths of every locally-installed package that belongs to this
+    /// major.minor version slot (e.g. both <c>Stride.GameStudio</c> and
+    /// <c>Stride.GameStudio.Avalonia.Desktop</c> at 4.3.1). The paths are captured
+    /// from the raw NuGet package group in <see cref="UpdateLocalPackage"/> before
+    /// <see cref="UpdateAlternateVersions"/> collapses same-version entries.
+    /// </remarks>
+    protected override IEnumerable<string> GetAllInstalledPaths() => _allLocalPackagePaths;
+
     /// <summary>
     /// Gets the release notes associated to this version.
     /// </summary>
@@ -106,6 +120,26 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
         LocalPackage = package;
         OnPropertyChanged(nameof(FullName), nameof(Version));
         Dispatcher.Invoke(UpdateStatus);
+
+        // Always refresh companion paths for the current version by querying the store
+        // directly. This works both on initial load (alternateVersions != null) and when
+        // the user selects an alternate patch version (alternateVersions == null).
+        if (package is not null)
+        {
+            var paths = new List<string>();
+            foreach (var id in Store.MainPackageIds)
+            {
+                var installedPath = Store.GetInstalledPath(id, package.Version);
+                if (Directory.Exists(installedPath) && !paths.Contains(installedPath))
+                    paths.Add(installedPath);
+            }
+            _allLocalPackagePaths = paths;
+        }
+        else
+        {
+            _allLocalPackagePaths = [];
+        }
+
         if (alternateVersions is not null)
         {
             Dispatcher.Invoke(() =>
@@ -255,6 +289,38 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             case ProgressAction.Delete:
                 CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName, CurrentProgress);
                 break;
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Silently installs the companion Stride editor package at the same version (e.g.
+    /// <c>Stride.GameStudio.Avalonia.Desktop</c> when the primary is <c>Stride.GameStudio</c>,
+    /// or vice versa). If the companion package does not exist on the feed — which is the
+    /// expected state once only one editor flavour is published — the failure is swallowed
+    /// and the install continues normally.
+    /// </remarks>
+    protected override async Task TryInstallCompanionsAsync(PackageVersion version)
+    {
+        var companionIds = new[] { GameStudioNames.StrideAvalonia, GameStudioNames.Stride }
+            .Where(id => id != ServerPackage?.Id)
+            // WPF (Stride.GameStudio) is Windows-only; skip on other platforms.
+            .Where(id => OperatingSystem.IsWindows() || id != GameStudioNames.Stride);
+
+        foreach (var companionId in companionIds)
+        {
+            // Skip if already installed at this version.
+            if (Store.FindLocalPackage(companionId, version) is not null)
+                continue;
+
+            try
+            {
+                await Store.InstallPackage(companionId, version, [], null);
+            }
+            catch
+            {
+                // Package not available on the feed for this version — skip silently.
+            }
         }
     }
 

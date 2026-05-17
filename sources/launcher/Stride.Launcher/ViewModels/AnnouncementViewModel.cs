@@ -4,26 +4,29 @@
 using System.Reflection;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
 public sealed class AnnouncementViewModel : DispatcherViewModel
 {
     private readonly string announcementName;
+    private readonly ILauncherSettingsService _settings;
     private bool dontShowAgain;
     private bool validated = true;
 
     public AnnouncementViewModel(IViewModelServiceProvider serviceProvider, string announcementName)
         : base(serviceProvider)
     {
+        _settings = serviceProvider.Get<ILauncherSettingsService>();
         this.announcementName = announcementName;
-        if (!MainViewModel.HasDoneTask(TaskName))
+        if (!_settings.IsTaskCompleted(TaskName))
         {
             MarkdownAnnouncement = Initialize(announcementName);
         }
 
         CloseAnnouncementCommand = new AnonymousCommand(ServiceProvider, CloseAnnouncement);
-        // We want to explicitely trigger the property change notification for the view storyboard
+        // We want to explicitly trigger the property change notification for the view storyboard
         Validated = false;
     }
 
@@ -42,7 +45,7 @@ public sealed class AnnouncementViewModel : DispatcherViewModel
         Validated = true;
         if (DontShowAgain)
         {
-            MainViewModel.SaveTaskAsDone(TaskName);
+            _settings.MarkTaskCompleted(TaskName);
         }
     }
 

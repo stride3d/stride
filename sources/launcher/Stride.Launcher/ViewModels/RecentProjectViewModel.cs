@@ -69,9 +69,79 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
 
     private void Explore()
     {
-        var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{fullPath.ToOSPath()}") { UseShellExecute = true };
-        var explorer = new Process { StartInfo = startInfo };
-        explorer.Start();
+        // FullPath already resolves to the OS-native string path (see FullPath property above).
+        if (!File.Exists(FullPath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{FullPath}\"")
+                {
+                    UseShellExecute = true,
+                });
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                Process.Start(new ProcessStartInfo("open", $"-R \"{FullPath}\"")
+                {
+                    UseShellExecute = false,
+                });
+            }
+            else // Linux and any other Unix
+            {
+                if (!TryRevealFileDBus(FullPath))
+                {
+                    var parent = Path.GetDirectoryName(FullPath);
+                    if (parent is not null)
+                    {
+                        Process.Start(new ProcessStartInfo("xdg-open", parent)
+                        {
+                            UseShellExecute = false,
+                        });
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // File-manager failures are not actionable for the user — silently ignore.
+        }
+    }
+
+    private static bool TryRevealFileDBus(string path)
+    {
+        try
+        {
+            var uri = new Uri(path).AbsoluteUri; // "file:///…" with correct percent-encoding
+
+            var psi = new ProcessStartInfo("dbus-send", string.Join(' ',
+                "--session",
+                "--type=method_call",
+                "--dest=org.freedesktop.FileManager1",
+                "/org/freedesktop/FileManager1",
+                "org.freedesktop.FileManager1.ShowItems",
+                $"array:string:\"{uri}\"",
+                "string:\"\""))
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            using var process = Process.Start(psi);
+            if (process is null) return false;
+
+            process.WaitForExit(2000); // 2s ceiling; healthy DBus round-trips are sub-10ms.
+            return process.HasExited && process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void Remove()
