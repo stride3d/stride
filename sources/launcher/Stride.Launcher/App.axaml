@@ -43,6 +43,7 @@
         <ColorPaletteResources x:Key="Light"/>
       </FluentTheme.Palettes>
     </FluentTheme>
+    <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
 
     <Style Selector="Button.MediaButton">
       <Setter Property="Margin" Value="2" />

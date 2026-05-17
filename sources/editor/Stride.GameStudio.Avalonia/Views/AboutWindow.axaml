@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:ctxt="using:ColorTextBlock.Avalonia"
+        xmlns:mv="using:MarkView.Avalonia"
+        xmlns:mri="using:MarkView.Avalonia.Rendering.Inlines"
         xmlns:stride="clr-namespace:Stride"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.AboutWindow"
@@ -48,21 +49,10 @@
         </sd:Hyperlink>
       </TextBlock>
       <!-- Backers -->
-      <md:MarkdownScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
-                               x:Name="BackersView"
-                               MaxHeight="300" Width="{StaticResource ControlWidth}"
-                               Source="avares://Stride.GameStudio.Avalonia/Assets/BACKERS.md">
-        <Control.Styles>
-          <Style Selector="ctxt|CHyperlink">
-            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-            <Setter Property="IsUnderline" Value="False"/>
-          </Style>
-          <Style Selector="ctxt|CHyperlink:pointerover">
-            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-            <Setter Property="IsUnderline" Value="True"/>
-          </Style>
-        </Control.Styles>
-      </md:MarkdownScrollViewer>
+      <mv:MarkdownViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                         x:Name="BackersView"
+                         MaxHeight="300" Width="{StaticResource ControlWidth}"
+                         Source="avares://Stride.GameStudio.Avalonia/Assets/BACKERS.md"/>
     </Grid>
   </StackPanel>
 </Window>

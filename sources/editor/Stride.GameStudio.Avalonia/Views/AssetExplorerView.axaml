@@ -101,7 +101,7 @@
       <sd:SearchComboBox x:Name="FilterSearchComboBox"
                          DockPanel.Dock="Left"
                          Width="160"
-                         Watermark="Add a filter..."
+                         PlaceholderText="Add a filter..."
                          ItemsSource="{Binding AvailableAssetFilters}"
                          SearchText="{Binding AssetFilterPattern}"
                          ClearTextAfterSelection="True"

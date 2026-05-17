@@ -8,7 +8,7 @@
           <TextBox x:Name="PART_EditableTextBox"
                    VerticalAlignment="Center"
                    IsEnabled="{TemplateBinding IsEnabled}"
-                   Watermark="{TemplateBinding Watermark}"/>
+                   PlaceholderText="{TemplateBinding PlaceholderText}"/>
           <Popup x:Name="PART_Popup"
                  IsOpen="{TemplateBinding IsDropDownOpen}"
                  Placement="Bottom"

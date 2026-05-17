@@ -98,7 +98,7 @@
               <TextBox x:Name="TextBoxSearch"
                        Text="{Binding SearchToken, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Delay=300}"
                        Width="256"
-                       Watermark="Search"></TextBox>
+                       PlaceholderText="Search"></TextBox>
               <Button x:Name="PART_PreviousResult"
                       ToolTip.Tip="{sd:LocalizeString Go to previous search result, Context=ToolTip}">
                 <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryPrevious}"/>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -8,6 +9,8 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
+using MarkView.Avalonia;
+using MarkView.Avalonia.Rendering;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
@@ -96,9 +99,7 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Line below is needed to remove Avalonia data validation.
-        // Without this line you will get duplicate validations from both Avalonia and CT
-        BindingPlugins.DataValidators.RemoveAt(0);
+        InitializeMarkdownViewer();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -109,7 +110,6 @@ public partial class App : Application
             singleViewPlatform.MainView = new MainView();
         }
 
-        base.OnFrameworkInitializationCompleted();
         Restart();
     }
 
@@ -133,6 +133,29 @@ public partial class App : Application
         return viewmodel;
     }
 
+    private static void InitializeMarkdownViewer()
+    {
+        // Global pipeline — applies to every MarkdownViewer in the app
+        MarkdownViewerDefaults.Pipeline = new Markdig.MarkdownPipelineBuilder()
+            .UseSupportedExtensions()
+            .Build();
+
+        // Global link handler — handles external links for every MarkdownViewer in the app
+        MarkdownViewer.LinkClickedEvent.AddClassHandler<MarkdownViewer>(OnLinkClicked);
+
+        static void OnLinkClicked(MarkdownViewer sender, LinkClickedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Url) { UseShellExecute = true });
+            }
+            catch
+            {
+                // Ignore failures to open browser
+            }
+        }
+    }
+
     private static void InitializePlugins()
     {
         // TODO xplat-editor load plugins from path, and ideally remove direct dependencies to these assemblies in this project.
@@ -146,7 +169,7 @@ public partial class App : Application
         // So it could be delayed until after a windows is opened and even display progress.
     }
 
-    private static IViewModelServiceProvider InitializeServiceProvider()
+    private static ViewModelServiceProvider InitializeServiceProvider()
     {
         var dispatcherService = DispatcherService.Create();
         var services = new object[]

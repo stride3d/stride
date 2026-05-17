@@ -1,11 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Markdown.Avalonia;
 using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -23,25 +21,25 @@ public partial class AboutWindow : Window
 
         await Task.Delay(2000);
 
-        if (this.FindControl<MarkdownScrollViewer>("BackersView") is { } view)
+        if (BackersView?.Content is ScrollViewer view)
         {
             Vector previousValue;
             do
             {
-                previousValue = view.ScrollValue;
-                view.ScrollValue += new Vector(0, 2);
+                previousValue = view.Offset;
+                view.Offset += new Vector(0, 2);
                 await Task.Delay(25);
-            } while (view.ScrollValue.Y > previousValue.Y);
+            } while (view.Offset.Y > previousValue.Y);
         }
     }
 
     private async void License_OnClick(object? sender, RoutedEventArgs e)
     {
-        await MarkdownFileViewerService.ShowFileAsync("LICENSE.md", "License");
+        await MarkdownFileViewerService.ShowFileAsync(Path.Combine(AppContext.BaseDirectory, "LICENSE.md"), "License");
     }
 
     private async void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
     {
-        await MarkdownFileViewerService.ShowFileAsync("THIRD PARTY.md", "Third Party Licenses");
+        await MarkdownFileViewerService.ShowFileAsync(Path.Combine(AppContext.BaseDirectory, "THIRD PARTY.md"), "Third Party Licenses");
     }
 }
