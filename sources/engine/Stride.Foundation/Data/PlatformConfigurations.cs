@@ -24,7 +24,7 @@ namespace Stride.Data
         public T Get<T>() where T : Configuration, new()
         {
             // Find the default for all platforms and devices
-            var config = Configurations.Where(x => x.Platforms == ConfigPlatforms.None).LastOrDefault(x => x.Configuration is T);
+            var config = Configurations.Where(x => x.Platforms == ConfigPlatforms.None && x.SpecificFilter == -1).LastOrDefault(x => x.Configuration is T);
 
             // Try finding one for the specific platform or hardware configuration
 
