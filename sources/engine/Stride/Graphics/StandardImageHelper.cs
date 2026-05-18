@@ -3,7 +3,15 @@
 
 using System;
 using System.Buffers.Binary;
+using System.IO;
 using System.Numerics;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
+
+using SharpImage = SixLabors.ImageSharp.Image;
 
 namespace Stride.Graphics;
 
@@ -13,6 +21,97 @@ namespace Stride.Graphics;
 /// </summary>
 internal partial class StandardImageHelper
 {
+    public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
+    {
+        using var image = CreateImage(pixelBuffers[0], description);
+        image.SaveAsGif(imageStream);
+    }
+
+    public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
+    {
+        using var image = CreateImage(pixelBuffers[0], description);
+        // Note: ImageSharp 3.1.x TiffEncoder doesn't support emitting an alpha channel — the
+        // output is always 24-bit RGB regardless of BitsPerPixel. TestLoadAndSave skips TIFF
+        // for this reason.
+        image.SaveAsTiff(imageStream);
+    }
+
+    public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
+    {
+        using var image = CreateImage(pixelBuffers[0], description);
+        // 32-bit so the alpha channel survives the round-trip (default is 24-bit RGB).
+        image.Save(imageStream, new BmpEncoder { BitsPerPixel = BmpBitsPerPixel.Pixel32, SupportTransparency = true });
+    }
+
+    public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
+    {
+        using var image = CreateImage(pixelBuffers[0], description);
+        // Quality 90 + 4:2:0 chroma subsampling matches the previous FreeImage defaults.
+        var encoder = new JpegEncoder { Quality = 90, ColorType = JpegEncodingColor.YCbCrRatio420 };
+        image.Save(imageStream, encoder);
+    }
+
+    public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
+    {
+        using var image = CreateImage(pixelBuffers[0], description);
+        image.SaveAsPng(imageStream);
+    }
+
+    private static unsafe SixLabors.ImageSharp.Image<Rgba32> CreateImage(PixelBuffer buffer, ImageDescription description)
+    {
+        int width = description.Width;
+        int height = description.Height;
+        var src = (byte*)buffer.DataPointer;
+        int srcStride = buffer.RowStride;
+        var format = description.Format;
+
+        var pixels = new Rgba32[width * height];
+
+        if (format is PixelFormat.R8G8B8A8_UNorm or PixelFormat.R8G8B8A8_UNorm_SRgb)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var srcRow = (Rgba32*)(src + y * srcStride);
+                for (int x = 0; x < width; x++)
+                    pixels[y * width + x] = srcRow[x];
+            }
+        }
+        else if (format is PixelFormat.B8G8R8A8_UNorm or PixelFormat.B8G8R8A8_UNorm_SRgb)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var srcRow = (Bgra32*)(src + y * srcStride);
+                for (int x = 0; x < width; x++)
+                {
+                    var p = srcRow[x];
+                    pixels[y * width + x] = new Rgba32(p.R, p.G, p.B, p.A);
+                }
+            }
+        }
+        else if (format is PixelFormat.R8_UNorm or PixelFormat.A8_UNorm)
+        {
+            // SpriteBatch only renders RGBA, so expand single-channel grey into RGB with opaque alpha.
+            for (int y = 0; y < height; y++)
+            {
+                var srcRow = src + y * srcStride;
+                for (int x = 0; x < width; x++)
+                {
+                    byte g = srcRow[x];
+                    pixels[y * width + x] = new Rgba32(g, g, g, (byte)255);
+                }
+            }
+        }
+        else
+        {
+            throw new ArgumentException(
+                $"The pixel format {format} is not supported. Supported formats are {PixelFormat.B8G8R8A8_UNorm}, {PixelFormat.B8G8R8A8_UNorm_SRgb}, {PixelFormat.R8G8B8A8_UNorm}, {PixelFormat.R8G8B8A8_UNorm_SRgb}, {PixelFormat.R8_UNorm}, and {PixelFormat.A8_UNorm}",
+                nameof(description));
+        }
+
+        return SharpImage.LoadPixelData<Rgba32>(pixels, width, height);
+    }
+
+
     /// <summary>
     ///   Copies a block of memory from a source buffer to a destination buffer,
     ///   converting each 32-bit pixel from RGBA to BGRA format.

@@ -3,7 +3,6 @@
 #if STRIDE_PLATFORM_IOS
 using System;
 using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
 using CoreGraphics;
 using Foundation;
@@ -12,9 +11,9 @@ using Stride.Core;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// This class is responsible to provide image loader for png, gif, bmp.
-    /// </summary>
+    // iOS-native LoadFromMemory uses UIImage / CGBitmapContext to get hardware-accelerated
+    // image decoding. Save* methods are implemented in the shared StandardImageHelper.cs
+    // using ImageSharp.
     partial class StandardImageHelper
     {
         public static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
@@ -36,31 +35,6 @@ namespace Stride.Graphics
                     return image;
                 }
             }
-        }
-
-        public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
         }
     }
 }

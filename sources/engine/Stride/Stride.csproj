@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+    <PackageReference Include="SixLabors.ImageSharp" />
     <ProjectReference Include="..\..\tools\Stride.FreeImage\Stride.FreeImage.csproj" Condition="'$(TargetFramework)' != '$(StrideFrameworkAndroid)' And '$(TargetFramework)' != '$(StrideFrameworkiOS)'" />
   </ItemGroup>
   <ItemGroup>
