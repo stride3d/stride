@@ -228,5 +228,37 @@ namespace Stride.TextureConverter.Tests
 
             image.Dispose();
         }
+
+        // Smoke test: exercises native lib loading, P/Invoke marshalling, struct layout, and
+        // load+convert+save round-trip. Uses an InputImages fixture present in bin/Tests.
+        [Fact]
+        public void SmokeLoadConvertSave()
+        {
+            const string inputName = "BgraSheet.dds";
+            string inputPath = Module.PathToInputImages + inputName;
+            Assert.True(System.IO.File.Exists(inputPath), $"Test fixture missing: {inputPath}");
+
+            var image = new TexImage();
+            library.Execute(image, new LoadingRequest(inputPath, false));
+            image.CurrentLibrary = library;
+            Assert.True(image.Width > 0);
+            Assert.True(image.Height > 0);
+
+            library.Execute(image, new ConvertingRequest(Stride.Graphics.PixelFormat.R8G8B8A8_UNorm));
+
+            string outputPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                $"DxtSmokeRoundTrip_{Guid.NewGuid():N}.dds");
+            try
+            {
+                library.Execute(image, new ExportRequest(outputPath, 0));
+                Assert.True(System.IO.File.Exists(outputPath));
+                Assert.True(new System.IO.FileInfo(outputPath).Length > 0);
+            }
+            finally
+            {
+                if (System.IO.File.Exists(outputPath)) System.IO.File.Delete(outputPath);
+                image.Dispose();
+            }
+        }
     }
 }
