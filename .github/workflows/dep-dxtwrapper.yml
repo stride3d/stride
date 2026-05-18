@@ -1,0 +1,270 @@
+name: "Dep: Build directxtex"
+
+# Builds stride_directxtex.{dll,so,dylib} per RID: a single self-contained shared
+# lib that static-links DirectXTex. Used by Stride.TextureConverter for DDS/TGA/HDR
+# I/O, BC1-7 compression, mip generation, format conversion, etc.
+#
+# Upstream:
+#   https://github.com/microsoft/DirectXTex
+#   https://github.com/microsoft/DirectX-Headers   (non-Windows: provides DXGI)
+#
+# Output per OS — one self-contained shared lib per RID:
+#   Windows: stride_directxtex.dll (+ stride_directxtex.pdb)
+#   Linux:   stride_directxtex.so
+#   macOS:   stride_directxtex.dylib
+#
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      directxtex-version:
+        description: DirectXTex release tag (e.g. may2026)
+        default: may2026
+        required: true
+      directx-headers-version:
+        description: DirectX-Headers tag (non-Windows builds, e.g. v1.619.1)
+        default: v1.619.1
+        required: true
+      directxmath-version:
+        description: DirectXMath release tag (non-Windows builds, e.g. may2026)
+        default: may2026
+        required: true
+
+jobs:
+  build-windows:
+    name: Build directxtex (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: ARM64
+            rid: win-arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+
+      - name: Checkout DirectXTex
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXTex
+          ref: ${{ github.event.inputs.directxtex-version }}
+          path: directxtex-src
+
+      - name: Configure & build
+        shell: pwsh
+        run: |
+          cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -A ${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DDIRECTXTEX_SRC="$pwd/directxtex-src"
+          cmake --build _build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          Copy-Item _build/Release/stride_directxtex.dll "out/${{ matrix.rid }}/"
+          Copy-Item _build/Release/stride_directxtex.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_directxtex-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build directxtex (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+
+      - name: Checkout DirectXTex
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXTex
+          ref: ${{ github.event.inputs.directxtex-version }}
+          path: directxtex-src
+
+      - name: Checkout DirectX-Headers
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectX-Headers
+          ref: ${{ github.event.inputs.directx-headers-version }}
+          path: directx-headers-src
+
+      - name: Checkout DirectXMath
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXMath
+          ref: ${{ github.event.inputs.directxmath-version }}
+          path: directxmath-src
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Build & install DirectXMath
+        run: |
+          cmake -S directxmath-src -B _dxm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install
+          cmake --build _dxm-build
+          cmake --install _dxm-build
+          # DirectXMath.h does an unconditional `#include "sal.h"` but neither it nor
+          # DirectX-Headers ships sal.h. Same workaround as vcpkg's directxmath port:
+          # grab sal.h from the .NET runtime repo and drop it next to DirectXMath.h.
+          curl -sSL https://raw.githubusercontent.com/dotnet/runtime/v9.0.2/src/coreclr/pal/inc/rt/sal.h -o _install/include/sal.h
+
+      - name: Build & install DirectX-Headers
+        run: |
+          cmake -S directx-headers-src -B _dxh-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install \
+            -DDXHEADERS_BUILD_TEST=OFF \
+            -DDXHEADERS_BUILD_GOOGLE_TEST=OFF
+          cmake --build _dxh-build
+          cmake --install _dxh-build
+
+      - name: Configure & build
+        run: |
+          cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_PREFIX_PATH=$PWD/_install \
+            -DDIRECTXTEX_SRC=$PWD/directxtex-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          cp _build/stride_directxtex.so out/linux-x64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_directxtex-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build directxtex (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+
+      - name: Checkout DirectXTex
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXTex
+          ref: ${{ github.event.inputs.directxtex-version }}
+          path: directxtex-src
+
+      - name: Checkout DirectX-Headers
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectX-Headers
+          ref: ${{ github.event.inputs.directx-headers-version }}
+          path: directx-headers-src
+
+      - name: Checkout DirectXMath
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXMath
+          ref: ${{ github.event.inputs.directxmath-version }}
+          path: directxmath-src
+
+      - name: Build & install DirectXMath
+        run: |
+          cmake -S directxmath-src -B _dxm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install
+          cmake --build _dxm-build
+          cmake --install _dxm-build
+          # See Linux job for rationale: ship sal.h next to DirectXMath.h.
+          curl -sSL https://raw.githubusercontent.com/dotnet/runtime/v9.0.2/src/coreclr/pal/inc/rt/sal.h -o _install/include/sal.h
+
+      - name: Build & install DirectX-Headers
+        run: |
+          cmake -S directx-headers-src -B _dxh-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install \
+            -DDXHEADERS_BUILD_TEST=OFF \
+            -DDXHEADERS_BUILD_GOOGLE_TEST=OFF
+          cmake --build _dxh-build
+          cmake --install _dxh-build
+
+      - name: Configure & build
+        run: |
+          cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_PREFIX_PATH=$PWD/_install \
+            -DDIRECTXTEX_SRC=$PWD/directxtex-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/osx-arm64
+          cp _build/stride_directxtex.dylib out/osx-arm64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_directxtex-osx-arm64
+          path: out/osx-arm64/
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout DirectXTex (for commit hash)
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/DirectXTex
+          ref: ${{ github.event.inputs.directxtex-version }}
+          path: directxtex-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into Release/ layout
+        run: |
+          OUT=stride_directxtex-out
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+            mkdir -p $OUT/Release/$rid
+            cp artifacts/stride_directxtex-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
+          done
+
+          COMMIT=$(git -C directxtex-src rev-parse HEAD)
+          printf 'DirectXTex %s\nRepository: https://github.com/microsoft/DirectXTex\nCommit: %s\nDirectX-Headers: %s\nDirectXMath: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.directxtex-version }}" \
+            "$COMMIT" \
+            "${{ github.event.inputs.directx-headers-version }}" \
+            "${{ github.event.inputs.directxmath-version }}" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
+
+      - name: List contents
+        run: find stride_directxtex-out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_directxtex-all-platforms
+          path: stride_directxtex-out/
