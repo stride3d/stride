@@ -1,5 +1,7 @@
 name: Test Linux Game (Vulkan)
 
+run-name: ${{ github.event.inputs.commit-sha != '' && format('Test Linux Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,10 +12,17 @@ on:
         options:
           - Debug
           - Release
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
   workflow_call:
     inputs:
       build-type:
         default: Debug
+        type: string
+      commit-sha:
+        default: ''
         type: string
   repository_dispatch:
     # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
@@ -37,7 +46,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -119,7 +128,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -209,7 +218,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

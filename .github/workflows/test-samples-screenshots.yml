@@ -1,5 +1,7 @@
 name: Test Samples (Screenshots)
 
+run-name: ${{ github.event.inputs.commit-sha != '' && format('Test Samples (Screenshots) @ {0}', github.event.inputs.commit-sha) || '' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +12,10 @@ on:
         options:
           - Debug
           - Release
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
   repository_dispatch:
     types: [test-samples-screenshots]
   schedule:
@@ -66,7 +72,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
 
       - uses: actions/setup-dotnet@v4
         with:

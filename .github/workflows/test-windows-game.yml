@@ -1,5 +1,7 @@
 name: Test Windows (Game)
 
+run-name: ${{ github.event.inputs.commit-sha != '' && format('Test Windows (Game) @ {0}', github.event.inputs.commit-sha) || '' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,12 +21,19 @@ on:
           - Direct3D11
           - Direct3D12
           - Vulkan
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
       graphics-api:
+        default: ''
+        type: string
+      commit-sha:
         default: ''
         type: string
   repository_dispatch:
@@ -65,9 +74,10 @@ jobs:
         with:
           lfs: true
           submodules: true
-          # Chatops dispatch passes a PR number; check out its merge ref so we test the
+          # commit-sha (workflow_dispatch/_call input) wins for explicit bisecting. Otherwise
+          # chatops dispatch passes a PR number; check out its merge ref so we test the
           # post-merge state (works uniformly for same-repo and fork PRs).
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
