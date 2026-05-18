@@ -34,10 +34,16 @@
        StrideEnsureWorktreeVersion in Stride.WorktreeVersion.targets — empty on CI, package
        builds, and the primary checkout; "-devN" on additional checkouts. Append it to
        PackageVersion before the pack pipeline reads it so the .nupkg matches the suffix the
-       consumer-side StrideVersion.NuGetVersion const is compiled with. -->
+       consumer-side StrideVersion.NuGetVersion const is compiled with.
+
+       Hook _GetOutputItemsFromPack (not just GenerateNuspec): that internal NuGet target reads
+       $(PackageVersion) early in GenerateNuspec's DependsOnTargets chain to compute
+       @(NuGetPackOutput). Running only before GenerateNuspec lets the suffix reach PackTask
+       (the .nupkg is named correctly) but leaves @(NuGetPackOutput) pointing at the un-suffixed
+       path — StrideAutoPackDeploy then MSB3030s trying to copy a file that was never produced. -->
   <Target Name="StrideAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
-          BeforeTargets="GenerateNuspec">
+          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec">
     <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>
