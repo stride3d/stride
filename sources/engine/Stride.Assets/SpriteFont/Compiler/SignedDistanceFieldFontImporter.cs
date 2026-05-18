@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
-    using System.Drawing;
-    using System.Drawing.Imaging;
-
     internal unsafe class SignedDistanceFieldFontImporter : IFontImporter
     {
         // Properties hold the imported font data.
@@ -33,7 +34,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <summary>
         /// Generates and load a SDF font glyph using the msdfgen.exe
         /// </summary>
-        private Bitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
+        private Image<Rgba32> LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
         {
             try
             {
@@ -66,7 +67,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                 if (File.Exists(outputFilePath))
                 {
-                    var bitmap = (Bitmap)Image.FromFile(outputFilePath);
+                    var bitmap = Image.Load<Rgba32>(outputFilePath);
 
                     Normalize(bitmap);
 
@@ -79,7 +80,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // If font generation failed for any reason, ignore it and return an empty glyph
-            return new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+            return new Image<Rgba32>(1, 1);
         }
 
         /// <summary>
@@ -87,10 +88,10 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// Msdfgen will produce an inverted picture on occasion.
         /// Because we use offset we can easily detect if the corner pixel has negative (correct) or positive distance (incorrect)
         /// </summary>
-        private void Normalize(Bitmap bitmap)
+        private void Normalize(Image<Rgba32> bitmap)
         {
             // Case 1 - corner pixel is negative (outside), do not invert
-            var firstPixel = bitmap.GetPixel(0, 0);
+            var firstPixel = bitmap[0, 0];
             var colorChannels = 0;
             if (firstPixel.R > 0) colorChannels++;
             if (firstPixel.G > 0) colorChannels++;
@@ -98,18 +99,15 @@ namespace Stride.Assets.SpriteFont.Compiler
             if (colorChannels <= 1)
                 return;
 
-            // Case 2 - corner pixel is positive (inside), invert the image
+            // Case 2 - corner pixel is positive (inside), invert the image.
+            // Note: alpha is forced to 0 here to match the previous GDI+ behavior
+            // (Color.FromArgb(int) with no alpha bits zeros the alpha channel).
             for (var i = 0; i < bitmap.Width; i++)
                 for (var j = 0; j < bitmap.Height; j++)
                 {
-                    var pixel = bitmap.GetPixel(i, j);
+                    var pixel = bitmap[i, j];
 
-                    int invertR = ((int)255 - pixel.R);
-                    int invertG = ((int)255 - pixel.G);
-                    int invertB = ((int)255 - pixel.B);
-                    var invertedPixel = Color.FromArgb((invertR << 16) + (invertG << 8) + (invertB));
-
-                    bitmap.SetPixel(i, j, invertedPixel);
+                    bitmap[i, j] = new Rgba32((byte)(255 - pixel.R), (byte)(255 - pixel.G), (byte)(255 - pixel.B), (byte)0);
                 }
         }
 
@@ -197,7 +195,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             // Load glyph to get metrics (no rendering needed — msdfgen does that)
             if (glyphIndex == 0 || FreeTypeNative.FT_Load_Glyph(face, glyphIndex, (int)FreeTypeLoadFlags.Default) != 0)
             {
-                return new Glyph(character, new Bitmap(1, 1, PixelFormat.Format32bppArgb))
+                return new Glyph(character, new Image<Rgba32>(1, 1))
                 {
                     XOffset = 0, YOffset = 0, XAdvance = 0,
                 };
@@ -222,10 +220,10 @@ namespace Stride.Assets.SpriteFont.Compiler
             float bitmapOffsetXPx = fontOffsetXPx - MarginPx;
             float bitmapOffsetYPx = fontOffsetYPx - MarginPx;
 
-            Bitmap bitmap;
+            Image<Rgba32> bitmap;
             if (char.IsWhiteSpace(character))
             {
-                bitmap = new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+                bitmap = new Image<Rgba32>(1, 1);
             }
             else
             {
