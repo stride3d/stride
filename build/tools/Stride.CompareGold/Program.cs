@@ -2,8 +2,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 
+const int Port = 5505;
+
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://localhost:5555");
+builder.WebHost.UseUrls($"http://localhost:{Port}");
 builder.Services.AddSingleton<SourceManager>();
 var app = builder.Build();
 
@@ -23,10 +25,10 @@ Console.WriteLine($"Gold images: {testsDir}");
 Console.WriteLine($"Local output: {localDir}");
 Console.WriteLine($"CI cache: {ciCacheDir}");
 Console.WriteLine();
-Console.WriteLine("CompareGold running at http://localhost:5555");
+Console.WriteLine($"CompareGold running at http://localhost:{Port}");
 Console.WriteLine("Press Ctrl+C to stop.");
 
-try { Process.Start(new ProcessStartInfo("http://localhost:5555") { UseShellExecute = true }); }
+try { Process.Start(new ProcessStartInfo($"http://localhost:{Port}") { UseShellExecute = true }); }
 catch { }
 
 app.UseDefaultFiles();
