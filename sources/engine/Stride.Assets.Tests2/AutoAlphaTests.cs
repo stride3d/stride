@@ -30,15 +30,15 @@ namespace Stride.Assets.Tests2
             { Tuple.Create(PlatformType.UWP, AlphaFormat.Explicit), PixelFormat.BC2_UNorm },
             { Tuple.Create(PlatformType.UWP, AlphaFormat.Interpolated), PixelFormat.BC3_UNorm },
 
-            { Tuple.Create(PlatformType.Android, AlphaFormat.None), PixelFormat.ETC1 },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Mask), PixelFormat.ETC2_RGB_A1 },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Explicit), PixelFormat.ETC2_RGBA },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Interpolated), PixelFormat.ETC2_RGBA },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.None), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Mask), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Explicit), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Interpolated), PixelFormat.ASTC_6x6_UNorm },
 
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.None), PixelFormat.ETC1 },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Mask), PixelFormat.ETC2_RGB_A1 },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Explicit), PixelFormat.ETC2_RGBA },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Interpolated), PixelFormat.ETC2_RGBA },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.None), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Mask), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Explicit), PixelFormat.ASTC_6x6_UNorm },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Interpolated), PixelFormat.ASTC_6x6_UNorm },
         };
 
         private static void CheckTextureFormat(Game game, string textureUrl, AlphaFormat expectedFormat)

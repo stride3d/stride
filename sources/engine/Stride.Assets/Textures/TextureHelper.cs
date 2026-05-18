@@ -223,26 +223,12 @@ namespace Stride.Assets.Textures
                                     case GraphicsProfile.Level_11_0:
                                     case GraphicsProfile.Level_11_1:
                                     case GraphicsProfile.Level_11_2:
-                                        // GLES3.0 starting from Level_10_0, this profile enables ETC2 compression on Android
-                                        switch (alphaMode)
-                                        {
-                                            case AlphaFormat.None:
-                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGB_SRgb : PixelFormat.ETC2_RGB;
-                                                break;
-                                            case AlphaFormat.Mask:
-                                                // DXT1 handles 1-bit alpha channel
-                                                // TODO: Not sure about the equivalent here?
-                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGB_A1;
-                                                break;
-                                            case AlphaFormat.Explicit:
-                                            case AlphaFormat.Interpolated:
-                                                // DXT3 is good at sharp alpha transitions
-                                                // TODO: Not sure about the equivalent here?
-                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGBA;
-                                                break;
-                                            default:
-                                                throw new ArgumentOutOfRangeException();
-                                        }
+                                        // ASTC LDR is mandatory on Vulkan-capable Android (2017+) and on every iOS device since A8.
+                                        // Block size 6x6 (~3.56 bpp) is a good default: matches ETC2_RGB storage while carrying
+                                        // a full alpha channel, and beats ETC2_RGBA at half the size.
+                                        // ASTC encodes alpha implicitly so the alphaMode branches all map to the same block size;
+                                        // ASTC_*_UNorm_SRgb is selected when sRGB sampling is needed.
+                                        outputFormat = parameters.IsSRgb ? PixelFormat.ASTC_6x6_UNorm_SRgb : PixelFormat.ASTC_6x6_UNorm;
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException("GraphicsProfile");

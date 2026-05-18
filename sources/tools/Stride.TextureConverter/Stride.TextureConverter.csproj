@@ -18,6 +18,9 @@
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.so">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.so;$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.dylib">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp" />

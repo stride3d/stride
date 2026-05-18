@@ -40,12 +40,25 @@ namespace Stride.TextureConverter
             NativeLibraryHelper.PreloadLibrary("stride_directxtex", type);
             if (IsPVRTexLibAvailable())
                 NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
+            if (IsAstcEncAvailable())
+                NativeLibraryHelper.PreloadLibrary("astcenc", type);
 
             static bool IsPVRTexLibAvailable()
             {
                 if (OperatingSystem.IsWindows())
                     return RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
                 return true;
+            }
+
+            // Currently shipped RIDs: win-x64, linux-x64, osx-arm64. Skip on others
+            // until binaries for them are added under deps/astcenc/dotnet/<rid>/.
+            static bool IsAstcEncAvailable()
+            {
+                var arch = RuntimeInformation.ProcessArchitecture;
+                if (OperatingSystem.IsWindows()) return arch == Architecture.X64;
+                if (OperatingSystem.IsLinux())   return arch == Architecture.X64;
+                if (OperatingSystem.IsMacOS())   return arch == Architecture.Arm64;
+                return false;
             }
         }
 
@@ -63,6 +76,7 @@ namespace Stride.TextureConverter
                 new ImageSharpTexLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
                 new PvrttTexLib(), // used to compress/decompress texture to ETC1-2 and load/save *.pvr, *.ktx compressed texture file.
+                new AstcTexLib(), // used to compress/decompress textures to/from ASTC LDR (4x4..12x12 block sizes).
                 new ColorKeyTexLibrary(), // used to apply ColorKey on R8G8B8A8/B8G8R8A8_Unorm
                 new AtlasTexLibrary(), // used to create and manipulate texture atlas
                 new ArrayTexLib(), // used to create and manipulate texture array and texture cube

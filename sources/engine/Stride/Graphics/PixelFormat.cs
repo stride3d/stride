@@ -964,5 +964,68 @@ public enum PixelFormat
     ///   <br/>
     ///   Tipically used for color textures without alpha on mobile and embedded devices.
     /// </summary>
-    ETC2_RGB_SRgb = 1097
+    ETC2_RGB_SRgb = 1097,
+
+    /// <summary>
+    ///   ASTC LDR compressed format with a 4x4 block size (8.00 bits per pixel).
+    ///   <br/>
+    ///   ASTC blocks are 128 bits (16 bytes) regardless of block dimensions; varying the block size trades quality for storage.
+    ///   <br/>
+    ///   Typically used for high-quality color textures on Android (Vulkan / GLES 3.2+) and iOS (A8+).
+    /// </summary>
+    ASTC_4x4_UNorm = 1098,
+    /// <summary>ASTC LDR sRGB compressed format with a 4x4 block size (8.00 bpp).</summary>
+    ASTC_4x4_UNorm_SRgb = 1099,
+    /// <summary>ASTC LDR compressed format with a 5x4 block size (6.40 bpp).</summary>
+    ASTC_5x4_UNorm = 1100,
+    /// <summary>ASTC LDR sRGB compressed format with a 5x4 block size (6.40 bpp).</summary>
+    ASTC_5x4_UNorm_SRgb = 1101,
+    /// <summary>ASTC LDR compressed format with a 5x5 block size (5.12 bpp).</summary>
+    ASTC_5x5_UNorm = 1102,
+    /// <summary>ASTC LDR sRGB compressed format with a 5x5 block size (5.12 bpp).</summary>
+    ASTC_5x5_UNorm_SRgb = 1103,
+    /// <summary>ASTC LDR compressed format with a 6x5 block size (4.27 bpp).</summary>
+    ASTC_6x5_UNorm = 1104,
+    /// <summary>ASTC LDR sRGB compressed format with a 6x5 block size (4.27 bpp).</summary>
+    ASTC_6x5_UNorm_SRgb = 1105,
+    /// <summary>ASTC LDR compressed format with a 6x6 block size (3.56 bpp).</summary>
+    ASTC_6x6_UNorm = 1106,
+    /// <summary>ASTC LDR sRGB compressed format with a 6x6 block size (3.56 bpp).</summary>
+    ASTC_6x6_UNorm_SRgb = 1107,
+    /// <summary>ASTC LDR compressed format with an 8x5 block size (3.20 bpp).</summary>
+    ASTC_8x5_UNorm = 1108,
+    /// <summary>ASTC LDR sRGB compressed format with an 8x5 block size (3.20 bpp).</summary>
+    ASTC_8x5_UNorm_SRgb = 1109,
+    /// <summary>ASTC LDR compressed format with an 8x6 block size (2.67 bpp).</summary>
+    ASTC_8x6_UNorm = 1110,
+    /// <summary>ASTC LDR sRGB compressed format with an 8x6 block size (2.67 bpp).</summary>
+    ASTC_8x6_UNorm_SRgb = 1111,
+    /// <summary>ASTC LDR compressed format with an 8x8 block size (2.00 bpp).</summary>
+    ASTC_8x8_UNorm = 1112,
+    /// <summary>ASTC LDR sRGB compressed format with an 8x8 block size (2.00 bpp).</summary>
+    ASTC_8x8_UNorm_SRgb = 1113,
+    /// <summary>ASTC LDR compressed format with a 10x5 block size (2.56 bpp).</summary>
+    ASTC_10x5_UNorm = 1114,
+    /// <summary>ASTC LDR sRGB compressed format with a 10x5 block size (2.56 bpp).</summary>
+    ASTC_10x5_UNorm_SRgb = 1115,
+    /// <summary>ASTC LDR compressed format with a 10x6 block size (2.13 bpp).</summary>
+    ASTC_10x6_UNorm = 1116,
+    /// <summary>ASTC LDR sRGB compressed format with a 10x6 block size (2.13 bpp).</summary>
+    ASTC_10x6_UNorm_SRgb = 1117,
+    /// <summary>ASTC LDR compressed format with a 10x8 block size (1.60 bpp).</summary>
+    ASTC_10x8_UNorm = 1118,
+    /// <summary>ASTC LDR sRGB compressed format with a 10x8 block size (1.60 bpp).</summary>
+    ASTC_10x8_UNorm_SRgb = 1119,
+    /// <summary>ASTC LDR compressed format with a 10x10 block size (1.28 bpp).</summary>
+    ASTC_10x10_UNorm = 1120,
+    /// <summary>ASTC LDR sRGB compressed format with a 10x10 block size (1.28 bpp).</summary>
+    ASTC_10x10_UNorm_SRgb = 1121,
+    /// <summary>ASTC LDR compressed format with a 12x10 block size (1.07 bpp).</summary>
+    ASTC_12x10_UNorm = 1122,
+    /// <summary>ASTC LDR sRGB compressed format with a 12x10 block size (1.07 bpp).</summary>
+    ASTC_12x10_UNorm_SRgb = 1123,
+    /// <summary>ASTC LDR compressed format with a 12x12 block size (0.89 bpp).</summary>
+    ASTC_12x12_UNorm = 1124,
+    /// <summary>ASTC LDR sRGB compressed format with a 12x12 block size (0.89 bpp).</summary>
+    ASTC_12x12_UNorm_SRgb = 1125
 }
