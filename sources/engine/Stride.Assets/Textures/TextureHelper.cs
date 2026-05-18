@@ -216,7 +216,9 @@ namespace Stride.Assets.Textures
                                     case GraphicsProfile.Level_9_1:
                                     case GraphicsProfile.Level_9_2:
                                     case GraphicsProfile.Level_9_3:
-                                        outputFormat = alphaMode == AlphaFormat.None && !parameters.IsSRgb ? PixelFormat.ETC1 : parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
+                                        // Pre-Vulkan GLES 2.0 era: no encoder for ETC1 ships now that PVRTT is gone,
+                                        // and ASTC is not guaranteed on that hardware. Fall back to uncompressed.
+                                        outputFormat = parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
                                         break;
                                     case GraphicsProfile.Level_10_0:
                                     case GraphicsProfile.Level_10_1:
