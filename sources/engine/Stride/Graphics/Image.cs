@@ -758,7 +758,6 @@ namespace Stride.Graphics
             Register(ImageFileType.Bmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveBmpFromMemory);
             Register(ImageFileType.Jpg, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveJpgFromMemory);
             Register(ImageFileType.Png, StandardImageHelper.LoadFromMemory, StandardImageHelper.SavePngFromMemory);
-            Register(ImageFileType.Wmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveWmpFromMemory);
         }
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)

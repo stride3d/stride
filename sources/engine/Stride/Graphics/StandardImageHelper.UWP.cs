@@ -42,11 +42,6 @@ namespace Stride.Graphics
         {
             WICHelper.SavePngToWICMemory(pixelBuffers, count, description, imageStream);
         }
-
-        public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
 #endif

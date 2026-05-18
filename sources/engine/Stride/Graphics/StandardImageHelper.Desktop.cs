@@ -204,30 +204,6 @@ internal partial class StandardImageHelper
     }
 
     /// <summary>
-    ///   Saves a WMP (Windows Media Photo) image to the specified stream using pixel data from memory.
-    /// </summary>
-    /// <param name="pixelBuffers">
-    ///   An array of pixel buffers containing the image data to copy into the bitmap.
-    /// </param>
-    /// <param name="count">
-    ///   The number of pixel buffers to use when saving the image.
-    ///   Must be greater than zero and less than or equal to the length of <paramref name="pixelBuffers"/>.
-    /// </param>
-    /// <param name="description">
-    ///   An <see cref="ImageDescription"/> structure that specifies the properties of the image,
-    ///   such as width, height, and pixel format.
-    /// </param>
-    /// <param name="imageStream">
-    ///   The stream to which the WMP image will be written. The stream must be writable.
-    /// </param>
-    /// <exception cref="NotImplementedException">The method is not implemented.</exception>
-    public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-    {
-        throw new NotImplementedException();
-    }
-
-
-    /// <summary>
     ///   Prepares the specified bitmap for saving by converting its color depth to 32 bits per pixel,
     ///   copying pixel data from the provided buffers according to the image format,
     ///   and flipping the image vertically.

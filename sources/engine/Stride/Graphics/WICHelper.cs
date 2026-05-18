@@ -691,8 +691,6 @@ namespace Stride.Graphics
                     return ContainerFormatGuids.Png;
                 case ImageFileType.Tiff:
                     return ContainerFormatGuids.Tiff;
-                case ImageFileType.Wmp:
-                    return ContainerFormatGuids.Wmp;
                 default:
                     throw new NotSupportedException("Format not supported");
             }
@@ -721,11 +719,6 @@ namespace Stride.Graphics
         internal static void SavePngToWICMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
             SaveToWICMemory(pixelBuffers, 1, WICFlags.None, ImageFileType.Png, imageStream);
-        }
-
-        internal static void SaveWmpToWICMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            SaveToWICMemory(pixelBuffers, 1, WICFlags.None, ImageFileType.Wmp, imageStream);
         }
 
         private static void SaveToWICMemory(PixelBuffer[] pixelBuffer, int count, WICFlags flags, ImageFileType fileType, Stream stream)

@@ -402,10 +402,8 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadSave(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformTest(
@@ -456,10 +454,8 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadDraw(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 

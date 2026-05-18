@@ -62,11 +62,6 @@ namespace Stride.Graphics
         {
             throw new NotImplementedException();
         }
-
-        public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
 #endif

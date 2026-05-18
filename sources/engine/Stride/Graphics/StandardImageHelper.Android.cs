@@ -75,11 +75,6 @@ namespace Stride.Graphics
             SaveFromMemory(pixelBuffers, count, description, imageStream, Bitmap.CompressFormat.Png);
         }
 
-        public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
         private static void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, Bitmap.CompressFormat imageFormat)
         {
             var colors = pixelBuffers[0].GetPixels<int>();
