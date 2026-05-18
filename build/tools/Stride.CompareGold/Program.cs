@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 
+// 5505 instead of 5555: the latter is Android ADB's daemon port, which the Android emulator
+// already binds when running test pulls — they collide otherwise.
 const int Port = 5505;
 
 var builder = WebApplication.CreateBuilder(args);
