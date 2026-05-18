@@ -9,6 +9,7 @@ _ReSharper.*
 *.i.cs
 *.cache
 *.Cache
+*.lscache
 *.tlog
 *.log
 *.obj
