@@ -9,6 +9,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Graphics;
 using Stride.Samples.Generator;
 
 namespace Stride.SampleScreenshotRunner;
@@ -162,9 +163,10 @@ public static class ScreenshotRunner
             return result;
         }
 
-        Console.WriteLine($"[{sampleName}] building (Configuration={configuration})...");
+        var graphicsApi = GraphicsDevice.Platform.ToString();
+        Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
         var buildLog = Path.Combine(sampleOut, "build.log");
-        var buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration}", buildLog, sampleDir, env: null, timeoutSeconds: 300);
+        var buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, timeoutSeconds: 300);
         if (!buildOk)
         {
             result.Status = "build-failed";
