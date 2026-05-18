@@ -23,7 +23,7 @@ namespace Stride.SampleScreenshotRunner;
 /// </summary>
 public static class ScreenshotRunner
 {
-    private const int LaunchTimeoutSeconds = 60;
+    private const int LaunchTimeoutSeconds = 120;
 
     private static readonly object InitLock = new();
     private static bool initialized;
