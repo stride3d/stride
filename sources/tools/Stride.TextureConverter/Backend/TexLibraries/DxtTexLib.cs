@@ -22,9 +22,9 @@ namespace Stride.TextureConverter.TexLibraries
     internal class DxtTextureLibraryData : ITextureLibraryData
     {
         /// <summary>
-        /// An image helper provided by DirectXTex Tool
+        /// Opaque handle to the underlying DirectXTex ScratchImage (null when pixels are owned by the C# side / another lib).
         /// </summary>
-        public ScratchImage Image;
+        public DxtImageSet Set;
 
         /// <summary>
         /// The metadata
@@ -77,18 +77,11 @@ namespace Stride.TextureConverter.TexLibraries
 
         public void Dispose(TexImage image)
         {
-            DxtTextureLibraryData libraryData = (DxtTextureLibraryData)image.LibraryData[this];
-
-            if (libraryData.Image == null && libraryData.DxtImages != null)
-            {
-                ScratchImage img = new ScratchImage();
-                img.InitializeFromImages(libraryData.DxtImages, libraryData.DxtImages.Length);
-                img.Release();
-            }
-            else
-            {
-                libraryData.Image.Dispose();
-            }
+            var libraryData = (DxtTextureLibraryData)image.LibraryData[this];
+            // If Set is null the DxtImages reference pixel buffers owned elsewhere (e.g. set up
+            // by StartLibrary from another lib's image data) — nothing for us to free.
+            libraryData.Set?.Dispose();
+            libraryData.Set = null;
         }
 
 
@@ -120,7 +113,7 @@ namespace Stride.TextureConverter.TexLibraries
                     libraryData.Metadata = new TexMetadata(image.Width, image.Height, image.Depth, image.ArraySize, image.MipmapCount, TEX_MISC_FLAG.TEX_MISC_TEXTURECUBE, 0, format, TEX_DIMENSION.TEX_DIMENSION_TEXTURE2D); break;
             }
 
-            libraryData.Image = null;
+            libraryData.Set = null;
 
         }
 
@@ -234,35 +227,38 @@ namespace Stride.TextureConverter.TexLibraries
 
             var libraryData = new DxtTextureLibraryData();
             image.LibraryData[this] = libraryData;
-            libraryData.Image = new ScratchImage();
-            libraryData.Metadata = new TexMetadata();
 
             var extension = Path.GetExtension(loader.FilePath);
-            HRESULT hr = 0;
+            HRESULT hr;
             if (extension.EndsWith(".dds", StringComparison.InvariantCultureIgnoreCase))
             {
-                hr = Utilities.LoadDDSFile(loader.FilePath, DDS_FLAGS.DDS_FLAGS_NONE, out libraryData.Metadata, libraryData.Image);
+                hr = Utilities.LoadDDS(loader.FilePath, DDS_FLAGS.DDS_FLAGS_NONE, out libraryData.Set);
             }
             else if (extension.EndsWith(".tga", StringComparison.InvariantCultureIgnoreCase))
             {
-                hr = Utilities.LoadTGAFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
+                hr = Utilities.LoadTGA(loader.FilePath, TGA_FLAGS.TGA_FLAGS_NONE, out libraryData.Set);
+            }
+            else if (extension.EndsWith(".hdr", StringComparison.InvariantCultureIgnoreCase))
+            {
+                hr = Utilities.LoadHDR(loader.FilePath, out libraryData.Set);
             }
             else if (OperatingSystem.IsWindows())
             {
-                hr = Utilities.LoadWICFile(loader.FilePath, WIC_FLAGS.WIC_FLAGS_NONE, out libraryData.Metadata, libraryData.Image);
+                hr = Utilities.LoadWIC(loader.FilePath, WIC_FLAGS.WIC_FLAGS_NONE, out libraryData.Set);
             }
             else
             {
-                hr = (HRESULT)(-1);
+                hr = HRESULT.E_FAIL;
             }
 
             if (hr != HRESULT.S_OK)
             {
-                Log.Error("Loading dds file " + loader.FilePath + " failed: " + hr);
-                throw new TextureToolsException("Loading dds file " + loader.FilePath + " failed: " + hr);
+                Log.Error("Loading " + loader.FilePath + " failed: " + hr);
+                throw new TextureToolsException("Loading " + loader.FilePath + " failed: " + hr);
             }
 
-            libraryData.DxtImages = libraryData.Image.GetImages();
+            libraryData.Metadata = libraryData.Set.GetMetadata();
+            libraryData.DxtImages = libraryData.Set.GetImages();
 
             // adapt the image format based on whether input image is sRGB or not
             var format = (PixelFormat)libraryData.Metadata.format;
@@ -317,9 +313,8 @@ namespace Stride.TextureConverter.TexLibraries
             if (libraryData.DxtImages == null || libraryData.DxtImages.Length == 0)
                 return;
 
-            ScratchImage scratchImage = new ScratchImage();
-
             HRESULT hr;
+            DxtImageSet newSet;
             if (request.Format.IsCompressed)
             {
                 var topImage = libraryData.DxtImages[0];
@@ -328,12 +323,12 @@ namespace Stride.TextureConverter.TexLibraries
                                                                   "because its top resolution ({1}-{2}) is not a multiple of 4.", request.Format, topImage.Width, topImage.Height));
 
                 hr = Utilities.Compress(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata,
-                                        RetrieveNativeFormat(request.Format), TEX_COMPRESS_FLAGS.TEX_COMPRESS_DEFAULT, 0.5f, scratchImage);
+                                        RetrieveNativeFormat(request.Format), TEX_COMPRESS_FLAGS.TEX_COMPRESS_DEFAULT, 0.5f, out newSet);
             }
             else
             {
                 hr = Utilities.Convert(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata,
-                                       RetrieveNativeFormat(request.Format), TEX_FILTER_FLAGS.TEX_FILTER_DEFAULT, 0.5f, scratchImage);
+                                       RetrieveNativeFormat(request.Format), TEX_FILTER_FLAGS.TEX_FILTER_DEFAULT, 0.5f, out newSet);
             }
 
 
@@ -345,10 +340,11 @@ namespace Stride.TextureConverter.TexLibraries
 
             if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
 
-            // Updating attributes
-            libraryData.Image = scratchImage;
-            libraryData.DxtImages = libraryData.Image.GetImages();
-            libraryData.Metadata = libraryData.Image.metadata;
+            // Replace the cached views with the freshly-produced set.
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.DxtImages = newSet.GetImages();
+            libraryData.Metadata = newSet.GetMetadata();
             image.DisposingLibrary = this;
 
             UpdateImage(image, libraryData);
@@ -389,8 +385,7 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
             }
 
-            ScratchImage scratchImage = new ScratchImage();
-            HRESULT hr = Utilities.Resize(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, width, height, filter, scratchImage);
+            HRESULT hr = Utilities.Resize(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, width, height, filter, out var newSet);
 
             if (hr != HRESULT.S_OK)
             {
@@ -404,9 +399,10 @@ namespace Stride.TextureConverter.TexLibraries
             // Updating image data
             image.Rescale(width, height);
 
-            libraryData.Image = scratchImage;
-            libraryData.DxtImages = libraryData.Image.GetImages();
-            libraryData.Metadata = libraryData.Image.metadata;
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.DxtImages = newSet.GetImages();
+            libraryData.Metadata = newSet.GetMetadata();
             image.DisposingLibrary = this;
 
             UpdateImage(image, libraryData);
@@ -426,8 +422,7 @@ namespace Stride.TextureConverter.TexLibraries
 
             Log.Verbose($"Converting texture from {(PixelFormat)libraryData.Metadata.format} to {outputFormat}");
 
-            var scratchImage = new ScratchImage();
-            var hr = Utilities.Convert(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, (DXGI_FORMAT)outputFormat, TEX_FILTER_FLAGS.TEX_FILTER_BOX, 0.0f, scratchImage);
+            var hr = Utilities.Convert(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, (DXGI_FORMAT)outputFormat, TEX_FILTER_FLAGS.TEX_FILTER_BOX, 0.0f, out var newSet);
 
             if (hr != HRESULT.S_OK)
             {
@@ -438,9 +433,10 @@ namespace Stride.TextureConverter.TexLibraries
             // Freeing Memory
             if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
 
-            libraryData.Image = scratchImage;
-            libraryData.DxtImages = libraryData.Image.GetImages();
-            libraryData.Metadata = libraryData.Image.metadata;
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.DxtImages = newSet.GetImages();
+            libraryData.Metadata = newSet.GetMetadata();
             image.DisposingLibrary = this;
 
             // adapt the image format based on desired output format
@@ -463,8 +459,7 @@ namespace Stride.TextureConverter.TexLibraries
             // determine the output format to avoid any sRGB/RGB conversions (only decompression, no conversion)
             var outputFormat = !((PixelFormat)libraryData.Metadata.format).IsSRgb ? request.DecompressedFormat.ToNonSRgb() : request.DecompressedFormat.ToSRgb();
 
-            var scratchImage = new ScratchImage();
-            var hr = Utilities.Decompress(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, (DXGI_FORMAT)outputFormat, scratchImage);
+            var hr = Utilities.Decompress(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, (DXGI_FORMAT)outputFormat, out var newSet);
 
             if (hr != HRESULT.S_OK)
             {
@@ -475,9 +470,10 @@ namespace Stride.TextureConverter.TexLibraries
             // Freeing Memory
             if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
 
-            libraryData.Image = scratchImage;
-            libraryData.DxtImages = libraryData.Image.GetImages();
-            libraryData.Metadata = libraryData.Image.metadata;
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.DxtImages = newSet.GetImages();
+            libraryData.Metadata = newSet.GetMetadata();
             image.DisposingLibrary = this;
 
             // adapt the image format based on desired output format
@@ -532,20 +528,20 @@ namespace Stride.TextureConverter.TexLibraries
             }
 
             HRESULT hr;
-            var scratchImage = new ScratchImage();
+            DxtImageSet newSet;
             if (libraryData.Metadata.dimension == TEX_DIMENSION.TEX_DIMENSION_TEXTURE3D)
             {
                 Log.Verbose("Only the box and nearest(point) filters are supported for generating Mipmaps with 3D texture.");
                 if ((filter & TEX_FILTER_FLAGS.TEX_FILTER_FANT) == 0 && (filter & TEX_FILTER_FLAGS.TEX_FILTER_POINT) == 0)
                 {
-                    filter = (TEX_FILTER_FLAGS)((int)filter & 0xf00000);
+                    filter = (TEX_FILTER_FLAGS)((uint)filter & 0xf00000);
                     filter |= TEX_FILTER_FLAGS.TEX_FILTER_FANT;
                 }
-                hr = Utilities.GenerateMipMaps3D(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, scratchImage);
+                hr = Utilities.GenerateMipMaps3D(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, out newSet);
             }
             else
             {
-                hr = Utilities.GenerateMipMaps(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, scratchImage);
+                hr = Utilities.GenerateMipMaps(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, out newSet);
             }
 
             if (hr != HRESULT.S_OK)
@@ -557,9 +553,10 @@ namespace Stride.TextureConverter.TexLibraries
             // Freeing Memory
             if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
 
-            libraryData.Image = scratchImage;
-            libraryData.Metadata = libraryData.Image.metadata;
-            libraryData.DxtImages = libraryData.Image.GetImages();
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.Metadata = newSet.GetMetadata();
+            libraryData.DxtImages = newSet.GetImages();
             image.DisposingLibrary = this;
 
             UpdateImage(image, libraryData);
@@ -647,7 +644,7 @@ namespace Stride.TextureConverter.TexLibraries
                     }
                 }
 
-                HRESULT hr = Utilities.SaveToDDSFile(dxtImages, dxtImages.Length, ref metadata, DDS_FLAGS.DDS_FLAGS_NONE, request.FilePath);
+                HRESULT hr = Utilities.SaveDDS(dxtImages, dxtImages.Length, ref metadata, DDS_FLAGS.DDS_FLAGS_NONE, request.FilePath);
 
                 if (hr != HRESULT.S_OK)
                 {
@@ -657,7 +654,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
             else
             {
-                HRESULT hr = Utilities.SaveToDDSFile(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, DDS_FLAGS.DDS_FLAGS_NONE, request.FilePath);
+                HRESULT hr = Utilities.SaveDDS(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, DDS_FLAGS.DDS_FLAGS_NONE, request.FilePath);
 
                 if (hr != HRESULT.S_OK)
                 {
@@ -681,9 +678,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Generating Normal Map ... ");
 
-            ScratchImage scratchImage = new ScratchImage();
-
-            HRESULT hr = Utilities.ComputeNormalMap(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, CNMAP_FLAGS.CNMAP_CHANNEL_RED, request.Amplitude, DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, scratchImage);
+            HRESULT hr = Utilities.ComputeNormalMap(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, CNMAP_FLAGS.CNMAP_CHANNEL_RED, request.Amplitude, DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, out var newSet);
 
             if (hr != HRESULT.S_OK)
             {
@@ -693,11 +688,11 @@ namespace Stride.TextureConverter.TexLibraries
 
             // Creating new TexImage with the normal map data.
             request.NormalMap = new TexImage();
-            DxtTextureLibraryData normalMapLibraryData = new DxtTextureLibraryData();
+            var normalMapLibraryData = new DxtTextureLibraryData();
             request.NormalMap.LibraryData[this] = normalMapLibraryData;
-            normalMapLibraryData.DxtImages = scratchImage.GetImages();
-            normalMapLibraryData.Metadata = scratchImage.metadata;
-            normalMapLibraryData.Image = scratchImage;
+            normalMapLibraryData.Set = newSet;
+            normalMapLibraryData.DxtImages = newSet.GetImages();
+            normalMapLibraryData.Metadata = newSet.GetMetadata();
 
             UpdateImage(request.NormalMap, normalMapLibraryData);
             request.NormalMap.DisposingLibrary = this;
@@ -713,9 +708,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Premultiplying alpha ... ");
 
-            ScratchImage scratchImage = new ScratchImage();
-
-            HRESULT hr = Utilities.PremultiplyAlpha(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, TEX_PREMULTIPLY_ALPHA_FLAGS.TEX_PMALPHA_DEFAULT, scratchImage);
+            HRESULT hr = Utilities.PremultiplyAlpha(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, TEX_PREMULTIPLY_ALPHA_FLAGS.TEX_PMALPHA_DEFAULT, out var newSet);
 
             if (hr != HRESULT.S_OK)
             {
@@ -726,9 +719,10 @@ namespace Stride.TextureConverter.TexLibraries
             // Freeing Memory
             if (image.DisposingLibrary != null) image.DisposingLibrary.Dispose(image);
 
-            libraryData.Image = scratchImage;
-            libraryData.Metadata = libraryData.Image.metadata;
-            libraryData.DxtImages = libraryData.Image.GetImages();
+            libraryData.Set?.Dispose();
+            libraryData.Set = newSet;
+            libraryData.Metadata = newSet.GetMetadata();
+            libraryData.DxtImages = newSet.GetImages();
             image.DisposingLibrary = this;
 
             UpdateImage(image, libraryData);
