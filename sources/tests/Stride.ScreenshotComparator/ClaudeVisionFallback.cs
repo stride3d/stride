@@ -8,6 +8,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Stride.Tests.ScreenshotComparator;
 
@@ -66,32 +68,62 @@ public static class ClaudeVisionFallback
             },
         });
 
-        try
+        // Retry transient failures (429/529/5xx, network) so brief Anthropic overload doesn't
+        // surface as a fake "drift" regression. Backoff 2s, 4s between attempts. Non-transient
+        // statuses (400/401/403) fail fast — retrying won't help.
+        const int maxAttempts = 3;
+        string lastTransient = "";
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            using var req = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+            try
             {
-                Content = new StringContent(body, Encoding.UTF8, "application/json"),
-            };
-            req.Headers.Add("x-api-key", apiKey);
-            req.Headers.Add("anthropic-version", ApiVersion);
+                using var req = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+                {
+                    Content = new StringContent(body, Encoding.UTF8, "application/json"),
+                };
+                req.Headers.Add("x-api-key", apiKey);
+                req.Headers.Add("anthropic-version", ApiVersion);
 
-            using var resp = http.Send(req);
-            var respBody = resp.Content.ReadAsStringAsync().Result;
-            if (!resp.IsSuccessStatusCode)
-                return new Verdict(false, $"claude api {(int)resp.StatusCode}: {Truncate(respBody, 200)}");
+                using var resp = http.Send(req);
+                var respBody = resp.Content.ReadAsStringAsync().Result;
 
-            using var doc = JsonDocument.Parse(respBody);
-            // Response shape: { content: [{ type: "text", text: "YES: ..." | "NO: ..." }] }
-            var text = doc.RootElement.GetProperty("content")[0].GetProperty("text").GetString() ?? "";
-            text = text.Trim();
-            // Accept "YES" or "NO" prefix (case-insensitive).
-            var pass = text.StartsWith("YES", StringComparison.OrdinalIgnoreCase);
-            return new Verdict(pass, text);
+                if (resp.IsSuccessStatusCode)
+                {
+                    using var doc = JsonDocument.Parse(respBody);
+                    // Response shape: { content: [{ type: "text", text: "YES: ..." | "NO: ..." }] }
+                    var text = doc.RootElement.GetProperty("content")[0].GetProperty("text").GetString() ?? "";
+                    text = text.Trim();
+                    // Accept "YES" or "NO" prefix (case-insensitive).
+                    var pass = text.StartsWith("YES", StringComparison.OrdinalIgnoreCase);
+                    return new Verdict(pass, text);
+                }
+
+                var code = (int)resp.StatusCode;
+                var transient = code == 429 || code == 529 || (code >= 500 && code < 600);
+                if (!transient)
+                    return new Verdict(false, $"claude api error (status {code}): {Truncate(respBody, 200)}");
+
+                lastTransient = $"status {code}: {Truncate(respBody, 150)}";
+                if (attempt == maxAttempts)
+                    return new Verdict(false, $"claude api unavailable after {maxAttempts} attempts (transient — likely Anthropic overload, retry the run): {lastTransient}");
+            }
+            catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+            {
+                lastTransient = $"network: {ex.Message}";
+                if (attempt == maxAttempts)
+                    return new Verdict(false, $"claude api unavailable after {maxAttempts} attempts (transient — retry the run): {lastTransient}");
+            }
+            catch (Exception ex)
+            {
+                return new Verdict(false, $"claude error: {ex.Message}");
+            }
+
+            // Exponential backoff: 2s after attempt 1, 4s after attempt 2.
+            Thread.Sleep(TimeSpan.FromSeconds(1 << attempt));
         }
-        catch (Exception ex)
-        {
-            return new Verdict(false, $"claude error: {ex.Message}");
-        }
+
+        // Unreachable — every loop path returns or backs off.
+        return new Verdict(false, $"claude api unavailable: {lastTransient}");
     }
 
     private static string Truncate(string s, int max) => s.Length <= max ? s : s.Substring(0, max) + "…";
