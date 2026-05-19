@@ -68,6 +68,15 @@
 <div id="ciModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeCiModal()">
   <div class="modal">
     <h3>Add CI Run</h3>
+    <div id="ciForksSection" style="margin-bottom:8px; font-size:12px">
+      <label>Forks (in addition to stride3d/stride):</label>
+      <div id="ciForksList" style="margin-top:2px"></div>
+      <div style="margin-top:4px">
+        <input type="text" id="ciForkInput" placeholder="owner/name" style="width:180px"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();addFork();}">
+        <button class="secondary" onclick="addFork()" style="padding:2px 8px">Add fork</button>
+      </div>
+    </div>
     <div id="ciLoading" style="color:#888"><span class="spinner"></span> Loading recent runs...</div>
     <div class="ci-runs-list" id="ciRunsList"></div>
     <div style="margin-top:8px" id="ciArtifactsSection">
@@ -75,7 +84,7 @@
       <div id="ciArtifactsList" style="margin-top:4px; font-size:12px; color:#888">Select a run to see artifacts</div>
     </div>
     <div style="margin-top:8px">
-      <label>Or enter Run ID: <input type="text" id="ciRunId" placeholder="e.g. 24327316416" style="width:200px" oninput="document.getElementById('ciDownloadBtn').disabled=!this.value.trim()"></label>
+      <label>Or paste Run URL / ID: <input type="text" id="ciRunId" placeholder="https://github.com/.../runs/12345 or 12345" style="width:340px" oninput="onCiRunIdInput()" onpaste="setTimeout(onCiRunIdInput,0)"></label>
     </div>
     <div class="actions">
       <button class="secondary" onclick="closeCiModal()">Cancel</button>
