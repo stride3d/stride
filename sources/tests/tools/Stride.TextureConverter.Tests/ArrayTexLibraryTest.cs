@@ -14,14 +14,14 @@ namespace Stride.TextureConverter.Tests
     public class ArrayTexLibraryTest : IDisposable
     {
         private readonly ArrayTexLib library;
-        private readonly FITexLib fiLib;
+        private readonly ImageSharpTexLib fiLib;
         private readonly DxtTexLib dxtLib;
 
         public ArrayTexLibraryTest()
         {
             Module.LoadLibraries();
             library = new ArrayTexLib();
-            fiLib = new FITexLib();
+            fiLib = new ImageSharpTexLib();
             dxtLib = new DxtTexLib();
             Assert.True(library.SupportBGRAOrder());
             library.StartLibrary(new TexAtlas());

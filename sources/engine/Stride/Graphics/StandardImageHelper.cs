@@ -46,7 +46,6 @@ internal partial class StandardImageHelper
     public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
     {
         using var image = CreateImage(pixelBuffers[0], description);
-        // Quality 90 + 4:2:0 chroma subsampling matches the previous FreeImage defaults.
         var encoder = new JpegEncoder { Quality = 90, ColorType = JpegEncodingColor.YCbCrRatio420 };
         image.Save(imageStream, encoder);
     }

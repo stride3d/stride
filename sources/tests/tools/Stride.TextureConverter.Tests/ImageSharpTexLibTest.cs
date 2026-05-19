@@ -10,11 +10,11 @@ using Stride.TextureConverter.TexLibraries;
 
 namespace Stride.TextureConverter.Tests
 {
-    public class FiTexLibTest : IDisposable
+    public class ImageSharpTexLibTest : IDisposable
     {
-        private readonly FITexLib library = new FITexLib();
+        private readonly ImageSharpTexLib library = new ImageSharpTexLib();
 
-        public FiTexLibTest()
+        public ImageSharpTexLibTest()
         {
             Assert.True(library.SupportBGRAOrder());
         }
@@ -148,7 +148,7 @@ namespace Stride.TextureConverter.Tests
             lib.EndLibrary(image);
             library.StartLibrary(image);
 
-            library.Execute(image, new ExportRequest(Module.PathToOutputImages + "FITexLibTest_ExportArrayTest_" + fileName + ".png", minMipMapSize));
+            library.Execute(image, new ExportRequest(Module.PathToOutputImages + "ImageSharpTexLibTest_ExportArrayTest_" + fileName + ".png", minMipMapSize));
 
             int ct = 0;
             for (int i = 0; i < image.ArraySize; ++i)
@@ -157,11 +157,11 @@ namespace Stride.TextureConverter.Tests
                 {
                     if (image.SubImageArray[ct].Height < minMipMapSize || image.SubImageArray[ct].Width < minMipMapSize)
                         break;
-                    string file = Module.PathToOutputImages + "FITexLibTest_ExportArrayTest_" + fileName + "-ind_" + i + "-mip_" + j + ".png";
+                    string file = Module.PathToOutputImages + "ImageSharpTexLibTest_ExportArrayTest_" + fileName + "-ind_" + i + "-mip_" + j + ".png";
                     Assert.True(File.Exists(file));
 
-                    //Console.WriteLine("FITexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png" + "." + TestTools.ComputeSHA1(file));
-                    Assert.Equal(TestTools.GetInstance().Checksum["FITexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png"], TestTools.ComputeSHA1(file));
+                    //Console.WriteLine("ImageSharpTexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png" + "." + TestTools.ComputeSHA1(file));
+                    Assert.Equal(TestTools.GetInstance().Checksum["ImageSharpTexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png"], TestTools.ComputeSHA1(file));
                     File.Delete(file);
                     ++ct;
                 }

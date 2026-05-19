@@ -18,8 +18,8 @@ namespace Stride.TextureConverter
 
     /// <summary>
     /// Provides method to load images or textures, to modify them and to convert them with different texture compression format.
-    /// Input supported format : gif, png, jpe, pds (Every FreeImage supported format...), dds, pvr, ktx.
-    /// Output format : gif, png, jpe, pds (Every FreeImage supported format...), dds, pvr, ktx.
+    /// Input supported format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
+    /// Output format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
     /// Compression format : DXT1-5, ETC1-2, uncompressed formats (BGRA8888, RGBA8888)
     /// Image processing : resize, flip, gamma correction
     /// Texture utilities : Mipmap generation, normal map generation
@@ -40,7 +40,6 @@ namespace Stride.TextureConverter
             NativeLibraryHelper.PreloadLibrary("DxtWrapper", type);
             if (IsPVRTexLibAvailable())
                 NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
-            NativeLibraryHelper.PreloadLibrary("freeimage", type);
 
             static bool IsPVRTexLibAvailable()
             {
@@ -61,7 +60,7 @@ namespace Stride.TextureConverter
             textureLibraries = new List<ITexLibrary>
             {
                 new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
-                new FITexLib(), // used to open/save common bitmap image formats.
+                new ImageSharpTexLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
                 new PvrttTexLib(), // used to compress/decompress texture to ETC1-2 and load/save *.pvr, *.ktx compressed texture file.
                 new ColorKeyTexLibrary(), // used to apply ColorKey on R8G8B8A8/B8G8R8A8_Unorm

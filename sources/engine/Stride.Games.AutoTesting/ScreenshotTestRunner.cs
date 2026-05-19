@@ -246,7 +246,7 @@ internal sealed class ScreenshotTestRunner
     };
 
     // DXGI ignores backbuffer alpha; PNG viewers don't. Force-opaque so the saved frame
-    // matches what the user sees (FreeImage then strips the uniform alpha to 3-channel RGB).
+    // matches what the user sees on screen.
     private static unsafe void ForceAlphaOpaque(Image image)
     {
         var format = image.Description.Format;

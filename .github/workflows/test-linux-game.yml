@@ -101,7 +101,7 @@ jobs:
         run: |
           # Remove Windows/macOS native libs that are useless on Linux
           Get-ChildItem bin/Tests -Recurse -Include `
-            'd3dcompiler_47.dll','freeimage.dll','FreeImage.dll','freetype.dll', `
+            'd3dcompiler_47.dll','freetype.dll', `
             'Silk.NET.Direct3D11.dll','Silk.NET.Direct3D12.dll','Silk.NET.Direct3D.Compilers.dll' |
             Remove-Item -Force
           # Remove macOS dylibs and Windows PDBs for native libs
@@ -135,7 +135,7 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1 xvfb
+          sudo apt-get install -y libopenal-dev libvulkan1 xvfb
       - name: Start virtual display
         run: |
           Xvfb :99 -screen 0 1920x1080x24 &
@@ -225,7 +225,7 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libfreeimage-dev libvulkan1 xvfb
+          sudo apt-get install -y libopenal-dev libvulkan1 xvfb
       - name: Start virtual display
         run: |
           # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,

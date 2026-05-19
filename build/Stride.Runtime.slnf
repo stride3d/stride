@@ -30,8 +30,7 @@
       "..\\sources\\shaders\\Stride.Shaders.Spirv\\Stride.Shaders.Spirv.csproj",
       "..\\sources\\shaders\\Stride.Shaders.Generators\\Stride.Shaders.Generators.csproj",
       "..\\sources\\shaders\\Stride.Shaders.Generators.Internal\\Stride.Shaders.Generators.Internal.csproj",
-      "..\\sources\\shaders\\Stride.Shaders.Spirv.Generators\\Stride.Shaders.Spirv.Generators.csproj",
-      "..\\sources\\tools\\Stride.FreeImage\\Stride.FreeImage.csproj"
+      "..\\sources\\shaders\\Stride.Shaders.Spirv.Generators\\Stride.Shaders.Spirv.Generators.csproj"
     ]
   }
 }

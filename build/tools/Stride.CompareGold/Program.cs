@@ -34,7 +34,13 @@ try { Process.Start(new ProcessStartInfo($"http://localhost:{Port}") { UseShellE
 catch { }
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+// no-store on every static response so dev edits to html/js/css show up on next reload
+// without needing a hard refresh; the assets are local-only and tiny so the lost cache
+// hit doesn't matter.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-store",
+});
 
 // Disable caching for gold image responses (they change on promote)
 app.Use(async (ctx, next) =>

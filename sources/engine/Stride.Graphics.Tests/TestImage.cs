@@ -183,8 +183,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestLoadAndSave()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "FreeImage Save not fully supported on Linux");
-
             foreach (ImageFileType sourceFormat in Enum.GetValues<ImageFileType>())
             {
                 foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
