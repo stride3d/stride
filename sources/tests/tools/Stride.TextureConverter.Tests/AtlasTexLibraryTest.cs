@@ -169,7 +169,7 @@ namespace Stride.TextureConverter.Tests
         private TexImage Load(ITexLibrary library, string filePath)
         {
             var image = new TexImage();
-            library.Execute(image, new LoadingRequest(filePath, false));
+            library.Execute(image, new FileLoadingRequest(filePath, false));
             image.Name = Path.GetFileName(filePath);
             image.CurrentLibrary = library;
             return image;

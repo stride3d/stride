@@ -96,7 +96,7 @@ namespace Stride.TextureConverter.Tests
         {
             DxtTexLib lib = new DxtTexLib();
             TexImage image = new TexImage();
-            lib.Execute(image, new LoadingRequest(Module.PathToInputImages+"Texture3D_WMipMaps_BGRA8888.dds", false));
+            lib.Execute(image, new FileLoadingRequest(Module.PathToInputImages+"Texture3D_WMipMaps_BGRA8888.dds", false));
             image.Name = "Texture3D_WMipMaps_BGRA8888.dds";
             lib.EndLibrary(image);
             library.StartLibrary(image);
@@ -144,7 +144,7 @@ namespace Stride.TextureConverter.Tests
         {
             DxtTexLib lib = new DxtTexLib();
             TexImage image = new TexImage();
-            lib.Execute(image, new LoadingRequest(Module.PathToInputImages + fileName + extension, false));
+            lib.Execute(image, new FileLoadingRequest(Module.PathToInputImages + fileName + extension, false));
             lib.EndLibrary(image);
             library.StartLibrary(image);
 
@@ -179,7 +179,7 @@ namespace Stride.TextureConverter.Tests
             Assert.True(library.CanHandleRequest(image, new FixedRescalingRequest(0, 0, Filter.Rescaling.Bilinear)));
             Assert.True(library.CanHandleRequest(image, new SwitchingBRChannelsRequest()));
             Assert.True(library.CanHandleRequest(image, new FlippingRequest(Orientation.Vertical)));
-            Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.png", false)));
+            Assert.True(library.CanHandleRequest(image, new FileLoadingRequest("TextureArray_WMipMaps_BC3.png", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.png", 0)));
             Assert.True(library.CanHandleRequest(image, new GammaCorrectionRequest(0)));
             image.Dispose();

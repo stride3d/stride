@@ -253,7 +253,7 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The file " + file + " doesn't exist. Please check the file path.");
             }
 
-            var atlas = new TexAtlas(layout, Load(new LoadingRequest(file, false)));
+            var atlas = new TexAtlas(layout, Load(new FileLoadingRequest(file, false)));
 
             CheckConformity(atlas, layout);
 
@@ -296,7 +296,7 @@ namespace Stride.TextureConverter
             }
 
             var layout = TexAtlas.TexLayout.Import(layoutFile);
-            var atlas = new TexAtlas(layout, Load(new LoadingRequest(file, false)));
+            var atlas = new TexAtlas(layout, Load(new FileLoadingRequest(file, false)));
 
             CheckConformity(atlas, layout);
 
@@ -345,7 +345,7 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The file " + file + " doesn't exist. Please check the file path.");
             }
 
-            return Load(new LoadingRequest(file, isSRgb));
+            return Load(new FileLoadingRequest(file, isSRgb));
         }
 
         /// <summary>
@@ -358,7 +358,7 @@ namespace Stride.TextureConverter
         public TexImage Load(Image image, bool isSRgb)
         {
             if (image == null) throw new ArgumentNullException("image");
-            return Load(new LoadingRequest(image, isSRgb));
+            return Load(new XkImageLoadingRequest(image, isSRgb));
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace Stride.TextureConverter
         private TexImage Load(LoadingRequest request)
         {
             var texImage = new TexImage();
-            texImage.Name = request.FilePath == null ? "" : Path.GetFileName(request.FilePath);
+            texImage.Name = request is FileLoadingRequest file ? Path.GetFileName(file.FilePath) : "";
 
             foreach (ITexLibrary library in textureLibraries)
             {

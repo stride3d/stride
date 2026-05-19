@@ -59,8 +59,7 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    var load = (LoadingRequest)request;
-                    return load.Mode == LoadingRequest.LoadingMode.FilePath && IsSupportedFile(load.FilePath);
+                    return request is FileLoadingRequest file && IsSupportedFile(file.FilePath);
 
                 case RequestType.Export:
                     return IsSupportedFile(((ExportRequest)request).FilePath);
@@ -174,7 +173,7 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    Load(image, (LoadingRequest)request);
+                    Load(image, (FileLoadingRequest)request);
                     break;
 
                 case RequestType.Rescaling:
@@ -211,7 +210,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private void Load(TexImage image, LoadingRequest loader)
+        private void Load(TexImage image, FileLoadingRequest loader)
         {
             Log.Verbose("Loading " + loader.FilePath + " ...");
 

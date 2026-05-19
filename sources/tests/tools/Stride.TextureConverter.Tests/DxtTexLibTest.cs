@@ -70,7 +70,7 @@ namespace Stride.TextureConverter.Tests
             Assert.True(library.CanHandleRequest(image, new FixedRescalingRequest(0, 0, Filter.Rescaling.Nearest)));
             Assert.True(library.CanHandleRequest(image, new MipMapsGenerationRequest(Filter.MipMapGeneration.Nearest)));
             Assert.True(library.CanHandleRequest(image, new NormalMapGenerationRequest(1)));
-            Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
+            Assert.True(library.CanHandleRequest(image, new FileLoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.dds", 0)));
             Assert.True(library.CanHandleRequest(image, new CompressingRequest(Stride.Graphics.PixelFormat.BC3_UNorm)));
             Assert.False(library.CanHandleRequest(image, new GammaCorrectionRequest(0)));
@@ -239,7 +239,7 @@ namespace Stride.TextureConverter.Tests
             Assert.True(System.IO.File.Exists(inputPath), $"Test fixture missing: {inputPath}");
 
             var image = new TexImage();
-            library.Execute(image, new LoadingRequest(inputPath, false));
+            library.Execute(image, new FileLoadingRequest(inputPath, false));
             image.CurrentLibrary = library;
             Assert.True(image.Width > 0);
             Assert.True(image.Height > 0);

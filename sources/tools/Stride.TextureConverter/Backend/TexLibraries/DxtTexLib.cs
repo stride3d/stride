@@ -130,8 +130,7 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    LoadingRequest loader = (LoadingRequest)request;
-                    return loader.Mode==LoadingRequest.LoadingMode.FilePath && IsSupportedExtension(Path.GetExtension(loader.FilePath));
+                    return request is FileLoadingRequest loader && IsSupportedExtension(Path.GetExtension(loader.FilePath));
 
                 case RequestType.Compressing:
                     CompressingRequest compress = (CompressingRequest)request;
@@ -183,7 +182,7 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    Load(image, (LoadingRequest)request);
+                    Load(image, (FileLoadingRequest)request);
                     break;
                 case RequestType.Compressing:
                     Compress(image, libraryData, (CompressingRequest)request);
@@ -221,7 +220,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="image">The image.</param>
         /// <param name="loader">The loader.</param>
         /// <exception cref="TextureToolsException">Loading dds file failed</exception>
-        private void Load(TexImage image, LoadingRequest loader)
+        private void Load(TexImage image, FileLoadingRequest loader)
         {
             Log.Verbose("Loading " + loader.FilePath + " ...");
 
