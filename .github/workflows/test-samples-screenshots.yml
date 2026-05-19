@@ -29,7 +29,13 @@ concurrency:
 jobs:
   # LPIPS comparator falls back to Claude vision for borderline drift; without ANTHROPIC_API_KEY
   # (typical on forks) flaky frames would surface as false drift. Skip cleanly when missing.
+  #
+  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
+  # workflow_dispatch / repository_dispatch always run.
   preflight:
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     runs-on: ubuntu-latest
     outputs:
       has-api-key: ${{ steps.check.outputs.has-api-key }}

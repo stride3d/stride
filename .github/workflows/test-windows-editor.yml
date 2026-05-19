@@ -26,7 +26,13 @@ jobs:
   # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision
   # as a fallback for borderline cases. Without ANTHROPIC_API_KEY (typical on forks), most flaky
   # runs would report drift. Skip the suite cleanly so forks don't see misleading failures.
+  #
+  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
+  # workflow_dispatch / repository_dispatch always run.
   preflight:
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     runs-on: ubuntu-latest
     outputs:
       has-api-key: ${{ steps.check.outputs.has-api-key }}

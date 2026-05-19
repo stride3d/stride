@@ -19,7 +19,12 @@ on:
 
 jobs:
   check-parallel-build:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Fork-friendly: PR gated on STRIDE_ENABLE_PUSH_CI, schedule on STRIDE_ENABLE_SCHEDULED_CI.
+    # workflow_dispatch always runs.
+    if: >
+      github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && vars.STRIDE_ENABLE_PUSH_CI == 'true')
+      || (github.event_name == 'schedule' && vars.STRIDE_ENABLE_SCHEDULED_CI == 'true')
     name: Detect property-leak duplicate builds
     runs-on: windows-2025-vs2026
     steps:
