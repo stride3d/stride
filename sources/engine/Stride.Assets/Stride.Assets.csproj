@@ -20,9 +20,6 @@
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SSH.NET" PrivateAssets="compile" />
     <PackageReference Include="FFmpeg.AutoGen" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <Reference Include="VHACDSharp">
-      <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
@@ -63,7 +60,7 @@
     <None Include="UI\StrideUILibrary.sduilib" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.*">
+    <StrideNativeLib Include="..\..\..\deps\VHACD\Release\**\*.dll;..\..\..\deps\VHACD\Release\**\*.so;..\..\..\deps\VHACD\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
@@ -84,13 +81,5 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
 
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="_StrideIncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(TargetDir)VHACDSharp.dll" />
-    </ItemGroup>
-  </Target>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
