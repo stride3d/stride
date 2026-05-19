@@ -98,7 +98,7 @@ public static class Lavapipe
     static string GetRid()
     {
         if (OperatingSystem.IsWindows())
-            return "win-x64";
+            return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "win-arm64" : "win-x64";
         if (OperatingSystem.IsLinux())
             return "linux-x64";
         if (OperatingSystem.IsMacOS())

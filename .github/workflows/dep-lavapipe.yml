@@ -161,6 +161,128 @@ jobs:
           name: lavapipe-win-x64
           path: lavapipe-out/
 
+  build-windows-arm64:
+    name: Build Lavapipe (Windows ARM64)
+    # GitHub-hosted native Windows-on-ARM runner. Switch to a custom runner image
+    # if you have one (mirror the x64 job's "windows-2025-vs2026" naming).
+    runs-on: windows-11-arm
+    steps:
+      - name: Checkout Stride
+        uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: build/deps/lavapipe
+
+      - name: Clone Mesa
+        shell: pwsh
+        run: |
+          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init mesa-src
+          git -C mesa-src remote add origin $url
+          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src checkout FETCH_HEAD
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          choco install -y winflexbison3
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja mako pyyaml packaging
+
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.304.1
+          install_runtime: false
+          cache: true
+          stripdown: true
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: arm64
+
+      - name: Restore LLVM cache
+        id: restore-llvm
+        uses: actions/cache/restore@v4
+        with:
+          path: llvm-install
+          key: llvm-21.1.0-msvc2026-static-arm64-v1
+
+      - name: Build LLVM (cache miss)
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch llvmorg-21.1.0 https://github.com/llvm/llvm-project.git
+          cmake -S llvm-project/llvm -B llvm-build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%CD%\llvm-install ^
+            -DLLVM_BUILD_LLVM_DYLIB=OFF ^
+            -DLLVM_LINK_LLVM_DYLIB=OFF ^
+            -DLLVM_ENABLE_PROJECTS= ^
+            -DLLVM_TARGETS_TO_BUILD=X86;AArch64 ^
+            -DLLVM_ENABLE_ASSERTIONS=OFF ^
+            -DLLVM_INCLUDE_TESTS=OFF ^
+            -DLLVM_INCLUDE_EXAMPLES=OFF ^
+            -DLLVM_INCLUDE_BENCHMARKS=OFF
+          cmake --build llvm-build --target install
+
+      - name: Save LLVM cache
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: llvm-install
+          key: llvm-21.1.0-msvc2026-static-arm64-v1
+
+      - name: Configure Mesa (Lavapipe only, static LLVM)
+        shell: cmd
+        working-directory: mesa-src
+        env:
+          LLVM_CONFIG: ${{ github.workspace }}\llvm-install\bin\llvm-config.exe
+          FLEX: win_flex
+          LEX: win_flex
+          BISON: win_bison
+          YACC: win_bison
+        run: |
+          set PYTHONUTF8=1
+          set PATH=${{ github.workspace }}\llvm-install\bin;%PATH%
+          meson setup _build ^
+            -Dvulkan-drivers=swrast ^
+            -Dgallium-drivers=llvmpipe ^
+            -Dplatforms=windows ^
+            -Dc_args="/wd4189" ^
+            -Dcpp_args="/wd4189" ^
+            -Dglx=disabled -Degl=disabled ^
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled ^
+            -Dgallium-extra-hud=false ^
+            -Dvideo-codecs= ^
+            -Dllvm=enabled ^
+            -Dshared-llvm=disabled ^
+            -Dbuildtype=release
+
+      - name: Build vulkan_lvp.dll
+        shell: cmd
+        working-directory: mesa-src
+        run: |
+          set PYTHONUTF8=1
+          meson compile -C _build src/gallium/targets/lavapipe/vulkan_lvp:shared_library
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          mkdir lavapipe-out
+          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter vulkan_lvp.dll | Select-Object -First 1
+          if (-not $dll) { throw "vulkan_lvp.dll not found in build output" }
+          Copy-Item $dll.FullName lavapipe-out/
+          Set-Content -NoNewline -Path lavapipe-out/lvp_icd.json -Value '{"file_format_version":"1.0.0","ICD":{"library_path":".\\vulkan_lvp.dll","api_version":"1.3.0"}}'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavapipe-win-arm64
+          path: lavapipe-out/
+
   build-linux:
     name: Build Lavapipe (Linux x64)
     runs-on: ubuntu-24.04
@@ -285,7 +407,7 @@ jobs:
 
   pack:
     name: Pack & Publish NuGet
-    needs: [build-windows, build-linux, build-macos]
+    needs: [build-windows, build-windows-arm64, build-linux, build-macos]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
@@ -305,6 +427,10 @@ jobs:
         uses: actions/download-artifact@v4
         with: { name: lavapipe-win-x64, path: artifacts/win-x64 }
 
+      - name: Download Windows ARM64 artifact
+        uses: actions/download-artifact@v4
+        with: { name: lavapipe-win-arm64, path: artifacts/win-arm64 }
+
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with: { name: lavapipe-linux-x64, path: artifacts/linux-x64 }
@@ -317,7 +443,7 @@ jobs:
         shell: pwsh
         run: |
           $destRoot = "build/deps/lavapipe/runtimes"
-          foreach ($rid in 'win-x64','linux-x64','osx-arm64') {
+          foreach ($rid in 'win-x64','win-arm64','linux-x64','osx-arm64') {
             $native = "$destRoot/$rid/native"
             New-Item -Path $native -ItemType Directory -Force | Out-Null
             Copy-Item -Recurse artifacts/$rid/* $native
