@@ -53,6 +53,7 @@ Stride uses the following open-source products.
 * [Gettext.NET](https://sourceforge.net/projects/gettextnet/) (LGPL 2.1, [modified binaries](https://github.com/stride3d/gettextnet))
 * [ImageMagick](http://www.imagemagick.org/)
 * [Markdown.XAML](https://github.com/theunrepentantgeek/Markdown.XAML) (MIT License)
+* [msdfgen](https://github.com/Chlumsky/msdfgen) (MIT License)
 * [Mono.Cecil](https://github.com/jbevain/cecil) (MIT License)
 * [Mono.Options](http://www.mono-project.com/) and [Mono.TextTemplating](https://github.com/mono/t4) (MIT License)
 * [NShader](http://nshader.codeplex.com/) (Ms-PL)

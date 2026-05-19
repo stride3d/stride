@@ -66,14 +66,14 @@
     <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
+    <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
     <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />
     <None Include="AssetPackage\Resources\ClearCoatOrangePeelNM.dds" />
     <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
