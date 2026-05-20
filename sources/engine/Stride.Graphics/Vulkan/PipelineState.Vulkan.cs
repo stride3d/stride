@@ -269,11 +269,12 @@ namespace Stride.Graphics
                 {
                     var currentBlendDesc = pipelineStateDescription.BlendState.IndependentBlendEnable ? (blendDescription + i) : blendDescription;
 
+                    // loadOp=Load: per-pipeline render passes restart mid-frame; DontCare drops contents of tiles a non-fullscreen draw touches (visible as block garbage on Lavapipe/MoltenVK).
                     attachments[i] = new VkAttachmentDescription
                     {
                         format = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i)),
                         samples = VkSampleCountFlags.Count1,
-                        loadOp = currentBlendDesc->BlendEnable ? VkAttachmentLoadOp.Load : VkAttachmentLoadOp.DontCare, // TODO VULKAN: Only if any destination blend?
+                        loadOp = VkAttachmentLoadOp.Load,
                         storeOp = VkAttachmentStoreOp.Store,
                         stencilLoadOp = VkAttachmentLoadOp.DontCare,
                         stencilStoreOp = VkAttachmentStoreOp.DontCare,
@@ -310,8 +311,8 @@ namespace Stride.Graphics
                     samples = VkSampleCountFlags.Count1,
                     loadOp = VkAttachmentLoadOp.Load, // TODO VULKAN: Only if depth read enabled?
                     storeOp = VkAttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
-                    stencilLoadOp = VkAttachmentLoadOp.DontCare, // TODO VULKAN: Handle stencil
-                    stencilStoreOp = VkAttachmentStoreOp.DontCare,
+                    stencilLoadOp = VkAttachmentLoadOp.Load,
+                    stencilStoreOp = VkAttachmentStoreOp.Store,
                     initialLayout = depthLayout,
                     finalLayout = depthLayout
                 };
