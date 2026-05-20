@@ -69,6 +69,7 @@ jobs:
             -p:StridePlatforms=macOS \
             -p:StrideGraphicsApis=Vulkan
       - name: Test GPU
+        if: success() || failure()
         run: |
           dotnet test build/Stride.Tests.Game.GPU.slnf \
             --no-build \
