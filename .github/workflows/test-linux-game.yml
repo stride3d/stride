@@ -41,6 +41,10 @@ jobs:
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_MAX_PARALLELISM: "8"
+      # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet
+      # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
+      # whose timestamping CAs have expired. Disable verification for this CI job.
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
     steps:
       - uses: actions/checkout@v4
         with:
