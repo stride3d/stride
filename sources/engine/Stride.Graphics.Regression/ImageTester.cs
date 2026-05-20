@@ -7,8 +7,38 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.Regression
 {
+    /// <summary>
+    ///   Payload for <see cref="ImageTester.ImageComparisonCompleted"/>. Carries paths and the
+    ///   resulting stats; lets in-process consumers (e.g. the interactive runner) drive a
+    ///   diff / promote UI without parsing log strings.
+    /// </summary>
+    public sealed class ImageComparisonEventArgs : EventArgs
+    {
+        /// <summary>Path under <c>tests/local/...</c> where the rendered output was (or
+        /// would be) written. May not exist on disk for a passing test unless
+        /// <c>ForceSaveImageOnSuccess</c> is set.</summary>
+        public required string CurrentPath { get; init; }
+        /// <summary>Path under <c>tests/...</c> of the gold image that was used for the
+        /// comparison. For "missing reference" failures this is the expected gold path
+        /// even though no file exists there.</summary>
+        public required string ReferencePath { get; init; }
+        /// <summary>True if the comparison succeeded (within thresholds). False on
+        /// mismatch or missing reference.</summary>
+        public required bool Passed { get; init; }
+        /// <summary>Stats from the last comparison attempt — populated on success and on
+        /// the failing exact-match attempt; default when no reference existed.</summary>
+        public ImageTester.ComparisonStats Stats { get; init; }
+    }
+
     public static class ImageTester
     {
+        /// <summary>Fired after every screenshot/gold comparison in <see cref="GameTestBase"/>.
+        /// Process-global, intended for in-process subscribers (e.g. the interactive runner UI).</summary>
+        public static event EventHandler<ImageComparisonEventArgs>? ImageComparisonCompleted;
+
+        internal static void RaiseImageComparison(ImageComparisonEventArgs args)
+            => ImageComparisonCompleted?.Invoke(null, args);
+
         public enum ComparisonMode
         {
             /// <summary>

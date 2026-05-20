@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Xunit;
 using Xunit.Abstractions;
+using xunit.runner.stride.ViewModels;
 
 namespace xunit.runner.stride;
 
@@ -15,7 +16,7 @@ public static class StrideXunitRunner
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
-    public static void Main(string[] args, Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null)
+    public static void Main(string[] args, Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null, Action<string?>? setRenderDocMode = null, Action<Action<ImageCompareResult>>? subscribeImageComparison = null)
     {
         if (IsHeadless())
         {
@@ -24,7 +25,7 @@ public static class StrideXunitRunner
             return;
         }
 
-        var builder = BuildAvaloniaApp(setInteractiveMode, setForceSaveImage)
+        var builder = BuildAvaloniaApp(setInteractiveMode, setForceSaveImage, setRenderDocMode, subscribeImageComparison)
             .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
         if (builder.Instance is App app)
         {
@@ -127,8 +128,8 @@ public static class StrideXunitRunner
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp(Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null)
-        => AppBuilder.Configure(() => new App { setInteractiveMode = setInteractiveMode, setForceSaveImage = setForceSaveImage })
+    public static AppBuilder BuildAvaloniaApp(Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null, Action<string?>? setRenderDocMode = null, Action<Action<ImageCompareResult>>? subscribeImageComparison = null)
+        => AppBuilder.Configure(() => new App { setInteractiveMode = setInteractiveMode, setForceSaveImage = setForceSaveImage, setRenderDocMode = setRenderDocMode, subscribeImageComparison = subscribeImageComparison })
             .UsePlatformDetect()
             .With(new Win32PlatformOptions
             {
