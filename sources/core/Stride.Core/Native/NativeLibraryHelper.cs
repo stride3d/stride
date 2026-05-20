@@ -267,9 +267,15 @@ public static partial class NativeLibraryHelper
         result = ProbePath(Path.Combine(ownerAssemblyDir, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(currentExeDir, platformNativeLibsDir)) ??
+                 // .NET flattens runtimes/<rid>/native/ to the publish root when RuntimeIdentifier
+                 // is set, so probe the bare directories too.
+                 ProbePath(ownerAssemblyDir) ??
+                 ProbePath(Environment.CurrentDirectory) ??
+                 ProbePath(currentExeDir) ??
                  // Also try without platform for Windows-only packages (backwards compatible for editor packages)
                  ProbePath(Path.Combine(ownerAssemblyDir, cpu)) ??
-                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu));
+                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu)) ??
+                 ProbePath(Path.Combine(currentExeDir, cpu));
 
         return result is not null;
 
