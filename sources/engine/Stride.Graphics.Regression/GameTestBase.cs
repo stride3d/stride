@@ -642,7 +642,7 @@ namespace Stride.Graphics.Regression
             var gpuValidationWarnings = new List<string>();
             void OnGlobalMessage(ILogMessage msg)
             {
-                if (msg.Module != nameof(GraphicsDevice))
+                if (msg.Module != GraphicsDevice.DebugLogModule)
                     return;
                 if (msg.Type == LogMessageType.Error)
                     gpuValidationErrors.Add(msg.Text);

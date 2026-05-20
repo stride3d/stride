@@ -50,6 +50,17 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Install Vulkan validation layer
+        # Stride loads the LunarG loader on macOS when present so the validation layer chain works;
+        # its DebugReport callback then routes errors+warnings to GraphicsDevice.DebugLog, which
+        # GameTestBase converts to Assert.Fail. The layer's JSON ships a bare library_path, so the
+        # loader's dlopen needs DYLD_FALLBACK_LIBRARY_PATH to find the dylib in /opt/homebrew/lib.
+        # molten-vk supplies the ICD JSON the loader picks up; without it the loader has no driver.
+        run: |
+          brew install vulkan-validationlayers molten-vk
+          echo "VK_LAYER_PATH=$(brew --prefix vulkan-validationlayers)/share/vulkan/explicit_layer.d" >> $GITHUB_ENV
+          echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib" >> $GITHUB_ENV
+          echo "MVK_CONFIG_LOG_LEVEL=3" >> $GITHUB_ENV
       - name: Build GPU tests
         run: |
           dotnet build build/Stride.Tests.Game.GPU.slnf \
