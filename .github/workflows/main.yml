@@ -9,6 +9,7 @@ on:
       - 'build/**'
       - 'deps/**'
       - 'sources/**'
+      - 'tests/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -20,6 +21,7 @@ on:
       - 'build/**'
       - 'deps/**'
       - 'sources/**'
+      - 'tests/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -73,6 +75,7 @@ jobs:
               - 'sources/sdk/**'
               - 'sources/assets/**'
               - 'deps/**'
+              - 'tests/**'
               - 'build/Stride.Runtime.slnf'
             ios:
               - 'sources/engine/**'
@@ -253,6 +256,22 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # macOS runners bill ~10× Linux on GitHub-hosted; gate on Linux-Runtime so a broken build
+  # doesn't burn macOS minutes. MoltenVK/Vulkan path is unique to macOS so per-commit coverage
+  # catches regressions per-PR rather than via a stale cron snapshot.
+  macOS-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      always()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-macos-game.yml
     secrets: inherit
     with:
       build-type: Debug
