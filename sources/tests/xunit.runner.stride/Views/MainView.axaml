@@ -3,52 +3,420 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:xunit.runner.stride.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="xunit.runner.stride.Views.MainView"
              x:DataType="vm:MainViewModel">
+  <UserControl.Styles>
+    <!-- Per-row run/preview icons stay clickable but out of the Tab cycle — keyboard runs
+         the selected test via Enter / Shift+Enter. Hidden in narrow mode (mobile) where
+         the detail-pane header carries the Run/Preview buttons instead. -->
+    <Style Selector="Button.runIcon">
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="#34D058" />
+      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+      <Setter Property="IsTabStop" Value="False" />
+      <Setter Property="IsVisible" Value="{Binding $parent[DockPanel].DataContext.IsWideMode, FallbackValue=True}" />
+    </Style>
+    <Style Selector="Button.previewIcon">
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="#58A6FF" />
+      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+      <Setter Property="Margin" Value="2,0,0,0" />
+      <Setter Property="IsTabStop" Value="False" />
+      <Setter Property="IsVisible" Value="{Binding $parent[DockPanel].DataContext.IsWideMode, FallbackValue=True}" />
+    </Style>
+    <Style Selector="TextBlock.statusIcon">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+      <Setter Property="Margin" Value="6,0,0,0" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="TextBlock.testName">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="6,0,0,0" />
+    </Style>
+    <Style Selector="TextBlock.elapsed">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="8,0,0,0" />
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="ToggleButton.chip">
+      <Setter Property="Padding" Value="10,2" />
+      <Setter Property="Margin" Value="2,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="IsTabStop" Value="False" />
+    </Style>
+    <!-- WrapPanel has no ItemSpacing; per-child margin keeps spacing consistent across wraps. -->
+    <Style Selector="WrapPanel.toolbar > :is(Control)">
+      <Setter Property="Margin" Value="0,2,6,2" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel DataContext="{Binding Tests}">
-    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-      <CheckBox Content="Interactive Mode" IsChecked="{Binding IsInteractiveMode}" IsEnabled="{Binding HasInteractiveMode}"/>
-		<Separator Opacity="0" Width="10"/>
-      <CheckBox Content="Force Save Image" IsChecked="{Binding IsForceSaveImage}" IsEnabled="{Binding HasForceSaveImage}"/>
-    </StackPanel>
+
+    <!-- Top bar wraps onto additional rows on narrow viewports. -->
+    <Border DockPanel.Dock="Top" Padding="6" BorderThickness="0,0,0,1" BorderBrush="#333">
+      <StackPanel Orientation="Vertical" Spacing="4">
+        <WrapPanel Classes="toolbar" Orientation="Horizontal">
+          <TextBox Name="FilterBox"
+                   MinWidth="200"
+                   Width="320"
+                   TabIndex="1"
+                   Watermark="Filter — case-insensitive substring (/, Ctrl+F to focus)"
+                   ToolTip.Tip="Up/Down: move tree selection · Enter: run · Shift+Enter: preview · Tab: focus tree · Esc: clear selection"
+                   Text="{Binding FilterText, Mode=TwoWay}" />
+          <Button Content="✕" ToolTip.Tip="Clear filter" Command="{Binding ClearFilter}" Padding="6,2" />
+          <Separator Opacity="0" Width="8" />
+          <Button Content="↻ Re-run failed"
+                  Command="{Binding RunFailedCmd}"
+                  IsEnabled="{Binding CanRunFailed}"
+                  ToolTip.Tip="Re-run all failed tests (Ctrl+R)" />
+          <Button Content="▶ Run filtered/selected"
+                  Command="{Binding RunSelected}"
+                  IsEnabled="{Binding !RunningTests}"
+                  ToolTip.Tip="Run filtered/selected tests, headless (F5)" />
+          <Button Content="👁 Preview"
+                  Command="{Binding RunSelectedInteractive}"
+                  IsEnabled="{Binding !RunningTests}"
+                  ToolTip.Tip="Preview filtered/selected interactively — opens game window, does NOT run as a test" />
+          <Separator Opacity="0" Width="4" />
+          <CheckBox Content="Save image"
+                    IsChecked="{Binding IsForceSaveImage, Mode=TwoWay}"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="When enabled, the rendered output is written to tests/local/... on every run — including successful ones (default: only on failure). Use to capture or regenerate gold images." />
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding HasRenderDocMode}">
+            <TextBlock Text="RenderDoc:" VerticalAlignment="Center" Opacity="0.7" />
+            <ComboBox SelectedItem="{Binding RenderDocMode, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      MinWidth="100"
+                      ToolTip.Tip="RenderDoc frame capture mode for interactive runs (desktop only). Mirrors the STRIDE_TESTS_RENDERDOC env var.&#x0a; · Never — no capture&#x0a; · On error — capture frames; keep only for failing tests&#x0a; · Always — keep captures for every test, pass or fail">
+              <ComboBox.Items>
+                <vm:RenderDocCaptureMode>Never</vm:RenderDocCaptureMode>
+                <vm:RenderDocCaptureMode>OnError</vm:RenderDocCaptureMode>
+                <vm:RenderDocCaptureMode>Always</vm:RenderDocCaptureMode>
+              </ComboBox.Items>
+            </ComboBox>
+          </StackPanel>
+        </WrapPanel>
+        <WrapPanel Orientation="Horizontal">
+          <ToggleButton Classes="chip" Content="All" IsChecked="{Binding StatusFilterIsAll, Mode=TwoWay}" />
+          <ToggleButton Classes="chip" IsChecked="{Binding StatusFilterIsPassed, Mode=TwoWay}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="✔" Foreground="#34D058" />
+              <TextBlock Text="Passed" />
+              <TextBlock Text="{Binding PassedCount}" Opacity="0.7" />
+            </StackPanel>
+          </ToggleButton>
+          <ToggleButton Classes="chip" IsChecked="{Binding StatusFilterIsFailed, Mode=TwoWay}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="✘" Foreground="#F85149" />
+              <TextBlock Text="Failed" />
+              <TextBlock Text="{Binding FailedCount}" Opacity="0.7" />
+            </StackPanel>
+          </ToggleButton>
+          <ToggleButton Classes="chip" IsChecked="{Binding StatusFilterIsSkipped, Mode=TwoWay}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="⊘" Foreground="#D29922" />
+              <TextBlock Text="Skipped" />
+              <TextBlock Text="{Binding SkippedCount}" Opacity="0.7" />
+            </StackPanel>
+          </ToggleButton>
+          <ToggleButton Classes="chip" IsChecked="{Binding StatusFilterIsNotRun, Mode=TwoWay}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="○" Opacity="0.7" />
+              <TextBlock Text="Not run" />
+              <TextBlock Text="{Binding NotRunCount}" Opacity="0.7" />
+            </StackPanel>
+          </ToggleButton>
+        </WrapPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- ===== Progress bar ===== -->
     <ProgressBar DockPanel.Dock="Top"
-                 Height="16"
-                 Minimum="0" Maximum="100" Value="{Binding TestCompletion}" />
-    <TreeView ItemsSource="{Binding TestCases}">
-      <TreeView.DataTemplates>
-        <TreeDataTemplate DataType="{x:Type vm:TestGroupViewModel}"
-                          ItemsSource="{Binding Children}">
-          <StackPanel Orientation="Horizontal">
-            <Menu>
-              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
-            </Menu>
-            <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
-            <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
-            <TextBlock Text="⭮" FontFamily="Segoe UI Symbol" IsVisible="{Binding Running}" Foreground="Blue" />
-            <TextBlock Text="{Binding DisplayName}" />
-            <TextBlock Text="(Running)" IsVisible="{Binding Running}" />
+                 Height="6"
+                 Minimum="0" Maximum="100"
+                 Value="{Binding TestCompletion}"
+                 IsVisible="{Binding RunningTests}" />
+
+    <!-- ===== Bottom summary bar ===== -->
+    <Border DockPanel.Dock="Bottom" Padding="8,4" BorderThickness="0,1,0,0" BorderBrush="#333">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock VerticalAlignment="Center">
+          <Run Text="Total:" />
+          <Run Text="{Binding TotalCount}" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Foreground="#34D058">
+          <Run Text="✔" />
+          <Run Text="{Binding PassedCount}" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Foreground="#F85149">
+          <Run Text="✘" />
+          <Run Text="{Binding FailedCount}" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Foreground="#D29922">
+          <Run Text="⊘" />
+          <Run Text="{Binding SkippedCount}" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Opacity="0.7">
+          <Run Text="○" />
+          <Run Text="{Binding NotRunCount}" />
+          <Run Text=" not run" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Opacity="0.7">
+          <Run Text="•" />
+          <Run Text="{Binding TotalElapsedDisplay}" />
+        </TextBlock>
+        <TextBlock VerticalAlignment="Center" Opacity="0.7" IsVisible="{Binding RunningTests}">
+          <Run Text="Running…" />
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <!-- Tree + inspect panel; switches to stacked layout when narrow (see MainView.axaml.cs). -->
+    <Grid Name="MainSplit" ColumnDefinitions="*,8,2*">
+      <TreeView Name="TestsTree"
+                Grid.Column="0"
+                TabIndex="2"
+                ItemsSource="{Binding TestCases}"
+                SelectionMode="Multiple"
+                SelectionChanged="OnTreeSelectionChanged"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <TreeView.DataTemplates>
+          <TreeDataTemplate DataType="{x:Type vm:TestGroupViewModel}" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsVisible}">
+              <StackPanel.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="▶ Run" Command="{Binding RunTest}" />
+                  <MenuItem Header="👁 Preview" Command="{Binding RunInteractive}" />
+                </ContextMenu>
+              </StackPanel.ContextMenu>
+              <!-- 3px left accent on the primary (focused) selection so it stands out from
+                   the rest of a multi-selection. -->
+              <Border Width="3" Background="#58A6FF" Margin="0,1,4,1"
+                      IsVisible="{Binding IsPrimarySelection, FallbackValue=False}" />
+              <Button Classes="runIcon"
+                      Content="▶"
+                      Command="{Binding RunTest}"
+                      IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
+                      ToolTip.Tip="Run all tests in this group, headless (Enter)" />
+              <Button Classes="previewIcon"
+                      Content="👁"
+                      Command="{Binding RunInteractive}"
+                      IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
+                      ToolTip.Tip="Preview interactively — opens game window, does NOT run as a test (Shift+Enter)" />
+              <TextBlock Classes="statusIcon" Text="✘" Foreground="#F85149" IsVisible="{Binding Failed}" />
+              <TextBlock Classes="statusIcon" Text="✔" Foreground="#34D058" IsVisible="{Binding Succeeded}" />
+              <TextBlock Classes="statusIcon" Text="⊘" Foreground="#D29922" IsVisible="{Binding Skipped}" />
+              <TextBlock Classes="statusIcon" Text="⭮" Foreground="#58A6FF" IsVisible="{Binding Running}" />
+              <TextBlock Classes="statusIcon" Text="…" Foreground="#888" IsVisible="{Binding Pending}" />
+              <TextBlock Classes="testName" Text="{Binding DisplayName}" />
+              <TextBlock Classes="elapsed" Text="{Binding ElapsedDisplay}" IsVisible="{Binding HasElapsed}" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <DataTemplate DataType="{x:Type vm:TestCaseViewModel}">
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsVisible}">
+              <StackPanel.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="▶ Run" Command="{Binding RunTest}" />
+                  <MenuItem Header="👁 Preview" Command="{Binding RunInteractive}" />
+                </ContextMenu>
+              </StackPanel.ContextMenu>
+              <Border Width="3" Background="#58A6FF" Margin="0,1,4,1"
+                      IsVisible="{Binding IsPrimarySelection, FallbackValue=False}" />
+              <Button Classes="runIcon"
+                      Content="▶"
+                      Command="{Binding RunTest}"
+                      IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
+                      ToolTip.Tip="Run test, headless (Enter)" />
+              <Button Classes="previewIcon"
+                      Content="👁"
+                      Command="{Binding RunInteractive}"
+                      IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
+                      ToolTip.Tip="Preview interactively — opens game window, does NOT run as a test (Shift+Enter)" />
+              <TextBlock Classes="statusIcon" Text="✘" Foreground="#F85149" IsVisible="{Binding Failed}" />
+              <TextBlock Classes="statusIcon" Text="✔" Foreground="#34D058" IsVisible="{Binding Succeeded}" />
+              <TextBlock Classes="statusIcon" Text="⊘" Foreground="#D29922" IsVisible="{Binding Skipped}" />
+              <TextBlock Classes="statusIcon" Text="⭮" Foreground="#58A6FF" IsVisible="{Binding Running}" />
+              <TextBlock Classes="statusIcon" Text="…" Foreground="#888" IsVisible="{Binding Pending}" />
+              <TextBlock Classes="testName" Text="{Binding DisplayName}" />
+              <TextBlock Classes="elapsed" Text="{Binding ElapsedDisplay}" IsVisible="{Binding HasElapsed}" />
+            </StackPanel>
+          </DataTemplate>
+        </TreeView.DataTemplates>
+        <TreeView.Styles>
+          <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True" />
+            <!-- Collapse filtered-out rows entirely (binding container to data IsVisible). -->
+            <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+            <!-- Bigger touch target in narrow mode (RowMinHeight is 44 on phones, 0 on desktop). -->
+            <Setter Property="MinHeight" Value="{Binding $parent[DockPanel].DataContext.RowMinHeight, FallbackValue=0}" />
+          </Style>
+        </TreeView.Styles>
+      </TreeView>
+
+      <GridSplitter Name="MainSplitter" Grid.Column="1" Background="#333" IsTabStop="False" />
+
+      <!-- Inspect: sticky header (back + name + run/preview) over scrollable failure /
+           stack / output / image-compare content. -->
+      <Border Name="InspectBorder" Grid.Column="2" Padding="8" DataContext="{Binding #TestsTree.SelectedItem}">
+        <DockPanel>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+            <Button Grid.Column="0" Name="BackButton" Content="← Tests"
+                    Click="OnBackToList" IsVisible="False"
+                    Margin="0,0,8,0" Padding="8,4" VerticalAlignment="Top" />
+            <StackPanel Grid.Column="1" Spacing="2">
+              <TextBlock Text="{Binding DisplayName, FallbackValue='Select a test to see details'}"
+                         FontWeight="Bold" TextWrapping="Wrap" />
+              <TextBlock Opacity="0.7"
+                         Text="{Binding ElapsedDisplay, FallbackValue=''}"
+                         IsVisible="{Binding HasElapsed, FallbackValue=False}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top"
+                        IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+              <Button Content="▶ Run" Click="OnDetailRun" Padding="8,4" Foreground="#34D058" />
+              <Button Content="👁 Preview" Click="OnDetailPreview" Padding="8,4" Foreground="#58A6FF" />
+            </StackPanel>
+          </Grid>
+          <ScrollViewer>
+            <StackPanel Spacing="6">
+
+            <!-- Empty-state CTA: shown when the test has no result yet. Big tap targets so
+                 a fresh test is one tap away from running, with no header hunt. -->
+            <StackPanel Spacing="12" Margin="0,40,0,0" HorizontalAlignment="Center"
+                        IsVisible="{Binding !HasResult, FallbackValue=False}">
+              <TextBlock Text="Not run yet" Opacity="0.55" HorizontalAlignment="Center" FontSize="14" />
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <Button Content="▶ Run" Click="OnDetailRun" Foreground="#34D058" FontSize="16" Padding="20,10" />
+                <Button Content="👁 Preview" Click="OnDetailPreview" Foreground="#58A6FF" FontSize="16" Padding="20,10" />
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Failure message + stack first -->
+            <TextBlock Margin="0,4,0,0"
+                       Foreground="#F85149"
+                       FontWeight="Bold"
+                       Text="Failure message"
+                       IsVisible="{Binding FailureMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}" />
+            <SelectableTextBlock TextWrapping="Wrap"
+                                 FontFamily="Cascadia Mono,Consolas,monospace"
+                                 Foreground="#F85149"
+                                 Text="{Binding FailureMessage, FallbackValue=''}"
+                                 IsVisible="{Binding FailureMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}" />
+            <TextBlock Margin="0,4,0,0"
+                       FontWeight="Bold"
+                       Opacity="0.8"
+                       Text="Stack trace"
+                       IsVisible="{Binding FailureStackTrace, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}" />
+            <SelectableTextBlock TextWrapping="NoWrap"
+                                 FontFamily="Cascadia Mono,Consolas,monospace"
+                                 FontSize="11"
+                                 Opacity="0.8"
+                                 Text="{Binding FailureStackTrace, FallbackValue=''}"
+                                 IsVisible="{Binding FailureStackTrace, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}" />
+
+            <!-- Captured stdout/stderr; Inlines populated in code-behind for warning/error tinting. -->
+            <TextBlock Margin="0,8,0,0"
+                       FontWeight="Bold"
+                       Opacity="0.8"
+                       Text="Output"
+                       IsVisible="{Binding HasOutput, FallbackValue=False}" />
+            <SelectableTextBlock Name="OutputBlock"
+                                 TextWrapping="NoWrap"
+                                 FontFamily="Cascadia Mono,Consolas,monospace"
+                                 FontSize="11"
+                                 Opacity="0.9"
+                                 IsVisible="{Binding HasOutput, FallbackValue=False}" />
+
+            <!-- Image comparisons list. One entry per GameTestBase comparison; multi-frame
+                 tests (e.g. UI tests) push many. Bitmaps + diff per entry are populated in
+                 code-behind when this test becomes the focused row. -->
+            <StackPanel Spacing="4"
+                        Margin="0,8,0,0"
+                        IsVisible="{Binding HasImageComparison, FallbackValue=False}">
+              <TextBlock FontWeight="Bold" Opacity="0.8" Text="Image comparisons" />
+              <ItemsControl Name="ImageCompareList" ItemsSource="{Binding ImageComparisons}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="{x:Type vm:ImageComparisonViewModel}">
+                    <StackPanel Spacing="2" Margin="0,4,0,8">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Label}" FontFamily="Cascadia Mono,Consolas,monospace" FontSize="11" Opacity="0.85" />
+                        <TextBlock Text="{Binding StatsSummary, FallbackValue=''}" Opacity="0.6" FontSize="11" />
+                      </StackPanel>
+                      <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Current" HorizontalAlignment="Center" Opacity="0.6" FontSize="11" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Diff" HorizontalAlignment="Center" Opacity="0.6" FontSize="11" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reference" HorizontalAlignment="Center" Opacity="0.6" FontSize="11" />
+                        <Border Grid.Row="1" Grid.Column="0" BorderBrush="#333" BorderThickness="1" Margin="2" MinHeight="80">
+                          <Grid>
+                            <Image MaxHeight="180" Stretch="Uniform"
+                                   Source="{Binding CurrentBitmap}"
+                                   IsVisible="{Binding ShowCurrentImage}">
+                              <Image.ContextMenu>
+                                <ContextMenu>
+                                  <MenuItem Header="Open" Click="OnOpenFile" Tag="{Binding CurrentPath}" />
+                                  <MenuItem Header="Reveal in Explorer" Click="OnRevealCurrent" Tag="{Binding CurrentPath}" />
+                                  <MenuItem Header="Copy path" Click="OnCopyPath" Tag="{Binding CurrentPath}" />
+                                </ContextMenu>
+                              </Image.ContextMenu>
+                            </Image>
+                            <TextBlock Text="(not saved on pass)" Opacity="0.5" FontStyle="Italic" FontSize="11"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsVisible="{Binding ShowCurrentPlaceholder}" />
+                          </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" BorderBrush="#333" BorderThickness="1" Margin="2" MinHeight="80">
+                          <Grid>
+                            <Image MaxHeight="180" Stretch="Uniform"
+                                   Source="{Binding DiffBitmap}"
+                                   IsVisible="{Binding ShowDiffImage}" />
+                            <TextBlock Text="✔" FontSize="64" Foreground="#34D058"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsVisible="{Binding ShowDiffPassed}" />
+                            <TextBlock Text="(no diff available)" Opacity="0.5" FontStyle="Italic" FontSize="11"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsVisible="{Binding ShowDiffPlaceholder}" />
+                          </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="2" BorderBrush="#333" BorderThickness="1" Margin="2" MinHeight="80">
+                          <Grid>
+                            <Image MaxHeight="180" Stretch="Uniform"
+                                   Source="{Binding ReferenceBitmap}"
+                                   IsVisible="{Binding ShowReferenceImage}">
+                              <Image.ContextMenu>
+                                <ContextMenu>
+                                  <MenuItem Header="Open" Click="OnOpenFile" Tag="{Binding ReferencePath}" />
+                                  <MenuItem Header="Reveal in Explorer" Click="OnRevealReference" Tag="{Binding ReferencePath}" />
+                                  <MenuItem Header="Copy path" Click="OnCopyPath" Tag="{Binding ReferencePath}" />
+                                </ContextMenu>
+                              </Image.ContextMenu>
+                            </Image>
+                            <TextBlock Text="(no gold yet — Promote to create)" Opacity="0.5" FontStyle="Italic" FontSize="11"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       IsVisible="{Binding ShowReferencePlaceholder}" />
+                          </Grid>
+                        </Border>
+                      </Grid>
+                      <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                        <Button Content="Promote current → reference" Click="OnPromoteCurrent" Tag="{Binding}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </StackPanel>
-        </TreeDataTemplate>
-        <DataTemplate DataType="{x:Type vm:TestNodeViewModel}">
-          <StackPanel Orientation="Horizontal">
-            <Menu>
-              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
-            </Menu>
-            <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
-            <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
-            <TextBlock Text="⭮" FontFamily="Segoe UI Symbol" IsVisible="{Binding Running}" Foreground="Blue" />
-            <TextBlock Text="{Binding DisplayName}" />
-            <TextBlock Text="(Running)" IsVisible="{Binding Running}" />
-          </StackPanel>
-        </DataTemplate>
-      </TreeView.DataTemplates>
-      <TreeView.Styles>
-        <Style Selector="TreeViewItem">
-          <!-- Start expanded -->
-          <Setter Property="IsExpanded" Value="True" />
-        </Style>
-      </TreeView.Styles>
-    </TreeView>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </Grid>
   </DockPanel>
 </UserControl>

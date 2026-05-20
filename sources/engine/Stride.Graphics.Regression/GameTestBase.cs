@@ -113,14 +113,16 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        ///   Controls RenderDoc capture behavior for tests.
-        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   Controls RenderDoc capture behavior for tests. Defaults to the value of the
+        ///   <c>STRIDE_TESTS_RENDERDOC</c> environment variable (lower-cased) and can be
+        ///   overridden at runtime by the interactive test runner.
         ///   <list type="bullet">
         ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
         ///     <item><c>always</c> — capture frames for all tests</item>
+        ///     <item>anything else / <see langword="null"/> — no capture</item>
         ///   </list>
         /// </summary>
-        private static readonly string RenderDocMode =
+        public static string RenderDocMode { get; set; } =
             Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
         private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
@@ -793,6 +795,14 @@ namespace Stride.Graphics.Regression
                 // No source image, save this one so that user can later copy it to validated folder
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
+                // Treat "missing reference" as a (failed) comparison so interactive runners
+                // can still surface the rendered output and offer a create-gold action.
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
+                {
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = testFileName,
+                    Passed = false,
+                });
             }
             else
             {
@@ -826,12 +836,16 @@ namespace Stride.Graphics.Regression
                 // Compare against all available gold images
                 var pendingFailMessages = new List<string>();
                 bool anyMatch = false;
+                string matchedFile = testFileName;
+                ImageTester.ComparisonStats lastStats = default;
                 foreach (var file in testFileNames)
                 {
                     bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
+                    lastStats = stats;
                     if (match)
                     {
                         anyMatch = true;
+                        matchedFile = file;
                         break;
                     }
                     var isExactMatch = file == testFileName;
@@ -855,6 +869,14 @@ namespace Stride.Graphics.Regression
                     if (File.Exists(testLocalFileName))
                         File.Delete(testLocalFileName);
                 }
+
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
+                {
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = matchedFile,
+                    Passed = anyMatch,
+                    Stats = lastStats,
+                });
             }
         }
 
