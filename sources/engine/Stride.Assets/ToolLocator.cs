@@ -13,7 +13,13 @@ static class ToolLocator
 {
     public static UFile LocateTool(string toolName)
     {
-        if(!OperatingSystem.IsWindows())
+        // Bin-dir lookups use the platform-correct extension so we don't try to exec a
+        // Windows .exe on Unix.
+        var exeExt = OperatingSystem.IsWindows() ? ".exe" : string.Empty;
+
+        // On non-Windows, prefer system PATH (apt/brew). Falls through to the bin-dir
+        // lookup below, which a future Stride.Dependencies.FFmpeg-style NuGet can satisfy.
+        if (!OperatingSystem.IsWindows())
         {
             var pathDirectories = Environment.GetEnvironmentVariable("PATH")?.Split(':') ?? Array.Empty<string>();
 
@@ -25,11 +31,12 @@ static class ToolLocator
             }
         }
 
-        var tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"{toolName}.exe"));
+        var asmDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var tool = UPath.Combine(asmDir, new UFile($"{toolName}{exeExt}"));
         if (File.Exists(tool))
             return tool;
 
-        tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"../../content/{toolName}.exe"));
+        tool = UPath.Combine(asmDir, new UFile($"../../content/{toolName}{exeExt}"));
         if (File.Exists(tool))
             return tool;
 
