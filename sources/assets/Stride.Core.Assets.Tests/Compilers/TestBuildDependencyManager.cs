@@ -52,7 +52,8 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset2 is a CompileAsset reference, it should not be compiled, so we should have only 1 asset (MyAsset1) to compile.
         Assert.Equal(1, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var buildPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), buildPath, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
@@ -100,7 +101,8 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset3 is a CompileContent reference, it should be compiled, so we should have only 2 asset (MyAsset1 and MyAsset3) to compile.
         Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var buildPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), buildPath, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
@@ -149,7 +151,8 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset4 is a Runtime reference, it should be compiled, so we should have 2 asset (MyAsset1 and MyAsset4) to compile.
         Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var buildPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), buildPath, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
