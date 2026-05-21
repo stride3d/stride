@@ -8,6 +8,7 @@ Bundles: []
 TemplateFolders: []
 RootAssets:
     - 0da08544-184f-4a10-bce9-4f9bfcd391c2:MusicBipMp3
+    - fdf428dc-4776-4d3c-92d9-ded9ecc72f11:TestVideo
     - 0da08544-184f-4a10-bce9-4f9bfcdc91c2:MusicBip
     - 0da08544-184f-4b10-bce9-4f9bfcdc91c2:MusicStereo
     - 1f788b16-a3f2-495e-ae1e-3ec93c57c0d9:Effect44100Hz
