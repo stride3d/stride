@@ -53,7 +53,7 @@ namespace Stride.UI.Tests.Regression
             edit2 = new EditText()
             {
                 Name = "TestEdit2",
-                Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"),
+                Font = Content.Load<SpriteFont>("NotoSans15"),
                 MinimumWidth = 100,
                 Text = "Sample2 Text2",
                 MaxLength = 10,
@@ -83,7 +83,7 @@ namespace Stride.UI.Tests.Regression
             edit4 = new EditText()
             {
                 Name = "TestEdit4",
-                Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"),
+                Font = Content.Load<SpriteFont>("NotoSans15"),
                 MinimumWidth = 200,
                 Text = "aligned text",
                 TextSize = 24,
@@ -252,9 +252,9 @@ namespace Stride.UI.Tests.Regression
 
         private void SelectionTest2()
         {
-            Assert.Equal(5, edit4.SelectionStart);
+            Assert.Equal(4, edit4.SelectionStart);
             Assert.Equal(0, edit4.SelectionLength);
-            Assert.Equal(5, edit4.CaretPosition);
+            Assert.Equal(4, edit4.CaretPosition);
 
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
@@ -274,8 +274,8 @@ namespace Stride.UI.Tests.Regression
         private void SelectionTest4()
         {
             Assert.Equal(6, edit4.SelectionStart);
-            Assert.Equal(3, edit4.SelectionLength);
-            Assert.Equal(9, edit4.CaretPosition);
+            Assert.Equal(2, edit4.SelectionLength);
+            Assert.Equal(8, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.66f));
             Input.Update(new GameTime());
         }

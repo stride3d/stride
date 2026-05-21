@@ -38,8 +38,8 @@ namespace Stride.Graphics.Tests
             spriteBatch = new SpriteBatch(GraphicsDevice) { VirtualResolution = virtualResolution };
             spheres = Content.Load<SpriteSheet>("SpriteSphere");
             round = Content.Load<Texture>("round");
-            staticFont = Content.Load<SpriteFont>("StaticFonts/CourierNew13");
-            dynamicFont = Content.Load<SpriteFont>("DynamicFonts/CourierNew13");
+            staticFont = Content.Load<SpriteFont>("StaticFonts/LiberationMono13");
+            dynamicFont = Content.Load<SpriteFont>("DynamicFonts/LiberationMono13");
             colorTexture = Texture.New2D(GraphicsDevice, 1, 1, PixelFormat.R8G8B8A8_UNorm, new[] { Color.White });
         }
 

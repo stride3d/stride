@@ -22,6 +22,7 @@
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestSceneUpgrader.cs" />
+    <Compile Include="TestSystemFontProvider.cs" />
     <Compile Include="TestVisualScriptCompiler.cs" />
     <Compile Include="TexturePackerTests.cs" />
   </ItemGroup>

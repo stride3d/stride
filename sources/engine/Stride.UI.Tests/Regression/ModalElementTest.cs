@@ -54,7 +54,7 @@ namespace Stride.UI.Tests.Regression
             var lifeBar = new ImageElement { Source = SpriteFromSheet.Create(sprites, "Logo"), HorizontalAlignment = HorizontalAlignment.Center };
             lifeBar.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 3);
 
-            var quitText = new TextBlock { Text = "Quit Game", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            var quitText = new TextBlock { Text = "Quit Game", Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(quitText);
             var quitGameButton = new Button
             {
@@ -68,7 +68,7 @@ namespace Stride.UI.Tests.Regression
             quitGameButton.DependencyProperties.Set(GridBase.RowPropertyKey, 2);
             quitGameButton.Click += (sender, args) => Exit();
 
-            modalButton1Text = new TextBlock { Text = "Close Modal window 1", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            modalButton1Text = new TextBlock { Text = "Close Modal window 1", Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(modalButton1Text);
             var modalButton1 = new Button
             {
@@ -86,7 +86,7 @@ namespace Stride.UI.Tests.Regression
             modal1.DependencyProperties.Set(GridBase.RowPropertyKey, 1);
             modal1.OutsideClick += Modal1OnOutsideClick;
 
-            modalButton2Text = new TextBlock { Text = "Close Modal window 2", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            modalButton2Text = new TextBlock { Text = "Close Modal window 2", Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(modalButton2Text);
             var modalButton2 = new Button
             {

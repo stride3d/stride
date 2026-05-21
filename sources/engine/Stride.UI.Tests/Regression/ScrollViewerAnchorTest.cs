@@ -100,7 +100,7 @@ namespace Stride.UI.Tests.Regression
 
         private Button CreateButton(int col, int row, float minimumHeight = 0, float minimumWidth = 0, bool randomMinHeight = false, bool randowMinWidth = false)
         {
-            var textBlock = new TextBlock { Text = "Col " + col + " - Row " + row, Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextAlignment = TextAlignment.Center};
+            var textBlock = new TextBlock { Text = "Col " + col + " - Row " + row, Font = Content.Load<SpriteFont>("NotoSans15"), TextAlignment = TextAlignment.Center};
             ApplyTextBlockDefaultStyle(textBlock);
             var button =  new Button
             {
