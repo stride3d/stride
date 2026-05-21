@@ -90,13 +90,25 @@ function parseAllowKey(key) {
   return { min: v, max: v };
 }
 
+// Supports '*' (any run of characters) and '?' (single character) wildcards.
+// Patterns without wildcards fall through to a plain case-insensitive equality check.
+// Mirrors Stride.Graphics.Regression/ImageThreshold.cs ImageMatches().
+function imageMatches(pattern, imageName) {
+  if (!/[*?]/.test(pattern))
+    return pattern.toLowerCase() === imageName.toLowerCase();
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+                          .replace(/\*/g, '.*')
+                          .replace(/\?/g, '.');
+  return new RegExp('^' + escaped + '$', 'i').test(imageName);
+}
+
 // Resolve the best matching threshold rule for an image
 // rules: array from thresholds.jsonc, imageName/platform/api/device: current context
 function resolveThreshold(rules, imageName, platform, api, device) {
   if (!rules || rules.length === 0) return null;
   let best = null, bestScore = -1;
   for (const rule of rules) {
-    if (rule.image && rule.image !== 'default' && rule.image.toLowerCase() !== imageName.toLowerCase()) continue;
+    if (rule.image && rule.image !== 'default' && !imageMatches(rule.image, imageName)) continue;
     if (rule.platform && rule.platform.toLowerCase() !== (platform || '').toLowerCase()) continue;
     if (rule.api && rule.api.toLowerCase() !== (api || '').toLowerCase()) continue;
     if (rule.device && rule.device.toLowerCase() !== (device || '').toLowerCase()) continue;
