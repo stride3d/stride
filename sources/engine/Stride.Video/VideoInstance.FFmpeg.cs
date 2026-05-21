@@ -132,17 +132,20 @@ namespace Stride.Video
 
             if (videoComponent.Target != null)
             {
-                videoTexture.SetTargetContentToVideoStream(videoComponent.Target);
-
-                // Now update the video texture with data of the new video frame:
+                // Upload the decoded RGBA frame directly into the user-supplied Target.
+                // We bypass VideoTexture's Swap-based machinery: it ping-pongs the user's
+                // Target with an internal renderTargetTexture and undoes the swap on Stop()
+                // — so once the video ends, the last decoded frame is stashed in the
+                // internal texture and the user-facing Target reverts to its uninitialized
+                // contents. Writing straight to the Target means the decoded data persists.
+                // Cost: skips mip generation, which the previous path supported via
+                // VideoTexture.GenerateMipMaps but defaults to single-mip anyway.
                 var graphicsContext = services.GetSafeServiceAs<GraphicsContext>();
-
-                if (streamInfo.Codec.IsHardwareAccelerated && streamInfo.Image == null)
-                    videoTexture.CopyDecoderOutputToTopLevelMipmap(graphicsContext, streamInfo.Codec.DecoderOutputTexture);
-                else
-                    videoTexture.UpdateTopLevelMipmapFromData(graphicsContext, streamInfo.Image);
-
-                videoTexture.GenerateMipMaps(graphicsContext);
+                unsafe
+                {
+                    var dataPointer = new ReadOnlySpan<byte>((void*)streamInfo.Image.Buffer, streamInfo.Image.BufferSize);
+                    videoComponent.Target.SetData(graphicsContext.CommandList, dataPointer, arrayIndex: 0, mipLevel: 0);
+                }
             }
         }
 
@@ -179,8 +182,9 @@ namespace Stride.Video
                 Duration = stream.Duration;
                 AllocateVideoTexture(stream.Width, stream.Height);
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error($"InitializeMediaImpl failed: {ex}");
                 ReleaseMedia();
                 return;
             }

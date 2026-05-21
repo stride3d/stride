@@ -57,7 +57,7 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers
+          sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
       - name: Start virtual display
         run: |
           # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,

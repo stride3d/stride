@@ -69,7 +69,22 @@
     <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
+    <!-- Asset compiler ffmpeg CLI — ship every RID under runtimes/<rid>/native/ so the package
+         is portable across hosts. ToolLocator resolves the right one at runtime via the current RID. -->
     <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+      <Link>runtimes\win-x64\native\ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.win-arm64.exe">
+      <Link>runtimes\win-arm64\native\ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.linux-x64">
+      <Link>runtimes\linux-x64\native\ffmpeg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.osx-arm64">
+      <Link>runtimes\osx-arm64\native\ffmpeg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

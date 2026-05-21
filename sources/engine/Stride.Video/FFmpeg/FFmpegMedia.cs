@@ -172,34 +172,25 @@ namespace Stride.Video.FFmpeg
         {
             FFmpegUtils.EnsurePlatformSupport();
 
-            var skip_to_keyframe = stream.AVStream->skip_to_keyframe;
-            try
+            if (currentStreams.TryGetValue(stream, out var streamInfo))
             {
-                if (currentStreams.TryGetValue(stream, out var streamInfo))
-                {
-                    // flush the codec buffered images
-                    streamInfo.Codec.Flush(pDecodedFrame);
-                }
-
-                // flush the format buffered images
-                ffmpeg.avformat_flush(AVFormatContext);
-
-                // perform the actual seek
-                stream.AVStream->skip_to_keyframe = 1;
-                var ret = ffmpeg.av_seek_frame(AVFormatContext, stream.Index, timestamp, ffmpeg.AVSEEK_FLAG_BACKWARD);
-                if (ret < 0)
-                {
-                    Logger.Error($"Could not seek frame. Error code={ret.ToString("X8")}");
-                    Logger.Error(GetErrorMessage(ret));
-                    return false;
-                }
-
-                return true;
+                // flush the codec buffered images
+                streamInfo.Codec.Flush(pDecodedFrame);
             }
-            finally
+
+            // flush the format buffered images
+            ffmpeg.avformat_flush(AVFormatContext);
+
+            // AVSEEK_FLAG_BACKWARD already lands on the nearest preceding keyframe.
+            var ret = ffmpeg.av_seek_frame(AVFormatContext, stream.Index, timestamp, ffmpeg.AVSEEK_FLAG_BACKWARD);
+            if (ret < 0)
             {
-                stream.AVStream->skip_to_keyframe = skip_to_keyframe;
+                Logger.Error($"Could not seek frame. Error code={ret.ToString("X8")}");
+                Logger.Error(GetErrorMessage(ret));
+                return false;
             }
+
+            return true;
         }
 
         [ItemNotNull, NotNull]
@@ -212,29 +203,34 @@ namespace Stride.Video.FFmpeg
                 // TODO: log?
                 throw new InvalidOperationException(@"Media isn't open.");
 
-            var codecContext = *stream.AVStream->codec;
+            var pCodecpar = stream.AVStream->codecpar;
             var streamInfo = GetStreamInfo(stream);
 
             var dstData = new byte_ptrArray4();
             var dstLinesize = new int_array4();
-            ffmpeg.av_image_fill_arrays(ref dstData, ref dstLinesize, (byte*)streamInfo.Image.Buffer, DestinationPixelFormat, codecContext.width, codecContext.height, 1);
+            ffmpeg.av_image_fill_arrays(ref dstData, ref dstLinesize, (byte*)streamInfo.Image.Buffer, DestinationPixelFormat, pCodecpar->width, pCodecpar->height, 1);
             streamInfo.Image.Linesize = dstLinesize[0];
 
             var extractedFrameCount = 0;
 
-            var packet = new AVPacket();
-            var pPacket = &packet;
-            ffmpeg.av_init_packet(pPacket);
-
-            for (int i = 0; i < count; i++)
+            // FFmpeg 6.0+: av_init_packet removed; packets must be heap-allocated via av_packet_alloc.
+            var pPacket = ffmpeg.av_packet_alloc();
+            try
             {
-                var extractionStatus = ExtractNextImage(streamInfo, pPacket, stream.AVStream, dstData, dstLinesize);
-                streamInfo.ReachedEnd = extractionStatus == FrameExtractionStatus.ReachEOF;
-                if (extractionStatus == FrameExtractionStatus.Succeeded)
-                    ++extractedFrameCount;
-            }
+                for (int i = 0; i < count; i++)
+                {
+                    var extractionStatus = ExtractNextImage(streamInfo, pPacket, stream.AVStream, dstData, dstLinesize);
+                    streamInfo.ReachedEnd = extractionStatus == FrameExtractionStatus.ReachEOF;
+                    if (extractionStatus == FrameExtractionStatus.Succeeded)
+                        ++extractedFrameCount;
+                }
 
-            return extractedFrameCount;
+                return extractedFrameCount;
+            }
+            finally
+            {
+                ffmpeg.av_packet_free(&pPacket);
+            }
         }
 
         /// <summary>
@@ -252,9 +248,9 @@ namespace Stride.Video.FFmpeg
             // Unfortunately the side data was not present in the stream
             // -> we need to decode and look in the first packet and frame.
             var streamInfo = GetStreamInfo(stream);
-            var packet = new AVPacket();
-            var pPacket = &packet;
-            ffmpeg.av_init_packet(pPacket);
+            // FFmpeg 6.0+: av_init_packet removed; av_packet_alloc returns a heap packet
+            // and av_packet_free in the finally below replaces av_packet_unref + struct dtor.
+            var pPacket = ffmpeg.av_packet_alloc();
             var pCodecContext = streamInfo.Codec.pAVCodecContext;
 
             try
@@ -313,7 +309,7 @@ namespace Stride.Video.FFmpeg
             }
             finally
             {
-                ffmpeg.av_packet_unref(pPacket);
+                ffmpeg.av_packet_free(&pPacket);
                 ffmpeg.av_frame_unref(pDecodedFrame);
 
                 // return to the beginning of the media file (just in case)
@@ -325,16 +321,16 @@ namespace Stride.Video.FFmpeg
         {
             if (!currentStreams.TryGetValue(stream, out var streamInfo))
             {
-                var codecContext = *(stream.AVStream->codec);
-                var width = codecContext.width;
-                var height = codecContext.height;
+                var pCodecpar = stream.AVStream->codecpar;
+                var width = pCodecpar->width;
+                var height = pCodecpar->height;
 
                 var convertedFrameBufferSize = ffmpeg.av_image_get_buffer_size(DestinationPixelFormat, width, height, 1);
                 convertedFrameBufferSize = (convertedFrameBufferSize + 3) & ~0x03; // align on a boundary of 4 (32-bits)
 
                 currentStreams[stream] = streamInfo = new StreamInfo
                 {
-                    Codec = new FFmpegCodec(graphicsDevice, &codecContext),
+                    Codec = new FFmpegCodec(graphicsDevice, pCodecpar),
                     Image = new VideoImage(width, height, convertedFrameBufferSize),
                 };
             }
@@ -379,8 +375,13 @@ namespace Stride.Video.FFmpeg
                     }
 
                     ret = ffmpeg.avcodec_receive_frame(pCodecContext, pDecodedFrame);
-                    //if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN)) // don't want to block the execution thread
-                    //    continue;
+                    if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN))
+                    {
+                        // Decoder needs more packets before producing a frame — normal flow
+                        // control with the modern send_packet / receive_frame API. Loop back
+                        // and feed it the next packet.
+                        continue;
+                    }
 
                     if (ret < 0)
                     {

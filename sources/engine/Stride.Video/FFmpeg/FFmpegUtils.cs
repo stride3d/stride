@@ -4,6 +4,8 @@
 #if STRIDE_VIDEO_FFMPEG
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
@@ -22,7 +24,10 @@ namespace Stride.Video.FFmpeg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CheckPlatformSupport()
         {
-            return (Platform.Type == PlatformType.Windows || Platform.Type == PlatformType.Android);
+            return Platform.Type == PlatformType.Windows
+                || Platform.Type == PlatformType.Linux
+                || Platform.Type == PlatformType.macOS
+                || Platform.Type == PlatformType.Android;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -41,8 +46,7 @@ namespace Stride.Video.FFmpeg
                 return;
 
             initialized = true;
-            ffmpeg.av_register_all();
-            ffmpeg.avcodec_register_all();
+            // av_register_all / avcodec_register_all removed in FFmpeg 4.0 / 5.0 — registration is automatic now.
             ffmpeg.avformat_network_init();
         }
 
@@ -73,20 +77,40 @@ namespace Stride.Video.FFmpeg
             //   |---- avformat
             //   |---- avcodec
             //   |---- avutil
+            // FFmpeg.AutoGen 7.x resolves libav* through its own LibraryLoader which probes
+            // ffmpeg.RootPath. Default ("") only searches the OS standard paths and never finds
+            // SONAME-versioned libavutil.so.59 / libavutil.59.dylib we ship.
+            // Two layouts to handle: tests flatten libs into the assembly dir, regular asm builds
+            // keep them in runtimes/<rid>/native/. Check both.
+            var asmDir = Path.GetDirectoryName(typeof(FFmpegUtils).Assembly.Location);
+            if (asmDir != null)
+            {
+                var rid = GetCurrentRid();
+                var runtimesDir = rid != null ? Path.Combine(asmDir, "runtimes", rid, "native") : null;
+                // RID builds flatten DLLs to asmDir; portable builds keep them under runtimes/<rid>/native/.
+                var probe = Platform.Type switch
+                {
+                    PlatformType.Windows => "avutil-59.dll",
+                    PlatformType.macOS => "libavutil.59.dylib",
+                    _ => "libavutil.so.59",
+                };
+                ffmpeg.RootPath = runtimesDir != null && File.Exists(Path.Combine(runtimesDir, probe)) ? runtimesDir : asmDir;
+            }
+
             if (Platform.Type == PlatformType.Windows)
             {
                 var type = typeof(FFmpegUtils);
-                NativeLibraryHelper.PreloadLibrary("avutil-55", type);
-                NativeLibraryHelper.PreloadLibrary("swresample-2", type);
-                NativeLibraryHelper.PreloadLibrary("avcodec-57", type);
-                NativeLibraryHelper.PreloadLibrary("avformat-57", type);
-                NativeLibraryHelper.PreloadLibrary("swscale-4", type);
-                NativeLibraryHelper.PreloadLibrary("avfilter-6", type);
-                NativeLibraryHelper.PreloadLibrary("avdevice-57", type);
+                NativeLibraryHelper.PreloadLibrary("avutil-59", type);
+                NativeLibraryHelper.PreloadLibrary("swresample-5", type);
+                NativeLibraryHelper.PreloadLibrary("avcodec-61", type);
+                NativeLibraryHelper.PreloadLibrary("avformat-61", type);
+                NativeLibraryHelper.PreloadLibrary("swscale-8", type);
+                NativeLibraryHelper.PreloadLibrary("avfilter-10", type);
+                NativeLibraryHelper.PreloadLibrary("avdevice-61", type);
             }
             else
             {
-                // This is likely there for forcing dll loading (on Android?), it will need some review.
+                // Force-load via a no-op API call so dlopen happens here (clearer stacks on failure).
                 uint version;
                 version = ffmpeg.avutil_version();
                 version = ffmpeg.swresample_version();
@@ -96,6 +120,23 @@ namespace Stride.Video.FFmpeg
                 version = ffmpeg.avfilter_version();
                 version = ffmpeg.avdevice_version();
             }
+        }
+
+        private static string GetCurrentRid()
+        {
+            string os;
+            if (OperatingSystem.IsWindows()) os = "win";
+            else if (OperatingSystem.IsLinux()) os = "linux";
+            else if (OperatingSystem.IsMacOS()) os = "osx";
+            else return null;
+
+            var arch = RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                _ => null,
+            };
+            return arch == null ? null : $"{os}-{arch}";
         }
 
         /// <summary>

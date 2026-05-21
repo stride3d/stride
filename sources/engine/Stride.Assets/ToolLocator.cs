@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Stride.Core.IO;
 
 namespace Stride.Assets;
@@ -32,6 +29,18 @@ static class ToolLocator
         }
 
         var asmDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        // RID-keyed bundled binary: runtimes/<rid>/native/<tool>{.exe}. This is where
+        // Stride.Assets.csproj copies the per-platform ffmpeg CLIs.
+        var rid = GetCurrentRid();
+        if (rid != null)
+        {
+            var ridTool = UPath.Combine(asmDir, new UFile($"runtimes/{rid}/native/{toolName}{exeExt}"));
+            if (File.Exists(ridTool))
+                return ridTool;
+        }
+
+        // Legacy locations kept for backward compatibility with older deps/ layouts.
         var tool = UPath.Combine(asmDir, new UFile($"{toolName}{exeExt}"));
         if (File.Exists(tool))
             return tool;
@@ -41,5 +50,23 @@ static class ToolLocator
             return tool;
 
         return null;
+    }
+
+    private static string GetCurrentRid()
+    {
+        string os;
+        if (OperatingSystem.IsWindows()) os = "win";
+        else if (OperatingSystem.IsLinux()) os = "linux";
+        else if (OperatingSystem.IsMacOS()) os = "osx";
+        else return null;
+
+        var arch = RuntimeInformation.OSArchitecture switch
+        {
+            Architecture.X64 => "x64",
+            Architecture.Arm64 => "arm64",
+            Architecture.X86 => "x86",
+            _ => null,
+        };
+        return arch == null ? null : $"{os}-{arch}";
     }
 }

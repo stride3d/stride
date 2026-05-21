@@ -67,9 +67,9 @@ namespace Stride.Video.FFmpeg
         /// <summary>
         /// Initializes a new instance of the <see cref="FFmpegCodec"/> class.
         /// </summary>
-        public FFmpegCodec(GraphicsDevice graphcsDevice, AVCodecContext* originalContext)
+        public FFmpegCodec(GraphicsDevice graphcsDevice, AVCodecParameters* originalCodecpar)
         {
-            var codecId = originalContext->codec_id;
+            var codecId = originalCodecpar->codec_id;
             var pCodec = ffmpeg.avcodec_find_decoder(codecId);
             if (pCodec == null)
                 // TODO: log?
@@ -77,13 +77,17 @@ namespace Stride.Video.FFmpeg
 
             int ret;
             var pCodecContext = ffmpeg.avcodec_alloc_context3(pCodec);
-            var pCodecParam = ffmpeg.avcodec_parameters_alloc();
-            ret = ffmpeg.avcodec_parameters_from_context(pCodecParam, originalContext);
-            if (ret < 0)
-                // TODO: log?
-                throw new ApplicationException($"Could not retrieve codec parameters. Error code={ret.ToString("X8")}");
 
             // Set the context get_format function
+            ret = ffmpeg.avcodec_parameters_to_context(pCodecContext, originalCodecpar);
+            if (ret < 0)
+                // TODO: log?
+                throw new ApplicationException($"Could not fill codec parameters. Error code={ret.ToString("X8")}");
+
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            // HW decode is wired up for D3D11VA only. On other backends, fall through to FFmpeg's
+            // software path (default get_format + no hw_device_ctx) — codec picks a SW pix_fmt
+            // and sws_scale converts to the Target texture's RGBA later.
             getFormat = (context, formats) =>
             {
                 AVPixelFormat* pixelFormat;
@@ -98,11 +102,6 @@ namespace Stride.Video.FFmpeg
             };
             pCodecContext->get_format = getFormat;
 
-            ret = ffmpeg.avcodec_parameters_to_context(pCodecContext, pCodecParam);
-            if (ret < 0)
-                // TODO: log?
-                throw new ApplicationException($"Could not fill codec parameters. Error code={ret.ToString("X8")}");
-
             // create the hardware device context.
             AVBufferRef* pHWDeviceContextLocal;
             if (ffmpeg.av_hwdevice_ctx_create(&pHWDeviceContextLocal, HardwareDeviceType, null, null, 0) >= 0)
@@ -111,13 +110,13 @@ namespace Stride.Video.FFmpeg
                 pHWDeviceContext = pHWDeviceContextLocal;
                 pCodecContext->hw_device_ctx = ffmpeg.av_buffer_ref(pHWDeviceContext);
             }
+#endif
 
             // Setup hardware acceleration context
             //if (IsHardwareAccelerated)
             //    CreateHarwareAccelerationContext(graphcsDevice, pCodecContext, pCodec);
 
-            if ((pCodec->capabilities & ffmpeg.AV_CODEC_CAP_TRUNCATED) == ffmpeg.AV_CODEC_CAP_TRUNCATED)
-                pCodecContext->flags |= ffmpeg.AV_CODEC_FLAG_TRUNCATED;
+            // AV_CODEC_CAP_TRUNCATED / AV_CODEC_FLAG_TRUNCATED removed in FFmpeg 5.0 — modern parsers handle framing.
 
             if (ffmpeg.avcodec_is_open(pCodecContext) == 0)
             {
@@ -126,7 +125,6 @@ namespace Stride.Video.FFmpeg
                     // TODO: log?
                     throw new ApplicationException($"Could not open codec. Error code={ret.ToString("X8")}");
             }
-            ffmpeg.avcodec_parameters_free(&pCodecParam);
 
             pAVCodecContext = pCodecContext;
         }
@@ -297,7 +295,7 @@ namespace Stride.Video.FFmpeg
             ffmpeg.av_buffer_unref(&pHWDeviceContextLocal);
 
             var pAVCodecContextLocal = pAVCodecContext;
-            ffmpeg.avcodec_close(pAVCodecContextLocal);
+            // avcodec_close removed in FFmpeg 7.0 — avcodec_free_context handles closing.
             ffmpeg.avcodec_free_context(&pAVCodecContextLocal);
         }
 
