@@ -330,7 +330,7 @@ namespace Stride.Video.FFmpeg
 
                 currentStreams[stream] = streamInfo = new StreamInfo
                 {
-                    Codec = new FFmpegCodec(graphicsDevice, pCodecpar),
+                    Codec = new FFmpegCodec(pCodecpar),
                     Image = new VideoImage(width, height, convertedFrameBufferSize),
                 };
             }
@@ -392,34 +392,29 @@ namespace Stride.Video.FFmpeg
                     }
                     var frameSideData = ffmpeg.av_frame_get_side_data(pDecodedFrame, AVFrameSideDataType.AV_FRAME_DATA_STEREO3D);
 
-                    // copies the decoded frame on the CPU if needed
-                    if (streamInfo.Codec.DecoderOutputTexture == null)
+                    if (pDecodedFrame->format == (int)streamInfo.Codec.HardwarePixelFormat)
                     {
-                        if (pDecodedFrame->format == (int)streamInfo.Codec.HardwarePixelFormat)
-                        {
-                            // the frame is coming from the GPU
-                            ret = ffmpeg.av_hwframe_transfer_data(pCpuCopyFrame, pDecodedFrame, 0);
-                            if (ret < 0)
-                                throw new ApplicationException("Couldn't transfer frame data from GPU to CPU");
+                        // the frame is coming from the GPU
+                        ret = ffmpeg.av_hwframe_transfer_data(pCpuCopyFrame, pDecodedFrame, 0);
+                        if (ret < 0)
+                            throw new ApplicationException("Couldn't transfer frame data from GPU to CPU");
 
-                            pFrame = pCpuCopyFrame;
-                        }
-                        else
-                        {
-                            pFrame = pDecodedFrame;
-                        }
-
-                        // Create the convert context for frame format convertion
-                        var width = pCodecContext->width;
-                        var height = pCodecContext->height;
-                        var sourcePixFmt = (AVPixelFormat)pFrame->format;
-                        pConvertContext = ffmpeg.sws_getCachedContext(pConvertContext, width, height, sourcePixFmt, width, height, DestinationPixelFormat, ffmpeg.SWS_FAST_BILINEAR, null, null, null);
-                        if (pConvertContext == null)
-                            throw new ApplicationException("Could not initialize the conversion context.");
-
-                        ffmpeg.sws_scale(pConvertContext, pFrame->data, pFrame->linesize, 0, outputImage.Height, dstData, dstLinesize);
-                        outputImage.Timestamp = pDecodedFrame->pts;
+                        pFrame = pCpuCopyFrame;
                     }
+                    else
+                    {
+                        pFrame = pDecodedFrame;
+                    }
+
+                    var width = pCodecContext->width;
+                    var height = pCodecContext->height;
+                    var sourcePixFmt = (AVPixelFormat)pFrame->format;
+                    pConvertContext = ffmpeg.sws_getCachedContext(pConvertContext, width, height, sourcePixFmt, width, height, DestinationPixelFormat, ffmpeg.SWS_FAST_BILINEAR, null, null, null);
+                    if (pConvertContext == null)
+                        throw new ApplicationException("Could not initialize the conversion context.");
+
+                    ffmpeg.sws_scale(pConvertContext, pFrame->data, pFrame->linesize, 0, outputImage.Height, dstData, dstLinesize);
+                    outputImage.Timestamp = pDecodedFrame->pts;
 
                     return FrameExtractionStatus.Succeeded;
                 }
