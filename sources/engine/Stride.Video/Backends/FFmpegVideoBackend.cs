@@ -70,6 +70,14 @@ internal sealed class FFmpegVideoBackend : VideoBackend
             Instance.SetCurrentTime(Instance.PlayRange.Start);
             Instance.Seek(Instance.PlayRange.Start);
         }
+        else if (Instance.PlayState == PlayState.Stopped && stream != null)
+        {
+            // Fresh start (not Resume-from-Pause): prime the accumulator so the first
+            // frame is extracted on the very next Update. Without this, the caller waits
+            // for the accumulator to cross frameDuration (~6 game frames at 60Hz / 10fps)
+            // before any frame appears in the Target.
+            adjustedTicksSinceLastFrame = stream.FrameDuration.Ticks;
+        }
     }
 
     public override void Stop()
