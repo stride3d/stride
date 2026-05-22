@@ -147,7 +147,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 rotationAxes[axis].Get<ModelComponent>().Model.Materials[0] = isSelected ? ElementSelectedMaterial : axisMaterial;
             }
 
-            overlaySphere.Get<ModelComponent>().Model.Materials[0] = TransformationStarted ? overlaySphereSelectedMaterial : overlaySphereDefaultMaterial;
+            overlaySphere.Get<ModelComponent>().Model.Materials[0] = IsTransformationInProgress ? overlaySphereSelectedMaterial : overlaySphereDefaultMaterial;
         }
 
         /// <summary>
@@ -223,9 +223,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             return Quaternion.RotationAxis(rotationAxis, rotationAngle);
         }
 
-        protected override void OnTransformationFinished()
+        protected override void OnTransformationFinished(bool wasCanceled)
         {
-            base.OnTransformationFinished();
+            base.OnTransformationFinished(wasCanceled);
 
             UpdateNotSelectedAxisVisibility(false);
         }

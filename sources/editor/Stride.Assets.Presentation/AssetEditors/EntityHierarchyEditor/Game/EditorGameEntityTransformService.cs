@@ -5,11 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.BuildEngine;
-using Stride.Core;
-using Stride.Core.Annotations;
-using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
@@ -17,8 +12,14 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.BuildEngine;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
@@ -38,6 +39,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private TransformationSpace space;
         private double gizmoSize = 1.0f;
         private bool dynamicSnappingInUse = false;
+
+        private bool isEntityDuplicationInProgress = false;
+        private Entity entityDuplicationPreviousEntityWithGizmo;
+        private IReadOnlyCollection<Entity> entityDuplicationPreviousSelection;
+        private readonly Dictionary<Entity, Entity> entityDuplicationSrcToPreviewEntityMap = [];
+        private readonly Dictionary<AbsoluteId, Entity> entityDuplicationSrcIdToPreviewEntityMap = [];
 
         public EditorGameEntityTransformService([NotNull] EntityHierarchyEditorViewModel editor, [NotNull] IEditorGameController controller)
         {
@@ -98,7 +105,14 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
         }
 
-        public override IEnumerable<Type> Dependencies { get { yield return typeof(IEditorGameEntitySelectionService); } }
+        public override IEnumerable<Type> Dependencies
+        {
+            get
+            {
+                yield return typeof(IEditorGameEntitySelectionService);
+                yield return typeof(EditorGameModelSelectionService);
+            }
+        }
 
         Transformation IEditorGameTransformViewModelService.ActiveTransformation
         {
@@ -140,9 +154,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             EnsureNotDestroyed(nameof(EditorGameEntityTransformService));
 
-            var selectionService = Services.Get<IEditorGameEntitySelectionService>();
-            if (selectionService != null)
-                selectionService.SelectionUpdated -= UpdateModifiedEntitiesList;
+            OnDeactivate();
             return base.DisposeAsync();
         }
 
@@ -179,6 +191,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             TranslationGizmo = new TranslationGizmo();
             RotationGizmo = new RotationGizmo();
             ScaleGizmo = new ScaleGizmo();
+            TranslationGizmo.TransformationStarted += OnGizmoTransformationStarted;
+            ScaleGizmo.TransformationStarted += OnGizmoTransformationStarted;
+            RotationGizmo.TransformationStarted += OnGizmoTransformationStarted;
             TranslationGizmo.TransformationEnded += OnGizmoTransformationFinished;
             ScaleGizmo.TransformationEnded += OnGizmoTransformationFinished;
             RotationGizmo.TransformationEnded += OnGizmoTransformationFinished;
@@ -187,8 +202,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             transformationGizmos.Add(RotationGizmo);
             transformationGizmos.Add(ScaleGizmo);
 
-            Services.Get<IEditorGameEntitySelectionService>().SelectionUpdated += UpdateModifiedEntitiesList;
-
             // Initialize and add the Gizmo entities to the gizmo scene
             MicrothreadLocalDatabases.MountCommonDatabase();
 
@@ -196,9 +209,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             foreach (var gizmo in transformationGizmos)
                 gizmo.Initialize(game.Services, editorScene);
 
-            // Deactivate all transformation gizmo by default
-            foreach (var gizmo in transformationGizmos)
-                gizmo.IsEnabled = false;
+            OnActivate();
 
             // set the default active transformation gizmo
             ActiveTransformationGizmo = TranslationGizmo;
@@ -206,6 +217,40 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Start update script (with priority 1 so that it happens after UpdateModifiedEntitiesList is called -- which usually happens from a EditorGameComtroller.PostAction() which has a default priority 0)
             game.Script.AddTask(Update, 1);
             return Task.FromResult(true);
+        }
+
+        protected void OnActivate()
+        {
+            Services.Get<IEditorGameEntitySelectionService>().SelectionUpdated += UpdateModifiedEntitiesList;
+
+            // Deactivate all transformation gizmo by default
+            foreach (var gizmo in transformationGizmos)
+                gizmo.IsEnabled = false;
+        }
+
+        protected void OnDeactivate()
+        {
+            EntityWithGizmo = null;
+            foreach (var gizmo in transformationGizmos)
+            {
+                gizmo.CancelTransform();
+                gizmo.ModifiedEntities = [];
+                gizmo.IsEnabled = false;
+            }
+
+            isEntityDuplicationInProgress = false;
+            foreach (var (_, previewEntity) in entityDuplicationSrcToPreviewEntityMap)
+            {
+                // Detach from scene
+                previewEntity.SetParent(null);
+                previewEntity.Scene = null;
+            }
+            entityDuplicationSrcToPreviewEntityMap.Clear();
+            entityDuplicationSrcIdToPreviewEntityMap.Clear();
+
+            var selectionService = Services.Get<IEditorGameEntitySelectionService>();
+            if (selectionService != null)
+                selectionService.SelectionUpdated -= UpdateModifiedEntitiesList;
         }
 
         private async Task Update()
@@ -228,19 +273,19 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         // Activate transformation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.TranslationGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Translation);
+                            editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Translation);
                         }
 
                         // Activate rotation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.RotationGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Rotation);
+                            editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Rotation);
                         }
 
                         // Activate scale snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.ScaleGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Scale);
+                            editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Scale);
                         }
 
                         // Toggle between different snapping methods
@@ -248,19 +293,23 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         {
                             var current = activeTransformation;
                             var next = (int)(current + 1) % Enum.GetValues<Transformation>().Length;
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = (Transformation)next);
+                            editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = (Transformation)next);
+                        }
+
+                        if (game.Input.IsKeyPressed(Keys.Escape)
+                            && activeTransformationGizmo is not null
+                            && activeTransformationGizmo.IsTransformationInProgress)
+                        {
+                            activeTransformationGizmo.CancelTransform();
                         }
                     }
 
-                    IEnumerable<Task> tasks;
-                    lock (transformationGizmos)
+                    foreach (var x in transformationGizmos)
                     {
-                        tasks = transformationGizmos.Select(x => x.Update());
+                        x.Update();
                     }
 
-                    IsControllingMouse = activeTransformationGizmo != null && activeTransformationGizmo.IsUnderMouse() && IsMouseAvailable;
-
-                    await Task.WhenAll(tasks);
+                    IsControllingMouse = activeTransformationGizmo != null && activeTransformationGizmo.IsEnabled && activeTransformationGizmo.IsUnderMouse() && IsMouseAvailable;
                 }
 
                 await game.Script.NextFrame();
@@ -300,12 +349,17 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
         private void UpdateModifiedEntitiesList(object sender, [NotNull] EntitySelectionEventArgs e)
         {
+            if (!IsActive || isEntityDuplicationInProgress)
+            {
+                return;
+            }
             EntityWithGizmo = e.NewSelection.LastOrDefault();
-            if (ActiveTransformationGizmo != null && EntityWithGizmo == null)
+            if (ActiveTransformationGizmo != null && !ActiveTransformationGizmo.IsTransformationInProgress && EntityWithGizmo == null)
             {
                 // Reset the transformation axes if the selection is cleared.
                 ActiveTransformationGizmo.ClearTransformationAxes();
             }
+
             var modifiedEntities = new List<Entity>();
             modifiedEntities.AddRange(e.NewSelection);
 
@@ -317,13 +371,86 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
         }
 
-        private void OnGizmoTransformationFinished(object sender, EventArgs e)
+        private void OnGizmoTransformationStarted(object sender, EventArgs e)
         {
-            var transformations = new Dictionary<AbsoluteId, TransformationTRS>();
-            foreach (var item in Selection.GetSelectedRootIds())
+            isEntityDuplicationInProgress = game.Input.IsKeyDown(Keys.LeftCtrl) || game.Input.IsKeyDown(Keys.RightCtrl);
+            if (isEntityDuplicationInProgress)
             {
-                var entity = (Entity)controller.FindGameSidePart(item);
-                transformations.Add(item, new TransformationTRS(entity.Transform));
+                // Duplication occurs in the editor so we should make the gizmo update proxy entities
+                // until the editor returns the duplicated entities
+                entityDuplicationPreviousEntityWithGizmo = EntityWithGizmo;
+                entityDuplicationPreviousSelection = ActiveTransformationGizmo?.ModifiedEntities ?? [];
+                entityDuplicationSrcToPreviewEntityMap.Clear();
+                foreach (var id in Selection.GetSelectedRootIds())
+                {
+                    var entity = (Entity)controller.FindGameSidePart(id);
+                    var previewEntity = BuildDuplicationPreviewEntity(entity);
+
+                    entityDuplicationSrcToPreviewEntityMap[entity] = previewEntity;
+                    entityDuplicationSrcIdToPreviewEntityMap[id] = previewEntity;
+                }
+                ActiveTransformationGizmo.RemapModifyingEntities(entityDuplicationSrcToPreviewEntityMap);
+                if (EntityWithGizmo is not null
+                    && entityDuplicationSrcToPreviewEntityMap.TryGetValue(EntityWithGizmo, out var anchorProxyEntity))
+                {
+                    EntityWithGizmo = anchorProxyEntity;
+                }
+
+                var modelSelectionService = Services.Get<EditorGameModelSelectionService>();
+                modelSelectionService?.ChangeSelection(entityDuplicationSrcIdToPreviewEntityMap.Values.ToList());
+            }
+        }
+
+        private void OnGizmoTransformationFinished(object sender, TransformationEndedEventArgs e)
+        {
+            if (isEntityDuplicationInProgress)
+            {
+                var newTransformations = new Dictionary<AbsoluteId, TransformationTRS?>();
+                foreach (var (srcId, previewEntity) in entityDuplicationSrcIdToPreviewEntityMap)
+                {
+                    newTransformations.Add(srcId, new TransformationTRS(previewEntity.Transform));
+                    // Detach from scene
+                    previewEntity.SetParent(null);
+                    previewEntity.Scene = null;
+                }
+                entityDuplicationSrcIdToPreviewEntityMap.Clear();
+                entityDuplicationSrcToPreviewEntityMap.Clear();
+
+                if (e.IsCanceled)
+                {
+                    // Reselect previous entities
+                    ActiveTransformationGizmo?.ModifiedEntities = entityDuplicationPreviousSelection;
+                    EntityWithGizmo = entityDuplicationPreviousEntityWithGizmo;
+                    var modelSelectionService = Services.Get<EditorGameModelSelectionService>();
+                    modelSelectionService?.ChangeSelection(entityDuplicationPreviousSelection);
+                }
+                else
+                {
+                    // Clear preview entities selection (which will select the duplicated entities after the editor finishes actual duplication)
+                    ActiveTransformationGizmo?.ModifiedEntities = [];
+                    EntityWithGizmo = null;
+                    var modelSelectionService = Services.Get<EditorGameModelSelectionService>();
+                    modelSelectionService?.ChangeSelection([]);
+                    // Confirm duplication
+                    editor.Dispatcher.InvokeAsync(() => editor.DuplicateEntities(newTransformations));
+                }
+
+                isEntityDuplicationInProgress = false;
+                entityDuplicationPreviousEntityWithGizmo = null;
+                entityDuplicationPreviousSelection = null;
+                return;
+            }
+
+            if (e.IsCanceled)
+            {
+                return;
+            }
+
+            var transformations = new Dictionary<AbsoluteId, TransformationTRS>();
+            foreach (var id in Selection.GetSelectedRootIds())
+            {
+                var entity = (Entity)controller.FindGameSidePart(id);
+                transformations.Add(id, new TransformationTRS(entity.Transform));
             }
 
             InvokeTransformationFinished(transformations);
@@ -361,6 +488,22 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         throw new ArgumentOutOfRangeException(nameof(transformation));
                 }
             });
+        }
+
+        private static Entity BuildDuplicationPreviewEntity(Entity srcEntity)
+        {
+            var dupePreviewEntity = srcEntity.Clone();
+            dupePreviewEntity.Name = $"Duplication {dupePreviewEntity.Name}";
+            var parentEntity = srcEntity.GetParent();
+            if (parentEntity is not null)
+            {
+                dupePreviewEntity.SetParent(parentEntity);
+            }
+            else
+            {
+                dupePreviewEntity.Scene = srcEntity.Scene;
+            }
+            return dupePreviewEntity;
         }
     }
 }

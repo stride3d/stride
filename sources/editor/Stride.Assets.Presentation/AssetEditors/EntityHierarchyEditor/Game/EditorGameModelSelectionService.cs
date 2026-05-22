@@ -102,6 +102,22 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             });
         }
 
+        public void ChangeSelection(IEnumerable<Entity> entities)
+        {
+            var recursiveSelection = new HashSet<Entity>(entities);
+            foreach (var childEntity in entities.SelectDeep(x => x.Transform.Children.Select(y => y.Entity)))
+            {
+                recursiveSelection.Add(childEntity);
+            }
+
+            editor.Controller.InvokeAsync(() =>
+            {
+                // update the selection on the gizmo entities.
+                selectedEntities.Clear();
+                selectedEntities.AddRange(recursiveSelection);
+            });
+        }
+
         class WireframeFilter : RenderStageFilter
         {
             private readonly HashSet<Entity> selectedEntities;
