@@ -17,7 +17,7 @@ using Stride.Games;
 
 namespace Stride.Video
 {
-    public sealed partial class VideoInstance : GraphicsResourceBase
+    public sealed class VideoInstance : GraphicsResourceBase
     {
         private readonly IServiceRegistry services;
         private readonly VideoSystem videoSystem;
@@ -25,6 +25,7 @@ namespace Stride.Video
 
         private readonly VideoComponent videoComponent;
         private VideoTexture videoTexture;
+        private VideoBackend backend;
 
         private StreamingManager streamingManager;
         private Video currentVideo;
@@ -38,29 +39,21 @@ namespace Stride.Video
         private PlayRange loopRange;
         private PlayRange playRange;
 
-        //public static readonly Logger Logger = GlobalLogger.GetLogger(nameof(VideoInstance));
-
         /// <summary>
         /// Initializes a new instance of the <see cref="VideoInstance"/> class.
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="videoComponent">The video component associated with this instance</param>
         public VideoInstance([NotNull] IServiceRegistry services, [NotNull] VideoComponent videoComponent)
             : base(services.GetService<IGame>()?.GraphicsDevice)
         {
             this.services = services ?? throw new ArgumentNullException(nameof(services));
             this.videoComponent = videoComponent ?? throw new ArgumentNullException(nameof(videoComponent));
-            
+
             videoSystem = this.services.GetService<VideoSystem>() ?? throw new InvalidOperationException("The video system has not been added to the services");
             streamingManager = services.GetService<StreamingManager>();
             contentManager = services.GetService<ContentManager>();
 
             currentVideo = videoComponent.Source;
             IsLooping = videoComponent.LoopVideo;
-
-            //TODO: get those fields from the videoAsset or videoComponent
-            //SetLoopRange(true, new TimeSpan(0, 0, 20), new TimeSpan(0, 0, 40));
-            //SetPlayRange(new TimeSpan(0, 0, 30), new TimeSpan(0, 0, 50));
         }
 
         public static Logger Logger = GlobalLogger.GetLogger(nameof(VideoInstance));
@@ -69,19 +62,18 @@ namespace Stride.Video
 
         public uint MaxMipMapCount { get; private set; }
 
-        /// <summary>
-        /// The duration of the video.
-        /// </summary>
+        /// <summary>The duration of the video.</summary>
         public TimeSpan Duration { get; private set; }
 
-        /// <summary>
-        /// The current state of the video.
-        /// </summary>
+        /// <summary>The current state of the video.</summary>
         public PlayState PlayState { get; private set; } = PlayState.Stopped;
 
-        /// <summary>
-        /// Applies a speed factor the to the video playback. The default value is <c>1.0f</c>.
-        /// </summary>
+        /// <summary>True when the active backend currently decodes via hardware acceleration
+        /// (e.g. D3D11VA). Only meaningful after the codec has been initialized; will read false
+        /// before <see cref="Play"/> has produced the first frame.</summary>
+        public bool UsesHardwareDecode => backend?.UsesHardwareDecode ?? false;
+
+        /// <summary>Applies a speed factor to the video playback. The default value is <c>1.0f</c>.</summary>
         public float SpeedFactor
         {
             get => speedFactor;
@@ -89,15 +81,12 @@ namespace Stride.Video
             {
                 if (speedFactor == value)
                     return;
-
                 speedFactor = value;
                 UpdateSpeedSettings();
             }
         }
 
-        /// <summary>
-        /// Define if the video loop or not after reaching the end of the range
-        /// </summary>
+        /// <summary>Define if the video loops after reaching the end of the range.</summary>
         public bool IsLooping
         {
             get => isLooping;
@@ -105,23 +94,19 @@ namespace Stride.Video
             {
                 if (isLooping == value)
                     return;
-
                 isLooping = value;
                 UpdateLoopingSettings();
             }
         }
 
-        /// <summary>
-        /// if Loop is set to true: set the time at which we restart the video when we arrive at LoopRangeEnd 
-        /// </summary>
+        /// <summary>If <see cref="IsLooping"/> is set, the time at which we restart the video when we reach LoopRangeEnd.</summary>
         public PlayRange LoopRange
         {
-            get { return loopRange; }
+            get => loopRange;
             set
             {
                 if (loopRange == value)
                     return;
-
                 loopRange = value;
                 ValidateLoopRange();
                 UpdateLoopingSettings();
@@ -137,7 +122,7 @@ namespace Stride.Video
                 Logger.Warning($"Loop start prior to play start detected. The loop start has been adjusted to the play start time.");
                 var end = loopRange.End;
                 loopRange.Start = playRange.Start;
-                loopRange.End = end; // do not modify range end.
+                loopRange.End = end;
                 loopRangeAdjusted = true;
             }
             if (loopRange.Start > playRange.End)
@@ -145,7 +130,7 @@ namespace Stride.Video
                 Logger.Warning($"Loop start after the play end detected. The loop start has been adjusted to the play end time.");
                 var end = loopRange.End;
                 loopRange.Start = playRange.End;
-                loopRange.End = end; // do not modify range end.
+                loopRange.End = end;
                 loopRangeAdjusted = true;
             }
             if (loopRange.End > playRange.End)
@@ -172,7 +157,7 @@ namespace Stride.Video
 
         public PlayRange PlayRange
         {
-            get { return playRange; }
+            get => playRange;
             set
             {
                 if (playRange == value)
@@ -183,7 +168,7 @@ namespace Stride.Video
                     Logger.Warning($"Invalid negative start time detected '{value.Start}'. The value has been clamped to 0");
                     var end = value.End;
                     value.Start = TimeSpan.Zero;
-                    value.End = end; // do not modify range end.
+                    value.End = end;
                 }
                 if (value.Length < TimeSpan.Zero)
                 {
@@ -198,11 +183,8 @@ namespace Stride.Video
                     UpdateLoopingSettings();
             }
         }
-        
-        /// <summary>
-        /// The global volume at which the sound is played.
-        /// </summary>
-        /// <remarks>Volume is ranging from 0.0f (silence) to 1.0f (full volume). Values beyond those limits are clamped.</remarks>
+
+        /// <summary>The global volume at which the sound is played. Range [0, 1].</summary>
         public float Volume
         {
             get => volume;
@@ -216,43 +198,35 @@ namespace Stride.Video
         private void UpdateAudioVolume()
         {
             CheckAndUpdateDataSource();
-
             if (IsMediaValid())
-                UpdateAudioVolumeImpl(volume);
+                backend.SetAudioVolume(volume);
         }
 
-        partial void UpdateAudioVolumeImpl(float volume);
-
-        /// <summary>
-        /// Release the VideoInstance
-        /// </summary>
+        /// <summary>Release the VideoInstance.</summary>
         public void Release()
         {
             ReleaseMedia();
         }
 
-        private void ReleaseMedia()
+        internal void ReleaseMedia()
         {
             if (IsMediaValid())
             {
                 Stop();
-                ReleaseMediaImpl();
+                backend.ReleaseMedia();
                 DeallocateVideoTexture();
             }
+            backend?.Dispose();
+            backend = null;
             mediaInitialized = false;
         }
-
-        partial void ReleaseMediaImpl();
 
         private void UpdateLoopingSettings()
         {
             CheckAndUpdateDataSource();
-
             if (IsMediaValid())
-                UpdateLoopRangeImpl();
+                backend.UpdateLoopRange();
         }
-
-        partial void UpdateLoopRangeImpl();
 
         private void UpdatePlayRangeSettings()
         {
@@ -268,26 +242,17 @@ namespace Stride.Video
             }
 
             if (IsMediaValid())
-                UpdatePlayRangeImpl();
+                backend.UpdatePlayRange();
         }
-        partial void UpdatePlayRangeImpl();
 
         private void UpdateSpeedSettings()
         {
             CheckAndUpdateDataSource();
-
             if (IsMediaValid())
-                ChangePlaySpeedImpl();
+                backend.SetPlaybackSpeed(speedFactor);
         }
-        partial void ChangePlaySpeedImpl();
 
-        /// <summary>
-        /// Plays or resumes the video.
-        /// </summary>
-        /// <remarks>
-        /// If the video was stopped, plays from the beginning. If the video was paused, resumes playing.
-        /// If the video is already playing, this method does nothing.
-        /// </remarks>
+        /// <summary>Plays or resumes the video.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Play()
         {
@@ -295,18 +260,15 @@ namespace Stride.Video
 
             if (PlayState == PlayState.Playing)
                 return;
-            
+
             if (IsMediaValid())
             {
-                EnsureMedia();
-                PlayImpl();
+                backend.Play();
                 PlayState = PlayState.Playing;
             }
         }
 
-        /// <summary>
-        /// Pauses the video.
-        /// </summary>
+        /// <summary>Pauses the video.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Pause()
         {
@@ -314,19 +276,15 @@ namespace Stride.Video
 
             if (PlayState == PlayState.Paused)
                 return;
-            
+
             if (IsMediaValid())
             {
-                EnsureMedia();
-                PauseImpl();
+                backend.Pause();
                 PlayState = PlayState.Paused;
             }
         }
 
-        /// <summary>
-        /// Seeks the video to the provided <paramref name="time"/>.
-        /// </summary>
-        /// <param name="time"></param>
+        /// <summary>Seeks the video to the provided <paramref name="time"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Seek(TimeSpan time)
         {
@@ -334,28 +292,22 @@ namespace Stride.Video
 
             if (IsMediaValid())
             {
-                var adjustedTime = TimeSpanExtensions.Clamp(time, playRange.Start, playRange.End);
-                SeekImpl(adjustedTime);
+                // playRange defaults to an invalid (zero-length) range; clamping against it
+                // would force every Seek to land at 0. Fall back to the media's full duration.
+                var adjustedTime = playRange.IsValid()
+                    ? TimeSpanExtensions.Clamp(time, playRange.Start, playRange.End)
+                    : TimeSpanExtensions.Clamp(time, TimeSpan.Zero, Duration);
+                backend.Seek(adjustedTime);
                 CurrentTime = adjustedTime;
-                if (adjustedTime > playRange.Start && PlayState == PlayState.Stopped) // Stop -> currentTime == playRange.Start
+                if (adjustedTime > playRange.Start && PlayState == PlayState.Stopped)
                     Pause();
             }
         }
 
-        /// <summary>
-        /// Restarts the video from the beginning.
-        /// </summary>
-        public void RestartVideo()
-        {
-            Seek(playRange.Start);
-        }
+        /// <summary>Restarts the video from the beginning.</summary>
+        public void RestartVideo() => Seek(playRange.Start);
 
-        /// <summary>
-        /// Stops the video.
-        /// </summary>
-        /// <remarks>
-        /// The resources used by the video are also released.
-        /// </remarks>
+        /// <summary>Stops the video.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Stop()
         {
@@ -363,26 +315,17 @@ namespace Stride.Video
 
             if (PlayState == PlayState.Stopped)
                 return;
-            
+
             if (IsMediaValid())
             {
-                EnsureMedia();
-
-                StopImpl();
-
-                //Swap back the default texture
+                backend.Stop();
                 videoTexture?.SetTargetContentToOriginalPlaceholder();
-
                 CurrentTime = playRange.Start;
                 PlayState = PlayState.Stopped;
             }
         }
 
-        /// <summary>
-        /// Advances the play time to the provided <paramref name="elapsed"/> time.
-        /// </summary>
-        /// <param name="elapsed"></param>
-        /// <returns><c>true</c> if </returns>
+        /// <summary>Advances the play time by <paramref name="elapsed"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Update(TimeSpan elapsed)
         {
@@ -392,9 +335,9 @@ namespace Stride.Video
                 streamingManager?.SetResourceStreamingOptions(videoComponent.Target, StreamingOptions.DoNotStream); //TODO revert options after Stop
 
             videoTexture?.UpdateTargetTexture(videoComponent.Target);
-                
+
             if (IsMediaValid())
-                UpdateImpl(ref elapsed);
+                backend.Update(elapsed);
         }
 
         private void CheckAndUpdateDataSource()
@@ -402,36 +345,9 @@ namespace Stride.Video
             if (currentVideo != videoComponent.Source)
             {
                 currentVideo = videoComponent.Source;
-                InitializeFromDataSource(); // set the new data source
+                InitializeFromDataSource();
             }
         }
-
-        partial void ReleaseImpl();
-
-        /// <summary>
-        /// Implementation of <see cref="Play"/>.
-        /// </summary>
-        partial void PlayImpl();
-
-        /// <summary>
-        /// Implementation of <see cref="Pause"/>.
-        /// </summary>
-        partial void PauseImpl();
-
-        /// <summary>
-        /// Implementation of <see cref="Seek(TimeSpan)"/>.
-        /// </summary>
-        partial void SeekImpl(TimeSpan time);
-
-        /// <summary>
-        /// Implementation of <see cref="Stop"/>.
-        /// </summary>
-        partial void StopImpl();
-
-        /// <summary>
-        /// Implementation of <see cref="Update(TimeSpan)"/>.
-        /// </summary>
-        partial void UpdateImpl(ref TimeSpan elapsed);
 
         /// <inheritdoc />
         protected internal override bool OnPause()
@@ -449,16 +365,13 @@ namespace Stride.Video
         {
             if (IsDisposed)
                 return;
-
             Play();
         }
 
         public void InitializeFromDataSource()
         {
-            // release current media
             ReleaseMedia();
 
-            // Update the video url information
             string url = null;
             long startPosition = 0;
             long end = 0;
@@ -467,7 +380,6 @@ namespace Stride.Video
             if (source != null)
             {
                 var dataUrl = source.CompressedDataUrl;
-
                 var fileProvider = source.FileProvider;
 
                 if (!fileProvider.ContentIndexMap.TryGetValue(dataUrl, out ObjectId objectId) ||
@@ -476,44 +388,39 @@ namespace Stride.Video
                     throw new InvalidOperationException("Video files needs to be stored on the virtual file system in a non-compressed form.");
                 }
 
-                // Initialize media
                 InitializeMedia(url, startPosition, end - startPosition);
 
-                // Set playback properties
                 UpdateAudioVolume();
                 UpdateLoopingSettings();
                 UpdatePlayRangeSettings();
                 UpdateSpeedSettings();
             }
 
-            // Do not play and pause the new video. The new video always starts in the 'Stopped' state
-            // It is responsibility of the user the revert play state after changing the source video.
+            // New video always starts in Stopped state.
         }
 
-        private bool IsMediaValid()
-        {
-            return mediaInitialized;
-        }
-
-        partial void EnsureMedia();
+        private bool IsMediaValid() => mediaInitialized && backend != null;
 
         private void InitializeMedia(string url, long startPosition, long length)
         {
             if (url == null || startPosition < 0 || length < 0)
                 return;
-            
-            InitializeMediaImpl(url, startPosition, length, ref mediaInitialized);
+
+            var factory = videoSystem.ActiveBackendFactory
+                ?? throw new InvalidOperationException("No video backend is registered or supported on this platform.");
+            backend = factory.CreateBackend(this);
+            mediaInitialized = backend.Initialize(url, startPosition, length);
+            if (!mediaInitialized)
+            {
+                backend.Dispose();
+                backend = null;
+            }
         }
 
-        partial void InitializeMediaImpl(string url, long startPosition, long length, ref bool succeeded);
-
-        private void AllocateVideoTexture(int width, int height)
+        internal void AllocateVideoTexture(int width, int height)
         {
-            // Allocate the video texture that we will copy the video into:
             if (videoTexture != null)
-            {
                 throw new InvalidOperationException("\"videoTexture\" was not deallocated properly before trying to create a new one!");
-            }
 
             videoTexture = new VideoTexture(GraphicsDevice, services, width, height, videoComponent.MaxMipMapCount);
         }
@@ -523,5 +430,21 @@ namespace Stride.Video
             videoTexture?.Dispose();
             videoTexture = null;
         }
+
+        // Backend-accessible state. Internal to keep VideoInstance's public surface stable.
+        internal IServiceRegistry Services => services;
+        internal VideoComponent VideoComponent => videoComponent;
+        internal VideoTexture VideoTexture => videoTexture;
+        internal void SetCurrentTime(TimeSpan time) => CurrentTime = time;
+        internal void SetDuration(TimeSpan duration) => Duration = duration;
+
+        // MediaCodec-thread notification forwarders. Safe no-op on non-MediaCodec backends.
+#if STRIDE_PLATFORM_ANDROID && STRIDE_VIDEO_MEDIACODEC
+        internal void OnReceiveNotificationToUpdateVideoTextureSurface()
+            => (backend as Backends.IMediaCodecBackend)?.OnReceiveNotificationToUpdateVideoTextureSurface();
+
+        internal bool IsVideoTextureUpdated()
+            => (backend as Backends.IMediaCodecBackend)?.IsVideoTextureUpdated() ?? true;
+#endif
     }
 }
