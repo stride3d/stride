@@ -72,6 +72,8 @@
     <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';Windows;'))" Include="win-x64;win-arm64" LibraryExtension=".dll" LibraryRuntime="win" />
     <StrideNativeCPU Condition="$(_StridePlatforms.Contains(';Linux;'))" Include="linux-x64" LibraryExtension=".so" LibraryRuntime="linux" />
     <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-x64" LibraryExtension=".dylib" LibraryRuntime="osx" />
+    <!-- macOS host builds its own osx-arm64 dylib via the system clang. -->
+    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StrideNativeCPU Include="android-arm64;android-arm;android-x86;android-x64" LibraryExtension=".so" />
@@ -290,6 +292,18 @@
     <Delete Files="@(IntermediateAssembly)"/>
   </Target>
   
+  <!-- macOS host: system clang (no LLD). Celt and NativePath are true-macOS-arm64 rebuilds
+       under deps/NativePath/dotnet/osx-arm64/ (iOS objects refuse to link into macOS dylibs). -->
+  <Target Name="CompileNativeClang_macOSOnMac" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+    <MakeDir Directories="$(OutputObjectPath)/osx-arm64" />
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/osx-arm64/native" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="clang $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="clang++ $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
+    <Exec Command="clang++ -arch arm64 -dynamiclib -o &quot;$(StrideNativeOutputPath)/runtimes/osx-arm64/native/$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/osx-arm64/%(Filename)_arm64.o&quot;', ' ') @(StrideNativePathLibsmacOSArm64->'&quot;%(FullPath)&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-arm64\libNativePath.a&quot;" />
+
+    <Delete Files="@(IntermediateAssembly)" />
+  </Target>
+
   <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean" DependsOnTargets="_StrideRegisterNativeOutputs">
     <ItemGroup Condition="'$(OutputObjectPath)' != ''">
       <ObjFiles Include="$(OutputObjectPath)\**\*.obj" />
