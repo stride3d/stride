@@ -519,7 +519,7 @@ namespace Stride.Graphics
 
             CheckResult(NativeInstanceApi.vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
 
-            nativeDeviceApi = GetApi(NativeInstance, NativeDevice);
+            nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
