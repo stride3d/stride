@@ -41,13 +41,15 @@ jobs:
   # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master)
   # so those run everything regardless of which files changed.
   #
-  # Fork-friendly: push/PR only run when STRIDE_ENABLE_PUSH_CI is set on the repo (upstream
-  # stride3d/stride sets it; forks leave it unset). workflow_dispatch always punches through
-  # so manual runs work on any fork. Downstream jobs `needs: changes`, so this single guard
-  # cascades — no per-job edits needed.
+  # Fork-friendly: upstream stride3d/stride always runs (the repository-name clause covers
+  # both direct pushes and fork→upstream PRs, where base-repo `vars` aren't readable from a
+  # fork PR's context). On forks, push/PR only run when STRIDE_ENABLE_PUSH_CI is set on the
+  # fork. workflow_dispatch always punches through so manual runs work anywhere. Downstream
+  # jobs `needs: changes`, so this single guard cascades — no per-job edits needed.
   changes:
     if: >
       (github.event_name != 'push' && github.event_name != 'pull_request')
+      || github.repository == 'stride3d/stride'
       || vars.STRIDE_ENABLE_PUSH_CI == 'true'
     runs-on: ubuntu-latest
     outputs:
