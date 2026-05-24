@@ -20,7 +20,6 @@ public sealed class EditorNameConverter : OneWayValueConverter<EditorNameConvert
             GameStudioNames.StrideAvalonia when !OperatingSystem.IsWindows() => "Game Studio",
             GameStudioNames.StrideAvalonia => "Game Studio (Avalonia)",
             GameStudioNames.Stride => "Game Studio (WPF)",
-            GameStudioNames.Xenko => "Xenko Game Studio",
             var name => name ?? string.Empty,
         };
     }

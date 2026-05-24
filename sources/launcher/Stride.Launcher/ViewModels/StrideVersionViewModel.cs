@@ -31,8 +31,6 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         Major = major;
         Minor = minor;
         SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
-        // Update status if the user changes whether to display beta versions.
-        launcher.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(MainViewModel.ShowBetaVersions)) UpdateStatus(); };
     }
 
     /// <summary>
@@ -53,7 +51,6 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             ? [
                 $"{GameStudioNames.StrideAvalonia}.exe",
                 $"{GameStudioNames.Stride}.exe",
-                $"{GameStudioNames.Xenko}.exe",
             ]
             : [$"{GameStudioNames.StrideAvalonia}.dll"];
     }
@@ -212,11 +209,6 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     public CommandBase SetAsActiveCommand { get; }
 
     /// <summary>
-    /// Gets whether this version is a beta version.
-    /// </summary>
-    public bool IsBeta => IsBetaVersion(Major, Minor);
-
-    /// <summary>
     /// Gets whether this version should be displayed.
     /// </summary>
     public bool IsVisible { get { return isVisible; } private set { SetValue(ref isVisible, value); } }
@@ -259,29 +251,14 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     /// <returns>A string representing the given version numbers.</returns>
     public static string GetName(string packageSimpleName, int majorVersion, int minorVersion, bool isDisplayName = false)
     {
-        if (isDisplayName && IsBetaVersion(majorVersion, minorVersion))
-            return $"{packageSimpleName} {majorVersion}.{minorVersion}-beta";
-
         return $"{packageSimpleName} {majorVersion}.{minorVersion}";
-    }
-
-    /// <summary>
-    /// Indicates if the given version corresponds to a beta version.
-    /// </summary>
-    /// <param name="majorVersion">The major number of the version.</param>
-    /// <param name="minorVersion">The minor nimber of the version.</param>
-    /// <returns>True if the given version is a beta, false otherwise.</returns>
-    public static bool IsBetaVersion(int majorVersion, int minorVersion)
-    {
-        return majorVersion < 3;
     }
 
     /// <inheritdoc/>
     protected override void UpdateStatus()
     {
         base.UpdateStatus();
-        // It is visible if it's installed, or if it's not a beta, or if user want to see be available betas
-        IsVisible = Launcher.ShowBetaVersions || !IsBeta || CanDelete;
+        IsVisible = true;
         SetAsActiveCommand.IsEnabled = CanDelete;
         DeleteCommand.IsEnabled = CanDelete;
         // On non-Windows only the Avalonia editor is supported; require it to be present before allowing Start.
@@ -324,10 +301,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             // some old paths used in previous versions
             if (OperatingSystem.IsWindows())
             {
-                yield return @$"lib\net472\{GameStudioNames.Stride}.exe";
-                yield return @$"lib\net472\{GameStudioNames.Xenko}.exe";
-                yield return @$"Bin\Windows\{GameStudioNames.Xenko}.exe";
-                yield return @$"Bin\Windows-Direct3D11\{GameStudioNames.Xenko}.exe";
+            yield return @$"lib\net472\{GameStudioNames.Stride}.exe";
             }
         }
     }
@@ -340,7 +314,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     {
         var ext = OperatingSystem.IsWindows() ? ".exe" : ".dll";
         string[] allNames = OperatingSystem.IsWindows()
-            ? [GameStudioNames.StrideAvalonia, GameStudioNames.Stride, GameStudioNames.Xenko]
+            ? [GameStudioNames.StrideAvalonia, GameStudioNames.Stride]
             : [GameStudioNames.StrideAvalonia];
 
         if (SelectedEditor is not null)

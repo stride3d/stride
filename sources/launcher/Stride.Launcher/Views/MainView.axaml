@@ -499,26 +499,6 @@
                                  Height="24" Margin="0,2"
                                  Opacity="0.5"
                                  IsVisible="{Binding IsSynchronizing}" />
-                    <ToggleButton Classes="TransparentButton"
-                                  Margin="0,4" HorizontalAlignment="Center"
-                                  IsChecked="{Binding ShowBetaVersions}"
-                                  Content="{Binding}"
-                                  Command="{Binding CheckDeprecatedSourcesCommand}">
-                      <ToggleButton.ContentTemplate>
-                        <DataTemplate DataType="vm:MainViewModel">
-                          <TextBlock Text="{x:Static l:Strings.ToggleShowBetaVersions}">
-                            <Interaction.Behaviors>
-                              <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="True">
-                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleHideBetaVersions}" />
-                              </DataTriggerBehavior>
-                              <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="False">
-                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleShowBetaVersions}" />
-                              </DataTriggerBehavior>
-                            </Interaction.Behaviors>
-                          </TextBlock>
-                        </DataTemplate>
-                      </ToggleButton.ContentTemplate>
-                    </ToggleButton>
                   </StackPanel>
                 </ScrollViewer>
               </Border>

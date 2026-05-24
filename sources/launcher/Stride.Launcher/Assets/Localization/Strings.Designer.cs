@@ -61,19 +61,6 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If you want to access Xenko 3.0 and lower, we need to add a custom nuget source.
-        ///
-        ///Do you want to proceed?
-        ///
-        ///This will restart the launcher..
-        /// </summary>
-        public static string AskAddNugetDeprecatedSource {
-            get {
-                return ResourceManager.GetString("AskAddNugetDeprecatedSource", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to It seems you do not have any version of Stride currently installed. Would you like to install the latest version?.
         /// </summary>
         public static string AskInstallVersion {
@@ -618,24 +605,6 @@ namespace Stride.Launcher.Assets.Localization {
         public static string TabNews {
             get {
                 return ResourceManager.GetString("TabNews", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Click here to hide beta versions.
-        /// </summary>
-        public static string ToggleHideBetaVersions {
-            get {
-                return ResourceManager.GetString("ToggleHideBetaVersions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Click here to show beta versions.
-        /// </summary>
-        public static string ToggleShowBetaVersions {
-            get {
-                return ResourceManager.GetString("ToggleShowBetaVersions", resourceCulture);
             }
         }
         

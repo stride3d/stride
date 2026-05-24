@@ -39,7 +39,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private bool lastActiveVersionRestored;
     private AnnouncementViewModel announcement;
     private bool isVisible;
-    private bool showBetaVersions;
 
     internal ILauncherSettingsService Settings => _settings;
 
@@ -67,22 +66,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             await FetchOnlineData();
         });
         StartStudioCommand = new AnonymousTaskCommand(ServiceProvider, StartStudio) { IsEnabled = false };
-        CheckDeprecatedSourcesCommand = new AnonymousTaskCommand(ServiceProvider, async () =>
-        {
-            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
-            if (NugetStore.CheckPackageSource(settings, "Stride"))
-            {
-                return;
-            }
-            // Add Stride package store (still used for Xenko up to 3.0)
-            if (await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                NugetStore.UpdatePackageSource(settings, "Stride", "https://packages.stride3d.net/nuget");
-                settings.SaveToDisk();
-
-                SelfUpdater.RestartApplication();
-            }
-        });
 
         foreach (var devVersion in _settings.DeveloperVersions)
         {
@@ -123,8 +106,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     internal event EventHandler? CloseRequested;
 
     public IEnumerable<StrideVersionViewModel> StrideVersions => strideVersions;
-
-    public bool ShowBetaVersions { get { return showBetaVersions; } set { SetValue(ref showBetaVersions, value); } }
 
     public VsixVersionViewModel VsixPackage2019 { get; }
 
@@ -245,8 +226,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public CommandBase StartStudioCommand { get; }
 
-    public CommandBase CheckDeprecatedSourcesCommand { get; }
-
     private async Task FetchOnlineData()
     {
         // We ensure that the self-updater task starts once the app is running because it might invoke dialogs.
@@ -345,7 +324,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         foreach (var dependency in package.Dependencies)
         {
             string prefix = dependency.Item1.Split('.', 2)[0];
-            if (prefix is not "Stride" and not "Xenko")
+            if (prefix is not "Stride")
             {
                 continue;
             }
@@ -371,7 +350,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().OrderByDescending(p => p.Version).ToList());
             lock (objectLock)
             {
-                // Try to remove unused Stride/Xenko packages after uninstall or update
+                // Try to remove unused Stride packages after uninstall or update
                 try
                 {
                     Task.WaitAll(RemoveUnusedPackages(localPackages));

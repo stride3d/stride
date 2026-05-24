@@ -408,12 +408,6 @@
     <value>A problem has occurred during the installation of Visual Studio plugin. Check that you have at least one of the compatible version of Visual Studio installed (2012, 2013 or 2015).</value>
     <comment>Messagebox text indicating that the installation of the VSIX has failed</comment>
   </data>
-  <data name="ToggleHideBetaVersions" xml:space="preserve">
-    <value>Click here to hide beta versions</value>
-  </data>
-  <data name="ToggleShowBetaVersions" xml:space="preserve">
-    <value>Click here to show beta versions</value>
-  </data>
   <data name="ErrorDevRedirect" xml:space="preserve">
     <value>An error occurred while trying to process a developer version: {0}</value>
     <comment>MessageBox text indicating that a dev version could not be processed</comment>
@@ -440,13 +434,6 @@
 {0}
 
 Please go to Stride website and download a new version.</value>
-  </data>
-  <data name="AskAddNugetDeprecatedSource" xml:space="preserve">
-    <value>If you want to access Xenko 3.0 and lower, we need to add a custom nuget source.
-
-Do you want to proceed?
-
-This will restart the launcher.</value>
   </data>
   <data name="CloseAnyway" xml:space="preserve">
     <value>Close anyway</value>
