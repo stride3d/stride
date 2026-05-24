@@ -1,5 +1,11 @@
 name: Build Visual Studio Package
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Build Visual Studio Package — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Build Visual Studio Package @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
 on:
   workflow_dispatch:
     inputs:

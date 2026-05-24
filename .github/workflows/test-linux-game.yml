@@ -1,6 +1,10 @@
 name: Test Linux Game (Vulkan)
 
-run-name: ${{ github.event.inputs.commit-sha != '' && format('Test Linux Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test Linux Game (Vulkan) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Test Linux Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
+      || '' }}
 
 on:
   workflow_dispatch:
