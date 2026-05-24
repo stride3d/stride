@@ -230,7 +230,32 @@ namespace Stride.Graphics
                 ppEnabledExtensionNames = ppEnabledExtensionNames,
             };
 
-            VkResult result = vkCreateInstance(&instanceCreateInfo, out NativeInstance);
+            // Silence MoltenVK's per-instance info dump (153-line extension list, device banner).
+            // Override with MVK_CONFIG_LOG_LEVEL=3 to restore verbose output.
+            int mvkLogLevel = 2; // 0=off 1=error 2=warning 3=info 4=debug
+            VkResult result;
+            fixed (byte* pMvkLayerName = "MoltenVK"u8)
+            fixed (byte* pMvkLogLevelKey = "MVK_CONFIG_LOG_LEVEL"u8)
+            {
+                var mvkLogLevelSetting = new VkLayerSettingEXT
+                {
+                    pLayerName = pMvkLayerName,
+                    pSettingName = pMvkLogLevelKey,
+                    type = VkLayerSettingTypeEXT.Int32,
+                    valueCount = 1,
+                    pValues = &mvkLogLevel,
+                };
+                var layerSettings = new VkLayerSettingsCreateInfoEXT
+                {
+                    sType = VkStructureType.LayerSettingsCreateInfoEXT,
+                    settingCount = 1,
+                    pSettings = &mvkLogLevelSetting,
+                };
+                if (Platform.Type == PlatformType.macOS && Environment.GetEnvironmentVariable("MVK_CONFIG_LOG_LEVEL") == null)
+                    instanceCreateInfo.pNext = &layerSettings;
+
+                result = vkCreateInstance(&instanceCreateInfo, out NativeInstance);
+            }
             if (result != VK_SUCCESS)
                 throw new InvalidOperationException($"Failed to create vulkan instance: {result}");
 
