@@ -76,9 +76,9 @@ Subclasses must implement `Name` and `FullName`, and override `UpdateStatus` to 
 
 ## Version view models
 
-- [**StrideVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideVersionViewModel.cs) — abstract base. Adds `Major`/`Minor`, `IsBeta`, `Frameworks` (discovered by scanning `tools/`/`lib/`), `SelectedFramework`, and `LocateMainExecutable()`. `IsBeta` is hard-coded to `major < 3`.
+- [**StrideVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideVersionViewModel.cs) — abstract base. Adds `Major`/`Minor`, `Frameworks` (discovered by scanning `tools/`/`lib/`), `SelectedFramework`, and `LocateMainExecutable()`.
 - [**StrideStoreVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideStoreVersionViewModel.cs) — an official release. Holds `ReleaseNotes` and `DocumentationPages`, manages the prerequisites installer (`Bin\Prerequisites\install-prerequisites.exe`), and exposes the VSIX packages.
-- [**StrideStoreAlternateVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideStoreAlternateVersionViewModel.cs) — a sibling variant (e.g. legacy Xenko ID) that resolves under the same `StrideStoreVersionViewModel`.
+- [**StrideStoreAlternateVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideStoreAlternateVersionViewModel.cs) — a sibling patch variant that resolves under the same `StrideStoreVersionViewModel`.
 - [**StrideDevVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideDevVersionViewModel.cs) — a local build registered via `LauncherSettings.DeveloperVersions` or a `DevRedirect` package. Never downloadable. Marked as "compatible with every project" in the recent projects list.
 - [**VsixVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/VsixVersionViewModel.cs) — installs/uninstalls the Stride Visual Studio extension in the detected VS instances via `Stride.Core.CodeEditorSupport.VisualStudio.VisualStudioVersions`.
 

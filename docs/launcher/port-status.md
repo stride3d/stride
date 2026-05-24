@@ -16,7 +16,6 @@ The core is in place:
 - Self-update flow (NuGet probe → download → file swap → restart).
 - Recent projects + MRU integration with Game Studio.
 - VSIX discovery via `VisualStudioVersions` (no-op on Linux, by design).
-- `ShowBetaVersions` toggle with Avalonia `Interaction.Behaviors` / `DataTriggerBehavior` (ported correctly).
 - Recent-project context menu with *Show in Explorer* / *Remove from list* (menu ported; *Show in Explorer* is cross-platform — Windows `explorer.exe /select`, macOS `open -R`, Linux DBus `FileManager1.ShowItems` with `xdg-open` fallback).
 - Alternate-versions sub-list (ported as a nested `ItemsControl`, no longer a `Popup`).
 - Localization resx / Urls resx.

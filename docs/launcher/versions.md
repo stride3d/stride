@@ -8,7 +8,7 @@ Managing Stride versions is the launcher's core responsibility. This file descri
 flowchart TD
     SVM["StrideVersionViewModel<br/>(abstract)"]
     SSV["StrideStoreVersionViewModel<br/>Major.Minor from NuGet feed"]
-    SSA["StrideStoreAlternateVersionViewModel<br/>Alternate package ID under the same Major.Minor<br/>(e.g. legacy Xenko)"]
+    SSA["StrideStoreAlternateVersionViewModel<br/>Alternate patch version under the same Major.Minor"]
     SDV["StrideDevVersionViewModel<br/>Local build or DevRedirect package"]
 
     SVM --> SSV
@@ -50,7 +50,7 @@ Progress is reported via `IPackagesLogger` — `MainViewModel` implements it and
 1. User clicks **Install** or **Update** on a `StrideVersionViewModel`.
 2. `PackageVersionViewModel.Download(true)` runs: it sets `IsProcessing`, calls `NugetStore.InstallPackage`, and updates progress via `OnDownloadProgress`.
 3. On completion, `UpdateStatus` recomputes `CanBeDownloaded` / `CanDelete` and the UI re-binds.
-4. `MainViewModel.RetrieveLocalStrideVersions` is re-run to refresh the version list and to clean up any newly-unused transitive packages via `RemoveUnusedPackages` (walks `Dependencies` starting from the Stride/Xenko main packages and uninstalls anything no longer referenced).
+4. `MainViewModel.RetrieveLocalStrideVersions` is re-run to refresh the version list and to clean up any newly-unused transitive packages via `RemoveUnusedPackages` (walks `Dependencies` starting from the Stride main packages and uninstalls anything no longer referenced).
 5. `UpdateFrameworks()` re-scans `tools/` and `lib/` for TFM subfolders containing a Game Studio executable (`Stride.GameStudio.Avalonia.Desktop.exe` on Windows, `.dll` on Linux). `SelectedFramework` is restored from `LauncherSettings.PreferredFramework` if present, otherwise the closest match (same `Framework` identifier) is used.
 
 ## Uninstall flow
@@ -66,10 +66,6 @@ Two entry points:
 
 `UninstallHelper` also subscribes to `NugetStore.NugetPackageUninstalling` to close lingering processes before each package is removed — this is why it lives as a disposable member on `MainViewModel` (`uninstallHelper`).
 
-## Beta filter
-
-`StrideVersionViewModel.IsBetaVersion(major, minor)` returns `true` for `major < 3`. Beta versions are visible only when `MainViewModel.ShowBetaVersions` is on or when the version is already installed. The UI toggle re-raises `UpdateStatus` for every version.
-
 ## Framework selection
 
 `StrideVersionViewModel.Frameworks` is an `ObservableList<string>` populated by scanning the package install path. The launcher looks for:
@@ -79,7 +75,7 @@ Two entry points:
 {InstallPath}/lib/{framework}/Stride.GameStudio.Avalonia.Desktop.{exe|dll}
 ```
 
-On Windows, `Stride.GameStudio.exe` and legacy `Xenko.GameStudio.exe` are also considered. See `StrideVersionViewModel.GetExecutableNames` and `LocateMainExecutable`.
+On Windows, `Stride.GameStudio.exe` is also considered as a fallback. See `StrideVersionViewModel.GetExecutableNames` and `LocateMainExecutable`.
 
 ## VSIX
 

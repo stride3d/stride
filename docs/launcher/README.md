@@ -1,6 +1,6 @@
 # Stride Launcher — Overview
 
-The Stride Launcher is the entry point end users run after installing Stride. It is an Avalonia MVVM application that manages the locally installed Stride/Xenko versions (download, update, uninstall), exposes recent projects and VSIX extensions for Visual Studio, surfaces release notes, news and documentation, and finally starts the selected version of Game Studio.
+The Stride Launcher is the entry point end users run after installing Stride. It is an Avalonia MVVM application that manages the locally installed Stride versions (download, update, uninstall), exposes recent projects and VSIX extensions for Visual Studio, surfaces release notes, news and documentation, and finally starts the selected version of Game Studio.
 
 The launcher's sources live in [sources/launcher/](../../sources/launcher/). The application itself is [Stride.Launcher](../../sources/launcher/Stride.Launcher/), built against `net10.0` with RIDs `linux-x64` and `win-x64`. It is distributed as a NuGet package (`Stride.Launcher`) and wrapped by an Advanced Installer setup on Windows.
 

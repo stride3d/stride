@@ -6,7 +6,7 @@ The launcher is in the middle of a Windows → Avalonia cross-platform port (`xp
 
 | Platform | Game Studio file | How it is started |
 |---|---|---|
-| Windows | `Stride.GameStudio.Avalonia.Desktop.exe` (with fallbacks to `Stride.GameStudio.exe`, `Xenko.GameStudio.exe`) | `Process.Start(exe, args)` |
+| Windows | `Stride.GameStudio.Avalonia.Desktop.exe` (with fallback to `Stride.GameStudio.exe`) | `Process.Start(exe, args)` |
 | Linux | `Stride.GameStudio.Avalonia.Desktop.dll` | `Process.Start("dotnet", $"{dll} {args}")` |
 
 The choice is in `StrideVersionViewModel.GetExecutableNames` and `MainViewModel.StartStudio`. The switch on `Path.GetExtension(mainExecutable)` decides whether to invoke `dotnet` or the binary directly.
