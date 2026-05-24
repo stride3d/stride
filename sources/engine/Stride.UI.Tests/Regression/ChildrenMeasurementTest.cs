@@ -27,7 +27,7 @@ namespace Stride.UI.Tests.Regression
             await base.LoadContent();
 
 
-            var font = Content.Load<SpriteFont>("MicrosoftSansSerif15");
+            var font = Content.Load<SpriteFont>("NotoSans15");
 
             // root panel (any kind of panel could be used for this test)
             canvas = new Canvas

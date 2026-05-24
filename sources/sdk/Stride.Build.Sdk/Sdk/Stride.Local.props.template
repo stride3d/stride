@@ -7,7 +7,9 @@
   -->
 
   <PropertyGroup>
-    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(OSX))' == 'true'">macOS</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">Linux</StridePlatforms>
     <StrideGraphicsApiDependentBuildAll Condition="'$(StrideGraphicsApiDependentBuildAll)' == ''">false</StrideGraphicsApiDependentBuildAll>
   </PropertyGroup>
 

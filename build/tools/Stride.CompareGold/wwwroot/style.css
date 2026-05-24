@@ -162,5 +162,22 @@ tr.suite-row td { padding: 10px 12px; border-bottom: 2px solid #333; }
 .ci-run.selected { background: #1a3a5c; border-color: #4fc3f7; }
 .ci-run .meta { color: #888; font-size: 11px; }
 
+/* Repo chip on each run row — upstream stays neutral, forks get a colored accent so
+ * a mixed list is scannable without reading the full owner/name. */
+.repo-chip { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-family: monospace; margin-right: 4px; vertical-align: middle; }
+.repo-chip.upstream { background: #2a2a2a; color: #aaa; }
+.repo-chip.fork { background: #3a2a4a; color: #d8b4e8; }
+.ci-run a { color: #6cb6ff; text-decoration: none; }
+.ci-run a:hover { text-decoration: underline; }
+.ci-status { font-weight: bold; }
+.ci-status.ok { color: #6abf6a; }
+.ci-status.fail { color: #e57373; }
+.ci-status.cancelled { color: #888; }
+.ci-status.pending { color: #d8b65a; }
+/* Fork-management chips in the modal header */
+.fork-chip { display: inline-block; padding: 2px 6px; background: #3a2a4a; color: #d8b4e8; border-radius: 3px; font-size: 11px; font-family: monospace; margin-right: 4px; }
+.fork-chip a { color: #aaa; margin-left: 4px; text-decoration: none; }
+.fork-chip a:hover { color: #fff; }
+
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #444; border-top-color: #4fc3f7; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -15,9 +15,10 @@ namespace Stride.Video.FFmpeg
         public AudioStream([NotNull] AVStream* pStream, [NotNull] FFmpegMedia media)
             : base(pStream, media)
         {
-            var pCodec = pStream->codec;
-            ChannelCount = pCodec->channels;
-            SampleRate = pCodec->sample_rate;
+            var pCodecpar = pStream->codecpar;
+            // FFmpeg 5.1+: channels/channel_layout replaced by AVChannelLayout ch_layout.
+            ChannelCount = pCodecpar->ch_layout.nb_channels;
+            SampleRate = pCodecpar->sample_rate;
         }
 
         /// <summary>

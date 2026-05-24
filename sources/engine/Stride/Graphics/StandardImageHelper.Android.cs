@@ -2,18 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Android.Graphics;
-using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// This class is responsible to provide image loader for png, gif, bmp.
-    /// </summary>
+    // Android-native LoadFromMemory uses BitmapFactory to get hardware-accelerated image
+    // decoding. Save* methods are implemented in the shared StandardImageHelper.cs using
+    // ImageSharp.
     partial class StandardImageHelper
     {
         public static unsafe Image LoadFromMemory(nint pSource, int size, bool makeACopy, GCHandle? handle)
@@ -36,7 +34,6 @@ namespace Stride.Graphics
                 // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
                 image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
                 CopyMemoryBGRA(image.PixelBuffer[0].DataPointer, bitmapData, image.PixelBuffer[0].BufferStride);
-                //MemoryUtilities.CopyMemory(image.PixelBuffer[0].DataPointer, bitmapData, image.PixelBuffer[0].BufferStride);
                 bitmap.UnlockPixels();
                 bitmap.Dispose();
 
@@ -46,73 +43,6 @@ namespace Stride.Graphics
                     MemoryUtilities.Free(pSource);
 
                 return image;
-            }
-
-        }
-
-        public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, Bitmap.CompressFormat.Jpeg);
-        }
-
-        public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, Bitmap.CompressFormat.Png);
-        }
-
-        public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, Bitmap.CompressFormat imageFormat)
-        {
-            var colors = pixelBuffers[0].GetPixels<int>();
-            var source = colors.AsSpan();
-            using (var bitmap = Bitmap.CreateBitmap(description.Width, description.Height, Bitmap.Config.Argb8888))
-            {
-                var pixelData = bitmap.LockPixels();
-                var sizeToCopy = colors.Length * sizeof(int);
-                Debug.Assert(
-                    (description.Width | description.Height) >= 0 &&
-                    colors.Length <= checked(description.Width * description.Height));
-                unsafe
-                {
-                    fixed (int* pSrc = colors)
-                    {
-                        // Copy the memory
-                        if (description.Format == PixelFormat.R8G8B8A8_UNorm || description.Format == PixelFormat.R8G8B8A8_UNorm_SRgb)
-                        {
-                            CopyMemoryBGRA(pixelData, (nint)pSrc, sizeToCopy);
-                        }
-                        else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
-                        {
-                            MemoryUtilities.CopyWithAlignmentFallback((void*)pixelData, (void*)pSrc, (uint)sizeToCopy);
-                        }
-                        else
-                        {
-                            throw new NotSupportedException(string.Format("Pixel format [{0}] is not supported", description.Format));
-                        }
-                    }
-                }
-
-                bitmap.UnlockPixels();
-                bitmap.Compress(imageFormat, 100, imageStream);
             }
         }
     }

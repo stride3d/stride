@@ -13,5 +13,14 @@ namespace Stride.Audio.Tests
     /// </summary>
     public class AudioTestGame : GameTestBase
     {
+        public AudioTestGame()
+        {
+            // VideoSmokeTest uses VideoTexture, which loads SpriteEffectExtTextureRegular —
+            // that shader calls SampleLevel in the pixel shader and needs Shader Model 4.0 /
+            // FL10.0+. The asset GameSettings is also at Level_10_0 to match (so asset compile
+            // doesn't degrade the shader silently). Other Audio.Tests tests don't need FL10
+            // but inherit it harmlessly.
+            GraphicsDeviceManager.PreferredGraphicsProfile = [GraphicsProfile.Level_10_0];
+        }
     }
 }

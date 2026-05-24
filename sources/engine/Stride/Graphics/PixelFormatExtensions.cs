@@ -121,6 +121,22 @@ public static class PixelFormatExtensions
             ETC2_RGBA or ETC2_RGBA_SRgb => 8,
             ETC2_RGB_A1 => 1,
 
+            // ASTC LDR always supports a full alpha channel (encoded inside the 128-bit block).
+            ASTC_4x4_UNorm   or ASTC_4x4_UNorm_SRgb
+            or ASTC_5x4_UNorm   or ASTC_5x4_UNorm_SRgb
+            or ASTC_5x5_UNorm   or ASTC_5x5_UNorm_SRgb
+            or ASTC_6x5_UNorm   or ASTC_6x5_UNorm_SRgb
+            or ASTC_6x6_UNorm   or ASTC_6x6_UNorm_SRgb
+            or ASTC_8x5_UNorm   or ASTC_8x5_UNorm_SRgb
+            or ASTC_8x6_UNorm   or ASTC_8x6_UNorm_SRgb
+            or ASTC_8x8_UNorm   or ASTC_8x8_UNorm_SRgb
+            or ASTC_10x5_UNorm  or ASTC_10x5_UNorm_SRgb
+            or ASTC_10x6_UNorm  or ASTC_10x6_UNorm_SRgb
+            or ASTC_10x8_UNorm  or ASTC_10x8_UNorm_SRgb
+            or ASTC_10x10_UNorm or ASTC_10x10_UNorm_SRgb
+            or ASTC_12x10_UNorm or ASTC_12x10_UNorm_SRgb
+            or ASTC_12x12_UNorm or ASTC_12x12_UNorm_SRgb => 8,
+
             _ => 0,
         };
 
@@ -138,7 +154,8 @@ public static class PixelFormatExtensions
         /// </value>
         public bool IsValid
             => ((int) format >= 1    && (int) format <= 115)   // DirectX formats
-            || ((int) format >= 1088 && (int) format <= 1097); // ETC formats
+            || ((int) format >= 1088 && (int) format <= 1097)  // ETC formats
+            || ((int) format >= 1098 && (int) format <= 1125); // ASTC LDR formats
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is an
@@ -553,6 +570,22 @@ public static class PixelFormatExtensions
         ],
         blockSize: 4, blockWidth: 2, blockHeight: 1);
 
+        // ASTC LDR: every block is 128-bit (16 bytes) but block dimensions vary per format.
+        InitBlockFormat([ASTC_4x4_UNorm,   ASTC_4x4_UNorm_SRgb  ], blockSize: 16, blockWidth: 4,  blockHeight: 4);
+        InitBlockFormat([ASTC_5x4_UNorm,   ASTC_5x4_UNorm_SRgb  ], blockSize: 16, blockWidth: 5,  blockHeight: 4);
+        InitBlockFormat([ASTC_5x5_UNorm,   ASTC_5x5_UNorm_SRgb  ], blockSize: 16, blockWidth: 5,  blockHeight: 5);
+        InitBlockFormat([ASTC_6x5_UNorm,   ASTC_6x5_UNorm_SRgb  ], blockSize: 16, blockWidth: 6,  blockHeight: 5);
+        InitBlockFormat([ASTC_6x6_UNorm,   ASTC_6x6_UNorm_SRgb  ], blockSize: 16, blockWidth: 6,  blockHeight: 6);
+        InitBlockFormat([ASTC_8x5_UNorm,   ASTC_8x5_UNorm_SRgb  ], blockSize: 16, blockWidth: 8,  blockHeight: 5);
+        InitBlockFormat([ASTC_8x6_UNorm,   ASTC_8x6_UNorm_SRgb  ], blockSize: 16, blockWidth: 8,  blockHeight: 6);
+        InitBlockFormat([ASTC_8x8_UNorm,   ASTC_8x8_UNorm_SRgb  ], blockSize: 16, blockWidth: 8,  blockHeight: 8);
+        InitBlockFormat([ASTC_10x5_UNorm,  ASTC_10x5_UNorm_SRgb ], blockSize: 16, blockWidth: 10, blockHeight: 5);
+        InitBlockFormat([ASTC_10x6_UNorm,  ASTC_10x6_UNorm_SRgb ], blockSize: 16, blockWidth: 10, blockHeight: 6);
+        InitBlockFormat([ASTC_10x8_UNorm,  ASTC_10x8_UNorm_SRgb ], blockSize: 16, blockWidth: 10, blockHeight: 8);
+        InitBlockFormat([ASTC_10x10_UNorm, ASTC_10x10_UNorm_SRgb], blockSize: 16, blockWidth: 10, blockHeight: 10);
+        InitBlockFormat([ASTC_12x10_UNorm, ASTC_12x10_UNorm_SRgb], blockSize: 16, blockWidth: 12, blockHeight: 10);
+        InitBlockFormat([ASTC_12x12_UNorm, ASTC_12x12_UNorm_SRgb], blockSize: 16, blockWidth: 12, blockHeight: 12);
+
         InitBlockFormat(
         [
             R1_UNorm
@@ -570,7 +603,21 @@ public static class PixelFormatExtensions
             B8G8R8X8_UNorm_SRgb,
             BC7_UNorm_SRgb,
             ETC2_RGBA_SRgb,
-            ETC2_RGB_SRgb
+            ETC2_RGB_SRgb,
+            ASTC_4x4_UNorm_SRgb,
+            ASTC_5x4_UNorm_SRgb,
+            ASTC_5x5_UNorm_SRgb,
+            ASTC_6x5_UNorm_SRgb,
+            ASTC_6x6_UNorm_SRgb,
+            ASTC_8x5_UNorm_SRgb,
+            ASTC_8x6_UNorm_SRgb,
+            ASTC_8x8_UNorm_SRgb,
+            ASTC_10x5_UNorm_SRgb,
+            ASTC_10x6_UNorm_SRgb,
+            ASTC_10x8_UNorm_SRgb,
+            ASTC_10x10_UNorm_SRgb,
+            ASTC_12x10_UNorm_SRgb,
+            ASTC_12x12_UNorm_SRgb
         ],
         outputArray: srgbFormats);
 
@@ -648,7 +695,21 @@ public static class PixelFormatExtensions
             { ETC2_RGBA_SRgb,       ETC2_RGBA },
             { ETC2_RGBA,            ETC2_RGBA_SRgb },
             { ETC2_RGB_SRgb,        ETC2_RGB },
-            { ETC2_RGB,             ETC2_RGB_SRgb }
+            { ETC2_RGB,             ETC2_RGB_SRgb },
+            { ASTC_4x4_UNorm_SRgb,   ASTC_4x4_UNorm   }, { ASTC_4x4_UNorm,   ASTC_4x4_UNorm_SRgb   },
+            { ASTC_5x4_UNorm_SRgb,   ASTC_5x4_UNorm   }, { ASTC_5x4_UNorm,   ASTC_5x4_UNorm_SRgb   },
+            { ASTC_5x5_UNorm_SRgb,   ASTC_5x5_UNorm   }, { ASTC_5x5_UNorm,   ASTC_5x5_UNorm_SRgb   },
+            { ASTC_6x5_UNorm_SRgb,   ASTC_6x5_UNorm   }, { ASTC_6x5_UNorm,   ASTC_6x5_UNorm_SRgb   },
+            { ASTC_6x6_UNorm_SRgb,   ASTC_6x6_UNorm   }, { ASTC_6x6_UNorm,   ASTC_6x6_UNorm_SRgb   },
+            { ASTC_8x5_UNorm_SRgb,   ASTC_8x5_UNorm   }, { ASTC_8x5_UNorm,   ASTC_8x5_UNorm_SRgb   },
+            { ASTC_8x6_UNorm_SRgb,   ASTC_8x6_UNorm   }, { ASTC_8x6_UNorm,   ASTC_8x6_UNorm_SRgb   },
+            { ASTC_8x8_UNorm_SRgb,   ASTC_8x8_UNorm   }, { ASTC_8x8_UNorm,   ASTC_8x8_UNorm_SRgb   },
+            { ASTC_10x5_UNorm_SRgb,  ASTC_10x5_UNorm  }, { ASTC_10x5_UNorm,  ASTC_10x5_UNorm_SRgb  },
+            { ASTC_10x6_UNorm_SRgb,  ASTC_10x6_UNorm  }, { ASTC_10x6_UNorm,  ASTC_10x6_UNorm_SRgb  },
+            { ASTC_10x8_UNorm_SRgb,  ASTC_10x8_UNorm  }, { ASTC_10x8_UNorm,  ASTC_10x8_UNorm_SRgb  },
+            { ASTC_10x10_UNorm_SRgb, ASTC_10x10_UNorm }, { ASTC_10x10_UNorm, ASTC_10x10_UNorm_SRgb },
+            { ASTC_12x10_UNorm_SRgb, ASTC_12x10_UNorm }, { ASTC_12x10_UNorm, ASTC_12x10_UNorm_SRgb },
+            { ASTC_12x12_UNorm_SRgb, ASTC_12x12_UNorm }, { ASTC_12x12_UNorm, ASTC_12x12_UNorm_SRgb }
         };
         return;
 

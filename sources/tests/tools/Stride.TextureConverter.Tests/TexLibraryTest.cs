@@ -155,7 +155,7 @@ namespace Stride.TextureConverter.Tests
             library.Execute(image, new ExportRequest(Module.PathToOutputImages + outputFile, minMipMapSize));
 
             TexImage image2 = new TexImage();
-            library.Execute(image2, new LoadingRequest(Module.PathToOutputImages + outputFile, false));
+            library.Execute(image2, new FileLoadingRequest(Module.PathToOutputImages + outputFile, false));
             image2.CurrentLibrary = library;
 
             image.Update();

@@ -41,7 +41,7 @@ namespace Stride.Input.Tests
             await base.LoadContent();
 
             // Load the fonts
-            SpriteFont = Content.Load<SpriteFont>("Arial");
+            SpriteFont = Content.Load<SpriteFont>("NotoSans");
 
             // load the round texture 
             RoundTexture = Content.Load<Texture>("round");

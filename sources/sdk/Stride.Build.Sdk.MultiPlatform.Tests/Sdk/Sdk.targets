@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- All multi-platform behavior is gated on StrideMultiPlatformTest, set in Sdk.props.
+       This file is a thin pass-through to the base Tests SDK targets. -->
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Tests\Sdk\Sdk.targets" />
+
+</Project>

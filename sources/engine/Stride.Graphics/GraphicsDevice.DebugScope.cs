@@ -20,7 +20,8 @@ namespace Stride.Graphics;
 /// </summary>
 public partial class GraphicsDevice
 {
-    internal static readonly Logger DebugLog = GlobalLogger.GetLogger("GraphicsDebug");
+    internal const string DebugLogModule = "GraphicsDebug";
+    internal static readonly Logger DebugLog = GlobalLogger.GetLogger(DebugLogModule);
 
     // Active scope stack (Tier 1: always on, including release — used for log annotation).
     // Mirrors the active BeginProfile/EndProfile state.

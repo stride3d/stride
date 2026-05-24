@@ -1,6 +1,51 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- ================================================================ -->
+  <!-- TFM resolution from StrideTestPlatforms                          -->
+  <!-- ================================================================ -->
+  <!-- Mirrors StrideRuntime in Stride.Frameworks.targets — gated only on the opt-in property,
+       not on TargetFramework/TargetFrameworks being empty. MSBuild dispatches inner builds with
+       TargetFramework set as a global, so a TargetFramework='' gate would skip inner builds and
+       leave TargetFrameworks="" — which CPS reads as "single-TFM project with no TFM" and aborts
+       with InvalidProjectDataException ('TargetPath' is empty). Setting TargetFrameworks in both
+       outer and inner builds matches StrideRuntime's behavior and keeps CPS happy. The csproj
+       body sets <StrideTestPlatforms>$(StridePlatforms)</StrideTestPlatforms> (or
+       StrideMultiPlatformTest=true triggers the same default in Sdk.props before the body).
+       CLI -p:StrideTestPlatforms=… is a global property and still wins.
+       Windows / Linux / macOS all collapse to the cross-platform desktop $(StrideFramework). -->
+  <PropertyGroup Condition="'$(StrideTestPlatforms)' != ''">
+    <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
+    <_StrideTestTargetFrameworks></_StrideTestTargetFrameworks>
+    <!-- Desktop TFM selection:
+         - Plain net10.0 when Linux/macOS is in StridePlatforms (cross-platform desktop),
+           or when Windows-only without mobile (picker irrelevant).
+         - net10.0-windows added on Windows host when Windows + mobile is in StridePlatforms.
+         If a user wants Linux-runnable test binaries AND VS Android picker on Windows host, they
+         set StridePlatforms=Windows;Linux;Android — gets both net10.0 and net10.0-windows. -->
+    <_StrideTestTargetFrameworks Condition="
+        $(_StrideTestPlatforms.Contains(';Linux;'))
+        Or $(_StrideTestPlatforms.Contains(';macOS;'))
+        Or ($(_StrideTestPlatforms.Contains(';Windows;')) And !($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))))
+    ">$(_StrideTestTargetFrameworks)$(StrideFramework);</_StrideTestTargetFrameworks>
+    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Windows;')) And '$([MSBuild]::IsOSPlatform(Windows))' == 'true' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))">$(_StrideTestTargetFrameworks)$(StrideFrameworkWindows);</_StrideTestTargetFrameworks>
+    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Android;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkAndroid);</_StrideTestTargetFrameworks>
+    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';iOS;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkiOS);</_StrideTestTargetFrameworks>
+    <TargetFrameworks>$([MSBuild]::Unescape($(_StrideTestTargetFrameworks.TrimEnd(';'))))</TargetFrameworks>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- VS Android device picker activation                               -->
+  <!-- ================================================================ -->
+  <!-- The VS Android workload extension surfaces the emulator/device dropdown when the project
+       has the "Maui" ProjectCapability. The string is a tag VS matches via MEF metadata — VS
+       doesn't validate that the project actually uses MAUI. No MAUI workload, packages, or SDK
+       imports needed; just this capability + a platform-suffixed desktop TFM (covered above on
+       Windows host by the net10.0-windows injection). -->
+  <ItemGroup Condition="$(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))">
+    <ProjectCapability Include="Maui" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
   <!-- Test projects build for a single graphics API at a time.         -->
   <!-- ================================================================ -->
   <!-- Disable cross-targeting dispatch — test projects use StrideGraphicsApi (singular)
@@ -16,9 +61,13 @@
   <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
   <!-- ================================================================ -->
   <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
-       is available. This must happen before the .NET SDK Sdk.targets import which freezes TargetDir. -->
+       is available. This must happen before the .NET SDK Sdk.targets import which freezes
+       TargetDir. Layout mirrors IntermediateOutputPath (obj\<Platform>-<Api>\<Config>): the
+       graphics-API folder hyphen-joins with platform and the configuration becomes a leaf,
+       so e.g. bin\Tests\<Name>\Windows-Direct3D11\Debug\ pairs with obj\Windows-Direct3D11\Debug\. -->
   <PropertyGroup>
-    <OutputPath>$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+    <OutputPath Condition="'$(StrideGraphicsApi)' == ''">$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(Configuration)\</OutputPath>
+    <OutputPath Condition="'$(StrideGraphicsApi)' != ''">$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
@@ -41,14 +90,14 @@
   <!-- ================================================================ -->
   <!-- xUnit Startup Configuration -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows') And '$(IncludeXunitLauncher)' != 'false'">
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS') And '$(IncludeXunitLauncher)' != 'false'">
     <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Include xUnit Launcher Code -->
   <!-- ================================================================ -->
-  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS'">
     <!-- Launcher code depends on whether this is a graphics regression test -->
     <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
              Condition="'$(StrideGraphicsRegression)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
@@ -83,6 +132,55 @@
           Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
+
+  <!-- ================================================================ -->
+  <!-- Host builds of asset-bearing project references (Android / iOS)  -->
+  <!-- ================================================================ -->
+  <!-- The AssetCompiler runs on the host and loads the host build of every library
+       project reference to discover asset / serializer types. On Android and iOS the
+       project references are only built for the device TFM, so their host variants
+       must be built explicitly before asset compilation. Built for the host graphics
+       API (StrideHostGraphicsApi) to match what the AssetCompiler resolves and reuse
+       the already-built host assemblies — not the device API the project now carries.
+       The host engine assemblies are already built as Stride.Core.Assets.CompilerApp
+       dependencies; this covers the remaining references (e.g. Stride.Graphics.Regression,
+       xunit.runner.stride).
+       Only runs in the outer build: the Android SDK's inner per-RID builds set
+       _ComputeFilesToPublishForRuntimeIdentifiers and don't compile assets, and running
+       here would leak their RuntimeIdentifier (e.g. android-x64) into the host build. -->
+  <!-- Add duplicate ProjectReference items with host-TFM metadata so standard
+       ResolveProjectReferences dispatches a separate build for them. ReferenceOutputAssembly=false
+       on the duplicate keeps the linker on the device-TFM variant (the original ProjectReference
+       still drives that); the host build runs in the background for AssetCompiler to consume.
+       MSBuild's normal incremental + cache handling skips when host outputs are already up-to-date,
+       avoiding the cascade and parallel-write races of an explicit MSBuild dispatch.
+
+       Two-pass in a single Target because both passes need metadata-batched conditions on
+       custom metadata (not allowed in top-level ItemGroups). _SplitProjectReferencesByFileExistence
+       runs before the standard ProjectReference resolution.
+       - Pass 1: source refs with ReferenceOutputAssembly != 'false' (skips analyzer refs like
+         Stride.Core.CompilerServices that are single-TFM netstandard2.0 and would NETSDK1005
+         under TargetFramework=net10.0).
+       - Pass 2: add StrideGraphicsApi=host only on API-dependent duplicates, so non-API-dep refs
+         share the same MSBuild build-cache key as the device-TFM dispatch (Stride strips
+         StrideGraphicsApi on those) and don't race writing deps.json. -->
+  <Target Name="_StrideAddHostAssetReferenceDuplicates"
+          BeforeTargets="_SplitProjectReferencesByFileExistence"
+          Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false' And ('$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS') And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
+    <ItemGroup>
+      <ProjectReference Include="@(ProjectReference)"
+                        Condition="'%(ProjectReference.ReferenceOutputAssembly)' != 'false'">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <SetTargetFramework>TargetFramework=$(StrideXplatEditorTargetFramework)</SetTargetFramework>
+        <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+        <UndefineProperties>RuntimeIdentifier;RuntimeIdentifiers;SelfContained</UndefineProperties>
+      </ProjectReference>
+      <ProjectReference Update="@(ProjectReference)"
+                        Condition="'%(ProjectReference.ReferenceOutputAssembly)' == 'false' And '%(ProjectReference.SetTargetFramework)' == 'TargetFramework=$(StrideXplatEditorTargetFramework)' And $(_StrideGraphicsApiDependentProjectList.Contains(';%(ProjectReference.Filename);'))">
+        <AdditionalProperties>StrideGraphicsApi=$(StrideHostGraphicsApi)</AdditionalProperties>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
 
   <!-- ================================================================ -->
   <!-- Runtime Native Asset Filtering & Flattening -->

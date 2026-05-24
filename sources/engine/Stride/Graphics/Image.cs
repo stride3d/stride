@@ -758,7 +758,6 @@ namespace Stride.Graphics
             Register(ImageFileType.Bmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveBmpFromMemory);
             Register(ImageFileType.Jpg, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveJpgFromMemory);
             Register(ImageFileType.Png, StandardImageHelper.LoadFromMemory, StandardImageHelper.SavePngFromMemory);
-            Register(ImageFileType.Wmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveWmpFromMemory);
         }
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
@@ -888,26 +887,14 @@ namespace Stride.Graphics
 
             if (format.IsCompressed)
             {
-                int minWidth = 1;
-                int minHeight = 1;
+                // ASTC has variable block dimensions (4x4..12x12); fetch from format extensions
+                // instead of assuming 4x4 + switching on format for bytes-per-block.
+                int blockWidth = format.BlockWidth;
+                int blockHeight = format.BlockHeight;
+                int bytesPerBlock = format.BlockSize;
 
-                var bytesPerBlock = format switch
-                {
-                    PixelFormat.BC1_Typeless
-                    or PixelFormat.BC1_UNorm
-                    or PixelFormat.BC1_UNorm_SRgb
-                    or PixelFormat.BC4_Typeless
-                    or PixelFormat.BC4_UNorm
-                    or PixelFormat.BC4_SNorm
-                    or PixelFormat.ETC1
-                    or PixelFormat.ETC2_RGB
-                    or PixelFormat.ETC2_RGB_SRgb => 8,
-
-                    _ => 16
-                };
-
-                widthPacked = Math.Max(1, (Math.Max(minWidth, width) + 3)) / 4;
-                heightPacked = Math.Max(1, (Math.Max(minHeight, height) + 3)) / 4;
+                widthPacked = (Math.Max(1, width) + blockWidth - 1) / blockWidth;
+                heightPacked = (Math.Max(1, height) + blockHeight - 1) / blockHeight;
                 rowPitch = widthPacked * bytesPerBlock;
 
                 slicePitch = rowPitch * heightPacked;

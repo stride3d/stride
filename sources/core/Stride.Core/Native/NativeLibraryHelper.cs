@@ -267,9 +267,15 @@ public static partial class NativeLibraryHelper
         result = ProbePath(Path.Combine(ownerAssemblyDir, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(currentExeDir, platformNativeLibsDir)) ??
+                 // .NET flattens runtimes/<rid>/native/ to the publish root when RuntimeIdentifier
+                 // is set, so probe the bare directories too.
+                 ProbePath(ownerAssemblyDir) ??
+                 ProbePath(Environment.CurrentDirectory) ??
+                 ProbePath(currentExeDir) ??
                  // Also try without platform for Windows-only packages (backwards compatible for editor packages)
                  ProbePath(Path.Combine(ownerAssemblyDir, cpu)) ??
-                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu));
+                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu)) ??
+                 ProbePath(Path.Combine(currentExeDir, cpu));
 
         return result is not null;
 
@@ -279,7 +285,40 @@ public static partial class NativeLibraryHelper
         string? ProbePath(string path)
         {
             var libraryFilePath = Path.Combine(path, libraryNameWithExtension);
-            return File.Exists(libraryFilePath) ? libraryFilePath : null;
+            if (File.Exists(libraryFilePath))
+                return libraryFilePath;
+
+            if (!Directory.Exists(path))
+                return null;
+
+            // NuGet packages often ship only the SONAME-versioned variant (libfoo.so.5,
+            // libfoo.5.dylib). Glob for it; pick the highest version on multiple matches.
+            // Windows/Android/iOS/UWP require unversioned names, so they don't glob.
+            var (pattern, versionPrefix) = Platform.Type switch
+            {
+                PlatformType.Linux => (libraryNameWithExtension + ".*", libraryNameWithExtension),
+                PlatformType.macOS => (Path.GetFileNameWithoutExtension(libraryNameWithExtension) + ".*" + libExtension,
+                                       Path.GetFileNameWithoutExtension(libraryNameWithExtension)),
+                _ => (null, null),
+            };
+            if (pattern is null)
+                return null;
+
+            return Directory.EnumerateFiles(path, pattern)
+                .OrderByDescending(f => ParseVersion(f, versionPrefix!))
+                .FirstOrDefault();
+        }
+
+        static Version ParseVersion(string file, string prefix)
+        {
+            var name = Path.GetFileName(file);
+            if (name.StartsWith(prefix)) name = name[prefix.Length..];
+            if (Platform.Type == PlatformType.macOS && name.EndsWith(libExtension))
+                name = name[..^libExtension.Length];
+            var s = name.TrimStart('.');
+            // System.Version.TryParse requires at least 2 numeric components.
+            if (!s.Contains('.')) s += ".0";
+            return Version.TryParse(s, out var v) ? v : new Version();
         }
     }
 

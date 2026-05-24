@@ -122,8 +122,7 @@ internal static class ImageThreshold
         foreach (var rule in rules)
         {
             // Check filters — null/missing means "match any"
-            if (rule.Image != null && rule.Image != "default" &&
-                !string.Equals(rule.Image, imageName, StringComparison.OrdinalIgnoreCase))
+            if (rule.Image != null && rule.Image != "default" && !ImageMatches(rule.Image, imageName))
                 continue;
             if (rule.Platform != null && !string.Equals(rule.Platform, platform, StringComparison.OrdinalIgnoreCase))
                 continue;
@@ -155,6 +154,17 @@ internal static class ImageThreshold
         return bestRule.Allow
             .Select(kv => AllowBucket.Parse(kv.Key, kv.Value))
             .ToArray();
+    }
+
+    // Supports '*' (any run of characters) and '?' (single character) wildcards.
+    // Patterns without wildcards fall through to a plain case-insensitive equality check.
+    private static bool ImageMatches(string pattern, string imageName)
+    {
+        if (pattern.IndexOfAny(['*', '?']) < 0)
+            return string.Equals(pattern, imageName, StringComparison.OrdinalIgnoreCase);
+
+        var regex = "^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+        return Regex.IsMatch(imageName, regex, RegexOptions.IgnoreCase);
     }
 
     /// <summary>

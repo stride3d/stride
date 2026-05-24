@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
+using Stride.Physics;
 
 namespace Stride.BepuPhysics.Assets;
 
@@ -18,46 +20,68 @@ public class ConvexHullDecompositionParameters
     public bool Enabled { get; set; }
 
     /// <userdoc>
-    /// Control how many sub convex hulls will be created, more depth will result in a more complex decomposition.
+    /// Maximum amount of shapes generated to fit the mesh. Higher values improve the fidelity at the cost of performance at runtime.
     /// </userdoc>
     [DataMember(60)]
-    public int Depth { get; set; } = 10;
+    [DefaultValue(4)]
+    public int MaxConvexHulls { get; set; } = 4;
 
     /// <userdoc>
-    /// How many position samples to internally compute clipping planes ( the higher the more complex ).
+    /// Maximum number of vertices allowed in any output convex hull (4 - 1024). Affects runtime performance and fidelity.
+    /// </userdoc>
+    [DataMember(65)]
+    [DefaultValue(16)]
+    public int MaxNumVerticesPerConvexHull
+    {
+        get => maxNumVerticesPerConvexHull;
+        set => maxNumVerticesPerConvexHull = Math.Clamp(value, 4, 1024);
+    }
+    private int maxNumVerticesPerConvexHull = 16;
+
+    /// <userdoc>
+    /// Higher values restore the finer details of the mesh, but increase the time it takes to build the application.
     /// </userdoc>
     [DataMember(70)]
-    public int PosSampling { get; set; } = 10;
+    [DefaultValue(400000)]
+    public int Resolution
+    {
+        get => resolution;
+        set => resolution = Math.Clamp(value, 10_000, 64_000_000);
+    }
+    private int resolution = 400000;
 
     /// <userdoc>
-    /// How many angle samples to internally compute clipping planes ( the higher the more complex ), nested with position samples, for each position sample it will compute the amount defined here.
+    /// Maximum recursion depth when splitting hulls (1 - 32). Greatly increases build time.
     /// </userdoc>
     [DataMember(80)]
-    public int AngleSampling { get; set; } = 10;
+    [DefaultValue(10)]
+    public int MaxRecursionDepth
+    {
+        get => maxRecursionDepth;
+        set => maxRecursionDepth = Math.Clamp(value, 1, 32);
+    }
+    private int maxRecursionDepth = 10;
 
     /// <userdoc>
-    /// If higher then 0 the computation will try to further improve the shape position sampling (this will slow down the process).
+    /// Merge shapes when the loss in precision of the volume is under this percentage. Affected by `Resolution`.
     /// </userdoc>
     [DataMember(90)]
-    public int PosRefine { get; set; } = 5;
+    [DefaultValue(1.0)]
+    public double MinimumVolumePercentErrorAllowed { get; set; } = 1.0;
 
     /// <userdoc>
-    /// If higher then 0 the computation will try to further improve the shape angle sampling (this will slow down the process).
+    /// Snap hull vertices onto the source mesh surface for a tighter fit. Disable to leave them at the voxel grid (slightly larger than the source).
     /// </userdoc>
     [DataMember(100)]
-    public int AngleRefine { get; set; } = 5;
+    [DefaultValue(true)]
+    public bool ShrinkWrap { get; set; } = true;
 
     /// <userdoc>
-    /// Applied to the concavity during crippling plane approximation.
+    /// Whether the mesh should be considered completely hollow (`SurfaceOnly`), entirely filled (`FloodFill`), or to guess (`RaycastFill`).
     /// </userdoc>
     [DataMember(110)]
-    public float Alpha { get; set; } = 0.01f;
-
-    /// <userdoc>
-    /// Threshold of concavity, rising this will make the shape simpler.
-    /// </userdoc>
-    [DataMember(120)]
-    public float Threshold { get; set; } = 0.01f;
+    [DefaultValue(VhacdFillMode.FloodFill)]
+    public VhacdFillMode FillMode { get; set; } = VhacdFillMode.FloodFill;
 
     public bool Match(object obj)
     {
@@ -69,12 +93,12 @@ public class ConvexHullDecompositionParameters
         }
 
         return other.Enabled == Enabled &&
-               other.Depth == Depth &&
-               other.PosSampling == PosSampling &&
-               other.AngleSampling == AngleSampling &&
-               other.PosRefine == PosRefine &&
-               other.AngleRefine == AngleRefine &&
-               MathF.Abs(other.Alpha - Alpha) < float.Epsilon &&
-               MathF.Abs(other.Threshold - Threshold) < float.Epsilon;
+               other.MaxConvexHulls == MaxConvexHulls &&
+               other.MaxNumVerticesPerConvexHull == MaxNumVerticesPerConvexHull &&
+               other.Resolution == Resolution &&
+               other.MaxRecursionDepth == MaxRecursionDepth &&
+               other.MinimumVolumePercentErrorAllowed == MinimumVolumePercentErrorAllowed &&
+               other.ShrinkWrap == ShrinkWrap &&
+               other.FillMode == FillMode;
     }
 }

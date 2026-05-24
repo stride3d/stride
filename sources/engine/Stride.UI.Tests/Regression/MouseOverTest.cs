@@ -47,21 +47,21 @@ namespace Stride.UI.Tests.Regression
             var background = new Entity { new BackgroundComponent { Texture = Content.Load<Texture>("StrideBackground") } };
             Scene.Entities.Add(background);
 
-            var text1 = new TextBlock { Text = "text block button 1", Font = Content.Load<SpriteFont>("CourierNew12"), SynchronousCharacterGeneration = true };
+            var text1 = new TextBlock { Text = "text block button 1", Font = Content.Load<SpriteFont>("LiberationMono12"), SynchronousCharacterGeneration = true };
             ApplyTextBlockDefaultStyle(text1);
             button1 = new Button { Content = text1 };
             ApplyButtonDefaultStyle(button1);
             button1.SetCanvasRelativePosition(new Vector3(0.025f, 0.05f, 0f));
 
-            edit1 = new EditText() { Text = "Edit text 1", Font = Content.Load<SpriteFont>("CourierNew12"), SynchronousCharacterGeneration = true, };
+            edit1 = new EditText() { Text = "Edit text 1", Font = Content.Load<SpriteFont>("LiberationMono12"), SynchronousCharacterGeneration = true, };
             ApplyEditTextDefaultStyle(edit1);
             edit1.SetCanvasRelativePosition(new Vector3(0.025f, 0.15f, 0f));
 
-            var text2 = new TextBlock { Text = "text block button 2", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), SynchronousCharacterGeneration = true };
+            var text2 = new TextBlock { Text = "text block button 2", Font = Content.Load<SpriteFont>("NotoSans15"), SynchronousCharacterGeneration = true };
             ApplyTextBlockDefaultStyle(text2);
             button2 = new Button { Content = text2 };
             ApplyButtonDefaultStyle(button2);
-            edit2 = new EditText() { Text = "Edit text 2", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), };
+            edit2 = new EditText() { Text = "Edit text 2", Font = Content.Load<SpriteFont>("NotoSans15"), };
             ApplyEditTextDefaultStyle(edit2);
 
             stackPanel = new StackPanel

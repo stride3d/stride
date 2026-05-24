@@ -119,6 +119,31 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- Strip per-RID compute globals from ProjectReference dispatches    -->
+  <!-- ================================================================ -->
+  <!-- Microsoft.Android.Sdk.AssemblyResolution.targets _ResolveAssemblies dispatches the
+       outer Android build to itself with _ComputeFilesToPublishForRuntimeIdentifiers=true and
+       a bag of _Outer* / Skip* / AppendRuntimeIdentifierToOutputPath / DesignTimeBuild=false
+       globals to compute publish files per RID. Those globals propagate through every
+       transitive ProjectReference as inherited global properties, producing a second MSBuild
+       build-cache key for every shared dependency (Stride.Engine -> Stride.VirtualReality,
+       Stride.Navigation -> Stride.Physics, ...). When test projects build in parallel, the
+       resulting concurrent dispatches collide on the shared dep's obj/ — MSB3030 "X.dll not
+       found", file lock contention on Stride.X.GeneratedMSBuildEditorConfig.editorconfig,
+       XARLP7024 HashFile, etc. Strip on every level of the chain so both regular and per-RID
+       dispatches share a single cache key. -->
+  <Target Name="_StrideStripPerRidGlobalsFromProjectReferences"
+          BeforeTargets="_SplitProjectReferencesByFileExistence"
+          Condition="'$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">
+    <!-- Also strip RuntimeIdentifier* / SelfContained — they're set on test projects and would
+         otherwise propagate to library deps as a cross-RID restore demand they don't need. -->
+    <ItemGroup>
+      <ProjectReference Update="@(ProjectReference)"
+                        UndefineProperties="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;_ComputeFilesToPublishForRuntimeIdentifiers;_OuterIntermediateAssembly;_OuterIntermediateOutputPath;_OuterCustomViewMapFile;_OuterIntermediateSatelliteAssembliesWithTargetPath;_OuterOutputPath;_AndroidNdkDirectory;AppendRuntimeIdentifierToOutputPath;DesignTimeBuild;ResolveAssemblyReferencesFindRelatedSatellites;SkipCompilerExecution" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
@@ -208,6 +233,10 @@
     <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
                Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
+  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
+       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
+       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
+       suppresses Pack in those inner dispatches. No additional gate needed here. -->
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -279,12 +308,53 @@
        for end-users consuming the SDK from NuGet (no crowdin.yml anchor), so this no-ops.
        Runs before Restore and Build to cover the dotnet build, dotnet restore, and
        no-restore flows. Imports happen during evaluation, so the just-written file is
-       picked up on the next invocation, not the current one (first build uses defaults). -->
+       picked up on the next invocation, not the current one (first build uses defaults).
+
+       Parallel project builds all fire this target concurrently; a plain <Copy> here
+       races with sibling projects re-evaluating the <Import> in Stride.Platform.props
+       (MSB4024: "file is being used by another process"). _StrideAtomicCopyIfMissing
+       writes to a unique temp file then File.Move's it into place — atomic via
+       MoveFileEx on NTFS / rename(2) on Unix. Losers of the race clean up their temp. -->
+  <UsingTask TaskName="_StrideAtomicCopyIfMissing"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourceFile ParameterType="System.String" Required="true" />
+      <DestinationFile ParameterType="System.String" Required="true" />
+      <DidCreate ParameterType="System.Boolean" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        DidCreate = false;
+        if (System.IO.File.Exists(DestinationFile)) return true;
+        var tmp = DestinationFile + "." + System.Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            System.IO.File.Copy(SourceFile, tmp);
+            // File.Move(src, dst) throws IOException when dst already exists — the race-loser arm.
+            System.IO.File.Move(tmp, DestinationFile);
+            DidCreate = true;
+        }
+        catch (System.IO.IOException)
+        {
+            // Another parallel build won; clean up our temp.
+            try { System.IO.File.Delete(tmp); } catch { }
+        }
+        return true;
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
   <Target Name="_StrideBootstrapLocalProps"
           BeforeTargets="Restore;Build"
           Condition="'$(_StrideLocalProps)' != '' And !Exists('$(_StrideLocalProps)') And Exists('$(_StrideLocalPropsTemplate)')">
-    <Copy SourceFiles="$(_StrideLocalPropsTemplate)" DestinationFiles="$(_StrideLocalProps)" />
-    <Message Importance="High" Text="Created $(_StrideLocalProps) from template — edit it to customize local build settings." />
+    <_StrideAtomicCopyIfMissing SourceFile="$(_StrideLocalPropsTemplate)" DestinationFile="$(_StrideLocalProps)">
+      <Output TaskParameter="DidCreate" PropertyName="_StrideLocalPropsCreated" />
+    </_StrideAtomicCopyIfMissing>
+    <Message Importance="High" Condition="'$(_StrideLocalPropsCreated)' == 'true'"
+             Text="Created $(_StrideLocalProps) from template — edit it to customize local build settings." />
   </Target>
 
   <!-- ================================================================ -->

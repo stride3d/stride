@@ -568,6 +568,37 @@ namespace Stride.Graphics
                     pixelSize = 2; // 8bpp
                     break;
 
+                // ASTC LDR: every block is 128-bit (16 bytes); pixelSize is informational
+                // (compressed textures aren't used for vertex input where pixelSize matters).
+                case PixelFormat.ASTC_4x4_UNorm:   format = VkFormat.Astc4x4UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_4x4_UNorm_SRgb:   format = VkFormat.Astc4x4SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_5x4_UNorm:   format = VkFormat.Astc5x4UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_5x4_UNorm_SRgb:   format = VkFormat.Astc5x4SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_5x5_UNorm:   format = VkFormat.Astc5x5UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_5x5_UNorm_SRgb:   format = VkFormat.Astc5x5SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_6x5_UNorm:   format = VkFormat.Astc6x5UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_6x5_UNorm_SRgb:   format = VkFormat.Astc6x5SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_6x6_UNorm:   format = VkFormat.Astc6x6UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_6x6_UNorm_SRgb:   format = VkFormat.Astc6x6SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x5_UNorm:   format = VkFormat.Astc8x5UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x5_UNorm_SRgb:   format = VkFormat.Astc8x5SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x6_UNorm:   format = VkFormat.Astc8x6UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x6_UNorm_SRgb:   format = VkFormat.Astc8x6SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x8_UNorm:   format = VkFormat.Astc8x8UnormBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_8x8_UNorm_SRgb:   format = VkFormat.Astc8x8SrgbBlock;   compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x5_UNorm:  format = VkFormat.Astc10x5UnormBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x5_UNorm_SRgb:  format = VkFormat.Astc10x5SrgbBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x6_UNorm:  format = VkFormat.Astc10x6UnormBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x6_UNorm_SRgb:  format = VkFormat.Astc10x6SrgbBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x8_UNorm:  format = VkFormat.Astc10x8UnormBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x8_UNorm_SRgb:  format = VkFormat.Astc10x8SrgbBlock;  compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x10_UNorm: format = VkFormat.Astc10x10UnormBlock; compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_10x10_UNorm_SRgb: format = VkFormat.Astc10x10SrgbBlock; compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_12x10_UNorm: format = VkFormat.Astc12x10UnormBlock; compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_12x10_UNorm_SRgb: format = VkFormat.Astc12x10SrgbBlock; compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_12x12_UNorm: format = VkFormat.Astc12x12UnormBlock; compressed = true; pixelSize = 1; break;
+                case PixelFormat.ASTC_12x12_UNorm_SRgb: format = VkFormat.Astc12x12SrgbBlock; compressed = true; pixelSize = 1; break;
+
                 case PixelFormat.BC1_UNorm:
                     format = VkFormat.Bc1RgbaUnormBlock;
                     //format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA;

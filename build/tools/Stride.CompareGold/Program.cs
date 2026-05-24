@@ -9,7 +9,10 @@ const int Port = 5505;
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls($"http://localhost:{Port}");
 builder.Services.AddSingleton<SourceManager>();
+builder.Services.AddSingleton<ForkManager>();
 var app = builder.Build();
+
+const string UpstreamRepo = "stride3d/stride";
 
 // Find Stride root
 var strideRoot = FindStrideRoot(AppContext.BaseDirectory)
@@ -21,6 +24,8 @@ var localDir = Path.Combine(testsDir, "local");
 var ciCacheDir = Path.Combine(Path.GetTempPath(), "stride-compare-gold");
 
 var sourceManager = app.Services.GetRequiredService<SourceManager>();
+var forkManager = app.Services.GetRequiredService<ForkManager>();
+forkManager.Load(Path.Combine(ciCacheDir, "forks.json"));
 
 Console.WriteLine($"Stride root: {strideRoot}");
 Console.WriteLine($"Gold images: {testsDir}");
@@ -34,7 +39,13 @@ try { Process.Start(new ProcessStartInfo($"http://localhost:{Port}") { UseShellE
 catch { }
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+// no-store on every static response so dev edits to html/js/css show up on next reload
+// without needing a hard refresh; the assets are local-only and tiny so the lost cache
+// hit doesn't matter.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-store",
+});
 
 // Disable caching for gold image responses (they change on promote)
 app.Use(async (ctx, next) =>
@@ -231,15 +242,26 @@ app.MapPost("/api/sources/add-ci", async (HttpRequest request) =>
     var body = await JsonSerializer.DeserializeAsync<CiDownloadRequest>(request.Body);
     if (body == null || string.IsNullOrEmpty(body.RunId)) return Results.BadRequest("runId required");
 
+    var repo = NormalizeRepo(body.Repo) ?? UpstreamRepo;
     var artifactName = body.ArtifactName ?? "test-artifacts-linux-vulkan";
-    var destDir = Path.Combine(ciCacheDir, body.RunId);
+    // Repo is scoped into the cache path so runs with the same id across forks don't collide.
+    var destDir = Path.Combine(ciCacheDir, repo.Replace('/', '_'), body.RunId);
     var markerFile = Path.Combine(destDir, $".downloaded_{artifactName}");
+
+    // Default label suffixes upstream with "CI", forks with their owner so the source list
+    // makes the origin obvious at a glance.
+    string DefaultLabel()
+    {
+        var shortId = body.RunId[..Math.Min(5, body.RunId.Length)];
+        var prefix = repo == UpstreamRepo ? "CI" : repo.Split('/')[0];
+        return $"{prefix} #{shortId}";
+    }
 
     // Skip if already downloaded
     if (File.Exists(markerFile))
     {
         var cachedSrc = sourceManager.GetAll().FirstOrDefault(s => s.Path == destDir);
-        var cachedLabel = !string.IsNullOrEmpty(body.Label) ? body.Label : $"CI #{body.RunId[..Math.Min(5, body.RunId.Length)]}";
+        var cachedLabel = !string.IsNullOrEmpty(body.Label) ? body.Label : DefaultLabel();
         cachedSrc ??= sourceManager.Add("ci", cachedLabel, destDir);
         return Results.Ok(new { cachedSrc.Id, Label = cachedSrc.Label });
     }
@@ -254,7 +276,7 @@ app.MapPost("/api/sources/add-ci", async (HttpRequest request) =>
     var proc = Process.Start(new ProcessStartInfo
     {
         FileName = "gh",
-        Arguments = $"run download {body.RunId} --repo stride3d/stride --name {artifactName} --dir \"{tmpDir}\"",
+        Arguments = $"run download {body.RunId} --repo {repo} --name {artifactName} --dir \"{tmpDir}\"",
         RedirectStandardOutput = true,
         RedirectStandardError = true,
         UseShellExecute = false
@@ -285,8 +307,7 @@ app.MapPost("/api/sources/add-ci", async (HttpRequest request) =>
     File.WriteAllText(markerFile, DateTime.UtcNow.ToString("o"));
 
     // Reuse existing source for same run, or create new
-    var label = $"CI #{body.RunId[..Math.Min(5, body.RunId.Length)]}";
-    if (!string.IsNullOrEmpty(body.Label)) label = body.Label;
+    var label = !string.IsNullOrEmpty(body.Label) ? body.Label : DefaultLabel();
     var existing = sourceManager.GetAll().FirstOrDefault(s => s.Path == destDir);
     var src = existing ?? sourceManager.Add("ci", label, destDir);
     return Results.Ok(new { src.Id, src.Label });
@@ -329,25 +350,39 @@ app.MapGet("/api/source/{id}/image", (string id, string suite, string platform, 
 
 app.MapGet("/api/ci/status", () => Results.Ok(new { Available = ghAvailable, Error = ghAvailable ? null : ghError }));
 
-app.MapGet("/api/ci/artifacts", async (string runId) =>
+app.MapGet("/api/ci/artifacts", async (string runId, string? repo) =>
 {
     if (!ghAvailable) return Results.BadRequest(ghError);
-    var proc = Process.Start(new ProcessStartInfo
-    {
-        FileName = "gh",
-        Arguments = $"api repos/stride3d/stride/actions/runs/{runId}/artifacts --jq \".artifacts[] | {{name: .name, size_in_bytes: .size_in_bytes, expired: .expired}}\"",
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false
-    });
-    if (proc == null) return Results.Problem("Could not start gh");
-    var output = await proc.StandardOutput.ReadToEndAsync();
-    await proc.WaitForExitAsync();
-    var artifacts = output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-        .Select(line => { try { return JsonSerializer.Deserialize<JsonElement>(line); } catch { return default; } })
-        .Where(j => j.ValueKind != JsonValueKind.Undefined)
-        .ToList();
+    var r = NormalizeRepo(repo) ?? UpstreamRepo;
+    var artifacts = await FetchJsonLinesAsync(
+        $"api repos/{r}/actions/runs/{runId}/artifacts --jq \".artifacts[] | {{name: .name, size_in_bytes: .size_in_bytes, expired: .expired}}\"");
     return Results.Ok(artifacts);
+});
+
+// Probe upstream + every configured fork for a run id. Returns the first repo whose API
+// answers 200 for that run. Lets the client accept a manually-entered run id (or a pasted
+// URL) without forcing the user to pick the repo separately.
+app.MapGet("/api/ci/resolve", async (string runId) =>
+{
+    if (!ghAvailable) return Results.BadRequest(ghError);
+    if (string.IsNullOrEmpty(runId)) return Results.BadRequest("runId required");
+    var repos = new[] { UpstreamRepo }.Concat(forkManager.GetAll()).Distinct().ToArray();
+    foreach (var repo in repos)
+    {
+        var proc = Process.Start(new ProcessStartInfo
+        {
+            FileName = "gh",
+            Arguments = $"api repos/{repo}/actions/runs/{runId} --jq .id",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        });
+        if (proc == null) continue;
+        await proc.WaitForExitAsync();
+        if (proc.ExitCode == 0)
+            return Results.Ok(new { repo });
+    }
+    return Results.NotFound();
 });
 
 app.MapGet("/api/ci/runs", async (string? branch, int? limit) =>
@@ -355,23 +390,47 @@ app.MapGet("/api/ci/runs", async (string? branch, int? limit) =>
     if (!ghAvailable) return Results.BadRequest(ghError);
     var lim = limit ?? 10;
     var branchArg = !string.IsNullOrEmpty(branch) ? $"--branch {branch}" : "";
-    var proc = Process.Start(new ProcessStartInfo
+
+    // Fan out across upstream + every configured fork in parallel; tag each run with `repo`
+    // so the UI can show a chip and the artifact-list / download calls can target the right repo.
+    var repos = new[] { UpstreamRepo }.Concat(forkManager.GetAll()).Distinct().ToArray();
+    var tasks = repos.Select(async r =>
     {
-        FileName = "gh",
-        Arguments = $"api repos/stride3d/stride/actions/runs --jq \".workflow_runs[:{ lim}] | .[] | {{id: .id, head_sha: .head_sha, head_branch: .head_branch, created_at: .created_at, conclusion: .conclusion, name: .name}}\" {branchArg}",
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false
+        var runs = await FetchJsonLinesAsync(
+            $"api repos/{r}/actions/runs --jq \".workflow_runs[:{ lim}] | .[] | {{id: .id, run_number: .run_number, head_sha: .head_sha, head_branch: .head_branch, created_at: .created_at, conclusion: .conclusion, name: .name}}\" {branchArg}");
+        // Re-emit each run with an added `repo` field so the client can disambiguate.
+        return runs.Select(j =>
+        {
+            var dict = new Dictionary<string, JsonElement>();
+            foreach (var prop in j.EnumerateObject()) dict[prop.Name] = prop.Value;
+            dict["repo"] = JsonSerializer.SerializeToElement(r);
+            return JsonSerializer.SerializeToElement(dict);
+        }).ToList();
     });
-    if (proc == null) return Results.Problem("Could not start gh");
-    var output = await proc.StandardOutput.ReadToEndAsync();
-    await proc.WaitForExitAsync();
-    // Parse JSONL output
-    var runs = output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-        .Select(line => { try { return JsonSerializer.Deserialize<JsonElement>(line); } catch { return default; } })
-        .Where(j => j.ValueKind != JsonValueKind.Undefined)
+    var all = (await Task.WhenAll(tasks)).SelectMany(x => x)
+        .OrderByDescending(j => j.TryGetProperty("created_at", out var c) ? c.GetString() : "")
         .ToList();
-    return Results.Ok(runs);
+    return Results.Ok(all);
+});
+
+// === Forks API ===
+
+app.MapGet("/api/forks", () => Results.Ok(forkManager.GetAll()));
+app.MapPost("/api/forks", async (HttpRequest request) =>
+{
+    var body = await JsonSerializer.DeserializeAsync<ForkRequest>(request.Body);
+    var normalized = NormalizeRepo(body?.Repo);
+    if (normalized == null) return Results.BadRequest("repo must be owner/name");
+    if (normalized == UpstreamRepo) return Results.BadRequest($"{UpstreamRepo} is always included; no need to add it");
+    forkManager.Add(normalized);
+    return Results.Ok(new { repo = normalized });
+});
+app.MapDelete("/api/forks", (string repo) =>
+{
+    var normalized = NormalizeRepo(repo);
+    if (normalized == null) return Results.BadRequest("repo must be owner/name");
+    forkManager.Remove(normalized);
+    return Results.Ok();
 });
 
 // === Promote API ===
@@ -524,6 +583,39 @@ static IResult ServeImage(string baseDir, string suite, string platform, string 
     return Results.File(filePath, "image/png");
 }
 
+// Accepts "owner/name", returns null if the shape doesn't match. Trims whitespace.
+// Used everywhere a repo flows in from the network or CLI so the rest of the pipeline
+// can assume the value is safe to pass to `gh`.
+static string? NormalizeRepo(string? input)
+{
+    if (string.IsNullOrWhiteSpace(input)) return null;
+    var trimmed = input.Trim().Trim('/');
+    var parts = trimmed.Split('/');
+    if (parts.Length != 2 || string.IsNullOrEmpty(parts[0]) || string.IsNullOrEmpty(parts[1])) return null;
+    return trimmed;
+}
+
+// Runs `gh` with the given args, parses stdout as JSON Lines, returns the parseable entries.
+// Centralised so the runs / artifacts endpoints share the same plumbing.
+static async Task<List<JsonElement>> FetchJsonLinesAsync(string ghArgs)
+{
+    var proc = Process.Start(new ProcessStartInfo
+    {
+        FileName = "gh",
+        Arguments = ghArgs,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+    });
+    if (proc == null) return new();
+    var output = await proc.StandardOutput.ReadToEndAsync();
+    await proc.WaitForExitAsync();
+    return output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+        .Select(line => { try { return JsonSerializer.Deserialize<JsonElement>(line); } catch { return default; } })
+        .Where(j => j.ValueKind != JsonValueKind.Undefined)
+        .ToList();
+}
+
 // === Models ===
 
 record CiDownloadRequest
@@ -534,6 +626,13 @@ record CiDownloadRequest
     public string? ArtifactName { get; set; }
     [System.Text.Json.Serialization.JsonPropertyName("label")]
     public string? Label { get; set; }
+    [System.Text.Json.Serialization.JsonPropertyName("repo")]
+    public string? Repo { get; set; }
+}
+record ForkRequest
+{
+    [System.Text.Json.Serialization.JsonPropertyName("repo")]
+    public string? Repo { get; set; }
 }
 record FolderRequest
 {
@@ -590,4 +689,66 @@ class SourceManager
     public Source? Get(string id) => _sources.GetValueOrDefault(id);
     public void Remove(string id) => _sources.TryRemove(id, out _);
     public IEnumerable<Source> GetAll() => _sources.Values;
+}
+
+// === Fork Manager ===
+// Configured "owner/name" repos whose runs we want to see alongside stride3d/stride.
+// Upstream is always implicit (queried even when this list is empty) so we never need to
+// store it. Persisted to a JSON file so the list survives across tool restarts.
+class ForkManager
+{
+    private readonly List<string> _forks = new();
+    private readonly Lock _lock = new();
+    private string? _path;
+
+    public void Load(string path)
+    {
+        _path = path;
+        if (!File.Exists(path)) return;
+        try
+        {
+            var json = File.ReadAllText(path);
+            var list = JsonSerializer.Deserialize<List<string>>(json);
+            if (list != null)
+            {
+                lock (_lock) { _forks.Clear(); _forks.AddRange(list); }
+            }
+        }
+        catch { /* ignore corrupt config */ }
+    }
+
+    public void Add(string repo)
+    {
+        lock (_lock)
+        {
+            if (_forks.Contains(repo, StringComparer.OrdinalIgnoreCase)) return;
+            _forks.Add(repo);
+            Save();
+        }
+    }
+
+    public void Remove(string repo)
+    {
+        lock (_lock)
+        {
+            _forks.RemoveAll(r => r.Equals(repo, StringComparison.OrdinalIgnoreCase));
+            Save();
+        }
+    }
+
+    public IEnumerable<string> GetAll()
+    {
+        lock (_lock) return _forks.ToArray();
+    }
+
+    private void Save()
+    {
+        if (_path == null) return;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+            File.WriteAllText(_path, JsonSerializer.Serialize(_forks));
+        }
+        catch { /* best-effort */ }
+    }
 }

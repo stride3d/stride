@@ -421,6 +421,7 @@ namespace Stride.Graphics
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
             };
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
@@ -430,6 +431,12 @@ namespace Stride.Graphics
             // Swapchain extension is only needed for presentation (not for headless/asset compilation)
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+            // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
+            // MoltenVK is the only ICD that advertises it; conformant drivers do not.
+            bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+            if (isPortabilitySubsetDevice)
+                desiredExtensionProperties.Add(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
 
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
@@ -460,10 +467,17 @@ namespace Stride.Graphics
                 sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
                 pNext = &timelineSemaphoreFeatures,
             };
+            // Portability subset features (MoltenVK only) — queried so we can forward the device-reported
+            // capabilities verbatim to vkCreateDevice, which is what the portability spec requires.
+            var portabilitySubsetFeatures = new VkPhysicalDevicePortabilitySubsetFeaturesKHR
+            {
+                sType = VkStructureType.PhysicalDevicePortabilitySubsetFeaturesKHR,
+                pNext = &multiviewFeatures,
+            };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = &multiviewFeatures,
+                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &multiviewFeatures,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
@@ -483,6 +497,13 @@ namespace Stride.Graphics
                 multiviewFeatures.multiviewTessellationShader = VkBool32.False;
                 pNextChainHead = &multiviewFeatures;
             }
+            // Re-attach portability subset at the head of the create-info chain so MoltenVK sees the
+            // feature flags it reported. The values were populated by the query above; pass them back as-is.
+            if (isPortabilitySubsetDevice)
+            {
+                portabilitySubsetFeatures.pNext = pNextChainHead;
+                pNextChainHead = &portabilitySubsetFeatures;
+            }
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
@@ -498,7 +519,7 @@ namespace Stride.Graphics
 
             CheckResult(NativeInstanceApi.vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
 
-            nativeDeviceApi = GetApi(NativeInstance, NativeDevice);
+            nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 

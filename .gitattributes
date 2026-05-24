@@ -23,8 +23,13 @@
 *.exp filter=lfs diff=lfs merge=lfs -text
 *.a filter=lfs diff=lfs merge=lfs -text
 *.so filter=lfs diff=lfs merge=lfs -text
+*.so.* filter=lfs diff=lfs merge=lfs -text
 *.dylib filter=lfs diff=lfs merge=lfs -text
 *.pdb filter=lfs diff=lfs merge=lfs -text
+
+# FFmpeg per-platform CLI binaries (no extension)
+deps/FFmpeg/ffmpeg.linux-x64 filter=lfs diff=lfs merge=lfs -text
+deps/FFmpeg/ffmpeg.osx-arm64 filter=lfs diff=lfs merge=lfs -text
 
 # setup
 *.msi filter=lfs diff=lfs merge=lfs -text
