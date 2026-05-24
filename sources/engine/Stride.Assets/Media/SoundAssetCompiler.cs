@@ -34,7 +34,7 @@ namespace Stride.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
-                Version = 4;
+                Version = 5;
             }
 
             /// <inheritdoc />
