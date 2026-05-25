@@ -1467,17 +1467,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             else
             {
+                if (e.NewItems != null)
+                {
+                    selectedAssets.AddRange(e.NewItems.OfType<AssetViewModel>());
+                }
+
                 if (e.OldItems != null)
                 {
                     foreach (var item in e.OldItems.OfType<AssetViewModel>())
                     {
                         selectedAssets.Remove(item);
                     }
-                }
-
-                if (e.NewItems != null)
-                {
-                    selectedAssets.AddRange(e.NewItems.OfType<AssetViewModel>());
                 }
             }
 
