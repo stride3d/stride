@@ -40,10 +40,9 @@
     <StridePlatformFullName Condition="'$(StrideBuildDirExtension)' != ''">$(StridePlatformFullName)-$(StrideBuildDirExtension)</StridePlatformFullName>
 
     <!-- Platform dependencies -->
-    <StridePlatformDeps Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">dotnet</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">dotnet</StridePlatformDeps>
     <StridePlatformDeps Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatformDeps>
     <StridePlatformDeps Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatformDeps>
   </PropertyGroup>
 
   <!-- ================================================================ -->
