@@ -1,0 +1,59 @@
+name: "Dep: Build Celt"
+
+# Builds libCelt.a (Celt audio codec from Opus v1.1.3 sources) for the Apple
+# RIDs Stride consumes. Reuses deps/Celt/buildApple.sh — the script clones
+# xiph/opus on first run and emits per-RID archives under
+# deps/NativePath/dotnet/<rid>/libCelt.a.
+#
+# Output per RID:
+#   dotnet/osx-arm64/libCelt.a          (PLATFORM_MACOS)
+#   dotnet/ios-arm64/libCelt.a          (PLATFORM_IOS)
+#   dotnet/iossimulator-arm64/libCelt.a (PLATFORM_IOSSIMULATOR)
+#
+# RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Celt (osx-arm64 + iOS device + simulator)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: bash deps/Celt/buildApple.sh
+
+      - name: Stage outputs under dotnet/<rid>/
+        # The script writes directly into deps/NativePath/dotnet/<rid>/; just
+        # collect the three resulting archives into a clean artifact tree.
+        run: |
+          mkdir -p out/dotnet/osx-arm64 out/dotnet/ios-arm64 out/dotnet/iossimulator-arm64
+          cp deps/NativePath/dotnet/osx-arm64/libCelt.a          out/dotnet/osx-arm64/
+          cp deps/NativePath/dotnet/ios-arm64/libCelt.a          out/dotnet/ios-arm64/
+          cp deps/NativePath/dotnet/iossimulator-arm64/libCelt.a out/dotnet/iossimulator-arm64/
+
+      - name: Write VERSION.txt
+        run: |
+          OPUS_COMMIT=$(git -C externals/Celt rev-parse HEAD)
+          OPUS_TAG=$(git -C externals/Celt describe --tags --always)
+          {
+            printf 'Celt (from Opus %s)\n' "$OPUS_TAG"
+            printf 'Repository: https://github.com/xiph/opus\n'
+            printf 'Commit: %s\n' "$OPUS_COMMIT"
+            printf '\n'
+            printf 'Stride: %s/%s @ %s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}"
+            printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
+            printf 'Workflow: %s/%s/actions/runs/%s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+          } > out/VERSION.txt
+
+      - name: List contents
+        run: find out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: celt-all-platforms
+          path: out/
