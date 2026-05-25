@@ -46,8 +46,19 @@ namespace Stride
             if (cancellationToken != default(CancellationToken))
                 cancellationToken.Register(tcs.SetCanceled);
 
-            if (!process.Start())
-                tcs.TrySetException(new InvalidOperationException($"Process [{command}] couldn't start"));
+            try
+            {
+                if (!process.Start())
+                {
+                    tcs.TrySetException(new InvalidOperationException($"Process [{command}] couldn't start"));
+                    return tcs.Task;
+                }
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+                return tcs.Task;
+            }
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
