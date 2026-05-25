@@ -56,6 +56,26 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <!-- ================================================================ -->
+  <!-- Workaround: _CreateAar runs twice under parallel builds (XARLP7024) -->
+  <!-- ================================================================ -->
+  <!-- The Android SDK wires _CreateAar into _UpdateAndroidResourcesDependsOn AND, via NuGet's
+       per-TFM dispatch through _GetFrameworkAssemblyReferences, it runs a second time — racing
+       on shared .aar files (e.g. Stride.Games.aar) under -m:N. That forces the Android test
+       build to -m:1. Relocate _CreateAar to the NuGet-package dependency chain (where it only
+       needs to run), matching dotnet/android#11527:
+       https://github.com/dotnet/android/pull/11527
+
+       Self-gating: only rewrites while _CreateAar is still in the resources chain, so once the
+       upstream fix ships in any SDK version this whole block becomes a no-op automatically.
+       Must come after the Microsoft.NET.Sdk import so the Android SDK properties exist. -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And $(_UpdateAndroidResourcesDependsOn.Contains('_CreateAar'))">
+    <!-- Unescape: the .Replace() property function escapes the ';' list separators (to %3B),
+         which would make DependsOnTargets treat the whole string as one target name (MSB4057). -->
+    <_UpdateAndroidResourcesDependsOn>$([MSBuild]::Unescape($(_UpdateAndroidResourcesDependsOn.Replace('_CreateAar;', '').Replace('_CreateAar', ''))))</_UpdateAndroidResourcesDependsOn>
+    <_IncludeAarInNuGetPackageDependsOn>$(_IncludeAarInNuGetPackageDependsOn);_CreateAar</_IncludeAarInNuGetPackageDependsOn>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Graphics API inner build dispatching (multi-API builds) -->
   <!-- ================================================================ -->
   <!-- MUST come after Microsoft.NET.Sdk Sdk.targets because it overrides

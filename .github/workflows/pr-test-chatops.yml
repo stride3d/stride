@@ -81,6 +81,7 @@ jobs:
               'windows-game-api-neutral':{ kind: 'test',  event: 'test-windows-game-api-neutral',workflow: 'test-windows-game-api-neutral.yml' },
               'windows-simple':          { kind: 'test',  event: 'test-windows-simple',          workflow: 'test-windows-simple.yml' },
               'linux-game':              { kind: 'test',  event: 'test-linux-game',              workflow: 'test-linux-game.yml' },
+              'android-game':            { kind: 'test',  event: 'test-android-game',            workflow: 'test-android-game.yml' },
               'linux-simple':            { kind: 'test',  event: 'test-linux-simple',            workflow: 'test-linux-simple.yml' },
               // Builds (mirrors main.yml jobs; new entries here also need a matching job in main.yml)
               'assembly-processor':      { kind: 'build', event: 'build-assembly-processor',     workflow: 'build-assembly-processor.yml' },
