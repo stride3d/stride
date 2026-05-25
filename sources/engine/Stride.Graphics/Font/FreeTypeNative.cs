@@ -196,7 +196,12 @@ namespace Stride.Graphics.Font
 
     internal static unsafe class FreeTypeNative
     {
+#if STRIDE_PLATFORM_IOS
+        // libfreetype.a is statically linked into the main binary; "__Internal" resolves the symbols at link time.
+        private const string FreetypeLib = "__Internal";
+#else
         private const string FreetypeLib = "freetype";
+#endif
 
         [DllImport(FreetypeLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int FT_Init_FreeType(out nint library);
