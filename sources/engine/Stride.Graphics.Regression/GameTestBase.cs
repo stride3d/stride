@@ -797,10 +797,7 @@ namespace Stride.Graphics.Regression
             else
             {
                 // Resolve thresholds from thresholds.jsonc
-                var fullClassName = GetType().FullName;
-                var classNameIndex = fullClassName.LastIndexOf('.');
-                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var suiteDir = Path.Combine(testsBaseDir, GetType().Assembly.GetName().Name);
                 var thresholdRules = ImageThreshold.LoadRules(suiteDir);
                 var imageName = Path.GetFileName(testFileName);
                 var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
@@ -909,15 +906,13 @@ namespace Stride.Graphics.Regression
         ///   The file extension to append to the generated file name (e.g., ".txt", ".log").
         /// </param>
         /// <returns>
-        ///   A fully qualified file path for the test artifact, including the namespace, class name,
+        ///   A fully qualified file path for the test artifact, including the assembly name, class name,
         ///   test name, frame name, and platform-specific directory.
         /// </returns>
         private string GenerateTestArtifactFileName(string testArtifactPath, string frameName, string platformSpecificDir, string extension)
         {
-            var fullClassName = GetType().FullName;
-            var classNameIndex = fullClassName.LastIndexOf('.');
-            var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-            var className = fullClassName[(classNameIndex + 1)..];
+            var assemblyName = GetType().Assembly.GetName().Name;
+            var className = GetType().Name;
 
             var testFileName = className;
             if (TestName is not null)
@@ -926,7 +921,7 @@ namespace Stride.Graphics.Regression
                 testFileName += $".{frameName}";
             testFileName += extension;
 
-            var testDir = Path.Combine(testArtifactPath, @namespace);
+            var testDir = Path.Combine(testArtifactPath, assemblyName);
             testFileName = Path.Combine(testDir, platformSpecificDir, testFileName);
             return testFileName;
         }
