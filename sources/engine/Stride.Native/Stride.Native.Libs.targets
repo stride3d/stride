@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <StrideNativePathLibsiOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
     <StrideNativePathLibsmacOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
+    <StrideNativePathLibsiOSArm64 Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\ios-arm64\libCelt.a" />
+    <StrideNativePathLibsiOSSimulatorArm64 Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\iossimulator-arm64\libCelt.a" />
     <StrideNativePathLibsLinux Include="libCelt.a;libCompilerRt.a" />
     <StrideNativePathLibsAndroid Include="libCelt.a;libCompilerRt.a" />
   </ItemGroup>
