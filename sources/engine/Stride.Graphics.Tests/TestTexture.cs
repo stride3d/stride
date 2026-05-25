@@ -476,7 +476,8 @@ namespace Stride.Graphics.Tests
                     using (var inStream = game.Content.OpenAsStream(filePath))
                         texture = Texture.Load(device, inStream, loadAsSrgb: true);
 
-                    game.GraphicsContext.DrawTexture(texture, BlendStates.AlphaBlend);
+                    // Texture.Load returns straight alpha; pair it with the matching blend.
+                    game.GraphicsContext.DrawTexture(texture, BlendStates.NonPremultiplied);
                 },
                 GraphicsProfile.Level_9_1);
         }
