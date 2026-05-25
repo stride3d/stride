@@ -16,7 +16,7 @@ namespace Stride.Graphics
         internal static DataSerializer<ImageDescription> ImageDescriptionSerializer = SerializerSelector.Default.GetSerializer<ImageDescription>();
         internal static readonly FourCC MagicCode = "TKTX";
 
-        public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode)
         {
             Debug.Assert(size >= 0);
             var ums = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
@@ -26,6 +26,10 @@ namespace Stride.Graphics
             var magicCode = stream.ReadUInt32();
             if (magicCode != MagicCode)
                 return null;
+
+            // Stride's own format doesn't carry a premul-state flag; we can't honor conversion requests safely.
+            if (alphaLoadMode != AlphaLoadMode.Preserve)
+                throw new NotSupportedException($"AlphaLoadMode.{alphaLoadMode} not supported for the Stride image format (no premultiplied-state metadata).");
 
             // Read header
             var imageDescription = new ImageDescription();

@@ -7,7 +7,9 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 using Stride.Core;
 
@@ -39,12 +41,25 @@ internal partial class StandardImageHelper
     /// <remarks>
     ///   The image is loaded with a pixel format of <see cref="PixelFormat.B8G8R8A8_UNorm"/>.
     /// </remarks>
-    public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+    public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode)
     {
         using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
 
         // Bgra32 matches the in-memory layout of B8G8R8A8_UNorm so we can blit row-by-row.
         using var sharpImage = SharpImage.Load<Bgra32>(memoryStream);
+
+        // PNG/JPG/BMP/GIF/TIFF decode as straight alpha; convert if caller asked for premul.
+        if (alphaLoadMode == AlphaLoadMode.EnsurePremultiplied)
+        {
+            sharpImage.Mutate(x => x.ProcessPixelRowsAsVector4(row =>
+            {
+                for (int i = 0; i < row.Length; i++)
+                {
+                    ref var px = ref row[i];
+                    px.X *= px.W; px.Y *= px.W; px.Z *= px.W;
+                }
+            }));
+        }
 
         int width = sharpImage.Width;
         int height = sharpImage.Height;

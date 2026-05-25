@@ -16,14 +16,16 @@ namespace Stride.Graphics
     // using ImageSharp.
     partial class StandardImageHelper
     {
-        public static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode)
         {
             using (var imagedata = NSData.FromBytes(pSource, (uint) size))
             using (var cgImage = new UIImage(imagedata).CGImage)
             {
                 var image = Image.New2D((int)cgImage.Width, (int)cgImage.Height, 1, PixelFormat.R8G8B8A8_UNorm, 1, (int)cgImage.BytesPerRow);
 
-                using (var context = new CGBitmapContext(image.PixelBuffer[0].DataPointer, cgImage.Width, cgImage.Height, 8, cgImage.Width*4, cgImage.ColorSpace, CGBitmapFlags.PremultipliedLast))
+                // CGBitmapContext flag picks premultiplied vs straight alpha at decode time.
+                var bitmapFlags = alphaLoadMode == AlphaLoadMode.EnsurePremultiplied ? CGBitmapFlags.PremultipliedLast : CGBitmapFlags.Last;
+                using (var context = new CGBitmapContext(image.PixelBuffer[0].DataPointer, cgImage.Width, cgImage.Height, 8, cgImage.Width*4, cgImage.ColorSpace, bitmapFlags))
                 {
                     context.DrawImage(new RectangleF(0, 0, cgImage.Width, cgImage.Height), cgImage);
 

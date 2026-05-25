@@ -1589,9 +1589,9 @@ namespace Stride.Graphics
         ///   <see langword="false"/> to load it in its default format.
         /// </param>
         /// <returns>The loaded Texture.</returns>
-        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false)
+        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
-            using var image = Image.Load(stream, loadAsSrgb);
+            using var image = Image.Load(stream, loadAsSrgb, alphaLoadMode);
 
             return New(device, image, textureFlags, usage);
         }
