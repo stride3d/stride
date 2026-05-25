@@ -23,7 +23,9 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
     {
-        return a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
+        var oneDynamic = (a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic);
+        var bothKinematic = (a.Mobility == CollidableMobility.Kinematic && b.Mobility == CollidableMobility.Kinematic);
+        return oneDynamic || bothKinematic;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -88,10 +90,10 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         if (manifold.Count != 0)
         {
             contactEvents.StoreManifold(workerIndex, pair, childIndexA, childIndexB, ref manifold);
-            #if DEBUG
+#if DEBUG
             Debug.Assert(configuredChildIndex >= configuredManifold);
             configuredChildIndex++;
-            #endif
+#endif
         }
 
         return true;
