@@ -56,7 +56,8 @@ namespace Stride.Graphics.Tests
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.BackBuffer, Color.AntiqueWhite);
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer);
             GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
-            spriteBatch.Begin(GraphicsContext);
+            // Texture.Load returns straight alpha; pair it with the matching blend.
+            spriteBatch.Begin(GraphicsContext, blendState: BlendStates.NonPremultiplied);
 
             var screenSize = new Vector2(GraphicsDevice.Presenter.BackBuffer.ViewWidth, GraphicsDevice.Presenter.BackBuffer.ViewHeight);
 
