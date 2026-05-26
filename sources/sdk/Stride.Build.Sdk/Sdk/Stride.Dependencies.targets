@@ -17,7 +17,9 @@
     Platform-specific handling:
     - Desktop (Windows/Linux/macOS): Native libs copied as None items
     - Android: Native libs added as AndroidNativeLibrary
-    - iOS: Native libs linked via mtouch arguments
+    - iOS: Native libs added as NativeReference (Kind=Static, ForceLoad=True) so libfoo.a is
+      whole-archive linked into the main executable; libMoltenVK.a additionally re-exports
+      vkGetInstanceProcAddr so Vortice.Vulkan's dlsym-based loader finds it.
     ================================================================
   -->
 
@@ -197,6 +199,14 @@
         <ForceLoad>True</ForceLoad>
         <SmartLink>False</SmartLink>
       </NativeReference>
+      <!-- libMoltenVK.a: re-export vkGetInstanceProcAddr from the final binary's dynamic
+           symbol table. Vortice.Vulkan bootstraps with NativeLibrary.Load("__Internal") +
+           NativeLibrary.GetExport(handle, "vkGetInstanceProcAddr") → dlsym, which only sees
+           dynamically-exported symbols. Static-linked .a symbols are local by default ("t" in
+           nm), so without this flag Vortice's vkInitialize returns ErrorInitializationFailed. -->
+      <NativeReference Update="@(NativeReference)"
+          Condition="$([System.String]::new('%(Identity)').EndsWith('libMoltenVK.a'))"
+          LinkerFlags="-Wl,-exported_symbol,_vkGetInstanceProcAddr" />
     </ItemGroup>
   </Target>
 

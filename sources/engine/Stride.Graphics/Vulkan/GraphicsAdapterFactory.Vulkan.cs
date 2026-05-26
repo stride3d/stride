@@ -28,13 +28,12 @@ namespace Stride.Graphics
             // when one is installed (e.g. via 'brew install vulkan-loader') because only the loader
             // chains validation layers — bundled MoltenVK alone is an ICD and ignores VK_LAYER_*.
             // If no loader is available, fall back to the bundled MoltenVK at runtimes/<rid>/native/.
-            // On iOS, MoltenVK is statically linked into the app bundle (iOS forbids dlopen of
-            // arbitrary dylibs); "__Internal" resolves to the main executable's symbol table,
-            // so Vortice's NativeLibrary.GetExport finds vkGetInstanceProcAddr there.
+            // On iOS, MoltenVK is statically linked into the app binary: dlopen the executable itself,
+            // which exports vkGetInstanceProcAddr (see Stride.Core.NativeLibraries.targets).
             string vkLibraryName = Platform.Type switch
             {
                 PlatformType.macOS => ResolveMacOSVulkanLibrary(),
-                PlatformType.iOS => "__Internal",
+                PlatformType.iOS => Environment.ProcessPath,
                 _ => null,
             };
             var result = vkInitialize(vkLibraryName);
