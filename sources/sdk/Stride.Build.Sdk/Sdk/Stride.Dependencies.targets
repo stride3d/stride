@@ -73,6 +73,31 @@
     </ItemGroup>
   </Target>
 
+  <!-- Distinct-by-filename helper: the same native lib (e.g. libNativePath.a) can land in
+       multiple consuming projects' .ssdeps, which is harmless for desktop copy-to-output
+       (same TargetPath overwrites) but breaks iOS NativeReference (linker rejects duplicate
+       symbols when the same .a is passed twice). -->
+  <UsingTask TaskName="_StrideDistinctByFilename" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Items ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Distinct ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        var result = new List<Microsoft.Build.Framework.ITaskItem>();
+        foreach (var item in Items)
+        {
+          if (seen.Add(Path.GetFileName(item.ItemSpec)))
+            result.Add(item);
+        }
+        Distinct = result.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
   <!-- Reads every .ssdeps file in one task call and returns items with the absolute source path
        as Include + Type and Link metadata. A single non-batched task keeps the produced items in
        the project's global scope where downstream targets can pick them up. -->
@@ -153,22 +178,26 @@
       </_SourceItemsToCopyToOutputDirectory>
     </ItemGroup>
 
-    <!-- iOS -->
+    <!-- iOS (.NET iOS workload): static native libs (.a) must be declared via NativeReference;
+         the iOS linker doesn't auto-load arbitrary archives. ForceLoad=True is required because
+         our P/Invoke entry points are referenced only through DllImport("__Internal") and would
+         otherwise be dead-stripped. Filter on RID so a device build doesn't link the simulator
+         slice and vice versa, then dedupe by filename — the same lib (e.g. libNativePath.a) often
+         appears in multiple consuming projects' .ssdeps and the linker rejects duplicate symbols. -->
     <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">
-      <!-- strip any "lib" prefix and populate the LibraryName value -->
-      <_StrideDependencyNativeLib>
-        <LibraryName>$([System.Text.RegularExpressions.Regex]::Match('%(Filename)', `(lib)*(.+)`).get_Groups().get_Item(2).ToString())</LibraryName>
-      </_StrideDependencyNativeLib>
-
-      <None Include="@(_StrideDependencyNativeLib)">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+      <_StrideIOSNativeRef Include="@(_StrideDependencyNativeLib)"
+          Condition="'%(_StrideDependencyNativeLib.Extension)' == '.a' And ('$(RuntimeIdentifier)' == '' Or $([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Contains('/$(RuntimeIdentifier)/')))" />
     </ItemGroup>
-
-    <PropertyGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">
-      <MtouchExtraArgsLibs>$(StrideMTouchExtras) -L"%24{ProjectDir}" @(_StrideDependencyNativeLib->'-l%(LibraryName) "%24{ProjectDir}/%(Filename)%(Extension)"',' ')</MtouchExtraArgsLibs>
-      <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
-    </PropertyGroup>
+    <_StrideDistinctByFilename Items="@(_StrideIOSNativeRef)" Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '@(_StrideIOSNativeRef)' != '' ">
+      <Output TaskParameter="Distinct" ItemName="_StrideIOSNativeRefUnique" />
+    </_StrideDistinctByFilename>
+    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">
+      <NativeReference Include="@(_StrideIOSNativeRefUnique)">
+        <Kind>Static</Kind>
+        <ForceLoad>True</ForceLoad>
+        <SmartLink>False</SmartLink>
+      </NativeReference>
+    </ItemGroup>
   </Target>
 
   <!-- Android: only ship Android RID native libs (skip win/linux/osx/ios runtimes).
