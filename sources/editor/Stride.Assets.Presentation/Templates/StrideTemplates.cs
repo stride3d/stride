@@ -9,8 +9,7 @@ namespace Stride.Assets.Presentation.Templates
         public static void Register()
         {
             // TODO: Attribute-based auto registration would be better I guess
-            TemplateManager.Register(TemplateSampleGenerator.Default);
-            TemplateManager.Register(NewGameTemplateGenerator.Default);
+            TemplateManager.Register(new DotNetNewTemplateGenerator());
             TemplateManager.Register(ProjectLibraryTemplateGenerator.Default);
             TemplateManager.Register(UpdatePlatformsTemplateGenerator.Default);
             TemplateManager.Register(AssetFactoryTemplateGenerator.Default);

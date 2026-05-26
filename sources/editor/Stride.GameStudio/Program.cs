@@ -159,6 +159,10 @@ public static class Program
 
                 //listen to logger for crash report
                 GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
+                // Route GlobalLogger output to VS Debug pane (no-op in Release).
+                // Warning+ only — Info/Verbose volume slows the debugger noticeably during
+                // asset compile / NuGet restore.
+                GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
 
                 mainDispatcher = Dispatcher.CurrentDispatcher;
                 mainDispatcher.InvokeAsync(() => Startup(initialSessionPath));

@@ -137,7 +137,7 @@ public class TemplateManager
 
         public int GetHashCode(Package obj)
         {
-            return obj.FullPath.GetHashCode();
+            return obj.FullPath?.GetHashCode() ?? 0;
         }
     }
 }
