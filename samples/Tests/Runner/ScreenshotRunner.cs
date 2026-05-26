@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Stride.Assets.Presentation;
+using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -101,7 +102,7 @@ public static class ScreenshotRunner
     {
         var session = new PackageSession();
         return TemplateManager.FindTemplates(session)
-            .Where(t => t is TemplateSampleDescription)
+            .Where(t => t is TemplateDotNetNewDescription)
             .ToDictionary(t => t.Id, t => t.DefaultOutputName ?? t.Name);
     }
 

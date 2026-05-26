@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // GameStudio capture for the "create a new game" flow: pick the New Game template in
-// ProjectSelectionWindow, accept GameTemplateWindow defaults, wait for GameStudioWindow.
+// ProjectSelectionWindow, accept the parameter dialog defaults, wait for GameStudioWindow.
 using System;
 using System.Threading.Tasks;
 using Stride.Assets;
@@ -12,9 +12,13 @@ using Stride.GameStudio.AutoTesting;
 
 namespace Stride.Editor.Tests;
 
-[UITest(SampleTemplateId = "81d2adea-37b1-4711-834c-0d73a05c206c")]
+[UITest(SampleTemplateId = NewGameTemplateId)]
 public class NewGameEditor : IUITest
 {
+    // NewGame's .sdtpl Id; the dotnet new preprocessor emits this as the template's identity
+    // and the GameStudio bridge populates TemplateDescription.Id with it.
+    private const string NewGameTemplateId = "81d2adea-37b1-4711-834c-0d73a05c206c";
+
     public async Task Run(IUITestContext ctx)
     {
         await ctx.WaitDispatcherIdle();
@@ -28,18 +32,18 @@ public class NewGameEditor : IUITest
         }
         await Task.Delay(TimeSpan.FromSeconds(1)); // let templates panel populate
 
-        if (!await ctx.SelectTemplate(NewGameTemplateGenerator.TemplateId))
+        if (!await ctx.SelectTemplate(new Guid(NewGameTemplateId)))
         {
             ctx.Exit(1);
             return;
         }
         await ctx.WaitFrames(2);
 
-        // Click OK on ProjectSelectionWindow → triggers PrepareForRun on NewGameTemplateGenerator
-        // which shows GameTemplateWindow (parameter dialog). Defaults are usable; close with Ok.
+        // Click OK on ProjectSelectionWindow → triggers PrepareForRun on the template generator
+        // which shows DotNetNewTemplateParametersWindow. Defaults are usable; close with Ok.
         if (!await ctx.CloseModalWithOk("ProjectSelectionWindow")) { ctx.Exit(1); return; }
-        if (!await ctx.WaitForWindow("GameTemplateWindow", timeoutSeconds: 30)) { ctx.Exit(1); return; }
-        if (!await ctx.CloseModalWithOk("GameTemplateWindow")) { ctx.Exit(1); return; }
+        if (!await ctx.WaitForWindow("DotNetNewTemplateParametersWindow", timeoutSeconds: 30)) { ctx.Exit(1); return; }
+        if (!await ctx.CloseModalWithOk("DotNetNewTemplateParametersWindow")) { ctx.Exit(1); return; }
 
         // Project generation runs (creates .sln, .csproj, asset folders, restores NuGet).
         // Then the editor opens it and GameStudioWindow appears.

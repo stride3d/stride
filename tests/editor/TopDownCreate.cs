@@ -31,10 +31,10 @@ public class TopDownCreate : IUITest
         }
         await ctx.WaitFrames(2);
 
-        // Sample flow: ProjectSelectionWindow → UpdatePlatformsWindow → project gen → GameStudioWindow.
+        // Sample flow: ProjectSelectionWindow → DotNetNewTemplateParametersWindow → project gen → GameStudioWindow.
         if (!await ctx.CloseModalWithOk("ProjectSelectionWindow")) { ctx.Exit(1); return; }
-        if (!await ctx.WaitForWindow("UpdatePlatformsWindow", timeoutSeconds: 30)) { ctx.Exit(1); return; }
-        if (!await ctx.CloseModalWithOk("UpdatePlatformsWindow")) { ctx.Exit(1); return; }
+        if (!await ctx.WaitForWindow("DotNetNewTemplateParametersWindow", timeoutSeconds: 30)) { ctx.Exit(1); return; }
+        if (!await ctx.CloseModalWithOk("DotNetNewTemplateParametersWindow")) { ctx.Exit(1); return; }
 
         // TopDownRPG pulls in more assets than NewGame; cap at 5 min for cold NuGet restore on CI.
         if (!await ctx.WaitForWindow("GameStudioWindow", timeoutSeconds: 300)) { ctx.Exit(1); return; }
