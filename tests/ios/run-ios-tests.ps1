@@ -1,0 +1,276 @@
+#!/usr/bin/env pwsh
+# Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+# Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#
+# Drives a Stride test .app bundle on the iOS Simulator:
+#   1. (optional) boot a simulator device
+#   2. (optional) xcrun simctl install the .app
+#   3. push gold images into the app's Documents dir (simulator data is a host-visible path)
+#   4. launch the app with --xunit-command run (App.HeadlessMode path)
+#   5. wait for process exit
+#   6. copy tests/local/ (TRX + generated images) back to host
+#   7. exit non-zero if any test failed (parsed from the TRX)
+#
+# macOS-only (iOS Simulator). Requires Xcode + pwsh.
+
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Package,                # Bundle id (e.g. com.stride.engine.tests)
+    [Parameter(Mandatory)][string]$Suite,                  # Test suite / assembly name (e.g. Stride.UI.Tests).
+                                                           # Required because casing/acronyms (UI, 10_0) can't be auto-recovered from $Package.
+    [string]$App,                                          # .app bundle path; skip install if already deployed
+    [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
+    [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
+    [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
+    [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
+    [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
+    [switch]$KeepSimulator                                 # don't shutdown a simulator we booted
+)
+
+# 'Continue': pwsh on macOS surfaces native-command stderr lines as ErrorRecord under 'Stop'
+# even when exit code is 0 (xcrun writes progress to stderr). Use explicit exit-code checks.
+$ErrorActionPreference = 'Continue'
+
+if ($null -eq $IsMacOS -or -not $IsMacOS) {
+    throw "iOS Simulator only runs on macOS hosts. Use pwsh on macOS."
+}
+
+# Repo root discovery: walk up from $PSScriptRoot looking for build/Stride.sln (same convention
+# the Android driver and GameTestBase use). Only required when -ResultsDir (or -GoldDir, if
+# pushing gold) isn't provided explicitly; CI artifact-extraction flows pass both paths.
+function Find-RepoRoot {
+    $dir = $PSScriptRoot
+    while ($dir) {
+        if (Test-Path (Join-Path $dir 'build/Stride.sln')) { return $dir }
+        $parent = Split-Path -Parent $dir
+        if ($parent -eq $dir) { break }
+        $dir = $parent
+    }
+    return $null
+}
+if (-not $RepoRoot) { $RepoRoot = Find-RepoRoot }
+if (-not $ResultsDir) {
+    if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
+    $ResultsDir = Join-Path $RepoRoot "tests/local/$Suite"
+}
+if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
+    # Auto-default gold source only when caller didn't specify; pass -GoldDir '' to opt out.
+    $candidate = Join-Path $RepoRoot "tests/$Suite"
+    if (Test-Path $candidate) { $GoldDir = $candidate }
+}
+Write-Host "Suite:    $Suite"
+Write-Host "Repo:     $(if ($RepoRoot) { $RepoRoot } else { '<not in repo>' })"
+Write-Host "Gold:     $(if ($GoldDir) { $GoldDir } else { '<none>' })"
+Write-Host "Results:  $ResultsDir"
+
+function Invoke-Simctl {
+    # xcrun simctl trampoline; throws on non-zero exit so the script fails fast at the call site.
+    param([Parameter(Mandatory)][string[]]$Args, [switch]$AllowFailure)
+    $out = & xcrun simctl @Args 2>&1
+    if ($LASTEXITCODE -ne 0 -and -not $AllowFailure) {
+        throw "xcrun simctl $($Args -join ' ') failed: $out"
+    }
+    return $out
+}
+
+function Resolve-SimulatorUdid {
+    param([string]$Hint)
+    if ($Hint -eq 'booted') {
+        # First booted device wins. simctl accepts 'booted' literally for most subcommands, but
+        # we resolve to a UDID up-front to allow the data-container path lookup below.
+        $json = (& xcrun simctl list devices booted --json) | ConvertFrom-Json
+        foreach ($rt in $json.devices.PSObject.Properties) {
+            foreach ($d in $rt.Value) { if ($d.state -eq 'Booted') { return $d.udid } }
+        }
+        return $null
+    }
+    # UDID is a 36-char hyphenated GUID; anything else we treat as a name match.
+    if ($Hint -match '^[0-9A-Fa-f-]{36}$') { return $Hint }
+    $json = (& xcrun simctl list devices --json) | ConvertFrom-Json
+    foreach ($rt in $json.devices.PSObject.Properties) {
+        foreach ($d in $rt.Value) { if ($d.name -eq $Hint) { return $d.udid } }
+    }
+    return $null
+}
+
+# 1. Resolve / boot a simulator.
+$udid = Resolve-SimulatorUdid $Simulator
+$startedSimulator = $false
+if (-not $udid) {
+    if ($Simulator -eq 'booted') {
+        throw "No simulator is booted and -Simulator wasn't given. Pass a UDID or device name."
+    }
+    throw "No simulator matched -Simulator '$Simulator'. List with: xcrun simctl list devices"
+}
+$json = (& xcrun simctl list devices --json) | ConvertFrom-Json
+$device = $null
+foreach ($rt in $json.devices.PSObject.Properties) {
+    foreach ($d in $rt.Value) { if ($d.udid -eq $udid) { $device = $d; break } }
+    if ($device) { break }
+}
+if ($device.state -ne 'Booted') {
+    Write-Host "Booting simulator $($device.name) ($udid)..."
+    Invoke-Simctl boot,$udid | Out-Null
+    $startedSimulator = $true
+    # Wait for system to be ready (springboard up).
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        $state = (& xcrun simctl bootstatus $udid -b 2>&1 | Select-Object -Last 1)
+        if ($state -match 'Device booted|already booted') { break }
+        Start-Sleep -Seconds 2
+    }
+}
+Write-Host "Simulator: $udid"
+
+# 2. Optional install
+if ($App) {
+    if (-not (Test-Path $App)) { throw "App bundle not found: $App" }
+    Write-Host "Installing $App..."
+    Invoke-Simctl install,$udid,$App | Out-Null
+}
+
+# 3. Push gold images. Simulator data is host-visible — copy directly into the app's Documents.
+# Wipe the device gold dir before pushing so it mirrors the host: a gold file deleted on the
+# host (e.g. a stale iOS primary that's been promoted away) must also disappear from the device,
+# otherwise the on-device framework still finds it as "primary" and ignores fallback golds.
+$dataContainer = (Invoke-Simctl get_app_container,$udid,$Package,data).Trim()
+if (-not $dataContainer -or -not (Test-Path $dataContainer)) {
+    throw "Could not resolve data container for $Package on $udid (app not installed?)"
+}
+$goldTarget = Join-Path $dataContainer "Documents/tests/$Suite"
+if ($GoldDir) {
+    if (-not (Test-Path $GoldDir)) { throw "GoldDir not found: $GoldDir" }
+    Write-Host "Pushing gold $GoldDir/* -> $goldTarget (cleared first)"
+    if (Test-Path $goldTarget) { Remove-Item -Recurse -Force $goldTarget }
+    New-Item -ItemType Directory -Force -Path $goldTarget | Out-Null
+    Copy-Item -Path (Join-Path $GoldDir '*') -Destination $goldTarget -Recurse -Force
+}
+
+# Clear previous results so a stale TRX doesn't fool detection.
+$resultsOnDevice = Join-Path $dataContainer "Documents/tests/local"
+if (Test-Path $resultsOnDevice) { Remove-Item -Recurse -Force $resultsOnDevice }
+
+# 4. Launch with args. Send the same xunit_command/xunit_exit_on_complete pair the Android
+# launcher reads — App.HeadlessMode parses NSProcessInfo.Arguments on iOS for the same keys.
+Write-Host "Launching $Package with xunit_command=run..."
+# Force-stop in case it's already running with stale state.
+Invoke-Simctl terminate,$udid,$Package -AllowFailure | Out-Null
+# Capture stdout for diagnosis; --console-pty would block. Background and pull when done.
+$logPath = Join-Path $ResultsDir "$Package.console.txt"
+if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
+# `simctl launch` returns immediately with the PID; we poll for exit below.
+$launchOut = & xcrun simctl launch $udid $Package '--xunit-command' 'run' '--xunit-exit-on-complete' 'true' 2>&1
+if ($LASTEXITCODE -ne 0) { throw "simctl launch failed: $launchOut" }
+# Output is like "com.stride.engine.tests: 12345"
+$procPid = ($launchOut | Select-String -Pattern ':\s*(\d+)$').Matches.Groups[1].Value
+Write-Host "PID: $procPid"
+
+# Tail the simulator system log into the console capture in the background. Use --process
+# (takes a PID directly) rather than --predicate "processID == N", since the latter requires
+# quoting that doesn't survive PowerShell → simctl spawn → log stream argument forwarding.
+# Redirect BOTH stdout and stderr — `simctl spawn` runs `log stream` inside the simulator under
+# launchd_sim, and that in-simulator child inherits its stderr from this Start-Process. If we
+# leave it pointing at our own stderr (which is the pipe to `tail -25` when invoked from a
+# `pwsh ... | tail` shell), the bash wrapper will never see EOF on that pipe after pwsh exits,
+# because the in-sim log streamer keeps holding the write end open.
+$logPathErr = "$logPath.err"
+$logArgs = @{
+    FilePath               = 'xcrun'
+    ArgumentList           = @('simctl', 'spawn', $udid, 'log', 'stream', '--process', $procPid)
+    RedirectStandardOutput = $logPath
+    RedirectStandardError  = $logPathErr
+    PassThru               = $true
+}
+$logProc = Start-Process @logArgs
+
+# 5. Wait for the test process to exit. simctl has no built-in wait, so:
+#  - Primary signal: the suite's TRX appeared on disk — the test wrote its final summary and is
+#    on its way out. Lets us proceed without waiting on the launchctl list to clean up.
+#  - Fallback signal: the launched PID is no longer alive in the simulator. Handles the
+#    crashed-before-writing-TRX case so we don't sit on the deadline.
+# Simulator apps run as ordinary macOS processes, so the PID `simctl launch` returns is
+# directly usable with the host's `kill -0`. (Earlier `simctl spawn ... kill -0` rounds
+# through launchd_sim and rejects arbitrary binaries with code 111 on newer Xcode — if
+# that gets relaxed in a future Xcode the in-sim variant can come back: uncomment the
+# `simctl spawn` line below and remove `kill -0 $procPid`.)
+$trxOnDevice = Join-Path $dataContainer "Documents/tests/local/$Suite/$Suite.trx"
+Write-Host "Waiting for $trxOnDevice or PID $procPid to exit (timeout: ${TimeoutSeconds}s)..."
+$deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+while ((Get-Date) -lt $deadline) {
+    if (Test-Path $trxOnDevice) { Write-Host "TRX written — proceeding."; break }
+    & kill -0 $procPid 2>$null
+    # & xcrun simctl spawn $udid sh -c "kill -0 $procPid" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        # PID gone — but the TRX write the test app issued just before exit can take a couple
+        # of seconds to surface on the host-visible simulator filesystem. Give a brief grace
+        # window so we don't proceed to the pull before the file appears.
+        for ($i = 0; $i -lt 10 -and -not (Test-Path $trxOnDevice); $i++) { Start-Sleep -Seconds 1 }
+        if (Test-Path $trxOnDevice) { Write-Host "PID $procPid gone; TRX appeared after wait." }
+        else { Write-Host "PID $procPid gone (no TRX written)." }
+        break
+    }
+    Start-Sleep -Seconds 3
+}
+if ((Get-Date) -ge $deadline) {
+    Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
+    Invoke-Simctl terminate,$udid,$Package -AllowFailure | Out-Null
+}
+
+# Stop log capture. -Force sends SIGKILL on the local `xcrun simctl spawn` wrapper, but the
+# actual `log stream` process running inside the simulator (parented by launchd_sim) survives
+# and would linger forever — and it inherited stdout/stderr from us, so it'll also keep our
+# parent shell's pipes open. Explicitly kill its in-sim instance too. pkill matches on the
+# command line we passed; multiple --process N invocations don't collide.
+if ($logProc -and -not $logProc.HasExited) {
+    Stop-Process -Id $logProc.Id -Force -ErrorAction SilentlyContinue
+}
+& xcrun simctl spawn $udid pkill -f "log stream --process $procPid" 2>$null | Out-Null
+
+# 6. Pull TRX + images from the simulator's Documents/tests/local/<Suite>/ to $ResultsDir.
+# Wipe $ResultsDir first so the host mirrors the device — otherwise a previously-failing
+# test that now passes (no fresh image written) would leave its stale failure PNG behind
+# and mislead CompareGold. Trade-off: no incremental, every run is a clean pull.
+$suiteResults = Join-Path $dataContainer "Documents/tests/local/$Suite"
+if (Test-Path $suiteResults) {
+    if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
+    else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
+    Write-Host "Pulling results $suiteResults -> $ResultsDir (cleared first)"
+    Copy-Item -Path (Join-Path $suiteResults '*') -Destination $ResultsDir -Recurse -Force
+} else {
+    Write-Warning "No results dir on device — tests may not have written any TRX."
+}
+
+# 7. Parse TRX for pass/fail
+$trxFiles = Get-ChildItem -Path $ResultsDir -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue
+if (-not $trxFiles) {
+    Write-Warning "No TRX files in $ResultsDir -- tests may not have run."
+    if ($startedSimulator -and -not $KeepSimulator) { Invoke-Simctl shutdown,$udid -AllowFailure | Out-Null }
+    exit 2
+}
+
+$totalFailed = 0
+foreach ($trx in $trxFiles) {
+    [xml]$doc = Get-Content $trx.FullName
+    $counters = $doc.TestRun.ResultSummary.Counters
+    function Get-CounterInt($node, $name) {
+        $v = $node.GetAttribute($name); if ($v) { return [int]$v } else { return 0 }
+    }
+    $failed = Get-CounterInt $counters 'failed'
+    $total  = Get-CounterInt $counters 'total'
+    $passed = Get-CounterInt $counters 'passed'
+    Write-Host "$($trx.Name): total=$total passed=$passed failed=$failed"
+    $totalFailed += $failed
+}
+
+if ($startedSimulator -and -not $KeepSimulator) {
+    Write-Host "Shutting down simulator we booted..."
+    Invoke-Simctl shutdown,$udid -AllowFailure | Out-Null
+}
+
+if ($totalFailed -gt 0) {
+    Write-Host "FAILED: $totalFailed test(s)." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "OK" -ForegroundColor Green
+exit 0
