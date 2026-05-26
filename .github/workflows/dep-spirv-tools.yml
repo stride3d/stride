@@ -12,11 +12,11 @@ name: "Dep: Build & Deploy SPIRV-Tools"
 #   Windows:  stride_spirv_tools.dll
 #   Linux:    libstride_spirv_tools.so
 #   macOS:    libstride_spirv_tools.dylib
-#   iOS:      libstride_spirv_tools.dylib   (cross-compiled on macOS)
+#   iOS:      libstride_spirv_tools.dylib   (cross-compiled on macOS, device + simulator)
 #   Android:  libstride_spirv_tools.so      (cross-compiled via NDK)
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
-#               android-arm64, android-x64.
+#               iossimulator-arm64, android-arm64, android-x64.
 
 on:
   workflow_dispatch:
@@ -229,6 +229,47 @@ jobs:
         with: { name: spirv-tools-ios-arm64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
+  # iOS Simulator ARM64 — cross-compiled on macOS. Same source as ios-arm64 but
+  # CMAKE_OSX_SYSROOT=iphonesimulator → arm64-apple-ios-simulator triple, so the
+  # resulting dylib has the PLATFORM_IOSSIMULATOR (7) load command and links
+  # into simulator .app bundles. Device and simulator slices can't be lipo'd
+  # into a single Mach-O — they need separate per-RID artifacts.
+  # ---------------------------------------------------------------------------
+  build-iossimulator-arm64:
+    name: Build SPIRV-Tools (iOS Simulator ARM64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python3 spirv-tools-src/utils/git-sync-deps
+
+      - name: Configure & build stride_spirv_tools
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+            -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        run: |
+          mkdir -p spirv-tools-out
+          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-iossimulator-arm64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
   # Android — one job per ABI, cross-compiled via NDK toolchain file.
   # ---------------------------------------------------------------------------
   build-android:
@@ -286,6 +327,7 @@ jobs:
       - build-linux-x64
       - build-macos-arm64
       - build-ios-arm64
+      - build-iossimulator-arm64
       - build-android
     runs-on: windows-2025-vs2026
     steps:
@@ -307,7 +349,7 @@ jobs:
         shell: pwsh
         run: |
           $destRoot = "build/deps/spirv-tools/runtimes"
-          $rids = 'win-x64','win-arm64','linux-x64','osx-arm64','ios-arm64','android-arm64','android-x64'
+          $rids = 'win-x64','win-arm64','linux-x64','osx-arm64','ios-arm64','iossimulator-arm64','android-arm64','android-x64'
           foreach ($rid in $rids) {
             $native = "$destRoot/$rid/native"
             New-Item -Path $native -ItemType Directory -Force | Out-Null
