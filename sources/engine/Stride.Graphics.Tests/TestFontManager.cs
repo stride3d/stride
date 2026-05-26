@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
+using Stride.Core;
 using Stride.Core.IO;
 using Xunit;
 
@@ -22,24 +23,28 @@ namespace Stride.Graphics.Tests
             Game.InitializeAssetDatabase();
         }
 
+        private const string SkipReasonAndroidReadOnlyData = "FontManager DB setup requires writable /data; on Android /data is the read-only APK mount";
+
         private IDatabaseFileProviderService CreateDatabaseProvider()
         {
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
             return new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase()));
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestCreationDisposal()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
             fontManager.Dispose();
         }
-        
-        [Fact]
+
+        [SkippableFact]
         public void TestDoesFontContains()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -50,9 +55,10 @@ namespace Stride.Graphics.Tests
 
         //Note: Test may fail due to some issues with SharpFont.
         //Updated TestGetFontInfo to now properly check if various Font Info is properly loaded
-        [Fact]
+        [SkippableFact]
         public void TestGetFontInfo()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -71,9 +77,10 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGenerateBitmap()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
