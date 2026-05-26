@@ -93,11 +93,14 @@ internal sealed class FFmpegVideoBackend : VideoBackend
 
     public override void Update(TimeSpan elapsed)
     {
-        if (stream == null || Instance.PlayState == PlayState.Stopped)
+        if (stream == null)
             return;
 
+        // Stopped/Paused freeze the time accumulator (no auto-advance), but a Seek that
+        // primed the accumulator still gets to decode its frame this tick — that's how
+        // seek-only captures (no Play) deliver a frame into VideoComponent.Target.
         var speedFactor = Instance.SpeedFactor;
-        if (Instance.PlayState == PlayState.Paused)
+        if (Instance.PlayState != PlayState.Playing)
             speedFactor = 0;
 
         var frameDurationTicks = stream.FrameDuration.Ticks;

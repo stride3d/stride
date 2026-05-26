@@ -18,6 +18,12 @@ namespace Stride.Video.FFmpeg
 
         partial void SetupHardwareAcceleration(AVCodecContext* pCodecContext)
         {
+            if (Stride.Video.Backends.FFmpegVideoBackendFactory.ForceSoftwareDecode)
+            {
+                Logger.Info("FFmpegCodec: D3D11VA hwaccel suppressed via FFmpegVideoBackendFactory.ForceSoftwareDecode");
+                return;
+            }
+
             // Try to acquire a D3D11VA device first; CI runners (and some retail GPUs) refuse here,
             // in which case we must NOT install our get_format callback — FFmpeg would call it
             // during software decode with only SW pixel formats and our throw would kill the codec.

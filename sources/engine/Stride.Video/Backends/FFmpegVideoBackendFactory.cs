@@ -10,6 +10,11 @@ namespace Stride.Video.Backends;
 
 public sealed class FFmpegVideoBackendFactory : VideoBackendFactory
 {
+    /// <summary>Disable HW-accelerated decode (D3D11VA on Windows D3D11) for the next
+    /// backend instance. Tests use this to deterministically exercise the SW path even on
+    /// hosts where HW decode would otherwise auto-engage.</summary>
+    public static bool ForceSoftwareDecode { get; set; }
+
     public override string Name => "FFmpeg";
     public override int Priority => 100;
     public override bool IsSupported(GraphicsDevice device) => true;

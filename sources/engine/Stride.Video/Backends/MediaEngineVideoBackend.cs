@@ -140,8 +140,12 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
 
     public override void Update(TimeSpan elapsed)
     {
-        if (videoOutputSurface == null || Instance.PlayState == PlayState.Stopped)
+        if (videoOutputSurface == null)
             return;
+
+        // Stopped/Paused don't gate decoder delivery: a Seek that triggered MediaFoundation
+        // to produce a frame should still land in the target this tick. The native engine
+        // owns the play clock; we just upload whatever's ready.
 
         if (!mediaEngine->OnVideoStreamTick(out var presentationTimeTicks).Succeeded)
             return;

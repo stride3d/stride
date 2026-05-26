@@ -188,9 +188,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         mediaSynchronizer.Update(elapsed);
 
-        if (Instance.PlayState == PlayState.Stopped)
-            return;
-
         if (mediaSynchronizer.ReachedEndOfStream)
         {
             Instance.Stop();
@@ -199,6 +196,9 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         Instance.SetCurrentTime(mediaSynchronizer.CurrentPresentationTime);
 
+        // Drop a freshly-decoded frame into the target whenever one is available, even
+        // when not Playing — Stopped/Paused freeze scheduler time but a Seek (which forces
+        // the worker thread to re-decode) still gets to deliver its frame.
         if (!receivedNotificationToUpdateVideoTextureSurface)
             return;
 
