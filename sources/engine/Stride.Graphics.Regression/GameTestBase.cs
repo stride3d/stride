@@ -779,11 +779,14 @@ namespace Stride.Graphics.Regression
                 var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
-                foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
+                if (Directory.Exists(testFileNameRoot))
                 {
-                    if (testFileNameRegex.IsMatch(file))
+                    foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
                     {
-                        testFileNames.Add(file);
+                        if (testFileNameRegex.IsMatch(file))
+                        {
+                            testFileNames.Add(file);
+                        }
                     }
                 }
             }
