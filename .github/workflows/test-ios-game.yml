@@ -1,0 +1,238 @@
+name: Test iOS Game (Vulkan)
+
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test iOS Game (Vulkan) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Test iOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      commit-sha:
+        default: ''
+        type: string
+      upload-binlog:
+        default: false
+        type: boolean
+  repository_dispatch:
+    types: [test-ios-game]
+
+
+concurrency:
+  group: test-ios-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  iOS-Tests-Game:
+    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
+    # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
+    # is 26.3, which the 26.5 pack rejects.
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+      # Workaround for paravirt-GPU SimMetalHost crash on macos-26 runners: force MoltenVK to
+      # never use Metal argument buffers, so the descriptor-set bind path doesn't trigger
+      # argumentEncoderSetValues on the paravirt driver. SIMCTL_CHILD_ prefix is stripped by
+      # simctl when launching the sim app. Mode 0 = NEVER (mode 1 still uses them when
+      # descriptor indexing is required, which didn't avoid the crash).
+      SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
+      # Multi-platform test suites we build & run on the iOS Simulator. Suite name == assembly
+      # name (matches the master "tests key paths by assembly name" convention).
+      IOS_TEST_SUITES: |
+        Stride.Engine.NoAssets.Tests
+        Stride.Input.Tests
+        Stride.Audio.Tests
+        Stride.Particles.Tests
+        Stride.UI.Tests
+        Stride.Navigation.Tests
+        Stride.Physics.Tests
+        Stride.Engine.Tests
+        Stride.Graphics.Tests
+        Stride.Graphics.Tests.10_0
+        Stride.Graphics.Tests.11_0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install iOS + macOS Workloads
+        # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
+        # AVFoundation/Metal bring-up work). slnf-driven builds dispatch all TFMs of every project
+        # they pull in, so the iOS slnf still needs the macOS workload available.
+        run: dotnet workload install ios macos
+
+      - name: Select Xcode 26.5
+        # Default on macos-26 is 26.4.1; the .NET iOS 26.5 SDK pack needs exactly 26.5.
+        run: sudo xcode-select -s /Applications/Xcode_26.5.app
+
+      - name: Start iOS Simulator (background)
+        # Kick the simulator boot off early so its ~50s first-boot data migration
+        # (PreferencesMigrator etc.) happens in parallel with the build. We block on
+        # readiness in a later step right before tests run.
+        run: |
+          set -e
+          UDID=$(xcrun simctl list devices --json | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          for runtime in sorted((k for k in d if k.startswith("com.apple.CoreSimulator.SimRuntime.iOS-")), reverse=True):
+            for x in d[runtime]:
+              if x.get("isAvailable") and "iPhone" in x["name"]:
+                print(x["udid"]); sys.exit(0)
+          sys.exit(1)
+          ')
+          if [ -z "$UDID" ]; then
+            echo "::error::No available iPhone simulator runtime found"
+            xcrun simctl list devices
+            exit 1
+          fi
+          echo "Booting $UDID"
+          xcrun simctl boot $UDID
+          echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
+
+      - name: Build iOS test .app bundles
+        run: |
+          # Multi-platform test projects build their iOS .app when StridePlatforms=iOS.
+          # Single slnf build evaluates the graph once; failed projects don't block independents,
+          # and the test step still runs whichever .app bundles were produced for partial coverage.
+          # No explicit RuntimeIdentifier: passing one as a global property leaks into the host
+          # shadow net10.0 build (used to load assemblies into the AssetCompiler) and crashes its
+          # ResolveNativeReferences. The iOS SDK infers iossimulator-arm64 on its own for net10.0-ios
+          # on an arm64 macOS host.
+          dotnet build build/Stride.Tests.Game.iOS.slnf \
+            -nr:false -v:m -p:WarningLevel=0 \
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=iOS \
+            || echo "::warning::Build had failures — test step will run whichever .app bundles were produced"
+
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-ios-game
+          path: build.binlog
+          if-no-files-found: ignore
+
+      - name: Wait for iOS Simulator boot
+        # Block on the boot we kicked off earlier. If the build took longer than the simulator's
+        # first-boot migration, this is instant; otherwise we wait the remaining seconds.
+        run: xcrun simctl bootstatus $IOS_SIM_UDID -b
+
+      - name: Run tests on iOS Simulator
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          New-Item -ItemType Directory -Force -Path TestResults | Out-Null
+          $failedSuites = @()
+          $suites = @"
+          ${{ env.IOS_TEST_SUITES }}
+          "@ -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          foreach ($suite in $suites) {
+              # The iOS build emits the .app under bin/Tests/<Suite>/iOS-Vulkan/<Config>/<RID>/.
+              $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+              $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter '*.app' -ErrorAction SilentlyContinue | Select-Object -First 1
+              if (-not $appPath) {
+                  Write-Host "::warning::.app not built for $suite"
+                  $failedSuites += "$suite (no .app)"
+                  continue
+              }
+              # Bundle id lives in the .app's Info.plist.
+              $plist = Join-Path $appPath.FullName 'Info.plist'
+              $package = (& /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' $plist).Trim()
+              Write-Host "::group::Run $suite (bundle=$package)"
+              & pwsh tests/ios/run-ios-tests.ps1 `
+                  -Package $package `
+                  -Suite $suite `
+                  -App $appPath.FullName `
+                  -Simulator $env:IOS_SIM_UDID `
+                  -TimeoutSeconds 1800 `
+                  -KeepSimulator `
+                  -StreamLog
+              if ($LASTEXITCODE -eq 0) {
+                  Write-Host "PASS: $suite"
+              } else {
+                  Write-Host "FAIL: $suite"
+                  $failedSuites += $suite
+              }
+              # Copy this suite's TRX into the per-job TestResults dir for the test reporter.
+              Copy-Item -Path "tests/local/$suite/$suite.trx" -Destination 'TestResults/' -ErrorAction SilentlyContinue
+              Write-Host "::endgroup::"
+          }
+          if ($failedSuites.Count -gt 0) {
+              Write-Host "::error::Failed suites: $($failedSuites -join ', ')"
+              exit 1
+          }
+
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Test Report: iOS Game (Vulkan)'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-ios-vulkan
+          path: TestResults/
+          if-no-files-found: ignore
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-ios-vulkan
+          path: tests/local/
+          if-no-files-found: ignore
+
+      - name: Collect crash reports
+        # macOS writes .ips crash reports to ~/Library/Logs/DiagnosticReports for any process
+        # killed unexpectedly. Captures both the test app's own crash AND SimMetalHost / other
+        # sim infrastructure crashes that take the test process down by side-effect.
+        if: always()
+        run: |
+          mkdir -p crash-reports
+          find ~/Library/Logs/DiagnosticReports -type f \( -name '*.ips' -o -name '*.crash' \) -mmin -60 -exec cp {} crash-reports/ \; 2>/dev/null || true
+          ls -la crash-reports/
+
+      - name: Upload crash reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-reports-ios-vulkan
+          path: crash-reports/
+          if-no-files-found: ignore

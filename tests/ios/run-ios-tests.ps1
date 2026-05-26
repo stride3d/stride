@@ -24,7 +24,8 @@ param(
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
-    [switch]$KeepSimulator                                 # don't shutdown a simulator we booted
+    [switch]$KeepSimulator,                                # don't shutdown a simulator we booted
+    [switch]$StreamLog                                     # also tee live log to console (CI live status / local interactive)
 )
 
 # 'Continue': pwsh on macOS surfaces native-command stderr lines as ErrorRecord under 'Stop'
@@ -183,6 +184,21 @@ $logArgs = @{
 }
 $logProc = Start-Process @logArgs
 
+# Optional: tee the simulator system log to the host console so CI shows test progress in real
+# time (and local interactive runs can watch without tail-ing a file). The captured file above
+# still holds the full stream for post-mortem triage. Second spawn since `log stream` can't fan
+# out to both file and console from one invocation; pkill below cleans up both at once.
+$liveLogProc = $null
+if ($StreamLog) {
+    $liveLogArgs = @{
+        FilePath     = 'xcrun'
+        ArgumentList = @('simctl', 'spawn', $udid, 'log', 'stream', '--process', $procPid, '--style', 'compact')
+        NoNewWindow  = $true
+        PassThru     = $true
+    }
+    $liveLogProc = Start-Process @liveLogArgs
+}
+
 # 5. Wait for the test process to exit. simctl has no built-in wait, so:
 #  - Primary signal: the suite's TRX appeared on disk — the test wrote its final summary and is
 #    on its way out. Lets us proceed without waiting on the launchctl list to clean up.
@@ -224,7 +240,24 @@ if ((Get-Date) -ge $deadline) {
 if ($logProc -and -not $logProc.HasExited) {
     Stop-Process -Id $logProc.Id -Force -ErrorAction SilentlyContinue
 }
+if ($liveLogProc -and -not $liveLogProc.HasExited) {
+    Stop-Process -Id $liveLogProc.Id -Force -ErrorAction SilentlyContinue
+}
+# pkill matches BOTH log stream children at once (file capture + live tee) since they share
+# the same --process arg in their command lines.
 & xcrun simctl spawn $udid pkill -f "log stream --process $procPid" 2>$null | Out-Null
+
+# If the test process exited without writing a TRX (early crash, abort in startup), the live
+# `log stream` started AFTER launch and missed the early output. Query the simulator's unified
+# log STORE retroactively to recover startup logs / abort messages. Always emit on no-TRX path;
+# if the file ends up empty (process never wrote to the log) that's still useful signal.
+$trxOnDevice = Join-Path $dataContainer "Documents/tests/local/$Suite/$Suite.trx"
+if (-not (Test-Path $trxOnDevice)) {
+    $crashPath = Join-Path $ResultsDir "$Package.crashlog.txt"
+    if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
+    Write-Host "No TRX — extracting unified log for $Package from simulator -> $crashPath"
+    & xcrun simctl spawn $udid log show --predicate "process == '$Package'" --info --debug --last 5m 2>&1 | Set-Content $crashPath
+}
 
 # 6. Pull TRX + images from the simulator's Documents/tests/local/<Suite>/ to $ResultsDir.
 # Wipe $ResultsDir first so the host mirrors the device — otherwise a previously-failing
