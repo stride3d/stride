@@ -214,8 +214,8 @@
     <AppxPackageName>$(AssemblyName)</AppxPackageName>
   </PropertyGroup>
 
-  <!-- UWP & iOS: Compile and Transform Assets into Content during PrepareResources phase -->
-  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And ('$(StridePlatform)' == 'UWP' Or '$(StridePlatform)' == 'Android')">
+  <!-- UWP/Android/iOS: Compile and Transform Assets into Content during PrepareResources phase. -->
+  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And ('$(StridePlatform)' == 'UWP' Or '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS')">
     <PrepareResourcesDependsOn>
       _StrideDeployAssetsAsContent;
       $(PrepareResourcesDependsOn)
@@ -230,6 +230,25 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
       </Content>
+    </ItemGroup>
+  </Target>
+
+  <!-- iOS: emit BundleResource items for the compiled assets right before the iOS SDK collects
+       bundle resources. Must run AFTER StrideCompileAsset (the files have to exist on disk; the
+       iOS SDK validates path existence) and BEFORE _CollectBundleResources (which captures the
+       @(BundleResource) item group into the build output). A top-level ItemGroup glob would race
+       on Rebuild: evaluation happens before Clean, so the items reference now-deleted files.
+       ResolveProjectReferences in DependsOnTargets: Microsoft.iOS.Sdk fires _CollectBundleResources
+       BEFORE the standard RPR step, so without it the auto-attached CompilerApp PR hasn't been
+       built when StrideCompileAsset runs and the .dll-existence check errors out. -->
+  <Target Name="_StrideDeployAssetsAsBundleResource"
+          BeforeTargets="_CollectBundleResources"
+          DependsOnTargets="ResolveProjectReferences;StrideCompileAsset"
+          Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'iOS'">
+    <ItemGroup>
+      <BundleResource Include="$(StrideCompileAssetOutputPath)\**\*.*">
+        <LogicalName>data/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      </BundleResource>
     </ItemGroup>
   </Target>
   
