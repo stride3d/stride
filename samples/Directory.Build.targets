@@ -16,7 +16,7 @@
     <DefineConstants>$(DefineConstants);STRIDE_AUTOTESTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')">
-    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.2503" PrivateAssets="contentfiles;analyzers" />
     <Compile Include="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" />
   </ItemGroup>
   <!-- Pin WARP for reproducible D3D11/D3D12 captures across CI and dev machines. -->
