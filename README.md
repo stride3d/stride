@@ -23,6 +23,27 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
 
 This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
 
+## 🚀 Try the CLI templates
+
+Create a Stride project from the command line — no editor required:
+
+```bash
+# Blank starter
+dotnet new install Stride.Templates.Games
+dotnet new stride-game -n MyGame
+cd MyGame && dotnet run --project MyGame.Windows
+```
+
+Or start from a genre-specific starter (FPS, 2D platformer, top-down RPG, third-person platformer, VR):
+
+```bash
+dotnet new install Stride.Templates.Games.Starters
+dotnet new stride-fps -n MyShooter
+cd MyShooter && dotnet run --project MyShooter.Windows
+```
+
+See [`sources/templates/README.md`](sources/templates/README.md) for the full template catalog (genre starters, 18 feature demos, tutorials) and the local-development workflow.
+
 ## 🤝 Contributing
 
 Want to get involved? See our [Contributing section](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.

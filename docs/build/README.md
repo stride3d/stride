@@ -72,3 +72,4 @@ Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` 
 ## Further Reading
 
 - [SDK-GUIDE.md](SDK-GUIDE.md) — Stride build SDK internals (target structure, project SDK selection, native build modes)
+- [../../sources/templates/README.md](../../sources/templates/README.md) — `dotnet new` template packages (Stride.Templates.Games / .Games.Starters / .Samples): end-user usage, local dev workflow, adding a new sample
