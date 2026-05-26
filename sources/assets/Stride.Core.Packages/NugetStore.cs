@@ -144,7 +144,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// List of package Ids under which the main package is known. Usually just one entry, but
     /// we could have several in case there is a product name change.
     /// </summary>
-    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio", "Xenko.GameStudio", "Xenko"];
+    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio", "Stride.GameStudio.Avalonia.Desktop"];
 
     /// <summary>
     /// Package Id of the Visual Studio Integration plugin.

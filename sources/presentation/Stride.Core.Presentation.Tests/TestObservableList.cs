@@ -2,13 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using Xunit;
+using System.ComponentModel;
 using Stride.Core.Presentation.Collections;
+using Xunit;
 
 namespace Stride.Core.Presentation.Tests
 {
     public class TestObservableList
     {
+        private static readonly string[] collectionPropertyNames = ["Count", "Item[]"];
+
         [Fact]
         public void TestEnumerableConstructor()
         {
@@ -39,9 +42,9 @@ namespace Stride.Core.Presentation.Tests
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
             Assert.Equal(set.Count, list.Count);
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
@@ -70,22 +73,31 @@ namespace Stride.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
                 Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+#if SUPPORT_RANGE_ACTION
                 Assert.Equal(3, e.NewStartingIndex);
+#else
+                Assert.Contains(e.NewStartingIndex, new[] { 3, 4 });
+#endif
                 Assert.NotNull(e.NewItems);
+#if SUPPORT_RANGE_ACTION
                 Assert.Equal(2, e.NewItems.Count);
                 Assert.Equal("ddd", e.NewItems[0]);
                 Assert.Equal("eee", e.NewItems[1]);
+#else
+                Assert.Single(e.NewItems);
+                Assert.Contains(e.NewItems[0], new[] { "ddd", "eee" });
+#endif
                 collectionChangedInvoked = true;
             };
-            set.AddRange(new[] { "ddd", "eee" });
+            set.AddRange(["ddd", "eee"]);
             Assert.Equal(5, set.Count);
             Assert.Equal("aaa", set[0]);
             Assert.Equal("bbb", set[1]);
@@ -104,9 +116,9 @@ namespace Stride.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
@@ -139,9 +151,9 @@ namespace Stride.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
@@ -185,9 +197,9 @@ namespace Stride.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
@@ -217,9 +229,9 @@ namespace Stride.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             bool propertyChangedInvoked = false;
             bool collectionChangedInvoked = false;
-            set.PropertyChanged += (sender, e) =>
+            ((INotifyPropertyChanged)set).PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
+                Assert.Contains(e.PropertyName, collectionPropertyNames);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>

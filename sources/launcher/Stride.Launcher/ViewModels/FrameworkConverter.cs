@@ -1,30 +1,25 @@
-using System;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Globalization;
 using NuGet.Frameworks;
-using Stride.Core.Annotations;
-using Stride.Core.Presentation.ValueConverters;
+using Stride.Core.Presentation.Avalonia.Converters;
 
-namespace Stride.LauncherApp.ViewModels
+namespace Stride.Launcher.ViewModels;
+
+public sealed class FrameworkConverter : OneWayValueConverter<FrameworkConverter>
 {
-    class FrameworkConverter : ValueConverterBase<FrameworkConverter>
+    public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public override object Convert(object value, [NotNull] Type targetType, object parameter, CultureInfo culture)
-        {
-            var frameworkFolder = (string)value;
+        var frameworkFolder = (string?)value ?? string.Empty;
 
-            var framework = NuGetFramework.ParseFolder(frameworkFolder);
-            if (framework.Framework == ".NETFramework")
-                return $".NET {framework.Version.ToString(3)}";
-            else if (framework.Framework == ".NETCoreApp")
-                return $".NET Core {framework.Version.ToString(2)}";
+        var framework = NuGetFramework.ParseFolder(frameworkFolder);
+        if (framework.Framework == ".NETFramework")
+            return $".NET {framework.Version.ToString(3)}";
+        else if (framework.Framework == ".NETCoreApp")
+            return $".NET Core {framework.Version.ToString(2)}";
 
-            // fallback
-            return $"{framework.Framework} {framework.Version.ToString(3)}";
-        }
-
-        public override object ConvertBack(object value, [NotNull] Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        // fallback
+        return $"{framework.Framework} {framework.Version.ToString(3)}";
     }
 }

@@ -20,7 +20,7 @@ public class TestGroupViewModel : TestNodeViewModel
 
     public override IEnumerable<TestCaseViewModel> EnumerateTestCases() => Children.SelectMany(x => x.EnumerateTestCases());
 
-    public void RunTest()
+    public override void RunTest()
     {
         tests.RunTests(this);
     }

@@ -17,7 +17,7 @@ public class TestCaseViewModel : TestNodeViewModel
         TestCase = testCase;
     }
 
-    public void RunTest()
+    public override void RunTest()
     {
         tests.RunTests(this);
     }

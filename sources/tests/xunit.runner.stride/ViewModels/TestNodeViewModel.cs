@@ -11,26 +11,23 @@ public abstract class TestNodeViewModel : ViewModelBase
 
     public abstract TestCaseViewModel? LocateTestCase(ITestCase testCase);
 
-    bool running;
     public bool Running
     {
-        get => running;
-        set => SetProperty(ref running, value);
+        get;
+        set => SetValue(ref field, value);
     }
-
-    bool failed;
     public bool Failed
     {
-        get => failed;
-        set => SetProperty(ref failed, value);
+        get;
+        set => SetValue(ref field, value);
     }
-
-    bool succeeded;
     public bool Succeeded
     {
-        get => succeeded;
-        set => SetProperty(ref succeeded, value);
+        get;
+        set => SetValue(ref field, value);
     }
 
     public abstract string DisplayName { get; }
+
+    public abstract void RunTest();
 }
