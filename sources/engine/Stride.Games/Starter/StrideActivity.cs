@@ -46,9 +46,6 @@ namespace Stride.Starter
             if (PlatformAndroid.Context == null)
                 PlatformAndroid.Context = this;
 
-            // Unpack the files contained in the apk
-            //await VirtualFileSystem.UnpackAPK();
-
             // setup the application view and stride game context
             SetupGameContext();
         }
