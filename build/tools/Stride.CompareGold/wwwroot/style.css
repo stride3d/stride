@@ -69,6 +69,7 @@ tr.suite-row td { padding: 10px 12px; border-bottom: 2px solid #333; }
 .tag-fail { font-size: 10px; background: #5a1a1a; color: #ef5350; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
 .tag-new { font-size: 10px; background: #4a3a1a; color: #ffa726; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
 .tag-pending { font-size: 10px; background: #2a2a3a; color: #888; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+.tag-fix { font-size: 10px; background: #1a3a4a; color: #4dd0e1; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
 .cell.miss { color: #555; }
 .cell.ref { color: #888; }
 

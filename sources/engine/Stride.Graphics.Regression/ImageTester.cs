@@ -73,6 +73,9 @@ namespace Stride.Graphics.Regression
             public double MeanSquaredError;
             public double PSNR;
             public bool Passed;
+            /// <summary>FNV-1a 64-bit hex of the gold file's bytes — lets CompareGold tell
+            /// if the gold the sidecar was judged against has since changed.</summary>
+            public string? GoldHash;
 
             /// <summary>
             /// Histogram of per-pixel max channel difference.
@@ -115,6 +118,10 @@ namespace Stride.Graphics.Regression
             /// so CompareGold can format the brief without re-resolving thresholds.jsonc.</summary>
             [JsonConverter(typeof(InlineStringIntDictConverter))]
             public Dictionary<string, int>? Thresholds { get; init; }
+            /// <summary>FNV-1a 64-bit of the gold file's bytes at compare time. CompareGold
+            /// compares this against the gold's current hash to detect promotions / edits
+            /// without depending on filesystem mtime precision.</summary>
+            public string? GoldHash { get; init; }
         }
 
         /// <summary>
@@ -205,8 +212,12 @@ namespace Stride.Graphics.Regression
                 PsnrDb = stats.PSNR,
                 Buckets = buckets,
                 Thresholds = thresholdDict,
+                GoldHash = stats.GoldHash,
             };
         }
+
+        internal static string HashHex(byte[] data) =>
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data));
 
         public static void SaveImage(Image image, string testFilename)
         {
@@ -273,7 +284,11 @@ namespace Stride.Graphics.Regression
             stats = default;
             thresholds ??= ImageThreshold.DefaultBuckets;
 
-            using (var stream = File.OpenRead(testFilename))
+            // Read gold bytes once: hash for the sidecar (content fingerprint that CompareGold
+            // uses to detect "gold has changed since the sidecar was written"), then decode.
+            var goldBytes = File.ReadAllBytes(testFilename);
+            var goldHash = HashHex(goldBytes);
+            using (var stream = new MemoryStream(goldBytes))
             using (var referenceImage = Image.Load(stream))
             {
                 if (image.PixelBuffer.Count != referenceImage.PixelBuffer.Count)
@@ -356,6 +371,7 @@ namespace Stride.Graphics.Regression
                         MeanSquaredError = mse,
                         PSNR = psnr,
                         Passed = passed,
+                        GoldHash = goldHash,
                     };
                     stats.DiffHistogram[0] = hist0;
                     stats.DiffHistogram[1] = hist1;

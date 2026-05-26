@@ -7,12 +7,12 @@ function computeImageDiff(goldImg, sourceImg, canvas) {
   const ctx = canvas.getContext('2d');
 
   const gc = new OffscreenCanvas(w, h);
-  const gctx = gc.getContext('2d');
+  const gctx = gc.getContext('2d', { willReadFrequently: true });
   gctx.drawImage(goldImg, 0, 0);
   const gd = gctx.getImageData(0, 0, w, h).data;
 
   const lc = new OffscreenCanvas(w, h);
-  const lctx = lc.getContext('2d');
+  const lctx = lc.getContext('2d', { willReadFrequently: true });
   lctx.drawImage(sourceImg, 0, 0);
   const ld = lctx.getImageData(0, 0, w, h).data;
 

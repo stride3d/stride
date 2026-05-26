@@ -60,45 +60,48 @@ async function onPlatformChange() {
 async function reload() {
   if (!currentPlatform) return;
   suiteData = {};
-  for (const suite of allSuites) {
-    const gRes = await fetch(`/api/gold/images?suite=${enc(suite)}&platform=${enc(currentPlatform)}`);
-    const gData = await gRes.json();
-    // Merge primary + fallback gold, tagging fallbacks
+  // Fan out: every per-suite request fires concurrently. Browser HTTP/1.1 still caps at
+  // 6 connections per host, but that's far better than 30+ awaited in serial.
+  const json = (r) => r.ok ? r.json() : null;
+  await Promise.all(allSuites.map(async (suite) => {
+    const [gData, tData, ...srcLists] = await Promise.all([
+      fetch(`/api/gold/images?suite=${enc(suite)}&platform=${enc(currentPlatform)}`).then(json),
+      fetch(`/api/thresholds?suite=${enc(suite)}`).then(json),
+      ...sources.map(src => fetch(`/api/source/${src.id}/images?suite=${enc(suite)}&platform=${enc(currentPlatform)}`).then(json)),
+    ]);
+    if (!gData) return;
     const gold = [
       ...(gData.images || []).map(g => ({ name: g.name, fallback: null })),
       ...(gData.fallbacks || []).map(g => ({ name: g.name, fallback: g.fallbackPlatform }))
     ];
     const srcImgs = {};
-    for (const src of sources) {
-      const sRes = await fetch(`/api/source/${src.id}/images?suite=${enc(suite)}&platform=${enc(currentPlatform)}`);
-      srcImgs[src.id] = await sRes.json();
-    }
-    // Load thresholds for this suite
-    const tRes = await fetch(`/api/thresholds?suite=${enc(suite)}`);
-    const thresholdRules = tRes.ok ? await tRes.json() : [];
-    // Only include suite if it has any images
+    sources.forEach((src, i) => { srcImgs[src.id] = srcLists[i] || []; });
     if (gold.length > 0 || Object.values(srcImgs).some(imgs => imgs.length > 0))
-      suiteData[suite] = { gold, sourceImages: srcImgs, thresholdRules };
-  }
+      suiteData[suite] = { gold, sourceImages: srcImgs, thresholdRules: tData || [] };
+  }));
   cellStats = {};
-  // Pre-populate cellStats from the runtime sidecar so we skip the browser-side diff
-  // for any item with a sidecar (which has the authoritative verdict + stats already).
-  // Skip when matchedGoldMtime > sidecar.at — gold has been promoted/edited since the
-  // test ran and the sidecar's verdict no longer reflects reality.
+  // Pre-populate cellStats from the sidecar (authoritative verdict + stats from the test
+  // run) — unless a hash check says the data is stale. Staleness: any gold the sidecar
+  // referenced now hashes to something different, OR the current primary gold isn't
+  // among the hashes the run saw. When recompute is viable (hasPng=true) we fall through
+  // so the browser does a real diff; when there's no PNG (Pass case), we trust as-is.
   for (const suite of allSuites) {
     const srcImgs = suiteData[suite]?.sourceImages;
     if (!srcImgs) continue;
     for (const src of sources) {
       for (const it of srcImgs[src.id] || []) {
         if (!it.sidecar) continue;
-        if (it.matchedGoldMtime && new Date(it.matchedGoldMtime) > new Date(it.sidecar.at)) continue;
         const sc = it.sidecar;
         const attempts = sc.attempts || [];
+        if (it.hasPng) {
+          const matchedAttempt = attempts.find(a => a.gold === sc.matched) || attempts[0];
+          if (!matchedAttempt?.goldHash || !it.matchedGoldHash || it.matchedGoldHash !== matchedAttempt.goldHash) continue;
+          if (it.primaryGoldHash && !attempts.some(a => a.goldHash === it.primaryGoldHash)) continue;
+        }
         const best = attempts.find(a => a.passed) || attempts.find(a => a.kind === 'reference') || attempts[0];
         if (!best) continue;
-        // Sidecar buckets is a dict like {"0":..., "1-2":..., ...}. Convert to the 5-element
-        // array `cellStats.histogram` keeps to stay compatible with the browser-recompute
-        // path (which produces the same array shape).
+        // Buckets is a dict {"0":..., "1-2":..., ...}; flatten to the 5-element histogram
+        // shape that browser recompute also produces, so downstream code is uniform.
         const b = best.buckets || {};
         const histogram = [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
         const totalPixels = histogram.reduce((a, b) => a + b, 0);
@@ -111,9 +114,8 @@ async function reload() {
           sidecarVerdict: sc.outcome === 'Pass',
           sidecarBrief: formatHistogramBrief(histogram, best.thresholds),
           sidecarMatched: sc.matched,
-          // ".../tests/<suite>/<Platform.API>/<Device>/<file>.png" → "Platform.API/Device"
-          // On Fail outcome `matched` is null, so fall back to the best attempt's gold path
-          // — that's still the gold the comparison was against and worth surfacing as "via X".
+          // On Fail outcome `matched` is null; fall back to the best attempt's gold path
+          // for the "via X" hint — still the gold the comparison was actually against.
           sidecarMatchedPlatform: extractMatchedPlatform(sc.matched || best.gold),
         };
       }
@@ -121,6 +123,34 @@ async function reload() {
   }
   resetAltGoldState();
   render();
+  loadFixableHints();
+}
+
+// Background fetch of per-suite identical-gold lists; populates fixableVia so Pass cells
+// with a content-identical twin at another platform light up as "consolidate". Decoupled
+// from the initial render so the whole-suite gold scan doesn't block first paint.
+async function loadFixableHints() {
+  for (const suite of allSuites) {
+    try {
+      const r = await fetch(`/api/identical-platforms?suite=${enc(suite)}&platform=${enc(currentPlatform)}`);
+      if (!r.ok) continue;
+      const map = await r.json();
+      let dirty = false;
+      for (const name of Object.keys(map)) {
+        const plats = map[name];
+        if (!plats?.length) continue;
+        const fixKey = `${suite}:${name}`;
+        if (fixableVia[fixKey]) continue;
+        fixableVia[fixKey] = { platform: plats[0], goldFallback: currentPlatform };
+        // Refresh the row tag if it's already in the DOM.
+        const tagEl = document.querySelector(`[data-row-tag="${CSS.escape(fixKey)}"]`);
+        if (tagEl && tagEl.innerHTML === '')
+          tagEl.innerHTML = `<span class="tag-fix" title="Identical gold at ${esc(plats[0])}">consolidate</span>`;
+        dirty = true;
+      }
+      if (dirty) scheduleCountUpdate();
+    } catch {}
+  }
 }
 
 // === Sources ===
@@ -357,12 +387,12 @@ function buildRowCells(img, key) {
   let goldThumb = '';
   if (img.hasGold && sources.length > 0) {
     const thumbUrl = `/api/gold/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
-    goldThumb = `<div class="thumb-row"><img class="thumb" src="${thumbUrl}"></div>`;
+    goldThumb = `<div class="thumb-row"><img class="thumb" loading="lazy" src="${thumbUrl}"></div>`;
   }
 
   let cells = `
     <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
-    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : ''}</span></td>
+    <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : fixableVia[key] ? `<span class="tag-fix" title="Identical gold at ${esc(fixableVia[key].platform)}">consolidate</span>` : ''}</span></td>
     <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
 
   const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
@@ -404,10 +434,10 @@ function buildRowCells(img, key) {
       const thumbSrc = `/api/source/${src.id}/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
       if (img.hasGold) {
         const thumbId = `thumb-${css(src.id)}-${css(key)}`;
-        cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"><canvas class="thumb" id="${thumbId}"></canvas></div>`;
+        cellHtml += `<div class="thumb-row"><img class="thumb" loading="lazy" src="${thumbSrc}"><canvas class="thumb" id="${thumbId}"></canvas></div>`;
         requestAnimationFrame(() => computeThumbDiff(img.suite, img.name, src.id, thumbId));
       } else {
-        cellHtml += `<div class="thumb-row"><img class="thumb" src="${thumbSrc}"></div>`;
+        cellHtml += `<div class="thumb-row"><img class="thumb" loading="lazy" src="${thumbSrc}"></div>`;
       }
     }
     cells += `<td onclick="event.stopPropagation(); setActiveSource('${esc(key)}','${src.id}')"${isActive ? ' class="active-source"' : ''}>${cellHtml}</td>`;
@@ -776,6 +806,7 @@ function updateCellInline(key, stats) {
       const label = fixableVia[rowKey] ? 'failing (fixable)' : 'failing';
       tagEl.innerHTML = `<span class="tag-fail">${label}</span>`;
     } else if (anyPending) tagEl.innerHTML = '<span class="tag-pending">...</span>';
+    else if (fixableVia[rowKey]) tagEl.innerHTML = `<span class="tag-fix" title="Identical gold at ${esc(fixableVia[rowKey].platform)}">consolidate</span>`;
     else tagEl.innerHTML = '';
   }
   if (!anyFail && !anyPending) {
@@ -1549,7 +1580,7 @@ document.addEventListener('mousemove', (e) => {
 
     // Get pixel data from the image
     const tmpCanvas = new OffscreenCanvas(w, h);
-    const tmpCtx = tmpCanvas.getContext('2d');
+    const tmpCtx = tmpCanvas.getContext('2d', { willReadFrequently: true });
     tmpCtx.drawImage(ri, 0, 0);
 
     const half = Math.floor(piZoomSize / 2);

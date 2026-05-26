@@ -3,11 +3,22 @@ using System.Diagnostics;
 using System.Text.Json;
 
 // 5505 instead of 5555: the latter is Android ADB's daemon port, which the Android emulator
-// already binds when running test pulls — they collide otherwise.
-const int Port = 5505;
+// already binds when running test pulls — they collide otherwise. Override with --port N
+// when running a second instance against another checkout.
+int port = 5505;
+for (int i = 0; i < args.Length; i++)
+{
+    if ((args[i] == "--port" || args[i] == "-p") && i + 1 < args.Length && int.TryParse(args[i + 1], out var p))
+        port = p;
+}
+
+// --lan (or --bind 0.0.0.0) opens the server to the local network instead of binding loopback
+// only. No auth — only flip this on a network you trust.
+var lanMode = args.Contains("--lan") || args.Contains("--bind");
+var bindHost = lanMode ? "0.0.0.0" : "localhost";
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls($"http://localhost:{Port}");
+builder.WebHost.UseUrls($"http://{bindHost}:{port}");
 builder.Services.AddSingleton<SourceManager>();
 builder.Services.AddSingleton<ForkManager>();
 // Sidecar PSNR can be +Infinity on exact-match passes; opt into the named-literal
@@ -28,6 +39,8 @@ var strideRoot = FindStrideRoot(AppContext.BaseDirectory)
 
 var testsDir = Path.Combine(strideRoot, "tests");
 var localDir = Path.Combine(testsDir, "local");
+// Path → (mtime, hash). Cleared automatically by mtime mismatch; no eviction needed.
+var hashCache = new System.Collections.Concurrent.ConcurrentDictionary<string, (long mtimeTicks, string hash)>();
 // Runtime serialises +Infinity for exact-match PSNR; opt into the named-literal extension.
 // camelCase to match the producer (ImageTester writes camelCase keys).
 var sidecarReadOptions = new JsonSerializerOptions
@@ -47,11 +60,37 @@ Console.WriteLine($"Gold images: {testsDir}");
 Console.WriteLine($"Local output: {localDir}");
 Console.WriteLine($"CI cache: {ciCacheDir}");
 Console.WriteLine();
-Console.WriteLine($"CompareGold running at http://localhost:{Port}");
+Console.WriteLine($"CompareGold running at http://localhost:{port}");
+if (lanMode)
+{
+    foreach (var ip in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
+        .Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                 && n.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+        .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+        .Where(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork))
+        Console.WriteLine($"  LAN: http://{ip.Address}:{port}");
+}
 Console.WriteLine("Press Ctrl+C to stop.");
 
-try { Process.Start(new ProcessStartInfo($"http://localhost:{Port}") { UseShellExecute = true }); }
+try { Process.Start(new ProcessStartInfo($"http://localhost:{port}") { UseShellExecute = true }); }
 catch { }
+
+// Warm hashCache + goldByNameCache off the request path. Without this, the first
+// /identical-platforms call after startup synchronously walks/hashes the whole suite
+// tree and blocks other requests behind it.
+_ = Task.Run(() =>
+{
+    if (!Directory.Exists(testsDir)) return;
+    var sw = System.Diagnostics.Stopwatch.StartNew();
+    int files = 0;
+    foreach (var suiteDir in Directory.GetDirectories(testsDir))
+    {
+        if (Path.GetFileName(suiteDir) == "local") continue;
+        foreach (var (_, list) in GetSuiteGoldByName(suiteDir))
+        foreach (var (_, path) in list) { CachedGoldHash(path); files++; }
+    }
+    Console.WriteLine($"Hash warm: {files} files in {sw.ElapsedMilliseconds}ms");
+});
 
 app.UseDefaultFiles();
 // no-store on every static response so dev edits to html/js/css show up on next reload
@@ -97,29 +136,36 @@ Console.WriteLine(ghAvailable ? "GitHub CLI: authenticated" : $"GitHub CLI: {ghE
 
 // === Info API ===
 
-app.MapGet("/api/info", () =>
+// Branch caching: a slow git on this repo can take 10+s for rev-parse, which blocks
+// every page load. Watch .git/HEAD for actual checkout changes (cheap, no polling) and
+// recompute on miss; reads in between just return the cached string.
+var headPath = Path.Combine(strideRoot, ".git", "HEAD");
+string? cachedBranch = null;
+long cachedBranchHeadTicks = 0;
+string ReadBranchCached()
 {
+    long currentHeadTicks = 0;
+    try { currentHeadTicks = File.GetLastWriteTimeUtc(headPath).Ticks; } catch { }
+    if (cachedBranch != null && currentHeadTicks == cachedBranchHeadTicks) return cachedBranch;
     string branch = "";
     try
     {
         var proc = Process.Start(new ProcessStartInfo
         {
-            FileName = "git",
-            Arguments = "rev-parse --abbrev-ref HEAD",
+            FileName = "git", Arguments = "rev-parse --abbrev-ref HEAD",
             WorkingDirectory = strideRoot,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
+            RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false,
         });
-        if (proc != null)
-        {
-            proc.WaitForExit(2000);
-            if (proc.ExitCode == 0) branch = proc.StandardOutput.ReadToEnd().Trim();
-        }
+        if (proc != null && proc.WaitForExit(5000) && proc.ExitCode == 0)
+            branch = proc.StandardOutput.ReadToEnd().Trim();
     }
     catch { }
-    return new { StrideRoot = strideRoot, Hostname = Environment.MachineName, Branch = branch };
-});
+    cachedBranch = branch;
+    cachedBranchHeadTicks = currentHeadTicks;
+    return branch;
+}
+
+app.MapGet("/api/info", () => new { StrideRoot = strideRoot, Hostname = Environment.MachineName, Branch = ReadBranchCached() });
 
 // === Gold API ===
 
@@ -373,7 +419,31 @@ app.MapGet("/api/source/{id}/images", (string id, string suite, string platform)
     var parts = platform.Split('/', 2);
     if (parts.Length != 2) return Results.BadRequest("Invalid platform");
     var dir = Path.Combine(src.Path, suite, parts[0], parts[1]);
-    return Results.Ok(ListSourceItems(dir));
+    var primaryGoldDir = Path.Combine(testsDir, suite, parts[0], parts[1]);
+    return Results.Ok(ListSourceItems(dir, primaryGoldDir));
+});
+
+// Per-name lists of other platforms whose gold has identical content hash to the
+// current platform's primary gold — the data the frontend turns into "consolidate"
+// hints. Split off from /images so initial page load isn't blocked by the whole-suite
+// gold scan; the frontend calls this in the background after render.
+app.MapGet("/api/identical-platforms", (string suite, string platform) =>
+{
+    var parts = platform.Split('/', 2);
+    if (parts.Length != 2) return Results.BadRequest("Invalid platform");
+    var primaryDir = Path.Combine(testsDir, suite, parts[0], parts[1]);
+    if (!Directory.Exists(primaryDir)) return Results.Ok(new Dictionary<string, List<string>>());
+    var goldByName = GetSuiteGoldByName(Path.Combine(testsDir, suite));
+    var result = new Dictionary<string, List<string>>();
+    foreach (var f in Directory.GetFiles(primaryDir, "*.png"))
+    {
+        var name = Path.GetFileName(f);
+        if (!goldByName.TryGetValue(name, out var twins)) continue;
+        var primaryHash = CachedGoldHash(f);
+        var twinPlats = twins.Where(t => t.platform != platform && CachedGoldHash(t.path) == primaryHash).Select(t => t.platform).ToList();
+        if (twinPlats.Count > 0) result[name] = twinPlats;
+    }
+    return Results.Ok(result);
 });
 
 app.MapGet("/api/source/{id}/image", (string id, string suite, string platform, string name) =>
@@ -567,9 +637,10 @@ static List<string> ListPngNames(string dir)
 
 // Sidecar JSON lives next to each output PNG (or alone, on a passing test where the PNG
 // is skipped). Union {*.png, *.json} by stem so passing tests still appear in the listing.
-// Each item carries the parsed sidecar (if any) and the mtime of the matched gold file so
-// the frontend can detect a gold-promote and recompute instead of trusting a stale verdict.
-List<object> ListSourceItems(string dir)
+// Each item also carries the current SHA256 of its matched + primary gold; the frontend
+// compares against the hashes the sidecar baked in at compare time to detect staleness
+// (gold edited or copied after the test ran).
+List<object> ListSourceItems(string dir, string primaryGoldDir)
 {
     if (!Directory.Exists(dir)) return [];
     var byStem = new Dictionary<string, (bool png, Sidecar? sc)>(StringComparer.OrdinalIgnoreCase);
@@ -587,8 +658,12 @@ List<object> ListSourceItems(string dir)
     return byStem
         .Select(kv =>
         {
-            var goldMtime = ResolveMatchedGoldMtime(kv.Value.sc?.Matched);
-            return (object)new { Name = kv.Key + ".png", HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldMtime = goldMtime };
+            var name = kv.Key + ".png";
+            var matchedPath = ResolveMatchedGoldLocalPath(kv.Value.sc?.Matched);
+            var primaryPath = Path.Combine(primaryGoldDir, name);
+            var matchedGoldHash = matchedPath != null && File.Exists(matchedPath) ? CachedGoldHash(matchedPath) : null;
+            var primaryGoldHash = File.Exists(primaryPath) ? CachedGoldHash(primaryPath) : null;
+            return (object)new { Name = name, HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldHash = matchedGoldHash, PrimaryGoldHash = primaryGoldHash };
         })
         .ToList();
 }
@@ -596,14 +671,49 @@ List<object> ListSourceItems(string dir)
 // The sidecar's matched path is whatever filesystem the test ran on (device path on
 // Android, Windows path locally). Map back to the local checkout by taking the last
 // 4 segments: <suite>/<Platform.API>/<Device>/<name>.png.
-DateTime? ResolveMatchedGoldMtime(string? matched)
+string? ResolveMatchedGoldLocalPath(string? matched)
 {
     if (string.IsNullOrEmpty(matched)) return null;
     var parts = matched.Split('/', '\\');
     if (parts.Length < 4) return null;
     var n = parts.Length;
-    var local = Path.Combine(testsDir, parts[n - 4], parts[n - 3], parts[n - 2], parts[n - 1]);
-    return File.Exists(local) ? File.GetLastWriteTimeUtc(local) : null;
+    return Path.Combine(testsDir, parts[n - 4], parts[n - 3], parts[n - 2], parts[n - 1]);
+}
+
+// Always rescan — the structure (which platforms have which gold files) can change via
+// manual filesystem edits that don't go through our POST endpoints. Cheap because the
+// hashes themselves are still memoised in CachedGoldHash; this is just dir enumeration.
+Dictionary<string, List<(string platform, string path)>> GetSuiteGoldByName(string suiteDir)
+{
+    var goldByName = new Dictionary<string, List<(string platform, string path)>>(StringComparer.OrdinalIgnoreCase);
+    if (!Directory.Exists(suiteDir)) return goldByName;
+    foreach (var pDir in Directory.GetDirectories(suiteDir))
+    {
+        var pName = Path.GetFileName(pDir);
+        if (pName == "local") continue;
+        foreach (var dDir in Directory.GetDirectories(pDir))
+        {
+            var plat = $"{pName}/{Path.GetFileName(dDir)}";
+            foreach (var f in Directory.GetFiles(dDir, "*.png"))
+            {
+                var n = Path.GetFileName(f);
+                if (!goldByName.TryGetValue(n, out var list)) goldByName[n] = list = [];
+                list.Add((plat, f));
+            }
+        }
+    }
+    return goldByName;
+}
+
+// Cached SHA256 of a gold file's bytes. Cache key is path; entry invalidates when the
+// file's mtime changes. First read is sync; subsequent reads are dictionary lookups.
+string CachedGoldHash(string path)
+{
+    var mtime = File.GetLastWriteTimeUtc(path).Ticks;
+    if (hashCache.TryGetValue(path, out var entry) && entry.mtimeTicks == mtime) return entry.hash;
+    var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path)));
+    hashCache[path] = (mtime, hash);
+    return hash;
 }
 
 Sidecar? TryReadSidecar(string jsonPath)
@@ -742,7 +852,7 @@ record DeleteGoldRequest
 // Mirrors Stride.Graphics.Regression.ImageTester.Sidecar so the JSON written by the test
 // runtime can be deserialised here without an inter-project dependency.
 record Sidecar(string Outcome, DateTime At, string? Matched, List<SidecarAttempt> Attempts);
-record SidecarAttempt(string Gold, string Kind, bool Passed, int MaxDiff, double PsnrDb, Dictionary<string, int> Buckets, Dictionary<string, int>? Thresholds);
+record SidecarAttempt(string Gold, string Kind, bool Passed, int MaxDiff, double PsnrDb, Dictionary<string, int> Buckets, Dictionary<string, int>? Thresholds, string? GoldHash);
 
 // === Source Manager ===
 
