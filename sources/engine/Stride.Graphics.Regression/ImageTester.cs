@@ -374,12 +374,16 @@ namespace Stride.Graphics.Regression
                         || buffer.RowStride != referenceBuffer.RowStride)
                         return false;
 
-                    var swapBGR = buffer.Format.IsBgraOrder != referenceBuffer.Format.IsBgraOrder;
-                    if ((buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb && buffer.Format != PixelFormat.B8G8R8A8_UNorm_SRgb)
-                        || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
-                    {
+                    // Both buffers must be 8-bit RGBA in one of the four supported variants
+                    // (channel order × sRGB/UNorm). The sRGB flag is metadata only — at 8-bit
+                    // storage the bytes are identical — and channel order is handled via swapBGR.
+                    static bool Is8888(PixelFormat f)
+                        => f == PixelFormat.R8G8B8A8_UNorm || f == PixelFormat.R8G8B8A8_UNorm_SRgb
+                        || f == PixelFormat.B8G8R8A8_UNorm || f == PixelFormat.B8G8R8A8_UNorm_SRgb;
+                    if (!Is8888(buffer.Format) || !Is8888(referenceBuffer.Format))
                         return false;
-                    }
+
+                    var swapBGR = buffer.Format.IsBgraOrder != referenceBuffer.Format.IsBgraOrder;
 
                     bool checkAlpha = buffer.Format.AlphaSizeInBits > 0;
 
