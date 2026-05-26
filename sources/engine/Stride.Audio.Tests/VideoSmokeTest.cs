@@ -100,7 +100,9 @@ namespace Stride.Audio.Tests
                 GraphicsDeviceManager.PreferredGraphicsProfile = [GraphicsProfile.Level_10_0];
 
                 VideoBackendRegistry.PreferredBackendName = backend;
+#if STRIDE_VIDEO_FFMPEG
                 FFmpegVideoBackendFactory.ForceSoftwareDecode = forceSoftware;
+#endif
 
                 // Fixed-step game time so captures are deterministic.
                 IsFixedTimeStep = true;
