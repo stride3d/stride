@@ -562,7 +562,10 @@ namespace Stride.Graphics
 
             // Create surface
 #if STRIDE_UI_SDL
-            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL)
+            // iOS reuses the SDL surface-creation path (GameContextiOS inherits GameContextSDL);
+            // SDL's VulkanCreateSurface routes to VkMetalSurfaceCreateInfoEXT internally on iOS.
+            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL
+                || Description.DeviceWindowHandle.Context == Games.AppContextType.iOS)
             {
                 var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
                 Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
