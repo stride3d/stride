@@ -1,0 +1,82 @@
+<!-- TreatAsLocalProperty="StrideSkipAutoPack": see Stride.Templates.Games.csproj. -->
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
+  <PropertyGroup>
+    <PackageId>Stride.Templates.Samples</PackageId>
+    <Title>Stride Samples</Title>
+    <Description>dotnet new feature-demo samples for Stride (tutorials, games, graphics, UI, physics, particles, input, audio).</Description>
+    <PackageTags>dotnet-new;templates;stride;stride-template;stride-sample;gamedev</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\Stride.Templates.Common.targets" />
+
+  <!-- Build-order chain (Games → Starters → Samples): the preprocessor Exec tasks can collide
+       on shared files when MSBuild builds these three packages in parallel. ProjectReference
+       creates a build-order constraint without producing an actual assembly reference. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Tutorials -->
+    <StrideSampleTemplate Include="stride-csharp-beginner">
+      <SamplePath>$(StrideRoot)samples/Tutorials/CSharpBeginner/CSharpBeginner</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-csharp-intermediate">
+      <SamplePath>$(StrideRoot)samples/Tutorials/CSharpIntermediate/CSharpIntermediate</SamplePath>
+    </StrideSampleTemplate>
+    <!-- Games (small playable samples) -->
+    <StrideSampleTemplate Include="stride-jumpyjet">
+      <SamplePath>$(StrideRoot)samples/Games/JumpyJet</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-spaceescape">
+      <SamplePath>$(StrideRoot)samples/Games/SpaceEscape</SamplePath>
+    </StrideSampleTemplate>
+    <!-- Feature demos -->
+    <StrideSampleTemplate Include="stride-audio">
+      <SamplePath>$(StrideRoot)samples/Audio/SimpleAudio</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-particles">
+      <SamplePath>$(StrideRoot)samples/Particles/ParticlesSample</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-spritestudio">
+      <SamplePath>$(StrideRoot)samples/Graphics/SpriteStudioDemo</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-animatedmodel">
+      <SamplePath>$(StrideRoot)samples/Graphics/AnimatedModel</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-spritefonts">
+      <SamplePath>$(StrideRoot)samples/Graphics/SpriteFonts</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-materialshader">
+      <SamplePath>$(StrideRoot)samples/Graphics/MaterialShader</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-customeffect">
+      <SamplePath>$(StrideRoot)samples/Graphics/CustomEffect</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-bepuphysics">
+      <SamplePath>$(StrideRoot)samples/Physics/BepuSample</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-physics">
+      <SamplePath>$(StrideRoot)samples/Physics/PhysicsSample</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-touchinputs">
+      <SamplePath>$(StrideRoot)samples/Input/TouchInputs</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-gravitysensor">
+      <SamplePath>$(StrideRoot)samples/Input/GravitySensor</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-ui-menu">
+      <SamplePath>$(StrideRoot)samples/UI/GameMenu</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-ui-elementlink">
+      <SamplePath>$(StrideRoot)samples/UI/UIElementLink</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-ui-particles">
+      <SamplePath>$(StrideRoot)samples/UI/UIParticles</SamplePath>
+    </StrideSampleTemplate>
+  </ItemGroup>
+</Project>
