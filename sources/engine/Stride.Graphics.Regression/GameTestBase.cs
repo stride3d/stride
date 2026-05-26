@@ -970,6 +970,7 @@ namespace Stride.Graphics.Regression
                 PlatformType.Linux => "Linux",
                 PlatformType.macOS => "macOS",
                 PlatformType.Android => "Android",
+                PlatformType.iOS => "iOS",
                 _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
             };
 
@@ -1002,6 +1003,10 @@ namespace Stride.Graphics.Regression
             else if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
                 deviceName = "SwiftShader";
             else if (adapter.VendorId == 0x1414) deviceName = "WARP"; // Microsoft Basic / WARP
+            // iOS: MoltenVK reports the underlying Metal device (e.g. "Apple Paravirtual device"
+            // on the simulator, "Apple A17 Pro GPU" on hardware). Collapse to a single "MoltenVK"
+            // bucket so gold paths stay stable across simulator/device and host-chip variants.
+            else if (Platform.Type == PlatformType.iOS) deviceName = "MoltenVK";
             // Virtualized macOS (e.g. GitHub's macos-15 runner) reports the GPU as
             // "Apple Paravirtual device". On Apple Silicon the GPU is on the same chip as
             // the CPU, so the CPU brand string (minus the "(Virtual)" suffix) is a stable

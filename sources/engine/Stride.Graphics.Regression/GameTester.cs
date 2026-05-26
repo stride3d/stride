@@ -82,11 +82,11 @@ namespace Stride.Graphics.Regression
 
 #elif STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
 
-#if STRIDE_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             // Headless path mirrors desktop: when ScreenShotAutomationEnabled (set from
-            // !ForceInteractiveMode), run offscreen in-process — no AndroidGameTestActivity,
-            // no per-test Activity spawn. Interactive runs fall through to the SDL-window
-            // path below for visual inspection.
+            // !ForceInteractiveMode), run offscreen in-process — no separate Activity (Android)
+            // or SDL-over-Avalonia window switch (iOS), no per-test process. Interactive runs
+            // fall through to the SDL-window path below for visual inspection.
             if (game is GameTestBase { ScreenShotAutomationEnabled: true })
             {
                 try
