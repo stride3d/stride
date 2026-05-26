@@ -43,14 +43,12 @@ namespace Stride.Games
 
         internal override GameWindow GetSupportedGameWindow(AppContextType type)
         {
-            if (type == AppContextType.iOS)
+            return type switch
             {
-                return new GameWindowSDL();
-            }
-            else
-            {
-                return null;
-            }
+                AppContextType.iOS => new GameWindowSDL(),
+                AppContextType.Headless => new GameWindowHeadless(),
+                _ => null,
+            };
         }
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
