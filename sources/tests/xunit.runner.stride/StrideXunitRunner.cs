@@ -16,7 +16,7 @@ public static class StrideXunitRunner
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
-#if !ANDROID
+#if !ANDROID && !IOS
     public static void Main(string[] args, Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null, Action<string?>? setRenderDocMode = null, Action<Action<ImageCompareResult>>? subscribeImageComparison = null)
     {
         // Stash on App's static slots — Android's MainActivity assigns the same way, so the App
@@ -119,14 +119,19 @@ public static class StrideXunitRunner
     }
 
     // Headless trx: Android writes to internal FilesDir (targetSdk 30+ scoped storage
-    // blocks app writes through the FUSE-bound external-files path); host script pulls
-    // via `adb shell run-as <pkg>`. Desktop drops it beside the test binary so
-    // `dotnet test --logger trx` parity tools find it without extra config.
+    // blocks app writes through the FUSE-bound external-files path); iOS writes to the
+    // sandboxed Documents (bundle dir is read-only); host scripts pull via
+    // `adb shell run-as <pkg>` / `xcrun simctl get_app_container ... data` respectively.
+    // Desktop drops it beside the test binary so `dotnet test --logger trx` parity tools
+    // find it without extra config.
     internal static string GetTrxPath(Assembly testAssembly)
     {
         var name = testAssembly.GetName().Name ?? "tests";
 #if ANDROID
         var root = Android.App.Application.Context.FilesDir!.AbsolutePath;
+        return Path.Combine(root, "tests", "local", name, $"{name}.trx");
+#elif IOS
+        var root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         return Path.Combine(root, "tests", "local", name, $"{name}.trx");
 #else
         var binDir = Path.GetDirectoryName(testAssembly.Location) ?? AppContext.BaseDirectory;
@@ -177,8 +182,10 @@ public static class StrideXunitRunner
         return Environment.GetEnvironmentVariable("STRIDE_TESTS_INTERACTIVE") != "1";
     }
 
-#if !ANDROID
+#if !ANDROID && !IOS
     // Avalonia configuration, don't remove; also used by visual designer.
+    // Mobile platforms wire Avalonia through their own AppDelegate / Activity (CustomizeAppBuilder
+    // overrides), not through this desktop BuildAvaloniaApp helper.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()

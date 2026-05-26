@@ -1,8 +1,13 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
+    <!-- Only include mobile TFMs when their platform is in StridePlatforms; otherwise a
+         restore for iOS-only would still try to resolve the android workload (or vice
+         versa) and fail. Same conditional pattern Stride.Build.Sdk uses for
+         StrideRuntimeTargetFrameworks. -->
     <TargetFrameworks>$(StrideFramework)</TargetFrameworks>
     <TargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(TargetFrameworks);$(StrideFrameworkAndroid)</TargetFrameworks>
+    <TargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(TargetFrameworks);$(StrideFrameworkiOS)</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -34,6 +39,10 @@
 
   <ItemGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
     <PackageReference Include="Avalonia.Android" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">
+    <PackageReference Include="Avalonia.iOS" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
