@@ -89,11 +89,18 @@ namespace Stride.Graphics.Regression
             // path below for visual inspection.
             if (game is GameTestBase { ScreenShotAutomationEnabled: true })
             {
-                using (game)
+                Exception runError = null;
+                try
                 {
                     var context = GameContextFactory.NewGameContext(AppContextType.Headless);
                     game.Run(context);
                 }
+                catch (Exception ex)
+                {
+                    runError = ex;
+                }
+                try { game.Dispose(); } catch { /* hide secondary errors from incomplete init */ }
+                if (runError != null) ExceptionDispatchInfo.Capture(runError).Throw();
                 return;
             }
 #endif
