@@ -770,12 +770,17 @@ namespace Stride.Graphics.Regression
         {
 #if STRIDE_PLATFORM_ANDROID
             return Android.App.Application.Context.FilesDir!.AbsolutePath;
+#elif STRIDE_PLATFORM_IOS
+            // Gold images get pushed into Documents/tests/<Suite>/ by run-ios-tests.ps1, and
+            // generated images / trx are written to Documents/tests/local/<Suite>/ for the host
+            // to pull back via `xcrun simctl get_app_container ... data`.
+            return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 #else
             return FindStrideSolutionRootDirectory();
 #endif
         }
 
-#if !STRIDE_PLATFORM_ANDROID
+#if !STRIDE_PLATFORM_ANDROID && !STRIDE_PLATFORM_IOS
         /// <summary>
         ///   Searches for the root folder of the Stride solution by traversing upward from the test's binary directory.
         /// </summary>
