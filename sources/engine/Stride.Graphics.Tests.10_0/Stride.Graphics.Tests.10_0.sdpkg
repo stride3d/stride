@@ -7,7 +7,9 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
+    - 021570bd-56a4-4248-819f-a25ce3405fda:TextureCompressionTests/Grayscale
     - 0a657835-0b2f-4ba6-9f52-01b3dceb3737:StrideBackground
+    - 0ca6e95f-7f43-463e-825a-2b4dca362aa2:TextureCompressionTests/ColorInterpolated
     - 0e365de8-6419-4896-a380-aa41f9205026:MaterialTests/Features/MaterialTransparentBlend
     - 12fde36c-d5d6-4ead-b472-5d088d319b8c:BasicMaterial
     - 23c3cc2d-8606-4e10-af0b-bae57ced94a1:LightShaftsGraphicsCompositor
@@ -34,7 +36,9 @@ RootAssets:
     - a4115d3c-2413-4865-9972-0b01a90266d1:GraphicsCompositor
     - a60c5fe7-6934-455f-bf6a-bd7abe1453d1:uv
     - b28a1ecd-27ee-4c41-a760-681230198dd6:MaterialTests/Layers/MaterialLayerAAA
+    - b3c7522f-5ab6-4e17-8432-63a515e06bab:TextureCompressionTests/ColorExplicit
     - b47e4609-0125-41bd-a26e-0fdf9184327e:MainScene
+    - be555a59-996c-479b-b489-ef1718bd25ff:TextureCompressionTests/NormalMap
     - bf8844a5-1ce4-402f-a538-b8a7edb40fcf:Skybox
     - cc4dc811-5600-4def-a7a5-d234da7ef80f:MaterialTests/Base/MaterialDiffuseTexture
     - d4f60fa6-e081-4266-a774-10a7771cdf13:Material2
@@ -42,6 +46,7 @@ RootAssets:
     - dc6bcb58-e139-448f-815f-96413130602e:MaterialTests/Layers/MaterialLayerABC
     - e3b3bd7d-7f5d-458b-9661-96a487c6dfc2:MaterialTests/Features/MaterialMetalness
     - e5179ef1-d640-41b4-88c0-6a9cefd620ab:MaterialTests/Base/MaterialDiffuseTextureScaled
+    - e6c7ac88-cfe8-404a-84da-65a02646d734:TextureCompressionTests/ColorNone
     - f0bb4e18-b761-4e65-b1d5-f59b52cfef0f:SpriteSheet
     - f6bccb59-7642-46d9-9bf2-e1ada940d20d:LightShafts
     - f84ceff5-1f02-4a2f-9a95-41e54ee77927:MaterialTests/Layers/MaterialLayerABA

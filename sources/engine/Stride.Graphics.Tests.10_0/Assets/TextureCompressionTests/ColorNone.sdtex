@@ -1,0 +1,10 @@
+!Texture
+Id: e6c7ac88-cfe8-404a-84da-65a02646d734
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/SmallPngInterpolated.png
+GenerateMipmaps: false
+IsStreamable: false
+Type: !ColorTextureType
+    Alpha: None
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

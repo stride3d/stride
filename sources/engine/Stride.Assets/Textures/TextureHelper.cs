@@ -230,6 +230,7 @@ namespace Stride.Assets.Textures
                                         // a full alpha channel, and beats ETC2_RGBA at half the size.
                                         // ASTC encodes alpha implicitly so the alphaMode branches all map to the same block size;
                                         // ASTC_*_UNorm_SRgb is selected when sRGB sampling is needed.
+                                        // TODO vary ASTC block size by hint/Quality (4x4 high-quality color, 5x5 normal, 8x8 grayscale).
                                         outputFormat = parameters.IsSRgb ? PixelFormat.ASTC_6x6_UNorm_SRgb : PixelFormat.ASTC_6x6_UNorm;
                                         break;
                                     default:
@@ -293,11 +294,10 @@ namespace Stride.Assets.Textures
                                         }
                                         else if (inputImageFormat.IsHDR)
                                         {
-                                            // BC6H is too slow to compile
-                                            //outputFormat = parameters.GraphicsProfile >= GraphicsProfile.Level_11_0 && alphaMode == AlphaFormat.None ? PixelFormat.BC6H_Uf16 : inputImageFormat;
+                                            // TODO BC6H for HDR (modern GPU/ISPC encoders make encode time tractable; profile ≥11.0, AlphaFormat.None).
                                             outputFormat = inputImageFormat;
                                         }
-                                        // TODO support the BC6/BC7 but they are so slow to compile that we can't use them right now
+                                        // TODO BC7 for Quality=High color / UI (modern GPU/ISPC encoders make encode time tractable).
                                     }
                                     break;
                                 default:
