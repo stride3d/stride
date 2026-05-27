@@ -864,32 +864,53 @@ namespace Stride.Graphics.Regression
         }
 
         // Stable, vendor-independent bucket name. Avoids Lavapipe's "llvmpipe (LLVM x.y.z, N bits)"
-        // description from leaking into the gold path and breaking on every Mesa rebuild. Trusts
-        // the description when it's been intentionally rewritten (e.g. Android emulator's helper
-        // layer stamps host OS into the device name → "Lavapipe-LinuxHost").
+        // description from leaking into the gold path and breaking on every Mesa rebuild. The
+        // Android emulator-host Vulkan layer stamps the host OS into the device name (e.g.
+        // "...StrideHost=Linux") so Android gold buckets by host, whose Lavapipe build renders
+        // slightly differently → "Lavapipe-LinuxHost".
         private static string NormalizeDeviceBucket(GraphicsAdapter adapter)
         {
             var desc = adapter.Description.Split('\0')[0].TrimEnd(' ');
+
+            // Extract the emulator-host stamp before normalising the rest of the name.
+            string hostTag = null;
+            const string hostMarker = "StrideHost=";
+            int markerIndex = desc.IndexOf(hostMarker, StringComparison.Ordinal);
+            if (markerIndex >= 0)
+            {
+                hostTag = desc.Substring(markerIndex + hostMarker.Length).Trim();
+                desc = desc.Substring(0, markerIndex).TrimEnd();
+            }
+
             var driverId = adapter.DriverInfo?.DriverId;
-            if (driverId == "MesaLLVMPipe" && desc.StartsWith("llvmpipe", StringComparison.OrdinalIgnoreCase))
-                return "Lavapipe";
-            if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
-                return "SwiftShader";
-            if (adapter.VendorId == 0x1414) return "WARP"; // Microsoft Basic / WARP
+            string deviceName;
+            if (driverId == "MesaLLVMPipe" && desc.Contains("llvmpipe", StringComparison.OrdinalIgnoreCase))
+                deviceName = "Lavapipe";
+            else if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
+                deviceName = "SwiftShader";
+            else if (adapter.VendorId == 0x1414) deviceName = "WARP"; // Microsoft Basic / WARP
             // Virtualized macOS (e.g. GitHub's macos-15 runner) reports the GPU as
             // "Apple Paravirtual device". On Apple Silicon the GPU is on the same chip as
             // the CPU, so the CPU brand string (minus the "(Virtual)" suffix) is a stable
             // proxy for the chip family — "Apple M1" rather than "Apple Paravirtual device".
-            if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase))
+            else if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase)
+                && HostEnvironment.CpuName is { } cpu && cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
             {
-                var cpu = HostEnvironment.CpuName;
-                if (cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
-                {
-                    var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
-                    return idx > 0 ? cpu[..idx] : cpu;
-                }
+                var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
+                deviceName = idx > 0 ? cpu[..idx] : cpu;
             }
-            return desc;
+            else deviceName = desc;
+
+            // Bucket by the layer-reported host; on Android with no stamp the layer wasn't active,
+            // so we genuinely don't know which host's Lavapipe rendered this — fall into a distinct
+            // "UnknownHost" bucket rather than silently aliasing onto a real host's gold.
+            string bucketSuffix =
+                !string.IsNullOrEmpty(hostTag) ? $"{hostTag}Host" :
+                Platform.Type == PlatformType.Android ? "UnknownHost" :
+                null;
+            if (!string.IsNullOrEmpty(bucketSuffix))
+                deviceName += $"-{bucketSuffix}";
+            return deviceName;
         }
 
         /// <summary>

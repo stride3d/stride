@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 # Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #
@@ -23,10 +23,15 @@ param(
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
     [string]$Avd,                                          # AVD name to boot if no device is connected
+    [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
+    [int]$Port,                                            # emulator console port for cold-boot via -Avd (even; required with -Avd).
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
+    [int]$ConnectTimeoutSeconds = 60,                      # max wait for adb connect + device online (near-instant vs a live emulator; generous headroom for adb cold-start / relay)
+    [int]$BootTimeoutSeconds = 300,                        # max wait for sys.boot_completed (only relevant when we cold-boot)
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
     [switch]$StreamLogcat                                  # also tee Stride-tag logcat to console (local interactive use)
 )
+if ($Avd -and -not $Port) { throw "-Avd requires -Port (even, e.g. 5556)." }
 
 # 'Continue' (not Stop): Windows PowerShell 5.1 wraps each native-command stderr line as a
 # NativeCommandError ErrorRecord, which under 'Stop' terminates the script even when the
@@ -114,34 +119,71 @@ Write-Host "adb: $adb"
 # Windows' native System32\tar.exe (Win10 1803+), which handles Windows paths.
 $tar = if ($IsWindows -and (Test-Path "$env:SystemRoot\System32\tar.exe")) { "$env:SystemRoot\System32\tar.exe" } else { 'tar' }
 
-# 1. Ensure a device is connected; cold-boot an emulator if not.
-$devicesRaw = & $adb devices
-$hasDevice = $null -ne ($devicesRaw | Select-String -Pattern 'device$' -SimpleMatch:$false)
+# 1. Resolve target serial; cold-boot via start-emulator.ps1 if -Avd was provided.
+# We use "127.0.0.1:<adbPort>" as the serial and adb-connect explicitly — adb's auto-discovery
+# can miss emulators when a relay (e.g. WSL) is forwarding the low ports.
 $startedEmulator = $false
-if (-not $hasDevice) {
-    if (-not $Avd) { throw "No device connected and -Avd not provided. Pass -Avd <name> to cold-boot one." }
-    # Boot the same Lavapipe emulator CI uses via start-emulator.ps1 (sets VK_DRIVER_FILES +
-    # the helper layer and launches with -gpu host), so a local cold-boot matches CI's renderer
-    # instead of falling back to a different GPU. It runs the emulator in the foreground, so
-    # launch it detached and let the boot-wait below pick the device up via adb.
-    $startEmu = Join-Path $PSScriptRoot 'start-emulator.ps1'
-    Write-Host "No device — launching Lavapipe emulator via start-emulator.ps1 (AVD '$Avd')..."
-    $proc = Start-Process pwsh -ArgumentList @('-NoProfile', '-File', $startEmu, '-Avd', $Avd) -PassThru
-    $startedEmulator = $true
-    Write-Host "start-emulator PID: $($proc.Id)"
+if (-not $Serial -and $Port) { $Serial = "127.0.0.1:$($Port + 1)" }
+$devicesRaw = & $adb devices
+$haveSerial = $Serial -and ($devicesRaw | Select-String -Pattern "^$([regex]::Escape($Serial))\s+device$" -Quiet)
+if (-not $haveSerial) {
+    if (-not $Avd) {
+        # @(...) forces an array: a single match would otherwise unwrap to a string, and
+        # $online[0] would index into it and yield the first character (e.g. 'e').
+        $online = @($devicesRaw | Select-String -Pattern '^(\S+)\s+device$' | ForEach-Object { $_.Matches[0].Groups[1].Value })
+        if ($online.Count -eq 1) { $Serial = $online[0] }
+        elseif ($online.Count -gt 1) { throw "Multiple devices attached ($($online -join ', ')); pass -Serial." }
+        else { throw "No device connected. Pass -Avd <name> + -Port to cold-boot, or -Serial." }
+    } else {
+        $startEmu = Join-Path $PSScriptRoot 'start-emulator.ps1'
+        $pwshExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
+        Write-Host "Launching emulator (AVD '$Avd', port $Port)..."
+        $proc = Start-Process $pwshExe -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $startEmu, '-Avd', $Avd, '-Port', $Port) -PassThru
+        $startedEmulator = $true
+        Write-Host "start-emulator PID: $($proc.Id), Serial: $Serial"
+    }
 }
+Write-Host "Target serial: $Serial"
 
-# Wait for boot
+function Invoke-Adb { & $adb -s $Serial @args }
+
+# Connecting + coming online are near-instant against a live adb port, so they get their own
+# short deadline ($ConnectTimeoutSeconds) — a failure here means the emulator/relay is broken,
+# and it should fail fast rather than burn the long test-execution timeout.
+$connectDeadline = (Get-Date).AddSeconds($ConnectTimeoutSeconds)
+# adb connect only applies to TCP (host:port) serials — cold-boot or a relay (e.g. WSL)
+# forwarding the adb port. A USB/native serial like "emulator-5554" is already attached and
+# `adb connect emulator-5554` prints nothing (not "connected to"), so the retry loop would
+# spin forever. Skip connect when the device is already a 'device', and never try to connect
+# a non-host:port serial.
+$alreadyAttached = (& $adb devices) | Select-String -Pattern "^$([regex]::Escape($Serial))\s+device$" -Quiet
+if (-not $alreadyAttached -and $Serial -match ':') {
+    Write-Host "Connecting to $Serial..."
+    while ((Get-Date) -lt $connectDeadline) {
+        $out = & $adb connect $Serial 2>&1
+        if ($out -match 'connected to' -or $out -match 'already connected') { break }
+        Start-Sleep -Seconds 1
+    }
+}
+Write-Host "Waiting for $Serial to come online..."
+while ((Get-Date) -lt $connectDeadline) {
+    $line = (& $adb devices) | Select-String -Pattern "^$([regex]::Escape($Serial))\s+device$"
+    if ($line) { break }
+    Start-Sleep -Seconds 3
+}
+if (-not ((& $adb devices) | Select-String -Pattern "^$([regex]::Escape($Serial))\s+device$" -Quiet)) {
+    throw "Device $Serial did not come online within $ConnectTimeoutSeconds seconds."
+}
 Write-Host "Waiting for boot..."
-$deadline = (Get-Date).AddSeconds($TimeoutSeconds)
-while ((Get-Date) -lt $deadline) {
-    $boot = (& $adb shell getprop sys.boot_completed 2>$null) -replace '\s', ''
+$bootDeadline = (Get-Date).AddSeconds($BootTimeoutSeconds)
+while ((Get-Date) -lt $bootDeadline) {
+    $boot = (Invoke-Adb shell getprop sys.boot_completed 2>$null) -replace '\s', ''
     if ($boot -eq '1') { break }
     Start-Sleep -Seconds 3
 }
-$finalBoot = (& $adb shell getprop sys.boot_completed 2>$null) -replace '\s', ''
+$finalBoot = (Invoke-Adb shell getprop sys.boot_completed 2>$null) -replace '\s', ''
 if ($finalBoot -ne '1') {
-    throw "Device did not finish booting within $TimeoutSeconds seconds."
+    throw "Device $Serial did not finish booting within $BootTimeoutSeconds seconds."
 }
 Write-Host "Boot complete."
 
@@ -150,7 +192,7 @@ if ($Apk) {
     if (-not (Test-Path $Apk)) { throw "APK not found: $Apk" }
     Write-Host "Installing $Apk..."
     # adb install writes progress + the "Failure [...]" line to stdout; capture and surface it.
-    $installOut = & $adb install -r $Apk 2>&1
+    $installOut = Invoke-Adb install -r $Apk 2>&1
     $installOut | Where-Object { $_ } | ForEach-Object { Write-Host "  $_" }
     if ($LASTEXITCODE -ne 0 -or ($installOut -match 'Failure \[')) {
         throw "adb install failed: $installOut"
@@ -161,7 +203,7 @@ if ($Apk) {
 # targetSdk 30+ scoped storage blocks app writes through the FUSE-bound external path.
 # Push/pull go through tar streams + run-as to bridge adb-shell uid <-> app uid.
 # rm -rf first so stale gold from a prior run can't linger — tar x merges onto existing files.
-& $adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
+Invoke-Adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
 
 # 4. Push gold images (-GoldDir contents -> device's files/tests/<Suite>/)
 if ($GoldDir) {
@@ -170,28 +212,36 @@ if ($GoldDir) {
     $localTar = [IO.Path]::GetTempFileName()
     try {
         & $tar c -C $GoldDir -f $localTar . 2>$null
-        & $adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
-        & $adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$Suite" 2>$null | Out-Null
-        & $adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
+        Invoke-Adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
+        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$Suite" 2>$null | Out-Null
+        Invoke-Adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
     } finally {
         Remove-Item $localTar -ErrorAction SilentlyContinue
     }
 }
 
 # 5. Resolve the launch activity
-$resolved = (& $adb shell cmd package resolve-activity --brief $Package) -split "`n"
+$resolved = (Invoke-Adb shell cmd package resolve-activity --brief $Package) -split "`n"
 $activity = $resolved | Where-Object { $_ -match "^$Package/" } | Select-Object -First 1
 if (-not $activity) { throw "Could not resolve launch activity for $Package" }
 $activity = $activity.Trim()
 Write-Host "Activity: $activity"
 
 # Clear log + previous TRX (in internal storage via run-as) so a stale file doesn't fool detection
-& $adb shell "run-as $Package rm -rf files/tests/local" 2>$null | Out-Null
-& $adb logcat -c 2>$null | Out-Null
+Invoke-Adb shell "run-as $Package rm -rf files/tests/local" 2>$null | Out-Null
+Invoke-Adb logcat -c 2>$null | Out-Null
 
 # Force-stop the package so a fresh OnCreate runs with our Intent extras (otherwise
 # `am start` may resume an existing instance and skip Intent processing).
-& $adb shell am force-stop $Package 2>$null | Out-Null
+Invoke-Adb shell am force-stop $Package 2>$null | Out-Null
+
+# From here on, every spawned child must be cleaned up on cancellation too — a workflow
+# cancel sends SIGTERM to pwsh, and without an explicit `finally` the orphan `adb logcat`
+# Start-Process children (parented to the adb server, not pwsh) keep the step's process
+# group alive until the action's SIGKILL deadline.
+$logcatProc = $null
+$liveLogcatProc = $null
+try {
 
 # 6. Start logcat capture (full ring buffer; threadtime format aids triage)
 if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
@@ -201,7 +251,7 @@ Write-Host "Logcat -> $logcatPath"
 # the same call works on every host pwsh supports.
 $logcatArgs = @{
     FilePath               = $adb
-    ArgumentList           = @('logcat', '-v', 'threadtime')
+    ArgumentList           = @('-s', $Serial, 'logcat', '-v', 'threadtime')
     RedirectStandardOutput = $logcatPath
     PassThru               = $true
 }
@@ -211,11 +261,10 @@ $logcatProc = Start-Process @logcatArgs
 # Optional: tee a filtered (Stride tag only) live stream to the host console so the user
 # sees test-by-test progress without scrolling Android noise. The captured file above
 # still contains the full ring buffer for post-mortem triage.
-$liveLogcatProc = $null
 if ($StreamLogcat) {
     $liveLogcatArgs = @{
         FilePath               = $adb
-        ArgumentList           = @('logcat', '-v', 'brief', 'Stride:V', '*:S')
+        ArgumentList           = @('-s', $Serial, 'logcat', '-v', 'brief', 'Stride:V', '*:S')
         NoNewWindow            = $true
         PassThru               = $true
     }
@@ -225,14 +274,14 @@ if ($StreamLogcat) {
 
 # 7. Launch with intent extras
 Write-Host "Launching with xunit_command=run..."
-& $adb shell am start -W -n $activity --es xunit_command run --ez xunit_exit_on_complete true | Out-Null
+Invoke-Adb shell am start -W -n $activity --es xunit_command run --ez xunit_exit_on_complete true | Out-Null
 
 # 8. Wait for process to exit (heuristic: pidof goes empty)
 Write-Host "Waiting for process to exit (timeout: ${TimeoutSeconds}s)..."
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 $lastPid = $null
 while ((Get-Date) -lt $deadline) {
-    $procPid = (& $adb shell pidof $Package 2>$null) -replace '\s', ''
+    $procPid = (Invoke-Adb shell pidof $Package 2>$null) -replace '\s', ''
     if (-not $procPid) {
         if ($lastPid) { break }   # we saw it running, now it's gone
         # not yet started -- give it a moment
@@ -245,14 +294,6 @@ if ((Get-Date) -ge $deadline) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
 
-# Stop logcat capture
-if ($logcatProc -and -not $logcatProc.HasExited) {
-    Stop-Process -Id $logcatProc.Id -Force -ErrorAction SilentlyContinue
-}
-if ($liveLogcatProc -and -not $liveLogcatProc.HasExited) {
-    Stop-Process -Id $liveLogcatProc.Id -Force -ErrorAction SilentlyContinue
-}
-
 # 9. Pull TRX + generated images from device's files/tests/local/<Suite>/ into $ResultsDir.
 # tar device-side via run-as, write to a shell-readable /data/local/tmp file, adb pull, untar.
 Write-Host "Pulling results -> $ResultsDir"
@@ -262,9 +303,9 @@ try {
     # The outer shell (uid 2000 = shell) writes to /data/local/tmp; the inner run-as streams
     # the tarball through stdout. If the suite dir doesn't exist yet, fallback creates an
     # empty tarball so we don't break the pipe.
-    & $adb shell "run-as $Package sh -c 'cd files/tests/local/$Suite 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
-    & $adb pull "/data/local/tmp/$Package-results.tar" $localTar 2>$null | Out-Null
-    & $adb shell "rm /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
+    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local/$Suite 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
+    Invoke-Adb pull "/data/local/tmp/$Package-results.tar" $localTar 2>$null | Out-Null
+    Invoke-Adb shell "rm /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
     & $tar x -C $ResultsDir -f $localTar 2>$null
 } finally {
     Remove-Item $localTar -ErrorAction SilentlyContinue
@@ -274,7 +315,6 @@ try {
 $trxFiles = Get-ChildItem -Path $ResultsDir -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue
 if (-not $trxFiles) {
     Write-Warning "No TRX files in $ResultsDir -- tests may not have run."
-    if ($startedEmulator -and -not $KeepEmulator) { & $adb emu kill 2>$null | Out-Null }
     exit 2
 }
 
@@ -292,11 +332,6 @@ foreach ($trx in $trxFiles) {
     $totalFailed += $failed
 }
 
-if ($startedEmulator -and -not $KeepEmulator) {
-    Write-Host "Killing emulator we started..."
-    & $adb emu kill 2>$null | Out-Null
-}
-
 if ($totalFailed -gt 0) {
     Write-Host "FAILED: $totalFailed test(s)." -ForegroundColor Red
     exit 1
@@ -304,3 +339,22 @@ if ($totalFailed -gt 0) {
 
 Write-Host "OK" -ForegroundColor Green
 exit 0
+
+} finally {
+    # Stop the background `adb logcat` Start-Process children. These are parented to the
+    # adb server (not pwsh), so without an explicit stop they survive script termination
+    # and keep the action's process group alive past the SIGTERM grace window.
+    if ($logcatProc -and -not $logcatProc.HasExited) {
+        Stop-Process -Id $logcatProc.Id -Force -ErrorAction SilentlyContinue
+    }
+    if ($liveLogcatProc -and -not $liveLogcatProc.HasExited) {
+        Stop-Process -Id $liveLogcatProc.Id -Force -ErrorAction SilentlyContinue
+    }
+    # On a normal run the on-device runner has already called Environment.Exit; force-stop
+    # is idempotent there and stops the APK on cancellation paths (Ctrl-C / workflow cancel).
+    try { Invoke-Adb shell am force-stop $Package 2>$null | Out-Null } catch { }
+    if ($startedEmulator -and -not $KeepEmulator) {
+        Write-Host "Killing emulator we started..."
+        try { Invoke-Adb emu kill 2>$null | Out-Null } catch { }
+    }
+}

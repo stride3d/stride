@@ -45,7 +45,7 @@ jobs:
     # reasonable amount of time on a hosted runner. macOS-14+ Apple Silicon runners don't
     # support nested virt for AOSP emulator; older macOS-13 Intel HAXM is being retired.
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 45
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_MAX_PARALLELISM: "8"
@@ -94,7 +94,7 @@ jobs:
           # Asset compilation runs on the Linux host with Vulkan via Lavapipe. Mirrors the
           # set used by test-linux-game.yml.
           sudo apt-get update
-          sudo apt-get install -y libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
+          sudo apt-get install -y libvulkan1 libvulkan-dev xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
 
       - name: Start virtual display (asset compiler Vulkan)
         run: |
@@ -103,20 +103,30 @@ jobs:
 
       - name: Register Lavapipe ICD
         run: |
-          # AssetCompiler needs a Vulkan device at build time (Skybox/IBL etc.); point the
-          # Vulkan loader at the Lavapipe .so shipped inside Stride.Dependencies.Lavapipe.
+          # Use the no-dma_buf Lavapipe variant (runtimes/linux-x64-nodmabuf/native/): gfxstream
+          # aborts headless on an ICD advertising VK_EXT_external_memory_dma_buf. AssetCompiler
+          # needs a Vulkan device at build time (Skybox/IBL etc.) and is indifferent to dma_buf,
+          # so the same ICD serves both; it then drives the emulator's Vulkan path via -gpu host
+          # -feature ForceGpuHost (gfxstream forwards Vulkan to the host loader, honouring
+          # VK_DRIVER_FILES).
           dotnet restore build/Stride.Tests.Game.Runtime.slnf \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
-          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
+          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
           if [ -z "$LIB" ]; then
-            echo "::error::Lavapipe libvulkan_lvp.so not found in NuGet cache"
+            echo "::error::Lavapipe libvulkan_lvp.so (no-dma_buf variant) not found in NuGet cache"
             exit 1
           fi
           LIB_ABS=$(readlink -f "$LIB")
           ICD_JSON="$PWD/lvp_icd.json"
           echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
           echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+
+      - name: Build Android emulator helper Vulkan layer
+        # Stamps the host OS into the device name so gold images bucket by emulator host
+        # (Lavapipe renders slightly differently per host RID, and the guest can't otherwise
+        # tell which host it's on).
+        run: pwsh tests/android/stride_android_emu_helper_layer/build-and-install.ps1
 
       - name: Build Android test APKs
         run: |
@@ -145,6 +155,12 @@ jobs:
         # Action handles emulator boot/teardown; we run the per-suite pwsh driver inside.
         # API 34 / google_apis / x86_64 — API 36+ (Android 16) crashes Mono JIT on the
         # emulator (W^X enforcement), so we pin to 34.
+        env:
+          # Empty bypasses gfxstream's built-in ICD overrides (initIcdPaths/setIcdPaths)
+          # which would clobber VK_DRIVER_FILES with bundled paths.
+          ANDROID_EMU_VK_ICD: ""
+          # Activates the host-OS-stamp implicit Vulkan layer installed above.
+          STRIDE_EMU_LAYER: "1"
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -154,7 +170,12 @@ jobs:
           # -no-audio omitted: Stride.Audio.Tests' AudioTrack init segfaults in native code
           # if the emulator has no audio backend. Default backend on Linux is none/null
           # which is enough to keep AudioTrack from crashing.
-          emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu swiftshader_indirect
+          # -gpu host + -feature ForceGpuHost route Vulkan through the host loader so it
+          # honours VK_DRIVER_FILES (set in "Register Lavapipe ICD") and picks our Stride
+          # Lavapipe. The Linux emulator build has no -use-host-vulkan flag, so this
+          # combination is its equivalent.
+          # -partition-size 8192 (MB): default userdata is too small for several ~90 MB test APKs (INSUFFICIENT_STORAGE).
+          emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192
           disable-animations: true
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
           # shell blocks (while/if) break with "unexpected end of file". Loop lives in a

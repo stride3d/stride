@@ -346,6 +346,40 @@ jobs:
           name: lavapipe-linux-x64
           path: lavapipe-out/
 
+      # Second Linux build: no-dma_buf variant for the Android emulator host. The emulator's
+      # gfxstream renderer aborts headless ("Failed to find memory type for ColorBuffers")
+      # when the host Vulkan ICD advertises VK_EXT_external_memory_dma_buf, and that breaks
+      # MediaCodec video. Stock Mesa advertises it whenever linux/udmabuf.h is found at build
+      # time (-> llvmpipe caps.dmabuf != 0). Dropping that one header probe leaves caps.dmabuf
+      # at 0 so the extension isn't advertised; x11/wayland WSI, external_memory_fd and fences
+      # (gated on libdrm, not udmabuf) are unaffected. Matches the AOSP-bundled Lavapipe.
+      - name: Build no-dma_buf variant (Android emulator)
+        working-directory: mesa-src
+        run: |
+          perl -0pi -e "s/,\s*'linux\/udmabuf\.h'//" meson.build
+          if grep -q "linux/udmabuf.h" meson.build; then echo "udmabuf probe still present"; exit 1; fi
+          meson setup _build_nodmabuf \
+            -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
+            -Dplatforms=x11,wayland \
+            -Dglx=disabled -Degl=disabled \
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
+            -Dgallium-extra-hud=false -Dvideo-codecs= \
+            -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dbuildtype=release
+          ninja -C _build_nodmabuf src/gallium/targets/lavapipe/libvulkan_lvp.so
+
+      - name: Collect no-dma_buf output
+        run: |
+          mkdir -p lavapipe-out-nodmabuf
+          find mesa-src/_build_nodmabuf -name "libvulkan_lvp.so*" -exec cp {} lavapipe-out-nodmabuf/ \;
+          ls -la lavapipe-out-nodmabuf/
+
+      - name: Upload no-dma_buf artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavapipe-linux-x64-nodmabuf
+          path: lavapipe-out-nodmabuf/
+
   build-macos:
     name: Build Lavapipe (macOS ARM64)
     runs-on: macos-15
@@ -435,6 +469,10 @@ jobs:
         uses: actions/download-artifact@v4
         with: { name: lavapipe-linux-x64, path: artifacts/linux-x64 }
 
+      - name: Download Linux no-dma_buf artifact
+        uses: actions/download-artifact@v4
+        with: { name: lavapipe-linux-x64-nodmabuf, path: artifacts/linux-x64-nodmabuf }
+
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with: { name: lavapipe-osx-arm64, path: artifacts/osx-arm64 }
@@ -450,6 +488,16 @@ jobs:
           }
           # Note: lvp_icd.json is included but unused — Lavapipe.cs generates
           # its own JSON at runtime pointing to an absolute library_path.
+
+          # No-dma_buf Lavapipe for the Android emulator host. Kept OUTSIDE runtimes/ so NuGet
+          # doesn't auto-deploy it into every consumer's bin — start-emulator.ps1 reads it
+          # straight from the package cache. Only linux-x64 needs it (Windows/macOS Lavapipe
+          # don't advertise dma_buf — no libdrm in those jobs). Synthetic RID so the NuGet
+          # signing tool preserves it (top-level folders are dropped on re-pack) while NuGet
+          # never auto-deploys it into consumers.
+          $androidEmu = "build/deps/lavapipe/runtimes/linux-x64-nodmabuf/native"
+          New-Item -Path $androidEmu -ItemType Directory -Force | Out-Null
+          Copy-Item artifacts/linux-x64-nodmabuf/libvulkan_lvp.so* $androidEmu
 
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
