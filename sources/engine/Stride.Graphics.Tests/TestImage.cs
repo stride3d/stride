@@ -195,6 +195,14 @@ namespace Stride.Graphics.Tests
                         sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
                         continue;
 
+                    // iOS ImageIO premultiplies during decode; PNG (and other lossless container
+                    // formats via ImageSharp) can't tag premul state, so Image.Load → Save → Image.Load
+                    // through them ends up doubly-premultiplied. Skip when the intermediate is one of
+                    // those formats. Stride/DDS intermediates preserve bytes verbatim and still work.
+                    if (Platform.Type == PlatformType.iOS && intermediateFormat is
+                        ImageFileType.Png or ImageFileType.Bmp or ImageFileType.Gif or ImageFileType.Jpg or ImageFileType.Tiff)
+                        continue;
+
                     if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
                         continue;
 
@@ -207,9 +215,13 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestLoadPremultiplied()
         {
+            // iOS ImageIO premultiplies on decode; PNG can't tag premul state, so the
+            // Load→Save→Load roundtrip through PNG ends up doubly-premultiplied — inherently
+            // untestable on iOS. See AlphaLoadMode.cs platform notes.
+            SkipTestForPlatform(PlatformType.iOS);
             var intermediateFormat = ImageFileType.Png;
 
             PerformTest(
