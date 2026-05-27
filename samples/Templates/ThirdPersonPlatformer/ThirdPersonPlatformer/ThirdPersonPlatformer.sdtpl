@@ -4,7 +4,7 @@ Name: "Template: third-person platformer"
 Scope: Session
 Description: A third-person platformer game template
 FullDescription: This template implements a third-person camera, animation blending, and physics-based character control.
-Group: Templates
+Group: Starters
 Icon: ../../.sdtpl/Icon2TPP.png
 DefaultOutputName: ThirdPersonPlatformer
 Screenshots:

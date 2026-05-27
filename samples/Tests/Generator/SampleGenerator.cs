@@ -2,11 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.Templates;
-using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -30,17 +30,15 @@ public static class SampleGenerator
         Console.WriteLine($"Bootstrapping: {sampleName}");
 
         var session = new PackageSession();
-        var generator = TemplateSampleGenerator.Default;
+        var generator = new DotNetNewTemplateGenerator();
 
         logger.MessageLogged += (sender, eventArgs) => Console.WriteLine(eventArgs.Message.Text);
 
         var parameters = new SessionTemplateGeneratorParameters { Session = session, Unattended = true };
-        TemplateSampleGenerator.SetParameters(
-            parameters,
-            AssetRegistry.SupportedPlatforms
-                .Where(x => x.Type == Core.PlatformType.Windows)
-                .Select(x => new SelectedSolutionPlatform(x, x.Templates.FirstOrDefault()))
-                .ToList());
+        DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
+        {
+            ["platforms"] = "windows",
+        });
 
         session.SolutionPath = UPath.Combine<UFile>(outputPath, sampleName + ".sln");
 
@@ -66,14 +64,10 @@ public static class SampleGenerator
         parameters.Logger = logger;
 
         if (!generator.PrepareForRun(parameters).Result)
-            logger.Error("PrepareForRun returned false for the TemplateSampleGenerator");
+            logger.Error("PrepareForRun returned false");
 
         if (!generator.Run(parameters))
-            logger.Error("Run returned false for the TemplateSampleGenerator");
-
-        // Run the platforms updater so the generated csproj/template structure matches the latest sdtpl pass.
-        var updaterTemplate = strideTemplates.First(x => x.FullPath.ToString().EndsWith("UpdatePlatforms.sdtpl", StringComparison.Ordinal));
-        parameters.Description = updaterTemplate;
+            logger.Error("Run returned false");
 
         if (logger.HasErrors)
             throw new InvalidOperationException($"Error generating sample {sampleName} from template:\r\n{logger.ToText()}");

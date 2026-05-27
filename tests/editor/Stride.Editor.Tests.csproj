@@ -25,6 +25,19 @@
   <ItemGroup>
     <ProjectReference Include="..\..\sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj" />
     <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
+    <!-- Build-time triggers so bin/packages has all three Stride.Templates.* nupkgs available
+         for the GameStudio bridge to find via PackageStore. Without these, the screenshot tests
+         that instantiate genre-starter templates (TopDownRPG, etc.) fail at template-lookup time. -->
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />
 </Project>

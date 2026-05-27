@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Stride.Assets.Presentation;
+using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -101,7 +102,7 @@ public static class ScreenshotRunner
     {
         var session = new PackageSession();
         return TemplateManager.FindTemplates(session)
-            .Where(t => t is TemplateSampleDescription)
+            .Where(t => t is TemplateDotNetNewDescription)
             .ToDictionary(t => t.Id, t => t.DefaultOutputName ?? t.Name);
     }
 
@@ -324,7 +325,7 @@ public static class ScreenshotRunner
     <DefineConstants>$(DefineConstants);STRIDE_AUTOTESTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')">
-    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.2503" PrivateAssets="contentfiles;analyzers" />
     <Compile Include="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" />
   </ItemGroup>
   <!-- Pin WARP for reproducible D3D11/D3D12 captures. -->

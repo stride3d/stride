@@ -741,6 +741,18 @@ internal sealed class UITestHost
                 }
                 var assetView = session.ActiveAssetView;
                 if (assetView is null) { host.Log("AddAssetFromTemplate: ActiveAssetView is null"); return Guid.Empty; }
+                // RunAssetTemplate's target-folder lookup uses SelectedLocations and pops a modal
+                // MessageBox if nothing is selected (or if the selected package isn't editable —
+                // the case for per-platform exec projects, whose package surfaces as read-only).
+                // Force-select the first editable package's asset root so creation proceeds
+                // without UI prompts. Note SelectedLocations stores objects (UI binding), so
+                // clearing + re-adding rather than swapping.
+                var editablePackage = session.LocalPackages.FirstOrDefault(p => p.IsEditable);
+                if (editablePackage is null) { host.Log("AddAssetFromTemplate: no editable LocalPackages to default-select"); return Guid.Empty; }
+                var rootDir = editablePackage.AssetMountPoint;
+                assetView.SelectedLocations.Clear();
+                assetView.SelectedLocations.Add(rootDir);
+                host.Log($"AddAssetFromTemplate: default-selected '{rootDir.Path}' in package '{editablePackage.Name}' as creation target");
                 var templateVm = new TemplateDescriptionViewModel(session.ServiceProvider, template);
                 var created = await assetView.RunAssetTemplate(templateVm, null).ConfigureAwait(true);
                 if (created is null || created.Count == 0) { host.Log("AddAssetFromTemplate: RunAssetTemplate returned no asset"); return Guid.Empty; }

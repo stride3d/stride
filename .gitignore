@@ -40,8 +40,11 @@ stride_doc_output
 doc/doxygen/html
 Tools/bin
 Temp/
-bin/
-Bin/
+bin/*
+Bin/*
+!bin/packages/
+bin/packages/*
+!bin/packages/.gitkeep
 ipch/
 obj/
 .vs/
@@ -173,3 +176,4 @@ project.lock.json
 
 # Auto-generated per-checkout by Stride.WorktreeVersion.targets (per-checkout NuGet version suffix)
 /sources/shared/SharedAssemblyInfo.Worktree.cs
+

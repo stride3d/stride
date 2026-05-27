@@ -35,7 +35,19 @@
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
     <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\..\sources\editor\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
+    <!-- Build-time triggers so bin/packages has all three Stride.Templates.* nupkgs available
+         for ScreenshotRunner to find via PackageStore. Without these, sample regen fails at
+         template-lookup time for any sample whose template lives in Starters or Samples. -->
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />

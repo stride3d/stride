@@ -83,12 +83,6 @@ jobs:
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
 
-      # nuget.config's `stride-local` source points at bin/packages, which doesn't exist on a
-      # fresh checkout (auto-pack-deploy populates it on first build); pre-create it empty.
-      - name: Pre-create bin/packages so restore doesn't fail on missing local source
-        shell: pwsh
-        run: New-Item -ItemType Directory -Path bin/packages -Force | Out-Null
-
       # PackageStore.LoadDefaultSettings(null) only reads the user + machine NuGet configs,
       # not the workspace nuget.config — register bin/packages in the user config.
       - name: Register bin/packages with user NuGet config

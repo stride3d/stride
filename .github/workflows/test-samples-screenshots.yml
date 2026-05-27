@@ -96,13 +96,6 @@ jobs:
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
 
-      # nuget.config declares `bin/packages` as the `stride-local` source. NuGet validates every
-      # source path at restore time; on a fresh CI checkout that dir doesn't exist yet (it gets
-      # populated by Stride's auto-pack-deploy on first build), so we materialize it as empty.
-      - name: Pre-create bin/packages so restore doesn't fail on missing local source
-        shell: pwsh
-        run: New-Item -ItemType Directory -Path bin/packages -Force | Out-Null
-
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
       # Locally this works because the dev's user config has Stride.AutoPackDeploy's

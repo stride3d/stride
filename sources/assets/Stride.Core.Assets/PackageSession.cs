@@ -1103,8 +1103,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             dependencies?.EndSavingSession();
 
             // Once all packages and assets have been saved, we can save the solution (as we need to have fullpath to
-            // be setup for the packages)
-            if (packagesSaved)
+            // be setup for the packages). Skip when the session wasn't loaded from a .sln (empty FullPath).
+            if (packagesSaved && !string.IsNullOrEmpty(VSSolution.FullPath))
             {
                 VSSolution.Save();
             }

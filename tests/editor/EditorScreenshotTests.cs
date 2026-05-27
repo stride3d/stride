@@ -131,10 +131,9 @@ public class EditorScreenshotTests
     }
 
     /// <summary>
-    /// Instantiates a template sample (by GUID) into a per-fixture temp dir via
-    /// <see cref="TemplateSampleGenerator"/> — the exact path GS's New Project wizard uses
-    /// internally, so any future generator changes (e.g. silent-upgrade behaviour) flow through.
-    /// Returns the absolute .sln path the AutoTesting runner should open.
+    /// Instantiates a template sample (by .sdtpl Id GUID) into a per-fixture temp dir via
+    /// <see cref="DotNetNewTemplateGenerator"/> — the same path GS's New Project wizard takes
+    /// at runtime. Returns the absolute .sln path the AutoTesting runner should open.
     /// </summary>
     internal static string GenerateSampleFromTemplate(Guid templateGuid, string sampleName)
     {
@@ -148,12 +147,10 @@ public class EditorScreenshotTests
         var logger = new LoggerResult();
         var session = new PackageSession();
         var parameters = new SessionTemplateGeneratorParameters { Session = session, Unattended = true };
-        TemplateSampleGenerator.SetParameters(
-            parameters,
-            AssetRegistry.SupportedPlatforms
-                .Where(x => x.Type == Core.PlatformType.Windows)
-                .Select(x => new SelectedSolutionPlatform(x, x.Templates.FirstOrDefault()))
-                .ToList());
+        DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
+        {
+            ["platforms"] = "windows",
+        });
 
         StrideDefaultAssetsPlugin.LoadDefaultTemplates();
         var template = TemplateManager.FindTemplates(session).FirstOrDefault(t => t.Id == templateGuid)
@@ -166,15 +163,12 @@ public class EditorScreenshotTests
 
         session.SolutionPath = UPath.Combine<UFile>(outputDir, sampleName + ".sln");
 
-        var generator = TemplateSampleGenerator.Default;
+        var generator = new DotNetNewTemplateGenerator();
         if (!generator.PrepareForRun(parameters).Result)
             throw new InvalidOperationException($"PrepareForRun failed for {sampleName}:\n{logger.ToText()}");
         if (!generator.Run(parameters))
             throw new InvalidOperationException($"Run failed for {sampleName}:\n{logger.ToText()}");
 
-        // Persist any in-memory asset upgrades the generator triggered (via AddExistingProject's
-        // null-callback default-Upgrade path) — otherwise GS would re-detect them on open.
-        session.Save(logger);
         if (logger.HasErrors)
             throw new InvalidOperationException($"Generating sample {sampleName} produced errors:\n{logger.ToText()}");
 
