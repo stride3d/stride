@@ -37,6 +37,13 @@ public class MainActivity : AvaloniaMainActivity<App>
         App.SubscribeImageComparison = subscribe => ImageTester.ImageComparisonCompleted += (s, e) =>
             subscribe(new ViewModels.ImageCompareResult(e.CurrentPath, e.ReferencePath, e.Passed, e.Stats.ToString()));
 
+        // Non-interactive entry point for the host orchestration script:
+        //   adb shell am start -n <pkg>/.MainActivity --es xunit_command run
+        // Avalonia still hosts the Stride game surfaces, but RunAll fires immediately and the
+        // process exits with the failed-test count when done.
+        if (Intent?.GetStringExtra("xunit_command") == "run")
+            App.HeadlessMode = true;
+
         base.OnCreate(savedInstanceState);
 
         // Android 15+ forces edge-to-edge for SDK 35+ targets; pad the content view by the

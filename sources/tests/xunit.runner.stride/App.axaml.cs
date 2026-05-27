@@ -29,6 +29,12 @@ public partial class App : Avalonia.Application
     // the setter lives in the test assembly, not in xunit.runner.stride.
     public static System.Reflection.Assembly? TestAssembly;
 
+    // When set (by Android MainActivity reading the launch Intent), Avalonia still loads its
+    // single-view UI for hosting the Stride game surfaces, but RunAll fires immediately and
+    // the process exits with the failed-test count when complete. Driven by:
+    //   adb shell am start --es xunit_command run --ez xunit_exit_on_complete true
+    public static bool HeadlessMode;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -60,19 +66,29 @@ public partial class App : Avalonia.Application
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            // don't remove; also used by visual designer.
-            singleViewPlatform.MainView = new MainView
+            var vm = new MainViewModel
             {
-                DataContext = new MainViewModel
+                Tests =
                 {
-                    Tests =
-                    {
-                        SetInteractiveMode = SetInteractiveMode,
-                        SetForceSaveImage = SetForceSaveImage,
-                        SetRenderDocMode = SetRenderDocMode,
-                    }
+                    SetInteractiveMode = SetInteractiveMode,
+                    SetForceSaveImage = SetForceSaveImage,
+                    SetRenderDocMode = SetRenderDocMode,
                 }
             };
+            SubscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
+            // don't remove; also used by visual designer.
+            singleViewPlatform.MainView = new MainView { DataContext = vm };
+
+            if (HeadlessMode)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+                {
+                    await vm.Tests.DiscoveryTask;
+                    if (vm.Tests.TestCases.Count > 0)
+                        await vm.Tests.RunTestsAsync(vm.Tests.TestCases[0]);
+                    System.Environment.Exit(vm.Tests.FailedCount > 0 ? 1 : 0);
+                });
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

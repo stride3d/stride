@@ -112,14 +112,15 @@ public static class StrideXunitRunner
         return null;
     }
 
-    // Headless trx lands next to the gold-image local dir so a single adb pull picks up
-    // both. Desktop runs drop it beside the test binary so dotnet test --logger trx parity
-    // tools find it without extra config.
-    private static string GetTrxPath(Assembly testAssembly)
+    // Headless trx: Android writes to internal FilesDir (targetSdk 30+ scoped storage
+    // blocks app writes through the FUSE-bound external-files path); host script pulls
+    // via `adb shell run-as <pkg>`. Desktop drops it beside the test binary so
+    // `dotnet test --logger trx` parity tools find it without extra config.
+    internal static string GetTrxPath(Assembly testAssembly)
     {
         var name = testAssembly.GetName().Name ?? "tests";
 #if ANDROID
-        var root = Android.App.Application.Context.GetExternalFilesDir(null)!.AbsolutePath;
+        var root = Android.App.Application.Context.FilesDir!.AbsolutePath;
         return Path.Combine(root, "tests", "local", name, $"{name}.trx");
 #else
         var binDir = Path.GetDirectoryName(testAssembly.Location) ?? AppContext.BaseDirectory;
@@ -127,7 +128,7 @@ public static class StrideXunitRunner
 #endif
     }
 
-    private sealed class CompositeSink : IMessageSinkWithTypes
+    internal sealed class CompositeSink : IMessageSinkWithTypes
     {
         private readonly IMessageSinkWithTypes[] inners;
         public CompositeSink(params IMessageSinkWithTypes[] inners) => this.inners = inners;

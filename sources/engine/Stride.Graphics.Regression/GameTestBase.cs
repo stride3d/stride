@@ -649,13 +649,14 @@ namespace Stride.Graphics.Regression
         /// </summary>
         /// <remarks>
         ///   On desktop this is the Stride solution root, located by traversing upward for <c>build/Stride.sln</c>.
-        ///   On Android it is the app's external files directory, where gold images are synced via <c>adb push</c>
-        ///   and generated images are pulled back from after the run.
+        ///   On Android it is the app's internal files directory (Context.FilesDir): targetSdk 30+ scoped
+        ///   storage blocks the app's own writes through the FUSE-bound external-files path. The host
+        ///   script pushes gold + pulls generated images via <c>adb shell run-as &lt;pkg&gt;</c>.
         /// </remarks>
         private static string GetTestsRootDirectory()
         {
 #if STRIDE_PLATFORM_ANDROID
-            return Android.App.Application.Context.GetExternalFilesDir(null)!.AbsolutePath;
+            return Android.App.Application.Context.FilesDir!.AbsolutePath;
 #else
             return FindStrideSolutionRootDirectory();
 #endif
