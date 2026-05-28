@@ -292,7 +292,7 @@
   <!-- ================================================================ -->
   <Target Name="_StrideTriggerPackOnInnerBuild"
           BeforeTargets="CoreCompile"
-          Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
+          Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(BuildingSolutionFile)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
