@@ -783,10 +783,8 @@ namespace Stride.Input
         private void OnInputDeviceAdded(IInputSource source, IInputDevice device)
         {
             devices.Add(device);
-            if (devicesById.ContainsKey(device.Id))
+            if (!devicesById.TryAdd(device.Id, device))
                 throw new InvalidOperationException($"Device with Id {device.Id}({device.Name}) already registered to {devicesById[device.Id].Name}");
-
-            devicesById.Add(device.Id, device);
 
             if (device is IKeyboardDevice)
             {

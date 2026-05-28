@@ -66,7 +66,7 @@ namespace Stride.Assets.Media
             public EncodeVideoFileCommand(string url, VideoConvertParameters description, IAssetFinder assetFinder, AVCodecID[] listSupportedCodecNames)
                 : base(url, description, assetFinder)
             {
-                Version = 4;
+                Version = 5;
                 ListSupportedCodecNames = listSupportedCodecNames;
             }
 

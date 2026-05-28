@@ -1,0 +1,71 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true'">
+    <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
+    <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Effects\Stride.Shaders.Effects.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" ReferenceOutputAssembly="false" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" PrivateAssets="compile" />
+    <!-- SPIRV-Cross: we use the managed bindings from Silk.NET but replace the native
+         library with our own build (stride3d/SPIRV-Cross) which includes tessellation
+         and other fixes not yet upstream. See dep-spirv-cross.yml workflow. -->
+    <PackageReference Include="Silk.NET.SPIRV.Cross" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="Stride.Dependencies.SpirvCross" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Shaderc" PrivateAssets="compile" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
+    <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
+      <Link>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
+    <StrideNativeLib Include="./native/spirv_to_dxil.dll">
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
+    <StrideNativeLib Include="./native/spirv_to_dxil.pdb" Condition="Exists('./native/spirv_to_dxil.pdb')">
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackGeneratorAnalyzerFiles</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <Target Name="_PackGeneratorAnalyzerFiles">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\*.dll"
+                              Exclude="$(MSBuildThisFileDirectory)..\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Microsoft.CodeAnalysis*.dll"
+                              PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

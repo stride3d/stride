@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
-using Stride.Core.MicroThreading;
 using Stride.Core.Reflection;
 using Stride.Core.Streaming;
 
@@ -157,59 +156,6 @@ public sealed partial class ContentManager : IContentManager
             }
             return true;
         }
-    }
-
-    /// <summary>
-    /// Reloads a content asynchronously. If possible, same recursively referenced objects are reused.
-    /// </summary>
-    /// <param name="obj">The object to reload.</param>
-    /// <param name="newUrl">The url of the new object to load. This allows to replace an asset by another one, or to handle renamed content.</param>
-    /// <param name="settings">The loader settings.</param>
-    /// <returns>A task that completes when the content has been reloaded. The result of the task is True if it could be reloaded, false otherwise.</returns>
-    /// <exception cref="System.InvalidOperationException">Content not loaded through this ContentManager.</exception>
-    public Task<bool> ReloadAsync(object obj, string? newUrl = null, ContentManagerLoaderSettings? settings = null)
-    {
-        return ScheduleAsync(() => Reload(obj, newUrl, settings));
-    }
-
-    /// <summary>
-    /// Loads an asset from the specified URL asynchronously.
-    /// </summary>
-    /// <typeparam name="T">The content type.</typeparam>
-    /// <param name="url">The URL to load from.</param>
-    /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default" />.</param>
-    /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
-    /// <returns>The loaded content.</returns>
-    public Task<T> LoadAsync<T>(string url, ContentManagerLoaderSettings? settings = null) where T : class
-    {
-        return ScheduleAsync(() => Load<T>(url, settings));
-    }
-
-    /// <summary>
-    /// Loads an asset from the specified URL asynchronously.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <param name="url">The URL.</param>
-    /// <param name="settings">The settings.</param>
-    /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
-    /// <returns>The loaded content.</returns>
-    public Task<object> LoadAsync(Type type, string url, ContentManagerLoaderSettings? settings = null)
-    {
-        return ScheduleAsync(() => Load(type, url, settings));
-    }
-
-    private static Task<T> ScheduleAsync<T>(Func<T> action)
-    {
-        var microThread = Scheduler.CurrentMicroThread;
-        return Task.Factory.StartNew(() =>
-        {
-            var initialContext = SynchronizationContext.Current;
-            // This synchronization context gives access to any MicroThreadLocal values. The database to use might actually be micro thread local.
-            SynchronizationContext.SetSynchronizationContext(new MicrothreadProxySynchronizationContext(microThread));
-            var result = action();
-            SynchronizationContext.SetSynchronizationContext(initialContext);
-            return result;
-        });
     }
 
     /// <summary>

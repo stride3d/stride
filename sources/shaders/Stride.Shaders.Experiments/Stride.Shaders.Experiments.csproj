@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Stride.Shaders.Generators\EffectCodeWriter.cs">
+      <Link>EffectCodeWriter.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

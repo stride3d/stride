@@ -4,10 +4,12 @@ namespace Stride.Rendering.Shadows
 {
     /// <summary>
     /// Shadow map caster with pixel shader performing a dithered alpha discard test.
+    /// Runs the material surface chain to populate shadingColorAlpha but never writes ColorTarget,
+    /// so the resulting PS has no SV_Target output (depth-only).
     /// </summary>
-    shader ShadowMapCasterAlphaDithered : Transformation, ShaderBase, PositionStream, MaterialPixelStream
+    shader ShadowMapCasterAlphaDithered : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream
     {
-        static const float BayerMatrix[16] = 
+        static const float BayerMatrix[16] =
         {
             0,
             0.53333336,
@@ -29,11 +31,11 @@ namespace Stride.Rendering.Shadows
 
         override stage void PSMain()
         {
-            base.PSMain();
+            this.Shading();
 
             int2 coord = int2(streams.ShadingPosition.xy % 4.0);
             float bayer = BayerMatrix[coord.x+coord.y*4];
-            clip( -1.01 + bayer + streams.ColorTarget.a * 1.01 );
+            clip( -1.01 + bayer + streams.shadingColorAlpha * 1.01 );
         }
     };
 }

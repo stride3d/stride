@@ -21,20 +21,20 @@
   <!-- ================================================================ -->
   <PropertyGroup>
     <!-- Build all graphics APIs when StrideGraphicsApiDependent or building all -->
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">Vulkan</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">Vulkan</StrideDefaultGraphicsApi>
   </PropertyGroup>
 
   <!-- Some platforms only have a single graphics API.
        If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds) -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
-    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">false</StrideGraphicsApiDependent>
-    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">false</StrideGraphicsApiDependent>
-    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkUWP)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
 
@@ -69,23 +69,25 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Graphics API Output Path Adjustment (Stride.targets:40-46) -->
+  <!-- Graphics API Output Path Adjustment -->
   <!-- ================================================================ -->
-  <!-- When building for multiple graphics APIs, each API gets its own output subdirectory.
-       Test projects using the Stride test SDK override OutputPath after this import. -->
+  <!-- Per-API output subdirectory. Test projects using the Stride test SDK override OutputPath
+       after this import. $(TargetFramework) is wrapped in a conditional variable so the segment
+       collapses cleanly at outer-build (TargetFramework=''). -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</OutputPath>
+    <_StrideGraphicsApiTfmSegment Condition="'$(TargetFramework)' != ''">$(TargetFramework)\</_StrideGraphicsApiTfmSegment>
+    <IntermediateOutputPath>obj\$(Configuration)\$(_StrideGraphicsApiTfmSegment)$(StrideGraphicsApi)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(_StrideGraphicsApiTfmSegment)$(StrideGraphicsApi)\</OutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- UI Framework Configuration -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <StrideUI Condition="'$(TargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
-    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' Or '$(StrideGraphicsApi)' == 'Vulkan')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="'$(StrideTargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
+    <StrideUI Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' Or '$(StrideGraphicsApi)' == 'Vulkan')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>

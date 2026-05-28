@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#5713CDAB, texture.Texture1=#1357ABCD, cbuffer.Test=(OffsetMode=0))
+// PSMain(ExpectedResult=#5713CDAB, texture.Texture1=#1357ABCD, cbuffer.Test=(OffsetMode=1))
+// PSMain(ExpectedResult=#5713CDAB, texture.Texture1=#1357ABCD, cbuffer.Test=(OffsetMode=2))
+
+namespace Stride.Shaders.Tests;
+
+shader TextureSampleLevelOffset
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float2 TexCoord : TEXCOORD;
+
+    stage Texture2D<float4> Texture1;
+    stage SamplerState Sampler1;
+
+    cbuffer Test
+    {
+        int OffsetMode;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0 / 255.0, 2.0 / 255.0, 3.0 / 255.0, 4.0 / 255.0);
+        if (OffsetMode == 0)
+            streams.ColorTarget = Texture1.SampleLevel(Sampler1, streams.TexCoord, 0.0, int2(3, 2)).yxwz;
+        else if (OffsetMode == 1)
+            streams.ColorTarget = Texture1.SampleLevel(Sampler1, streams.TexCoord, 0.0, int2(0, -1)).yxwz;
+        else if (OffsetMode == 2)
+            streams.ColorTarget = Texture1.SampleLevel(Sampler1, streams.TexCoord, 0.0, -1).yxwz;
+    }
+}

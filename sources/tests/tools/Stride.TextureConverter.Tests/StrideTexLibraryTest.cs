@@ -43,8 +43,8 @@ namespace Stride.TextureConverter.Tests
         {
             TexImage image = TestTools.Load(library, "Texture3D_WMipMaps_ATC_RGBA_Explicit.sd");
             Assert.False(library.CanHandleRequest(image, new DecompressingRequest(false)));
-            Assert.False(library.CanHandleRequest(image, new LoadingRequest(new TexImage(), false)));
-            Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
+            Assert.False(library.CanHandleRequest(image, new TexImageLoadingRequest(new TexImage(), false)));
+            Assert.True(library.CanHandleRequest(image, new FileLoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.sd", 0)));
             Assert.True(library.CanHandleRequest(image, new ExportToStrideRequest()));
             image.Dispose();

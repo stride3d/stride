@@ -1205,7 +1205,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     ext = ext?.Replace(".xk", ".sd");
 
                     //make sure to add default shaders in this case, since we don't have a csproj for them
-                    if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && (package.Container is not SolutionProject || package.IsSystem))
+                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && (package.Container is not SolutionProject || package.IsSystem))
                     {
                         listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                         continue;
@@ -1256,7 +1256,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         if (nameSpace?.Length == 0)
             nameSpace = null;
 
-        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
             // Build full path for Include and Link
             .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
             // For items outside project, let's pretend they are link

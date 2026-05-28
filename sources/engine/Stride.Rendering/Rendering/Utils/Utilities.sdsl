@@ -5,31 +5,25 @@
 /// </summary>
 shader Utilities
 {
-    // -------------------------------------
-    // type definition
-    // -------------------------------------
-    typedef uint Half2;
-    typedef uint2 Half4;
-    
     // Converts a Half2 to a float2
-    float2 Half2ToFloat2(Half2 value) 
+    float2 UnpackHalf2ToFloat2(uint value) 
     {
         return float2(f16tof32(value), f16tof32(value >> 16));
     }
 
     // Converts a float2 to a Half2
-    Half2 Float2ToHalf2(float2 value) 
+    uint PackFloat2ToHalf2(float2 value) 
     {
         return f32tof16(value.x) | (f32tof16(value.y) << 16);
     }
 
     // Converts a Half4 to a float4
-    float4 Half4ToFloat4(Half4 value) {
+    float4 UnpackHalf4ToFloat4(uint2 value) {
         return float4(f16tof32(value.x), f16tof32(value.x>>16), f16tof32(value.y), f16tof32(value.y>>16));
     }
 
     // Converts a float4 to a Half4
-    Half4 Float4ToHalf4(float4 value) {
+    uint2 PackFloat4ToHalf4(float4 value) {
         return uint2(f32tof16(value.x) | (f32tof16(value.y) << 16), f32tof16(value.z) | (f32tof16(value.w) << 16));
     }
 

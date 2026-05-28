@@ -1,9 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
+using Stride.Core.Serialization.Contents;
 using Stride.Core.Mathematics;
 using Stride.Assets.Sprite;
 using Stride.Editor.Thumbnails;
@@ -46,6 +49,22 @@ namespace Stride.Assets.Presentation.Thumbnails
             public SpriteSheetThumbnailCommand(ThumbnailCompilerContext context, AssetItem assetItem, IAssetFinder assetFinder, string url, ThumbnailCommandParameters parameters)
                 : base(context, assetItem, assetFinder, url, parameters)
             {
+            }
+
+            public override IEnumerable<ObjectUrl> GetInputFiles()
+            {
+                foreach (var input in base.GetInputFiles())
+                    yield return input;
+
+                var spriteSheet = (SpriteSheetAsset)Parameters.Asset;
+                if (spriteSheet?.Sprites == null)
+                    yield break;
+
+                foreach (var sprite in spriteSheet.Sprites)
+                {
+                    if (sprite.Source != null && File.Exists(sprite.Source))
+                        yield return new ObjectUrl(UrlType.File, sprite.Source);
+                }
             }
 
             protected override void RenderSprites(RenderDrawContext context)

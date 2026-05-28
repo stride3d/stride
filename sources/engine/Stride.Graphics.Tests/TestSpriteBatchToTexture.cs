@@ -23,7 +23,7 @@ namespace Stride.Graphics.Tests
         private Texture uv;
         private SpriteSheet spheres;
 
-        private SpriteFont arial;
+        private SpriteFont notoSans;
 
         private int width;
         private int height;
@@ -51,7 +51,7 @@ namespace Stride.Graphics.Tests
             uv = Content.Load<Texture>("uv");
             spheres = Content.Load<SpriteSheet>("SpriteSphere");
 
-            arial = Content.Load<SpriteFont>("StaticFonts/Arial18");
+            notoSans = Content.Load<SpriteFont>("StaticFonts/NotoSans18");
 
             width = GraphicsDevice.Presenter.BackBuffer.ViewWidth;
             height = GraphicsDevice.Presenter.BackBuffer.ViewHeight;
@@ -75,7 +75,7 @@ namespace Stride.Graphics.Tests
             spriteBatch.Begin(GraphicsContext);
             spriteBatch.Draw(uv, new RectangleF(0, 0, OfflineWidth, OfflineHeight), null, Color.White, 0, Vector2.Zero);
             spriteBatch.Draw(spheres[0].Texture, Vector2.Zero, spheres[0].Region, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, ImageOrientation.AsIs, 1);
-            spriteBatch.DrawString(arial, "Text on Top", new Vector2(75, 75), Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 2f, TextAlignment.Left);
+            spriteBatch.DrawString(notoSans, "Text on Top", new Vector2(75, 75), Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 2f, TextAlignment.Left);
             spriteBatch.End();
 
             // copy texture on screen

@@ -26,10 +26,8 @@ public static class AssetQuantumRegistry
                 if (type.GetConstructor(AssetPropertyNodeGraphConstructorSignature) is null)
                     throw new InvalidOperationException($"The type {type.Name} does not have a public constructor matching the expected signature: ({string.Join(", ", (IEnumerable<Type>)AssetPropertyNodeGraphConstructorSignature)})");
 
-                if (NodeGraphTypes.ContainsKey(attribute.AssetType))
+                if (!NodeGraphTypes.TryAdd(attribute.AssetType, type))
                     throw new ArgumentException($"The type {attribute.AssetType.Name} already has an associated property node graph type.");
-
-                NodeGraphTypes.Add(attribute.AssetType, type);
             }
 
             if (typeof(AssetPropertyGraphDefinition).IsAssignableFrom(type))

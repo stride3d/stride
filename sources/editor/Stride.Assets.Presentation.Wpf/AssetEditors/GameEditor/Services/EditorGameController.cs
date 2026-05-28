@@ -40,7 +40,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
     public delegate TEditorGame EditorGameFactory<out TEditorGame>(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
         where TEditorGame : EditorServiceGame;
 
-    public abstract partial class EditorGameController<TEditorGame> : IEditorGameController
+    /// <summary>Non-generic internal hook so external assemblies (test harness) can reach the
+    /// underlying <see cref="EditorServiceGame"/> without depending on the closed generic type.</summary>
+    internal interface IEditorGameAccess
+    {
+        EditorServiceGame EditorGame { get; }
+    }
+
+    public abstract partial class EditorGameController<TEditorGame> : IEditorGameController, IEditorGameAccess
         where TEditorGame : EditorServiceGame
     {
         /// <summary>
@@ -51,6 +58,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         /// Gets the game associated with the scene editor.
         /// </summary>
         protected readonly TEditorGame Game;
+
+        EditorServiceGame IEditorGameAccess.EditorGame => Game;
         /// <summary>
         /// The scene game thread.
         /// </summary>

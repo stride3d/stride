@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
-using System.Globalization;
 
 using Stride.Core;
 using Stride.Rendering.Materials;
+using Stride.Shaders;
 
 namespace Stride.Rendering.Images
 {
@@ -47,7 +47,7 @@ namespace Stride.Rendering.Images
             set
             {
                 colorChannel = value;
-                GenericArguments = new object[] { value.ToString().ToLowerInvariant() };
+                Shader = new ShaderClassSource("LuminanceToChannelShader", value.ToString().ToLowerInvariant());
             }
         }
     }

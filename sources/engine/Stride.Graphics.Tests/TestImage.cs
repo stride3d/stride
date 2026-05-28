@@ -183,15 +183,10 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestLoadAndSave()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "FreeImage Save not fully supported on Linux");
-
             foreach (ImageFileType sourceFormat in Enum.GetValues<ImageFileType>())
             {
                 foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
                 {
-                    if (sourceFormat == ImageFileType.Wmp) // no input image of this format.
-                        continue;
-
                     if (Platform.Type == PlatformType.Android && (
                         intermediateFormat == ImageFileType.Bmp || // TODO remove this when Save method is implemented for the bmp format
                         intermediateFormat == ImageFileType.Gif || // TODO remove this when Save method is implemented for the gif format
@@ -200,8 +195,7 @@ namespace Stride.Graphics.Tests
                         sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
                         continue;
 
-                    if (intermediateFormat == ImageFileType.Wmp || sourceFormat == ImageFileType.Wmp ||
-                        intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for those types.
+                    if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
                         continue;
 
                     PerformTest(

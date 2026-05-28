@@ -1,0 +1,183 @@
+name: "Dep: Build VHACD"
+
+# Builds stride_vhacd.{dll,so,dylib} per RID: a single self-contained shared lib
+# that wraps kmammou/v-hacd v4 (header-only). Used by Stride.Assets to compute
+# convex hull decompositions during physics collider asset compilation.
+#
+# Upstream:
+#   https://github.com/kmammou/v-hacd
+#
+# Output per OS — one self-contained shared lib per RID:
+#   Windows: stride_vhacd.dll (+ stride_vhacd.pdb)
+#   Linux:   stride_vhacd.so
+#   macOS:   stride_vhacd.dylib
+#
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      vhacd-version:
+        description: kmammou/v-hacd ref (branch, tag or commit)
+        default: master
+        required: true
+
+jobs:
+  build-windows:
+    name: Build VHACD (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: ARM64
+            rid: win-arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+
+      - name: Checkout V-HACD
+        uses: actions/checkout@v4
+        with:
+          repository: kmammou/v-hacd
+          ref: ${{ github.event.inputs.vhacd-version }}
+          path: vhacd-src
+
+      - name: Configure & build wrapper
+        shell: pwsh
+        run: |
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -A ${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DVHACD_SRC="$pwd/vhacd-src"
+          cmake --build _build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          Copy-Item _build/Release/stride_vhacd.dll "out/${{ matrix.rid }}/"
+          Copy-Item _build/Release/stride_vhacd.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_vhacd-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build VHACD (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+
+      - name: Checkout V-HACD
+        uses: actions/checkout@v4
+        with:
+          repository: kmammou/v-hacd
+          ref: ${{ github.event.inputs.vhacd-version }}
+          path: vhacd-src
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Configure & build wrapper
+        run: |
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DVHACD_SRC=$PWD/vhacd-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          cp _build/stride_vhacd.so out/linux-x64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_vhacd-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build VHACD (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+
+      - name: Checkout V-HACD
+        uses: actions/checkout@v4
+        with:
+          repository: kmammou/v-hacd
+          ref: ${{ github.event.inputs.vhacd-version }}
+          path: vhacd-src
+
+      - name: Configure & build wrapper
+        run: |
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DVHACD_SRC=$PWD/vhacd-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/osx-arm64
+          cp _build/stride_vhacd.dylib out/osx-arm64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_vhacd-osx-arm64
+          path: out/osx-arm64/
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout V-HACD (for commit hash)
+        uses: actions/checkout@v4
+        with:
+          repository: kmammou/v-hacd
+          ref: ${{ github.event.inputs.vhacd-version }}
+          path: vhacd-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into Release/ layout
+        run: |
+          OUT=stride_vhacd-out
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+            mkdir -p $OUT/Release/$rid
+            cp artifacts/stride_vhacd-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
+          done
+
+          COMMIT=$(git -C vhacd-src rev-parse HEAD)
+          printf 'V-HACD %s\nRepository: https://github.com/kmammou/v-hacd\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.vhacd-version }}" \
+            "$COMMIT" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
+
+      - name: List contents
+        run: find stride_vhacd-out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_vhacd-all-platforms
+          path: stride_vhacd-out/

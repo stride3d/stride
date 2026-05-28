@@ -85,6 +85,12 @@ public sealed class GameStudioBuilderService : AssetBuilderService
     /// </summary>
     public bool IsDisposed { get; private set; }
 
+    /// <summary>
+    ///   The number of shader-compile tasks waiting in the queue. Test harnesses use this to
+    ///   detect a quiescent state; production code should treat it as informational only.
+    /// </summary>
+    public int PendingShaderCompilationCount => taskScheduler.QueuedTaskCount;
+
     public override void Dispose()
     {
         base.Dispose();

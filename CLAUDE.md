@@ -57,6 +57,17 @@ The xplat-editor branch enforces strict UI separation:
 
 New UI features always go in the appropriate tier. ViewModels go in the agnostic project, views in `.Avalonia`.
 
+### File Duplication Between Agnostic and `.Wpf` Projects
+
+Some files exist in both the agnostic project and its `.Wpf` counterpart because the WPF code couldn't be cleanly split (e.g. uses WPF types directly, or the agnostic port is incomplete). The duplicated file lives at the same relative path in both projects.
+
+**Implication for merges from master:** master only has one copy (in what it considers the WPF project). Git's rename detection follows the file into the agnostic project on this branch, so a change in master gets auto-merged into the agnostic copy — but the `.Wpf` copy is silently left untouched. After any merge from master, run a duplicate-file check and propagate the same change to the `.Wpf` copy where appropriate.
+
+Known duplicated files (as of the last master merge):
+- `Stride.Core.Assets.Editor` ↔ `Stride.Core.Assets.Editor.Wpf` (~86 files)
+- `Stride.Assets.Presentation` ↔ `Stride.Assets.Presentation.Wpf` (~6 files)
+- `Stride.Editor` ↔ `Stride.Editor.Wpf` (~58 files)
+
 ### Key Project Locations
 
 - `sources/presentation/` — UI framework layer (converters, controls, base ViewModels, Quantum graph)

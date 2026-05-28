@@ -60,9 +60,28 @@ public static class Program
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
     private static bool enableThumbnailServices = true;
 
+    // Startup checkpoints; shared file with the AutoTesting runner.
+    private static readonly string DiagLogPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gs-diag.log");
+    private static void DiagLog(string message)
+    {
+        try { System.IO.File.AppendAllText(DiagLogPath, $"{DateTime.UtcNow:HH:mm:ss.fff} [tid={Thread.CurrentThread.ManagedThreadId}] GS: {message}\n"); }
+        catch { /* best-effort */ }
+    }
+
     [STAThread]
     public static void Main()
     {
+        Run(Environment.GetCommandLineArgs().Skip(1).ToList());
+    }
+
+    /// <summary>
+    /// Editor entry point body. <paramref name="appHosted"/> fires after
+    /// <c>InitializeComponent</c> and before <c>app.Run</c>, giving the AutoTesting runner
+    /// access to the WPF Application + dispatcher.
+    /// </summary>
+    public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
+    {
+        DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         EditorPath.EditorTitle = StrideGameStudio.EditorName;
 
@@ -87,8 +106,6 @@ public static class Program
         {
             try
             {
-                // Environment.GetCommandLineArgs correctly process arguments regarding the presence of '\' and '"'
-                var args = Environment.GetCommandLineArgs().Skip(1).ToList();
                 var startupSessionPath = StrideEditorSettings.StartupSession.GetValue();
                 var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
                 var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
@@ -142,6 +159,10 @@ public static class Program
 
                 //listen to logger for crash report
                 GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
+                // Route GlobalLogger output to VS Debug pane (no-op in Release).
+                // Warning+ only — Info/Verbose volume slows the debugger noticeably during
+                // asset compile / NuGet restore.
+                GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
 
                 mainDispatcher = Dispatcher.CurrentDispatcher;
                 mainDispatcher.InvokeAsync(() => Startup(initialSessionPath));
@@ -159,7 +180,10 @@ public static class Program
                     };
 
                     app.InitializeComponent();
+                    appHosted?.Invoke(app, mainDispatcher);
+                    DiagLog("calling app.Run");
                     app.Run();
+                    DiagLog("app.Run returned");
                 }
 
                 renderDocManager?.RemoveHooks();

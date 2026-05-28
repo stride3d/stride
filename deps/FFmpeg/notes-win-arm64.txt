@@ -1,1 +1,0 @@
-For win-arm64: Use https://github.com/azeno/FFmpeg/tree/win-arm64, it's based on release/3.4

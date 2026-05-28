@@ -1,0 +1,8 @@
+DirectXTex may2026
+Repository: https://github.com/microsoft/DirectXTex
+Commit: 4feb3e11a020f35b796fc769a74216a555d4f5ef
+DirectX-Headers: v1.619.1
+DirectXMath: may2026
+Stride: https://github.com/xen2/stride @ 47082cb973d1d71ed42831ca3deec175026f1a15
+Built: 2026-05-18
+Workflow: https://github.com/xen2/stride/actions/runs/26045195906

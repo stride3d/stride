@@ -7,9 +7,10 @@ using Xunit;
 
 namespace Stride.Core.Assets.Tests
 {
-    public abstract class TestBase
+    public class TestBase
     {
-        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, "data");
+        // Trailing separator is intentional: callers concatenate subpaths with `+ "subdir\..."`.
+        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, "data") + Path.DirectorySeparatorChar;
 
         public static void GenerateAndCompare(string title, string outputFilePath, string referenceFilePath, Asset asset)
         {
@@ -23,15 +24,6 @@ namespace Stride.Core.Assets.Tests
         }
 
         public static string AssemblyDirectory
-        {
-            get
-            {
-                var codeBase = Assembly.GetExecutingAssembly().Location;
-                var uri = new Uri(new Uri("file://"), codeBase);
-                var path = Uri.UnescapeDataString(uri.AbsolutePath);
-                return Path.GetDirectoryName(path);
-            }
-        }
-
+            => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
     }
 }

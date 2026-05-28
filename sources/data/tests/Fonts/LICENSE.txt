@@ -1,3 +1,23 @@
+Copyright statements for the fonts in this directory:
+
+NotoSansJP-Regular.otf:
+    Copyright 2014-2021 Adobe (http://www.adobe.com/),
+    with Reserved Font Name 'Source'.
+    Copyright 2014-2021 Google LLC, with Reserved Font Name 'Noto'.
+    Source: https://github.com/notofonts/noto-cjk
+
+NotoSans-Bold.ttf:
+    Copyright 2022 The Noto Project Authors
+    (https://github.com/notofonts/latin-greek-cyrillic).
+    Source: https://github.com/notofonts/notofonts.github.io
+
+LiberationMono-Regular.ttf:
+    Digitized data copyright (c) 2010 Google Corporation
+        with Reserved Font Arimo, Tinos and Cousine.
+    Copyright (c) 2012 Red Hat, Inc.
+        with Reserved Font Name Liberation.
+    Source: https://github.com/liberationfonts/liberation-fonts
+
 This Font Software is licensed under the SIL Open Font License,
 Version 1.1.
 

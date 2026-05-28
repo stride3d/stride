@@ -1,23 +1,12 @@
 name: Build Linux Runtime
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Build Linux Runtime — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Build Linux Runtime @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-linux-runtime.yml'
-      - 'build/Stride.Runtime.slnf'
-      - 'deps/**'
-      - 'sources/core/**'
-      - 'sources/engine/**'
-      - 'sources/native/**'
-      - 'sources/shaders/**'
-      - 'sources/shared/**'
-      - 'sources/sdk/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -32,9 +21,12 @@ on:
       build-type:
         default: Debug
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [build-linux-runtime]
 
 concurrency:
-  group: build-linux-runtime-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: build-linux-runtime-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -42,13 +34,14 @@ jobs:
   # Build Stride Runtime for Linux
   #
   Linux-Runtime:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

@@ -133,10 +133,10 @@ namespace Stride.Video
 
                 StartWorker();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Release();
-                throw e;
+                throw;
             }
         }
 

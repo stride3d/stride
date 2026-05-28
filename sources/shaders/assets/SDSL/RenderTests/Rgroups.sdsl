@@ -1,0 +1,29 @@
+// PSMain(ExpectedResult=#12140000, texture.Texture1=#12000000, texture.Texture2=#00140000)
+
+namespace Stride.Shaders.Tests;
+
+shader RgroupBase
+{
+    rgroup Group1
+    {
+        stage Texture2D<float4> Texture1;
+    }
+}
+
+shader Rgroups : RgroupBase
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float2 TexCoord : TEXCOORD;
+
+
+    rgroup Group1
+    {
+        stage Texture2D<float4> Texture2;
+        stage SamplerState Sampler1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Texture1.Sample(Sampler1, streams.TexCoord) + Texture2.Sample(Sampler1, streams.TexCoord);
+    }
+}

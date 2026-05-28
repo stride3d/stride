@@ -40,7 +40,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <PackageReference Include="FFmpeg.AutoGen" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="FFmpeg.AutoGen" Condition="'$(TargetFramework)' == '$(StrideFramework)'" PrivateAssets="compile" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

@@ -22,7 +22,7 @@
     Rule: User properties from .csproj ARE visible here.
           This is where conditional logic belongs.
 
-    See: build/docs/SDK-GUIDE.md#property-evaluation-order
+    See: docs/build/SDK-GUIDE.md#property-evaluation-order
     ================================================================
   -->
 
@@ -35,6 +35,7 @@
   <Import Project="Stride.AssemblyProcessor.targets" />
   <Import Project="Stride.CodeAnalysis.targets" />
   <Import Project="Stride.PackageInfo.targets" />
+  <Import Project="$(StrideRoot)sources\targets\Stride.WorktreeVersion.targets" Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
 
   <!-- ================================================================ -->
   <!-- Disable ValidateExecutableReferences -->
@@ -62,6 +63,16 @@
   <Import Project="Stride.GraphicsApi.InnerBuild.targets" />
 
   <!-- ================================================================ -->
+  <!-- Graphics API consumer-side targets (shared with NuGet consumers) -->
+  <!-- ================================================================ -->
+  <!-- Lives in Stride.Graphics/build/ because the same file is packed into
+       the Stride.Graphics NuGet's build/ and buildTransitive/ folders for
+       external consumers. Importing it here also gives internal Stride
+       builds (which consume Silk.NET native packages directly via
+       PackageReference) the same per-API native asset trimming. -->
+  <Import Project="$(StrideRoot)sources/engine/Stride.Graphics/build/Stride.GraphicsApiSpecificPackages.targets" />
+
+  <!-- ================================================================ -->
   <!-- Native dependency system (.ssdeps) -->
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />
@@ -77,13 +88,21 @@
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
-  <!-- Configure .sdsl and .sdfx files with their code generators,
-       and mark generated .cs files as dependent on their source shader -->
-  <ItemGroup>
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+  <!-- Auto-discover .sdsl/.sdfx files, register them as AdditionalFiles for the
+       Roslyn source generator, mark generated .cs as dependent, and tag the files
+       with the VS Custom Tool generator for older projects that still use it.
+       Projects that contain .sdsl/.sdfx files as test inputs or other non-shader
+       content can set EnableDefaultStrideShaderItems=false to opt out. -->
+  <PropertyGroup>
+    <EnableDefaultStrideShaderItems Condition="'$(EnableDefaultStrideShaderItems)' == ''">true</EnableDefaultStrideShaderItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableDefaultStrideShaderItems)' == 'true'">
+    <None Remove="**\*.sdsl" />
+    <None Remove="**\*.sdfx" />
+    <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="@(StrideShaderFiles)" />
+    <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(StrideRoot)sources\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- ================================================================ -->
@@ -98,6 +117,31 @@
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Strip per-RID compute globals from ProjectReference dispatches    -->
+  <!-- ================================================================ -->
+  <!-- Microsoft.Android.Sdk.AssemblyResolution.targets _ResolveAssemblies dispatches the
+       outer Android build to itself with _ComputeFilesToPublishForRuntimeIdentifiers=true and
+       a bag of _Outer* / Skip* / AppendRuntimeIdentifierToOutputPath / DesignTimeBuild=false
+       globals to compute publish files per RID. Those globals propagate through every
+       transitive ProjectReference as inherited global properties, producing a second MSBuild
+       build-cache key for every shared dependency (Stride.Engine -> Stride.VirtualReality,
+       Stride.Navigation -> Stride.Physics, ...). When test projects build in parallel, the
+       resulting concurrent dispatches collide on the shared dep's obj/ — MSB3030 "X.dll not
+       found", file lock contention on Stride.X.GeneratedMSBuildEditorConfig.editorconfig,
+       XARLP7024 HashFile, etc. Strip on every level of the chain so both regular and per-RID
+       dispatches share a single cache key. -->
+  <Target Name="_StrideStripPerRidGlobalsFromProjectReferences"
+          BeforeTargets="_SplitProjectReferencesByFileExistence"
+          Condition="'$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">
+    <!-- Also strip RuntimeIdentifier* / SelfContained — they're set on test projects and would
+         otherwise propagate to library deps as a cross-RID restore demand they don't need. -->
+    <ItemGroup>
+      <ProjectReference Update="@(ProjectReference)"
+                        UndefineProperties="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;_ComputeFilesToPublishForRuntimeIdentifiers;_OuterIntermediateAssembly;_OuterIntermediateOutputPath;_OuterCustomViewMapFile;_OuterIntermediateSatelliteAssembliesWithTargetPath;_OuterOutputPath;_AndroidNdkDirectory;AppendRuntimeIdentifierToOutputPath;DesignTimeBuild;ResolveAssemblyReferencesFindRelatedSatellites;SkipCompilerExecution" />
+    </ItemGroup>
+  </Target>
 
   <!-- ================================================================ -->
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
@@ -136,7 +180,7 @@
   <!-- StrideCompilerTargetsEnable - Conditional Build Skip -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <StrideCompilerTargetsEnable Condition="'$(TargetFramework)' != '$(StrideFramework)' And '$(TargetFramework)' == '$(StrideFrameworkWindows)' And '$(StrideWindowsOnly)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideTargetFramework)' != '$(StrideFramework)' And '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' And '$(StrideWindowsOnly)' == 'true'">false</StrideCompilerTargetsEnable>
     <!-- Skip unit tests if requested -->
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true' And $(StrideOutputFolder.StartsWith('Tests'))">false</StrideCompilerTargetsEnable>
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
@@ -165,13 +209,34 @@
   </Target>
 
   <!-- ================================================================ -->
+  <!-- FastUpToDateCheck: invalidate when packed content files change -->
+  <!-- ================================================================ -->
+  <!-- VS's FastUpToDateCheck only watches Compile items by default. Pack-only
+       content (build/buildTransitive targets, AssetPackage assets, etc.) is
+       declared via None/Content with Pack="true"; if those change and
+       nothing in Compile does, VS reports "up to date" and skips Build/Pack
+       so the .nupkg never refreshes. Registering them as UpToDateCheckInput
+       forces a rebuild whenever they're edited. -->
+  <ItemGroup>
+    <UpToDateCheckInput Include="@(None->WithMetadataValue('Pack', 'true'))" />
+    <UpToDateCheckInput Include="@(Content->WithMetadataValue('Pack', 'true'))" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
-    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
+    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
+         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
+         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
+    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
+               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
   </Target>
+  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
+       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
+       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
+       suppresses Pack in those inner dispatches. No additional gate needed here. -->
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
     <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -233,6 +298,72 @@
              BuildInParallel="$(BuildInParallel)"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
     </MSBuild>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Local.props Bootstrap (in-source only) -->
+  <!-- ================================================================ -->
+  <!-- Copies Local.props.template to the repo root on first build/restore. _StrideLocalProps
+       and _StrideLocalPropsTemplate are populated in Stride.Platform.props; both are empty
+       for end-users consuming the SDK from NuGet (no crowdin.yml anchor), so this no-ops.
+       Runs before Restore and Build to cover the dotnet build, dotnet restore, and
+       no-restore flows. Imports happen during evaluation, so the just-written file is
+       picked up on the next invocation, not the current one (first build uses defaults).
+
+       Parallel project builds all fire this target concurrently; a plain <Copy> here
+       races with sibling projects re-evaluating the <Import> in Stride.Platform.props
+       (MSB4024: "file is being used by another process"). _StrideAtomicCopyIfMissing
+       writes to a unique temp file then File.Move's it into place — atomic via
+       MoveFileEx on NTFS / rename(2) on Unix. Losers of the race clean up their temp. -->
+  <UsingTask TaskName="_StrideAtomicCopyIfMissing"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourceFile ParameterType="System.String" Required="true" />
+      <DestinationFile ParameterType="System.String" Required="true" />
+      <DidCreate ParameterType="System.Boolean" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        DidCreate = false;
+        if (System.IO.File.Exists(DestinationFile)) return true;
+        var tmp = DestinationFile + "." + System.Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            System.IO.File.Copy(SourceFile, tmp);
+            // File.Move(src, dst) throws IOException when dst already exists — the race-loser arm.
+            System.IO.File.Move(tmp, DestinationFile);
+            DidCreate = true;
+        }
+        catch (System.IO.IOException)
+        {
+            // Another parallel build won; clean up our temp.
+            try { System.IO.File.Delete(tmp); } catch { }
+        }
+        return true;
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="_StrideBootstrapLocalProps"
+          BeforeTargets="Restore;Build"
+          Condition="'$(_StrideLocalProps)' != '' And !Exists('$(_StrideLocalProps)') And Exists('$(_StrideLocalPropsTemplate)')">
+    <_StrideAtomicCopyIfMissing SourceFile="$(_StrideLocalPropsTemplate)" DestinationFile="$(_StrideLocalProps)">
+      <Output TaskParameter="DidCreate" PropertyName="_StrideLocalPropsCreated" />
+    </_StrideAtomicCopyIfMissing>
+    <Message Importance="High" Condition="'$(_StrideLocalPropsCreated)' == 'true'"
+             Text="Created $(_StrideLocalProps) from template — edit it to customize local build settings." />
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Strip unused ComInterfaceGenerator (slow, we don't use the feature) -->
+  <!-- ================================================================ -->
+  <Target Name="_StrideStripComInterfaceGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Microsoft.Interop.ComInterfaceGenerator'" />
+    </ItemGroup>
   </Target>
 
   <!-- ================================================================ -->

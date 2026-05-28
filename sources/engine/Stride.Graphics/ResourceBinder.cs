@@ -41,36 +41,37 @@ namespace Stride.Graphics
         public void Compile(EffectDescriptorSetReflection descriptorSetLayouts, EffectBytecode effectBytecode)
         {
             descriptorSetBindings = new BindingOperation[descriptorSetLayouts.Layouts.Count][];
+            var reflection = effectBytecode.Reflection;
 
             for (int setIndex = 0; setIndex < descriptorSetLayouts.Layouts.Count; setIndex++)
             {
-                var layout = descriptorSetLayouts.Layouts[setIndex].Layout;
+                var descriptorSetLayout = descriptorSetLayouts.Layouts[setIndex];
+                var layout = descriptorSetLayout.Layout;
                 if (layout is null)
                     continue;
 
+                var group = reflection.FindResourceGroup(descriptorSetLayout.Name, descriptorSetLayouts.DefaultSetSlot);
+                if (group == null)
+                    continue;
+
                 var bindingOperations = new List<BindingOperation>();
+                var isDefaultSetSlot = descriptorSetLayout.Name == descriptorSetLayouts.DefaultSetSlot;
 
                 for (int resourceIndex = 0; resourceIndex < layout.Entries.Count; resourceIndex++)
                 {
                     var layoutEntry = layout.Entries[resourceIndex];
 
-                    // Find it in shader reflection
-                    foreach (var resourceBinding in effectBytecode.Reflection.ResourceBindings)
+                    // Find matching entry in the resource group
+                    if (!TryMatchEntry(group, layoutEntry, resourceIndex, bindingOperations) && isDefaultSetSlot)
                     {
-                        if (resourceBinding.Stage == ShaderStage.None)
-                            continue;
-
-                        if (resourceBinding.KeyInfo.Key == layoutEntry.Key)
+                        // Fallback: search unnamed/Globals groups (resources without explicit resource group)
+                        foreach (var fallbackGroup in reflection.ResourceGroups)
                         {
-                            // Create a binding operation for this resource (Descriptor)
-                            bindingOperations.Add(new BindingOperation
+                            if (fallbackGroup != group && fallbackGroup.Name is null or "Globals")
                             {
-                                EntryIndex = resourceIndex,
-                                Class = resourceBinding.Class,
-                                Stage = resourceBinding.Stage,
-                                SlotStart = resourceBinding.SlotStart,
-                                ImmutableSampler = layoutEntry.ImmutableSampler
-                            });
+                                if (TryMatchEntry(fallbackGroup, layoutEntry, resourceIndex, bindingOperations))
+                                    break;
+                            }
                         }
                     }
                 }
@@ -78,6 +79,29 @@ namespace Stride.Graphics
                 // Store the binding operations for this Descriptor Set
                 descriptorSetBindings[setIndex] = bindingOperations.Count > 0 ? bindingOperations.ToArray() : null;
             }
+        }
+
+        private static bool TryMatchEntry(EffectResourceGroupDescription group, DescriptorSetLayoutBuilder.Entry layoutEntry, int resourceIndex, List<BindingOperation> bindingOperations)
+        {
+            foreach (var resEntry in group.Entries)
+            {
+                if (resEntry.KeyInfo.Key == layoutEntry.Key && resEntry.Stages != ShaderStageFlags.None)
+                {
+                    resEntry.Stages.ForEach(stage =>
+                    {
+                        bindingOperations.Add(new BindingOperation
+                        {
+                            EntryIndex = resourceIndex,
+                            Class = resEntry.Class,
+                            Stage = stage,
+                            SlotStart = resEntry.SlotStart,
+                            ImmutableSampler = layoutEntry.ImmutableSampler
+                        });
+                    });
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -152,6 +176,8 @@ namespace Stride.Graphics
             public ShaderStage Stage;
             public int SlotStart;
             public SamplerState ImmutableSampler;
+
+            public string ToString() => $"DescriptorEntry [{EntryIndex}] => {Stage} {Class} {SlotStart}";
         }
     }
 }

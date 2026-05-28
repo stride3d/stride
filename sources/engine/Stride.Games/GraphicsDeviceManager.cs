@@ -192,6 +192,13 @@ namespace Stride.Games
         public string RequiredAdapterUid { get; set; }
 
         /// <summary>
+        ///   When set, the requested back-buffer size is honoured as-is and any clamp to the host
+        ///   window's client area is skipped (both in <see cref="GameBase.ConfirmRenderingSettings"/>
+        ///   and in the <see cref="GraphicsPresenter"/>'s swap-chain creation).
+        /// </summary>
+        public bool SkipBackBufferClampToWindow { get; set; }
+
+        /// <summary>
         ///   Gets or sets the preferred color space for the Back-Buffers.
         /// </summary>
         public ColorSpace PreferredColorSpace
@@ -1185,6 +1192,7 @@ namespace Stride.Games
 
                     // Find the best device configuration based on the current settings
                     var graphicsDeviceInformation = FindBestDevice(forceCreate);
+                    graphicsDeviceInformation.PresentationParameters.SkipBackBufferClampToWindow = SkipBackBufferClampToWindow;
                     // Give a chance to the game to modify the device settings before the device is created or reset
                     OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 

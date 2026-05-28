@@ -1,0 +1,15 @@
+// PSMain(ExpectedResult=#10101010, cbuffer.Globals=(Test=16))
+
+namespace Stride.Shaders.Tests;
+
+shader CBufferGlobals
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    stage float Test;
+
+	void PSMain()
+	{
+		streams.ColorTarget = Test / 255.0;
+	}
+};

@@ -14,14 +14,14 @@ namespace Stride.TextureConverter.Tests
     public class ArrayTexLibraryTest : IDisposable
     {
         private readonly ArrayTexLib library;
-        private readonly FITexLib fiLib;
+        private readonly ImageSharpTexLib fiLib;
         private readonly DxtTexLib dxtLib;
 
         public ArrayTexLibraryTest()
         {
             Module.LoadLibraries();
             library = new ArrayTexLib();
-            fiLib = new FITexLib();
+            fiLib = new ImageSharpTexLib();
             dxtLib = new DxtTexLib();
             Assert.True(library.SupportBGRAOrder());
             library.StartLibrary(new TexAtlas());
@@ -56,11 +56,11 @@ namespace Stride.TextureConverter.Tests
             for (int i = 0; i < 5; ++i)
             {
                 var temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToAtlasImages + file1, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToAtlasImages + file1, false));
                 list.Add(temp);
 
                 temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToAtlasImages + file2, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToAtlasImages + file2, false));
                 list.Add(temp);
             }
 
@@ -109,13 +109,13 @@ namespace Stride.TextureConverter.Tests
             for (int i = 0; i < 5; ++i)
             {
                 var temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToInputImages + file1, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToInputImages + file1, false));
                 temp.Name = Path.GetFileName(file1);
                 list.Add(temp);
                 //Console.WriteLine("ExtractAll_" + Path.GetFileName(file1) + "." + TestTools.ComputeSHA1(temp.Data, temp.DataSize));
 
                 temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToInputImages + file2, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToInputImages + file2, false));
                 temp.Name = Path.GetFileName(file2);
                 list.Add(temp);
                 //Console.WriteLine("ExtractAll_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(temp.Data, temp.DataSize));
@@ -221,11 +221,11 @@ namespace Stride.TextureConverter.Tests
             for (int i = 0; i < 3; ++i)
             {
                 var temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToAtlasImages + file1, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToAtlasImages + file1, false));
                 list.Add(temp);
 
                 temp = new TexImage();
-                fiLib.Execute(temp, new LoadingRequest(Module.PathToAtlasImages + file2, false));
+                fiLib.Execute(temp, new FileLoadingRequest(Module.PathToAtlasImages + file2, false));
                 list.Add(temp);
             }
 

@@ -14,6 +14,10 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, [CallerMemberName] string propertyName = null!)
         => SetValue(ref field, value, null, [propertyName]);
 
+    // Alias for compatibility with code written against the more conventional name.
+    protected bool SetProperty<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, [CallerMemberName] string propertyName = null!)
+        => SetValue(ref field, value, null, [propertyName]);
+
     protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, params string[] propertyNames)
         => SetValue(ref field, value, null, propertyNames);
 

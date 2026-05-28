@@ -6,7 +6,7 @@
          Therefore $(StrideRoot) is available within SDK files and for the closing
          targets <Import> at the bottom of project files, but NOT for the opening
          props <Import> (which uses GetDirectoryNameOfFileAbove to locate Sdk.props
-         without any pre-set property). See build/docs/SDK-GUIDE.md for details. -->
+         without any pre-set property). See docs/build/SDK-GUIDE.md for details. -->
     <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</StrideRoot>
   </PropertyGroup>
 </Project>

@@ -1,0 +1,51 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- 22621 to access Windows.Graphics.Capture (DWM-based screenshot). 22H2 SDK is the minimum
+         that exposes GraphicsCaptureSession.IsBorderRequired (yellow-frame suppression). The TFM
+         bump is contained to this assembly — Stride.GameStudio.exe stays at net10.0-windows. -->
+    <TargetFramework>$(StrideEditorTargetFramework)10.0.22621.0</TargetFramework>
+    <!-- NuGet resolver target uses NuGet's canonical 3-part platform-version form (no trailing .0).
+         The 4-part TPV trips NuGet's input validator; net10.0-windows alone mismatches the package
+         assets when packages are built for the bumped moniker. -->
+    <NuGetResolverTargetFramework>$(StrideEditorTargetFramework)10.0.22621</NuGetResolverTargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
+    <!-- DPI-unaware so Window.Width=N → N physical pixels on every display. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Test-only artefact — never auto-pack/deploy this. -->
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Direct3D11" />
+    <!-- Pin WARP for reproducible D3D11 software-rendering captures on dev machines and CI.
+         Side-by-side d3d10warp.dll wins the loader search over the OS-bundled one. -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true" />
+    <!-- Direct typed access to LayoutAnchorable in CapturePanel/FloatAnchorable. -->
+    <PackageReference Include="Dirkster.AvalonDock" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Hosts GameStudio's startup. We invoke Stride.GameStudio.Program.Run(args) from the runner's
+         [STAThread] Main, so the runner's bin needs all of GS's deps. Private=true (default) lets
+         them propagate. The runner is a test-only artefact, never shipped. -->
+    <ProjectReference Include="..\Stride.GameStudio\Stride.GameStudio.csproj" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

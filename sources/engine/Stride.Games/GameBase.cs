@@ -674,7 +674,11 @@ namespace Stride.Games
                 {
                     using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                     {
-                        EndDraw(true);
+                        // Only Present if we actually drew this frame. Skipping Present on
+                        // no-draw ticks avoids re-presenting undefined/stale back-buffer content
+                        // (flip-model discards after Present) and, on D3D12, avoids emitting a
+                        // barrier-only command list that trips the perf warning.
+                        EndDraw(drawFrame);
                     }
                 }
 
@@ -781,7 +785,6 @@ namespace Stride.Games
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
-                // Note: RT/DS transitions are handled by SetRenderTargetsImpl when targets are bound.
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 
@@ -815,18 +818,19 @@ namespace Stride.Games
         {
             if (beginDrawOk)
             {
-                if (GraphicsDevice.Presenter != null)
-                {
-                    // Perform end of frame presenter operations
-                    GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
-
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, BarrierLayout.Present);
-                }
+                // Each presenter handles its own back-buffer transition in EndDraw — swap-chain
+                // presenters transition to Present, render-target (headless) presenters skip
+                // since there is no Present call. Keeps this method presenter-agnostic.
+                GraphicsDevice.Presenter?.EndDraw(GraphicsContext.CommandList, present);
 
                 GraphicsContext.ResourceGroupAllocator.Flush();
 
                 // Close command list
                 GraphicsContext.CommandList.Flush();
+
+                // After the frame's submits have aggregated their per-CL counters into the
+                // scope tree, render it (if any validation issue fired) and reset for next frame.
+                GraphicsDevice.DebugEndFrame();
 
                 // Present (if necessary)
                 graphicsDeviceManager.EndDraw(present);

@@ -274,6 +274,14 @@ namespace Stride.Rendering.UI
             }
         }
 
+        public override void Flush(RenderDrawContext context)
+        {
+            base.Flush(context);
+
+            // Drain the UI-side event buffer; must be done in flush given that Draw() can be called more than once depending on UI render group and stages
+            uiSystem?.ClearPendingPointerEvents();
+        }
+
         private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix worldViewProj, SamplerState samplerState)
         {
             // if the element is not visible, we also remove all its children

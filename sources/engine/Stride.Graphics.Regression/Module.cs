@@ -8,8 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 
-using Stride.Core;
-
 namespace Stride.Graphics.Regression;
 
 internal static class Module
@@ -34,7 +32,7 @@ internal static class Module
             SetErrorMode(0x0001 /* SEM_FAILCRITICALERRORS */ | 0x0002 /* SEM_NOGPFAULTERRORBOX */ | 0x8000 /* SEM_NOOPENFILEERRORBOX */);
         }
 
-        // GPU drivers (including software renderers like WARP and SwiftShader) can crash with
+        // GPU drivers (including software renderers like WARP and Lavapipe) can crash with
         // native access violations when used incorrectly (e.g., releasing resources still in use).
         // These crashes are hard to diagnose: .NET 8+ can't catch them via try/catch, and WER
         // doesn't trigger because .NET handles the exception dispatch internally.
@@ -62,33 +60,13 @@ internal static class Module
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIDE_MAX_PARALLELISM")))
                 Environment.SetEnvironmentVariable("STRIDE_MAX_PARALLELISM", "8");
 
-            // Auto-configure SwiftShader ICD path for Vulkan software rendering.
-            // SwiftShader libs are in runtimes/{rid}/native/ — find the right one for this OS.
+#if STRIDE_GRAPHICS_API_VULKAN
+            // Force-load Stride.Dependencies.Lavapipe so its ModuleInitializer runs and
+            // points VK_DRIVER_FILES at the packaged ICD before any Vulkan instance is created.
+            // Skip if the caller already set VK_DRIVER_FILES (e.g. benchmarking a different ICD).
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VK_DRIVER_FILES")))
-            {
-                var (rid, libName) = Platform.Type switch
-                {
-                    PlatformType.Windows => ("win-x64", "vk_swiftshader.dll"),
-                    PlatformType.Linux => ("linux-x64", "libvk_swiftshader.so"),
-                    PlatformType.macOS => ("osx-arm64", "libvk_swiftshader.dylib"),
-                    _ => throw new PlatformNotSupportedException($"Software rendering not supported on {Platform.Type}")
-                };
-                var libPath = Path.Combine(AppContext.BaseDirectory, "runtimes", rid, "native", libName);
-                if (File.Exists(libPath))
-                {
-                    var icdPath = Path.Combine(AppContext.BaseDirectory, "vk_swiftshader_icd.json");
-                    File.WriteAllText(icdPath, $$"""
-                        {
-                            "file_format_version": "1.0.0",
-                            "ICD": {
-                                "library_path": "{{libPath.Replace(@"\", @"\\")}}",
-                                "api_version": "1.1.0"
-                            }
-                        }
-                        """);
-                    Environment.SetEnvironmentVariable("VK_DRIVER_FILES", icdPath);
-                }
-            }
+                Stride.Dependencies.Lavapipe.Lavapipe.TryConfigure();
+#endif
         }
     }
 
@@ -119,10 +97,13 @@ internal static class Module
             var path = Path.Combine(crashDumpDir, $"{tag}_{Environment.ProcessId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.dmp");
             using var fs = File.Create(path);
             var process = Process.GetCurrentProcess();
-            const uint MiniDumpWithThreadInfo = 0x00001000;
+            const uint MiniDumpWithFullMemory = 0x00000002;
             const uint MiniDumpWithFullMemoryInfo = 0x00000800;
+            const uint MiniDumpWithHandleData = 0x00000004;
+            const uint MiniDumpWithThreadInfo = 0x00001000;
             bool ok = MiniDumpWriteDump(process.Handle, (uint)process.Id, fs.SafeFileHandle.DangerousGetHandle(),
-                MiniDumpWithThreadInfo | MiniDumpWithFullMemoryInfo, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithThreadInfo,
+                IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
             Console.Error.WriteLine(ok
                 ? $"[CrashDiag] Dump written: {path}"
                 : $"[CrashDiag] Dump failed: error {Marshal.GetLastWin32Error()}");

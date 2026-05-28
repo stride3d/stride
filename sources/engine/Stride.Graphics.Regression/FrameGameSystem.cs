@@ -78,6 +78,8 @@ public class FrameGameSystem(IServiceRegistry registry) : GameSystemBase(registr
     public FrameGameSystem Update(int frameIndex, Action method)
     {
         AddTestMethods(method, frameIndex, updateMethods);
+        if (frameIndex > lastFrame)
+            lastFrame = frameIndex;
         return this;
     }
 
@@ -105,6 +107,8 @@ public class FrameGameSystem(IServiceRegistry registry) : GameSystemBase(registr
     public FrameGameSystem Draw(int frameIndex, Action method)
     {
         AddTestMethods(method, frameIndex, drawMethods);
+        if (frameIndex > lastFrame)
+            lastFrame = frameIndex;
         return this;
     }
 
@@ -176,7 +180,6 @@ public class FrameGameSystem(IServiceRegistry registry) : GameSystemBase(registr
     {
         return screenshotFrames.TryGetValue(CurrentFrame, out testName);
     }
-
 
     /// <inheritdoc/>
     public override void Draw(GameTime gameTime)

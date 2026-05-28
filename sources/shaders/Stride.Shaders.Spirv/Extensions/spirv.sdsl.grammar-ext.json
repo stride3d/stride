@@ -1,0 +1,976 @@
+{
+  "instructions": [
+    {
+      "opname": "OpShaderSDSL",
+      "opcode": 8000,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "shaderName"
+        }
+      ]
+    },
+    {
+      "opname": "OpCompositionSDSL",
+      "opcode": 8002,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "compositionPath"
+        }
+      ]
+    },
+    {
+      "opname": "OpCompositionEndSDSL",
+      "opcode": 8003,
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpMixinInheritSDSL",
+      "opcode": 8004,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        },
+        {
+          "kind": "MixinInheritFlags",
+          "name": "flags"
+        }
+      ]
+    },
+    {
+      "opname": "OpImportShaderSDSL",
+      "opcode": 8007,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "shaderName"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
+        }
+      ]
+    },
+    {
+      "opname": "OpImportFunctionSDSL",
+      "opcode": 8008,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "IdResultType",
+          "name": "functionType"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "functionName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        },
+        {
+          "kind": "FunctionFlags",
+          "name": "flags"
+        }
+      ]
+    },
+    {
+      "opname": "OpImportVariableSDSL",
+      "opcode": 8009,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind": "IdResultType" },
+        {
+          "kind": "LiteralString",
+          "name": "variableName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        },
+        {
+          "kind": "VariableFlags",
+          "name": "flags"
+        }
+      ]
+    },
+    {
+      "opname": "OpImportStructSDSL",
+      "opcode": 8010,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "structName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpVariableSDSL",
+      "opcode": 8011,
+      "class": "Memory",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind": "StorageClass" },
+        {
+          "kind": "VariableFlags",
+          "name": "flags"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "?",
+          "name": "'MethodOrConstantInitializer'"
+        }
+      ]
+    },
+    {
+      "opname": "OpMemberAccessSDSL",
+      "opcode": 8012,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "IdRef",
+          "name": "instance"
+        },
+        {
+          "kind": "IdRef",
+          "name": "member"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypeFunctionSDSL",
+      "opcode": 8013,
+      "class": "Type-Declaration",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "IdRef",
+          "name": "'Return Type'"
+        },
+        {
+          "kind": "PairIdRefLiteralInteger",
+          "quantifier": "*",
+          "name": "'Parameter 0 Type', +\n'Parameter 1 Type', +\n..."
+        }
+      ]
+    },
+    {
+      "opname": "OpFunctionMetadataSDSL",
+      "opcode": 8014,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "FunctionFlags",
+          "name": "flags"
+        },
+        {
+          "kind": "IdRef",
+          "name": "parent"
+        }
+      ]
+    },
+    {
+      "opname": "OpBaseSDSL",
+      "opcode": 8015,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
+      "opname": "OpThisSDSL",
+      "opcode": 8016,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
+      "opname": "OpStreamsSDSL",
+      "opcode": 8018,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
+      "opname": "OpGenericParameterSDSL",
+      "opcode": 8019,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralInteger",
+          "name": "index"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "declaringClass"
+        }
+      ]
+    },
+    {
+      "opname": "OpGenericReferenceSDSL",
+      "opcode": 8020,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralInteger",
+          "name": "index"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "declaringClass"
+        }
+      ]
+    },
+    {
+      "opname": "OpConstantStringSDSL",
+      "opcode": 8021,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "'Literal String'"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypeGenericSDSL",
+      "opcode": 8022,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "GenericParameterKindSDSL",
+          "name": "kind"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypeStreamsSDSL",
+      "opcode": 8023,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "StreamsKindSDSL",
+          "name": "kind"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypeGeometryStreamOutputSDSL",
+      "opcode": 8024,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind" : "IdRef", "name" : "'Base Type'" },
+        {
+          "kind": "GeometryStreamOutputKindSDSL",
+          "name": "Kind"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypePatchSDSL",
+      "opcode": 8025,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind" : "IdRef", "name" : "'Base Type'" },
+        {
+          "kind": "PatchTypeKindSDSL",
+          "name": "Kind"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "Size"
+        }
+      ]
+    },
+    {
+      "opname": "OpForeachSDSL",
+      "opcode": 8026,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "IdRef",
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "opname": "OpForeachEndSDSL",
+      "opcode": 8027,
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpUnresolvableShaderSDSL",
+      "opcode": 8028,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "shaderCode"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "shaderCodeNameEnd"
+        }
+      ]
+    },
+    {
+      "opname": "OpEmitVertexSDSL",
+      "opcode": 8029,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "Output"
+        }
+      ]
+    },
+    {
+      "opname": "OpBinaryOperationSDSL",
+      "opcode": 8030,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind" : "LiteralInteger", "name" : "'Operation'" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ]
+    },
+    {
+      "opname": "OpSourceHashSDSL",
+      "opcode": 8031,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind" : "IdRef",          "name" : "'File'" },
+        { "kind" : "LiteralInteger", "name" : "Hash1" },
+        { "kind" : "LiteralInteger", "name" : "Hash2" },
+        { "kind" : "LiteralInteger", "name" : "Hash3" },
+        { "kind" : "LiteralInteger", "name" : "Hash4" }
+      ]
+    },
+    {
+      "opname": "OpEffectSDFX",
+      "opcode": 9000,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "effectName"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsUseSDFX",
+      "opcode": 9001,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "paramsName"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsSDFX",
+      "opcode": 9002,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsFieldSDFX",
+      "opcode": 9003,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "cstype"
+        }
+      ]
+    },
+    {
+      "opname": "OpMixinSDFX",
+      "opcode": 9004,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "MixinKindSDFX",
+          "name": "kind"
+        },
+        {
+          "kind": "IdRef",
+          "name": "target"
+        },
+        {
+          "kind": "IdRef",
+          "name": "value"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
+        }
+      ]
+    }
+  ],
+  "operand_kinds": [
+    {
+      "category": "BitEnum",
+      "kind": "MixinInheritFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "NeedsFullImport",
+          "value": "0x0001"
+        }
+      ]
+    },
+    {
+      "category": "BitEnum",
+      "kind": "FunctionFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "Stage",
+          "value": "0x0001"
+        },
+        {
+          "enumerant": "Abstract",
+          "value": "0x0010"
+        },
+        {
+          "enumerant": "Virtual",
+          "value": "0x0020"
+        },
+        {
+          "enumerant": "Override",
+          "value": "0x0040"
+        },
+        {
+          "enumerant": "ReferencesNonStage",
+          "value": "0x0080"
+        }
+      ]
+    },
+    {
+      "category": "BitEnum",
+      "kind": "VariableFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "Stage",
+          "value": "0x0001"
+        },
+        {
+          "enumerant": "Stream",
+          "value": "0x0002"
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "Decoration",
+        "enumerants": [
+          {
+            "enumerant": "LinkSDSL",
+            "value": 8000,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'Name'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "LinkIdSDSL",
+            "value": 8001,
+            "parameters": [
+              {
+                "kind": "IdRef"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ColorSDSL",
+            "value": 8002,
+            "parameters": [
+              {
+                "kind": "IdRef"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ResourceGroupSDSL",
+            "value": 8010,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'ResourceGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ResourceGroupIdSDSL",
+            "value": 8011,
+            "parameters": [
+              {
+                "kind": "LiteralInteger",
+                "name": "'ResourceGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "LogicalGroupSDSL",
+            "value": 8004,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'LogicalGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateSDSL",
+            "value": 8020,
+            "parameters": [
+              { "kind": "LiteralInteger", "name": "Filter" },
+              { "kind": "LiteralInteger", "name": "AddressU" },
+              { "kind": "LiteralInteger", "name": "AddressV" },
+              { "kind": "LiteralInteger", "name": "AddressW" },
+              { "kind": "LiteralInteger", "name": "MipLODBias" },
+              { "kind": "LiteralInteger", "name": "MaxAnisotropy" },
+              { "kind": "LiteralInteger", "name": "ComparisonFunc" },
+              { "kind": "LiteralInteger", "name": "MinLOD" },
+              { "kind": "LiteralInteger", "name": "MaxLOD" },
+              { "kind": "LiteralInteger", "name": "BorderR" },
+              { "kind": "LiteralInteger", "name": "BorderG" },
+              { "kind": "LiteralInteger", "name": "BorderB" },
+              { "kind": "LiteralInteger", "name": "BorderA" }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "FunctionParameterDefaultValueSDSL",
+            "value": 8040,
+            "parameters": [
+              {
+                "kind": "IdRef",
+                "quantifier": "*"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ShaderConstantSDSL",
+            "value": 8060,
+            "version": "1.0"
+          },
+          {
+            "enumerant": "PatchConstantFuncSDSL",
+            "value": 8070,
+            "version": "1.0"
+          }
+        ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "GenericParameterKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "LinkType",
+          "value": 1
+        },
+        {
+          "enumerant": "Semantic",
+          "value": 2
+        },
+        {
+          "enumerant": "MemberName",
+          "value": 3
+        },
+        {
+          "enumerant": "MemberNameResolved",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "StreamsKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Input",
+          "value": 1
+        },
+        {
+          "enumerant": "Streams",
+          "value": 2
+        },
+        {
+          "enumerant": "Output",
+          "value": 3
+        },
+        {
+          "enumerant": "Constants",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "GeometryStreamOutputKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Point",
+          "value": 1
+        },
+        {
+          "enumerant": "Line",
+          "value": 2
+        },
+        {
+          "enumerant": "Triangle",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "PatchTypeKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Input",
+          "value": 1
+        },
+        {
+          "enumerant": "Output",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "kind": "ExecutionModel",
+      "enumerants": [
+        {
+          "enumerant": "Mixin",
+          "value": 5367
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "SamplerTextureAddressModeSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Wrap",
+          "value": 1
+        },
+        {
+          "enumerant": "Mirror",
+          "value": 2
+        },
+        {
+          "enumerant": "Clamp",
+          "value": 3
+        },
+        {
+          "enumerant": "Border",
+          "value": 4
+        },
+        {
+          "enumerant": "MirrorOnce",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "SamplerFilterSDSL",
+      "enumerants": [
+        {
+          "enumerant": "MIN_MAG_MIP_POINT",
+          "value": "0"
+        },
+        {
+          "enumerant": "MIN_MAG_POINT_MIP_LINEAR",
+          "value": "0x1"
+        },
+        {
+          "enumerant": "MIN_POINT_MAG_LINEAR_MIP_POINT",
+          "value": "0x4"
+        },
+        {
+          "enumerant": "MIN_POINT_MAG_MIP_LINEAR",
+          "value": "0x5"
+        },
+        {
+          "enumerant": "MIN_LINEAR_MAG_MIP_POINT",
+          "value": "0x10"
+        },
+        {
+          "enumerant": "MIN_LINEAR_MAG_POINT_MIP_LINEAR",
+          "value": "0x11"
+        },
+        {
+          "enumerant": "MIN_MAG_LINEAR_MIP_POINT",
+          "value": "0x14"
+        },
+        {
+          "enumerant": "MIN_MAG_MIP_LINEAR",
+          "value": "0x15"
+        },
+        {
+          "enumerant": "ANISOTROPIC",
+          "value": "0x55"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_MAG_MIP_POINT",
+          "value": "0x80"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_MAG_POINT_MIP_LINEAR",
+          "value": "0x81"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT",
+          "value": "0x84"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_POINT_MAG_MIP_LINEAR",
+          "value": "0x85"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_LINEAR_MAG_MIP_POINT",
+          "value": "0x90"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR",
+          "value": "0x91"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_MAG_LINEAR_MIP_POINT",
+          "value": "0x94"
+        },
+        {
+          "enumerant": "COMPARISON_MIN_MAG_MIP_LINEAR",
+          "value": "0x95"
+        },
+        {
+          "enumerant": "COMPARISON_ANISOTROPIC",
+          "value": "0xd5"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_MAG_MIP_POINT",
+          "value": "0x100"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_MAG_POINT_MIP_LINEAR",
+          "value": "0x101"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT",
+          "value": "0x104"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_POINT_MAG_MIP_LINEAR",
+          "value": "0x105"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_LINEAR_MAG_MIP_POINT",
+          "value": "0x110"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR",
+          "value": "0x111"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_MAG_LINEAR_MIP_POINT",
+          "value": "0x114"
+        },
+        {
+          "enumerant": "MINIMUM_MIN_MAG_MIP_LINEAR",
+          "value": "0x115"
+        },
+        {
+          "enumerant": "MINIMUM_ANISOTROPIC",
+          "value": "0x155"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_MAG_MIP_POINT",
+          "value": "0x180"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_MAG_POINT_MIP_LINEAR",
+          "value": "0x181"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT",
+          "value": "0x184"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_POINT_MAG_MIP_LINEAR",
+          "value": "0x185"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_LINEAR_MAG_MIP_POINT",
+          "value": "0x190"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR",
+          "value": "0x191"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_MAG_LINEAR_MIP_POINT",
+          "value": "0x194"
+        },
+        {
+          "enumerant": "MAXIMUM_MIN_MAG_MIP_LINEAR",
+          "value": "0x195"
+        },
+        {
+          "enumerant": "MAXIMUM_ANISOTROPIC",
+          "value": "0x1d5"
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "SamplerComparisonFuncSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Never",
+          "value": 1
+        },
+        {
+          "enumerant": "Less",
+          "value": 2
+        },
+        {
+          "enumerant": "Equal",
+          "value": 3
+        },
+        {
+          "enumerant": "LessEqual",
+          "value": 4
+        },
+        {
+          "enumerant": "Greater",
+          "value": 5
+        },
+        {
+          "enumerant": "NotEqual",
+          "value": 6
+        },
+        {
+          "enumerant": "GreaterEqual",
+          "value": 7
+        },
+        {
+          "enumerant": "Always",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "StorageClass",
+      "enumerants": [
+        {
+          "enumerant": "Params",
+          "value": 8000
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "MixinKindSDFX",
+      "enumerants": [
+        {
+          "enumerant": "Default",
+          "value": 0
+        },
+        {
+          "enumerant": "ComposeSet",
+          "value": 1
+        },
+        {
+          "enumerant": "ComposeAdd",
+          "value": 2
+        },
+        {
+          "enumerant": "Child",
+          "value": 3
+        },
+        {
+          "enumerant": "Clone",
+          "value": 4
+        },
+        {
+          "enumerant": "Remove",
+          "value": 5
+        },
+        {
+          "enumerant": "Macro",
+          "value": 6
+        }
+      ]
+    }
+  ]
+}

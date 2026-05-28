@@ -6,6 +6,18 @@
     but BEFORE Sdk.targets.
   -->
 
+  <!-- Re-evaluate StrideTargetFramework now that TargetFramework is known. The same logic
+       runs in Stride.Frameworks.props for completeness, but TargetFramework is empty at
+       props time under standard SDK-style imports, so this targets-phase pass is what
+       actually populates the value for SDK conditions to consume. -->
+  <PropertyGroup>
+    <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+  </PropertyGroup>
+
   <!-- Define target frameworks for runtime -->
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
     <!-- Add default framework no matter what (needed for references) -->

@@ -1,0 +1,135 @@
+name: Set up display resolution (via MttVDD virtual display driver)
+description: >-
+  Install VirtualDrivers/Virtual-Display-Driver (IDD-based) silently via NefCon,
+  pre-write vdd_settings.xml so the driver spawns a single monitor at the
+  requested resolution, disable the Hyper-V Video adapter so MttVDD becomes the
+  primary display, and apply the requested per-monitor DPI scale via the shared
+  set-monitor-dpi sub-action. Use set-monitor-dpi directly later in the job to
+  switch DPI without re-installing VDD.
+
+inputs:
+  width:
+    description: Display width in pixels
+    required: false
+    default: '3840'
+  height:
+    description: Display height in pixels
+    required: false
+    default: '2160'
+  target-dpi:
+    description: >-
+      Initial per-monitor DPI scale percentage (100, 125, 150, 175, 200, 225,
+      250, 300, …). Default 100. Reusable by calling ./.github/actions/set-monitor-dpi
+      to switch later in the same job.
+    required: false
+    default: '100'
+
+runs:
+  using: composite
+  steps:
+    # Settings must exist before the driver loads so the first device init reads our config.
+    - name: Pre-write vdd_settings.xml
+      shell: pwsh
+      env:
+        VDD_WIDTH: ${{ inputs.width }}
+        VDD_HEIGHT: ${{ inputs.height }}
+      run: |
+        $vddDir = "C:\VirtualDisplayDriver"
+        New-Item -ItemType Directory -Path $vddDir -Force | Out-Null
+
+        $xml = @"
+        <?xml version='1.0' encoding='utf-8'?>
+        <vdd_settings>
+          <monitors><count>1</count></monitors>
+          <gpu><friendlyname>default</friendlyname></gpu>
+          <global>
+            <g_refresh_rate>60</g_refresh_rate>
+          </global>
+          <resolutions>
+            <resolution>
+              <width>$($env:VDD_WIDTH)</width>
+              <height>$($env:VDD_HEIGHT)</height>
+              <refresh_rate>60</refresh_rate>
+            </resolution>
+          </resolutions>
+        </vdd_settings>
+        "@
+        Set-Content -Path "$vddDir\vdd_settings.xml" -Value $xml -Encoding utf8
+        Get-Content "$vddDir\vdd_settings.xml"
+
+    # Adapted from VirtualDrivers/Virtual-Display-Driver Community Scripts/silent-install.ps1.
+    - name: Install Virtual Display Driver via NefCon
+      shell: pwsh
+      run: |
+        $tempDir = Join-Path $env:TEMP "VDDInstall"
+        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+        # NefCon (driver install tool — pnputil alternative that handles INF + Root devices)
+        $NefConURL = "https://github.com/nefarius/nefcon/releases/download/v1.14.0/nefcon_v1.14.0.zip"
+        $NefConZip = Join-Path $tempDir "nefcon.zip"
+        Write-Host "Downloading NefCon..."
+        Invoke-WebRequest -Uri $NefConURL -OutFile $NefConZip -UseBasicParsing
+        Expand-Archive -Path $NefConZip -DestinationPath $tempDir -Force
+        $NefConExe = Join-Path $tempDir "x64\nefconw.exe"
+
+        # VDD driver (signed via SignPath)
+        $DriverURL = "https://github.com/VirtualDrivers/Virtual-Display-Driver/releases/download/25.7.23/VirtualDisplayDriver-x86.Driver.Only.zip"
+        $driverZip = Join-Path $tempDir "driver.zip"
+        Write-Host "Downloading VDD driver..."
+        Invoke-WebRequest -Uri $DriverURL -OutFile $driverZip -UseBasicParsing
+        Expand-Archive -Path $driverZip -DestinationPath $tempDir -Force
+
+        # Trust the driver's signing certificate so Windows accepts the install without prompting.
+        $catFile = Join-Path $tempDir "VirtualDisplayDriver\mttvdd.cat"
+        $catBytes = [System.IO.File]::ReadAllBytes($catFile)
+        $certificates = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+        $certificates.Import($catBytes)
+        $certsFolder = Join-Path $tempDir "ExportedCerts"
+        New-Item -ItemType Directory -Path $certsFolder -Force | Out-Null
+        foreach ($cert in $certificates) {
+            $certPath = Join-Path $certsFolder "$($cert.Thumbprint).cer"
+            [System.IO.File]::WriteAllBytes($certPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+            Import-Certificate -FilePath $certPath -CertStoreLocation "Cert:\LocalMachine\TrustedPublisher" | Out-Null
+        }
+
+        Write-Host "Installing VDD driver..."
+        Push-Location $tempDir
+        & $NefConExe install ".\VirtualDisplayDriver\MttVDD.inf" "Root\MttVDD"
+        Pop-Location
+        Start-Sleep -Seconds 15
+        Write-Host "After install:"
+        Get-CimInstance Win32_VideoController | Format-Table Name, CurrentHorizontalResolution, CurrentVerticalResolution
+        Get-PnpDevice -Class Monitor -ErrorAction SilentlyContinue | Format-Table FriendlyName, Status
+
+    # DPI before Hyper-V disable so VDD inherits the scale and we skip a re-scale event.
+    # No PnP cycle: the upcoming Hyper-V disable is itself a display-config-change event
+    # which causes Windows to read PerMonitorSettings.
+    - name: Apply initial per-monitor DPI scale
+      uses: ./.github/actions/set-monitor-dpi
+      with:
+        target-dpi: ${{ inputs.target-dpi }}
+        monitor-height: ${{ inputs.height }}
+        pnp-cycle: 'false'
+
+    # MttVDD spawned a monitor at the requested resolution from vdd_settings.xml. Disable the
+    # Hyper-V Video adapter via PnP so MttVDD is the only display and inherits primary.
+    - name: Disable Hyper-V Video adapter (leave MttVDD as the only display)
+      shell: pwsh
+      run: |
+        Write-Host "Display adapters before disable:"
+        Get-PnpDevice -Class Display | Format-Table FriendlyName, Status, InstanceId
+        $hyperv = Get-PnpDevice -Class Display | Where-Object { $_.FriendlyName -like "*Hyper-V*" }
+        if ($hyperv) {
+            foreach ($dev in $hyperv) {
+                Write-Host "Disabling: $($dev.FriendlyName) ($($dev.InstanceId))"
+                Disable-PnpDevice -InstanceId $dev.InstanceId -Confirm:$false -ErrorAction Continue
+            }
+            Start-Sleep -Seconds 5
+        } else {
+            Write-Host "No Hyper-V Video adapter found — nothing to disable."
+        }
+        Write-Host "Display adapters after disable:"
+        Get-PnpDevice -Class Display | Format-Table FriendlyName, Status
+        Write-Host "Final display state:"
+        Get-CimInstance Win32_VideoController | Format-Table Name, CurrentHorizontalResolution, CurrentVerticalResolution
+        Get-PnpDevice -Class Monitor -ErrorAction SilentlyContinue | Format-Table FriendlyName, Status

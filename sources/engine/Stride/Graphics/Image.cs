@@ -88,7 +88,7 @@ namespace Stride.Graphics
     [ContentSerializer(typeof(ImageSerializer))]
     public sealed class Image : IDisposable
     {
-        public delegate Image ImageLoadDelegate(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle);
+        public delegate Image ImageLoadDelegate(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode);
         public delegate void ImageSaveDelegate(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream);
 
         private const string MagicCodeTKTX = "TKTX";
@@ -520,9 +520,9 @@ namespace Stride.Graphics
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         [Obsolete("Use span instead")]
-        public static Image Load(DataPointer dataBuffer, bool makeACopy = false, bool loadAsSRGB = false)
+        public static Image Load(DataPointer dataBuffer, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
-            return Load(dataBuffer.Pointer, dataBuffer.Size, makeACopy, loadAsSRGB);
+            return Load(dataBuffer.Pointer, dataBuffer.Size, makeACopy, loadAsSRGB, alphaLoadMode);
         }
 
         /// <summary>
@@ -533,11 +533,11 @@ namespace Stride.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
-        public static unsafe Image Load(Span<byte> dataBuffer, bool makeACopy = false, bool loadAsSRGB = false)
+        public static unsafe Image Load(Span<byte> dataBuffer, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             fixed (void* ptr = dataBuffer)
             {
-                return Load((nint)ptr, dataBuffer.Length, makeACopy, loadAsSRGB);
+                return Load((nint)ptr, dataBuffer.Length, makeACopy, loadAsSRGB, alphaLoadMode);
             }
         }
 
@@ -550,9 +550,9 @@ namespace Stride.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
-        public static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy = false, bool loadAsSRGB = false)
+        public static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
-            return Load(dataPointer, dataSize, makeACopy, null, loadAsSRGB);
+            return Load(dataPointer, dataSize, makeACopy, null, loadAsSRGB, alphaLoadMode);
         }
 
         /// <summary>
@@ -562,7 +562,7 @@ namespace Stride.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
-        public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false)
+        public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             ArgumentNullException.ThrowIfNull(buffer);
 
@@ -570,12 +570,12 @@ namespace Stride.Graphics
             if (buffer.Length > (85 * 1024))
             {
                 var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                return Load(handle.AddrOfPinnedObject(), buffer.Length, false, handle, loadAsSRGB);
+                return Load(handle.AddrOfPinnedObject(), buffer.Length, false, handle, loadAsSRGB, alphaLoadMode);
             }
 
             fixed (void* pbuffer = buffer)
             {
-                return Load((IntPtr)pbuffer, buffer.Length, true, loadAsSRGB);
+                return Load((IntPtr)pbuffer, buffer.Length, true, loadAsSRGB, alphaLoadMode);
             }
         }
 
@@ -586,12 +586,12 @@ namespace Stride.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture. If false, the image is loaded in its default format.</param>
         /// <returns>An new image.</returns>
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
-        public static Image Load(Stream imageStream, bool loadAsSRGB = false)
+        public static Image Load(Stream imageStream, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             ArgumentNullException.ThrowIfNull(imageStream);
 
             // Read the whole stream into memory
-            return Load(Utilities.ReadStream(imageStream), loadAsSRGB);
+            return Load(Utilities.ReadStream(imageStream), loadAsSRGB, alphaLoadMode);
         }
 
         /// <summary>
@@ -708,13 +708,13 @@ namespace Stride.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        private static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, bool loadAsSRGB = true)
+        private static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, bool loadAsSRGB = true, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             foreach (var loadSaveDelegate in loadSaveDelegates)
             {
                 if (loadSaveDelegate.Load != null)
                 {
-                    var image = loadSaveDelegate.Load(dataPointer, dataSize, makeACopy, handle);
+                    var image = loadSaveDelegate.Load(dataPointer, dataSize, makeACopy, handle, alphaLoadMode);
                     if (image != null)
                     {
                         if (loadAsSRGB)
@@ -758,7 +758,6 @@ namespace Stride.Graphics
             Register(ImageFileType.Bmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveBmpFromMemory);
             Register(ImageFileType.Jpg, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveJpgFromMemory);
             Register(ImageFileType.Png, StandardImageHelper.LoadFromMemory, StandardImageHelper.SavePngFromMemory);
-            Register(ImageFileType.Wmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveWmpFromMemory);
         }
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
@@ -888,26 +887,14 @@ namespace Stride.Graphics
 
             if (format.IsCompressed)
             {
-                int minWidth = 1;
-                int minHeight = 1;
+                // ASTC has variable block dimensions (4x4..12x12); fetch from format extensions
+                // instead of assuming 4x4 + switching on format for bytes-per-block.
+                int blockWidth = format.BlockWidth;
+                int blockHeight = format.BlockHeight;
+                int bytesPerBlock = format.BlockSize;
 
-                var bytesPerBlock = format switch
-                {
-                    PixelFormat.BC1_Typeless
-                    or PixelFormat.BC1_UNorm
-                    or PixelFormat.BC1_UNorm_SRgb
-                    or PixelFormat.BC4_Typeless
-                    or PixelFormat.BC4_UNorm
-                    or PixelFormat.BC4_SNorm
-                    or PixelFormat.ETC1
-                    or PixelFormat.ETC2_RGB
-                    or PixelFormat.ETC2_RGB_SRgb => 8,
-
-                    _ => 16
-                };
-
-                widthPacked = Math.Max(1, (Math.Max(minWidth, width) + 3)) / 4;
-                heightPacked = Math.Max(1, (Math.Max(minHeight, height) + 3)) / 4;
+                widthPacked = (Math.Max(1, width) + blockWidth - 1) / blockWidth;
+                heightPacked = (Math.Max(1, height) + blockHeight - 1) / blockHeight;
                 rowPitch = widthPacked * bytesPerBlock;
 
                 slicePitch = rowPitch * heightPacked;

@@ -1,6 +1,5 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <StrideNativePathLibsWindows_x86>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-x86\libCelt.lib</StrideNativePathLibsWindows_x86>
     <StrideNativePathLibsWindows_x64>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-x64\libCelt.lib</StrideNativePathLibsWindows_x64>
     <StrideNativePathLibsWindowsArm64>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-arm64\libCelt.lib</StrideNativePathLibsWindowsArm64>
     <StrideNativePathLibsUWP>libCelt.lib Xaudio2.lib</StrideNativePathLibsUWP>
@@ -9,6 +8,7 @@
   <ItemGroup>
     <StrideNativePathLibsiOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
     <StrideNativePathLibsmacOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
+    <StrideNativePathLibsmacOSArm64 Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\osx-arm64\libCelt.a" />
     <StrideNativePathLibsLinux Include="libCelt.a" />
     <StrideNativePathLibsAndroid Include="libCelt.a" />
   </ItemGroup>

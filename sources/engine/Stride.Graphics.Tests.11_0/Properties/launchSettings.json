@@ -1,13 +1,28 @@
 {
   "profiles": {
-    "Software": {
+    "Software (console)": {
       "commandName": "Project",
       "nativeDebugging": true
     },
-    "GPU": {
+    "Software (interactive)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "STRIDE_TESTS_INTERACTIVE": "1"
+      },
+      "nativeDebugging": true
+    },
+    "GPU (console)": {
       "commandName": "Project",
       "environmentVariables": {
         "STRIDE_TESTS_GPU": "1"
+      },
+      "nativeDebugging": true
+    },
+    "GPU (interactive)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "STRIDE_TESTS_GPU": "1",
+        "STRIDE_TESTS_INTERACTIVE": "1"
       },
       "nativeDebugging": true
     }

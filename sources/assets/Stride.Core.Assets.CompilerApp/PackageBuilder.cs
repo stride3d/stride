@@ -100,6 +100,9 @@ namespace Stride.Core.Assets.CompilerApp
                 var buildDirectory = builderOptions.BuildDirectory;
                 var outputDirectory = builderOptions.OutputDirectory;
 
+                // Redirect ApplicationCache to the build directory so shader caches are per-project
+                ((FileSystemProvider)VirtualFileSystem.ApplicationCache).ChangeBasePath(Path.Combine(buildDirectory, "cache"));
+
                 // Process game settings asset
                 var gameSettingsAsset = package.GetGameSettingsAsset();
                 if (gameSettingsAsset == null)
@@ -324,6 +327,7 @@ namespace Stride.Core.Assets.CompilerApp
         {
             // Mount build path
             ((FileSystemProvider)VirtualFileSystem.ApplicationData).ChangeBasePath(builderOptions.BuildDirectory);
+            ((FileSystemProvider)VirtualFileSystem.ApplicationCache).ChangeBasePath(Path.Combine(builderOptions.BuildDirectory, "cache"));
 
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
 

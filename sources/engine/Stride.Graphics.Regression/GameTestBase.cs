@@ -19,6 +19,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
+using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -76,6 +77,12 @@ namespace Stride.Graphics.Regression
         public int StopOnFrameCount { get; set; }
 
         /// <summary>
+        ///   Maximum per-channel color difference (0-255) allowed when comparing images.
+        ///   Default is 2. Increase for tests with expected minor numerical differences.
+        /// </summary>
+        public int ImageComparisonTolerance { get; set; } = 2;
+
+        /// <summary>
         ///   Gets or sets the name of the test. It will be reflected in the saved images.
         /// </summary>
         public string TestName { get; set; }
@@ -106,14 +113,16 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        ///   Controls RenderDoc capture behavior for tests.
-        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   Controls RenderDoc capture behavior for tests. Defaults to the value of the
+        ///   <c>STRIDE_TESTS_RENDERDOC</c> environment variable (lower-cased) and can be
+        ///   overridden at runtime by the interactive test runner.
         ///   <list type="bullet">
         ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
         ///     <item><c>always</c> — capture frames for all tests</item>
+        ///     <item>anything else / <see langword="null"/> — no capture</item>
         ///   </list>
         /// </summary>
-        private static readonly string RenderDocMode =
+        public static string RenderDocMode { get; set; } =
             Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
         private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
@@ -228,7 +237,6 @@ namespace Stride.Graphics.Regression
         {
             TestGameLogger.Info(@"Saving the Back-Buffer");
 
-            // TODO: GRAPHICS REFACTOR: Switched to presenter backbuffer, need to check if it's good
             var backBuffer = GraphicsDevice.Presenter.BackBuffer;
             using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
             SaveImage(image, testName);
@@ -636,7 +644,7 @@ namespace Stride.Graphics.Regression
             var gpuValidationWarnings = new List<string>();
             void OnGlobalMessage(ILogMessage msg)
             {
-                if (msg.Module != nameof(GraphicsDevice))
+                if (msg.Module != GraphicsDevice.DebugLogModule)
                     return;
                 if (msg.Type == LogMessageType.Error)
                     gpuValidationErrors.Add(msg.Text);
@@ -773,11 +781,14 @@ namespace Stride.Graphics.Regression
                 var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
-                foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
+                if (Directory.Exists(testFileNameRoot))
                 {
-                    if (testFileNameRegex.IsMatch(file))
+                    foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
                     {
-                        testFileNames.Add(file);
+                        if (testFileNameRegex.IsMatch(file))
+                        {
+                            testFileNames.Add(file);
+                        }
                     }
                 }
             }
@@ -787,14 +798,19 @@ namespace Stride.Graphics.Regression
                 // No source image, save this one so that user can later copy it to validated folder
                 ImageTester.SaveImage(image, testLocalFileName);
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
+                // Treat "missing reference" as a (failed) comparison so interactive runners
+                // can still surface the rendered output and offer a create-gold action.
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
+                {
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = testFileName,
+                    Passed = false,
+                });
             }
             else
             {
                 // Resolve thresholds from thresholds.jsonc
-                var fullClassName = GetType().FullName;
-                var classNameIndex = fullClassName.LastIndexOf('.');
-                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var suiteDir = Path.Combine(testsBaseDir, GetType().Assembly.GetName().Name);
                 var thresholdRules = ImageThreshold.LoadRules(suiteDir);
                 var imageName = Path.GetFileName(testFileName);
                 var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
@@ -820,12 +836,16 @@ namespace Stride.Graphics.Regression
                 // Compare against all available gold images
                 var pendingFailMessages = new List<string>();
                 bool anyMatch = false;
+                string matchedFile = testFileName;
+                ImageTester.ComparisonStats lastStats = default;
                 foreach (var file in testFileNames)
                 {
                     bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
+                    lastStats = stats;
                     if (match)
                     {
                         anyMatch = true;
+                        matchedFile = file;
                         break;
                     }
                     var isExactMatch = file == testFileName;
@@ -849,6 +869,14 @@ namespace Stride.Graphics.Regression
                     if (File.Exists(testLocalFileName))
                         File.Delete(testLocalFileName);
                 }
+
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
+                {
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = matchedFile,
+                    Passed = anyMatch,
+                    Stats = lastStats,
+                });
             }
         }
 
@@ -875,7 +903,7 @@ namespace Stride.Graphics.Regression
             {
                 deviceName = GraphicsDevice.Platform switch
                 {
-                    GraphicsPlatform.Vulkan => "SwiftShader",
+                    GraphicsPlatform.Vulkan => "Lavapipe",
                     _ => "WARP"
                 };
             }
@@ -903,15 +931,13 @@ namespace Stride.Graphics.Regression
         ///   The file extension to append to the generated file name (e.g., ".txt", ".log").
         /// </param>
         /// <returns>
-        ///   A fully qualified file path for the test artifact, including the namespace, class name,
+        ///   A fully qualified file path for the test artifact, including the assembly name, class name,
         ///   test name, frame name, and platform-specific directory.
         /// </returns>
         private string GenerateTestArtifactFileName(string testArtifactPath, string frameName, string platformSpecificDir, string extension)
         {
-            var fullClassName = GetType().FullName;
-            var classNameIndex = fullClassName.LastIndexOf('.');
-            var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-            var className = fullClassName[(classNameIndex + 1)..];
+            var assemblyName = GetType().Assembly.GetName().Name;
+            var className = GetType().Name;
 
             var testFileName = className;
             if (TestName is not null)
@@ -920,7 +946,7 @@ namespace Stride.Graphics.Regression
                 testFileName += $".{frameName}";
             testFileName += extension;
 
-            var testDir = Path.Combine(testArtifactPath, @namespace);
+            var testDir = Path.Combine(testArtifactPath, assemblyName);
             testFileName = Path.Combine(testDir, platformSpecificDir, testFileName);
             return testFileName;
         }

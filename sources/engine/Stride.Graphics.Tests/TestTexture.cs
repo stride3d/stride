@@ -231,17 +231,22 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture3D()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
-
             PerformTest(
                 game =>
                 {
                     var device = game.GraphicsDevice;
 
-                    // Check Texture creation with an array of data, with usage default to later allow SetData
-                    var data = new byte[32 * 32 * 32];
-                    data[0] = 255;
-                    data[31] = 1;
+                    // Check Texture creation with an array of data, with usage default to later allow SetData.
+                    // Encode (slice, row, col) into each byte so that any misalignment of slice or row
+                    // start in the upload/readback path produces a recognisable mismatch: byte ==
+                    // (sliceIndex * 17 ^ rowIndex * 3 ^ colIndex). The 17/3 multipliers keep slice and
+                    // row contributions distinct mod 256.
+                    const int width = 32, height = 32, depth = 32;
+                    var data = new byte[width * height * depth];
+                    for (int s = 0; s < depth; s++)
+                    for (int r = 0; r < height; r++)
+                    for (int c = 0; c < width; c++)
+                        data[s * width * height + r * width + c] = (byte)((s * 17) ^ (r * 3) ^ c);
 
                     var texture = Texture.New3D(device, width: 32, height: 32, depth: 32, PixelFormat.R8_UNorm, data, usage: GraphicsResourceUsage.Default);
 
@@ -397,11 +402,8 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadSave(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
-            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
 
             PerformTest(
                 game =>
@@ -451,12 +453,9 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadDraw(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, reason: "Load/Save not implemented for this format");
-            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformDrawTest(
                 (game, context) =>
@@ -477,7 +476,8 @@ namespace Stride.Graphics.Tests
                     using (var inStream = game.Content.OpenAsStream(filePath))
                         texture = Texture.Load(device, inStream, loadAsSrgb: true);
 
-                    game.GraphicsContext.DrawTexture(texture, BlendStates.AlphaBlend);
+                    // Texture.Load returns straight alpha; pair it with the matching blend.
+                    game.GraphicsContext.DrawTexture(texture, BlendStates.NonPremultiplied);
                 },
                 GraphicsProfile.Level_9_1);
         }

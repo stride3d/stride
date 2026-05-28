@@ -248,13 +248,10 @@ namespace Stride.Streaming
         {
             var mipLevels = TotalMipLevels;
             mipInfos = new MipInfo[mipLevels];
-            var isBlockCompressed =
-                (Format >= PixelFormat.BC1_Typeless && Format <= PixelFormat.BC5_SNorm) ||
-                (Format >= PixelFormat.BC6H_Typeless && Format <= PixelFormat.BC7_UNorm_SRgb);
 
             for (var mipIndex = 0; mipIndex < mipLevels; mipIndex++)
             {
-                GetMipSize(isBlockCompressed, mipIndex, out int mipWidth, out int mipHeight);
+                GetMipSize(mipIndex, out int mipWidth, out int mipHeight);
 
                 Image.ComputePitch(Format, mipWidth, mipHeight, out int rowPitch, out int slicePitch, out int _, out int _);
 
@@ -262,16 +259,10 @@ namespace Stride.Streaming
             }
         }
 
-        private void GetMipSize(bool isBlockCompressed, int mipIndex, out int width, out int height)
+        private void GetMipSize(int mipIndex, out int width, out int height)
         {
             width = Math.Max(1, TotalWidth >> mipIndex);
             height = Math.Max(1, TotalHeight >> mipIndex);
-
-            if (isBlockCompressed && ((width % 4) != 0 || (height % 4) != 0))
-            {
-                width = unchecked((int)(((uint)(width + 3)) & ~3U));
-                height = unchecked((int)(((uint)(height + 3)) & ~3U));
-            }
         }
 
         private void StreamingTask(int residency)

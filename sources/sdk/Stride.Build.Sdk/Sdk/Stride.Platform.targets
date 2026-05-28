@@ -15,21 +15,21 @@
   <!-- ================================================================ -->
   <!-- Platform Defines - Desktop Frameworks -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
+  <PropertyGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' ">
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Platform Defines - Android -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Platform Defines - iOS -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
   </PropertyGroup>
 
@@ -53,7 +53,7 @@
   <!-- ================================================================ -->
   <!-- Android-Specific Build Properties -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
     <!-- On Android, everything is library (even Exe) -->
     <OutputType>Library</OutputType>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
@@ -61,14 +61,14 @@
     <!-- Use AssemblyName for Resource class to avoid clashes between assemblies -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe'">
     <AndroidApplication>true</AndroidApplication>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Debug'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Debug'">
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Release'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Release'">
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
   </PropertyGroup>
@@ -76,15 +76,15 @@
   <!-- ================================================================ -->
   <!-- iOS-Specific Build Properties -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">
     <Platform Condition="'$(Platform)' == ''">iPhone</Platform>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
   </PropertyGroup>
   <!-- Create empty platform configuration so MSBuild/VS Configuration Manager knows about them -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone'" />
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhone'" />
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator'" />
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator'" />
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone'" />
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhone'" />
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator'" />
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator'" />
 
   <!-- UWP platform support intentionally omitted (UWP is being phased out) -->
 

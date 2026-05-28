@@ -13,7 +13,7 @@ namespace Stride.Core.Assets;
 
 public static partial class NuGetAssemblyResolver
 {
-    public const string DevSource = @"Stride\NugetDev";
+    public static readonly string DevSource = Path.Combine("Stride", "NugetDev");
 #if STRIDE_NUGET_RESOLVER_UI
     public static string AvaloniaVersion = string.Empty;
 #endif
@@ -47,7 +47,7 @@ public static partial class NuGetAssemblyResolver
 
         while (folder != null)
         {
-            if (File.Exists(Path.Combine(folder, @"build\Stride.sln")))
+            if (File.Exists(Path.Combine(folder, "build", "Stride.sln")))
             {
                 var settings = Settings.LoadDefaultSettings(null);
 
@@ -119,7 +119,12 @@ public static partial class NuGetAssemblyResolver
                             var (request, result) = RestoreHelper.Restore(logger, nugetFramework, RuntimeInformation.RuntimeIdentifier, packageName, versionRange);
                             if (!result.Success)
                             {
-                                throw new InvalidOperationException("Could not restore NuGet packages");
+                                var diagnostics = string.Join(Environment.NewLine,
+                                    logger.Logs
+                                        .Where(l => l.Level >= LogLevel.Warning)
+                                        .Select(l => $"  [{l.Level}] {l.Message}"));
+                                throw new InvalidOperationException(
+                                    $"Could not restore NuGet packages for {packageName} {packageVersion} ({targetFramework}).{Environment.NewLine}{diagnostics}");
                             }
 
                             // Build list of assemblies

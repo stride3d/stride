@@ -124,7 +124,9 @@
   <Target Name="StrideRunAssemblyProcessor"
           BeforeTargets="CopyFilesToOutputDirectory"
           DependsOnTargets="ResolveAssemblyReferences"
-          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != ''">
+          Inputs="$(IntermediateOutputPath)$(TargetName)$(TargetExt);@(ReferencePath);$(StrideAssemblyProcessorPath)"
+          Outputs="$(IntermediateOutputPath)$(TargetName).asmproc.marker"
+          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
 
     <!-- Step 1: Write references to cache file -->
     <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache"
@@ -195,6 +197,9 @@
     <ItemGroup>
       <StrideAddReference Remove="@(StrideAddReference)" />
     </ItemGroup>
+
+    <!-- Touch marker so MSBuild's incremental check skips on next build when nothing changed. -->
+    <Touch Files="$(IntermediateOutputPath)$(TargetName).asmproc.marker" AlwaysCreate="true" />
   </Target>
 
   <!-- ================================================================ -->
