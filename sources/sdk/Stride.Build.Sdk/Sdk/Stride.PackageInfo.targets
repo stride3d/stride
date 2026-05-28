@@ -41,12 +41,24 @@
        @(NuGetPackOutput). Running only before GenerateNuspec lets the suffix reach PackTask
        (the .nupkg is named correctly) but leaves @(NuGetPackOutput) pointing at the un-suffixed
        path — StrideAutoPackDeploy then MSB3030s trying to copy a file that was never produced. -->
+  <!-- NuGetResolverModuleInitializerGenerate bakes $(PackageVersion) into the resolver's
+       module-init file at BeforeCompile, so we need the suffix appended before then too.
+       MSBuild silently ignores unknown target names in BeforeTargets, so projects without
+       the resolver target are unaffected. -->
   <Target Name="StrideAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
-          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec">
+          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec;NuGetResolverModuleInitializerGenerate">
     <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>
   </Target>
+
+  <!-- Also run during cross-project version queries: NuGet pack on a parent calls _GetProjectVersion
+       on each ProjectReference child to fill in dependency versions in the nuspec, and that target
+       depends on $(GetPackageVersionDependsOn). Without this, child returns the un-suffixed version
+       and consumers hit a Stride.A 4.4.0.1-devN -> Stride.B (>= 4.4.0.1) downgrade error. -->
+  <PropertyGroup>
+    <GetPackageVersionDependsOn>$(GetPackageVersionDependsOn);StrideAppendWorktreeVersion</GetPackageVersionDependsOn>
+  </PropertyGroup>
 
 </Project>
