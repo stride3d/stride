@@ -34,7 +34,6 @@ public abstract class CollidableComponent : EntityComponent
     public const string CategoryContacts = "Contacts";
     public const string CategoryActivity = "Activity";
 
-    private static uint IdCounter;
     private static uint VersioningCounter;
 
     private float _springFrequency = 30;
@@ -59,8 +58,6 @@ public abstract class CollidableComponent : EntityComponent
 
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
-
-    internal uint InstanceIndex { get; } = Interlocked.Increment(ref IdCounter);
 
     /// <summary>
     /// The simulation this object belongs to, null when it is not part of a simulation.

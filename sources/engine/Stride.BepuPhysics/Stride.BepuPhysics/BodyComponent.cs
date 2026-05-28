@@ -383,16 +383,56 @@ public class BodyComponent : CollidableComponent
     /// </remarks>
     public void SetTargetPose(Vector3 targetPosition, Quaternion targetOrientation)
     {
+        SetTargetPose(targetPosition);
+        SetTargetPose(targetOrientation);
+    }
+
+    /// <summary>
+    /// Set the position this body should try to match on the next physics tick, this will collide with objects on the way
+    /// </summary>
+    /// <remarks>
+    /// Using this function to move objects around is not recommended as it results in unrealistic forces being applied on this body, or unexpected stuttering depending on the input.
+    /// Consider using a constraint between this body and whatever it is following, or using the different Impulse methods instead <br/><br/>
+    /// <paramref name="targetPosition"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/> <br/><br/>
+    /// This method sets this body's <see cref="LinearVelocity"/>, setting these properties after the call would overwrite the result of this method
+    /// </remarks>
+    public void SetTargetPose(Vector3 targetPosition)
+    {
         if (Simulation is null)
             return;
 
-        Awake = true;
+        float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
+
+        var newVelocity = (targetPosition - Position) / deltaTime;
+        if (newVelocity.LengthSquared() > float.Epsilon)
+        {
+            Awake = true;
+            LinearVelocity = newVelocity;
+        }
+    }
+
+    /// <summary>
+    /// Set the orientation this body should try to match on the next physics tick, this will collide with objects on the way
+    /// </summary>
+    /// <remarks>
+    /// Using this function to move objects around is not recommended as it results in unrealistic forces being applied on this body, or unexpected stuttering depending on the input.
+    /// Consider using a constraint between this body and whatever it is following, or using the different Impulse methods instead <br/><br/>
+    /// This method sets this body's <see cref="AngularVelocity"/>, setting these properties after the call would overwrite the result of this method
+    /// </remarks>
+    public void SetTargetPose(Quaternion targetOrientation)
+    {
+        if (Simulation is null)
+            return;
 
         float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
 
-        LinearVelocity = (targetPosition - Position) / deltaTime;
         var quatDelta = Quaternion.Invert(Orientation) * targetOrientation;
-        AngularVelocity = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z) / deltaTime;
+        var newVelocity = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z) / deltaTime;
+        if (newVelocity.LengthSquared() > float.Epsilon)
+        {
+            Awake = true;
+            AngularVelocity = newVelocity;
+        }
     }
 
     /// <summary>
