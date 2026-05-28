@@ -52,6 +52,19 @@
     <_StrideTemplatesSkipPruneFlag Condition="'$(StrideTemplatesPackMode)' == 'minimal'">--skip-prune</_StrideTemplatesSkipPruneFlag>
   </PropertyGroup>
 
+  <!-- Per-checkout NuGet version suffix; mirrors StrideAppendWorktreeVersion in
+       Stride.PackageInfo.targets (templates use Microsoft.NET.Sdk so don't get it transitively).
+       Must run before the preprocessor too so $EngineVersion$ matches the engine's suffix. -->
+  <Import Project="$(StrideRoot)sources/targets/Stride.WorktreeVersion.targets"
+          Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
+  <Target Name="StrideTemplatesAppendWorktreeVersion"
+          DependsOnTargets="StrideEnsureWorktreeVersion"
+          BeforeTargets="StrideGenerateTemplateContent;_GetOutputItemsFromPack;GenerateNuspec">
+    <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
+      <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
+    </PropertyGroup>
+  </Target>
+
   <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\Stride\NugetDev on build. Mirrors
        Stride.Build.Sdk/Sdk.targets (StrideAutoPackDeploy + GeneratePackageOnBuild block); inlined
        here because this project doesn't use the Stride SDK chain. -->
