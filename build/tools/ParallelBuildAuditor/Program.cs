@@ -129,6 +129,17 @@ src.AnyEventRaised += (_, e) =>
         contextToProject[ps.BuildEventContext.ProjectContextId] = ps.ProjectFile ?? "";
     }
 
+    // Multi-TFM outer→inner self-dispatch (MSBuild's DispatchToInnerBuilds): the outer build
+    // (TargetFramework=<unset>) dispatches the project to itself with TargetFramework set
+    // explicitly to produce per-TFM outputs. Sequential, not parallel — only one inner runs at
+    // a time, so the shared OutputPath doesn't race even though both dispatches see it.
+    if (string.Equals(parent, ps.ProjectFile, StringComparison.OrdinalIgnoreCase)
+        && globals.TryGetValue("TargetFramework", out var tf) && tf.Length > 0
+        && string.Equals((ps.TargetNames ?? "").Trim(), "Build", StringComparison.OrdinalIgnoreCase))
+    {
+        return;
+    }
+
     if (!groups.TryGetValue(key, out var list))
     {
         list = new List<(string, IReadOnlyDictionary<string, string>, string, string)>();
