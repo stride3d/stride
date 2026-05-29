@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
+    <PackageReference Include="Silk.NET.Shaderc" />
   </ItemGroup>
 
   <ItemGroup>

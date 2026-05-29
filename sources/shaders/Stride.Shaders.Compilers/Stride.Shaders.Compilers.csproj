@@ -33,7 +33,6 @@
     <PackageReference Include="Stride.Dependencies.SpirvCross" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
-    <PackageReference Include="Silk.NET.Shaderc" PrivateAssets="compile" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
