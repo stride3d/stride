@@ -261,6 +261,7 @@ public static partial class NativeLibraryHelper
     ///   <see langword="true"/> if the library file is found and its path is assigned to <paramref name="result"/>;
     ///   otherwise, <see langword="false"/>.
     /// </returns>
+    [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "Falls back to the Environment.ProcessPath directory when Location is empty.")]
     private static bool TryFindLibraryPath(Type ownerType, string libraryNameWithExtension,
                                            [NotNullWhen(true)] out string? result)
     {
