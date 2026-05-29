@@ -6,6 +6,7 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
+    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">

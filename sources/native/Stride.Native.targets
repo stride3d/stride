@@ -90,6 +90,9 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <StrideNativeCPU Include="ios-arm64;iossimulator-arm64" LibraryExtension=".a" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkmacOS)'">
+    <StrideNativeCPU Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
+  </ItemGroup>
   <!-- Can be deleted -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
     <StrideNativeCPU Include="x64;ARM" LibraryExtension=".dll" />
@@ -315,13 +318,23 @@
   </Target>
   
   <!-- macOS host: system clang (no LLD). Celt and NativePath are true-macOS-arm64 rebuilds
-       under deps/NativePath/dotnet/osx-arm64/ (iOS objects refuse to link into macOS dylibs). -->
-  <Target Name="CompileNativeClang_macOSOnMac" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+       under deps/NativePath/dotnet/osx-arm64/ (iOS objects refuse to link into macOS dylibs).
+       Fires for net10.0 (with -p:StridePlatforms=macOS opt-in) and net10.0-macos (TFM is
+       definitionally macOS, no opt-in gate). Net effect: each TFM lays its own dylib down
+       in bin/<TFM>/runtimes/osx-arm64/native/, so ProjectReference consumers building for
+       net10.0-macos pick it up directly. -->
+  <Target Name="CompileNativeClang_macOSOnMac" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="(('$(TargetFramework)' == '$(StrideFramework)' And $(_StridePlatforms.Contains(';macOS;'))) Or '$(TargetFramework)' == '$(StrideFrameworkmacOS)') And $([MSBuild]::IsOSPlatform('OSX')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)/osx-arm64" />
     <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/osx-arm64/native" />
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="clang $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="clang++ $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
-    <Exec Command="clang++ -arch arm64 -dynamiclib -o &quot;$(StrideNativeOutputPath)/runtimes/osx-arm64/native/$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/osx-arm64/%(Filename)_arm64.o&quot;', ' ') @(StrideNativePathLibsmacOSArm64->'&quot;%(FullPath)&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-arm64\libNativePath.a&quot;" />
+    <!-- -Wl,-force_load on StrideNativePathLibs* archives (e.g. libCelt.a): without it the dylib
+         linker strips symbols the .a provides that no native object references, even though
+         managed P/Invoke needs them at runtime — e.g. stride_celt_get_lookahead, which is
+         only called from Celt.AVFoundation.cs. iOS hits the same need via NativeReference
+         ForceLoad=True on the consumer .app link; macOS embeds the archive at dylib-build
+         time, so we re-export via the linker here. -->
+    <Exec Command="clang++ -arch arm64 -dynamiclib -o &quot;$(StrideNativeOutputPath)/runtimes/osx-arm64/native/$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/osx-arm64/%(Filename)_arm64.o&quot;', ' ') @(StrideNativePathLibsmacOSArm64->'-Wl,-force_load,&quot;%(FullPath)&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-arm64\libNativePath.a&quot;" />
   </Target>
 
   <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean" DependsOnTargets="_StrideRegisterNativeOutputs">

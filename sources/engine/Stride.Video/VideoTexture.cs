@@ -136,6 +136,23 @@ namespace Stride.Video
             //}
         }
 
+        /// Copies a regular sampleable source texture into the top-level mipmap via SpriteEffectExtTextureRegular.
+        /// Used by backends whose decoder output is an ordinary VkImage (e.g. AVFoundation IOSurface import).
+        public void CopyTextureToTopLevelMipmap(GraphicsContext context, Texture sourceTexture)
+        {
+            var previousDepthStencilBuffer = context.CommandList.DepthStencilBuffer;
+            var previousRenderTarget = context.CommandList.RenderTarget;
+
+            CopyTexture(context,
+                        effectTexture2DCopy,
+                        sourceTexture,
+                        renderTargetMipMaps[0],
+                        SpriteEffectExtTextureRegularKeys.TextureRegular,
+                        SpriteEffectExtTextureRegularKeys.MipLevel);
+
+            context.CommandList.SetRenderTargetAndViewport(previousDepthStencilBuffer, previousRenderTarget);
+        }
+
         public void GenerateMipMaps(GraphicsContext graphicsContext)
         {
             if (renderTargetMipMaps.Count < 2) // avoid the change of render target when there is no mipmaps to generate.
