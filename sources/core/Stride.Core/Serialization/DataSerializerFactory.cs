@@ -4,6 +4,7 @@
 #pragma warning disable SA1649 // File name must match first type name
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Reflection;
 using Stride.Core.Storage;
@@ -28,12 +29,13 @@ public struct AssemblySerializerEntry
     /// <summary>
     /// The type of the serialized object.
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
     public readonly Type SerializerType;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssemblySerializerEntry"/> struct.
     /// </summary>
-    public AssemblySerializerEntry(ObjectId id, Type objectType, Type serializerType)
+    public AssemblySerializerEntry(ObjectId id, Type objectType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type serializerType)
     {
         Id = id;
         ObjectType = objectType;

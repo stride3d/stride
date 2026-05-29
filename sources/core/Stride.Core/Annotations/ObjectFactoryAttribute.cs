@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Reflection;
 
@@ -16,13 +17,14 @@ public sealed class ObjectFactoryAttribute : Attribute
     /// <summary>
     /// The type of the factory to use to create instance of the related type.
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
     public Type FactoryType { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectFactoryAttribute"/> class.
     /// </summary>
     /// <param name="factoryType">The factory type that implements <see cref="IObjectFactory"/>.</param>
-    public ObjectFactoryAttribute(Type factoryType)
+    public ObjectFactoryAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type factoryType)
     {
 #if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(factoryType);
