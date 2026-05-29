@@ -177,6 +177,11 @@ namespace Stride.Graphics
         internal bool HasAndroidHardwareBufferSupport { get; private set; }
 #endif
 
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
+        // True when VK_EXT_metal_objects was enabled — lets us import CVPixelBuffer IOSurfaces as VkImage.
+        internal bool HasMetalObjectsSupport { get; private set; }
+#endif
+
         /// <summary>
         ///     Marks context as active on the current thread.
         /// </summary>
@@ -427,6 +432,10 @@ namespace Stride.Graphics
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
+                // IOSurface-backed VkImage import (zero-copy CVPixelBuffer upload on Apple platforms).
+                VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
+#endif
 #if STRIDE_PLATFORM_ANDROID
                 // AHardwareBuffer import (zero-copy buffers from camera / MediaCodec / etc.).
                 VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
@@ -452,6 +461,14 @@ namespace Stride.Graphics
             bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
             if (isPortabilitySubsetDevice)
                 desiredExtensionProperties.Add(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
+            // VK_EXT_metal_objects lets us import IOSurface-backed CVPixelBuffers as VkImages for
+            // zero-copy video upload. MoltenVK 1.2+ supports it; no extra dependency extensions needed.
+            HasMetalObjectsSupport = availableExtensionProperties.Contains(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            if (HasMetalObjectsSupport)
+                desiredExtensionProperties.Add(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+#endif
 
 #if STRIDE_PLATFORM_ANDROID
             // All extensions in the AHardwareBuffer → VkImage chain must be present together.

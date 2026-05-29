@@ -4,8 +4,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
     <StrideRuntime>true</StrideRuntime>
+    <!-- net10.0-macos for AVFoundation audio extraction (gated by STRIDE_VIDEO_AVFOUNDATION). -->
+    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">
+    <DefineConstants>STRIDE_VIDEO_AVFOUNDATION;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

@@ -1,8 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-// No video backend on iOS (FFmpeg not built for iOS, no AVFoundation backend yet).
-#if STRIDE_VIDEO_FFMPEG || STRIDE_VIDEO_MEDIACODEC
+#if STRIDE_VIDEO_FFMPEG || STRIDE_VIDEO_MEDIACODEC || STRIDE_VIDEO_AVFOUNDATION
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
