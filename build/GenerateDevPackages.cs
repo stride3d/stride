@@ -340,7 +340,9 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, s
     // included our package's compile/runtime asset for the consumer).
 
     // Inject the redirect metadata + targets into both build/ and buildTransitive/ so consumers
-    // see them regardless of asset-flow filtering on transitive paths.
+    // see them regardless of asset-flow filtering on transitive paths. Merge into any existing
+    // <PkgId>.props/.targets the package already shipped (e.g. CompilerApp's StrideCompileAsset
+    // chain, Stride.Core/Graphics native-runtime targets) — overwriting would destroy them.
     var propsContent = GenerateRedirectProps(pkgId, projInfo, strideRoot, configuration);
     var targetsContent = GenerateRedirectTargets(pkgId, projInfo, version, strideRoot, configuration);
 
@@ -352,11 +354,7 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, s
         ($"buildTransitive/{pkgId}.targets", targetsContent),
     })
     {
-        zip.GetEntry(path)?.Delete();
-        var entry = zip.CreateEntry(path);
-        using var stream = entry.Open();
-        using var writer = new StreamWriter(stream, Encoding.UTF8);
-        writer.Write(content);
+        MergeIntoZipEntry(zip, path, content);
     }
 
     // Close zip before copying
@@ -377,6 +375,48 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, s
     }
 }
 
+// Merge our generated <Project> content into a zip entry at entryPath, preserving any
+// existing content (the original package's build/<PkgId>.props/.targets). New top-level
+// children from `addition` are appended to the existing root Project; existing children
+// stay in place. If the entry doesn't exist we create one from `addition`.
+static void MergeIntoZipEntry(ZipArchive zip, string entryPath, string addition)
+{
+    XNamespace msbuildNs = "http://schemas.microsoft.com/developer/msbuild/2003";
+
+    XDocument existingDoc;
+    var existing = zip.GetEntry(entryPath);
+    if (existing != null)
+    {
+        string existingText;
+        using (var s = existing.Open())
+        using (var r = new StreamReader(s))
+            existingText = r.ReadToEnd();
+        existingDoc = string.IsNullOrWhiteSpace(existingText)
+            ? new XDocument(new XElement(msbuildNs + "Project"))
+            : XDocument.Parse(existingText);
+        existing.Delete();
+    }
+    else
+    {
+        existingDoc = new XDocument(new XElement(msbuildNs + "Project"));
+    }
+
+    var additionDoc = XDocument.Parse(addition);
+    if (additionDoc.Root != null && existingDoc.Root != null)
+    {
+        foreach (var child in additionDoc.Root.Elements().ToList())
+        {
+            child.Remove();
+            existingDoc.Root.Add(child);
+        }
+    }
+
+    var newEntry = zip.CreateEntry(entryPath);
+    using var stream = newEntry.Open();
+    using var writer = new StreamWriter(stream, Encoding.UTF8);
+    existingDoc.Save(writer);
+}
+
 // Props content: marker + paths read by the runtime resolvers
 // (AssemblyContainer.TryResolveDevRedirect / RestoreHelper.TryResolveDevRedirect). The
 // Reference element sits under Condition="false" so MSBuild ignores it — the runtime
@@ -385,20 +425,6 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, s
 static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string strideRoot, string configuration)
 {
     var relProjDir = Path.GetRelativePath(strideRoot, projInfo.ProjectDir).Replace('\\', '/');
-
-    if (string.Equals(pkgId, "Stride.Core.Assets.CompilerApp", StringComparison.OrdinalIgnoreCase))
-    {
-        return $"""
-            <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-              <PropertyGroup>
-                <StrideDevRedirect>true</StrideDevRedirect>
-                <StrideDevRoot Condition="'$(StrideDevRoot)' == ''">{strideRoot}</StrideDevRoot>
-                <StrideDevConfiguration Condition="'$(StrideDevConfiguration)' == ''">{configuration}</StrideDevConfiguration>
-                <StrideCompileAssetCommand>$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/{projInfo.AssemblyName}.dll</StrideCompileAssetCommand>
-              </PropertyGroup>
-            </Project>
-            """;
-    }
 
     var hintPath = projInfo.IsGraphicsDependent
         ? $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/$(StrideGraphicsApi)/{projInfo.AssemblyName}.dll"
@@ -410,6 +436,10 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
             <StrideDevRedirect>true</StrideDevRedirect>
             <StrideDevRoot Condition="'$(StrideDevRoot)' == ''">{strideRoot}</StrideDevRoot>
             <StrideDevConfiguration Condition="'$(StrideDevConfiguration)' == ''">{configuration}</StrideDevConfiguration>
+            <!-- Seed $(StrideRoot) so package targets that anchor on it (e.g. CompilerApp's
+                 asset-compiler path lookup) resolve to the in-tree build output. Matches the
+                 trailing-slash convention from sources/Directory.Build.props. -->
+            <StrideRoot Condition="'$(StrideRoot)' == ''">$(StrideDevRoot)\</StrideRoot>
           </PropertyGroup>
           <ItemGroup Condition="false">
             <Reference Include="{projInfo.AssemblyName}">
@@ -429,15 +459,10 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
 // consumer's bin/ behind NuGet's back.
 static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string version, string strideRoot, string configuration)
 {
-    // CompilerApp is the asset-compiler tool — invoked as a separate exe via StrideCompileAssetCommand,
-    // not consumed as a runtime/compile reference — so no item substitution applies.
-    if (string.Equals(pkgId, "Stride.Core.Assets.CompilerApp", StringComparison.OrdinalIgnoreCase))
-    {
-        return """
-            <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-            </Project>
-            """;
-    }
+    // Packages consumed only via build/buildTransitive (no compile/runtime asset flow — e.g.
+    // CompilerApp invoked as a separate exe) have nothing in RuntimeCopyLocalItems for our
+    // target to substitute. Emitting the target is still safe: the batched ItemGroup matches
+    // zero items and is a no-op. We always emit and let item-set semantics handle the rest.
 
     var relProjDir = Path.GetRelativePath(strideRoot, projInfo.ProjectDir).Replace('\\', '/');
     var hintPath = projInfo.IsGraphicsDependent
