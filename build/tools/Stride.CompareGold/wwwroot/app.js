@@ -14,11 +14,13 @@ let cellStats = {};           // {`${sourceId}:${suite}:${name}`: stats}
 
 // === Init ===
 async function init() {
-  // Show Stride root path
+  // Show Stride root path, hostname, and current git branch
   try {
     const infoRes = await fetch('/api/info');
     const info = await infoRes.json();
     document.getElementById('strideRoot').textContent = info.strideRoot;
+    if (info.hostname) document.getElementById('hostInfo').textContent = info.hostname;
+    if (info.branch) document.getElementById('branchInfo').textContent = info.branch;
   } catch {}
 
   const res = await fetch('/api/suites');
@@ -331,11 +333,14 @@ function buildRowCells(img, key) {
       cellHtml = '<span class="cell new">○ new</span>';
     } else if (stats) {
       const result = checkCellThreshold(img.suite, img.name, stats);
-      const cls = result.passed ? 'pass' : 'fail';
+      const passing = isCellPassing(src.id, img.suite, img.name, stats);
+      const cls = passing === true ? 'pass' : passing === false ? 'fail' : 'pending';
+      const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
       const brief = formatThresholdBrief(result);
-      cellHtml = `<span class="cell ${cls}">${cls === 'pass' ? '✓' : '✗'} ${brief}</span>`;
+      const viaAlt = passing === true && !result.passed ? ' (via alt)' : '';
+      cellHtml = `<span class="cell ${cls}" data-stats-key="${esc(statsKey)}">${icon} ${brief}${viaAlt}</span>`;
     } else {
-      cellHtml = `<span class="cell" data-stats-key="${esc(statsKey)}" style="color:#666">...</span>`;
+      cellHtml = `<span class="cell pending" data-stats-key="${esc(statsKey)}">…</span>`;
       computeCellStats(src.id, img.suite, img.name);
     }
     if (has) {
@@ -673,7 +678,6 @@ function updateCellInline(key, stats) {
   if (el) {
     el.className = `cell ${cls}`;
     el.removeAttribute('style');
-    el.removeAttribute('data-stats-key');
     const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
     const brief = formatThresholdBrief(result);
     const viaAlt = passing === true && !result.passed ? ' (via alt)' : '';
@@ -909,22 +913,20 @@ function selectFixable() {
 
 async function deleteSelectedGold() {
   if (selected.size === 0) return alert('No images selected.');
-  // Group fixable images by the platform whose gold should be deleted
+  // Always target the current platform's gold. For fixable selections the test then falls
+  // through to a passing alternate; for non-fixable ones it's just a direct delete.
   const toDelete = {};
   for (const key of selected) {
-    const fix = fixableVia[key];
-    if (!fix) continue;
-    const [suite, ...nameParts] = key.split(':');
-    const name = nameParts.join(':');
-    // Delete the gold for the current platform (the failing one)
-    const k = `${suite}|${fix.goldFallback}`;
-    if (!toDelete[k]) toDelete[k] = { suite, platform: fix.goldFallback, names: [] };
-    toDelete[k].names.push(name);
+    const colon = key.indexOf(':');
+    const suite = key.substring(0, colon);
+    const name = key.substring(colon + 1);
+    if (!toDelete[suite]) toDelete[suite] = { suite, platform: currentPlatform, names: [] };
+    toDelete[suite].names.push(name);
   }
   const entries = Object.values(toDelete);
-  if (entries.length === 0) return alert('No fixable images selected. Select images that show a green checkmark hint.');
   const total = entries.reduce((s, e) => s + e.names.length, 0);
-  if (!confirm(`Delete ${total} device-specific gold image(s)? They will fall back to a passing alternate.`)) return;
+  if (total === 0) return;
+  if (!confirm(`Delete ${total} gold image(s) for ${currentPlatform}?`)) return;
   let totalDeleted = 0;
   for (const entry of entries) {
     const res = await fetch('/api/gold/delete', {
@@ -1549,7 +1551,9 @@ let kbFocusKey = null; // persists across re-renders
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-  const rows = [...document.querySelectorAll('tr.suite-row, tr.row')];
+  // Skip rows hidden by updateCellInline (filter drop-out) — they're in the DOM but invisible,
+  // so including them would cause arrow keys to "stick" on blank steps.
+  const rows = [...document.querySelectorAll('tr.suite-row, tr.row')].filter(r => r.style.display !== 'none');
   if (rows.length === 0) return;
 
   const focusedIdx = kbFocusKey != null ? rows.findIndex(r => r.dataset.kbKey === kbFocusKey) : -1;
@@ -1599,7 +1603,7 @@ function kbExpand(row) {
   if (row.classList.contains('suite-row')) {
     if (!collapsedSuites.has(key)) {
       // Already expanded — move to first child
-      const rows = [...document.querySelectorAll('tr.suite-row, tr.row')];
+      const rows = [...document.querySelectorAll('tr.suite-row, tr.row')].filter(r => r.style.display !== 'none');
       const idx = rows.indexOf(row);
       if (idx >= 0 && idx + 1 < rows.length && rows[idx + 1].classList.contains('row')) {
         kbSetFocus(rows, idx + 1);
@@ -1619,7 +1623,7 @@ function kbCollapse(row) {
     collapsedSuites.add(key);
   } else {
     // Test row — move to parent suite
-    const rows = [...document.querySelectorAll('tr.suite-row, tr.row')];
+    const rows = [...document.querySelectorAll('tr.suite-row, tr.row')].filter(r => r.style.display !== 'none');
     const idx = rows.indexOf(row);
     for (let i = idx - 1; i >= 0; i--) {
       if (rows[i].classList.contains('suite-row')) {

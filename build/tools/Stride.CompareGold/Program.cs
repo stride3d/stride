@@ -82,7 +82,29 @@ Console.WriteLine(ghAvailable ? "GitHub CLI: authenticated" : $"GitHub CLI: {ghE
 
 // === Info API ===
 
-app.MapGet("/api/info", () => new { StrideRoot = strideRoot });
+app.MapGet("/api/info", () =>
+{
+    string branch = "";
+    try
+    {
+        var proc = Process.Start(new ProcessStartInfo
+        {
+            FileName = "git",
+            Arguments = "rev-parse --abbrev-ref HEAD",
+            WorkingDirectory = strideRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        });
+        if (proc != null)
+        {
+            proc.WaitForExit(2000);
+            if (proc.ExitCode == 0) branch = proc.StandardOutput.ReadToEnd().Trim();
+        }
+    }
+    catch { }
+    return new { StrideRoot = strideRoot, Hostname = Environment.MachineName, Branch = branch };
+});
 
 // === Gold API ===
 
