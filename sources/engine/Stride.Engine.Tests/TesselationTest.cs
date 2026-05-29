@@ -202,7 +202,6 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
-            SkipTestForPlatform(PlatformType.Android);
             RunGameTest(new TesselationTest());
         }
 
