@@ -150,10 +150,16 @@
   <Target Name="_StrideEnsureCompilerAppPacked"
           BeforeTargets="StrideCompileAsset"
           Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
+    <!-- Strip BuildingSolutionFile so CompilerApp's own _StrideTriggerPackOnInnerBuild fires
+         and fans Pack out to its engine ProjectReferences (Stride.UI, Stride.Physics, ...).
+         Those packs complete synchronously inside this MSBuild call, so the .nupkgs land in
+         NugetDev before StrideCompileAsset runs CompilerApp.exe. Without this, the engine
+         packs only happen as the natural AfterTargets=Build Pack chain in parallel with
+         StrideCompileAsset, and CompilerApp races ahead and fails to find them. -->
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
              Targets="Pack"
              Properties="TargetFrameworks=$(StrideXplatEditorTargetFramework);TargetFramework=$(StrideXplatEditorTargetFramework)"
-             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi" />
+             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi;BuildingSolutionFile" />
   </Target>
 
   <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">
