@@ -193,6 +193,8 @@ internal static class ImageThreshold
     /// </summary>
     public static string FormatResult(int[] pixelDiffs, AllowBucket[] buckets)
     {
+        // Per-bucket count > limit already conveys the verdict; ComparisonStats.ToString
+        // labels the line PASS/FAIL up front, so no per-bucket "(ok)/(FAIL)" suffix.
         var parts = new List<string>();
         foreach (var bucket in buckets)
         {
@@ -201,10 +203,15 @@ internal static class ImageThreshold
             int max = Math.Min(bucket.Max, pixelDiffs.Length - 1);
             for (int d = min; d <= max; d++)
                 count += pixelDiffs[d];
-            var rangeStr = bucket.Max == int.MaxValue ? $"{bucket.Min}+" : bucket.Min == bucket.Max ? $"{bucket.Min}" : $"{bucket.Min}-{bucket.Max}";
-            var status = count > bucket.Limit ? "FAIL" : "ok";
-            parts.Add($"[{rangeStr}]: {count}/{bucket.Limit} ({status})");
+            parts.Add($"[{RangeKey(bucket)}]: {count}/{bucket.Limit}");
         }
         return string.Join(", ", parts);
     }
+
+    /// <summary>Serialise an AllowBucket's range as the same key it parses from
+    /// (<c>"3+"</c>, <c>"1-2"</c>, <c>"3"</c>) for round-tripping into the sidecar.</summary>
+    public static string RangeKey(AllowBucket bucket) =>
+        bucket.Max == int.MaxValue ? $"{bucket.Min}+" :
+        bucket.Min == bucket.Max ? $"{bucket.Min}" :
+        $"{bucket.Min}-{bucket.Max}";
 }

@@ -835,6 +835,7 @@ namespace Stride.Graphics.Regression
 
                 // Compare against all available gold images
                 var pendingFailMessages = new List<string>();
+                var attempts = new List<ImageTester.SidecarAttempt>();
                 bool anyMatch = false;
                 string matchedFile = testFileName;
                 ImageTester.ComparisonStats lastStats = default;
@@ -842,6 +843,7 @@ namespace Stride.Graphics.Regression
                 {
                     bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
                     lastStats = stats;
+                    attempts.Add(ImageTester.ToSidecarAttempt(file, testFileName, stats, thresholds));
                     if (match)
                     {
                         anyMatch = true;
@@ -852,22 +854,27 @@ namespace Stride.Graphics.Regression
                     pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
                 }
 
+                // Sidecar always; PNG only on fail (sidecar carries the stats CompareGold
+                // needs to render a passing cell; the pixel data would be redundant with gold
+                // for exact matches and isn't worth the disk for the common case).
+                ImageTester.SaveSidecar(testLocalFileName, new ImageTester.Sidecar
+                {
+                    Outcome = anyMatch ? "Pass" : "Fail",
+                    At = DateTime.UtcNow,
+                    Matched = anyMatch ? matchedFile : null,
+                    Attempts = attempts,
+                });
+
                 if (!anyMatch)
                 {
-                    // All comparisons failed — save current version and report
                     ImageTester.SaveImage(image, testLocalFileName);
                     comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
                     comparisonFailedMessages.AddRange(pendingFailMessages);
                 }
-                else if (ForceSaveImageOnSuccess)
+                else if (File.Exists(testLocalFileName))
                 {
-                    ImageTester.SaveImage(image, testLocalFileName);
-                }
-                else
-                {
-                    // If test is a success, let's delete the local file if it was previously generated
-                    if (File.Exists(testLocalFileName))
-                        File.Delete(testLocalFileName);
+                    // Drop any stale PNG from a prior failing run on the same test.
+                    File.Delete(testLocalFileName);
                 }
 
                 ImageTester.RaiseImageComparison(new ImageComparisonEventArgs

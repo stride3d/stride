@@ -2,7 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.Regression
@@ -70,7 +73,6 @@ namespace Stride.Graphics.Regression
             public double MeanSquaredError;
             public double PSNR;
             public bool Passed;
-            public string? ThresholdResult;
 
             /// <summary>
             /// Histogram of per-pixel max channel difference.
@@ -87,11 +89,123 @@ namespace Stride.Graphics.Regression
             public override readonly string ToString()
             {
                 var hist = $"[1-2]:{DiffHistogram[1]} [3-5]:{DiffHistogram[2]} [6-15]:{DiffHistogram[3]} [16+]:{DiffHistogram[4]}";
-                var threshold = ThresholdResult != null ? $", thresholds: {ThresholdResult}" : "";
-                if (Passed)
-                    return $"PASS (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist}{threshold})";
-                return $"FAIL (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist}{threshold})";
+                var label = Passed ? "PASS" : "FAIL";
+                return $"{label} (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist})";
             }
+        }
+
+        /// <summary>
+        /// One record per gold the runtime compared the current output against. Serialized
+        /// next to the output PNG so CompareGold can render pass and fail with the same data.
+        /// </summary>
+        public sealed class SidecarAttempt
+        {
+            public required string Gold { get; init; }
+            /// <summary><c>"reference"</c> for the exact-match gold, <c>"alternate"</c> for
+            /// fallback golds tried when the reference was missing.</summary>
+            public required string Kind { get; init; }
+            public required bool Passed { get; init; }
+            public required int MaxDiff { get; init; }
+            public required double PsnrDb { get; init; }
+            /// <summary>Pixel-diff histogram keyed by range. Canonical keys, in order:
+            /// <c>"0"</c>, <c>"1-2"</c>, <c>"3-5"</c>, <c>"6-15"</c>, <c>"16+"</c>.</summary>
+            [JsonConverter(typeof(InlineStringIntDictConverter))]
+            public required Dictionary<string, int> Buckets { get; init; }
+            /// <summary>Allow rule that was applied for this comparison (e.g. <c>{"3+": 0}</c>),
+            /// so CompareGold can format the brief without re-resolving thresholds.jsonc.</summary>
+            [JsonConverter(typeof(InlineStringIntDictConverter))]
+            public Dictionary<string, int>? Thresholds { get; init; }
+        }
+
+        /// <summary>
+        /// Sidecar emitted next to each output PNG with the comparison outcome and stats.
+        /// Filename: same as the PNG but with a <c>.json</c> extension.
+        /// </summary>
+        public sealed class Sidecar
+        {
+            public required string Outcome { get; init; }
+            public required DateTime At { get; init; }
+            /// <summary>Gold path that matched (null on fail).</summary>
+            public string? Matched { get; init; }
+            public required List<SidecarAttempt> Attempts { get; init; }
+        }
+
+        // WriteIndented spreads dicts/arrays across lines; the bucket and threshold dicts
+        // are 5 entries max and read better on one line. WriteRawValue bypasses the
+        // writer's indentation pass for the rendered chunk.
+        private sealed class InlineStringIntDictConverter : JsonConverter<Dictionary<string, int>>
+        {
+            public override Dictionary<string, int>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+                JsonSerializer.Deserialize<Dictionary<string, int>>(ref reader, options);
+            public override void Write(Utf8JsonWriter writer, Dictionary<string, int> value, JsonSerializerOptions options)
+            {
+                var sb = new System.Text.StringBuilder("{");
+                bool first = true;
+                foreach (var kv in value)
+                {
+                    if (!first) sb.Append(", ");
+                    sb.Append('"').Append(kv.Key).Append("\": ").Append(kv.Value);
+                    first = false;
+                }
+                sb.Append('}');
+                writer.WriteRawValue(sb.ToString(), skipInputValidation: true);
+            }
+        }
+
+        // PSNR is +Infinity on an exact match (zero pixel diff); JSON spec doesn't allow
+        // infinity, so opt into .NET's named-literal extension on both ends. camelCase
+        // to match standard JSON conventions (consumer is JS). UnsafeRelaxedJsonEscaping
+        // so dict keys like "3+" don't render as "3+".
+        public static readonly JsonSerializerOptions SidecarJsonOptions = new()
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        public static void SaveSidecar(string outputPngPath, Sidecar sidecar)
+        {
+            var sidecarPath = Path.ChangeExtension(outputPngPath, ".json");
+            DiagLog($"SaveSidecar: {sidecarPath}");
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(sidecarPath));
+                File.WriteAllText(sidecarPath, JsonSerializer.Serialize(sidecar, SidecarJsonOptions));
+            }
+            catch (Exception ex)
+            {
+                DiagLog($"SaveSidecar FAILED: {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+        }
+
+        // Canonical histogram-bucket keys, in order. The 5 ranges align with how the
+        // runtime computes the histogram; the consumer reads them by key.
+        private static readonly string[] BucketKeys = ["0", "1-2", "3-5", "6-15", "16+"];
+
+        internal static SidecarAttempt ToSidecarAttempt(string goldPath, string referencePath, ComparisonStats stats, AllowBucket[]? thresholds)
+        {
+            var buckets = new Dictionary<string, int>(5);
+            for (int i = 0; i < 5; i++) buckets[BucketKeys[i]] = stats.DiffHistogram[i];
+            Dictionary<string, int>? thresholdDict = null;
+            if (thresholds is { Length: > 0 })
+            {
+                thresholdDict = new Dictionary<string, int>(thresholds.Length);
+                foreach (var b in thresholds)
+                    thresholdDict[ImageThreshold.RangeKey(b)] = b.Limit;
+            }
+            return new SidecarAttempt
+            {
+                Gold = goldPath,
+                Kind = goldPath == referencePath ? "reference" : "alternate",
+                Passed = stats.Passed,
+                MaxDiff = stats.MaxDiff,
+                PsnrDb = stats.PSNR,
+                Buckets = buckets,
+                Thresholds = thresholdDict,
+            };
         }
 
         public static void SaveImage(Image image, string testFilename)
@@ -242,7 +356,6 @@ namespace Stride.Graphics.Regression
                         MeanSquaredError = mse,
                         PSNR = psnr,
                         Passed = passed,
-                        ThresholdResult = ImageThreshold.FormatResult(pixelDiffs, thresholds),
                     };
                     stats.DiffHistogram[0] = hist0;
                     stats.DiffHistogram[1] = hist1;

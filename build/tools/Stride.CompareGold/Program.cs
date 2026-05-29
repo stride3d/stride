@@ -10,6 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls($"http://localhost:{Port}");
 builder.Services.AddSingleton<SourceManager>();
 builder.Services.AddSingleton<ForkManager>();
+// Sidecar PSNR can be +Infinity on exact-match passes; opt into the named-literal
+// extension. camelCase to match the producer + JS conventions.
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
+    o.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 var app = builder.Build();
 
 const string UpstreamRepo = "stride3d/stride";
@@ -21,6 +28,14 @@ var strideRoot = FindStrideRoot(AppContext.BaseDirectory)
 
 var testsDir = Path.Combine(strideRoot, "tests");
 var localDir = Path.Combine(testsDir, "local");
+// Runtime serialises +Infinity for exact-match PSNR; opt into the named-literal extension.
+// camelCase to match the producer (ImageTester writes camelCase keys).
+var sidecarReadOptions = new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
+    NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
+};
 var ciCacheDir = Path.Combine(Path.GetTempPath(), "stride-compare-gold");
 
 var sourceManager = app.Services.GetRequiredService<SourceManager>();
@@ -358,7 +373,7 @@ app.MapGet("/api/source/{id}/images", (string id, string suite, string platform)
     var parts = platform.Split('/', 2);
     if (parts.Length != 2) return Results.BadRequest("Invalid platform");
     var dir = Path.Combine(src.Path, suite, parts[0], parts[1]);
-    return Results.Ok(ListPngs(dir));
+    return Results.Ok(ListSourceItems(dir));
 });
 
 app.MapGet("/api/source/{id}/image", (string id, string suite, string platform, string name) =>
@@ -550,12 +565,51 @@ static List<string> ListPngNames(string dir)
         .ToList()!;
 }
 
-static List<object> ListPngs(string dir)
+// Sidecar JSON lives next to each output PNG (or alone, on a passing test where the PNG
+// is skipped). Union {*.png, *.json} by stem so passing tests still appear in the listing.
+// Each item carries the parsed sidecar (if any) and the mtime of the matched gold file so
+// the frontend can detect a gold-promote and recompute instead of trusting a stale verdict.
+List<object> ListSourceItems(string dir)
 {
     if (!Directory.Exists(dir)) return [];
-    return Directory.GetFiles(dir, "*.png")
-        .Select(f => (object)new { Name = Path.GetFileName(f) })
+    var byStem = new Dictionary<string, (bool png, Sidecar? sc)>(StringComparer.OrdinalIgnoreCase);
+    foreach (var f in Directory.GetFiles(dir, "*.png"))
+    {
+        var stem = Path.GetFileNameWithoutExtension(f);
+        byStem[stem] = (true, null);
+    }
+    foreach (var f in Directory.GetFiles(dir, "*.json"))
+    {
+        var stem = Path.GetFileNameWithoutExtension(f);
+        var sc = TryReadSidecar(f);
+        byStem[stem] = (byStem.TryGetValue(stem, out var ex) ? ex.png : false, sc);
+    }
+    return byStem
+        .Select(kv =>
+        {
+            var goldMtime = ResolveMatchedGoldMtime(kv.Value.sc?.Matched);
+            return (object)new { Name = kv.Key + ".png", HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldMtime = goldMtime };
+        })
         .ToList();
+}
+
+// The sidecar's matched path is whatever filesystem the test ran on (device path on
+// Android, Windows path locally). Map back to the local checkout by taking the last
+// 4 segments: <suite>/<Platform.API>/<Device>/<name>.png.
+DateTime? ResolveMatchedGoldMtime(string? matched)
+{
+    if (string.IsNullOrEmpty(matched)) return null;
+    var parts = matched.Split('/', '\\');
+    if (parts.Length < 4) return null;
+    var n = parts.Length;
+    var local = Path.Combine(testsDir, parts[n - 4], parts[n - 3], parts[n - 2], parts[n - 1]);
+    return File.Exists(local) ? File.GetLastWriteTimeUtc(local) : null;
+}
+
+Sidecar? TryReadSidecar(string jsonPath)
+{
+    try { return JsonSerializer.Deserialize<Sidecar>(File.ReadAllText(jsonPath), sidecarReadOptions); }
+    catch { return null; }
 }
 
 
@@ -684,6 +738,11 @@ record DeleteGoldRequest
     [System.Text.Json.Serialization.JsonPropertyName("names")]
     public string[] Names { get; set; } = [];
 }
+
+// Mirrors Stride.Graphics.Regression.ImageTester.Sidecar so the JSON written by the test
+// runtime can be deserialised here without an inter-project dependency.
+record Sidecar(string Outcome, DateTime At, string? Matched, List<SidecarAttempt> Attempts);
+record SidecarAttempt(string Gold, string Kind, bool Passed, int MaxDiff, double PsnrDb, Dictionary<string, int> Buckets, Dictionary<string, int>? Thresholds);
 
 // === Source Manager ===
 

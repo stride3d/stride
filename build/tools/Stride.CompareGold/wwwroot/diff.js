@@ -150,8 +150,28 @@ function checkThreshold(pixelDiffs, allow) {
 
 // Format threshold result as compact text for table cells
 function formatThresholdBrief(result) {
+  if (result?.brief) return result.brief;
   if (!result || !result.details) return '';
   return result.details.map(d => `[${d.range}]:${d.count}/${d.limit}`).join(' ');
+}
+
+// Format a brief from the 5-bucket histogram + allow rule (sidecar path). Mirrors
+// checkThreshold's output shape but works without the full 256-bin pixelDiffs array.
+// Histogram index ↔ diff range: [0]=0, [1]=1-2, [2]=3-5, [3]=6-15, [4]=16+.
+function formatHistogramBrief(buckets, allow) {
+  if (!allow || Object.keys(allow).length === 0) return '';
+  const ranges = [[0, 0], [1, 2], [3, 5], [6, 15], [16, 255]];
+  const parts = [];
+  for (const [rangeKey, limit] of Object.entries(allow)) {
+    const { min, max } = parseAllowKey(rangeKey);
+    let count = 0;
+    for (let i = 0; i < ranges.length; i++) {
+      const [rmin, rmax] = ranges[i];
+      if (rmin >= min && rmax <= max) count += buckets[i] || 0;
+    }
+    parts.push(`[${rangeKey}]: ${count}/${limit}`);
+  }
+  return parts.join(', ');
 }
 
 // Format threshold result as HTML

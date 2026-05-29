@@ -45,6 +45,13 @@ async function init() {
   await reload();
 }
 
+function extractMatchedPlatform(path) {
+  if (!path) return null;
+  const parts = path.split(/[\\/]/);
+  if (parts.length < 3) return null;
+  return `${parts[parts.length - 3]}/${parts[parts.length - 2]}`;
+}
+
 async function onPlatformChange() {
   currentPlatform = document.getElementById('platformSelect').value;
   await reload();
@@ -74,6 +81,44 @@ async function reload() {
       suiteData[suite] = { gold, sourceImages: srcImgs, thresholdRules };
   }
   cellStats = {};
+  // Pre-populate cellStats from the runtime sidecar so we skip the browser-side diff
+  // for any item with a sidecar (which has the authoritative verdict + stats already).
+  // Skip when matchedGoldMtime > sidecar.at — gold has been promoted/edited since the
+  // test ran and the sidecar's verdict no longer reflects reality.
+  for (const suite of allSuites) {
+    const srcImgs = suiteData[suite]?.sourceImages;
+    if (!srcImgs) continue;
+    for (const src of sources) {
+      for (const it of srcImgs[src.id] || []) {
+        if (!it.sidecar) continue;
+        if (it.matchedGoldMtime && new Date(it.matchedGoldMtime) > new Date(it.sidecar.at)) continue;
+        const sc = it.sidecar;
+        const attempts = sc.attempts || [];
+        const best = attempts.find(a => a.passed) || attempts.find(a => a.kind === 'reference') || attempts[0];
+        if (!best) continue;
+        // Sidecar buckets is a dict like {"0":..., "1-2":..., ...}. Convert to the 5-element
+        // array `cellStats.histogram` keeps to stay compatible with the browser-recompute
+        // path (which produces the same array shape).
+        const b = best.buckets || {};
+        const histogram = [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
+        const totalPixels = histogram.reduce((a, b) => a + b, 0);
+        const diffPixels = histogram[2] + histogram[3] + histogram[4];
+        cellStats[`${src.id}:${suite}:${it.name}`] = {
+          maxDiff: best.maxDiff,
+          psnr: best.psnrDb === 'Infinity' ? Infinity : best.psnrDb,
+          histogram,
+          diffPixels, totalPixels,
+          sidecarVerdict: sc.outcome === 'Pass',
+          sidecarBrief: formatHistogramBrief(histogram, best.thresholds),
+          sidecarMatched: sc.matched,
+          // ".../tests/<suite>/<Platform.API>/<Device>/<file>.png" → "Platform.API/Device"
+          // On Fail outcome `matched` is null, so fall back to the best attempt's gold path
+          // — that's still the gold the comparison was against and worth surfacing as "via X".
+          sidecarMatchedPlatform: extractMatchedPlatform(sc.matched || best.gold),
+        };
+      }
+    }
+  }
   resetAltGoldState();
   render();
 }
@@ -337,13 +382,25 @@ function buildRowCells(img, key) {
       const cls = passing === true ? 'pass' : passing === false ? 'fail' : 'pending';
       const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
       const brief = formatThresholdBrief(result);
-      const viaAlt = passing === true && !result.passed ? ' (via alt)' : '';
-      cellHtml = `<span class="cell ${cls}" data-stats-key="${esc(statsKey)}">${icon} ${brief}${viaAlt}</span>`;
+      // Prefer the sidecar's precise matched gold; fall back to the browser-side
+      // alternate-scan result when only that knew which alt rescued the cell.
+      // Tooltip carries the full path as a safety net if the inline text wraps.
+      const matchedPlat = stats.sidecarMatchedPlatform
+        || altGoldStatus[statsKey]?.passingPlatform;
+      let matchSuffix = '';
+      if (matchedPlat && matchedPlat !== currentPlatform)
+        matchSuffix = ` <span title="${esc(matchedPlat)}">(via ${esc(matchedPlat)})</span>`;
+      else if (passing === true && !result.passed)
+        matchSuffix = ' (via alt)';
+      cellHtml = `<span class="cell ${cls}" data-stats-key="${esc(statsKey)}">${icon} ${brief}${matchSuffix}</span>`;
     } else {
       cellHtml = `<span class="cell pending" data-stats-key="${esc(statsKey)}">…</span>`;
       computeCellStats(src.id, img.suite, img.name);
     }
-    if (has) {
+    // Passing tests are sidecar-only (no PNG); the cell shows only the verdict text.
+    const srcItem = (suiteData[img.suite]?.sourceImages[src.id] || []).find(s => s.name === img.name);
+    const hasPng = srcItem?.hasPng !== false;
+    if (has && hasPng) {
       const thumbSrc = `/api/source/${src.id}/image?suite=${enc(img.suite)}&platform=${enc(currentPlatform)}&name=${enc(img.name)}`;
       if (img.hasGold) {
         const thumbId = `thumb-${css(src.id)}-${css(key)}`;
@@ -591,6 +648,10 @@ function resetAltGoldState() {
 function computeCellStats(srcId, suite, name) {
   const key = `${srcId}:${suite}:${name}`;
   if (cellStats[key] || statsQueue.has(key)) return;
+  // Skip when the source has no PNG (sidecar-only passing test); browser-side
+  // recompute would 404 every render and spin forever.
+  const item = (suiteData[suite]?.sourceImages[srcId] || []).find(s => s.name === name);
+  if (item && item.hasPng === false) return;
   statsQueue.add(key);
   if (!statsRunning) runStatsQueue();
 }
@@ -640,6 +701,9 @@ async function runStatsQueue() {
 }
 
 function checkCellThreshold(suite, name, stats) {
+  // Sidecar carries the runtime's authoritative verdict + pre-formatted threshold string.
+  if (stats.sidecarVerdict !== undefined)
+    return { passed: stats.sidecarVerdict, details: [], brief: stats.sidecarBrief };
   const data = suiteData[suite];
   const rules = data?.thresholdRules || [];
   const [platApi, device] = currentPlatform.split('/');
@@ -655,6 +719,10 @@ function checkCellThreshold(suite, name, stats) {
 // Returns true (pass), false (fail), or null (pending) — pending means the
 // preferred gold failed but the alternate-gold scan hasn't finished yet.
 function isCellPassing(srcId, suite, name, stats) {
+  // Sidecar carries the runtime's authoritative verdict; trust it without
+  // re-asking the alt-gold scanner (which would keep this cell pending
+  // forever on a fail at a platform with only fallback golds).
+  if (stats.sidecarVerdict !== undefined) return stats.sidecarVerdict;
   if (checkCellThreshold(suite, name, stats).passed) return true;
   // Graphics.Regression only enumerates fallbacks when the primary gold for
   // the current platform doesn't exist. If it does exist, that single file is
@@ -680,8 +748,14 @@ function updateCellInline(key, stats) {
     el.removeAttribute('style');
     const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
     const brief = formatThresholdBrief(result);
-    const viaAlt = passing === true && !result.passed ? ' (via alt)' : '';
-    el.innerHTML = `${icon} ${brief}${viaAlt}`;
+    const matchedPlat = stats.sidecarMatchedPlatform
+      || altGoldStatus[key]?.passingPlatform;
+    let matchSuffix = '';
+    if (matchedPlat && matchedPlat !== currentPlatform)
+      matchSuffix = ` <span title="${esc(matchedPlat)}">(via ${esc(matchedPlat)})</span>`;
+    else if (passing === true && !result.passed)
+      matchSuffix = ' (via alt)';
+    el.innerHTML = `${icon} ${brief}${matchSuffix}`;
   }
   // Update the row tag once all sources for this image are resolved
   const rowKey = `${suite}:${name}`;
@@ -758,8 +832,10 @@ async function computeThumbDiff(suite, name, srcId, canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const stats = computeImageDiff(goldImg, srcImg, canvas);
-    // Also cache stats
-    cellStats[`${srcId}:${suite}:${name}`] = stats;
+    // Cache for non-sidecar items only — overwriting would drop the sidecar's
+    // authoritative verdict (sidecarVerdict, etc.) and flip the cell to pending.
+    const key = `${srcId}:${suite}:${name}`;
+    if (!cellStats[key]) cellStats[key] = stats;
   } catch { }
 }
 
