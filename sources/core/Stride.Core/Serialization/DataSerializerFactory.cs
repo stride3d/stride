@@ -24,6 +24,7 @@ public struct AssemblySerializerEntry
     /// <summary>
     /// The type of the object.
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
     public readonly Type ObjectType;
 
     /// <summary>
@@ -35,7 +36,7 @@ public struct AssemblySerializerEntry
     /// <summary>
     /// Initializes a new instance of the <see cref="AssemblySerializerEntry"/> struct.
     /// </summary>
-    public AssemblySerializerEntry(ObjectId id, Type objectType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type serializerType)
+    public AssemblySerializerEntry(ObjectId id, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type objectType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type serializerType)
     {
         Id = id;
         ObjectType = objectType;
