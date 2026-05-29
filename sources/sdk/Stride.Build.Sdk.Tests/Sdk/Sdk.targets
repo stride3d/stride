@@ -28,12 +28,16 @@
     <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Windows;')) And '$([MSBuild]::IsOSPlatform(Windows))' == 'true' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))">$(_StrideTestTargetFrameworks)$(StrideFrameworkWindows);</_StrideTestTargetFrameworks>
     <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Android;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkAndroid);</_StrideTestTargetFrameworks>
     <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';iOS;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkiOS);</_StrideTestTargetFrameworks>
+    <!-- macOS net10.0-macos when opted in (mirrors StrideExplicitMacOSRuntime in Stride.Frameworks.targets).
+         Needed for tests that consume Stride.Runtime libraries bound to Microsoft.macOS APIs
+         (AVFoundation, Metal, etc.) — without it the test only sees the shared $(StrideFramework). -->
+    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'">$(_StrideTestTargetFrameworks)$(StrideFrameworkmacOS);</_StrideTestTargetFrameworks>
     <TargetFrameworks>$([MSBuild]::Unescape($(_StrideTestTargetFrameworks.TrimEnd(';'))))</TargetFrameworks>
   </PropertyGroup>
 
   <!-- Shadow host TFM exists only to dispatch ProjectReferences for the AssetCompiler.
        Skip asset compile + APK packaging on it. -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')) Or ($(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'))">
     <StrideCompilerSkipBuild>true</StrideCompilerSkipBuild>
   </PropertyGroup>
 

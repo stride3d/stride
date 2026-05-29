@@ -35,9 +35,11 @@
     <!-- Add default framework no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
 
-    <!-- Desktop platforms: Add net10.0-windows only if explicitly requested -->
-    <!-- Most projects only need net10.0; net10.0-windows is for WPF/WinForms dependencies -->
+    <!-- Desktop platforms: Add net10.0-windows / net10.0-macos only if explicitly requested -->
+    <!-- Most projects only need net10.0; the OS-specific variants are for projects that bind
+         to native OS frameworks (Microsoft.Windows.* / Microsoft.macOS / AVFoundation / Metal). -->
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkmacOS)</StrideRuntimeTargetFrameworks>
 
     <!-- Mobile/UWP platforms -->
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
