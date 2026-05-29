@@ -207,9 +207,13 @@ if ($Apk) {
 Invoke-Adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
 
 # 4. Push gold images (-GoldDir contents -> device's files/tests/<Suite>/)
+# Wipe the device gold dir before pushing so it mirrors the host: a gold file deleted on the
+# host (e.g. a stale primary that's been promoted away) must also disappear from the device,
+# otherwise the on-device framework still finds it as "primary" and ignores fallback golds.
 if ($GoldDir) {
     if (-not (Test-Path $GoldDir)) { throw "GoldDir not found: $GoldDir" }
-    Write-Host "Pushing gold $GoldDir/* -> files/tests/$Suite/ on device"
+    Write-Host "Pushing gold $GoldDir/* -> files/tests/$Suite/ on device (cleared first)"
+    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
     $localTar = [IO.Path]::GetTempFileName()
     try {
         & $tar c -C $GoldDir -f $localTar . 2>$null
@@ -301,8 +305,12 @@ if ((Get-Date) -ge $deadline) {
 
 # 9. Pull TRX + generated images from device's files/tests/local/<Suite>/ into $ResultsDir.
 # tar device-side via run-as, write to a shell-readable /data/local/tmp file, adb pull, untar.
-Write-Host "Pulling results -> $ResultsDir"
-if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
+# Wipe $ResultsDir first so the host mirrors the device — otherwise a previously-failing
+# test that now passes (no fresh image written) would leave its stale failure PNG behind
+# and mislead CompareGold. Trade-off: no incremental, every run is a clean pull.
+Write-Host "Pulling results -> $ResultsDir (cleared first)"
+if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
+else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
 $localTar = [IO.Path]::GetTempFileName()
 try {
     # The outer shell (uid 2000 = shell) writes to /data/local/tmp; the inner run-as streams
