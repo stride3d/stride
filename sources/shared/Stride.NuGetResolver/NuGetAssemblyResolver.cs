@@ -152,9 +152,15 @@ public static partial class NuGetAssemblyResolver
                             // Register the native libraries
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
                             RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
-                            // FIXME xplat-editor we should have a flag to determine whether native libraries need to be pre-loaded.
-                            // At the moment, we have an issue when using the new editor which forces us to preload all of them (not only Avalonia's native dependencies, but also ours like SDL).
-                            LoadNativeDependencies(assemblyNameToPath, nativeLibs);
+                            // The Avalonia-based GameStudio has a bootstrap chicken-and-egg problem: its native
+                            // dependencies (Avalonia's own, plus ours like SDL) must already be loaded before the
+                            // UI can start, so we eagerly preload every restored native lib here rather than just
+                            // Avalonia's. RegisterNativeDependencies above already wired the DllImport resolver, so
+                            // preloading is only an optimization/bootstrap aid: it is best-effort and a lib that
+                            // can't be preloaded in the current environment (e.g. a headless tool like the asset
+                            // compiler where some libs' transitive deps are absent) is skipped instead of aborting
+                            // the whole restore. The real P/Invoke will still resolve it via the registered path.
+                            LoadNativeDependencies(assemblyNameToPath, nativeLibs, logger);
 
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
@@ -268,9 +274,10 @@ public static partial class NuGetAssemblyResolver
     }
 
     /// <summary>
-    /// Loads the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core
+    /// Loads the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core.
+    /// Preloading is best-effort: a library that fails to load in the current environment is logged and skipped rather than aborting the restore.
     /// </summary>
-    private static void LoadNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
+    private static void LoadNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs, Logger logger)
     {
         var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"])
             ?? throw new InvalidOperationException("Couldn't find assembly 'Stride.Core' in restored packages");
@@ -281,7 +288,16 @@ public static partial class NuGetAssemblyResolver
         foreach (var lib in nativeLibs)
         {
             var libName = Path.GetFileNameWithoutExtension(lib);
-            preloadLibraryMethod.Invoke(null, [libName, null]);
+            try
+            {
+                preloadLibraryMethod.Invoke(null, [libName, null]);
+            }
+            catch (Exception e)
+            {
+                // Unwrap the reflection wrapper for a clearer message.
+                var inner = (e as TargetInvocationException)?.InnerException ?? e;
+                logger.LogWarning($"Could not preload native library '{libName}' ({inner.GetType().Name}: {inner.Message}). Skipping; it will be resolved on demand if needed.");
+            }
         }
     }
 
