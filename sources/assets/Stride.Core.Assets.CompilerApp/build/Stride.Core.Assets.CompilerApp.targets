@@ -233,21 +233,28 @@
     </ItemGroup>
   </Target>
 
-  <!-- iOS: emit BundleResource items for the compiled assets right before the iOS SDK collects
-       bundle resources. Must run AFTER StrideCompileAsset (the files have to exist on disk; the
-       iOS SDK validates path existence) and BEFORE _CollectBundleResources (which captures the
-       @(BundleResource) item group into the build output). A top-level ItemGroup glob would race
-       on Rebuild: evaluation happens before Clean, so the items reference now-deleted files.
+  <!-- iOS/macOS: emit BundleResource items for the compiled assets right before the iOS/macOS SDK
+       collects bundle resources. Must run AFTER StrideCompileAsset (the files have to exist on
+       disk; the iOS SDK validates path existence) and BEFORE _CollectBundleResources (which
+       captures the @(BundleResource) item group into the build output). A top-level ItemGroup
+       glob would race on Rebuild: evaluation happens before Clean, so the items reference
+       now-deleted files.
        ResolveProjectReferences in DependsOnTargets: Microsoft.iOS.Sdk fires _CollectBundleResources
        BEFORE the standard RPR step, so without it the auto-attached CompilerApp PR hasn't been
        built when StrideCompileAsset runs and the .dll-existence check errors out. -->
   <Target Name="_StrideDeployAssetsAsBundleResource"
           BeforeTargets="_CollectBundleResources"
           DependsOnTargets="ResolveProjectReferences;StrideCompileAsset"
-          Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'iOS'">
+          Condition="'$(StrideIsExecutable)' == 'true' And ('$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'macOS')">
     <ItemGroup>
-      <BundleResource Include="$(StrideCompileAssetOutputPath)\**\*.*">
-        <LogicalName>data/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <_StrideCompiledAsset Include="$(StrideCompileAssetOutputPath)/**/*.*" />
+    </ItemGroup>
+    <AssignTargetPath Files="@(_StrideCompiledAsset)" RootFolder="$(StrideCompileAssetOutputPath)">
+      <Output TaskParameter="AssignedFiles" ItemName="_StrideCompiledAssetTargeted" />
+    </AssignTargetPath>
+    <ItemGroup>
+      <BundleResource Include="@(_StrideCompiledAssetTargeted)">
+        <LogicalName>data/%(_StrideCompiledAssetTargeted.TargetPath)</LogicalName>
       </BundleResource>
     </ItemGroup>
   </Target>

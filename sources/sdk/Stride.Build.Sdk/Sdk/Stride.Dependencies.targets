@@ -180,6 +180,21 @@
       </_SourceItemsToCopyToOutputDirectory>
     </ItemGroup>
 
+    <!-- macOS: emit NativeReference Kind=Dynamic so dylibs land in Contents/MonoBundle alongside the NuGet runtime assets. -->
+    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">
+      <_StrideMacOSNativeRef Include="@(_StrideDependencyNativeLib)"
+          Condition="'%(_StrideDependencyNativeLib.Extension)' == '.dylib' And ('$(RuntimeIdentifier)' == '' Or $([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Contains('/$(RuntimeIdentifier)/')))" />
+    </ItemGroup>
+    <_StrideDistinctByFilename Items="@(_StrideMacOSNativeRef)" Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' And '@(_StrideMacOSNativeRef)' != '' ">
+      <Output TaskParameter="Distinct" ItemName="_StrideMacOSNativeRefUnique" />
+    </_StrideDistinctByFilename>
+    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">
+      <NativeReference Include="@(_StrideMacOSNativeRefUnique)">
+        <Kind>Dynamic</Kind>
+        <SmartLink>False</SmartLink>
+      </NativeReference>
+    </ItemGroup>
+
     <!-- iOS (.NET iOS workload): static native libs (.a) must be declared via NativeReference;
          the iOS linker doesn't auto-load arbitrary archives. ForceLoad=True is required because
          our P/Invoke entry points are referenced only through DllImport("__Internal") and would

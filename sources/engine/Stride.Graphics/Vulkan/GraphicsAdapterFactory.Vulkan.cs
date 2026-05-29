@@ -187,10 +187,10 @@ namespace Stride.Graphics
                         if (indexOfLayerName >= 0)
                             enabledLayerNames.Add(validationLayerNames[indexOfLayerName]);
                     }
-
-                    // Check if validation was really available
-                    enableValidation = enabledLayerNames.Count > 0;
                 }
+
+                // Reset when the layer isn't actually installed; otherwise vkCreateInstance returns ErrorLayerNotPresent.
+                enableValidation = enabledLayerNames.Count > 0;
             }
 
             var supportedExtensionNames = stackalloc VkUtf8String[]
@@ -246,7 +246,9 @@ namespace Stride.Graphics
             };
 
             // Silence MoltenVK's per-instance info dump (153-line extension list, device banner).
-            // Override with MVK_CONFIG_LOG_LEVEL=3 to restore verbose output.
+            // Set via env var instead of VkLayerSettingsCreateInfoEXT — the layer-settings struct
+            // requires VK_EXT_layer_settings to be enabled, and MoltenVK acting as ICD without the
+            // LunarG loader doesn't always accept that pNext path.
             int mvkLogLevel = 2; // 0=off 1=error 2=warning 3=info 4=debug
             VkResult result;
             fixed (byte* pMvkLayerName = "MoltenVK"u8)
