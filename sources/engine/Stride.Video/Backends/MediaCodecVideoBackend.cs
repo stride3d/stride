@@ -8,10 +8,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Android.Graphics;
 using Android.Media;
-using Android.OS;
 using Android.Runtime;
 using AndroidImage = Android.Media.Image;
-using PlayState = Stride.Media.PlayState;
 using Stride.Audio;
 using Stride.Core;
 using Stride.Graphics;
@@ -20,30 +18,11 @@ using Stride.Video.Android;
 
 namespace Stride.Video.Backends;
 
-/// <summary>Surface used by VideoInstance to forward MediaCodec-thread notifications into
-/// the active backend without leaking Android-specific calls onto VideoInstance itself.</summary>
-internal interface IMediaCodecBackend
+internal sealed class MediaCodecVideoBackend : VideoBackend
 {
-    void OnReceiveNotificationToUpdateVideoTextureSurface();
-    bool IsVideoTextureUpdated();
-}
-
-internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
-{
-    private sealed class ImageAvailableListener : Java.Lang.Object, ImageReader.IOnImageAvailableListener
-    {
-        private readonly Action<ImageReader> callback;
-        public ImageAvailableListener(Action<ImageReader> callback) { this.callback = callback; }
-        public void OnImageAvailable(ImageReader reader) => callback(reader);
-    }
-
-    private volatile bool receivedNotificationToUpdateVideoTextureSurface;
     private MediaSynchronizer mediaSynchronizer;
     private MediaCodecVideoExtractor mediaCodecVideoExtractor;
     private ImageReader imageReader;
-    private HandlerThread imageReaderThread;
-    private Handler imageReaderHandler;
-    private ImageAvailableListener imageReaderListener;
     private readonly object imageReaderLock = new();
     private IntPtr rgbaScratch;
     private int rgbaScratchSize;
@@ -52,8 +31,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
     private StreamedBufferSound audioSound;
     private SoundInstanceStreamedBuffer audioSoundInstance;
     private readonly List<AudioEmitterSoundController> audioControllers = new();
-
-    private volatile bool isInitialized;
 
     public MediaCodecVideoBackend(VideoInstance instance) : base(instance) { }
 
@@ -64,8 +41,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
         if (mediaSynchronizer != null || mediaCodecVideoExtractor != null)
             throw new InvalidOperationException("mediaCodec has already been initialized");
 
-        receivedNotificationToUpdateVideoTextureSurface = false;
-
         // Pre-probe dimensions: ImageReader can't be resized, but MediaCodec.Configure already
         // needs its Surface, so we have to know width/height upfront. Cheap to open a second
         // MediaExtractor here and pull the video format.
@@ -74,12 +49,12 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
         // CPU YUV path. The zero-copy alternative Texture.NewFromAndroidHardwareBuffer
         // (Stride.Graphics) needs immutable VkSamplerYcbcrConversion descriptor bindings
         // that Stride's effect system doesn't yet expose.
-        imageReader = ImageReader.NewInstance(videoWidth, videoHeight, ImageFormatType.Yuv420888, maxImages: 2);
-        imageReaderThread = new HandlerThread("StrideMediaCodecImageReader");
-        imageReaderThread.Start();
-        imageReaderHandler = new Handler(imageReaderThread.Looper);
-        imageReaderListener = new ImageAvailableListener(_ => receivedNotificationToUpdateVideoTextureSurface = true);
-        imageReader.SetOnImageAvailableListener(imageReaderListener, imageReaderHandler);
+        // No OnImageAvailable listener: it doesn't fire reliably under the emulator's gfxstream
+        // BufferQueue, so Update() pulls frames with AcquireLatestImage every tick instead.
+        // maxImages is deliberately generous: on a cold/janky start the decoder needs several
+        // output buffers to dequeue into before the game thread starts draining, otherwise the
+        // gfxstream BufferQueue starves it and it produces nothing for tens of seconds.
+        imageReader = ImageReader.NewInstance(videoWidth, videoHeight, ImageFormatType.Yuv420888, maxImages: 8);
 
         rgbaScratchSize = videoWidth * videoHeight * 4;
         rgbaScratch = Marshal.AllocHGlobal(rgbaScratchSize);
@@ -134,13 +109,11 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
         var videoMetadata = mediaCodecVideoExtractor.MediaMetadata;
         Instance.AllocateVideoTexture(videoMetadata.Width, videoMetadata.Height);
 
-        isInitialized = true;
         return true;
     }
 
     public override void ReleaseMedia()
     {
-        isInitialized = false;
         mediaSynchronizer = null;
 
         mediaCodecVideoExtractor?.Dispose();
@@ -163,15 +136,9 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         lock (imageReaderLock)
         {
-            imageReader?.SetOnImageAvailableListener(null, null);
             imageReader?.Close();
             imageReader = null;
         }
-        imageReaderListener?.Dispose();
-        imageReaderListener = null;
-        imageReaderThread?.QuitSafely();
-        imageReaderThread = null;
-        imageReaderHandler = null;
 
         if (rgbaScratch != IntPtr.Zero)
         {
@@ -198,7 +165,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
     public override void Stop()
     {
         mediaSynchronizer.Stop();
-        receivedNotificationToUpdateVideoTextureSurface = false;
     }
 
     public override void Seek(TimeSpan time)
@@ -241,16 +207,11 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         Instance.SetCurrentTime(mediaSynchronizer.CurrentPresentationTime);
 
-        // Drop a freshly-decoded frame into the target whenever one is available, even
-        // when not Playing — Stopped/Paused freeze scheduler time but a Seek (which forces
-        // the worker thread to re-decode) still gets to deliver its frame.
-        if (!receivedNotificationToUpdateVideoTextureSurface)
-            return;
-
+        // Pull model: poll the ImageReader every tick. AcquireLatestImage returns null when no
+        // new frame is queued (cheap), so this only uploads genuinely new frames — and it works
+        // even when not Playing, so a Seek's re-decoded frame still lands. More robust than the
+        // OnImageAvailable push callback, which the emulator's gfxstream BufferQueue often drops.
         UploadLatestFrameToTarget();
-
-        if (mediaSynchronizer.State == PlayState.Playing)
-            receivedNotificationToUpdateVideoTextureSurface = false;
     }
 
     private unsafe void UploadLatestFrameToTarget()
@@ -280,6 +241,8 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
             var graphicsContext = Instance.Services.GetSafeServiceAs<GraphicsContext>();
             var rgbaSpan = new ReadOnlySpan<byte>((void*)rgbaScratch, rgbaScratchSize);
             target.SetData(graphicsContext.CommandList, rgbaSpan, arrayIndex: 0, mipLevel: 0);
+
+            Instance.NotifyFramePresented();
         }
         finally
         {
@@ -330,12 +293,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
             }
         }
     }
-
-    void IMediaCodecBackend.OnReceiveNotificationToUpdateVideoTextureSurface()
-        => receivedNotificationToUpdateVideoTextureSurface = true;
-
-    bool IMediaCodecBackend.IsVideoTextureUpdated()
-        => !isInitialized || !receivedNotificationToUpdateVideoTextureSurface;
 
     private static (int width, int height) ProbeVideoDimensions(string url, long startPosition, long length)
     {
