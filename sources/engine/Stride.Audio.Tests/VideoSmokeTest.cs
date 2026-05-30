@@ -80,10 +80,11 @@ namespace Stride.Audio.Tests
         public void RunVideoSmokeTestPlayback(string backend, bool forceSoftware)
         {
             Skip.If(VideoBackendRegistry.Factories.Count == 0, "No video backend registered on this platform.");
-            // Play-based timing only deterministic on synchronous backends. FFmpeg decodes on
-            // the game thread inside Update; MediaCodec/MediaEngine decode async on a worker
-            // thread and the captured frame at tick N depends on decoder/surface latency.
-            Skip.IfNot(backend == "FFmpeg", $"Playback timing test is FFmpeg-only (backend: {backend}).");
+            // Play-based timing only deterministic on synchronous backends — those that decode
+            // inline on the game thread inside Update. MediaCodec/MediaEngine decode async on a
+            // worker thread, so the captured frame at tick N depends on decoder/surface latency.
+            Skip.IfNot(backend == "FFmpeg" || backend == "AVFoundation",
+                $"Playback timing test only runs on synchronous backends (current: {backend}).");
             VideoSmokeTestPlayback.Run(backend, forceSoftware);
         }
 
