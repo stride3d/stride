@@ -6,6 +6,8 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
+    <!-- net10.0-macos to test AVFoundation -->
+    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
