@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -42,6 +43,8 @@ namespace Stride.Engine.FlexibleProcessing
             registry = registryParam;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Processor type is IComponent<TProcessor> with TProcessor : new(), so its ctor is kept.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Queried interfaces are the statically-referenced IComponent<,> ones.")]
         public void IntroduceComponent(EntityComponent _component, ExecutionMode executionMode)
         {
             if (_component is not IMarkedComponent component)

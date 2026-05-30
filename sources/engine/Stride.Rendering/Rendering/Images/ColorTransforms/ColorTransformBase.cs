@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 using Stride.Core;
@@ -110,6 +111,7 @@ namespace Stride.Rendering.Images
             parameterCompositionCopier.Copy(Parameters);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Properties kept via [DataContract]; trimmed ones are just skipped here.")]
         private void InitializeProperties()
         {
             foreach (var property in GetType().GetRuntimeProperties())
