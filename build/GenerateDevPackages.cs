@@ -465,9 +465,13 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
     // zero items and is a no-op. We always emit and let item-set semantics handle the rest.
 
     var relProjDir = Path.GetRelativePath(strideRoot, projInfo.ProjectDir).Replace('\\', '/');
-    var hintPath = projInfo.IsGraphicsDependent
-        ? $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/$(StrideGraphicsApi)/{projInfo.AssemblyName}.dll"
-        : $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/{projInfo.AssemblyName}.dll";
+    var gfxSeg = projInfo.IsGraphicsDependent ? "/$(StrideGraphicsApi)" : "";
+    // Redirect to the in-tree bin DLL matching the consumer's TFM when that project produced one
+    // (e.g. net10.0-windows brings WinForms/WPF, net10.0-ios its iOS bits), else the portable net10.0
+    // build. $(TargetFramework) is the short form, which matches the bin folder name; Exists() makes
+    // it self-correcting per project/TFM.
+    var portableDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0{gfxSeg}/{projInfo.AssemblyName}.dll";
+    var tfmDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/$(TargetFramework){gfxSeg}/{projInfo.AssemblyName}.dll";
 
     // Replace dots with underscores in target/property names; MSBuild rejects dotted target names.
     var safeId = pkgId.Replace('.', '_');
@@ -479,7 +483,8 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
                   BeforeTargets="ResolveLockFileReferences;ResolveLockFileCopyLocalFiles">
 
             <PropertyGroup>
-              <_StrideDev_{{safeId}}_DevDll>{{hintPath}}</_StrideDev_{{safeId}}_DevDll>
+              <_StrideDev_{{safeId}}_DevDll>{{portableDll}}</_StrideDev_{{safeId}}_DevDll>
+              <_StrideDev_{{safeId}}_DevDll Condition="'$(TargetFramework)' != 'net10.0' And Exists('{{tfmDll}}')">{{tfmDll}}</_StrideDev_{{safeId}}_DevDll>
             </PropertyGroup>
 
             <!-- Match by NuGetPackageId AND Filename: some packages ship sibling DLLs in their
