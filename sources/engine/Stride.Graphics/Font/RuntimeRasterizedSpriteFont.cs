@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -107,8 +108,11 @@ namespace Stride.Graphics.Font
             // get the character data associated to the provided character and size
             var characterData = GetOrCreateCharacterData(realFontSize, character);
 
+            // Acquire-read so the matching Glyph.Offset write in FontManager.RenderBitmap is visible.
+            var bitmap = Volatile.Read(ref characterData.Bitmap);
+
             // generate the bitmap if it does not exist
-            if (characterData.Bitmap == null)
+            if (bitmap == null)
             {
                 FontManager.GenerateBitmap(characterData, false);
 
@@ -116,7 +120,7 @@ namespace Stride.Graphics.Font
             }
 
             // upload the character to the GPU font texture and create the glyph if does not exists
-            if (uploadGpuResources && characterData.Bitmap != null && !characterData.IsBitmapUploaded)
+            if (uploadGpuResources && bitmap != null && !characterData.IsBitmapUploaded)
                 FontCacheManager.UploadCharacterBitmap(commandList, characterData);
 
             // update the character usage info

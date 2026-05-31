@@ -201,15 +201,14 @@ namespace Stride.Graphics.Font
             if (err != 0)
                 return;
 
-            // create the bitmap
-            ref FT_Bitmap bitmap = ref fontFace->glyph->bitmap;
-            if (bitmap.width != 0 && bitmap.rows != 0)
-                character.Bitmap = new CharacterBitmap((nint)bitmap.buffer, ref borderSize, (int)bitmap.width, (int)bitmap.rows, bitmap.pitch, bitmap.num_grays, (FreeTypePixelMode)bitmap.pixel_mode);
-            else
-                character.Bitmap = new CharacterBitmap();
-
-            // set the glyph offsets
+            // Set Offset before publishing Bitmap; main thread treats non-null Bitmap as "ready".
             character.Glyph.Offset = new Vector2(fontFace->glyph->bitmap_left - borderSize.X, -fontFace->glyph->bitmap_top - borderSize.Y);
+
+            ref FT_Bitmap bitmap = ref fontFace->glyph->bitmap;
+            var newBitmap = bitmap.width != 0 && bitmap.rows != 0
+                ? new CharacterBitmap((nint)bitmap.buffer, ref borderSize, (int)bitmap.width, (int)bitmap.rows, bitmap.pitch, bitmap.num_grays, (FreeTypePixelMode)bitmap.pixel_mode)
+                : new CharacterBitmap();
+            Volatile.Write(ref character.Bitmap, newBitmap);
         }
 
         private static void ResetGlyph(CharacterSpecification character)
