@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 // 5505 instead of 5555: the latter is Android ADB's daemon port, which the Android emulator
@@ -165,7 +167,10 @@ string ReadBranchCached()
     return branch;
 }
 
-app.MapGet("/api/info", () => new { StrideRoot = strideRoot, Hostname = Environment.MachineName, Branch = ReadBranchCached() });
+// IsLocal gates the "Reveal in Explorer" affordance: the reveal runs on the server, so it
+// only makes sense when the viewer is on the same machine (loopback). Default localhost
+// binding makes every request loopback; with --lan, remote viewers see no reveal button.
+app.MapGet("/api/info", (HttpContext ctx) => new { StrideRoot = strideRoot, Hostname = Environment.MachineName, Branch = ReadBranchCached(), IsLocal = IsLocalRequest(ctx) });
 
 // === Gold API ===
 
@@ -287,6 +292,10 @@ app.MapGet("/api/gold/metadata", (string suite, string platform, string name) =>
     var metaPath = Path.ChangeExtension(Path.Combine(testsDir, suite, parts[0], parts[1], name), ".metadata.json");
     return File.Exists(metaPath) ? Results.File(metaPath, "application/json") : Results.NotFound();
 });
+
+// Open the host file manager with this gold PNG selected. Local-only (see /api/info).
+app.MapPost("/api/gold/reveal", (HttpContext ctx, string suite, string platform, string name) =>
+    RevealImage(testsDir, suite, platform, name, ctx));
 
 // Thresholds
 app.MapGet("/api/thresholds", (string suite) =>
@@ -471,6 +480,13 @@ app.MapGet("/api/source/{id}/metadata", (string id, string suite, string platfor
     if (parts.Length != 2) return Results.BadRequest("Invalid platform");
     var metaPath = Path.ChangeExtension(Path.Combine(src.Path, suite, parts[0], parts[1], name), ".metadata.json");
     return File.Exists(metaPath) ? Results.File(metaPath, "application/json") : Results.NotFound();
+});
+
+// Open the host file manager with this source PNG selected. Local-only (see /api/info).
+app.MapPost("/api/source/{id}/reveal", (HttpContext ctx, string id, string suite, string platform, string name) =>
+{
+    var src = sourceManager.Get(id);
+    return src == null ? Results.NotFound() : RevealImage(src.Path, suite, platform, name, ctx);
 });
 
 // === CI Runs API ===
@@ -801,6 +817,123 @@ static IResult ServeImage(string baseDir, string suite, string platform, string 
     return Results.File(filePath, "image/png");
 }
 
+// True when the request comes from this same machine (loopback). The reveal command runs
+// server-side, so anything else would pop a window on the wrong box.
+static bool IsLocalRequest(HttpContext ctx)
+{
+    var ip = ctx.Connection.RemoteIpAddress;
+    if (ip == null) return false;
+    if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
+    return IPAddress.IsLoopback(ip);
+}
+
+// Resolve the PNG under baseDir and open the host file manager with it selected. Re-checks
+// IsLocalRequest server-side (the UI hiding the button is only cosmetic) and confines the
+// resolved path to baseDir so a crafted name can't reveal arbitrary files.
+static IResult RevealImage(string baseDir, string suite, string platform, string name, HttpContext ctx)
+{
+    if (!IsLocalRequest(ctx)) return Results.StatusCode(403);
+    var parts = platform.Split('/', 2);
+    if (parts.Length != 2) return Results.BadRequest("Invalid platform");
+
+    var root = Path.GetFullPath(baseDir);
+    var filePath = Path.GetFullPath(Path.Combine(root, suite, parts[0], parts[1], name));
+    if (!filePath.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        return Results.BadRequest("Path outside root");
+    if (!File.Exists(filePath)) return Results.NotFound();
+
+    return TryReveal(filePath) ? Results.Ok() : Results.StatusCode(500);
+}
+
+// Open the OS file manager with the given file selected. On WSL, hands off to the Windows
+// host's Explorer via interop + wslpath so reveal lands on the host the browser runs on.
+static bool TryReveal(string path)
+{
+    try
+    {
+        if (OperatingSystem.IsWindows())
+            return StartExplorerSelect(path);
+
+        if (IsWsl())
+        {
+            // wslpath resolves both directions, sidestepping the dotnet process's PATH (which
+            // doesn't always include the Windows dir, so bare "explorer.exe" can ENOENT) and
+            // any non-/mnt automount root config.
+            var winPath = WslToWindowsPath(path);
+            var exe = WindowsPathToWsl(@"C:\Windows\explorer.exe");
+            if (winPath == null || exe == null) return false;
+            var psi = new ProcessStartInfo(exe);
+            psi.ArgumentList.Add("/select," + winPath);
+            Process.Start(psi);
+            return true;
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            var psi = new ProcessStartInfo("open");
+            psi.ArgumentList.Add("-R");
+            psi.ArgumentList.Add(path);
+            Process.Start(psi);
+            return true;
+        }
+
+        // Generic Linux: no portable "select" verb — open the containing folder.
+        var dir = Path.GetDirectoryName(path) ?? path;
+        var xdg = new ProcessStartInfo("xdg-open");
+        xdg.ArgumentList.Add(dir);
+        Process.Start(xdg);
+        return true;
+    }
+    catch { return false; }
+}
+
+// explorer.exe /select,<path> — the comma binds into one token, so it goes in as a single
+// argument. Explorer exits 1 even on success, so we don't wait on or inspect the exit code.
+// Windows-only: snapshots existing Explorer windows so we can pull the new one to the
+// foreground (a background server process otherwise opens it behind the browser).
+static bool StartExplorerSelect(string windowsPath)
+{
+    var before = ExplorerForeground.Snapshot();
+    var psi = new ProcessStartInfo("explorer.exe");
+    psi.ArgumentList.Add("/select," + windowsPath);
+    Process.Start(psi);
+    ExplorerForeground.PullNewToFront(before);
+    return true;
+}
+
+static bool IsWsl()
+{
+    try
+    {
+        return File.Exists("/proc/sys/kernel/osrelease")
+            && File.ReadAllText("/proc/sys/kernel/osrelease").Contains("microsoft", StringComparison.OrdinalIgnoreCase);
+    }
+    catch { return false; }
+}
+
+// `wslpath -w /linux/path` → `C:\...` (or `\\wsl.localhost\...` for native-FS checkouts),
+// both of which Explorer can select.
+static string? WslToWindowsPath(string path) => RunWslpath("-w", path);
+
+// `wslpath -u 'C:\foo'` → Linux mount path under the configured automount root.
+static string? WindowsPathToWsl(string winPath) => RunWslpath("-u", winPath);
+
+static string? RunWslpath(string flag, string path)
+{
+    try
+    {
+        var psi = new ProcessStartInfo("wslpath") { RedirectStandardOutput = true };
+        psi.ArgumentList.Add(flag);
+        psi.ArgumentList.Add(path);
+        using var p = Process.Start(psi);
+        if (p == null) return null;
+        var s = p.StandardOutput.ReadToEnd().Trim();
+        p.WaitForExit(2000);
+        return string.IsNullOrEmpty(s) ? null : s;
+    }
+    catch { return null; }
+}
+
 // Accepts "owner/name", returns null if the shape doesn't match. Trims whitespace.
 // Used everywhere a repo flows in from the network or CLI so the rest of the pipeline
 // can assume the value is safe to pass to `gh`.
@@ -832,6 +965,88 @@ static async Task<List<JsonElement>> FetchJsonLinesAsync(string ghArgs)
         .Select(line => { try { return JsonSerializer.Deserialize<JsonElement>(line); } catch { return default; } })
         .Where(j => j.ValueKind != JsonValueKind.Undefined)
         .ToList();
+}
+
+// Best-effort: bring the Explorer window that /select just opened to the foreground. Windows
+// denies SetForegroundWindow to a process that doesn't own the current foreground, so we
+// briefly attach to the foreground thread's input queue (the documented work-around) to earn
+// the right. All P/Invoke is guarded by OperatingSystem.IsWindows() at the call site.
+static class ExplorerForeground
+{
+    private const string ExplorerClass = "CabinetWClass"; // top-level Explorer browser window
+    private const int SW_RESTORE = 9;
+
+    public static HashSet<IntPtr> Snapshot()
+    {
+        var set = new HashSet<IntPtr>();
+        try
+        {
+            EnumWindows((h, _) =>
+            {
+                if (GetClassName(h) == ExplorerClass) set.Add(h);
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch { }
+        return set;
+    }
+
+    public static void PullNewToFront(HashSet<IntPtr> before)
+    {
+        try
+        {
+            // Explorer opens its window asynchronously; poll briefly for one not seen before.
+            for (int i = 0; i < 30; i++)
+            {
+                IntPtr found = IntPtr.Zero;
+                EnumWindows((h, _) =>
+                {
+                    if (!before.Contains(h) && GetClassName(h) == ExplorerClass) { found = h; return false; }
+                    return true;
+                }, IntPtr.Zero);
+                if (found != IntPtr.Zero) { ForceForeground(found); return; }
+                Thread.Sleep(50);
+            }
+        }
+        catch { }
+    }
+
+    private static void ForceForeground(IntPtr hWnd)
+    {
+        var fg = GetForegroundWindow();
+        uint fgThread = GetWindowThreadProcessId(fg, out _);
+        uint thisThread = GetCurrentThreadId();
+        bool attached = fgThread != thisThread && AttachThreadInput(thisThread, fgThread, true);
+        try
+        {
+            ShowWindow(hWnd, SW_RESTORE);
+            BringWindowToTop(hWnd);
+            SetForegroundWindow(hWnd);
+        }
+        finally
+        {
+            if (attached) AttachThreadInput(thisThread, fgThread, false);
+        }
+    }
+
+    private static string GetClassName(IntPtr hWnd)
+    {
+        var sb = new System.Text.StringBuilder(64);
+        int n = GetClassName(hWnd, sb, sb.Capacity);
+        return n > 0 ? sb.ToString() : "";
+    }
+
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")] private static extern bool EnumWindows(EnumWindowsProc cb, IntPtr lParam);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder s, int max);
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] private static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("user32.dll")] private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+    [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
 }
 
 // === Models ===

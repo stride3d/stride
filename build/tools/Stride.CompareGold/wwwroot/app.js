@@ -11,6 +11,7 @@ let collapsedSuites = new Set();
 let compareLeft = {};         // {"suite:name": "gold:<platform>" or "src:<sourceId>"}
 let compareRight = {};        // {"suite:name": "gold:<platform>" or "src:<sourceId>"}
 let cellStats = {};           // {`${sourceId}:${suite}:${name}`: stats}
+let serverIsLocal = false;    // viewer on the same machine as the server → enable reveal-in-explorer
 
 // === Init ===
 async function init() {
@@ -21,6 +22,7 @@ async function init() {
     document.getElementById('strideRoot').textContent = info.strideRoot;
     if (info.hostname) document.getElementById('hostInfo').textContent = info.hostname;
     if (info.branch) document.getElementById('branchInfo').textContent = info.branch;
+    serverIsLocal = !!info.isLocal;
   } catch {}
 
   const res = await fetch('/api/suites');
@@ -509,6 +511,22 @@ async function fetchMetadata(url) {
   try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch { return null; }
 }
 
+// Reveal endpoint for the PNG behind a ref. Mirrors resolveMetadataRef but targets the
+// image (not the .metadata.json) and is a POST (it has the side effect of opening Explorer).
+function resolveRevealRef(ref, suite, name) {
+  if (!ref) return null;
+  if (ref.startsWith('gold:'))
+    return `/api/gold/reveal?suite=${enc(suite)}&platform=${enc(ref.slice(5))}&name=${enc(name)}`;
+  if (ref.startsWith('src:'))
+    return `/api/source/${ref.slice(4)}/reveal?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
+  return null;
+}
+
+async function revealFile(url) {
+  if (!url) return;
+  try { await fetch(url, { method: 'POST' }); } catch {}
+}
+
 function metadataSummary(m) {
   // GPU name is already in the folder label; surface the next most useful axis: driver.
   if (!m) return null;
@@ -528,13 +546,21 @@ function renderMetadataTable(m) {
   return `<table class="metadata">` + rows.map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join('') + `</table>`;
 }
 
-function fillMetaPill(el, m) {
+function fillMetaPill(el, m, revealUrl) {
   if (!el) return;
-  // No metadata: collapse to empty (no text, no border) so the row is invisible but
-  // still reserves no extra height — the column's flex layout keeps controls at bottom.
-  if (!m) { el.classList.add('empty'); el.innerHTML = ''; return; }
+  // Reveal icon only when the viewer is on the server's machine (server-gated too).
+  const reveal = serverIsLocal && revealUrl
+    ? `<button class="meta-reveal" title="Reveal in Explorer" onclick="revealFile('${revealUrl}')">📂</button>`
+    : '';
+  if (!m) {
+    // No metadata: still offer reveal if available, otherwise collapse to invisible (no
+    // text, no border) so the row reserves no extra height and controls stay bottom-aligned.
+    if (reveal) { el.classList.remove('empty'); el.innerHTML = reveal; }
+    else { el.classList.add('empty'); el.innerHTML = ''; }
+    return;
+  }
   el.classList.remove('empty');
-  el.innerHTML = `<span class="meta-text">${esc(metadataSummary(m) || '?')}</span><div class="meta-popup">${renderMetadataTable(m)}</div>`;
+  el.innerHTML = `<span class="meta-text">${esc(metadataSummary(m) || '?')}</span>${reveal}<div class="meta-popup">${renderMetadataTable(m)}</div>`;
 }
 
 function buildRefOptions(goldPlatforms, selectedRef) {
@@ -650,8 +676,8 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
     fetchMetadata(resolveMetadataRef(rightRef, suite, name)),
   ]).then(([leftMeta, rightMeta]) => {
     if (detailVersion[key] !== ver) return;
-    fillMetaPill(document.getElementById(`metaLeft-${id}`), leftMeta);
-    fillMetaPill(document.getElementById(`metaRight-${id}`), rightMeta);
+    fillMetaPill(document.getElementById(`metaLeft-${id}`), leftMeta, resolveRevealRef(leftRef, suite, name));
+    fillMetaPill(document.getElementById(`metaRight-${id}`), rightMeta, resolveRevealRef(rightRef, suite, name));
   });
 
   if (leftImg) drawToCanvas(document.getElementById(`left-${id}`), leftImg);
