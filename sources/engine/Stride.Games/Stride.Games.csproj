@@ -8,7 +8,6 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <UseWPF Condition="$(TargetFramework.Contains('-windows'))">true</UseWPF>
     <UseWindowsForms Condition="$(TargetFramework.Contains('-windows'))">true</UseWindowsForms>
   </PropertyGroup>
   <Choose>
