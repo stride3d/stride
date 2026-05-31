@@ -490,6 +490,53 @@ function resolveImageRef(ref, suite, name) {
   return null;
 }
 
+// Metadata sidecar URL for the same ref. 404 is normal (older gold without sidecar).
+function resolveMetadataRef(ref, suite, name) {
+  if (!ref) return null;
+  if (ref.startsWith('gold:')) {
+    const plat = ref.slice(5);
+    return `/api/gold/metadata?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`;
+  }
+  if (ref.startsWith('src:')) {
+    const srcId = ref.slice(4);
+    return `/api/source/${srcId}/metadata?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
+  }
+  return null;
+}
+
+async function fetchMetadata(url) {
+  if (!url) return null;
+  try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch { return null; }
+}
+
+function metadataSummary(m) {
+  // GPU name is already in the folder label; surface the next most useful axis: driver.
+  if (!m) return null;
+  const parts = [m.driverName, m.driverInfo || m.driverVersion].filter(Boolean);
+  return parts.length ? parts.join(' ') : (m.apiName || m.os || null);
+}
+
+function renderMetadataTable(m) {
+  if (!m) return '';
+  const rows = [];
+  // GPU intentionally skipped — already shown in the folder/dropdown above.
+  if (m.driverName || m.driverInfo || m.driverVersion)
+    rows.push(['Driver', [m.driverName, m.driverInfo, m.driverVersion].filter(Boolean).join(' · ')]);
+  if (m.apiName) rows.push(['API', `${m.apiName}${m.apiVersion ? ' ' + m.apiVersion : ''}`]);
+  if (m.os) rows.push(['OS', m.os]);
+  if (m.cpu) rows.push(['CPU', m.cpu]);
+  return `<table class="metadata">` + rows.map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join('') + `</table>`;
+}
+
+function fillMetaPill(el, m) {
+  if (!el) return;
+  // No metadata: collapse to empty (no text, no border) so the row is invisible but
+  // still reserves no extra height — the column's flex layout keeps controls at bottom.
+  if (!m) { el.classList.add('empty'); el.innerHTML = ''; return; }
+  el.classList.remove('empty');
+  el.innerHTML = `<span class="meta-text">${esc(metadataSummary(m) || '?')}</span><div class="meta-popup">${renderMetadataTable(m)}</div>`;
+}
+
 function buildRefOptions(goldPlatforms, selectedRef) {
   let html = '<optgroup label="Gold">';
   if (goldPlatforms.length === 0) html += '<option value="" disabled>No gold</option>';
@@ -582,8 +629,30 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
   else html += `<div class="empty-msg" style="padding:20px">—</div>`;
   html += `</div>`;
   html += '</div>';
-  html += `<div class="detail-footer"><div class="zoom-controls">Scroll to zoom · Drag to pan · <button class="secondary" onclick="resetZoom('${id}')">Reset</button></div><div class="stats" id="stats-${id}"></div></div>`;
+  // Footer columns: each is a flex column with meta-pill at top, controls (or nothing)
+  // at bottom. The right column (stats) is taller; the others stretch to match, so the
+  // bottom row aligns with the last stats line without growing the total height.
+  html += `<div class="detail-footer">`
+       + `<div class="footer-col">`
+       +   `<div class="meta-pill" id="metaLeft-${id}"></div>`
+       +   `<div class="zoom-controls">Scroll to zoom · Drag to pan · <button class="secondary" onclick="resetZoom('${id}')">Reset</button></div>`
+       + `</div>`
+       + `<div class="footer-col">`
+       +   `<div class="meta-pill" id="metaRight-${id}"></div>`
+       + `</div>`
+       + `<div class="stats" id="stats-${id}"></div>`
+       + `</div>`;
   container.innerHTML = html;
+
+  // Metadata sidecars: compact pill under each image, full table popup on hover.
+  Promise.all([
+    fetchMetadata(resolveMetadataRef(leftRef, suite, name)),
+    fetchMetadata(resolveMetadataRef(rightRef, suite, name)),
+  ]).then(([leftMeta, rightMeta]) => {
+    if (detailVersion[key] !== ver) return;
+    fillMetaPill(document.getElementById(`metaLeft-${id}`), leftMeta);
+    fillMetaPill(document.getElementById(`metaRight-${id}`), rightMeta);
+  });
 
   if (leftImg) drawToCanvas(document.getElementById(`left-${id}`), leftImg);
   if (rightImg) drawToCanvas(document.getElementById(`right-${id}`), rightImg);

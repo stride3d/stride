@@ -47,7 +47,14 @@ namespace Stride.Graphics
             {
                 VkPhysicalDeviceProperties properties;
                 defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevices[index], out properties);
-                var adapter = new GraphicsAdapter(nativePhysicalDevices[index], properties, index);
+
+                // VK_KHR_driver_properties (core in 1.2) exposes driver identity strings the packed driverVersion can't carry.
+                VkPhysicalDeviceDriverProperties driverProps = new() { sType = VkStructureType.PhysicalDeviceDriverProperties };
+                VkPhysicalDeviceProperties2 properties2 = new() { sType = VkStructureType.PhysicalDeviceProperties2, pNext = &driverProps };
+                if (properties.apiVersion >= VkVersion.Version_1_2)
+                    defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties2(nativePhysicalDevices[index], &properties2);
+
+                var adapter = new GraphicsAdapter(nativePhysicalDevices[index], properties, driverProps, index);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }

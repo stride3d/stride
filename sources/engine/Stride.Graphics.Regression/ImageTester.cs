@@ -73,7 +73,7 @@ namespace Stride.Graphics.Regression
             public double MeanSquaredError;
             public double PSNR;
             public bool Passed;
-            /// <summary>FNV-1a 64-bit hex of the gold file's bytes — lets CompareGold tell
+            /// <summary>SHA-256 hex of the gold file's bytes — lets CompareGold tell
             /// if the gold the sidecar was judged against has since changed.</summary>
             public string? GoldHash;
 
@@ -118,15 +118,41 @@ namespace Stride.Graphics.Regression
             /// so CompareGold can format the brief without re-resolving thresholds.jsonc.</summary>
             [JsonConverter(typeof(InlineStringIntDictConverter))]
             public Dictionary<string, int>? Thresholds { get; init; }
-            /// <summary>FNV-1a 64-bit of the gold file's bytes at compare time. CompareGold
+            /// <summary>SHA-256 of the gold file's bytes at compare time. CompareGold
             /// compares this against the gold's current hash to detect promotions / edits
             /// without depending on filesystem mtime precision.</summary>
             public string? GoldHash { get; init; }
         }
 
         /// <summary>
+        /// Host / GPU / driver facts attached to the gold or current run. Stable across all
+        /// tests in a single process invocation. Persisted alongside gold as <c>*.metadata.json</c>.
+        /// </summary>
+        public sealed class SidecarMetadata
+        {
+            public string? Os { get; init; }
+            public string? Cpu { get; init; }
+            public string? Gpu { get; init; }
+            /// <summary>PCI vendor ID, 0x-prefixed hex.</summary>
+            public string? GpuVendorId { get; init; }
+            /// <summary>PCI device ID, 0x-prefixed hex.</summary>
+            public string? GpuDeviceId { get; init; }
+            public string? VendorName { get; init; }
+            /// <summary>VkDriverId on Vulkan; vendor name on D3D.</summary>
+            public string? DriverId { get; init; }
+            public string? DriverName { get; init; }
+            /// <summary>Free-form driver string (Vulkan only).</summary>
+            public string? DriverInfo { get; init; }
+            /// <summary>Vendor-formatted version (e.g. "1.4.1", "32.0.15.7270").</summary>
+            public string? DriverVersion { get; init; }
+            public string? ApiName { get; init; }
+            public string? ApiVersion { get; init; }
+        }
+
+        /// <summary>
         /// Sidecar emitted next to each output PNG with the comparison outcome and stats.
-        /// Filename: same as the PNG but with a <c>.json</c> extension.
+        /// Filename: same as the PNG with a <c>.results.json</c> extension (companion to
+        /// <c>.metadata.json</c> which carries the renderer identity).
         /// </summary>
         public sealed class Sidecar
         {
@@ -172,9 +198,30 @@ namespace Stride.Graphics.Regression
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        public static void SaveSidecar(string outputPngPath, Sidecar sidecar)
+        /// <summary>Build metadata for the current run from a live <see cref="GraphicsDevice"/>.</summary>
+        public static SidecarMetadata? BuildMetadata(GraphicsDevice? device)
         {
-            var sidecarPath = Path.ChangeExtension(outputPngPath, ".json");
+            var info = device?.Adapter?.DriverInfo;
+            return new SidecarMetadata
+            {
+                Os = HostEnvironment.OsDescription,
+                Cpu = HostEnvironment.CpuName,
+                Gpu = info?.GpuName,
+                GpuVendorId = info != null ? $"0x{info.VendorId:X4}" : null,
+                GpuDeviceId = info != null ? $"0x{info.DeviceId:X4}" : null,
+                VendorName = info?.VendorName,
+                DriverId = info?.DriverId,
+                DriverName = info?.DriverName,
+                DriverInfo = info?.DriverInfo,
+                DriverVersion = info?.DriverVersion,
+                ApiName = info?.ApiName,
+                ApiVersion = info?.ApiVersion,
+            };
+        }
+
+        public static void SaveSidecar(string outputPngPath, Sidecar sidecar, SidecarMetadata? metadata = null)
+        {
+            var sidecarPath = Path.ChangeExtension(outputPngPath, ".results.json");
             DiagLog($"SaveSidecar: {sidecarPath}");
             try
             {
@@ -185,6 +232,26 @@ namespace Stride.Graphics.Regression
             {
                 DiagLog($"SaveSidecar FAILED: {ex.GetType().Name}: {ex.Message}");
                 throw;
+            }
+
+            // Metadata-only companion. Promoted alongside the PNG so persistent gold carries renderer identity.
+            SaveMetadata(outputPngPath, metadata);
+        }
+
+        /// <summary>Write the renderer-identity <c>*.metadata.json</c> next to <paramref name="outputPngPath"/>.</summary>
+        public static void SaveMetadata(string outputPngPath, SidecarMetadata? metadata)
+        {
+            if (metadata == null)
+                return;
+
+            var metaPath = Path.ChangeExtension(outputPngPath, ".metadata.json");
+            try
+            {
+                File.WriteAllText(metaPath, JsonSerializer.Serialize(metadata, SidecarJsonOptions));
+            }
+            catch (Exception ex)
+            {
+                DiagLog($"SaveMetadata FAILED: {ex.GetType().Name}: {ex.Message}");
             }
         }
 
@@ -219,7 +286,7 @@ namespace Stride.Graphics.Regression
         internal static string HashHex(byte[] data) =>
             Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data));
 
-        public static void SaveImage(Image image, string testFilename)
+        public static void SaveImage(Image image, string testFilename, SidecarMetadata? metadata = null)
         {
             DiagLog($"SaveImage: {testFilename}");
             try
@@ -236,6 +303,9 @@ namespace Stride.Graphics.Regression
                 DiagLog($"SaveImage FAILED: {ex.GetType().Name}: {ex.Message}");
                 throw;
             }
+
+            // Renderer identity for an orphan image with no gold to compare against.
+            SaveMetadata(testFilename, metadata);
         }
 
         internal static void DiagLog(string message)

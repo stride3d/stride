@@ -796,7 +796,7 @@ namespace Stride.Graphics.Regression
             if (testFileNames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
-                ImageTester.SaveImage(image, testLocalFileName);
+                ImageTester.SaveImage(image, testLocalFileName, ImageTester.BuildMetadata(GraphicsDevice));
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
                 // Treat "missing reference" as a (failed) comparison so interactive runners
                 // can still surface the rendered output and offer a create-gold action.
@@ -863,7 +863,7 @@ namespace Stride.Graphics.Regression
                     At = DateTime.UtcNow,
                     Matched = anyMatch ? matchedFile : null,
                     Attempts = attempts,
-                });
+                }, ImageTester.BuildMetadata(GraphicsDevice));
 
                 if (!anyMatch)
                 {
@@ -905,20 +905,36 @@ namespace Stride.Graphics.Regression
                 _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
             };
 
-            string deviceName;
-            if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", NormalizeDeviceBucket(GraphicsDevice.Adapter));
+        }
+
+        // Stable, vendor-independent bucket name. Avoids Lavapipe's "llvmpipe (LLVM x.y.z, N bits)"
+        // description from leaking into the gold path and breaking on every Mesa rebuild. Trusts
+        // the description when it's been intentionally rewritten (e.g. Android emulator's helper
+        // layer stamps host OS into the device name → "Lavapipe-LinuxHost").
+        private static string NormalizeDeviceBucket(GraphicsAdapter adapter)
+        {
+            var desc = adapter.Description.Split('\0')[0].TrimEnd(' ');
+            var driverId = adapter.DriverInfo?.DriverId;
+            if (driverId == "MesaLLVMPipe" && desc.StartsWith("llvmpipe", StringComparison.OrdinalIgnoreCase))
+                return "Lavapipe";
+            if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
+                return "SwiftShader";
+            if (adapter.VendorId == 0x1414) return "WARP"; // Microsoft Basic / WARP
+            // Virtualized macOS (e.g. GitHub's macos-15 runner) reports the GPU as
+            // "Apple Paravirtual device". On Apple Silicon the GPU is on the same chip as
+            // the CPU, so the CPU brand string (minus the "(Virtual)" suffix) is a stable
+            // proxy for the chip family — "Apple M1" rather than "Apple Paravirtual device".
+            if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase))
             {
-                deviceName = GraphicsDevice.Platform switch
+                var cpu = HostEnvironment.CpuName;
+                if (cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
                 {
-                    GraphicsPlatform.Vulkan => "Lavapipe",
-                    _ => "WARP"
-                };
+                    var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
+                    return idx > 0 ? cpu[..idx] : cpu;
+                }
             }
-            else
-            {
-                deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
-            }
-            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", deviceName);
+            return desc;
         }
 
         /// <summary>
