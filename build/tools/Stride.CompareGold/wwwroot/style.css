@@ -135,6 +135,8 @@ tr.suite-row td { padding: 10px 12px; border-bottom: 2px solid #333; }
 .meta-pill.empty { display: none; }
 .meta-popup { display: none; position: absolute; left: 50%; transform: translateX(-50%); bottom: 100%; margin-bottom: 4px; padding: 8px 10px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; z-index: 10; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 .meta-pill:hover .meta-popup { display: block; }
+.meta-reveal { padding: 2px 4px; margin-left: 4px; font-size: 11px; line-height: 1; cursor: pointer; vertical-align: middle; opacity: 0.7; }
+.meta-reveal:hover { opacity: 1; }
 table.metadata { border-collapse: collapse; font-size: 11px; text-align: left; }
 table.metadata th { color: #888; font-weight: normal; padding: 2px 8px 2px 0; vertical-align: top; }
 table.metadata td { color: #e0e0e0; font-family: monospace; padding: 2px 0; }
