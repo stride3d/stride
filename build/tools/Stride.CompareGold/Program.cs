@@ -193,11 +193,17 @@ app.MapGet("/api/suites", () =>
 
 app.MapGet("/api/platforms", (string suite) =>
 {
-    var platforms = new HashSet<string>();
-    CollectPlatforms(Path.Combine(testsDir, suite), platforms);
+    var goldPlatforms = new HashSet<string>();
+    CollectPlatforms(Path.Combine(testsDir, suite), goldPlatforms);
+    var sourcePlatforms = new HashSet<string>();
     foreach (var src in sourceManager.GetAll())
-        CollectPlatforms(Path.Combine(src.Path, suite), platforms);
-    return platforms.OrderBy(p => p);
+        CollectPlatforms(Path.Combine(src.Path, suite), sourcePlatforms);
+    var all = new HashSet<string>(goldPlatforms);
+    all.UnionWith(sourcePlatforms);
+    // hasSource lets the UI grey out platforms that no source has images for (so the user
+    // immediately sees which buckets the currently-loaded run actually covers).
+    return all.OrderBy(p => p)
+        .Select(p => new { platform = p, hasSource = sourcePlatforms.Contains(p) });
 });
 
 app.MapGet("/api/gold/images", (string suite, string platform) =>
@@ -515,7 +521,7 @@ app.MapGet("/api/ci/resolve", async (string runId) =>
         var proc = Process.Start(new ProcessStartInfo
         {
             FileName = "gh",
-            Arguments = $"api repos/{repo}/actions/runs/{runId} --jq .id",
+            Arguments = $"api repos/{repo}/actions/runs/{runId} --jq .run_number",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -523,7 +529,10 @@ app.MapGet("/api/ci/resolve", async (string runId) =>
         if (proc == null) continue;
         await proc.WaitForExitAsync();
         if (proc.ExitCode == 0)
-            return Results.Ok(new { repo });
+        {
+            var runNumber = (await proc.StandardOutput.ReadToEndAsync()).Trim();
+            return Results.Ok(new { repo, runNumber });
+        }
     }
     return Results.NotFound();
 });
@@ -671,7 +680,13 @@ static void CollectPlatforms(string suiteDir, HashSet<string> platforms)
     if (!Directory.Exists(suiteDir)) return;
     foreach (var pDir in Directory.GetDirectories(suiteDir))
         foreach (var dDir in Directory.GetDirectories(pDir))
-            platforms.Add($"{Path.GetFileName(pDir)}/{Path.GetFileName(dDir)}");
+            // Only count a 2-deep dir as a platform if it has test outputs: PNG on fail,
+            // *.results.json (sidecar) on pass. Filters out non-test subtrees (e.g.
+            // baselines/dpi100) without an OS-prefix allowlist, while still surfacing
+            // passing-only buckets (e.g. a CI run where every macOS test matched gold).
+            if (Directory.EnumerateFiles(dDir, "*.png").Any() ||
+                Directory.EnumerateFiles(dDir, "*.results.json").Any())
+                platforms.Add($"{Path.GetFileName(pDir)}/{Path.GetFileName(dDir)}");
 }
 
 static List<string> ListPngNames(string dir)
