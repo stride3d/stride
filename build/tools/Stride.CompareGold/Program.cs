@@ -279,6 +279,15 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
     return Results.NotFound();
 });
 
+// Gold metadata sidecar (renderer that baked this PNG). Returns 404 if absent.
+app.MapGet("/api/gold/metadata", (string suite, string platform, string name) =>
+{
+    var parts = platform.Split('/', 2);
+    if (parts.Length != 2) return Results.BadRequest("Invalid platform");
+    var metaPath = Path.ChangeExtension(Path.Combine(testsDir, suite, parts[0], parts[1], name), ".metadata.json");
+    return File.Exists(metaPath) ? Results.File(metaPath, "application/json") : Results.NotFound();
+});
+
 // Thresholds
 app.MapGet("/api/thresholds", (string suite) =>
 {
@@ -453,6 +462,17 @@ app.MapGet("/api/source/{id}/image", (string id, string suite, string platform, 
     return ServeImage(src.Path, suite, platform, name);
 });
 
+// Per-source metadata sidecar (renderer that produced this run's PNG).
+app.MapGet("/api/source/{id}/metadata", (string id, string suite, string platform, string name) =>
+{
+    var src = sourceManager.Get(id);
+    if (src == null) return Results.NotFound();
+    var parts = platform.Split('/', 2);
+    if (parts.Length != 2) return Results.BadRequest("Invalid platform");
+    var metaPath = Path.ChangeExtension(Path.Combine(src.Path, suite, parts[0], parts[1], name), ".metadata.json");
+    return File.Exists(metaPath) ? Results.File(metaPath, "application/json") : Results.NotFound();
+});
+
 // === CI Runs API ===
 
 app.MapGet("/api/ci/status", () => Results.Ok(new { Available = ghAvailable, Error = ghAvailable ? null : ghError }));
@@ -566,6 +586,10 @@ app.MapPost("/api/promote", async (HttpRequest request) =>
         if (File.Exists(srcFile))
         {
             File.Copy(srcFile, dstFile, overwrite: true);
+            // Carry .metadata.json next to the gold so it records the renderer that baked it.
+            var srcMeta = Path.ChangeExtension(srcFile, ".metadata.json");
+            if (File.Exists(srcMeta))
+                File.Copy(srcMeta, Path.ChangeExtension(dstFile, ".metadata.json"), overwrite: true);
             promoted++;
             details.Add(new { Name = name, Src = srcFile, Dst = dstFile, SrcSize = new FileInfo(srcFile).Length, DstSize = new FileInfo(dstFile).Length });
         }
@@ -597,6 +621,13 @@ app.MapPost("/api/gold/delete", async (HttpRequest request) =>
             File.Delete(file);
             deleted++;
             Console.WriteLine($"  Deleted: {file}");
+        }
+        // Reap .metadata.json with the PNG so we don't orphan stale renderer info.
+        var metaFile = Path.ChangeExtension(file, ".metadata.json");
+        if (File.Exists(metaFile))
+        {
+            File.Delete(metaFile);
+            Console.WriteLine($"  Deleted: {metaFile}");
         }
     }
     Console.WriteLine($"Delete gold: {deleted}/{body.Names.Length} from {goldDir}");
@@ -635,11 +666,11 @@ static List<string> ListPngNames(string dir)
         .ToList()!;
 }
 
-// Sidecar JSON lives next to each output PNG (or alone, on a passing test where the PNG
-// is skipped). Union {*.png, *.json} by stem so passing tests still appear in the listing.
-// Each item also carries the current SHA256 of its matched + primary gold; the frontend
-// compares against the hashes the sidecar baked in at compare time to detect staleness
-// (gold edited or copied after the test ran).
+// Results sidecar (foo.results.json) lives next to each output PNG (or alone, on a passing
+// test where the PNG is skipped). Union {*.png, *.results.json} by stem so passing tests
+// still appear in the listing. Each item also carries the current SHA256 of its matched +
+// primary gold; the frontend compares against the hashes the sidecar baked in at compare
+// time to detect staleness (gold edited or copied after the test ran).
 List<object> ListSourceItems(string dir, string primaryGoldDir)
 {
     if (!Directory.Exists(dir)) return [];
@@ -649,9 +680,10 @@ List<object> ListSourceItems(string dir, string primaryGoldDir)
         var stem = Path.GetFileNameWithoutExtension(f);
         byStem[stem] = (true, null);
     }
-    foreach (var f in Directory.GetFiles(dir, "*.json"))
+    foreach (var f in Directory.GetFiles(dir, "*.results.json"))
     {
-        var stem = Path.GetFileNameWithoutExtension(f);
+        // Strip the .results suffix so the stem matches the PNG's bare name.
+        var stem = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(f));
         var sc = TryReadSidecar(f);
         byStem[stem] = (byStem.TryGetValue(stem, out var ex) ? ex.png : false, sc);
     }

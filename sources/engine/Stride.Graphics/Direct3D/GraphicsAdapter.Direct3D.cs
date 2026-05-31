@@ -43,6 +43,19 @@ namespace Stride.Graphics
 
         private readonly uint adapterOrdinal;
 
+        private static readonly Dictionary<uint, string> VendorNames = new()
+        {
+            [0x1002] = "AMD",
+            [0x1010] = "ImgTec",
+            [0x10DE] = "NVIDIA",
+            [0x1414] = "Microsoft",   // WARP / Basic Render Driver
+            [0x13B5] = "ARM",
+            [0x5143] = "Qualcomm",
+            [0x8086] = "INTEL",
+        };
+
+        private readonly string driverVersionString = "";
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -143,6 +156,29 @@ namespace Stride.Graphics
             DedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
             SharedSystemMemory = dxgiAdapterDesc.SharedSystemMemory;
             DedicatedSystemMemory = dxgiAdapterDesc.DedicatedSystemMemory;
+
+            // UMD version packed as four 16-bit fields (aa.bb.cc.dd).
+            long umd = 0;
+            var checkGuid = SilkMarshal.GuidPtrOf<IDXGIDevice>();
+            if (((HResult) dxgiAdapter->CheckInterfaceSupport(checkGuid, ref umd)).IsSuccess)
+            {
+                var d = (ulong) umd;
+                driverVersionString = $"{(d >> 48) & 0xFFFF}.{(d >> 32) & 0xFFFF}.{(d >> 16) & 0xFFFF}.{d & 0xFFFF}";
+            }
+
+            VendorNames.TryGetValue(dxgiAdapterDesc.VendorId, out var vendorName);
+            DriverInfo = new AdapterDriverInfo
+            {
+                GpuName = Description,
+                VendorId = dxgiAdapterDesc.VendorId,
+                DeviceId = dxgiAdapterDesc.DeviceId,
+                VendorName = vendorName,
+                DriverId = vendorName,
+                DriverName = vendorName,
+                DriverVersion = driverVersionString,
+                ApiName = GraphicsDevice.Platform.ToString(),
+                ApiVersion = "",
+            };
 
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
