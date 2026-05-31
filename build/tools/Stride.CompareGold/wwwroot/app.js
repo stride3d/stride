@@ -28,23 +28,43 @@ async function init() {
   const res = await fetch('/api/suites');
   allSuites = await res.json();
 
-  // Collect all platforms across all suites
-  const allPlatforms = new Set();
-  for (const suite of allSuites) {
-    const pRes = await fetch(`/api/platforms?suite=${enc(suite)}`);
-    (await pRes.json()).forEach(p => allPlatforms.add(p));
-  }
-  const platforms = [...allPlatforms].sort();
+  await refreshPlatforms();
   const sel = document.getElementById('platformSelect');
-  sel.innerHTML = platforms.map(p => `<option value="${p}">${p}</option>`).join('');
-  // Use platform from restoreState() if valid, otherwise default to first
-  if (!currentPlatform || !platforms.includes(currentPlatform))
-    currentPlatform = platforms[0] || '';
-  sel.value = currentPlatform;
   sel.onchange = onPlatformChange;
 
   document.getElementById('statusFilter').onchange = () => render();
   await reload();
+}
+
+// Re-query /api/platforms across all suites and rebuild the dropdown. Called from init and
+// after any source-add — server-side returns platforms from gold + every configured source,
+// so a freshly-added Local pointing at tests/local/ surfaces its new platforms (e.g. iOS/Vulkan)
+// without forcing a page reload. When `autoSelect` is true (after a source add/remove), we
+// auto-jump to the first platform that has source images so the user doesn't land on an
+// empty bucket. On the initial F5, we preserve whatever currentPlatform was selected even
+// if it's now source-less.
+async function refreshPlatforms({ autoSelect = false } = {}) {
+  const hasSource = new Map();   // platform → bool (any source has images at this platform)
+  for (const suite of allSuites) {
+    const pRes = await fetch(`/api/platforms?suite=${enc(suite)}`);
+    for (const entry of await pRes.json()) {
+      // Server returns [{platform, hasSource}]; OR'd across suites — a platform is
+      // "has source" if any suite has source images there.
+      hasSource.set(entry.platform, (hasSource.get(entry.platform) || false) || entry.hasSource);
+    }
+  }
+  const platforms = [...hasSource.keys()].sort();
+  const sel = document.getElementById('platformSelect');
+  sel.innerHTML = platforms.map(p => {
+    const empty = !hasSource.get(p);
+    return `<option value="${p}"${empty ? ' class="empty"' : ''}>${p}${empty ? ' — empty' : ''}</option>`;
+  }).join('');
+  // On add/remove, prefer the first platform that has source images so the table isn't blank.
+  if (autoSelect && !hasSource.get(currentPlatform))
+    currentPlatform = platforms.find(p => hasSource.get(p)) || platforms[0] || '';
+  else if (!currentPlatform || !platforms.includes(currentPlatform))
+    currentPlatform = platforms[0] || '';
+  sel.value = currentPlatform;
 }
 
 function extractMatchedPlatform(path) {
@@ -162,6 +182,7 @@ async function addLocalSource() {
   const src = await res.json();
   sources.push(src);
   sourceDefs.push({ type: 'local' });
+  await refreshPlatforms({ autoSelect: true });
   await reload();
 }
 
@@ -169,6 +190,7 @@ function showCiModal() {
   document.getElementById('ciModal').style.display = 'flex';
   selectedCiRun = null;
   selectedCiRunRepo = null;
+  selectedCiRunNumber = null;
   document.getElementById('ciRunId').value = '';
   document.getElementById('ciDownloadBtn').disabled = true;
   loadForks();
@@ -195,7 +217,7 @@ async function downloadCiRun() {
       const res = await fetch('/api/sources/add-ci', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ runId: String(runId), artifactName: artifacts[i], repo, label: `${labelPrefix} #${String(runId).substring(0, 5)}` })
+        body: JSON.stringify({ runId: String(runId), artifactName: artifacts[i], repo, label: `${labelPrefix} #${selectedCiRunNumber ?? runId}` })
       });
       if (!res.ok) { alert(`Failed to download ${artifacts[i]}: ${await res.text()}`); continue; }
       const src = await res.json();
@@ -206,6 +228,7 @@ async function downloadCiRun() {
       }
     }
     closeCiModal();
+    await refreshPlatforms({ autoSelect: true });
     await reload();
   } finally {
     btn.textContent = 'Download & Add';
@@ -224,6 +247,7 @@ async function removeSource(id) {
   selected.clear();
   compareLeft = {};
   compareRight = {};
+  await refreshPlatforms({ autoSelect: true });
   if (sources.length === 0) {
     suiteData = {};
     render();
@@ -1330,6 +1354,7 @@ function naturalSort(a, b) { return a.localeCompare(b, undefined, { numeric: tru
 // === CI Modal ===
 let ciRuns = [];
 let selectedCiRun = null;
+let selectedCiRunNumber = null;
 let selectedCiRunRepo = null;
 let forksList = [];
 
@@ -1425,7 +1450,7 @@ function renderCiRuns() {
     const repoChip = `<span class="repo-chip ${isUpstream ? 'upstream' : 'fork'}">${esc(repo)}</span>`;
     const runUrl = `https://github.com/${repo}/actions/runs/${id}`;
     const runLink = `<a href="${runUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><b>#${number}</b></a>`;
-    return `<div class="ci-run ${selectedCiRun === id ? 'selected' : ''}" onclick="selectCiRun(${id}, '${esc(repo)}')">
+    return `<div class="ci-run ${selectedCiRun === id ? 'selected' : ''}" onclick="selectCiRun(${id}, '${esc(repo)}', ${number})">
       <div>${repoChip} ${runLink} ${esc(branch)} <span class="meta">${sha}</span></div>
       <div><span class="meta">${esc(wfName)}</span> <span class="meta">${ago}</span> ${statusIcon}</div>
     </div>`;
@@ -1468,16 +1493,17 @@ async function onCiRunIdInput() {
       btn.disabled = true;
       return;
     }
-    const { repo } = await res.json();
-    selectCiRun(Number(raw), repo);
+    const { repo, runNumber } = await res.json();
+    selectCiRun(Number(raw), repo, runNumber);
   } catch (e) {
     listEl.innerHTML = `Probe failed: ${e.message}`;
   }
 }
 
-async function selectCiRun(id, repo) {
+async function selectCiRun(id, repo, runNumber) {
   selectedCiRun = id;
   selectedCiRunRepo = repo || 'stride3d/stride';
+  selectedCiRunNumber = runNumber ?? null;
   document.getElementById('ciRunId').value = String(id);
   renderCiRuns();
 
@@ -1984,6 +2010,7 @@ init().then(async () => {
   // Restore saved sources, or auto-add local
   if (savedSourceDefs && savedSourceDefs.length > 0) {
     await restoreSources();
+    await refreshPlatforms();
     await reload();
   } else {
     await addLocalSource().catch(() => {});

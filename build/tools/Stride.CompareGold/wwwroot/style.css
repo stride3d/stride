@@ -17,6 +17,7 @@ header .info-chip.stride-root { color: #4fc3f7; background: #1a2a4a; }
 .panel-row:last-child { margin-bottom: 0; }
 
 select, input[type=text], button { padding: 6px 10px; border-radius: 4px; border: 1px solid #444; background: #2a2a4a; color: #e0e0e0; font-size: 13px; }
+select option.empty { color: #666; font-style: italic; }
 button { cursor: pointer; background: #4fc3f7; color: #000; font-weight: 600; border: none; }
 button:hover { background: #29b6f6; }
 button.promote { background: #66bb6a; }
