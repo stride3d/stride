@@ -141,25 +141,26 @@
   <!-- ================================================================ -->
   <!-- Strip per-RID compute globals from ProjectReference dispatches    -->
   <!-- ================================================================ -->
-  <!-- Microsoft.Android.Sdk.AssemblyResolution.targets _ResolveAssemblies dispatches the
-       outer Android build to itself with _ComputeFilesToPublishForRuntimeIdentifiers=true and
-       a bag of _Outer* / Skip* / AppendRuntimeIdentifierToOutputPath / DesignTimeBuild=false
-       globals to compute publish files per RID. Those globals propagate through every
-       transitive ProjectReference as inherited global properties, producing a second MSBuild
-       build-cache key for every shared dependency (Stride.Engine -> Stride.VirtualReality,
-       Stride.Navigation -> Stride.Physics, ...). When test projects build in parallel, the
-       resulting concurrent dispatches collide on the shared dep's obj/ — MSB3030 "X.dll not
-       found", file lock contention on Stride.X.GeneratedMSBuildEditorConfig.editorconfig,
-       XARLP7024 HashFile, etc. Strip on every level of the chain so both regular and per-RID
-       dispatches share a single cache key. -->
+  <!-- The Android per-RID publish self-dispatch (Microsoft.Android.Sdk _ResolveAssemblies) sets
+       _ComputeFilesToPublishForRuntimeIdentifiers plus a bag of _Outer* / AppendRuntimeIdentifierToOutputPath
+       / Skip* globals that propagate to every transitive ProjectReference, giving each shared dep a
+       second build-cache key: it builds twice to the same output and races on obj/ under parallel
+       builds (MSB3030, GeneratedMSBuildEditorConfig lock, XARLP7024). _GlobalPropertiesToRemoveFromProjectReferences
+       is honored on every P2P dispatch path in Microsoft.Common.CurrentVersion.targets, so listing the
+       bag here strips it everywhere, independent of the dep's platform or TargetFramework. -->
+  <PropertyGroup>
+    <_GlobalPropertiesToRemoveFromProjectReferences>$(_GlobalPropertiesToRemoveFromProjectReferences);_ComputeFilesToPublishForRuntimeIdentifiers;_OuterIntermediateAssembly;_OuterIntermediateOutputPath;_OuterCustomViewMapFile;_OuterIntermediateSatelliteAssembliesWithTargetPath;_OuterOutputPath;AppendRuntimeIdentifierToOutputPath;DesignTimeBuild;ResolveAssemblyReferencesFindRelatedSatellites;SkipCompilerExecution</_GlobalPropertiesToRemoveFromProjectReferences>
+  </PropertyGroup>
+  <!-- RuntimeIdentifier* / SelfContained are set on the test app and would otherwise propagate
+       to library deps as a cross-RID restore demand they don't need. Strip these only on
+       Android/iOS: a real self-contained publish on another platform may legitimately flow a RID
+       down to its references. -->
   <Target Name="_StrideStripPerRidGlobalsFromProjectReferences"
           BeforeTargets="_SplitProjectReferencesByFileExistence"
           Condition="'$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">
-    <!-- Also strip RuntimeIdentifier* / SelfContained — they're set on test projects and would
-         otherwise propagate to library deps as a cross-RID restore demand they don't need. -->
     <ItemGroup>
       <ProjectReference Update="@(ProjectReference)"
-                        UndefineProperties="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;_ComputeFilesToPublishForRuntimeIdentifiers;_OuterIntermediateAssembly;_OuterIntermediateOutputPath;_OuterCustomViewMapFile;_OuterIntermediateSatelliteAssembliesWithTargetPath;_OuterOutputPath;_AndroidNdkDirectory;AppendRuntimeIdentifierToOutputPath;DesignTimeBuild;ResolveAssemblyReferencesFindRelatedSatellites;SkipCompilerExecution" />
+                        UndefineProperties="RuntimeIdentifier;RuntimeIdentifiers;SelfContained" />
     </ItemGroup>
   </Target>
 
@@ -319,7 +320,7 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
-             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi$(_GlobalPropertiesToRemoveFromProjectReferences)">
     </MSBuild>
   </Target>
 
