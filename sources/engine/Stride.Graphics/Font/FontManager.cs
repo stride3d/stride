@@ -102,25 +102,32 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Start the generation of the specified character's bitmap.
         /// </summary>
-        /// <remarks>Does nothing if the bitmap already exist or if the generation is currently running.</remarks>
+        /// <remarks>Does nothing if the bitmap already exists or its generation is already pending.</remarks>
         /// <param name="characterSpecification">The character we want the bitmap of</param>
         /// <param name="synchronously">Indicate if the generation of the bitmap must by done synchronously or asynchronously</param>
         public void GenerateBitmap(CharacterSpecification characterSpecification, bool synchronously)
         {
-            // generate the glyph info (and the bitmap if required) synchronously
-            GenerateCharacterGlyph(characterSpecification, synchronously);
-
-            // add the bitmap rendering job to a request queue if rendering is asynchronous
-            if (!synchronously)
+            // Synchronous: render glyph info and bitmap immediately on the calling thread.
+            if (synchronously)
             {
-                lock (dataStructuresLock)
-                {
-                    if (characterSpecification.Bitmap == null && !bitmapsToGenerate.Contains(characterSpecification))
-                    {
-                        bitmapsToGenerate.Enqueue(characterSpecification);
-                        bitmapBuildSignal.Set();
-                    }
-                }
+                GenerateCharacterGlyph(characterSpecification, true);
+                return;
+            }
+
+            // Asynchronous: queue the glyph for the builder thread exactly once. GenerateCharacterGlyph
+            // (which calls ResetGlyph) must run only on the first request and before the enqueue: a
+            // re-request would otherwise zero Glyph.Offset concurrently with the builder thread writing
+            // it, leaving the glyph stuck at Offset.Y = 0 (rendered below the baseline).
+            lock (dataStructuresLock)
+            {
+                if (characterSpecification.Bitmap != null || bitmapsToGenerate.Contains(characterSpecification))
+                    return;
+
+                // Compute glyph metrics now so text measurement works before the bitmap is ready.
+                GenerateCharacterGlyph(characterSpecification, false);
+
+                bitmapsToGenerate.Enqueue(characterSpecification);
+                bitmapBuildSignal.Set();
             }
         }
 
