@@ -24,7 +24,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
@@ -32,6 +34,8 @@ namespace Stride.Games
 {
     internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GamePlatform));
+
         private bool hasExitRan = false;
 
         protected readonly GameBase game;
@@ -39,6 +43,15 @@ namespace Stride.Games
         protected readonly IServiceRegistry Services;
 
         protected GameWindow gameWindow;
+
+        // Shared mobile (Android/iOS) app-lifecycle marshalling. The OS delivers lifecycle
+        // callbacks on the UI/main thread, but window activation, the Suspend event and the
+        // pre-suspend GPU drain must run on the game thread. Platform layers call the Notify*
+        // methods; the work is applied from OnRunCallback via ProcessPendingAppLifecycle.
+        private readonly object lifecycleLock = new object();
+        private readonly AutoResetEvent suspendDrained = new AutoResetEvent(false);
+        private volatile bool lifecyclePending;
+        private bool pendingActivate, pendingDeactivate, pendingForeground, pendingBackground;
 
         public string FullName { get; protected set; } = string.Empty;
 
@@ -134,6 +147,10 @@ namespace Stride.Games
 
         private void OnRunCallback()
         {
+            // Apply any app-lifecycle transitions queued by the OS thread, on the game thread.
+            if (lifecyclePending)
+                ProcessPendingAppLifecycle();
+
             // If/else outside of try-catch to separate user-unhandled exceptions properly
             var unhandledException = game.UnhandledExceptionInternal;
             if (unhandledException != null)
@@ -225,6 +242,78 @@ namespace Stride.Games
         protected void OnSuspend(object source, EventArgs e)
         {
             Suspend?.Invoke(this, e);
+        }
+
+        // --- Shared mobile app-lifecycle entry points (called by Android/iOS platform layers) ---
+
+        /// <summary>The app window gained focus / became active. Marshalled to the game thread.</summary>
+        protected void NotifyAppActivated() => QueueAppLifecycle(activate: true);
+
+        /// <summary>The app window lost focus / resigned active. Marshalled to the game thread.</summary>
+        protected void NotifyAppDeactivated() => QueueAppLifecycle(deactivate: true);
+
+        /// <summary>The app is entering the foreground. Marshalled to the game thread.</summary>
+        protected void NotifyAppForeground() => QueueAppLifecycle(foreground: true);
+
+        /// <summary>
+        /// The app is entering the background. Marshalled to the game thread, then blocks (bounded)
+        /// until the GPU has been drained, since the OS may freeze the process right after.
+        /// </summary>
+        protected void NotifyAppBackground()
+        {
+            suspendDrained.Reset();
+            QueueAppLifecycle(background: true);
+
+            // Wait for the game thread to drain on the render thread (correct Vulkan ordering).
+            // If the loop is already parked and doesn't reach the drain in time, fall back to a
+            // best-effort inline drain (render thread is idle in that case, so it is safe).
+            if (!suspendDrained.WaitOne(TimeSpan.FromSeconds(2)))
+                game.GraphicsDevice?.WaitForGpuIdle();
+        }
+
+        /// <summary>The OS reported memory pressure. GC is thread-safe, so this runs inline.</summary>
+        protected void NotifyAppMemoryWarning()
+        {
+            Log.Warning("App memory warning — running full GC");
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        private void QueueAppLifecycle(bool activate = false, bool deactivate = false, bool foreground = false, bool background = false)
+        {
+            lock (lifecycleLock)
+            {
+                // Activation is an axis: a newer signal supersedes a still-pending opposite one.
+                if (activate) { pendingActivate = true; pendingDeactivate = false; }
+                if (deactivate) { pendingDeactivate = true; pendingActivate = false; }
+                if (foreground) pendingForeground = true;
+                if (background) pendingBackground = true;
+            }
+            lifecyclePending = true;
+        }
+
+        private void ProcessPendingAppLifecycle()
+        {
+            bool activate, deactivate, foreground, background;
+            lock (lifecycleLock)
+            {
+                activate = pendingActivate; deactivate = pendingDeactivate;
+                foreground = pendingForeground; background = pendingBackground;
+                pendingActivate = pendingDeactivate = pendingForeground = pendingBackground = false;
+                lifecyclePending = false;
+            }
+
+            // Resume side first, then suspend side (they don't normally coexist in one frame).
+            if (foreground) OnResume(this, EventArgs.Empty);
+            if (activate) gameWindow?.OnResume();
+            if (deactivate) gameWindow?.OnPause();
+            if (background)
+            {
+                OnSuspend(this, EventArgs.Empty);
+                game.GraphicsDevice?.WaitForGpuIdle();
+                suspendDrained.Set();
+            }
         }
 
         protected void AddDevice(DisplayMode mode,  GraphicsDeviceInformation deviceBaseInfo, GameGraphicsParameters preferredParameters, List<GraphicsDeviceInformation> graphicsDeviceInfos)
@@ -397,6 +486,8 @@ namespace Stride.Games
             Idle = null;
             Resume = null;
             Suspend = null;
+
+            suspendDrained.Dispose();
         }
     }
 }
