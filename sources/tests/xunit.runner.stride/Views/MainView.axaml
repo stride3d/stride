@@ -7,35 +7,29 @@
              x:Class="xunit.runner.stride.Views.MainView"
              x:DataType="vm:MainViewModel">
   <UserControl.Styles>
-    <!-- Per-row run/preview icons stay clickable but out of the Tab cycle — keyboard runs
-         the selected test via Enter / Shift+Enter. Hidden in narrow mode (mobile) where
-         the detail-pane header carries the Run/Preview buttons instead. -->
+    <!-- Per-row run/preview/info icons stay clickable but out of the Tab cycle — keyboard runs
+         the selected test via Enter / Shift+Enter. -->
     <Style Selector="Button.runIcon">
-      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Padding" Value="8,6" />
       <Setter Property="MinWidth" Value="0" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="#34D058" />
-      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
       <Setter Property="IsTabStop" Value="False" />
-      <Setter Property="IsVisible" Value="{Binding $parent[DockPanel].DataContext.IsWideMode, FallbackValue=True}" />
     </Style>
     <Style Selector="Button.previewIcon">
-      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Padding" Value="8,6" />
       <Setter Property="MinWidth" Value="0" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="#58A6FF" />
-      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
       <Setter Property="Margin" Value="2,0,0,0" />
       <Setter Property="IsTabStop" Value="False" />
-      <Setter Property="IsVisible" Value="{Binding $parent[DockPanel].DataContext.IsWideMode, FallbackValue=True}" />
     </Style>
     <Style Selector="TextBlock.statusIcon">
       <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="FontFamily" Value="Segoe UI Symbol" />
       <Setter Property="Margin" Value="6,0,0,0" />
       <Setter Property="FontSize" Value="14" />
     </Style>
@@ -83,7 +77,7 @@
                   Command="{Binding RunSelected}"
                   IsEnabled="{Binding !RunningTests}"
                   ToolTip.Tip="Run filtered/selected tests, headless (F5)" />
-          <Button Content="👁 Preview"
+          <Button Content="▷ Preview"
                   Command="{Binding RunSelectedInteractive}"
                   IsEnabled="{Binding !RunningTests}"
                   ToolTip.Tip="Preview filtered/selected interactively — opens game window, does NOT run as a test" />
@@ -196,11 +190,10 @@
               <StackPanel.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="▶ Run" Command="{Binding RunTest}" />
-                  <MenuItem Header="👁 Preview" Command="{Binding RunInteractive}" />
+                  <MenuItem Header="▷ Preview" Command="{Binding RunInteractive}" />
                 </ContextMenu>
               </StackPanel.ContextMenu>
-              <!-- 3px left accent on the primary (focused) selection so it stands out from
-                   the rest of a multi-selection. -->
+              <!-- 3px left accent on the primary (focused) selection. -->
               <Border Width="3" Background="#58A6FF" Margin="0,1,4,1"
                       IsVisible="{Binding IsPrimarySelection, FallbackValue=False}" />
               <Button Classes="runIcon"
@@ -209,25 +202,28 @@
                       IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
                       ToolTip.Tip="Run all tests in this group, headless (Enter)" />
               <Button Classes="previewIcon"
-                      Content="👁"
+                      Content="▷"
                       Command="{Binding RunInteractive}"
                       IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
                       ToolTip.Tip="Preview interactively — opens game window, does NOT run as a test (Shift+Enter)" />
               <TextBlock Classes="statusIcon" Text="✘" Foreground="#F85149" IsVisible="{Binding Failed}" />
               <TextBlock Classes="statusIcon" Text="✔" Foreground="#34D058" IsVisible="{Binding Succeeded}" />
               <TextBlock Classes="statusIcon" Text="⊘" Foreground="#D29922" IsVisible="{Binding Skipped}" />
-              <TextBlock Classes="statusIcon" Text="⭮" Foreground="#58A6FF" IsVisible="{Binding Running}" />
+              <TextBlock Classes="statusIcon" Text="↻" Foreground="#58A6FF" IsVisible="{Binding Running}" />
               <TextBlock Classes="statusIcon" Text="…" Foreground="#888" IsVisible="{Binding Pending}" />
+              <TextBlock Classes="statusIcon" Text="○" Foreground="#888" IsVisible="{Binding !HasResult}" />
               <TextBlock Classes="testName" Text="{Binding DisplayName}" />
               <TextBlock Classes="elapsed" Text="{Binding ElapsedDisplay}" IsVisible="{Binding HasElapsed}" />
             </StackPanel>
           </TreeDataTemplate>
           <DataTemplate DataType="{x:Type vm:TestCaseViewModel}">
-            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsVisible}">
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsVisible}"
+                        Background="Transparent"
+                        Tapped="OnRowTap">
               <StackPanel.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="▶ Run" Command="{Binding RunTest}" />
-                  <MenuItem Header="👁 Preview" Command="{Binding RunInteractive}" />
+                  <MenuItem Header="▷ Preview" Command="{Binding RunInteractive}" />
                 </ContextMenu>
               </StackPanel.ContextMenu>
               <Border Width="3" Background="#58A6FF" Margin="0,1,4,1"
@@ -238,16 +234,17 @@
                       IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
                       ToolTip.Tip="Run test, headless (Enter)" />
               <Button Classes="previewIcon"
-                      Content="👁"
+                      Content="▷"
                       Command="{Binding RunInteractive}"
                       IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"
                       ToolTip.Tip="Preview interactively — opens game window, does NOT run as a test (Shift+Enter)" />
               <TextBlock Classes="statusIcon" Text="✘" Foreground="#F85149" IsVisible="{Binding Failed}" />
               <TextBlock Classes="statusIcon" Text="✔" Foreground="#34D058" IsVisible="{Binding Succeeded}" />
               <TextBlock Classes="statusIcon" Text="⊘" Foreground="#D29922" IsVisible="{Binding Skipped}" />
-              <TextBlock Classes="statusIcon" Text="⭮" Foreground="#58A6FF" IsVisible="{Binding Running}" />
+              <TextBlock Classes="statusIcon" Text="↻" Foreground="#58A6FF" IsVisible="{Binding Running}" />
               <TextBlock Classes="statusIcon" Text="…" Foreground="#888" IsVisible="{Binding Pending}" />
-              <TextBlock Classes="testName" Text="{Binding DisplayName}" />
+              <TextBlock Classes="statusIcon" Text="○" Foreground="#888" IsVisible="{Binding !HasResult}" />
+              <TextBlock Classes="testName" Text="{Binding ShortDisplayName}" />
               <TextBlock Classes="elapsed" Text="{Binding ElapsedDisplay}" IsVisible="{Binding HasElapsed}" />
             </StackPanel>
           </DataTemplate>
@@ -283,7 +280,7 @@
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top"
                         IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
               <Button Content="▶ Run" Click="OnDetailRun" Padding="8,4" Foreground="#34D058" />
-              <Button Content="👁 Preview" Click="OnDetailPreview" Padding="8,4" Foreground="#58A6FF" />
+              <Button Content="▷ Preview" Click="OnDetailPreview" Padding="8,4" Foreground="#58A6FF" />
             </StackPanel>
           </Grid>
           <ScrollViewer>
@@ -296,7 +293,7 @@
               <TextBlock Text="Not run yet" Opacity="0.55" HorizontalAlignment="Center" FontSize="14" />
               <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                 <Button Content="▶ Run" Click="OnDetailRun" Foreground="#34D058" FontSize="16" Padding="20,10" />
-                <Button Content="👁 Preview" Click="OnDetailPreview" Foreground="#58A6FF" FontSize="16" Padding="20,10" />
+                <Button Content="▷ Preview" Click="OnDetailPreview" Foreground="#58A6FF" FontSize="16" Padding="20,10" />
               </StackPanel>
             </StackPanel>
 

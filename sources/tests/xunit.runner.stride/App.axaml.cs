@@ -35,6 +35,10 @@ public partial class App : Avalonia.Application
     //   adb shell am start --es xunit_command run --ez xunit_exit_on_complete true
     public static bool HeadlessMode;
 
+    // Set by MainView on attach. Android MainActivity invokes this on back gesture so narrow-mode
+    // detail view backs to the list instead of closing the app. Returns true when handled.
+    public static Func<bool>? HandleBackRequest;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

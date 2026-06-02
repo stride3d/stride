@@ -68,7 +68,9 @@ public class TestsViewModel : ViewModelBase
             var testAssemblyViewModel = new TestGroupViewModel(this, sink.TestCases.FirstOrDefault()?.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.Name ?? "No tests were found");
             foreach (var testClass in sink.TestCases.GroupBy(x => x.TestMethod.TestClass))
             {
-                var testClassViewModel = new TestGroupViewModel(this, testClass.Key.Class.Name);
+                var classFullName = testClass.Key.Class.Name;
+                var classShortName = classFullName[(classFullName.LastIndexOf('.') + 1)..];
+                var testClassViewModel = new TestGroupViewModel(this, classShortName);
                 testAssemblyViewModel.Children.Add(testClassViewModel);
                 foreach (var testCase in testClass)
                 {
@@ -556,7 +558,7 @@ public class TestsViewModel : ViewModelBase
         }
     }
 
-    public List<TestNodeViewModel> TestCases { get; } = [];
+    public ObservableCollection<TestNodeViewModel> TestCases { get; } = [];
 
     public Action<bool>? SetInteractiveMode { get; set; }
     public Action<bool>? SetForceSaveImage { get; set; }

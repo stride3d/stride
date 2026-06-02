@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -14,6 +15,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using xunit.runner.stride.ViewModels;
 
 namespace xunit.runner.stride.Views;
@@ -34,9 +36,31 @@ public partial class MainView : UserControl
     void OnLoaded(object? sender, RoutedEventArgs e)
     {
         // Focus the filter textbox immediately so users can start typing without clicking.
-        Dispatcher.UIThread.Post(() => FilterBox.Focus(), DispatcherPriority.Background);
+        // Desktop only — on mobile/web (SingleView lifetime) auto-focus pops the soft keyboard
+        // before the user has a chance to look at the tree.
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime)
+            Dispatcher.UIThread.Post(() => FilterBox.Focus(), DispatcherPriority.Background);
         WireFocusTest();
         ApplyResponsiveLayout();
+        App.HandleBackRequest = TryGoBack;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (App.HandleBackRequest == TryGoBack)
+            App.HandleBackRequest = null;
+    }
+
+    bool TryGoBack()
+    {
+        if (DataContext is not MainViewModel main) return false;
+        if (main.Tests.IsNarrowMode && main.Tests.IsDetailPageActive)
+        {
+            main.Tests.IsDetailPageActive = false;
+            return true;
+        }
+        return false;
     }
 
     // Tree | output split flips to stacked when the viewport is narrow or portrait.
@@ -294,9 +318,21 @@ public partial class MainView : UserControl
             newPrimary.IsPrimarySelection = true;
         previousPrimary = newPrimary;
 
-        // In narrow mode tapping a row drills into the detail page.
-        if (vm.IsNarrowMode && TestsTree.SelectedItem is not null)
-            vm.IsDetailPageActive = true;
+    }
+
+    // Tap a test row to drill into the detail view (narrow mode only — in wide mode the detail
+    // panel is already visible side by side). Avalonia's Tapped fires only on release without
+    // significant movement, so touch-scrolling the list never triggers it. Source originating
+    // inside a per-row Button (Run / Preview) is filtered out so a button press doesn't also
+    // drill into details.
+    void OnRowTap(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is not MainViewModel main || !main.Tests.IsNarrowMode) return;
+        for (var v = e.Source as Visual; v is not null; v = v.GetVisualParent())
+            if (v is Avalonia.Controls.Button) return;
+        if ((sender as Control)?.DataContext is TestNodeViewModel node)
+            TestsTree.SelectedItem = node;
+        main.Tests.IsDetailPageActive = true;
     }
 
     // Per-line tinting requires populating Inlines manually (a plain Text binding can't
