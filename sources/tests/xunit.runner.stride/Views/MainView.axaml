@@ -5,7 +5,12 @@
              xmlns:vm="using:xunit.runner.stride.ViewModels"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="xunit.runner.stride.Views.MainView"
-             x:DataType="vm:MainViewModel">
+             x:DataType="vm:MainViewModel"
+             x:CompileBindings="False"
+             TopLevel.AutoSafeAreaPadding="True">
+  <TopLevel.SystemBarColor>
+    <SolidColorBrush Color="#202020" />
+  </TopLevel.SystemBarColor>
   <UserControl.Styles>
     <!-- Per-row run/preview/info icons stay clickable but out of the Tab cycle — keyboard runs
          the selected test via Enter / Shift+Enter. -->
@@ -64,7 +69,7 @@
                    MinWidth="200"
                    Width="320"
                    TabIndex="1"
-                   Watermark="Filter — case-insensitive substring (/, Ctrl+F to focus)"
+                   PlaceholderText="Filter — case-insensitive substring (/, Ctrl+F to focus)"
                    ToolTip.Tip="Up/Down: move tree selection · Enter: run · Shift+Enter: preview · Tab: focus tree · Esc: clear selection"
                    Text="{Binding FilterText, Mode=TwoWay}" />
           <Button Content="✕" ToolTip.Tip="Clear filter" Command="{Binding ClearFilter}" Padding="6,2" />

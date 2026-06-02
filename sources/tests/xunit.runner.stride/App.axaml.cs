@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using xunit.runner.stride.ViewModels;
 using xunit.runner.stride.Views;
@@ -35,6 +34,11 @@ public partial class App : Avalonia.Application
     //   adb shell am start --es xunit_command run --ez xunit_exit_on_complete true
     public static bool HeadlessMode;
 
+    // SingleView VM kept here so MainActivity can drive a headless run after Avalonia init
+    // (in Avalonia 12 the lifetime starts in the custom Application class, well before
+    // MainActivity.OnCreate gets a chance to read the launch Intent).
+    private static MainViewModel? singleViewVm;
+
     // Set by MainView on attach. Android MainActivity invokes this on back gesture so narrow-mode
     // detail view backs to the list instead of closing the app. Returns true when handled.
     public static Func<bool>? HandleBackRequest;
@@ -46,10 +50,6 @@ public partial class App : Avalonia.Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Line below is needed to remove Avalonia data validation.
-        // Without this line you will get duplicate validations from both Avalonia and CT
-        BindingPlugins.DataValidators.RemoveAt(0);
-
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var vm = new MainViewModel
@@ -82,20 +82,31 @@ public partial class App : Avalonia.Application
             SubscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
             // don't remove; also used by visual designer.
             singleViewPlatform.MainView = new MainView { DataContext = vm };
-
-            if (HeadlessMode)
-            {
-                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
-                {
-                    await vm.Tests.DiscoveryTask;
-                    if (vm.Tests.TestCases.Count > 0)
-                        await vm.Tests.RunTestsAsync(vm.Tests.TestCases[0]);
-                    System.Environment.Exit(vm.Tests.FailedCount > 0 ? 1 : 0);
-                });
-            }
+            singleViewVm = vm;
+            // HeadlessMode may already be set by Android Application init (process-restart with
+            // intent extras still in the launch state); MainActivity also calls this after reading
+            // a fresh Intent, so we handle both ordering paths.
+            TryStartHeadlessRun();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    // Idempotent: triggered once the single-view VM exists and HeadlessMode is set. MainActivity
+    // calls this after seeing the xunit_command Intent extra, since on Android 12 the Avalonia
+    // lifetime is brought up by the custom Application before MainActivity.OnCreate fires.
+    public static void TryStartHeadlessRun()
+    {
+        if (!HeadlessMode || singleViewVm is null) return;
+        var vm = singleViewVm.Tests;
+        singleViewVm = null;
+        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            await vm.DiscoveryTask;
+            if (vm.TestCases.Count > 0)
+                await vm.RunTestsAsync(vm.TestCases[0]);
+            System.Environment.Exit(vm.FailedCount > 0 ? 1 : 0);
+        });
     }
 
     // Build a window title that identifies what this runner instance is testing:

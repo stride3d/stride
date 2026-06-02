@@ -6,55 +6,37 @@ using System;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using Android.Window;
-using Avalonia;
 using Avalonia.Android;
-using Stride.Graphics.Regression;
 
 namespace xunit.runner.stride;
 
-// Graphics-regression Android variant — mirrors LauncherSimple.Android.cs but also wires
-// GameTestBase callbacks for the test runner's Interactive Mode / Force Save Image toggles.
+// Graphics-regression Android variant — mirrors LauncherSimple.Android.cs. GameTestBase callback
+// wiring (Interactive Mode, Force Save Image, ImageComparisonCompleted) lives in
+// LauncherGame.Application.Android.cs so it runs before Avalonia init reads the App.* delegates.
 // Selected by Stride.Build.Sdk.Tests when StrideGraphicsRegression=true.
 [Activity(
     Label = "Stride Tests",
     Theme = "@style/Theme.AppCompat.NoActionBar",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.KeyboardHidden)]
-public class MainActivity : AvaloniaMainActivity<App>
+public class MainActivity : AvaloniaMainActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         Stride.Core.PlatformAndroid.Context ??= this;
-        App.TestAssembly = GetType().Assembly;
-
-        // Match the desktop LauncherGame wiring: route the runner-UI checkboxes to the per-process
-        // GameTestBase flags, and forward GameTestBase image-comparison events so the runner UI
-        // can surface current vs gold (including the "no gold yet" placeholder).
-        App.SetInteractiveMode = interactiveMode => GameTestBase.ForceInteractiveMode = interactiveMode;
-        App.SetForceSaveImage = forceSaveImage => GameTestBase.ForceSaveImageOnSuccess = forceSaveImage;
-        App.SubscribeImageComparison = subscribe => ImageTester.ImageComparisonCompleted += (s, e) =>
-            subscribe(new ViewModels.ImageCompareResult(e.CurrentPath, e.ReferencePath, e.Passed, e.Stats.ToString()));
 
         // Non-interactive entry point for the host orchestration script:
         //   adb shell am start -n <pkg>/.MainActivity --es xunit_command run
-        // Avalonia still hosts the Stride game surfaces, but RunAll fires immediately and the
-        // process exits with the failed-test count when done.
+        // Avalonia is already initialized by AvaloniaApplication.OnCreate (it ran first), so
+        // we set the flag then trigger the headless run explicitly.
         if (Intent?.GetStringExtra("xunit_command") == "run")
-            App.HeadlessMode = true;
-
-        base.OnCreate(savedInstanceState);
-
-        // Android 15+ forces edge-to-edge for SDK 35+ targets; pad the content view by the
-        // system-bar insets so the runner UI doesn't render under the status bar.
-        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
-            var content = FindViewById<View>(Android.Resource.Id.Content);
-            content?.SetOnApplyWindowInsetsListener(new SystemBarInsetPadding());
-            content?.RequestApplyInsets();
+            App.HeadlessMode = true;
+            App.TryStartHeadlessRun();
         }
 
+        base.OnCreate(savedInstanceState);
     }
 
     private BackInvokedCallback? backCallback;
@@ -87,9 +69,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         base.OnBackPressed();
     }
 
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-        => base.CustomizeAppBuilder(builder).WithInterFont();
-
     private sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
     {
         private readonly Activity activity;
@@ -98,17 +77,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             if (App.HandleBackRequest?.Invoke() != true)
                 activity.Finish();
-        }
-    }
-
-    [System.Runtime.Versioning.SupportedOSPlatform("android30.0")]
-    private sealed class SystemBarInsetPadding : Java.Lang.Object, View.IOnApplyWindowInsetsListener
-    {
-        public WindowInsets? OnApplyWindowInsets(View v, WindowInsets insets)
-        {
-            var bars = insets.GetInsets(WindowInsets.Type.SystemBars());
-            v.SetPadding(bars.Left, bars.Top, bars.Right, bars.Bottom);
-            return insets;
         }
     }
 }

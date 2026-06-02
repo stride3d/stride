@@ -182,6 +182,19 @@
        simple xunit tests and graphics-regression tests (which need GameTestBase callback wiring
        for the runner UI's Interactive Mode / Force Save Image toggles). -->
   <ItemGroup Condition="'$(StridePlatform)' == 'Android' And '$(IncludeXunitLauncher)' != 'false'">
+    <!-- Avalonia 12 needs a custom Android Application class to host the lifetime; bring it in
+         alongside the per-test-assembly MainActivity. The Application's OnCreate runs before the
+         Activity's, so static App.* delegates the runner reads at OnFrameworkInitializationCompleted
+         (SubscribeImageComparison etc.) must be assigned there — graphics-regression variant adds
+         that wiring; simple variant doesn't. -->
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Application.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true'">
+      <Link>LauncherSimple.Application.Android.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Application.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true'">
+      <Link>LauncherGame.Application.Android.cs</Link>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Android.cs"
              Condition="'$(StrideGraphicsRegression)' != 'true'">
       <Link>LauncherSimple.Android.cs</Link>

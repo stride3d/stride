@@ -6,24 +6,22 @@ using System;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using Android.Window;
-using Avalonia;
 using Avalonia.Android;
 
 namespace xunit.runner.stride;
 
-// Compiled into each test assembly by Stride.Build.Sdk.Tests so GetType().Assembly resolves to
-// the test assembly (Android has no entry assembly for the runner to discover tests from).
-// Derives directly from AvaloniaMainActivity<App> — the standard one-level shape — because
-// .NET Android's activation-constructor IL injection silently bails through an extra
-// non-generic intermediate over a generic Java base, breaking JNI handle activation.
+// Avalonia 12 moved bootstrap into AvaloniaApplication (see Launcher.Application.Android.cs);
+// this activity just handles Android-side lifecycle, back gestures, and reading the launch Intent.
+// Derives directly from non-generic AvaloniaMainActivity — keeping the JNI activation-constructor
+// shape one level over the generic base, since .NET Android's IL injection misbehaves with deeper
+// generic hierarchies.
 [Activity(
     Label = "Stride Tests",
     Theme = "@style/Theme.AppCompat.NoActionBar",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.KeyboardHidden)]
-public class MainActivity : AvaloniaMainActivity<App>
+public class MainActivity : AvaloniaMainActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -31,28 +29,17 @@ public class MainActivity : AvaloniaMainActivity<App>
         // set it here since the test runner has no StrideActivity to do it.
         Stride.Core.PlatformAndroid.Context ??= this;
 
-        // Per-test-assembly: GetType().Assembly is the test assembly, which is what the App
-        // uses to discover tests (the runner itself lives in xunit.runner.stride).
-        App.TestAssembly = GetType().Assembly;
-
         // Non-interactive entry point for the host orchestration script:
         //   adb shell am start -n <pkg>/.MainActivity --es xunit_command run
-        // Avalonia still hosts the Stride game surfaces, but RunAll fires immediately and the
-        // process exits with the failed-test count when done.
+        // Avalonia is already initialized by AvaloniaApplication.OnCreate (it ran first), so
+        // we set the flag then trigger the headless run explicitly.
         if (Intent?.GetStringExtra("xunit_command") == "run")
-            App.HeadlessMode = true;
-
-        base.OnCreate(savedInstanceState);
-
-        // Android 15+ forces edge-to-edge for SDK 35+ targets; pad the content view by the
-        // system-bar insets so the runner UI doesn't render under the status bar.
-        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
-            var content = FindViewById<View>(Android.Resource.Id.Content);
-            content?.SetOnApplyWindowInsetsListener(new SystemBarInsetPadding());
-            content?.RequestApplyInsets();
+            App.HeadlessMode = true;
+            App.TryStartHeadlessRun();
         }
 
+        base.OnCreate(savedInstanceState);
     }
 
     private BackInvokedCallback? backCallback;
@@ -85,9 +72,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         base.OnBackPressed();
     }
 
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-        => base.CustomizeAppBuilder(builder).WithInterFont();
-
     private sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
     {
         private readonly Activity activity;
@@ -96,17 +80,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             if (App.HandleBackRequest?.Invoke() != true)
                 activity.Finish();
-        }
-    }
-
-    [System.Runtime.Versioning.SupportedOSPlatform("android30.0")]
-    private sealed class SystemBarInsetPadding : Java.Lang.Object, View.IOnApplyWindowInsetsListener
-    {
-        public WindowInsets? OnApplyWindowInsets(View v, WindowInsets insets)
-        {
-            var bars = insets.GetInsets(WindowInsets.Type.SystemBars());
-            v.SetPadding(bars.Left, bars.Top, bars.Right, bars.Bottom);
-            return insets;
         }
     }
 }
