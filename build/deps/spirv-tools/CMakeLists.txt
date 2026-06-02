@@ -39,6 +39,11 @@ set_target_properties(stride_spirv_tools PROPERTIES
 target_include_directories(stride_spirv_tools PRIVATE
     ${SPIRV_TOOLS_SOURCE_DIR}/include)
 
+# Android 16+ requires 16 KB page-aligned segments.
+if(ANDROID)
+    target_link_options(stride_spirv_tools PRIVATE "-Wl,-z,max-page-size=16384")
+endif()
+
 # Whole-archive both static libs so no public symbol gets dropped by dead-code
 # stripping. The SPIRV_TOOLS_EXPORT/STRIDE_SPV_EXPORT attributes drive what's
 # actually exposed in the final symbol table.
