@@ -210,6 +210,12 @@ internal class TemplatePreprocessor
         // "MyTemplate" which the template engine substitutes via sourceName.
         InjectCameraScript(logger);
 
+        // Rewrite the Android activity ScreenOrientation and the engine GameSettings
+        // DisplayOrientation into placeholders consumed by the orientation template.json symbols.
+        // Only when the template opts into the orientation parameter.
+        if (Sdtpl?.HasParameter("orientation") == true)
+            InjectOrientationPlaceholders(logger);
+
         // Scan all text files for unique GUIDs, then rewrite with placeholders. A pre-pass
         // indexes every Id explicitly declared in the staged .sd* tree (the asset's own Id at
         // the top of each file, plus sub-asset Ids like entity / component / render-stage Ids
@@ -945,6 +951,37 @@ internal class TemplatePreprocessor
         logger.Info($"Injected BasicCameraController placeholder into {Path.GetFileName(scenePath)}");
     }
 
+    /// <summary>
+    /// Rewrites orientation values in the staged tree into placeholders the orientation
+    /// template.json symbols replace at instantiation: the engine-wide <c>DisplayOrientation</c>
+    /// in every GameSettings variant (→ <c>STRIDE_ORIENTATION</c>), and the Android activity's
+    /// <c>ScreenOrientation</c> (→ <c>STRIDE_ANDROID_ORIENTATION</c>). The source scaffold keeps
+    /// real, buildable values; only the staged copy is tokenized. iOS is not handled here.
+    /// </summary>
+    private void InjectOrientationPlaceholders(ILogger logger)
+    {
+        foreach (var settingsPath in Directory.EnumerateFiles(OutputDirectory!, "GameSettings*.sdgamesettings", SearchOption.AllDirectories))
+        {
+            var content = File.ReadAllText(settingsPath);
+            var rewritten = Regex.Replace(content, @"DisplayOrientation:\s*\w+", "DisplayOrientation: STRIDE_ORIENTATION");
+            if (rewritten != content)
+            {
+                File.WriteAllText(settingsPath, rewritten);
+                logger.Info($"Injected DisplayOrientation placeholder into {Path.GetFileName(settingsPath)}");
+            }
+        }
+
+        // ScreenOrientation is an Android-only type, so only the Android activity carries it.
+        foreach (var csPath in Directory.EnumerateFiles(OutputDirectory!, "*.cs", SearchOption.AllDirectories))
+        {
+            var content = File.ReadAllText(csPath);
+            if (!content.Contains("ScreenOrientation.Landscape", StringComparison.Ordinal))
+                continue;
+            File.WriteAllText(csPath, content.Replace("ScreenOrientation.Landscape", "ScreenOrientation.STRIDE_ANDROID_ORIENTATION"));
+            logger.Info($"Injected ScreenOrientation placeholder into {Path.GetFileName(csPath)}");
+        }
+    }
+
     private static IEnumerable<string> EnumerateTextFiles(string root)
     {
         foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
@@ -1087,19 +1124,40 @@ internal class TemplatePreprocessor
                 },
     """);
 
-    /// <summary>Per-template opt-in mobile display Orientation choice.</summary>
+    /// <summary>
+    /// Per-template opt-in mobile display Orientation choice. The choice values match the engine's
+    /// <c>RequiredDisplayOrientation</c> enum names, so the parameter replaces the GameSettings
+    /// placeholder verbatim; the Android <c>ScreenOrientation</c> enum differs, so a switch symbol
+    /// maps the choice onto it (Default/LandscapeRight → Landscape, LandscapeLeft →
+    /// ReverseLandscape, Portrait → Portrait).
+    /// </summary>
     private static void EmitOrientationSymbol(StringBuilder sb) => sb.AppendLine("""
                 "orientation": {
                   "type": "parameter",
                   "datatype": "choice",
                   "description": "Display orientation (mobile)",
                   "defaultValue": "Default",
+                  "replaces": "STRIDE_ORIENTATION",
                   "choices": [
                     { "choice": "Default"        },
                     { "choice": "LandscapeLeft"  },
                     { "choice": "LandscapeRight" },
                     { "choice": "Portrait"       }
                   ]
+                },
+                "androidScreenOrientation": {
+                  "type": "generated",
+                  "generator": "switch",
+                  "replaces": "STRIDE_ANDROID_ORIENTATION",
+                  "parameters": {
+                    "evaluator": "C++",
+                    "datatype": "string",
+                    "cases": [
+                      { "condition": "(orientation == \"LandscapeLeft\")", "value": "ReverseLandscape" },
+                      { "condition": "(orientation == \"Portrait\")",      "value": "Portrait" },
+                      { "condition": "",                                   "value": "Landscape" }
+                    ]
+                  }
                 },
     """);
 
