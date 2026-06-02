@@ -99,6 +99,20 @@ public class AssetLogMessage : LogMessage
 
     public int Character { get; set; }
 
+    public override string Text
+    {
+        get
+        {
+            if (AssetReference?.Location != null)
+                return $"{AssetReference.Location}({Line + 1},{Character + 1}): {base.Text}";
+            return base.Text;
+        }
+        set
+        {
+            base.Text = value;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the message code.
     /// </summary>
