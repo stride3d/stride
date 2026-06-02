@@ -38,12 +38,6 @@ namespace Stride.Audio
 
         public Celt(int sampleRate, int bufferSize, int channels, bool decoderOnly)
         {
-#if STRIDE_PLATFORM_MACOS
-            // Decode crashes inside libCelt.a's decode_pulses on osx-arm64 after a handful of
-            // packets — investigation pending. Bail cleanly so Sound loading raises a managed
-            // exception instead of taking down the whole process.
-            throw new NotSupportedException("Celt decoder not yet supported on macOS (osx-arm64 libCelt.a needs investigation).");
-#else
             SampleRate = sampleRate;
             BufferSize = bufferSize;
             Channels = channels;
@@ -62,7 +56,6 @@ namespace Stride.Audio
                 if (encoder == IntPtr.Zero)
                     throw new Exception("Failed to create Celt encoder.");
             }
-#endif
         }
 
         public void Dispose()
@@ -125,8 +118,13 @@ namespace Stride.Audio
 
         public unsafe int GetDecoderSampleDelay()
         {
+            // opus_custom_decoder_ctl is C-variadic and Mono on Apple rejects __arglist in
+            // DllImport ("Vararg calling convention not supported"). stride_celt_get_lookahead
+            // is a tiny non-variadic shim in libCelt.a (built from deps/Celt/celt_extras.c).
+            // Re-evaluate this shim once Apple platforms move to CoreCLR — at that point a
+            // pure-managed __arglist call should work and the shim can be retired.
             int delay = 0;
-            int err = opus_custom_decoder_ctl_get_int(decoder, OPUS_GET_LOOKAHEAD_REQUEST, &delay);
+            int err = stride_celt_get_lookahead(decoder, &delay);
             return err == 0 ? delay : 0;
         }
 
@@ -149,11 +147,14 @@ namespace Stride.Audio
         [SuppressUnmanagedCodeSecurity, DllImport(LibCelt, CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int opus_custom_decode_float(IntPtr decoder, byte* data, int len, float* pcm, int frameSize);
 
+        // opus_custom_decoder_ctl is variadic. Calling it with no variadic args (RESET_STATE) is
+        // safe under any ABI — nothing for va_arg to read. For requests that need an out-pointer
+        // we go through stride_celt_get_lookahead (see celt_extras.c).
         [SuppressUnmanagedCodeSecurity, DllImport(LibCelt, EntryPoint = "opus_custom_decoder_ctl", CallingConvention = CallingConvention.Cdecl)]
         private static extern int opus_custom_decoder_ctl_reset(IntPtr decoder, int request);
 
-        [SuppressUnmanagedCodeSecurity, DllImport(LibCelt, EntryPoint = "opus_custom_decoder_ctl", CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int opus_custom_decoder_ctl_get_int(IntPtr decoder, int request, int* value);
+        [SuppressUnmanagedCodeSecurity, DllImport(LibCelt, CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe int stride_celt_get_lookahead(IntPtr decoder, int* outDelay);
 
         [SuppressUnmanagedCodeSecurity, DllImport(LibCelt, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr opus_custom_encoder_create(IntPtr mode, int channels, IntPtr error);
