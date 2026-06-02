@@ -5,20 +5,43 @@ using System.Reflection;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using xunit.runner.stride.ViewModels;
 using xunit.runner.stride.Views;
 
 namespace xunit.runner.stride;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     internal readonly CancellationTokenSource cts = new();
-    internal Action<bool>? setInteractiveMode;
-    internal Action<bool>? setForceSaveImage;
-    internal Action<string?>? setRenderDocMode;
-    internal Action<Action<ImageCompareResult>>? subscribeImageComparison;
+
+    // Callbacks are process-wide (each runner instance toggles the same per-platform GameTestBase
+    // state). Static so desktop Main and Android MainActivity assign them the same way — no need
+    // for per-instance injection at App.Configure time.
+    public static Action<bool>? SetInteractiveMode;
+    public static Action<bool>? SetForceSaveImage;
+    public static Action<string?>? SetRenderDocMode;
+    public static Action<Action<ImageCompareResult>>? SubscribeImageComparison;
+
+    // Android has no entry assembly; the per-project MainActivity (injected by the Tests SDK
+    // into each test assembly) sets this so test discovery knows where to look. Public because
+    // the setter lives in the test assembly, not in xunit.runner.stride.
+    public static System.Reflection.Assembly? TestAssembly;
+
+    // When set (by Android MainActivity reading the launch Intent), Avalonia still loads its
+    // single-view UI for hosting the Stride game surfaces, but RunAll fires immediately and
+    // the process exits with the failed-test count when complete. Driven by:
+    //   adb shell am start --es xunit_command run --ez xunit_exit_on_complete true
+    public static bool HeadlessMode;
+
+    // SingleView VM kept here so MainActivity can drive a headless run after Avalonia init
+    // (in Avalonia 12 the lifetime starts in the custom Application class, well before
+    // MainActivity.OnCreate gets a chance to read the launch Intent).
+    private static MainViewModel? singleViewVm;
+
+    // Set by MainView on attach. Android MainActivity invokes this on back gesture so narrow-mode
+    // detail view backs to the list instead of closing the app. Returns true when handled.
+    public static Func<bool>? HandleBackRequest;
 
     public override void Initialize()
     {
@@ -27,46 +50,63 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Line below is needed to remove Avalonia data validation.
-        // Without this line you will get duplicate validations from both Avalonia and CT
-        BindingPlugins.DataValidators.RemoveAt(0);
-
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var vm = new MainViewModel
             {
                 Tests =
                 {
-                    SetInteractiveMode = setInteractiveMode,
-                    SetForceSaveImage = setForceSaveImage,
-                    SetRenderDocMode = setRenderDocMode,
+                    SetInteractiveMode = SetInteractiveMode,
+                    SetForceSaveImage = SetForceSaveImage,
+                    SetRenderDocMode = SetRenderDocMode,
                 }
             };
             // Subscribe once for the process lifetime; the launcher wires this to
             // ImageTester.ImageComparisonCompleted.
-            subscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
+            SubscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
             desktop.MainWindow = new MainWindow { Title = ComputeWindowTitle(), DataContext = vm };
             desktop.MainWindow.Closed += (_, __) => cts.Cancel();
             desktop.MainWindow.Show();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            // don't remove; also used by visual designer.
-            singleViewPlatform.MainView = new MainView
+            var vm = new MainViewModel
             {
-                DataContext = new MainViewModel
+                Tests =
                 {
-                    Tests =
-                    {
-                        SetInteractiveMode = setInteractiveMode,
-                        SetForceSaveImage = setForceSaveImage,
-                        SetRenderDocMode = setRenderDocMode,
-                    }
+                    SetInteractiveMode = SetInteractiveMode,
+                    SetForceSaveImage = SetForceSaveImage,
+                    SetRenderDocMode = SetRenderDocMode,
                 }
             };
+            SubscribeImageComparison?.Invoke(vm.Tests.OnImageComparison);
+            // don't remove; also used by visual designer.
+            singleViewPlatform.MainView = new MainView { DataContext = vm };
+            singleViewVm = vm;
+            // HeadlessMode may already be set by Android Application init (process-restart with
+            // intent extras still in the launch state); MainActivity also calls this after reading
+            // a fresh Intent, so we handle both ordering paths.
+            TryStartHeadlessRun();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    // Idempotent: triggered once the single-view VM exists and HeadlessMode is set. MainActivity
+    // calls this after seeing the xunit_command Intent extra, since on Android 12 the Avalonia
+    // lifetime is brought up by the custom Application before MainActivity.OnCreate fires.
+    public static void TryStartHeadlessRun()
+    {
+        if (!HeadlessMode || singleViewVm is null) return;
+        var vm = singleViewVm.Tests;
+        singleViewVm = null;
+        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            await vm.DiscoveryTask;
+            if (vm.TestCases.Count > 0)
+                await vm.RunTestsAsync(vm.TestCases[0]);
+            System.Environment.Exit(vm.FailedCount > 0 ? 1 : 0);
+        });
     }
 
     // Build a window title that identifies what this runner instance is testing:

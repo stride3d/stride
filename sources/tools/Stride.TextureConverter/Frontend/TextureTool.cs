@@ -1469,7 +1469,10 @@ namespace Stride.TextureConverter
                     {
                         case RequestType.Compressing:
                             {
-                                var intermediateFormat = PixelFormat.R8G8B8A8_UNorm;
+                                // Preserve sRGB-ness; non-sRGB intermediate would gamma-shift in DxtTexLib.Convert.
+                                var intermediateFormat = image.Format.IsSRgb
+                                    ? PixelFormat.R8G8B8A8_UNorm_SRgb
+                                    : PixelFormat.R8G8B8A8_UNorm;
                                 intermediateRequest = new ConvertingRequest(intermediateFormat);
                                 libraryOne = FindLibrary(image, intermediateRequest);
                                 libraryTwo = FindLibrary(intermediateFormat, request);
@@ -1490,7 +1493,7 @@ namespace Stride.TextureConverter
                     }
 
                     // Both libraries for intermediate processing were found, preceeding with the request
-                    if (image.Format.IsBgraOrder && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder && !libraryOne.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }

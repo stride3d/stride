@@ -68,6 +68,11 @@ namespace Stride.Video
         /// <summary>The current state of the video.</summary>
         public PlayState PlayState { get; private set; } = PlayState.Stopped;
 
+        /// <summary>Count of frames written to the component's Target texture, incremented once
+        /// per presented frame across all backends. Lets callers detect when a new frame has
+        /// landed (e.g. after a <see cref="Seek"/>). Updated on the game thread.</summary>
+        public long FramesPresented { get; private set; }
+
         /// <summary>True when the active backend currently decodes via hardware acceleration
         /// (e.g. D3D11VA). Only meaningful after the codec has been initialized; will read false
         /// before <see cref="Play"/> has produced the first frame.</summary>
@@ -438,13 +443,7 @@ namespace Stride.Video
         internal void SetCurrentTime(TimeSpan time) => CurrentTime = time;
         internal void SetDuration(TimeSpan duration) => Duration = duration;
 
-        // MediaCodec-thread notification forwarders. Safe no-op on non-MediaCodec backends.
-#if STRIDE_PLATFORM_ANDROID && STRIDE_VIDEO_MEDIACODEC
-        internal void OnReceiveNotificationToUpdateVideoTextureSurface()
-            => (backend as Backends.IMediaCodecBackend)?.OnReceiveNotificationToUpdateVideoTextureSurface();
-
-        internal bool IsVideoTextureUpdated()
-            => (backend as Backends.IMediaCodecBackend)?.IsVideoTextureUpdated() ?? true;
-#endif
+        // Called by a backend right after it writes a freshly-decoded frame to the target.
+        internal void NotifyFramePresented() => FramesPresented++;
     }
 }

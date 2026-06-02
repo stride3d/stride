@@ -22,5 +22,12 @@
     <None Include="runtimes\win-arm64\native\*" Pack="true" PackagePath="runtimes\win-arm64\native\" CopyToOutputDirectory="PreserveNewest" />
     <None Include="runtimes\linux-x64\native\*" Pack="true" PackagePath="runtimes\linux-x64\native\" CopyToOutputDirectory="PreserveNewest" />
     <None Include="runtimes\osx-arm64\native\*" Pack="true" PackagePath="runtimes\osx-arm64\native\" CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- No-dma_buf Lavapipe for the Android emulator host (gfxstream aborts headless on a
+         dma_buf-advertising ICD). Uses a synthetic RID (linux-x64-nodmabuf) so it sits under
+         runtimes/ — which the NuGet signing tool preserves, unlike a top-level folder — while
+         not matching any real RID graph, so NuGet never auto-deploys it into consumers.
+         Not copied to consumer output; start-emulator.ps1 reads it from the NuGet cache. -->
+    <None Include="runtimes\linux-x64-nodmabuf\native\*" Pack="true" PackagePath="runtimes\linux-x64-nodmabuf\native\" />
   </ItemGroup>
 </Project>

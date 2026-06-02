@@ -80,6 +80,15 @@
 
     <!-- Create delimited version for .Contains() checks in Stride.Frameworks.targets -->
     <_StridePlatforms>;$(StridePlatforms);</_StridePlatforms>
+
+    <!-- Add host platform when targeting mobile so the host TFM + native libs build: the
+         AssetCompiler runs in-process and loads host native libs (libstrideaudio for Celt)
+         when compiling Sound/VR assets. Mutate _StridePlatforms not StridePlatforms so
+         StrideTestPlatforms (test-target TFMs) stays scoped to mobile.
+         Opt out via -p:StridePlatformAutoAddHost=false for CI runtime-only mobile builds. -->
+    <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(Windows)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';Windows;'))">;Windows$(_StridePlatforms)</_StridePlatforms>
+    <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(Linux)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';Linux;'))">;Linux$(_StridePlatforms)</_StridePlatforms>
+    <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(OSX)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';macOS;'))">;macOS$(_StridePlatforms)</_StridePlatforms>
   </PropertyGroup>
 
   <!-- ================================================================ -->

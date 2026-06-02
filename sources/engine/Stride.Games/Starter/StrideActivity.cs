@@ -5,6 +5,7 @@
 using System;
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
@@ -30,6 +31,24 @@ namespace Stride.Starter
         private StatusBarVisibility lastVisibility;
         private RingerModeIntentReceiver ringerModeIntentReceiver;
 
+        protected override void OnCreate(Bundle savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+
+            // Stride can't currently restore game state across an activity recreate (Vulkan surface,
+            // audio engine, asset graph all reset). If the subclass hasn't opted into in-place config
+            // handling (ConfigurationChanges including Orientation+ScreenSize) and hasn't pinned an
+            // orientation, lock the activity to its current orientation so the OS won't rotate it.
+            // Devs that want rotation handling must set ConfigurationChanges on their Activity attr.
+            var info = PackageManager?.GetActivityInfo(ComponentName, PackageInfoFlags.MetaData);
+            if (info != null
+                && info.ScreenOrientation == ScreenOrientation.Unspecified
+                && (info.ConfigChanges & (ConfigChanges.Orientation | ConfigChanges.ScreenSize)) != (ConfigChanges.Orientation | ConfigChanges.ScreenSize))
+            {
+                RequestedOrientation = ScreenOrientation.Locked;
+            }
+        }
+
         protected override void OnDestroy()
         {
             base.OnDestroy();
@@ -45,9 +64,6 @@ namespace Stride.Starter
             // Set the android global context
             if (PlatformAndroid.Context == null)
                 PlatformAndroid.Context = this;
-
-            // Unpack the files contained in the apk
-            //await VirtualFileSystem.UnpackAPK();
 
             // setup the application view and stride game context
             SetupGameContext();

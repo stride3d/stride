@@ -57,6 +57,7 @@ jobs:
     outputs:
       runtime: ${{ steps.filter.outputs.runtime || 'true' }}
       ios: ${{ steps.filter.outputs.ios || 'true' }}
+      android: ${{ steps.filter.outputs.android || 'true' }}
       full: ${{ steps.filter.outputs.full || 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +86,17 @@ jobs:
               - 'sources/sdk/**'
               - 'deps/**'
               - 'build/Stride.iOS.slnf'
+            android:
+              - 'sources/engine/Stride.Games/**'
+              - 'sources/**/*.Android.*'
+              - 'sources/**/Platforms/Android/**'
+              - 'sources/native/**'
+              - 'sources/sdk/**/Android*'
+              - 'sources/sdk/**/*.Android.*'
+              - 'tests/android/**'
+              - 'tests/**/Android.Vulkan/**'
+              - 'build/Stride.Tests.Game.Android.slnf'
+              - '.github/workflows/test-android-game.yml'
             full:
               - 'sources/**'
               - 'deps/**'
@@ -114,6 +126,14 @@ jobs:
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.ios == 'true'
     uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    with:
+      build-type: Release
+
+  Android-Runtime:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
       build-type: Release
@@ -272,6 +292,21 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-macos-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # Android tests run on Linux + KVM-accelerated x86_64 emulator. Build APKs on the host,
+  # boot the emulator inside reactivecircus/android-emulator-runner, run each suite serially.
+  Android-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      always()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.android == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-android-game.yml
     secrets: inherit
     with:
       build-type: Debug

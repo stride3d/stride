@@ -164,7 +164,10 @@ namespace Stride.Core.Assets.CompilerApp
                 var bundleFiles = new List<string>();
                 bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
 
-                if (builderOptions.MSBuildUpToDateCheckFileBase != null)
+                // Only write the up-to-date marker on success — otherwise MSBuild's Inputs/Outputs
+                // check on StrideCompileAsset would skip re-running CompilerApp next build, leaving
+                // the partial bundle in place and silently packing it into the APK.
+                if (result == BuildResultCode.Successful && builderOptions.MSBuildUpToDateCheckFileBase != null)
                     SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles);
 
                 return result;

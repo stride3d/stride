@@ -83,6 +83,8 @@ src.AnyEventRaised += (_, e) =>
         "_GetProjectVersion", "_GetBuildOutputFilesWithTfm", "_GetTfmSpecificContentForPackage",
         "_GetDebugSymbolsWithTfm", "_GetFrameworkAssemblyReferences",
         "_GetFrameworksWithSuppressedDependencies",
+        // SourceLink source-root mapping; metadata only, no compilation.
+        "InitializeSourceRootMappedPaths",
     ];
     if (!string.IsNullOrEmpty(ps.TargetNames))
     {
@@ -129,6 +131,19 @@ src.AnyEventRaised += (_, e) =>
         contextToProject[ps.BuildEventContext.ProjectContextId] = ps.ProjectFile ?? "";
     }
 
+    var dumpMatch = Environment.GetEnvironmentVariable("PARALLEL_AUDIT_DUMP");
+    if (!string.IsNullOrEmpty(dumpMatch) && (ps.ProjectFile ?? "").Contains(dumpMatch, StringComparison.OrdinalIgnoreCase))
+    {
+        Console.WriteLine($"DUMP {ps.ProjectFile}");
+        Console.WriteLine($"  ts: {ps.Timestamp:HH:mm:ss.fff}  node: {ps.BuildEventContext?.NodeId}  targets: {(string.IsNullOrEmpty(ps.TargetNames) ? "<default>" : ps.TargetNames)}  parent: {parent}");
+        foreach (var kv in (ps.GlobalProperties ?? new Dictionary<string, string>()).OrderBy(k => k.Key, StringComparer.Ordinal))
+        {
+            var val = (kv.Value ?? "").Length > 80 ? kv.Value![..80].Replace('\n',' ').Replace('\r',' ') + "…" : (kv.Value ?? "");
+            Console.WriteLine($"    {kv.Key} = {val}");
+        }
+        Console.WriteLine();
+    }
+
     // Multi-TFM outer→inner self-dispatch (MSBuild's DispatchToInnerBuilds): the outer build
     // (TargetFramework=<unset>) dispatches the project to itself with TargetFramework set
     // explicitly to produce per-TFM outputs. Sequential, not parallel — only one inner runs at
@@ -136,6 +151,20 @@ src.AnyEventRaised += (_, e) =>
     if (string.Equals(parent, ps.ProjectFile, StringComparison.OrdinalIgnoreCase)
         && globals.TryGetValue("TargetFramework", out var tf) && tf.Length > 0
         && string.Equals((ps.TargetNames ?? "").Trim(), "Build", StringComparison.OrdinalIgnoreCase))
+    {
+        return;
+    }
+
+    // Android per-RID publish outer→inner self-dispatch (Microsoft.Android.Sdk.AssemblyResolution
+    // _ResolveAssemblies): the outer build re-invokes itself with
+    // _ComputeFilesToPublishForRuntimeIdentifiers=true plus a per-RID _Outer*/RID bag, targeting
+    // _ComputeFilesToPublishForRuntimeIdentifiers, to gather publish files per RID. Each RID writes
+    // to its own AppendRuntimeIdentifierToOutputPath output, so this is the intended publish
+    // mechanism, not a parallel-duplicate symptom — same rationale as the multi-TFM case above.
+    if (string.Equals(parent, ps.ProjectFile, StringComparison.OrdinalIgnoreCase)
+        && (ps.TargetNames ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Contains("_ComputeFilesToPublishForRuntimeIdentifiers", StringComparer.OrdinalIgnoreCase))
     {
         return;
     }

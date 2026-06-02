@@ -36,18 +36,27 @@
        PackageVersion before the pack pipeline reads it so the .nupkg matches the suffix the
        consumer-side StrideVersion.NuGetVersion const is compiled with.
 
-       Hook _GetOutputItemsFromPack (not just GenerateNuspec): that internal NuGet target reads
-       $(PackageVersion) early in GenerateNuspec's DependsOnTargets chain to compute
-       @(NuGetPackOutput). Running only before GenerateNuspec lets the suffix reach PackTask
-       (the .nupkg is named correctly) but leaves @(NuGetPackOutput) pointing at the un-suffixed
-       path — StrideAutoPackDeploy then MSB3030s trying to copy a file that was never produced. -->
-  <!-- NuGetResolverModuleInitializerGenerate bakes $(PackageVersion) into the resolver's
-       module-init file at BeforeCompile, so we need the suffix appended before then too.
-       MSBuild silently ignores unknown target names in BeforeTargets, so projects without
-       the resolver target are unaffected. -->
+       Hook list — every consumer of $(PackageVersion) we know of needs the suffix in place
+       before it reads:
+         _GetOutputItemsFromPack             — computes @(NuGetPackOutput) early in
+                                               GenerateNuspec's DependsOnTargets chain; if
+                                               this fires un-suffixed, StrideAutoPackDeploy
+                                               later MSB3030s copying a file that was never
+                                               produced.
+         GenerateNuspec                      — used by PackTask to name the .nupkg.
+         NuGetResolverModuleInitializerGenerate — bakes $(PackageVersion) into the entry-point
+                                               .cs at compile time; CompilerApp would otherwise
+                                               try to restore the un-suffixed version that the
+                                               worktree never produced.
+         _GetProjectVersion                  — NuGet's per-ProjectReference cross-project query
+                                               for nuspec dependency versions
+                                               (NuGet.Build.Tasks.Pack.targets). Without this
+                                               hook the parent .nupkg's <dependency> entries
+                                               carry the un-suffixed version and fail to match
+                                               the actually-produced -devN packages. -->
   <Target Name="StrideAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
-          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec;NuGetResolverModuleInitializerGenerate">
+          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec;NuGetResolverModuleInitializerGenerate;_GetProjectVersion">
     <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>

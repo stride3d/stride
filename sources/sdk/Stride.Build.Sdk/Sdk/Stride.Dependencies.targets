@@ -43,11 +43,12 @@
       <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferenceDependencyPaths.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
     </ItemGroup>
     <ItemGroup Condition="'$(StrideGraphicsApi)' != ''">
-      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D11\')) And '$(StrideGraphicsApi)' != 'Direct3D11'" />
-      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Direct3D12\')) And '$(StrideGraphicsApi)' != 'Direct3D12'" />
-      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\Vulkan\')) And '$(StrideGraphicsApi)' != 'Vulkan'" />
-      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGL\')) And '$(StrideGraphicsApi)' != 'OpenGL'" />
-      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Contains('\OpenGLES\')) And '$(StrideGraphicsApi)' != 'OpenGLES'" />
+      <!-- Path-separator check normalized to '/' so Linux/macOS hosts filter correctly. -->
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/Direct3D11/')) And '$(StrideGraphicsApi)' != 'Direct3D11'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/Direct3D12/')) And '$(StrideGraphicsApi)' != 'Direct3D12'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/Vulkan/')) And '$(StrideGraphicsApi)' != 'Vulkan'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/OpenGL/')) And '$(StrideGraphicsApi)' != 'OpenGL'" />
+      <_StrideDepsFile Remove="@(_StrideDepsFile)" Condition="$([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/OpenGLES/')) And '$(StrideGraphicsApi)' != 'OpenGLES'" />
     </ItemGroup>
     <ItemGroup>
       <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
@@ -152,11 +153,6 @@
       </_SourceItemsToCopyToOutputDirectory>
     </ItemGroup>
 
-    <!-- Android -->
-    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">
-      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
-    </ItemGroup>
-
     <!-- iOS -->
     <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">
       <!-- strip any "lib" prefix and populate the LibraryName value -->
@@ -173,6 +169,33 @@
       <MtouchExtraArgsLibs>$(StrideMTouchExtras) -L"%24{ProjectDir}" @(_StrideDependencyNativeLib->'-l%(LibraryName) "%24{ProjectDir}/%(Filename)%(Extension)"',' ')</MtouchExtraArgsLibs>
       <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
     </PropertyGroup>
+  </Target>
+
+  <!-- Android: only ship Android RID native libs (skip win/linux/osx/ios runtimes).
+       Hooked at BOTH _CompileFastDevDex (Fast Deploy path, captures @(AndroidNativeLibrary)
+       into _AndroidNativeLibraryForFastDev) and _GetLibraryImports (embed path) — running
+       inside CoreBuild's _CopyFilesToOutputDirectory chain like the desktop branch isn't
+       early enough for the .NET Android SDK's per-target item capture, leaving Fast Deploy
+       APKs missing .ssdeps-sourced libs (libstrideaudio, libfreetype, etc.).
+       .ssdeps writes Identity with '/' so we match on '/'; AndroidNativeLibrary needs the
+       Abi metadata set explicitly — RID name (android-arm/-arm64/-x86/-x64) doesn't match
+       ABI name (armeabi-v7a / arm64-v8a / x86 / x86_64) for two of the four. -->
+  <Target Name="_StrideAddAndroidNativeLibraries"
+          DependsOnTargets="_StrideBuildDependencies"
+          BeforeTargets="_CompileFastDevDex;_GetLibraryImports"
+          Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' And '$(StrideDependenciesCopy)' != 'false' ">
+    <ItemGroup>
+      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"
+          Condition="$([System.String]::new('%(Identity)').Contains('runtimes/android-'))" />
+      <AndroidNativeLibrary Update="@(AndroidNativeLibrary)" Abi="armeabi-v7a"
+          Condition="$([System.String]::new('%(Identity)').Contains('runtimes/android-arm/'))" />
+      <AndroidNativeLibrary Update="@(AndroidNativeLibrary)" Abi="arm64-v8a"
+          Condition="$([System.String]::new('%(Identity)').Contains('runtimes/android-arm64/'))" />
+      <AndroidNativeLibrary Update="@(AndroidNativeLibrary)" Abi="x86"
+          Condition="$([System.String]::new('%(Identity)').Contains('runtimes/android-x86/'))" />
+      <AndroidNativeLibrary Update="@(AndroidNativeLibrary)" Abi="x86_64"
+          Condition="$([System.String]::new('%(Identity)').Contains('runtimes/android-x64/'))" />
+    </ItemGroup>
   </Target>
 
   <!-- ================================================================ -->

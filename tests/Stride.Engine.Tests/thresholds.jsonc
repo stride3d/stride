@@ -25,6 +25,18 @@
   // Some slight pixel edges/aliasing differences (probably due to CPU floating point divergence)
   // Allow them: it's quite minor if only so few pixels for wireframe
   {
+    "image": "TesselationTest.png",
+    "allow": { "3+": 10 }
+  },
+  {
+    "image": "TesselationTest.f1.png",
+    "allow": { "3+": 10 }
+  },
+  {
+    "image": "TesselationTest.f2.png",
+    "allow": { "3+": 10 }
+  },
+  {
     "image": "TesselationTest.f3.png",
     "allow": { "3+": 10 }
   },

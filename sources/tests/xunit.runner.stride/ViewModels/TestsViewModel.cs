@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Avalonia.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace xunit.runner.stride.ViewModels;
 
@@ -36,31 +37,54 @@ public sealed record ImageCompareResult(string CurrentPath, string ReferencePath
 
 public class TestsViewModel : ViewModelBase
 {
-    private XunitFrontController Controller { get; }
+    private StrideTestController? Controller { get; }
+    private readonly Assembly? testAssembly;
+
+    // Discovery runs in the background — it triggers Mono assembly load + reflection for the
+    // whole test assembly graph, which on Android is heavy enough (30-60s) to ANR the main
+    // thread if done synchronously in the ctor. Headless mode awaits DiscoveryTask before
+    // RunTestsAsync; UI mode shows whatever is in TestCases at bind time and refreshes later.
+    public Task DiscoveryTask { get; }
 
     public TestsViewModel()
     {
-        var assemblyFileName = Assembly.GetEntryAssembly()!.Location;
-
-        // TODO: currently we disable app domain otherwise GameTestBase.ForceInteractiveMode is not kept
-        //       we should find another way to transfer this parameter
-        Controller = new XunitFrontController(AppDomainSupport.Denied, assemblyFileName);
-        var sink = new TestDiscoverySink();
-        Controller.Find(true, sink, TestFrameworkOptions.ForDiscovery());
-        sink.Finished.WaitOne();
-
-        var testAssemblyViewModel = new TestGroupViewModel(this, sink.TestCases.FirstOrDefault()?.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.Name ?? "No tests were found");
-        foreach (var testClass in sink.TestCases.GroupBy(x => x.TestMethod.TestClass))
+        // Desktop launches via Main (entry assembly == test assembly); Android launches via the
+        // per-project MainActivity, which sets App.TestAssembly.
+        testAssembly = App.TestAssembly ?? Assembly.GetEntryAssembly();
+        if (testAssembly is null)
         {
-            var testClassViewModel = new TestGroupViewModel(this, testClass.Key.Class.Name);
-            testAssemblyViewModel.Children.Add(testClassViewModel);
-            foreach (var testCase in testClass)
-            {
-                testClassViewModel.Children.Add(new TestCaseViewModel(this, testCase));
-            }
+            TestCases.Add(new TestGroupViewModel(this, "No tests were found"));
+            DiscoveryTask = Task.CompletedTask;
+            return;
         }
-        TestCases.Add(testAssemblyViewModel);
-        RecomputeCounts();
+
+        Controller = new StrideTestController(testAssembly);
+        DiscoveryTask = Task.Run(async () =>
+        {
+            var sink = new TestDiscoverySink();
+            Controller.Find(true, sink, TestFrameworkOptions.ForDiscovery());
+            sink.Finished.WaitOne();
+
+            var testAssemblyViewModel = new TestGroupViewModel(this, sink.TestCases.FirstOrDefault()?.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.Name ?? "No tests were found");
+            foreach (var testClass in sink.TestCases.GroupBy(x => x.TestMethod.TestClass))
+            {
+                var classFullName = testClass.Key.Class.Name;
+                var classShortName = classFullName[(classFullName.LastIndexOf('.') + 1)..];
+                var testClassViewModel = new TestGroupViewModel(this, classShortName);
+                testAssemblyViewModel.Children.Add(testClassViewModel);
+                foreach (var testCase in testClass)
+                {
+                    testClassViewModel.Children.Add(new TestCaseViewModel(this, testCase));
+                }
+            }
+            // InvokeAsync (not Post): the headless `await DiscoveryTask` would otherwise resume
+            // before the UI-thread Add ran, see Count==0, and skip RunTestsAsync.
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                TestCases.Add(testAssemblyViewModel);
+                RecomputeCounts();
+            });
+        });
 
         // Mirror the env-var default so the dropdown opens on the same value GameTestBase
         // would have used at startup.
@@ -84,6 +108,12 @@ public class TestsViewModel : ViewModelBase
     }
 
     public void RunTests(TestNodeViewModel testNodeViewModel) => RunTests(testNodeViewModel, interactive: false);
+
+    // Task-returning variant for headless dispatch (Android MainActivity awaits this and reads
+    // FailedCount for the process exit code). The async void RunTests overloads are for UI
+    // bindings that can't await.
+    public Task RunTestsAsync(TestNodeViewModel testNodeViewModel)
+        => RunTestCases(testNodeViewModel.EnumerateTestCases().ToList(), interactive: false);
 
     // async void to satisfy Avalonia's method-as-Command binding (per-row buttons), but the
     // body is wrapped so a test-run exception can't take down the process.
@@ -264,8 +294,20 @@ public class TestsViewModel : ViewModelBase
                         }
                     },
                 };
-                Controller.RunTests(testCaseViewModels.Select(x => x.Value.TestCase).ToArray(), sink, TestFrameworkOptions.ForExecution());
+                // Headless mode (Android/iOS launcher + desktop STRIDE_TESTS_INTERACTIVE!=1)
+                // needs a TRX for the host driver to parse. Compose alongside the UI sink so
+                // both observe the same test stream.
+                using var trxSink = App.HeadlessMode ? new TrxWriter() : null;
+                IMessageSinkWithTypes runSink = trxSink is null
+                    ? sink
+                    : new StrideXunitRunner.CompositeSink(sink, trxSink);
+                Controller.RunTests(testCaseViewModels.Select(x => x.Value.TestCase).ToArray(), runSink, TestFrameworkOptions.ForExecution());
                 sink.Finished.WaitOne();
+                if (trxSink is not null && testAssembly is not null)
+                {
+                    trxSink.Finished.WaitOne();
+                    trxSink.WriteTo(StrideXunitRunner.GetTrxPath(testAssembly));
+                }
 
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -516,7 +558,7 @@ public class TestsViewModel : ViewModelBase
         }
     }
 
-    public List<TestNodeViewModel> TestCases { get; } = [];
+    public ObservableCollection<TestNodeViewModel> TestCases { get; } = [];
 
     public Action<bool>? SetInteractiveMode { get; set; }
     public Action<bool>? SetForceSaveImage { get; set; }

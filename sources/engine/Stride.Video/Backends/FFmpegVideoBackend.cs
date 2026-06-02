@@ -166,6 +166,8 @@ internal sealed class FFmpegVideoBackend : VideoBackend
                 var data = new ReadOnlySpan<byte>((void*)streamInfo.Image.Buffer, streamInfo.Image.BufferSize);
                 target.SetData(graphicsContext.CommandList, data, arrayIndex: 0, mipLevel: 0);
             }
+
+            Instance.NotifyFramePresented();
         }
     }
 }

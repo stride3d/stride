@@ -172,6 +172,11 @@ namespace Stride.Graphics
             get { return nativeDeviceApi; }
         }
 
+#if STRIDE_PLATFORM_ANDROID
+        // True when VK_ANDROID_external_memory_android_hardware_buffer + dependencies were enabled.
+        internal bool HasAndroidHardwareBufferSupport { get; private set; }
+#endif
+
         /// <summary>
         ///     Marks context as active on the current thread.
         /// </summary>
@@ -422,6 +427,16 @@ namespace Stride.Graphics
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+#if STRIDE_PLATFORM_ANDROID
+                // AHardwareBuffer import (zero-copy buffers from camera / MediaCodec / etc.).
+                VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+                VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+                VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+                VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
+                VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+                VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+                VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
+#endif
             };
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
@@ -437,6 +452,28 @@ namespace Stride.Graphics
             bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
             if (isPortabilitySubsetDevice)
                 desiredExtensionProperties.Add(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+
+#if STRIDE_PLATFORM_ANDROID
+            // All extensions in the AHardwareBuffer → VkImage chain must be present together.
+            HasAndroidHardwareBufferSupport =
+                availableExtensionProperties.Contains(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            if (HasAndroidHardwareBufferSupport)
+            {
+                desiredExtensionProperties.Add(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            }
+#endif
 
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
@@ -467,17 +504,24 @@ namespace Stride.Graphics
                 sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
                 pNext = &timelineSemaphoreFeatures,
             };
+            // Queried unconditionally — the feature struct is just metadata; only the AHardwareBuffer
+            // import path on Android actually requires the feature to be enabled.
+            var samplerYcbcrConversionFeatures = new VkPhysicalDeviceSamplerYcbcrConversionFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceSamplerYcbcrConversionFeatures,
+                pNext = &multiviewFeatures,
+            };
             // Portability subset features (MoltenVK only) — queried so we can forward the device-reported
             // capabilities verbatim to vkCreateDevice, which is what the portability spec requires.
             var portabilitySubsetFeatures = new VkPhysicalDevicePortabilitySubsetFeaturesKHR
             {
                 sType = VkStructureType.PhysicalDevicePortabilitySubsetFeaturesKHR,
-                pNext = &multiviewFeatures,
+                pNext = &samplerYcbcrConversionFeatures,
             };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &multiviewFeatures,
+                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &samplerYcbcrConversionFeatures,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
@@ -1189,6 +1233,11 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.DescriptorSetLayout, *(ulong*)&handle);
         }
 
+        public static unsafe implicit operator NativeResource(VkSamplerYcbcrConversion handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.SamplerYcbcrConversion, *(ulong*)&handle);
+        }
+
         public unsafe void Destroy(GraphicsDevice device)
         {
             var handleCopy = handle;
@@ -1236,6 +1285,9 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
                     device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.SamplerYcbcrConversion:
+                    device.NativeDeviceApi.vkDestroySamplerYcbcrConversion(device.NativeDevice, *(VkSamplerYcbcrConversion*)&handleCopy, null);
                     break;
             }
         }

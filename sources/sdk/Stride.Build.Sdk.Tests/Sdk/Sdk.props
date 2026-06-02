@@ -117,6 +117,12 @@
     <ApplicationTitle Condition="'$(ApplicationTitle)' == ''">$(AssemblyName)</ApplicationTitle>
     <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
     <ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0</ApplicationDisplayVersion>
+
+    <!-- Microsoft.Android defaults to Fast Deployment in Debug (no assemblies in APK; pushed
+         separately by /t:Install). VS uses that for the F5 inner loop, but CLI builds rarely
+         invoke /t:Install — a bare `adb install` of a Fast-Deploy APK aborts on launch with
+         "No assemblies found in '.__override__/x86_64'". Embed by default outside VS. -->
+    <EmbedAssembliesIntoApk Condition="'$(EmbedAssembliesIntoApk)' == '' And '$(BuildingInsideVisualStudio)' != 'true'">true</EmbedAssembliesIntoApk>
   </PropertyGroup>
 
 </Project>

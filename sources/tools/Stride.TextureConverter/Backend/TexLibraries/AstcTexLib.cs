@@ -34,7 +34,9 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Compressing:
-                    return IsAstcFormat(((CompressingRequest)request).Format) && IsCompressibleSourceFormat(format);
+                    // Accept BGRA too — orchestrator inserts a SwitchChannel before Execute; refusing
+                    // would route through DxtTexLib.Convert, which gamma-shifts sRGB bytes.
+                    return IsAstcFormat(((CompressingRequest)request).Format) && IsAcceptableSourceFormat(format);
                 case RequestType.Decompressing:
                     return IsAstcFormat(format);
                 default:
@@ -138,8 +140,11 @@ namespace Stride.TextureConverter.TexLibraries
                     }
 
                     // Replace image storage. Free old buffer if we own it.
-                    image.DisposingLibrary?.Dispose(image);
-                    Marshal.FreeHGlobal(image.Data);
+                    // DisposingLibrary already frees the buffer; only free when no library owns it.
+                    if (image.DisposingLibrary != null)
+                        image.DisposingLibrary.Dispose(image);
+                    else
+                        Marshal.FreeHGlobal(image.Data);
 
                     image.Data = outBuf;
                     image.DataSize = (int)totalOut;
@@ -236,8 +241,11 @@ namespace Stride.TextureConverter.TexLibraries
                         writeOffset += outSizes[i];
                     }
 
-                    image.DisposingLibrary?.Dispose(image);
-                    Marshal.FreeHGlobal(image.Data);
+                    // DisposingLibrary already frees the buffer; only free when no library owns it.
+                    if (image.DisposingLibrary != null)
+                        image.DisposingLibrary.Dispose(image);
+                    else
+                        Marshal.FreeHGlobal(image.Data);
 
                     image.Data = outBuf;
                     image.DataSize = (int)totalOut;
@@ -260,8 +268,14 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
+        // Strict: astcenc sees RGBA bytes (orchestrator swaps BGRA before Execute).
         private static bool IsCompressibleSourceFormat(PixelFormat format)
             => format == PixelFormat.R8G8B8A8_UNorm || format == PixelFormat.R8G8B8A8_UNorm_SRgb;
+
+        // Permissive: lets the orchestrator pick AstcTexLib + a channel swap rather than a Convert.
+        private static bool IsAcceptableSourceFormat(PixelFormat format)
+            => IsCompressibleSourceFormat(format)
+            || format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb;
 
         private static bool IsAstcFormat(PixelFormat format)
             => (int)format >= (int)PixelFormat.ASTC_4x4_UNorm && (int)format <= (int)PixelFormat.ASTC_12x12_UNorm_SRgb;

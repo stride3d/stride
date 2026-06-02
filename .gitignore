@@ -48,6 +48,7 @@ bin/packages/*
 !bin/packages/.gitkeep
 ipch/
 obj/
+TestResults/
 .vs/
 .idea/
 Cache/

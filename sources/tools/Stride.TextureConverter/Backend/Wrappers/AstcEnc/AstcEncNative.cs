@@ -40,7 +40,8 @@ namespace Stride.TextureConverter.AstcEncWrapper
             Hdr = 3,
         }
 
-        public enum AstcEncSwizzle : byte
+        // Underlying type must be int — native astcenc_swz is a plain C enum (int-sized).
+        public enum AstcEncSwizzle
         {
             R = 0, G = 1, B = 2, A = 3, Zero = 4, One = 5, Z = 6,
         }

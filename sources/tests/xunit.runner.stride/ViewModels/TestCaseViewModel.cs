@@ -38,6 +38,18 @@ public class TestCaseViewModel : TestNodeViewModel
 
     public override string DisplayName => TestCase.DisplayName;
 
+    // Tree row label: drop the `Namespace.Class.` prefix since the parent group already carries
+    // the class name. Inspect-panel title and filter matching still use the full DisplayName.
+    public string ShortDisplayName
+    {
+        get
+        {
+            var full = TestCase.DisplayName;
+            var prefix = TestCase.TestMethod.TestClass.Class.Name + ".";
+            return full.StartsWith(prefix, StringComparison.Ordinal) ? full[prefix.Length..] : full;
+        }
+    }
+
     string? failureMessage;
     /// <summary>Combined exception messages from the most recent run (newline-joined). Empty if the test passed or hasn't run.</summary>
     public string? FailureMessage

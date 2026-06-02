@@ -30,11 +30,12 @@ namespace Stride.Audio.Tests
         private const int VideoWidth = 320;
         private const int VideoHeight = 240;
 
-        // Frames to wait between issuing a Seek and capturing — covers worst-case async
-        // delivery (MediaCodec: Surface → ImageReader → listener → next Update tick) and
-        // MediaEngine cold-start on slow CI runners where the first decode after Stopped
-        // can take significantly longer than steady-state seeks.
-        private const int SeekSettleFrames = 30;
+        // Hard cap on how long to wait for the post-seek frame to be presented before capturing
+        // whatever is there (so a genuinely stuck decode fails visibly instead of hanging).
+        // Captures poll Instance.FramesPresented; this is a wall-clock deadline rather than a
+        // frame budget because the emulator's frame rate collapses to ~2fps during the host
+        // MediaCodec/gfxstream cold-start warmup, so a frame count is an unreliable time bound.
+        private static readonly TimeSpan CaptureTimeout = TimeSpan.FromSeconds(60);
 
         // Gold suffix: FFmpeg has both HW (D3D11VA) and SW paths controllable via
         // FFmpegVideoBackendFactory.ForceSoftwareDecode; other backends don't expose a
@@ -100,7 +101,9 @@ namespace Stride.Audio.Tests
                 GraphicsDeviceManager.PreferredGraphicsProfile = [GraphicsProfile.Level_10_0];
 
                 VideoBackendRegistry.PreferredBackendName = backend;
+#if STRIDE_VIDEO_FFMPEG
                 FFmpegVideoBackendFactory.ForceSoftwareDecode = forceSoftware;
+#endif
 
                 // Fixed-step game time so captures are deterministic.
                 IsFixedTimeStep = true;
@@ -135,8 +138,9 @@ namespace Stride.Audio.Tests
 
         /// <summary>Seek-driven captures: deterministic on every backend because the seek
         /// sync-wait holds <see cref="MediaSynchronizer.CurrentPresentationTime"/> until the
-        /// extractor decodes the seek target, and we then wait <see cref="SeekSettleFrames"/>
-        /// ticks for the upload to land in the target texture.</summary>
+        /// extractor decodes the seek target, and each capture then polls
+        /// <see cref="VideoInstance.FramesPresented"/> until the decoded frame has actually
+        /// been uploaded to the target texture (bounded by <see cref="CaptureTimeout"/>).</summary>
         private sealed class VideoSmokeTestSeek : VideoTestGameBase
         {
             public VideoSmokeTestSeek(string backend, bool forceSoftware) : base(backend, forceSoftware) { }
@@ -152,32 +156,61 @@ namespace Stride.Audio.Tests
                 base.RegisterTests();
                 var suffix = GoldSuffix(Backend, ForceSoftware);
 
-                // Backends now decode-on-Seek even from Stopped, so the scheduler clock
-                // stays frozen at the seek target throughout the settle window — captures
-                // land on exactly the keyframe at the seek time.
-                int frame = 0;
-                FrameGameSystem.Update(frame, () =>
+                // Seek targets to capture, in order. Each capture waits for the post-seek frame
+                // to actually be presented (Instance.FramesPresented advances past the value
+                // snapshotted at seek time) rather than a fixed frame budget — the scheduler
+                // clock stays frozen at the seek target, and async backends deliver the frame on
+                // a worker thread with variable latency.
+                var steps = new (double Seconds, string Name)[]
                 {
-                    Instance.Seek(TimeSpan.FromSeconds(0.0));
-                    // Codec init runs synchronously inside the first Seek; UsesHardwareDecode is
-                    // reliable from here. Skip the HW variant on devices where D3D11VA acquisition
-                    // failed (e.g. WARP on CI) instead of silently scoring a SW-fallback against a
-                    // HW-suffixed gold.
-                    Skip.If(Backend == "FFmpeg" && !ForceSoftware && !Instance.UsesHardwareDecode,
-                        "FFmpeg D3D11VA hwaccel unavailable on this device, skipping HW variant.");
+                    (0.0, $"Initial.{suffix}"),
+                    (1.0, $"SeekForward.{suffix}"),
+                    (0.5, $"SeekBackward.{suffix}"),
+                };
+                ScheduleSeekCapture(steps, index: 0, atFrame: 0);
+            }
+
+            // Seek to the step's target, then poll until a fresh frame has been presented (or
+            // the timeout) before capturing, and chain the next step from there.
+            private void ScheduleSeekCapture((double Seconds, string Name)[] steps, int index, int atFrame)
+            {
+                if (index >= steps.Length)
+                    return;
+
+                var (seconds, name) = steps[index];
+                long presentedAtSeek = 0;
+                var deadline = default(DateTime);
+
+                FrameGameSystem.Update(atFrame, () =>
+                {
+                    Instance.Seek(TimeSpan.FromSeconds(seconds));
+                    presentedAtSeek = Instance.FramesPresented;
+                    deadline = DateTime.UtcNow + CaptureTimeout;
+
+                    if (index == 0)
+                    {
+                        // Codec init runs synchronously inside the first Seek; UsesHardwareDecode
+                        // is reliable from here. Skip the HW variant on devices where D3D11VA
+                        // acquisition failed (e.g. WARP on CI) instead of silently scoring a
+                        // SW-fallback against a HW-suffixed gold.
+                        Skip.If(Backend == "FFmpeg" && !ForceSoftware && !Instance.UsesHardwareDecode,
+                            "FFmpeg D3D11VA hwaccel unavailable on this device, skipping HW variant.");
+                    }
                 });
-                frame += SeekSettleFrames;
-                FrameGameSystem.Draw(frame, () => SaveImage(VideoTarget, $"Initial.{suffix}"));
 
-                frame += 1;
-                FrameGameSystem.Update(frame, () => Instance.Seek(TimeSpan.FromSeconds(1.0)));
-                frame += SeekSettleFrames;
-                FrameGameSystem.Draw(frame, () => SaveImage(VideoTarget, $"SeekForward.{suffix}"));
-
-                frame += 1;
-                FrameGameSystem.Update(frame, () => Instance.Seek(TimeSpan.FromSeconds(0.5)));
-                frame += SeekSettleFrames;
-                FrameGameSystem.Draw(frame, () => SaveImage(VideoTarget, $"SeekBackward.{suffix}"));
+                void Attempt()
+                {
+                    if (Instance.FramesPresented > presentedAtSeek || DateTime.UtcNow >= deadline)
+                    {
+                        SaveImage(VideoTarget, name);
+                        ScheduleSeekCapture(steps, index + 1, FrameGameSystem.CurrentFrame + 1);
+                    }
+                    else
+                    {
+                        FrameGameSystem.Draw(FrameGameSystem.CurrentFrame + 1, Attempt);
+                    }
+                }
+                FrameGameSystem.Draw(atFrame + 1, Attempt);
             }
         }
 

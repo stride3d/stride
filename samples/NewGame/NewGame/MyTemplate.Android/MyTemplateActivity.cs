@@ -8,8 +8,7 @@ using Stride.Starter;
 namespace MyTemplate.Android;
 
 [Activity(MainLauncher = true,
-          Icon = "@mipmap/gameicon",
-          Label = "@string/app_name",
+          Label = "MyTemplate",
           ScreenOrientation = ScreenOrientation.Landscape,
           Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
           ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]

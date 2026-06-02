@@ -8,11 +8,11 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-    <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

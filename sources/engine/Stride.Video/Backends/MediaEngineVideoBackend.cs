@@ -36,6 +36,11 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
     private int videoWidth;
     private int videoHeight;
     private bool reachedEOF;
+    // OnVideoStreamTick can return S_OK after LOADEDMETADATA but before the first frame is
+    // actually decoded — TransferVideoFrame then produces a blank surface. Gate frame-presented
+    // reporting on LOADEDDATA (engine has data at the current position) so the load-handshake
+    // tick doesn't count as a real frame.
+    private volatile bool firstFrameDecoded;
 
     public MediaEngineVideoBackend(VideoInstance instance, MediaEngineVideoBackendFactory factory) : base(instance)
     {
@@ -147,7 +152,11 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
         // to produce a frame should still land in the target this tick. The native engine
         // owns the play clock; we just upload whatever's ready.
 
-        if (!mediaEngine->OnVideoStreamTick(out var presentationTimeTicks).Succeeded)
+        // S_OK (0) means a new frame is ready; S_FALSE (1) means none this tick (nothing to present).
+        if (mediaEngine->OnVideoStreamTick(out var presentationTimeTicks).Value != 0)
+            return;
+
+        if (!firstFrameDecoded)
             return;
 
         Instance.SetCurrentTime(TimeSpan.FromTicks(presentationTimeTicks));
@@ -184,6 +193,8 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
             mediaEngine->TransferVideoFrame((IUnknown*)videoOutputSurface, pSrc: null, new RECT(0, 0, videoWidth, videoHeight), pBorderClr: null);
             Instance.VideoTexture.CopyDecoderOutputToTopLevelMipmap(graphicsContext, videoOutputTexture);
             Instance.VideoTexture.GenerateMipMaps(graphicsContext);
+
+            Instance.NotifyFramePresented();
         }
     }
 
@@ -218,6 +229,9 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_ERROR:
                 VideoInstance.Logger.Error($"Failed to load the video source. The file codec or format is likely not to be supported. MediaEngine error code=[{(MF_MEDIA_ENGINE_ERR)param1}], Windows error code=[{param2}]");
                 ReleaseMedia();
+                break;
+            case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_LOADEDDATA:
+                firstFrameDecoded = true;
                 break;
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_ENDED:
                 reachedEOF = true;

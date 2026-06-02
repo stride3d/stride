@@ -5,8 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Android.Graphics;
-using Android.Views;
+using Android.Media;
+using Android.Runtime;
+using AndroidImage = Android.Media.Image;
 using Stride.Audio;
 using Stride.Core;
 using Stride.Graphics;
@@ -15,48 +18,50 @@ using Stride.Video.Android;
 
 namespace Stride.Video.Backends;
 
-/// <summary>Surface used by VideoInstance to forward MediaCodec-thread notifications into
-/// the active backend without leaking Android-specific calls onto VideoInstance itself.</summary>
-internal interface IMediaCodecBackend
+internal sealed class MediaCodecVideoBackend : VideoBackend
 {
-    void OnReceiveNotificationToUpdateVideoTextureSurface();
-    bool IsVideoTextureUpdated();
-}
-
-internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
-{
-    private volatile bool receivedNotificationToUpdateVideoTextureSurface;
     private MediaSynchronizer mediaSynchronizer;
     private MediaCodecVideoExtractor mediaCodecVideoExtractor;
-    private Texture textureExternal;
-    private Surface videoSurface;
-    private SurfaceTexture videoSurfaceTexture;
+    private ImageReader imageReader;
+    private readonly object imageReaderLock = new();
+    private IntPtr rgbaScratch;
+    private int rgbaScratchSize;
+    private int videoWidth, videoHeight;
 
     private StreamedBufferSound audioSound;
     private SoundInstanceStreamedBuffer audioSoundInstance;
     private readonly List<AudioEmitterSoundController> audioControllers = new();
 
-    private volatile bool isInitialized;
-
     public MediaCodecVideoBackend(VideoInstance instance) : base(instance) { }
+
+    public override bool UsesHardwareDecode => true;
 
     public override bool Initialize(string url, long startPosition, long length)
     {
         if (mediaSynchronizer != null || mediaCodecVideoExtractor != null)
             throw new InvalidOperationException("mediaCodec has already been initialized");
 
-        receivedNotificationToUpdateVideoTextureSurface = false;
+        // Pre-probe dimensions: ImageReader can't be resized, but MediaCodec.Configure already
+        // needs its Surface, so we have to know width/height upfront. Cheap to open a second
+        // MediaExtractor here and pull the video format.
+        (videoWidth, videoHeight) = ProbeVideoDimensions(url, startPosition, length);
 
-        // Looks like we need to use VK_ANDROID_external_memory_android_hardware_buffer + AImageReader + ANativeWindow + AHardwareBuffer
-        throw new NotImplementedException("MediaCodec is not implemented with Vulkan");
+        // CPU YUV path. The zero-copy alternative Texture.NewFromAndroidHardwareBuffer
+        // (Stride.Graphics) needs immutable VkSamplerYcbcrConversion descriptor bindings
+        // that Stride's effect system doesn't yet expose.
+        // No OnImageAvailable listener: it doesn't fire reliably under the emulator's gfxstream
+        // BufferQueue, so Update() pulls frames with AcquireLatestImage every tick instead.
+        // maxImages is deliberately generous: on a cold/janky start the decoder needs several
+        // output buffers to dequeue into before the game thread starts draining, otherwise the
+        // gfxstream BufferQueue starves it and it produces nothing for tens of seconds.
+        imageReader = ImageReader.NewInstance(videoWidth, videoHeight, ImageFormatType.Yuv420888, maxImages: 8);
 
-#pragma warning disable CS0162 // unreachable — kept for future Vulkan integration
-        videoSurfaceTexture = new SurfaceTexture(0);
-        videoSurface = new Surface(videoSurfaceTexture);
+        rgbaScratchSize = videoWidth * videoHeight * 4;
+        rgbaScratch = Marshal.AllocHGlobal(rgbaScratchSize);
 
         mediaSynchronizer = new MediaSynchronizer();
 
-        mediaCodecVideoExtractor = new MediaCodecVideoExtractor(Instance, mediaSynchronizer, videoSurface);
+        mediaCodecVideoExtractor = new MediaCodecVideoExtractor(Instance, mediaSynchronizer, imageReader.Surface);
         mediaCodecVideoExtractor.Initialize(Instance.Services, url, startPosition, length);
         mediaSynchronizer.RegisterExtractor(mediaCodecVideoExtractor);
         mediaSynchronizer.RegisterPlayer(mediaCodecVideoExtractor);
@@ -104,14 +109,11 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
         var videoMetadata = mediaCodecVideoExtractor.MediaMetadata;
         Instance.AllocateVideoTexture(videoMetadata.Width, videoMetadata.Height);
 
-        isInitialized = true;
         return true;
-#pragma warning restore CS0162
     }
 
     public override void ReleaseMedia()
     {
-        isInitialized = false;
         mediaSynchronizer = null;
 
         mediaCodecVideoExtractor?.Dispose();
@@ -132,8 +134,18 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         Instance.VideoTexture?.SetTargetContentToOriginalPlaceholder();
 
-        textureExternal?.ReleaseData();
-        textureExternal = null;
+        lock (imageReaderLock)
+        {
+            imageReader?.Close();
+            imageReader = null;
+        }
+
+        if (rgbaScratch != IntPtr.Zero)
+        {
+            Marshal.FreeHGlobal(rgbaScratch);
+            rgbaScratch = IntPtr.Zero;
+            rgbaScratchSize = 0;
+        }
     }
 
     public override void Play()
@@ -153,7 +165,6 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
     public override void Stop()
     {
         mediaSynchronizer.Stop();
-        receivedNotificationToUpdateVideoTextureSurface = false;
     }
 
     public override void Seek(TimeSpan time)
@@ -196,32 +207,113 @@ internal sealed class MediaCodecVideoBackend : VideoBackend, IMediaCodecBackend
 
         Instance.SetCurrentTime(mediaSynchronizer.CurrentPresentationTime);
 
-        // Drop a freshly-decoded frame into the target whenever one is available, even
-        // when not Playing — Stopped/Paused freeze scheduler time but a Seek (which forces
-        // the worker thread to re-decode) still gets to deliver its frame.
-        if (!receivedNotificationToUpdateVideoTextureSurface)
-            return;
-
-        videoSurfaceTexture.UpdateTexImage();
-
-        var videoComponent = Instance.VideoComponent;
-        if (videoComponent?.Target != null)
-        {
-            Instance.VideoTexture.SetTargetContentToVideoStream(videoComponent.Target);
-
-            var graphicsContext = Instance.Services.GetSafeServiceAs<GraphicsContext>();
-            Instance.VideoTexture.CopyDecoderOutputToTopLevelMipmap(graphicsContext, textureExternal);
-            Instance.VideoTexture.GenerateMipMaps(graphicsContext);
-        }
-
-        if (mediaSynchronizer.State == PlayState.Playing)
-            receivedNotificationToUpdateVideoTextureSurface = false;
+        // Pull model: poll the ImageReader every tick. AcquireLatestImage returns null when no
+        // new frame is queued (cheap), so this only uploads genuinely new frames — and it works
+        // even when not Playing, so a Seek's re-decoded frame still lands. More robust than the
+        // OnImageAvailable push callback, which the emulator's gfxstream BufferQueue often drops.
+        UploadLatestFrameToTarget();
     }
 
-    void IMediaCodecBackend.OnReceiveNotificationToUpdateVideoTextureSurface()
-        => receivedNotificationToUpdateVideoTextureSurface = true;
+    private unsafe void UploadLatestFrameToTarget()
+    {
+        AndroidImage image;
+        lock (imageReaderLock)
+        {
+            if (imageReader == null)
+                return;
+            image = imageReader.AcquireLatestImage();
+        }
+        if (image == null)
+            return;
 
-    bool IMediaCodecBackend.IsVideoTextureUpdated()
-        => !isInitialized || !receivedNotificationToUpdateVideoTextureSurface;
+        try
+        {
+            var target = Instance.VideoComponent?.Target;
+            if (target == null)
+                return;
+
+            var planes = image.GetPlanes();
+            if (planes == null || planes.Length < 3)
+                return;
+
+            ConvertYuv420ToRgba(planes[0], planes[1], planes[2], image.Width, image.Height, (byte*)rgbaScratch);
+
+            var graphicsContext = Instance.Services.GetSafeServiceAs<GraphicsContext>();
+            var rgbaSpan = new ReadOnlySpan<byte>((void*)rgbaScratch, rgbaScratchSize);
+            target.SetData(graphicsContext.CommandList, rgbaSpan, arrayIndex: 0, mipLevel: 0);
+
+            Instance.NotifyFramePresented();
+        }
+        finally
+        {
+            image.Close();
+        }
+    }
+
+    private static unsafe void ConvertYuv420ToRgba(AndroidImage.Plane yPlane, AndroidImage.Plane uPlane, AndroidImage.Plane vPlane, int width, int height, byte* rgba)
+    {
+        // BT.601 limited-range YUV->RGB, ITU-R BT.601-7 matrix scaled to Q10 fixed-point.
+        var yBuf = yPlane.Buffer;
+        var uBuf = uPlane.Buffer;
+        var vBuf = vPlane.Buffer;
+        var yStride = yPlane.RowStride;
+        var uStride = uPlane.RowStride;
+        var vStride = vPlane.RowStride;
+        var uPixelStride = uPlane.PixelStride;
+        var vPixelStride = vPlane.PixelStride;
+
+        var yBase = (byte*)JNIEnv.GetDirectBufferAddress(yBuf.Handle);
+        var uBase = (byte*)JNIEnv.GetDirectBufferAddress(uBuf.Handle);
+        var vBase = (byte*)JNIEnv.GetDirectBufferAddress(vBuf.Handle);
+
+        for (int y = 0; y < height; y++)
+        {
+            var yRow = yBase + y * yStride;
+            var uRow = uBase + (y >> 1) * uStride;
+            var vRow = vBase + (y >> 1) * vStride;
+            var dst = rgba + y * width * 4;
+
+            for (int x = 0; x < width; x++)
+            {
+                int yi = yRow[x] - 16;
+                int ui = uRow[(x >> 1) * uPixelStride] - 128;
+                int vi = vRow[(x >> 1) * vPixelStride] - 128;
+                if (yi < 0) yi = 0;
+
+                int y1192 = 1192 * yi;
+                int r = (y1192 + 1634 * vi) >> 10;
+                int g = (y1192 - 833 * vi - 400 * ui) >> 10;
+                int b = (y1192 + 2066 * ui) >> 10;
+
+                dst[0] = (byte)Math.Clamp(r, 0, 255);
+                dst[1] = (byte)Math.Clamp(g, 0, 255);
+                dst[2] = (byte)Math.Clamp(b, 0, 255);
+                dst[3] = 255;
+                dst += 4;
+            }
+        }
+    }
+
+    private static (int width, int height) ProbeVideoDimensions(string url, long startPosition, long length)
+    {
+        using var file = new Java.IO.FileInputStream(url);
+        var probe = new MediaExtractor();
+        try
+        {
+            probe.SetDataSource(file.FD, startPosition, length);
+            for (int i = 0; i < probe.TrackCount; i++)
+            {
+                var format = probe.GetTrackFormat(i);
+                var mime = format.GetString(MediaFormat.KeyMime);
+                if (mime != null && mime.StartsWith("video/"))
+                    return (format.GetInteger(MediaFormat.KeyWidth), format.GetInteger(MediaFormat.KeyHeight));
+            }
+        }
+        finally
+        {
+            probe.Release();
+        }
+        throw new InvalidOperationException($"No video track found in {url}");
+    }
 }
 #endif

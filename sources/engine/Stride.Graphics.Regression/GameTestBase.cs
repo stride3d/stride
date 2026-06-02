@@ -202,7 +202,7 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
-        ///   Saves a Texture locally or on the test server.
+        ///   Saves a Texture and compares it against the gold reference image.
         /// </summary>
         /// <param name="textureToSave">The <see cref="Texture"/> to save.</param>
         /// <param name="testName">
@@ -224,7 +224,7 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
-        ///   Saves the Back-Buffer locally or on the test server.
+        ///   Saves the Back-Buffer and compares it against the gold reference image.
         /// </summary>
         /// <param name="testName">
         ///   An optional name for the test that is wanting to save the Back-Buffer.
@@ -241,27 +241,6 @@ namespace Stride.Graphics.Regression
             using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
             SaveImage(image, testName);
         }
-
-        /// <summary>
-        ///   Saves an Image locally or on the test server.
-        /// </summary>
-        /// <param name="imageToSave">The <see cref="Image"/> to save.</param>
-        /// <param name="testName">
-        ///   An optional name for the test that is wanting to save the <paramref name="textureToSave"/>.
-        /// </param>
-        private void SaveImage(Image imageToSave, string? testName = null)
-        {
-            try
-            {
-                SendImage(imageToSave, testName);
-            }
-            catch
-            {
-                TestGameLogger.Error(@"An error occurred when trying to send the data to the server.");
-                throw;
-            }
-        }
-
 
         /// <summary>
         ///   Gets or sets the value indicating if the screenshots automation is enabled.
@@ -295,26 +274,7 @@ namespace Stride.Graphics.Regression
         public BackBufferSizeMode BackBufferSizeMode
         {
             get => backBufferSizeMode;
-            set
-            {
-                backBufferSizeMode = value;
-#if STRIDE_PLATFORM_ANDROID
-                switch (backBufferSizeMode)
-                {
-                    case BackBufferSizeMode.FitToDesiredValues:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToDesiredValues;
-                        break;
-                    case BackBufferSizeMode.FitToWindowSize:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToWindowSize;
-                        break;
-                    case BackBufferSizeMode.FitToWindowRatio:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToWindowRatio;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-#endif // TODO: Implement it for other mobile platforms
-            }
+            set => backBufferSizeMode = value;
         }
 
         /// <summary>
@@ -347,34 +307,6 @@ namespace Stride.Graphics.Regression
                 KeyboardSimulated = InputSourceSimulated.AddKeyboard();
             }
         }
-
-#if STRIDE_PLATFORM_ANDROID
-        private void FitPresentationParametersToDesiredValues(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            // nothing to do (default behavior)
-        }
-
-        private void FitPresentationParametersToWindowSize(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            parameters.BackBufferWidth = windowWidth;
-            parameters.BackBufferHeight = windowHeight;
-        }
-
-        private void FitPresentationParametersToWindowRatio(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            var desiredWidth = parameters.BackBufferWidth;
-            var desiredHeight = parameters.BackBufferHeight;
-
-            if (windowWidth >= windowHeight) // Landscape => use height as base
-            {
-                parameters.BackBufferHeight = (int)(desiredWidth * (float)windowHeight / (float)windowWidth);
-            }
-            else // Portrait => use width as base
-            {
-                parameters.BackBufferWidth = (int)(desiredHeight * (float)windowWidth / (float)windowHeight);
-            }
-        }
-#endif
 
         protected override void OnWindowCreated()
         {
@@ -431,6 +363,7 @@ namespace Stride.Graphics.Regression
             base.Destroy();
         }
 
+#if STRIDE_PLATFORM_DESKTOP
         /// <summary>
         ///   Ends the current frame RenderDoc capture session, finalizing the capture of rendering data,
         ///   allowing the captured data to be saved or processed.
@@ -470,6 +403,7 @@ namespace Stride.Graphics.Regression
                 EndFrameCapture();
             }
         }
+#endif
 
         /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
@@ -711,6 +645,25 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
+        ///   Gets the root directory that contains the <c>tests</c> folder with reference and local images.
+        /// </summary>
+        /// <remarks>
+        ///   On desktop this is the Stride solution root, located by traversing upward for <c>build/Stride.sln</c>.
+        ///   On Android it is the app's internal files directory (Context.FilesDir): targetSdk 30+ scoped
+        ///   storage blocks the app's own writes through the FUSE-bound external-files path. The host
+        ///   script pushes gold + pulls generated images via <c>adb shell run-as &lt;pkg&gt;</c>.
+        /// </remarks>
+        private static string GetTestsRootDirectory()
+        {
+#if STRIDE_PLATFORM_ANDROID
+            return Android.App.Application.Context.FilesDir!.AbsolutePath;
+#else
+            return FindStrideSolutionRootDirectory();
+#endif
+        }
+
+#if !STRIDE_PLATFORM_ANDROID
+        /// <summary>
         ///   Searches for the root folder of the Stride solution by traversing upward from the test's binary directory.
         /// </summary>
         /// <returns>The full path to the root folder of the Stride solution.</returns>
@@ -737,15 +690,17 @@ namespace Stride.Graphics.Regression
             ImageTester.DiagLog($"FindRoot: FAILED from {startDir}");
             throw new InvalidOperationException($"Could not locate the Stride solution root directory (started from {startDir})");
         }
+#endif
 
         /// <summary>
-        ///   Send the test result image data to the server for verification.
+        ///   Compares the test result image against the gold reference and saves a local copy
+        ///   when no match is found (or when <see cref="ForceSaveImageOnSuccess"/> is set).
         /// </summary>
-        /// <param name="image">The Image to send.</param>
+        /// <param name="image">The Image to compare and save.</param>
         /// <param name="testName">
         ///   An optional name for the test. If not provided, the frame index will be used.
         /// </param>
-        public void SendImage(Image image, string? testName)
+        public void SaveImage(Image image, string? testName)
         {
             // Use the test name, or the frame index if no name provided
             var frameName = testName;
@@ -758,9 +713,8 @@ namespace Stride.Graphics.Regression
             //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
             var platformSpecificDir = GetPlatformSpecificDirectory();
-            var strideRootDir = FindStrideSolutionRootDirectory();
 
-            var testsBaseDir = Path.Combine(strideRootDir, "tests");
+            var testsBaseDir = Path.Combine(GetTestsRootDirectory(), "tests");
             var testFileName = GenerateTestArtifactFileName(testsBaseDir, frameName, platformSpecificDir, ".png");
 
             var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
@@ -902,6 +856,7 @@ namespace Stride.Graphics.Regression
                 PlatformType.Windows => "Windows",
                 PlatformType.Linux => "Linux",
                 PlatformType.macOS => "macOS",
+                PlatformType.Android => "Android",
                 _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
             };
 
@@ -909,32 +864,53 @@ namespace Stride.Graphics.Regression
         }
 
         // Stable, vendor-independent bucket name. Avoids Lavapipe's "llvmpipe (LLVM x.y.z, N bits)"
-        // description from leaking into the gold path and breaking on every Mesa rebuild. Trusts
-        // the description when it's been intentionally rewritten (e.g. Android emulator's helper
-        // layer stamps host OS into the device name → "Lavapipe-LinuxHost").
+        // description from leaking into the gold path and breaking on every Mesa rebuild. The
+        // Android emulator-host Vulkan layer stamps the host OS into the device name (e.g.
+        // "...StrideHost=Linux") so Android gold buckets by host, whose Lavapipe build renders
+        // slightly differently → "Lavapipe-LinuxHost".
         private static string NormalizeDeviceBucket(GraphicsAdapter adapter)
         {
             var desc = adapter.Description.Split('\0')[0].TrimEnd(' ');
+
+            // Extract the emulator-host stamp before normalising the rest of the name.
+            string hostTag = null;
+            const string hostMarker = "StrideHost=";
+            int markerIndex = desc.IndexOf(hostMarker, StringComparison.Ordinal);
+            if (markerIndex >= 0)
+            {
+                hostTag = desc.Substring(markerIndex + hostMarker.Length).Trim();
+                desc = desc.Substring(0, markerIndex).TrimEnd();
+            }
+
             var driverId = adapter.DriverInfo?.DriverId;
-            if (driverId == "MesaLLVMPipe" && desc.StartsWith("llvmpipe", StringComparison.OrdinalIgnoreCase))
-                return "Lavapipe";
-            if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
-                return "SwiftShader";
-            if (adapter.VendorId == 0x1414) return "WARP"; // Microsoft Basic / WARP
+            string deviceName;
+            if (driverId == "MesaLLVMPipe" && desc.Contains("llvmpipe", StringComparison.OrdinalIgnoreCase))
+                deviceName = "Lavapipe";
+            else if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
+                deviceName = "SwiftShader";
+            else if (adapter.VendorId == 0x1414) deviceName = "WARP"; // Microsoft Basic / WARP
             // Virtualized macOS (e.g. GitHub's macos-15 runner) reports the GPU as
             // "Apple Paravirtual device". On Apple Silicon the GPU is on the same chip as
             // the CPU, so the CPU brand string (minus the "(Virtual)" suffix) is a stable
             // proxy for the chip family — "Apple M1" rather than "Apple Paravirtual device".
-            if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase))
+            else if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase)
+                && HostEnvironment.CpuName is { } cpu && cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
             {
-                var cpu = HostEnvironment.CpuName;
-                if (cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
-                {
-                    var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
-                    return idx > 0 ? cpu[..idx] : cpu;
-                }
+                var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
+                deviceName = idx > 0 ? cpu[..idx] : cpu;
             }
-            return desc;
+            else deviceName = desc;
+
+            // Bucket by the layer-reported host; on Android with no stamp the layer wasn't active,
+            // so we genuinely don't know which host's Lavapipe rendered this — fall into a distinct
+            // "UnknownHost" bucket rather than silently aliasing onto a real host's gold.
+            string bucketSuffix =
+                !string.IsNullOrEmpty(hostTag) ? $"{hostTag}Host" :
+                Platform.Type == PlatformType.Android ? "UnknownHost" :
+                null;
+            if (!string.IsNullOrEmpty(bucketSuffix))
+                deviceName += $"-{bucketSuffix}";
+            return deviceName;
         }
 
         /// <summary>

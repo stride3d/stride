@@ -97,8 +97,18 @@ namespace Stride.Graphics
             NativeColorAttachmentView = attachmentView;
         }
 
+        // Platform-partial hook for externally-provided images (AHardwareBuffer on Android).
+        // Implementation sets importedImageHandled=true and populates Native* fields itself.
+        private bool importedImageHandled;
+        partial void TryInitializeImportedImage();
+
         private partial void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
+            importedImageHandled = false;
+            TryInitializeImportedImage();
+            if (importedImageHandled)
+                return;
+
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);
             HasStencil = IsStencilFormat(ViewFormat);
 
@@ -457,10 +467,14 @@ namespace Stride.Graphics
                     GraphicsDevice.Collect(NativeDepthStencilView);
                     NativeDepthStencilView = VkImageView.Null;
                 }
+
+                ReleaseImportedImageResources();
             }
 
             base.OnDestroyed(immediately);
         }
+
+        partial void ReleaseImportedImageResources();
 
         /// <summary>
         ///   Perform Vulkan-specific recreation of the Texture.
