@@ -1,6 +1,7 @@
 // Cycle through 7 demo scenes.
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -10,6 +11,9 @@ namespace ParticlesSample.Tests;
 [ScreenshotTest(TemplateId = "35C3FB4D-2A6E-40EB-825E-D4E5670FEE78")]
 public class ParticlesSampleScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new ParticlesSampleScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         // Each scene contains random-emission particle systems whose RNG seed isn't pinned to the

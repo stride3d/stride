@@ -82,7 +82,7 @@ namespace Stride.Samples.Tests
 
             // Test passed — wipe the regenerated sample dir to keep working trees small. Skip on
             // failure so the post-mortem still has the regenerated project for local debugging.
-            var sampleDir = Path.Combine(worktree, "samplesGenerated", name);
+            var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, name);
             if (Directory.Exists(sampleDir))
             {
                 try { Directory.Delete(sampleDir, recursive: true); }

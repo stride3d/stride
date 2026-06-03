@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -9,6 +10,9 @@ namespace AnimatedModel.Tests;
 [ScreenshotTest(TemplateId = "99371864-55BD-4C78-B25C-42471F977540")]
 public class AnimatedModelScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new AnimatedModelScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         await ctx.WaitTime(TimeSpan.FromMilliseconds(2000));

@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -9,6 +10,9 @@ namespace UIParticles.Tests;
 [ScreenshotTest(TemplateId = "DA4B1982-2A93-48FB-8EDA-7B13AD79E6A2")]
 public class UIParticlesScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new UIParticlesScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         await ctx.WaitTime(TimeSpan.FromMilliseconds(2000));

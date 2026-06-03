@@ -94,8 +94,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "22-StrideRuntime.Shaders", "22-StrideRuntime.Shaders", "{7E3ACF35-0CCA-4E88-866B-0F008C5A5580}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio", "..\sources\editor\Stride.GameStudio\Stride.GameStudio.csproj", "{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
 EndProject
@@ -367,6 +365,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Templates.Samples", "..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj", "{2F8020D2-7991-44F1-8495-EA4A8A8C6ECE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Templates.Tests", "..\sources\tools\Stride.Templates.Tests\Stride.Templates.Tests.csproj", "{1BB0CF77-74E3-4E85-ACC3-9B3CFFCD50CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Games.AutoTesting", "..\sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj", "{BD5B7C55-DD46-4032-BF22-26E1789A43D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2198,6 +2198,22 @@ Global
 		{1BB0CF77-74E3-4E85-ACC3-9B3CFFCD50CA}.Release|x64.Build.0 = Release|Any CPU
 		{1BB0CF77-74E3-4E85-ACC3-9B3CFFCD50CA}.Release|x86.ActiveCfg = Release|Any CPU
 		{1BB0CF77-74E3-4E85-ACC3-9B3CFFCD50CA}.Release|x86.Build.0 = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|x64.Build.0 = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Debug|x86.Build.0 = Debug|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|x64.ActiveCfg = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|x64.Build.0 = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|x86.ActiveCfg = Release|Any CPU
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

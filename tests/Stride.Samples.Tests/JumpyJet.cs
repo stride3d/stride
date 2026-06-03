@@ -1,6 +1,7 @@
 // STRIDE_AUTOTESTING gate is explained in samples/Directory.Build.targets.
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -11,6 +12,9 @@ namespace JumpyJet.Tests;
 [ScreenshotTest(TemplateId = "1C9E733A-16BB-48C3-A4DE-722B61EED994")]
 public class JumpyJetScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new JumpyJetScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         // Jump impulse is 6.5 m/s up, gravity -17 m/s² → apex at ~380ms. Capture mid-ascent
