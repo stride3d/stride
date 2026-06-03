@@ -75,6 +75,11 @@ jobs:
       DOTNET_DbgEnableMiniDump: "1"
       DOTNET_DbgMiniDumpType: "1"
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+      # NativeCrashHandler (in the harness + Stride.Graphics.Regression) gates on this: without it it
+      # sets SEM_NOGPFAULTERRORBOX, which suppresses the WER LocalDumps + DOTNET minidump configured
+      # here for pure-native crashes. With it, native AVs route to WER and it writes its own SEH dump.
+      STRIDE_TESTS_CRASH_DUMPS: "1"
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -185,6 +190,7 @@ jobs:
           name: screenshots-${{ matrix.graphics-api }}
           path: |
             screenshot-out/
+            screenshot-out-aot/
             TestResults/
           if-no-files-found: warn
 

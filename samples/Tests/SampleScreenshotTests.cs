@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Stride.Graphics;
 using Stride.SampleScreenshotRunner;
 using Stride.Tests.ScreenshotComparator;
 using Xunit;
@@ -43,17 +44,80 @@ namespace Stride.Samples.Tests
 
         [Theory]
         [MemberData(nameof(Samples))]
-        public void Sample(string name)
+        public void Sample(string name) => RunSampleTest(name, aot: false);
+
+        /// <summary>
+        /// AOT guard: publish one canonical sample with NativeAOT (PublishAot, self-contained, win-x64)
+        /// and run it through the same capture + LPIPS compare as the JIT theory. Catches trim/AOT
+        /// regressions — ILC compile breaks, reflection-based serialization creeping back, native
+        /// teardown crashes — that a JIT run wouldn't surface.
+        /// </summary>
+        [Fact]
+        public void TopDownRPGAot()
+        {
+            // AOT publish is expensive and engine AOT-cleanliness is mostly API-agnostic, so one API
+            // is enough. Run on Direct3D11 only — a no-op on the D3D12/Vulkan matrix legs.
+            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
+            {
+                output.WriteLine($"[aot] skipped: AOT lane runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
+                return;
+            }
+            RunSampleTest("TopDownRPG", aot: true);
+        }
+
+        /// <summary>
+        /// Trim guard: publish a sample trimmed with the WinForms backend disabled and assert
+        /// System.Windows.Forms gets dropped. Proves the WinFormsBackendEnabled gating actually lets
+        /// trimming/AOT remove the Win32 windowing + input stack (and catches any un-gated WinForms ref).
+        /// </summary>
+        [Fact]
+        public void TopDownRPGTrimsWinForms()
+        {
+            // Publish is expensive and the gating is API-agnostic; run on Direct3D11 only.
+            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
+            {
+                output.WriteLine($"[trim] skipped: runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
+                return;
+            }
+
+            var worktree = WorktreeRoot();
+            var publishDir = ScreenshotRunner.PublishTrimmed("TopDownRPG", worktree,
+                new Dictionary<string, string> { ["Stride.Games.WinFormsBackendEnabled"] = "false" });
+            output.WriteLine($"[trim] publish dir: {publishDir}");
+
+            // Sanity-check we're inspecting a real publish — otherwise the WinForms check could pass
+            // trivially against a wrong/empty directory.
+            Assert.True(Directory.Exists(publishDir), $"Publish dir does not exist: {publishDir}");
+            var exe = Path.Combine(publishDir, "TopDownRPG.Windows.exe");
+            Assert.True(File.Exists(exe), $"Trimmed publish is missing the app exe (wrong dir?): {exe}");
+
+            var winforms = Path.Combine(publishDir, "System.Windows.Forms.dll");
+            Assert.False(File.Exists(winforms),
+                $"System.Windows.Forms.dll should have been trimmed with WinFormsBackendEnabled=false, but it's present: {winforms}");
+
+            if (Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
+            {
+                var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, "TopDownRPG");
+                if (Directory.Exists(sampleDir))
+                {
+                    try { Directory.Delete(sampleDir, recursive: true); }
+                    catch (Exception ex) { output.WriteLine($"[cleanup] failed to delete '{sampleDir}': {ex.Message}"); }
+                }
+            }
+        }
+
+        private void RunSampleTest(string name, bool aot)
         {
             var worktree = WorktreeRoot();
-            var captureRoot = Path.Combine(worktree, "screenshot-out");
+            var captureRoot = Path.Combine(worktree, aot ? "screenshot-out-aot" : "screenshot-out");
             var sampleOut = Path.Combine(captureRoot, name);
             if (Directory.Exists(sampleOut))
                 Directory.Delete(sampleOut, recursive: true);
 
-            // Capture: regenerate sample, build with StrideAutoTesting=true, launch the sample exe
-            // in its own process, collect the harness's screenshots + done.json into <captureRoot>/<name>/.
-            var capture = ScreenshotRunner.RunOne(name, captureRoot, worktree);
+            // Capture: regenerate sample, build (or AOT-publish) with StrideAutoTesting=true, launch the
+            // sample exe in its own process, collect the harness's screenshots + done.json into
+            // <captureRoot>/<name>/.
+            var capture = ScreenshotRunner.RunOne(name, captureRoot, worktree, aot: aot);
             output.WriteLine($"[capture] {capture.Status} screenshots={capture.ScreenshotCount} duration={capture.Duration.TotalSeconds:F1}s");
             if (capture.Detail is not null) output.WriteLine($"[capture] detail: {capture.Detail}");
 

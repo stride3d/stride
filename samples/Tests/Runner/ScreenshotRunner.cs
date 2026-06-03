@@ -25,6 +25,9 @@ namespace Stride.SampleScreenshotRunner;
 public static class ScreenshotRunner
 {
     private const int LaunchTimeoutSeconds = 120;
+    private const int BuildTimeoutSeconds = 300;
+    // A cold NativeAOT publish (ILC compile + native link) is far slower than a JIT build.
+    private const int AotPublishTimeoutSeconds = 1200;
     internal const string SamplesGeneratedDirName = "samplesGenerated";
 
     private static readonly object InitLock = new();
@@ -55,7 +58,12 @@ public static class ScreenshotRunner
     /// in build.log and launch.log under that dir — callers (e.g. the xunit wrapper) can dump them
     /// to <c>ITestOutputHelper</c> after this returns.
     /// </summary>
-    public static SampleResult RunOne(string sampleName, string captureRoot, string worktreeRoot, bool headless = true, string configuration = "Debug")
+    /// <param name="aot">
+    /// When true, build the sample with <c>dotnet publish -p:PublishAot=true</c> (self-contained,
+    /// win-x64) instead of a JIT <c>dotnet build</c>, and launch the published native exe. Exercises
+    /// the engine's NativeAOT/trim path end to end.
+    /// </param>
+    public static SampleResult RunOne(string sampleName, string captureRoot, string worktreeRoot, bool headless = true, string configuration = "Debug", bool aot = false)
     {
         Initialize();
 
@@ -77,7 +85,45 @@ public static class ScreenshotRunner
         if (regenResult is not null)
             return regenResult;
 
-        return RunSample(sampleDir, captureRoot, headless, configuration);
+        return RunSample(sampleDir, captureRoot, headless, configuration, aot);
+    }
+
+    /// <summary>
+    /// Regenerate <paramref name="sampleName"/> and publish it trimmed (self-contained, win-x64) with
+    /// the given feature <paramref name="switches"/> forced via RuntimeHostConfigurationOption
+    /// (Trim=true), WITHOUT running it. Returns the publish directory so the caller can assert which
+    /// assemblies survived trimming — e.g. that disabling a backend switch actually drops its
+    /// assemblies. Throws on regen/publish failure.
+    /// </summary>
+    public static string PublishTrimmed(string sampleName, string worktreeRoot, IReadOnlyDictionary<string, string> switches, string configuration = "Debug")
+    {
+        Initialize();
+
+        var fixture = LoadFixtures(worktreeRoot).FirstOrDefault(f => string.Equals(f.SampleName, sampleName, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"No fixture in tests/Stride.Samples.Tests/<{sampleName}>.cs.");
+
+        EnsureSamplesGeneratedTargets(worktreeRoot);
+        var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
+        var regenResult = RegenerateSample(fixture, sampleDir);
+        if (regenResult is not null)
+            throw new InvalidOperationException($"Regen failed for '{sampleName}': {regenResult.Detail}");
+
+        // Force the requested feature switches for the trimmer, scoped to this sample (Directory.Build.props
+        // is auto-imported by the .Windows project under it). Written after regen, which wipes sampleDir.
+        var options = string.Join(Environment.NewLine, switches.Select(kv =>
+            $"    <RuntimeHostConfigurationOption Include=\"{kv.Key}\" Value=\"{kv.Value}\" Trim=\"true\" />"));
+        File.WriteAllText(Path.Combine(sampleDir, "Directory.Build.props"),
+            $"<Project>{Environment.NewLine}  <ItemGroup>{Environment.NewLine}{options}{Environment.NewLine}  </ItemGroup>{Environment.NewLine}</Project>{Environment.NewLine}");
+
+        var windowsCsproj = Path.Combine(sampleDir, $"{fixture.SampleName}.Windows", $"{fixture.SampleName}.Windows.csproj");
+        var graphicsApi = GraphicsDevice.Platform.ToString();
+        var publishLog = Path.Combine(sampleDir, "publish-trimmed.log");
+        Console.WriteLine($"[{fixture.SampleName}] trimmed publish (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+        var args = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishTrimmed=true -p:SelfContained=true -p:StrideGraphicsApi={graphicsApi}";
+        if (!RunProcess("dotnet", args, publishLog, sampleDir, env: null, AotPublishTimeoutSeconds))
+            throw new InvalidOperationException($"Trimmed publish failed for '{sampleName}'; see {publishLog}");
+
+        return Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish");
     }
 
     /// <summary>Returns the catalog of discovered fixtures (cached per <paramref name="worktreeRoot"/>).</summary>
@@ -143,7 +189,7 @@ public static class ScreenshotRunner
         return fixtures;
     }
 
-    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration)
+    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration, bool aot)
     {
         sampleDir = Path.GetFullPath(sampleDir);
         outputRoot = Path.GetFullPath(outputRoot);
@@ -166,9 +212,20 @@ public static class ScreenshotRunner
         }
 
         var graphicsApi = GraphicsDevice.Platform.ToString();
-        Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
         var buildLog = Path.Combine(sampleOut, "build.log");
-        var buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, timeoutSeconds: 300);
+        bool buildOk;
+        if (aot)
+        {
+            Console.WriteLine($"[{sampleName}] AOT publishing (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+            var publishArgs = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishAot=true -p:SelfContained=true " +
+                              $"-p:StrideAutoTesting=true -p:StrideAutoTestingAot=true -p:StrideGraphicsApi={graphicsApi}";
+            buildOk = RunProcess("dotnet", publishArgs, buildLog, sampleDir, AotBuildEnv(), AotPublishTimeoutSeconds);
+        }
+        else
+        {
+            Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+            buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, BuildTimeoutSeconds);
+        }
         if (!buildOk)
         {
             result.Status = "build-failed";
@@ -177,12 +234,15 @@ public static class ScreenshotRunner
             return result;
         }
 
-        // Output path varies: generated samples set RuntimeIdentifier=win-x64, hand-checked-in samples don't.
-        var exeCandidates = new[]
-        {
-            Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", $"{sampleName}.Windows.exe"),
-            Path.Combine(sampleDir, "Bin", "Windows", configuration, $"{sampleName}.Windows.exe"),
-        };
+        // AOT lands the self-contained native exe in the publish/ subfolder; the JIT build path varies
+        // (generated samples set RuntimeIdentifier=win-x64, hand-checked-in samples don't).
+        var exeCandidates = aot
+            ? new[] { Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish", $"{sampleName}.Windows.exe") }
+            : new[]
+            {
+                Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", $"{sampleName}.Windows.exe"),
+                Path.Combine(sampleDir, "Bin", "Windows", configuration, $"{sampleName}.Windows.exe"),
+            };
         var exePath = exeCandidates.FirstOrDefault(File.Exists);
         if (exePath is null)
         {
@@ -244,6 +304,25 @@ public static class ScreenshotRunner
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Environment for the AOT publish subprocess: prepend the VS Installer dir to PATH. The NativeAOT
+    /// ILC link step shells out to <c>vswhere.exe</c> to locate the MSVC linker, and it must be on PATH.
+    /// vswhere ships in this fixed location regardless of VS edition (Community/Pro/BuildTools), so we
+    /// don't go through Build.Locator (which resolves the in-proc MSBuild, already set in Initialize).
+    /// Returns null if the dir isn't present, leaving PATH untouched.
+    /// </summary>
+    private static IDictionary<string, string>? AotBuildEnv()
+    {
+        var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var installer = Path.Combine(pf86, "Microsoft Visual Studio", "Installer");
+        if (!Directory.Exists(installer))
+            return null;
+        return new Dictionary<string, string>
+        {
+            ["PATH"] = installer + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH"),
+        };
     }
 
     private static bool RunProcess(string fileName, string arguments, string logPath, string workingDir, IDictionary<string, string>? env, int timeoutSeconds)
