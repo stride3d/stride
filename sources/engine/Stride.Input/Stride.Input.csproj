@@ -19,7 +19,6 @@
     <PackageReference Include="Silk.NET.Sdl" PrivateAssets="compile" />
     <PackageReference Include="SharpDX.DirectInput" Condition="$(TargetFramework.Contains('-windows'))" />
     <PackageReference Include="SharpDX.XInput" Condition="$(TargetFramework.Contains('-windows'))" />
-    <PackageReference Include="Microsoft.Management.Infrastructure" Condition="$(TargetFramework.Contains('-windows'))" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

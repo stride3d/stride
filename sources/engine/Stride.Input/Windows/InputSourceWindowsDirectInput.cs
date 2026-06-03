@@ -4,12 +4,11 @@
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
-using Microsoft.Management.Infrastructure;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using SharpDX;
 using SharpDX.DirectInput;
-using System.Linq;
-using Microsoft.Management.Infrastructure.Options;
-using System.Text.RegularExpressions;
 
 namespace Stride.Input
 {
@@ -62,26 +61,74 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Select all device IDs that contain "IG_".  If so, it's an XInput device
-        /// This information can not be found from DirectInput 
+        /// Select all device IDs that contain "IG_". If so, it's an XInput device.
+        /// This information cannot be found from DirectInput.
         /// </summary>
         private IEnumerable<string> GetAllXInputDevices()
         {
-            // Set security level to IMPERSONATE
-
-            DComSessionOptions DComOptions = new DComSessionOptions();
-            DComOptions.Impersonation = ImpersonationType.Impersonate;
-
-            var session = CimSession.Create(null, DComOptions);
-            var query = session.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
-
-            var deviceIdPrefixes = query.Select(device => xInputDeviceIdRegex.Match(device.CimInstanceProperties["DeviceID"].Value.ToString()))
+            // An XInput device's raw-input name carries the "&IG_" marker; pull the VID/PID out of any
+            // such name to match against DirectInput's ProductGuid prefix. Uses the Raw Input API
+            // (user32) rather than WMI/Microsoft.Management.Infrastructure, which isn't AOT/trim-safe.
+            return GetRawInputDeviceNames()
+                .Where(name => name.Contains("&IG_", StringComparison.OrdinalIgnoreCase))
+                .Select(name => xInputDeviceIdRegex.Match(name))
                 .Where(match => match.Success)
-                .Select(match => (match.Groups[2].ToString() + match.Groups[1].ToString()).ToLower())
+                .Select(match => (match.Groups[2].Value + match.Groups[1].Value).ToLowerInvariant())
                 .Distinct()
                 .ToList();
+        }
 
-            return deviceIdPrefixes;
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RawInputDeviceList
+        {
+            public IntPtr Device;
+            public uint Type;
+        }
+
+        private const uint RidiDeviceName = 0x20000007;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint GetRawInputDeviceList([Out] RawInputDeviceList[] rawInputDeviceList, ref uint numDevices, uint size);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetRawInputDeviceInfoW")]
+        private static extern uint GetRawInputDeviceInfo(IntPtr device, uint command, IntPtr data, ref uint dataCharCount);
+
+        /// <summary>Enumerates the device name string of every raw-input device.</summary>
+        private static List<string> GetRawInputDeviceNames()
+        {
+            var names = new List<string>();
+            uint deviceCount = 0;
+            uint listEntrySize = (uint)Marshal.SizeOf<RawInputDeviceList>();
+
+            // First call with a null list just fills in the device count.
+            GetRawInputDeviceList(null, ref deviceCount, listEntrySize);
+            if (deviceCount == 0)
+                return names;
+
+            var devices = new RawInputDeviceList[deviceCount];
+            if (GetRawInputDeviceList(devices, ref deviceCount, listEntrySize) == unchecked((uint)-1))
+                return names;
+
+            foreach (var device in devices)
+            {
+                uint charCount = 0;
+                // First call queries the buffer size (in characters) for the device name.
+                if (GetRawInputDeviceInfo(device.Device, RidiDeviceName, IntPtr.Zero, ref charCount) != 0 || charCount == 0)
+                    continue;
+
+                var buffer = Marshal.AllocHGlobal((int)charCount * sizeof(char));
+                try
+                {
+                    if (GetRawInputDeviceInfo(device.Device, RidiDeviceName, buffer, ref charCount) != unchecked((uint)-1))
+                        names.Add(Marshal.PtrToStringUni(buffer) ?? string.Empty);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buffer);
+                }
+            }
+
+            return names;
         }
         
         /// <summary>
