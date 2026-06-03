@@ -57,10 +57,6 @@ namespace Stride.Starter
 
         protected override void OnRun()
         {
-            // set up a listener to the android ringer mode (Normal/Silent/Vibrate)
-            ringerModeIntentReceiver = new RingerModeIntentReceiver((AudioManager)GetSystemService(AudioService));
-            RegisterReceivers();
-
             // Set the android global context
             if (PlatformAndroid.Context == null)
                 PlatformAndroid.Context = this;
@@ -170,8 +166,11 @@ namespace Stride.Starter
             });
         }
 
+        // Created lazily here (called from OnResume), not in OnRun: OnRun is on a separate thread
+        // that may not have run when a launch-while-asleep pauses us, which would unregister a null.
         private void RegisterReceivers()
         {
+            ringerModeIntentReceiver ??= new RingerModeIntentReceiver((AudioManager)GetSystemService(AudioService));
             var ringerModeIntentFilter = new IntentFilter(AudioManager.RingerModeChangedAction);
             if (OperatingSystem.IsAndroidVersionAtLeast(34))
             {
