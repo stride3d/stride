@@ -289,7 +289,7 @@ namespace Stride.Assets.Physics
                         var decompositionDesc = new ConvexHullMesh.DecompositionDesc
                         {
                             VertexCount = (uint)combinedVerts.Count / 3,
-                            IndicesCount = (uint)combinedIndices.Count / 3,
+                            TriangleCount = (uint)combinedIndices.Count / 3,
                             Vertexes = combinedVerts.ToArray(),
                             Indices = combinedIndices.ToArray(),
                             SimpleHull = !convexHullDesc.Decomposition.Enabled,

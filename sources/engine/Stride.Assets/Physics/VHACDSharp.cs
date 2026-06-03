@@ -16,7 +16,7 @@ namespace Stride.Assets.Physics
         public struct DecompositionDesc
         {
             public uint VertexCount;
-            public uint IndicesCount;
+            public uint TriangleCount;
             public float[] Vertexes;
             public uint[] Indices;
 
@@ -43,7 +43,7 @@ namespace Stride.Assets.Physics
         {
             _internalCompound = vhacdGenerate(
                 desc.Vertexes, desc.VertexCount,
-                desc.Indices, desc.IndicesCount,
+                desc.Indices, desc.TriangleCount,
                 desc.SimpleHull,
                 desc.MaxConvexHulls,
                 desc.Resolution,

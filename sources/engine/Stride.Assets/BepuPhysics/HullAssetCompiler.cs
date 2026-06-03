@@ -225,7 +225,7 @@ internal class HullAssetCompiler : AssetCompilerBase
                     var decompositionDesc = new ConvexHullMesh.DecompositionDesc
                     {
                         VertexCount = (uint)combinedVerts.Count / 3,
-                        IndicesCount = (uint)combinedIndices.Count,
+                        TriangleCount = (uint)combinedIndices.Count / 3,
                         Vertexes = combinedVerts.ToArray(),
                         Indices = combinedIndices.ToArray(),
                         SimpleHull = !Parameters.Decomposition.Enabled,
