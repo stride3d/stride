@@ -210,11 +210,6 @@
       </Content>
     </ItemGroup>
   </Target>
-  <Target Name="_StrideSetupNativeLibrariesAndroid" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'Android'">
-    <ItemGroup>
-      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
-    </ItemGroup>
-  </Target>
   <Target Name="_StrideSetupNativeLibrariesiOS" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(StridePlatform)' == 'iOS'">
     <ItemGroup>
       <NativeReference Include="@(_StrideDependencyNativeLib)">
