@@ -38,6 +38,9 @@ public class KeyWithIdSerializer : ItemIdSerializerBase
         if (keySerializer is not ScalarSerializerBase scalarKeySerializer)
             throw new InvalidOperationException("Non-scalar key not yet supported!");
 
+        if (keyString.Length == 0)
+            return Activator.CreateInstance(typeof(DeletedKeyWithId<>).MakeGenericType(keyType), id);
+
         var context = new ObjectContext(objectContext.SerializerContext, null, keyDescriptor);
         var key = scalarKeySerializer.ConvertFrom(ref context, new Scalar(keyString));
         var result = Activator.CreateInstance(typeof(KeyWithId<>).MakeGenericType(keyType), id, key);
