@@ -46,6 +46,16 @@ public static class AutoTestingBootstrap
     }
 }
 
+/// <summary>
+/// Installs native-crash diagnostics for the sample run from a [ModuleInitializer].
+/// See <see cref="NativeCrashHandler"/> (shared with Stride.Graphics.Regression).
+/// </summary>
+internal static class CrashDiagnostics
+{
+    [ModuleInitializer]
+    internal static void Initialize() => NativeCrashHandler.Install();
+}
+
 internal sealed class ScreenshotTestRunner
 {
     private const string OutputDirName = "screenshot-test";
