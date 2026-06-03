@@ -22,13 +22,12 @@ public class AssetLogMessage : LogMessage
     /// <param name="messageCode">The message code.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, AssetMessageCode messageCode)
+        : base(null, type, AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString())
     {
         Package = package;
         AssetReference = assetReference;
-        Type = type;
         MessageCode = messageCode;
         Related = [];
-        Text = AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString();
     }
 
     /// <summary>
@@ -41,14 +40,12 @@ public class AssetLogMessage : LogMessage
     /// <param name="arguments">The arguments.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, AssetMessageCode messageCode, params object?[] arguments)
+        : base(null, type, string.Format(AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString(), arguments))
     {
         Package = package;
         AssetReference = assetReference;
-        Type = type;
         MessageCode = messageCode;
         Related = [];
-        var message = AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString();
-        Text = string.Format(message, arguments);
     }
 
     /// <summary>
@@ -59,12 +56,11 @@ public class AssetLogMessage : LogMessage
     /// <param name="type">The type.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, string text)
+        : base(null, type, text)
     {
         Package = package;
         AssetReference = assetReference;
-        Type = type;
         Related = [];
-        Text = text;
     }
 
     public static AssetLogMessage From(Package? package, IReference? assetReference, ILogMessage logMessage, string assetPath, int line = 0, int character = 0)
@@ -106,10 +102,6 @@ public class AssetLogMessage : LogMessage
             if (AssetReference?.Location != null)
                 return $"{AssetReference.Location}({Line + 1},{Character + 1}): {base.Text}";
             return base.Text;
-        }
-        set
-        {
-            base.Text = value;
         }
     }
 

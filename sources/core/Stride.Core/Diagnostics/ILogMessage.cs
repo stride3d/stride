@@ -27,7 +27,7 @@ public interface ILogMessage
     /// Gets or sets the text.
     /// </summary>
     /// <value>The text.</value>
-    string Text { get; set; }
+    string Text { get; }
 
     /// <summary>
     /// Gets or sets the exception info.
