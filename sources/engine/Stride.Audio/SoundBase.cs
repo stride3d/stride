@@ -147,6 +147,12 @@ namespace Stride.Audio
         {
             if (AudioEngine == null || AudioEngine.State == AudioEngineState.Invalidated)
                 return;
+
+            // Stop and destroy all source voices before any subclass frees the audio buffer they may
+            // still be playing. Otherwise the native audio worker thread (e.g. XAudio2) keeps
+            // resampling freed buffer memory and crashes with an access violation during teardown.
+            foreach (var instance in Instances.ToArray())
+                instance.Dispose();
         }
     }
 }
