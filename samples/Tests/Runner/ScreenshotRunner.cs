@@ -228,6 +228,15 @@ public static class ScreenshotRunner
                 result.Status = "done-json-parse-error";
                 result.Detail = ex.Message;
             }
+
+            // A clean run must also exit cleanly: a crash or hang after done.json is written (e.g.
+            // an AOT teardown segfault, or a non-zero exit / timeout-kill) must not be masked by an
+            // "ok" status — otherwise late crashes pass silently.
+            if (result.Status == "ok" && !launchOk)
+            {
+                result.Status = "crashed-after-done";
+                result.Detail = "Process exited non-zero after writing done.json (status=ok); see launch.log.";
+            }
         }
         else
         {
