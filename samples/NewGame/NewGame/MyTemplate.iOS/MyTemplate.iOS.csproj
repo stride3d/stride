@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-ios</TargetFramework>
-    <SupportedOSPlatformVersion>10.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>12.2</SupportedOSPlatformVersion>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyTemplate.iOS</RootNamespace>
     <OutputPath>..\Bin\iOS\$(Configuration)\</OutputPath>
@@ -13,6 +13,13 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>iOS</StridePlatform>
+  </PropertyGroup>
+  <!-- Debug = Mono interpreter (fast iteration). Release = NativeAOT (ship quality). -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <UseInterpreter>true</UseInterpreter>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyTemplate.Game\MyTemplate.Game.csproj" />

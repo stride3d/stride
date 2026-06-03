@@ -1015,9 +1015,10 @@ internal class TemplatePreprocessor
     /// <summary>
     /// Rewrites orientation values in the staged tree into placeholders the orientation
     /// template.json symbols replace at instantiation: the engine-wide <c>DisplayOrientation</c>
-    /// in every GameSettings variant (→ <c>STRIDE_ORIENTATION</c>), and the Android activity's
-    /// <c>ScreenOrientation</c> (→ <c>STRIDE_ANDROID_ORIENTATION</c>). The source scaffold keeps
-    /// real, buildable values; only the staged copy is tokenized. iOS is not handled here.
+    /// in every GameSettings variant (→ <c>STRIDE_ORIENTATION</c>), the Android activity's
+    /// <c>ScreenOrientation</c> (→ <c>STRIDE_ANDROID_ORIENTATION</c>), and the iOS Info.plist's
+    /// <c>UIInterfaceOrientation*</c> entry (→ <c>UIInterfaceOrientationSTRIDE_IOS_ORIENTATION</c>).
+    /// The source scaffold keeps real, buildable values; only the staged copy is tokenized.
     /// </summary>
     private void InjectOrientationPlaceholders(ILogger logger)
     {
@@ -1040,6 +1041,18 @@ internal class TemplatePreprocessor
                 continue;
             File.WriteAllText(csPath, content.Replace("ScreenOrientation.Landscape", "ScreenOrientation.STRIDE_ANDROID_ORIENTATION"));
             logger.Info($"Injected ScreenOrientation placeholder into {Path.GetFileName(csPath)}");
+        }
+
+        // iOS Info.plist carries UISupportedInterfaceOrientations. The scaffold ships
+        // UIInterfaceOrientationLandscapeRight (matching the choice's Default branch); rewrite
+        // the orientation token so the iosInterfaceOrientation switch symbol can swap it in.
+        foreach (var plistPath in Directory.EnumerateFiles(OutputDirectory!, "Info.plist", SearchOption.AllDirectories))
+        {
+            var content = File.ReadAllText(plistPath);
+            if (!content.Contains("UIInterfaceOrientationLandscapeRight", StringComparison.Ordinal))
+                continue;
+            File.WriteAllText(plistPath, content.Replace("UIInterfaceOrientationLandscapeRight", "UIInterfaceOrientationSTRIDE_IOS_ORIENTATION"));
+            logger.Info($"Injected UIInterfaceOrientation placeholder into {Path.GetFileName(plistPath)}");
         }
     }
 
@@ -1196,9 +1209,10 @@ internal class TemplatePreprocessor
     /// <summary>
     /// Per-template opt-in mobile display Orientation choice. The choice values match the engine's
     /// <c>RequiredDisplayOrientation</c> enum names, so the parameter replaces the GameSettings
-    /// placeholder verbatim; the Android <c>ScreenOrientation</c> enum differs, so a switch symbol
-    /// maps the choice onto it (Default/LandscapeRight → Landscape, LandscapeLeft →
-    /// ReverseLandscape, Portrait → Portrait).
+    /// placeholder verbatim. Android and iOS use platform-native enums (<c>ScreenOrientation</c> /
+    /// <c>UIInterfaceOrientation*</c>), so a switch symbol maps the choice onto each:
+    /// Android — Default/LandscapeRight → Landscape, LandscapeLeft → ReverseLandscape, Portrait → Portrait;
+    /// iOS     — Default/LandscapeRight → LandscapeRight, LandscapeLeft → LandscapeLeft, Portrait → Portrait.
     /// </summary>
     private static void EmitOrientationSymbol(StringBuilder sb) => sb.AppendLine("""
                 "orientation": {
@@ -1225,6 +1239,20 @@ internal class TemplatePreprocessor
                       { "condition": "(orientation == \"LandscapeLeft\")", "value": "ReverseLandscape" },
                       { "condition": "(orientation == \"Portrait\")",      "value": "Portrait" },
                       { "condition": "",                                   "value": "Landscape" }
+                    ]
+                  }
+                },
+                "iosInterfaceOrientation": {
+                  "type": "generated",
+                  "generator": "switch",
+                  "replaces": "STRIDE_IOS_ORIENTATION",
+                  "parameters": {
+                    "evaluator": "C++",
+                    "datatype": "string",
+                    "cases": [
+                      { "condition": "(orientation == \"LandscapeLeft\")", "value": "LandscapeLeft" },
+                      { "condition": "(orientation == \"Portrait\")",      "value": "Portrait" },
+                      { "condition": "",                                   "value": "LandscapeRight" }
                     ]
                   }
                 },
