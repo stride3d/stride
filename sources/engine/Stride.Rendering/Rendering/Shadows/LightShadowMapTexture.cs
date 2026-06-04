@@ -99,47 +99,26 @@ namespace Stride.Rendering.Shadows
 
         public Rectangle GetRectangle(int i)
         {
-            if (i < 0 || i > CascadeCount || i > MaxRectangles)
+            if (i < 0 || i >= CascadeCount || i >= MaxRectangles)
             {
-                throw new ArgumentOutOfRangeException("i", "Must be in the range [0, CascadeCount]");
+                throw new ArgumentOutOfRangeException("i", "Must be in the range [0, CascadeCount)");
             }
-            unsafe
-            {
-                fixed (void* ptr = &rectangle0)
-                {
-                    return ((Rectangle*)ptr)[i];
-                }
-            }
+            return rectangles[i];
         }
 
         public void SetRectangle(int i, Rectangle value)
         {
-            if (i < 0 || i > CascadeCount || i > MaxRectangles)
+            if (i < 0 || i >= CascadeCount || i >= MaxRectangles)
             {
-                throw new ArgumentOutOfRangeException("i", "Must be in the range [0, CascadeCount]");
+                throw new ArgumentOutOfRangeException("i", "Must be in the range [0, CascadeCount)");
             }
-            unsafe
-            {
-                fixed (void* ptr = &rectangle0)
-                {
-                    ((Rectangle*)ptr)[i] = value;
-                }
-            }
+            rectangles[i] = value;
         }
 
-        // Even if C# things Rectangle1, Rectangle2 and Rectangle3 are not used,
-        // they are indirectly in `GetRectangle' and `SetRectangle' through pointer
-        // arithmetics.
-        // MaxRectangles should be updated to match the actual number of rectangles to detected out of range errors
         public const int MaxRectangles = 6;
-        private Rectangle rectangle0;
-#pragma warning disable 169
-        private Rectangle rectangle1;
-        private Rectangle rectangle2;
-        private Rectangle rectangle3;
-        private Rectangle rectangle4;
-        private Rectangle rectangle5;
-#pragma warning restore 169
+        [System.Runtime.CompilerServices.InlineArray(MaxRectangles)]
+        private struct RectangleArray { private Rectangle _0; }
+        private RectangleArray rectangles;
 
     }
 }
