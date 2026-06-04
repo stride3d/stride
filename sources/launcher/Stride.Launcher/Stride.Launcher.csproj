@@ -51,7 +51,7 @@
     <Compile Include="..\..\assets\Stride.Core.Assets\Package.Constants.cs">
       <Link>Packages\Package.Constants.cs</Link>
     </Compile>
-    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs">
+    <Compile Include="..\..\editor\Stride.Core.Assets.Editor.Wpf\EditorPath.cs">
       <Link>Editor\EditorPath.cs</Link>
     </Compile>
   </ItemGroup>
@@ -106,7 +106,7 @@
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf.Dialogs\Stride.Core.Presentation.Wpf.Dialogs.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

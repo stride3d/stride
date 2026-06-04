@@ -19,4 +19,4 @@ using System.Runtime.InteropServices;
 #pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 
 [assembly: InternalsVisibleTo("Stride.Assets" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf" + Stride.PublicKeys.Default)]

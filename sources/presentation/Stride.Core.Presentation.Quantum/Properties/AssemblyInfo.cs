@@ -5,4 +5,4 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-[assembly: InternalsVisibleTo("Stride.Core.Presentation.Tests")]
+[assembly: InternalsVisibleTo("Stride.Core.Presentation.Wpf.Tests")]

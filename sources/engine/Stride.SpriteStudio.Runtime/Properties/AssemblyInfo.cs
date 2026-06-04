@@ -10,3 +10,4 @@ using System.Runtime.CompilerServices;
 [assembly: NeutralResourcesLanguage("en")]
 
 [assembly: InternalsVisibleTo("Stride.Editor")]
+[assembly: InternalsVisibleTo("Stride.Editor.Wpf")]

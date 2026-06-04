@@ -11,7 +11,7 @@ The full chain from module load to asset type registration:
 1. **`[ModuleInitializer]`** — Stride's source generator calls the `Initialize()` method in `Module.cs` when the assembly is first loaded.
 2. **`AssemblyRegistry.Register(..., AssemblyCommonCategories.Assets)`** — registers the assembly. `AssetRegistry` subscribes to the `AssemblyRegistry.AssemblyRegistered` event.
 3. **`AssetRegistry.RegisterAssetAssembly(assembly)`** — triggered automatically by the event. Scans the assembly for types inheriting `Asset` (via `[AssemblyScan]` on the `Asset` base class), reads their `[AssetDescription]`, `[AssetContentType]`, `[AssetFormatVersion]`, and `[AssetUpgrader]` attributes, and populates the internal registry dictionaries. Compiler registration is separate — `AssetCompilerRegistry` scans registered assemblies for types implementing `IAssetCompiler` and reads `[AssetCompiler]` from those types.
-4. **Editor discovery** — `Stride.GameStudio` registers `StrideDefaultAssetsPlugin` (and other plugins) via `AssetsPlugin.RegisterPlugin()` at startup. Each plugin scans its own assembly for `[AssetViewModel<T>]`, `[AssetEditorViewModel<T>]`, and `[AssetEditorView<T>]` attributes to wire up the editor tier for each asset type. For engine assets, all ViewModels and editor views live in `Stride.Assets.Presentation`, which is covered by `StrideDefaultAssetsPlugin`.
+4. **Editor discovery** — `Stride.GameStudio` registers `StrideDefaultAssetsPlugin` (and other plugins) via `AssetsPlugin.RegisterPlugin()` at startup. Each plugin scans its own assembly for `[AssetViewModel<T>]`, `[AssetEditorViewModel<T>]`, and `[AssetEditorView<T>]` attributes to wire up the editor tier for each asset type. For engine assets, all ViewModels and editor views live in `Stride.Assets.Presentation.Wpf`, which is covered by `StrideDefaultAssetsPlugin`.
 
 ## Module Initializer Pattern
 
@@ -78,15 +78,15 @@ Field reference:
 - **`AssetTypeName`** — the simple class name of the `Asset` subclass. Namespace is not required and is ignored.
 - **`Scope`** — always `Asset` for standard asset templates.
 - **`Group`** — the menu group in GameStudio's Add Asset dialog. Existing groups (exact strings): `Animation`, `Font`, `Material`, `Media`, `Miscellaneous`, `Model`, `Physics`, `Physics-Bepu`, `Scene`, `Script`, `Sprite`, `Texture`, `UI`. Use an existing group or introduce a new one.
-- **`Order`** — controls sort position within the group. Inspect existing `.sdtpl` files in `sources/editor/Stride.Assets.Presentation/Templates/Assets/` for reference values.
+- **`Order`** — controls sort position within the group. Inspect existing `.sdtpl` files in `sources/editor/Stride.Assets.Presentation.Wpf/Templates/Assets/` for reference values.
 
 Place the `.sdtpl` file in:
 
 ```
-sources/editor/Stride.Assets.Presentation/Templates/Assets/%%Group%%/%%AssetName%%.sdtpl
+sources/editor/Stride.Assets.Presentation.Wpf/Templates/Assets/%%Group%%/%%AssetName%%.sdtpl
 ```
 
-The directory name under `Assets/` does not have to match the `Group` string exactly — the directory is just for organisation. The file is embedded automatically via the wildcard include already present in `Stride.Assets.Presentation.csproj` — no manual `.csproj` edit is needed for engine assets.
+The directory name under `Assets/` does not have to match the `Group` string exactly — the directory is just for organisation. The file is embedded automatically via the wildcard include already present in `Stride.Assets.Presentation.Wpf.csproj` — no manual `.csproj` edit is needed for engine assets.
 
 > [!NOTE] Game projects
 > For game-project custom assets, place the `.sdtpl` file anywhere under the project's `Templates/` folder, then register it in the `.sdpkg` file:

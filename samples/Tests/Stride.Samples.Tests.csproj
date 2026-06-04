@@ -34,7 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
-    <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
     <!-- Build-time triggers so bin/packages has all three Stride.Templates.* nupkgs available
          for ScreenshotRunner to find via PackageStore. Without these, sample regen fails at
          template-lookup time for any sample whose template lives in Starters or Samples. -->

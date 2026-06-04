@@ -9,8 +9,8 @@ flowchart TD
     A["Stride.Core.Quantum<br/>sources/presentation/Stride.Core.Quantum/<br/>Live node graph over .NET objects"]
     B["Stride.Core.Assets.Quantum<br/>sources/assets/Stride.Core.Assets.Quantum/<br/>Override tracking, base-asset linking"]
     C["Stride.Core.Presentation.Quantum<br/>sources/presentation/Stride.Core.Presentation.Quantum/<br/>INodePresenter — property grid view model"]
-    D["Stride.Core.Assets.Editor<br/>sources/editor/Stride.Core.Assets.Editor/Quantum/<br/>IAssetNodePresenter, AssetNodePresenterUpdaterBase"]
-    E["Stride.Assets.Presentation<br/>sources/editor/Stride.Assets.Presentation/NodePresenters/<br/>Concrete updaters per asset type"]
+    D["Stride.Core.Assets.Editor.Wpf<br/>sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/<br/>IAssetNodePresenter, AssetNodePresenterUpdaterBase"]
+    E["Stride.Assets.Presentation.Wpf<br/>sources/editor/Stride.Assets.Presentation.Wpf/NodePresenters/<br/>Concrete updaters per asset type"]
 
     A --> B
     B --> C

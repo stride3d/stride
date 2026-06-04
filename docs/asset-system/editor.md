@@ -56,7 +56,7 @@ Keep the ViewModel thin — business logic belongs in the asset class itself, no
 
 ### Assembly Placement
 
-`Stride.Assets.Presentation` (`sources/editor/Stride.Assets.Presentation/`). This assembly is editor-only and must not be referenced by runtime or compiler assemblies.
+`Stride.Assets.Presentation.Wpf` (`sources/editor/Stride.Assets.Presentation.Wpf/`). This assembly is editor-only and must not be referenced by runtime or compiler assemblies.
 
 ## Tier 3: Full Custom Editor
 
@@ -152,7 +152,7 @@ Matching XAML stub (`%%AssetName%%EditorView.xaml`):
 
 ### Assembly Placement
 
-Both the ViewModel and View live in `Stride.Assets.Presentation`. Place the ViewModel under `AssetEditors/%%AssetName%%Editor/ViewModels/` and the View under `AssetEditors/%%AssetName%%Editor/Views/`, following the convention used by `SpriteEditor`, `GraphicsCompositorEditor`, `SceneEditor`, etc.
+Both the ViewModel and View live in `Stride.Assets.Presentation.Wpf`. Place the ViewModel under `AssetEditors/%%AssetName%%Editor/ViewModels/` and the View under `AssetEditors/%%AssetName%%Editor/Views/`, following the convention used by `SpriteEditor`, `GraphicsCompositorEditor`, `SceneEditor`, etc.
 
 ### How the Editor Opens
 

@@ -30,7 +30,7 @@ public sealed class %%AssetName%%EditorViewModel : AssetEditorViewModel
 public partial class %%AssetName%%EditorView : UserControl, IEditorView { ... }
 ```
 
-Both classes must live in `Stride.Assets.Presentation` (or an assembly loaded as a plugin via `AssetsEditorPlugin`).
+Both classes must live in `Stride.Assets.Presentation.Wpf` (or an assembly loaded as a plugin via `AssetsEditorPlugin`).
 
 ## Lifecycle
 
@@ -177,6 +177,6 @@ private async Task DoSomethingAsync()
 
 | File | Path |
 |---|---|
-| `%%AssetName%%EditorViewModel.cs` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/ViewModels/` |
-| `%%AssetName%%EditorView.xaml` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/Views/` |
-| `%%AssetName%%EditorView.xaml.cs` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/Views/` |
+| `%%AssetName%%EditorViewModel.cs` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/ViewModels/` |
+| `%%AssetName%%EditorView.xaml` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/Views/` |
+| `%%AssetName%%EditorView.xaml.cs` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/Views/` |
