@@ -12,7 +12,7 @@ RootAssets:
     - 0ca6e95f-7f43-463e-825a-2b4dca362aa2:TextureCompressionTests/ColorInterpolated
     - 0e365de8-6419-4896-a380-aa41f9205026:MaterialTests/Features/MaterialTransparentBlend
     - 12fde36c-d5d6-4ead-b472-5d088d319b8c:BasicMaterial
-    - 23c3cc2d-8606-4e10-af0b-bae57ced94a1:LightShaftsGraphicsCompositor
+    - 23c3cc2d-8606-4e10-af0b-bae57ced94a1:LightShafts/GraphicsCompositor
     - 24d5dd69-db14-4756-9145-6dc95fbb5e94:MaterialTests/Base/MaterialDiffuseTextureFallback
     - 30f8ca08-885b-417c-9d49-c0d315b2b3ec:Material1
     - 405852fc-5281-496f-aa02-49544230ac63:MaterialTests/Features/MaterialSpecular
@@ -48,7 +48,7 @@ RootAssets:
     - e5179ef1-d640-41b4-88c0-6a9cefd620ab:MaterialTests/Base/MaterialDiffuseTextureScaled
     - e6c7ac88-cfe8-404a-84da-65a02646d734:TextureCompressionTests/ColorNone
     - f0bb4e18-b761-4e65-b1d5-f59b52cfef0f:SpriteSheet
-    - f6bccb59-7642-46d9-9bf2-e1ada940d20d:LightShafts
+    - f6bccb59-7642-46d9-9bf2-e1ada940d20d:LightShafts/Scene
     - f84ceff5-1f02-4a2f-9a95-41e54ee77927:MaterialTests/Layers/MaterialLayerABA
     - f99b069c-1406-4f74-a9cc-b9167932b466:MaterialTests/Features/MaterialNormalMap
     - ff73cf22-f576-4cc6-adbf-4fe9d8510f05:MaterialTests/Layers/MaterialLayerBAA
