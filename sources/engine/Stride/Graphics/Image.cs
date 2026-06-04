@@ -880,6 +880,25 @@ namespace Stride.Graphics
             Bpp8 = 0x40000      // Override with a legacy 8 bits-per-pixel format size
         }
 
+        /// <summary>
+        /// Computes the dimensions of a mip level, rounded up to the format's block size for compressed formats.
+        /// </summary>
+        internal static (int Width, int Height) GetMipDimensions(PixelFormat format, int width, int height, int mipIndex)
+        {
+            var mipWidth = Math.Max(1, width >> mipIndex);
+            var mipHeight = Math.Max(1, height >> mipIndex);
+
+            if (format.IsCompressed)
+            {
+                var blockWidth = format.BlockWidth;
+                var blockHeight = format.BlockHeight;
+                mipWidth = (mipWidth + blockWidth - 1) / blockWidth * blockWidth;
+                mipHeight = (mipHeight + blockHeight - 1) / blockHeight * blockHeight;
+            }
+
+            return (mipWidth, mipHeight);
+        }
+
         internal static void ComputePitch(PixelFormat format, int width, int height, out int rowPitch, out int slicePitch, out int widthPacked, out int heightPacked, PitchFlags flags = PitchFlags.None)
         {
             widthPacked = width;

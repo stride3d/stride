@@ -251,18 +251,12 @@ namespace Stride.Streaming
 
             for (var mipIndex = 0; mipIndex < mipLevels; mipIndex++)
             {
-                GetMipSize(mipIndex, out int mipWidth, out int mipHeight);
+                var (mipWidth, mipHeight) = Image.GetMipDimensions(Format, TotalWidth, TotalHeight, mipIndex);
 
                 Image.ComputePitch(Format, mipWidth, mipHeight, out int rowPitch, out int slicePitch, out int _, out int _);
 
                 mipInfos[mipIndex] = new MipInfo(mipWidth, mipHeight, rowPitch, slicePitch, ArraySize);
             }
-        }
-
-        private void GetMipSize(int mipIndex, out int width, out int height)
-        {
-            width = Math.Max(1, TotalWidth >> mipIndex);
-            height = Math.Max(1, TotalHeight >> mipIndex);
         }
 
         private void StreamingTask(int residency)

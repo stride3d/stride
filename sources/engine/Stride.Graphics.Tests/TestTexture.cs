@@ -43,6 +43,57 @@ namespace Stride.Graphics.Tests
             Assert.Equal(10, Texture.CalculateMipMapCount(MipMapCount.Auto, width: 615, height: 342));
         }
 
+        // Block-compressed mips round up to the block size (4); a non-pow2 source has unaligned mips.
+        [Theory]
+        [InlineData(0, 1500, 844)]
+        [InlineData(1, 752, 424)]
+        [InlineData(2, 376, 212)]  // 375x211 -> 376x212
+        [InlineData(3, 188, 108)]
+        [InlineData(4, 96, 52)]
+        [InlineData(5, 48, 28)]
+        [InlineData(6, 24, 16)]
+        [InlineData(7, 12, 8)]
+        [InlineData(8, 8, 4)]
+        [InlineData(9, 4, 4)]
+        [InlineData(10, 4, 4)]
+        public void GetMipDimensionsBlockCompressedAreBlockAligned(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.BC3_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+            Assert.Equal(0, width % 4);
+            Assert.Equal(0, height % 4);
+        }
+
+        // Uncompressed formats keep the exact mip size, no rounding.
+        [Theory]
+        [InlineData(0, 1500, 844)]
+        [InlineData(2, 375, 211)]
+        [InlineData(8, 5, 3)]
+        [InlineData(10, 1, 1)]  // 844 >> 10 == 0, clamped to 1
+        public void GetMipDimensionsUncompressedAreNotRounded(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.R8G8B8A8_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+        }
+
+        // ASTC blocks aren't 4x4: width rounds up to 8, height to 5.
+        [Theory]
+        [InlineData(0, 1504, 845)]  // 1500->1504 (mult of 8), 844->845 (mult of 5)
+        [InlineData(1, 752, 425)]   // 750->752, 422->425
+        public void GetMipDimensionsAstcUseFormatBlockSize(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.ASTC_8x5_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+            Assert.Equal(0, width % 8);
+            Assert.Equal(0, height % 5);
+        }
+
         [Fact]
         public void TestTexture1D()
         {
