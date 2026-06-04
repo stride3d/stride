@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -10,6 +11,9 @@ namespace ThirdPersonPlatformer.Tests;
 [ScreenshotTest(TemplateId = "990311E4-152B-458D-8CBD-180903845DA7")]
 public class ThirdPersonPlatformerScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new ThirdPersonPlatformerScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         const string PoseHint = "Same arena, same character roughly in the middle of the floor. Idle animation phase varies (standing / crouching / squatting are all OK).";

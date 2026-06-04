@@ -1,6 +1,7 @@
 // Cycle through 3 demo scenes.
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -10,6 +11,9 @@ namespace PhysicsSample.Tests;
 [ScreenshotTest(TemplateId = "d20d150b-d3cb-454e-8c11-620b4c9d393f")]
 public class PhysicsSampleScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new PhysicsSampleScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         const string PhysicsHint = "Same demo scene composition (same objects in roughly the same arrangement and same labelled mode). Physics-driven object positions / animation phases vary every run; ignore those.";

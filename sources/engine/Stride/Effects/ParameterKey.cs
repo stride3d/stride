@@ -114,6 +114,13 @@ namespace Stride.Rendering
 
         //public abstract ParameterKey AppendKeyOverride(object obj);
 
+        /// <summary>
+        /// Creates a renamed duplicate of this key, used when resolving sub-keys by name.
+        /// Implemented per concrete key type so the duplicate is built with a direct constructor
+        /// call (no reflection / MakeGenericType), which keeps it AOT-compatible.
+        /// </summary>
+        internal abstract ParameterKey CreateSubkey(string name);
+
         private unsafe void UpdateName()
         {
             fixed (char* bufferStart = Name)
@@ -231,6 +238,13 @@ namespace Stride.Rendering
 
         public override int Size => Unsafe.SizeOf<T>();
 
+        /// <summary>
+        /// Builds the metadata for a sub-key duplicate, carrying over this key's default value.
+        /// Constructed directly (no reflection) since <typeparamref name="T"/> is statically known.
+        /// </summary>
+        private protected ParameterKeyValueMetadata<T> CreateSubkeyMetadata()
+            => DefaultValueMetadataT != null ? new ParameterKeyValueMetadata<T>(DefaultValueMetadataT.DefaultValue) : new ParameterKeyValueMetadata<T>();
+
         public override string ToString()
         {
             return string.Format("{0}", Name);
@@ -280,6 +294,9 @@ namespace Stride.Rendering
 
         internal override unsafe object ReadValue(nint data)
             => Unsafe.ReadUnaligned<T>((void*)data);
+
+        internal override ParameterKey CreateSubkey(string name)
+            => new ValueParameterKey<T>(name, Length, CreateSubkeyMetadata());
     }
 
     /// <summary>
@@ -296,6 +313,9 @@ namespace Stride.Rendering
         public ObjectParameterKey(string name, int length = 1, params PropertyKeyMetadata[] metadatas) : base(ParameterKeyType.Object, name, length, metadatas)
         {
         }
+
+        internal override ParameterKey CreateSubkey(string name)
+            => new ObjectParameterKey<T>(name, Length, CreateSubkeyMetadata());
     }
 
     /// <summary>
@@ -312,5 +332,8 @@ namespace Stride.Rendering
         public PermutationParameterKey(string name, int length = 1, params PropertyKeyMetadata[] metadatas) : base(ParameterKeyType.Permutation, name, length, metadatas)
         {
         }
+
+        internal override ParameterKey CreateSubkey(string name)
+            => new PermutationParameterKey<T>(name, Length, CreateSubkeyMetadata());
     }
 }

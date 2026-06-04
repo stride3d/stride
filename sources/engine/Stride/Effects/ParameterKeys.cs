@@ -249,19 +249,10 @@ namespace Stride.Rendering
                     // if it was not a "stage" value
                     if (keyByNames.TryGetValue(keyName, out key) && subKeyName != null)
                     {
-                        var baseParameterKeyType = key.GetType();
-                        while (baseParameterKeyType.GetGenericTypeDefinition() != typeof(ParameterKey<>))
-                            baseParameterKeyType = baseParameterKeyType.GetTypeInfo().BaseType;
-
-                        // Get default value and use it for the new subkey
-                        var defaultValue = key.DefaultValueMetadata.GetDefaultValue();
-
-                        // Create metadata
-                        var metadataParameters = defaultValue != null ? new[] { defaultValue } : new object[0]; 
-                        var metadata = Activator.CreateInstance(typeof(ParameterKeyValueMetadata<>).MakeGenericType(baseParameterKeyType.GetTypeInfo().GenericTypeArguments[0]), metadataParameters);
-
-                        var args = new[] { name, key.Length, metadata };
-                        key = (ParameterKey)Activator.CreateInstance(key.GetType(), args);
+                        // Create a renamed duplicate of the resolved key. CreateSubkey is virtual
+                        // (the concrete key type calls its own ctor), so this needs no reflection
+                        // and stays AOT-compatible.
+                        key = key.CreateSubkey(name);
 
                         // Register key. Also register real name in case it was remapped.
                         keyByNames[name] = key;

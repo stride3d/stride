@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -10,6 +11,9 @@ namespace SpaceEscape.Tests;
 [ScreenshotTest(TemplateId = "F9C4B79D-E313-47BC-9287-75A0395B8AC4")]
 public class SpaceEscapeScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new SpaceEscapeScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         // Capture quickly: a procedural obstacle in front of the ship can kill the run if we

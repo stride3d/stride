@@ -260,22 +260,25 @@ namespace Stride.Input
                 if (Platform.Type != PlatformType.Windows)
                     return;
 
-                InputSourceWindowsRawInput rawInputSource = Sources.OfType<InputSourceWindowsRawInput>().FirstOrDefault();
+                if (GameContextFactory.WinFormsBackendEnabled)
+                {
+                    InputSourceWindowsRawInput rawInputSource = Sources.OfType<InputSourceWindowsRawInput>().FirstOrDefault();
 
-                if (value)
-                {
-                    if (rawInputSource == null && gameContext is GameContextWinforms gameContextWinforms)
+                    if (value)
                     {
-                        rawInputSource = new InputSourceWindowsRawInput(gameContextWinforms.Control);
-                        Sources.Add(rawInputSource);
+                        if (rawInputSource == null && gameContext is GameContextWinforms gameContextWinforms)
+                        {
+                            rawInputSource = new InputSourceWindowsRawInput(gameContextWinforms.Control);
+                            Sources.Add(rawInputSource);
+                        }
                     }
-                }
-                else
-                {
-                    // Disable by removing the raw input source
-                    if (rawInputSource != null)
+                    else
                     {
-                        Sources.Remove(rawInputSource);
+                        // Disable by removing the raw input source
+                        if (rawInputSource != null)
+                        {
+                            Sources.Remove(rawInputSource);
+                        }
                     }
                 }
                 rawInputEnabled = value;
@@ -695,13 +698,18 @@ namespace Stride.Input
 #endif
                 case AppContextType.DesktopWinForms:
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-                    Sources.Add(new InputSourceWindowsDirectInput());
-                    if (InputSourceWindowsXInput.IsSupported())
-                        Sources.Add(new InputSourceWindowsXInput());
+                    // Gate on the feature switch so trimming/AOT can drop the whole Win32 controller
+                    // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
+                    if (GameContextFactory.WinFormsBackendEnabled)
+                    {
+                        Sources.Add(new InputSourceWindowsDirectInput());
+                        if (InputSourceWindowsXInput.IsSupported())
+                            Sources.Add(new InputSourceWindowsXInput());
 #if STRIDE_INPUT_RAWINPUT
-                    if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
-                        Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
+                        if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
+                            Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
 #endif
+                    }
 #endif
                     break;
                 case AppContextType.Headless:

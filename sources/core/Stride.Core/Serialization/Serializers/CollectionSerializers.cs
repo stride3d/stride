@@ -3,6 +3,7 @@
 #pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -71,7 +72,7 @@ public class ListSerializer<T> : DataSerializer<List<T>>, IDataSerializerGeneric
 /// </summary>
 /// <typeparam name="TList">Type of IList{T}.</typeparam>
 /// <typeparam name="T">Generics type of IList{T}.</typeparam>
-public class ListAllSerializer<TList, T> : DataSerializer<TList>, IDataSerializerGenericInstantiation where TList : class, IList<T>
+public class ListAllSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TList, T> : DataSerializer<TList>, IDataSerializerGenericInstantiation where TList : class, IList<T>
 {
     private readonly bool isInterface = typeof(TList).GetTypeInfo().IsInterface;
     private DataSerializer<T> itemDataSerializer = null!;
@@ -442,7 +443,7 @@ public class DictionarySerializer<TKey, TValue> : DataSerializer<Dictionary<TKey
     }
 }
 
-public class DictionaryAllSerializer<TDictionary, TKey, TValue> : DataSerializer<TDictionary>, IDataSerializerGenericInstantiation
+public class DictionaryAllSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TDictionary, TKey, TValue> : DataSerializer<TDictionary>, IDataSerializerGenericInstantiation
     where TDictionary : IDictionary<TKey, TValue>
     where TKey : notnull
 {

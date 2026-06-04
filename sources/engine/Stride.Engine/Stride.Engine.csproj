@@ -17,6 +17,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="buildTransitive\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="buildTransitive\**\*.props" PackagePath="buildTransitive\" Pack="true" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />

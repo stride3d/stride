@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -9,6 +10,9 @@ namespace FirstPersonShooter.Tests;
 [ScreenshotTest(TemplateId = "B12AF970-1F11-4BC8-9571-3B4DA9E20F05")]
 public class FirstPersonShooterScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new FirstPersonShooterScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         await ctx.WaitTime(TimeSpan.FromMilliseconds(2000));

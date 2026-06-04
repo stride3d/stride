@@ -2,13 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Serialization.Contents;
 
 /// <summary>
 /// ContentSerializer that simply defers serialization to low level serialization.
 /// </summary>
 /// <typeparam name="T">The type to serialize.</typeparam>
-public class DataContentSerializer<T> : ContentSerializerBase<T>
+public class DataContentSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : ContentSerializerBase<T>
 {
     private readonly DataContentSerializerHelper<T> dataSerializerHelper = new();
 

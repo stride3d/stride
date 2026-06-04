@@ -2,6 +2,7 @@
 // Pause the auto-advance with Space, then step through each with Right.
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Games.AutoTesting;
 using Stride.Input;
@@ -11,6 +12,9 @@ namespace SpriteFonts.Tests;
 [ScreenshotTest(TemplateId = "1EEB50EC-1AA7-4D1F-9DDD-E5E12404B001")]
 public class SpriteFontsScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new SpriteFontsScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         await ctx.WaitTime(TimeSpan.FromMilliseconds(2000));

@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Annotations;
 
 /// <summary>
@@ -12,7 +14,7 @@ public abstract class DynamicTypeAttributeBase : Attribute
     /// Initializes a new instance of the <see cref="DynamicTypeAttributeBase"/> class.
     /// </summary>
     /// <param name="type">The type.</param>
-    protected DynamicTypeAttributeBase(Type type)
+    protected DynamicTypeAttributeBase([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
     {
         TypeName = type.AssemblyQualifiedName ?? throw new ArgumentException("The type doesn't have an assembly-qualified name", nameof(type));
     }

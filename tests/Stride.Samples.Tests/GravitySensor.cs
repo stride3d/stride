@@ -1,5 +1,6 @@
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Games.AutoTesting;
 using Stride.Input;
@@ -9,6 +10,9 @@ namespace GravitySensor.Tests;
 [ScreenshotTest(TemplateId = "7174D040-C0FB-4D5C-8170-3411AD8AA4C2")]
 public class GravitySensorScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new GravitySensorScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         // GravityScript only applies the directional force while the key is held (Input.IsKeyDown),

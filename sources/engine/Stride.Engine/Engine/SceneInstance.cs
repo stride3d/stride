@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -331,6 +332,7 @@ namespace Stride.Engine
             }
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2077", Justification = "Renderer ctor rooted via [DefaultEntityComponentRenderer(typeof(...))] DAM.")]
         private EntityProcessor CreateRenderProcessor(RegisteredRenderProcessors registeredRenderProcessor, VisibilityGroup visibilityGroup)
         {
             // Create

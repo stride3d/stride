@@ -5,8 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -27,13 +25,35 @@ namespace Stride.Games.AutoTesting;
 /// </summary>
 public static class AutoTestingBootstrap
 {
+    /// <summary>The test registered for this run, or null if none (non-test build).</summary>
+    internal static IScreenshotTest? RegisteredTest { get; private set; }
+
     /// <summary>
-    /// No-op invoked from a consumer's [ModuleInitializer] to force-load this assembly so the
-    /// <see cref="ScreenshotTestRunner"/>'s own [ModuleInitializer] runs. The .NET runtime
-    /// defers loading until a method from the assembly is actually invoked, so referencing a
-    /// type with typeof() isn't enough on its own.
+    /// Registers the screenshot-test driver for this sample. Called from a [ModuleInitializer] in
+    /// the test fixture: invoking a method here force-loads this assembly (so the
+    /// <see cref="ScreenshotTestRunner"/>'s [ModuleInitializer] runs and hooks
+    /// <see cref="Game.GameStarted"/>), and hands over the concrete instance directly — no reflection,
+    /// keeping the discovery path trim/AOT-clean.
     /// </summary>
-    public static void EnsureLoaded() { }
+    public static void RegisterTest(IScreenshotTest test)
+    {
+        ArgumentNullException.ThrowIfNull(test);
+        if (RegisteredTest is not null && RegisteredTest.GetType() != test.GetType())
+            throw new InvalidOperationException(
+                $"Stride.Games.AutoTesting: '{RegisteredTest.GetType().FullName}' is already registered; " +
+                $"exactly one [ScreenshotTest] per sample is allowed (tried to register '{test.GetType().FullName}').");
+        RegisteredTest = test;
+    }
+}
+
+/// <summary>
+/// Installs native-crash diagnostics for the sample run from a [ModuleInitializer].
+/// See <see cref="NativeCrashHandler"/> (shared with Stride.Graphics.Regression).
+/// </summary>
+internal static class CrashDiagnostics
+{
+    [ModuleInitializer]
+    internal static void Initialize() => NativeCrashHandler.Install();
 }
 
 internal sealed class ScreenshotTestRunner
@@ -75,48 +95,11 @@ internal sealed class ScreenshotTestRunner
         // by the time the swap chain is created.
         ((GraphicsDeviceManager)game.GraphicsDeviceManager).SkipBackBufferClampToWindow = true;
 
-        // [ScreenshotTest] typically lives in the .Game assembly (library), not the .Windows entry
-        // assembly (exe). Scan every currently-loaded assembly that references Stride.Games.AutoTesting.
-        var harness = typeof(ScreenshotTestAttribute).Assembly.GetName().Name;
-        var testTypes = new List<Type>();
-        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            if (asm.IsDynamic)
-                continue;
-            // Cheap filter: assembly must reference our harness (or be it).
-            if (asm.GetName().Name != harness && !asm.GetReferencedAssemblies().Any(r => r.Name == harness))
-                continue;
-            try
-            {
-                foreach (var t in asm.GetTypes())
-                {
-                    if (t.GetCustomAttribute<ScreenshotTestAttribute>() is not null)
-                        testTypes.Add(t);
-                }
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                foreach (var t in ex.Types.OfType<Type>())
-                {
-                    if (t.GetCustomAttribute<ScreenshotTestAttribute>() is not null)
-                        testTypes.Add(t);
-                }
-            }
-        }
-
-        if (testTypes.Count == 0)
+        // The test fixture self-registers from a [ModuleInitializer] (see AutoTestingBootstrap.RegisterTest).
+        var test = AutoTestingBootstrap.RegisteredTest;
+        if (test is null)
             return;
 
-        if (testTypes.Count > 1)
-            throw new InvalidOperationException(
-                $"Stride.Games.AutoTesting: found {testTypes.Count} [ScreenshotTest] classes; exactly one is allowed. " +
-                $"Found: {string.Join(", ", testTypes.Select(t => t.FullName))}");
-
-        var testType = testTypes[0];
-        if (!typeof(IScreenshotTest).IsAssignableFrom(testType))
-            throw new InvalidOperationException($"[ScreenshotTest] class {testType.FullName} must implement {nameof(IScreenshotTest)}.");
-
-        var test = (IScreenshotTest)Activator.CreateInstance(testType)!;
         var runner = new ScreenshotTestRunner(game, test);
         runner.Start();
     }
@@ -178,7 +161,7 @@ internal sealed class ScreenshotTestRunner
         game.Script.AddTask(async () =>
         {
             string status = "ok";
-            object? exceptionInfo = null;
+            ExceptionInfo? exceptionInfo = null;
             try
             {
                 await test.Run(ctx);
@@ -205,7 +188,7 @@ internal sealed class ScreenshotTestRunner
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        WriteDoneJson("crashed", e.ExceptionObject is Exception ex ? SerializeException(ex) : new { message = e.ExceptionObject?.ToString() });
+        WriteDoneJson("crashed", e.ExceptionObject is Exception ex ? SerializeException(ex) : new ExceptionInfo(null, e.ExceptionObject?.ToString(), null));
         Console.Error.WriteLine(e.ExceptionObject);
     }
 
@@ -216,18 +199,49 @@ internal sealed class ScreenshotTestRunner
         e.SetObserved();
     }
 
-    private void WriteDoneJson(string status, object? exceptionInfo)
+    // Hand-written with Utf8JsonWriter so it works under NativeAOT, which disables reflection-based
+    // serialization. Property names/casing match what the orchestrator and comparator read back.
+    private void WriteDoneJson(string status, ExceptionInfo? exceptionInfo)
     {
         try
         {
             var donePath = Path.Combine(outputDir, DoneFileName);
-            var payload = new
+            using var stream = File.Create(donePath);
+            using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            writer.WriteStartObject();
+            writer.WriteString("status", status);
+
+            writer.WriteStartArray("screenshots");
+            foreach (var shot in captured)
             {
-                status,
-                screenshots = captured,
-                exception = exceptionInfo,
-            };
-            File.WriteAllText(donePath, JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
+                writer.WriteStartObject();
+                writer.WriteString("Name", shot.Name);
+                writer.WriteNumber("Threshold", shot.Threshold);
+                // null (no fallback) / true (generic prompt) / string (extra guidance)
+                switch (shot.ClaudeFallback)
+                {
+                    case bool b: writer.WriteBoolean("ClaudeFallback", b); break;
+                    case string s: writer.WriteString("ClaudeFallback", s); break;
+                    default: writer.WriteNull("ClaudeFallback"); break;
+                }
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+
+            if (exceptionInfo is null)
+            {
+                writer.WriteNull("exception");
+            }
+            else
+            {
+                writer.WriteStartObject("exception");
+                writer.WriteString("type", exceptionInfo.Type);
+                writer.WriteString("message", exceptionInfo.Message);
+                writer.WriteString("stack", exceptionInfo.Stack);
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndObject();
         }
         catch (Exception ex)
         {
@@ -238,12 +252,9 @@ internal sealed class ScreenshotTestRunner
     // ClaudeFallback is null (no fallback), true (generic prompt), or a string (extra guidance).
     private sealed record CapturedScreenshot(string Name, float Threshold, object? ClaudeFallback);
 
-    private static object SerializeException(Exception ex) => new
-    {
-        type = ex.GetType().FullName,
-        message = ex.Message,
-        stack = ex.ToString(),
-    };
+    private sealed record ExceptionInfo(string? Type, string? Message, string? Stack);
+
+    private static ExceptionInfo SerializeException(Exception ex) => new(ex.GetType().FullName, ex.Message, ex.ToString());
 
     // DXGI ignores backbuffer alpha; PNG viewers don't. Force-opaque so the saved frame
     // matches what the user sees on screen.
