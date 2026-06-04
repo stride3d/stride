@@ -67,7 +67,7 @@ public class LogMessage : ILogMessage
     /// Gets or sets the text.
     /// </summary>
     /// <value>The text.</value>
-    public virtual string Text { get; set; } = string.Empty;
+    public virtual string Text { get; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the exception.
