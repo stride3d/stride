@@ -14,7 +14,7 @@ public class VirtualNodePresenter : NodePresenterBase
     private readonly List<Attribute> memberAttributes = [];
     private bool updatingValue;
 
-    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, INodePresenter parent, string name, Type type, int? order, Func<object> getter, Action<object> setter)
+    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, string name, Type type, int? order, Func<object> getter, Action<object> setter)
         : base(factory, propertyProvider, parent)
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -90,7 +90,7 @@ public class VirtualNodePresenter : NodePresenterBase
     }
 
     /// <inheritdoc/>
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {
