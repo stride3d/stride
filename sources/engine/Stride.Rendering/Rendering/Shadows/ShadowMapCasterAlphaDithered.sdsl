@@ -7,7 +7,7 @@ namespace Stride.Rendering.Shadows
     /// Runs the material surface chain to populate shadingColorAlpha but never writes ColorTarget,
     /// so the resulting PS has no SV_Target output (depth-only).
     /// </summary>
-    shader ShadowMapCasterAlphaDithered : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream
+    shader ShadowMapCasterAlphaDithered : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream, NormalUpdate
     {
         static const float BayerMatrix[16] =
         {
@@ -31,6 +31,9 @@ namespace Stride.Rendering.Shadows
 
         override stage void PSMain()
         {
+            // Generate the normal/tangent frame first: the material chain in Shading() reads
+            // streams.tangentToWorld (via UpdateNormalFromTangentSpace), which is only produced here.
+            GenerateNormal_PS();
             this.Shading();
 
             int2 coord = int2(streams.ShadingPosition.xy % 4.0);
