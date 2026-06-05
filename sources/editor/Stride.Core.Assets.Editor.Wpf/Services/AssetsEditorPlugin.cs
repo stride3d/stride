@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 
 #nullable enable
 

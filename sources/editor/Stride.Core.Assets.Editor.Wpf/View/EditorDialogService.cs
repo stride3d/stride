@@ -25,6 +25,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Presentation.ViewModels;
 
@@ -246,21 +247,20 @@ namespace Stride.Core.Assets.Editor.View
 
         public void RegisterDefaultTemplateProvider(ITemplateProvider provider)
         {
-            var dependencyObject = provider as DependencyObject;
-            if (dependencyObject == null)
-                throw new InvalidOperationException("The template provider must be a dependency object in order to be used correctly in the property view.");
+            if (provider is not TemplateProviderBase templateProvider)
+                throw new InvalidOperationException($"The template provider must be a {nameof(TemplateProviderBase)} in order to be used correctly in the property view.");
 
-            var category = PropertyViewHelper.GetTemplateCategory(dependencyObject);
+            var category = PropertyViewHelper.GetTemplateCategory(templateProvider);
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -271,21 +271,20 @@ namespace Stride.Core.Assets.Editor.View
         public void RegisterAdditionalTemplateProvider(ITemplateProvider provider)
         {
             AdditionalProviders.Add(provider);
-            var dependencyObject = provider as DependencyObject;
-            if (dependencyObject == null)
-                throw new InvalidOperationException("The template provider must be a dependency object in order to be used correctly in the property view.");
+            if (provider is not TemplateProviderBase templateProvider)
+                throw new InvalidOperationException($"The template provider must be a {nameof(TemplateProviderBase)} in order to be used correctly in the property view.");
 
-            var category = PropertyViewHelper.GetTemplateCategory(dependencyObject);
+            var category = PropertyViewHelper.GetTemplateCategory(templateProvider);
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(templateProvider);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -295,15 +294,18 @@ namespace Stride.Core.Assets.Editor.View
         public void UnregisterAdditionalTemplateProvider(ITemplateProvider provider)
         {
             AdditionalProviders.Remove(provider);
-            PropertyViewHelper.HeaderProviders.UnregisterTemplateProvider(provider);
-            PropertyViewHelper.FooterProviders.UnregisterTemplateProvider(provider);
-            PropertyViewHelper.EditorProviders.UnregisterTemplateProvider(provider);
+            if (provider is TemplateProviderBase templateProvider)
+            {
+                PropertyViewHelper.HeaderProviders.UnregisterTemplateProvider(templateProvider);
+                PropertyViewHelper.FooterProviders.UnregisterTemplateProvider(templateProvider);
+                PropertyViewHelper.EditorProviders.UnregisterTemplateProvider(templateProvider);
+            }
         }
 
         // TODO: Move this in PluginService
         public void UnregisterAdditionalTemplateProviders()
         {
-            foreach (var provider in AdditionalProviders)
+            foreach (var provider in AdditionalProviders.OfType<TemplateProviderBase>())
             {
                 PropertyViewHelper.HeaderProviders.UnregisterTemplateProvider(provider);
                 PropertyViewHelper.FooterProviders.UnregisterTemplateProvider(provider);
