@@ -107,6 +107,7 @@ namespace Stride.Core.Translation.Extractor
                     // Add all supported formats
                     options.InputFiles.Add("*.cs");
                     options.InputFiles.Add("*.xaml");
+                    options.InputFiles.Add("*.axaml");
                 }
                 if (options.InputDirs.Count == 0)
                 {
