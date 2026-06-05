@@ -84,7 +84,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
     }
 
     /// <inheritdoc/>
-    public void Add(object newItem)
+    public void Add(object? newItem)
     {
         if (Descriptor is CollectionDescriptor collectionDescriptor)
         {
@@ -111,7 +111,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
     }
 
     /// <inheritdoc/>
-    public void Add(object newItem, NodeIndex itemIndex)
+    public void Add(object? newItem, NodeIndex itemIndex)
     {
         if (Descriptor is CollectionDescriptor collectionDescriptor)
         {
@@ -146,7 +146,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
     }
 
     /// <inheritdoc/>
-    public void Remove(object item, NodeIndex itemIndex)
+    public void Remove(object? item, NodeIndex itemIndex)
     {
         if (!itemIndex.TryGetValue(out var itemIndexValue))
             throw new ArgumentException("index cannot be empty.", nameof(itemIndex));
