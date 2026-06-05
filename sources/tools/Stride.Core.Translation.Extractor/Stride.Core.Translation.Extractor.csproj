@@ -7,7 +7,6 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.GNU.Getopt" />
     <PackageReference Include="Stride.GNU.Gettext" />
   </ItemGroup>
   <ItemGroup>
