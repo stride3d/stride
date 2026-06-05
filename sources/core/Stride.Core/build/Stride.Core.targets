@@ -159,9 +159,25 @@
       <_StrideDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <!-- Android -->
       <_StrideDepsFile Include="@(_ReferencesFromNuGetPackages->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
+      <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" PublishFolderType="None" />
     </ItemGroup>
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.NativeLibraries.targets" />
+
+  <!-- Strip publish globals from ProjectReferences on iOS exes: PublishAot in the iOS .csproj
+       must not propagate to cross-platform library refs or they fail NETSDK1203. Set as static
+       metadata (not inside a target) so it applies in BOTH restore and build phases — restore
+       has its own P2P graph traversal that runs before our targets do. UndefineProperties on
+       the item works for SDK-propagated AdditionalProperties but NOT for command-line globals —
+       users passing -p:PublishAot=true on the CLI will still fail (set it in the csproj instead). -->
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'iOS'">
+    <ProjectReference Update="@(ProjectReference)"
+                      UndefineProperties="%(ProjectReference.UndefineProperties);PublishAot;PublishTrimmed;PublishReadyToRun;PublishSingleFile;SelfContained" />
+  </ItemGroup>
+
+  <!-- Override macios _PrePublish to allow iossimulator publish: https://github.com/dotnet/macios/issues/25648 -->
+  <PropertyGroup Condition="'$(TargetPlatformIdentifier)' == 'iOS'">
+    <AfterMicrosoftNETSdkTargets>$(AfterMicrosoftNETSdkTargets);$(MSBuildThisFileDirectory)Stride.Core.iOSPublishOverride.targets</AfterMicrosoftNETSdkTargets>
+  </PropertyGroup>
 </Project>
