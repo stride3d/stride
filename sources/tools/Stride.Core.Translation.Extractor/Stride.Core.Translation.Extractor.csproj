@@ -11,9 +11,6 @@
     <PackageReference Include="Stride.GNU.Gettext" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Translation\Stride.Core.Translation.csproj" />
