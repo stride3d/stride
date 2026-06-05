@@ -404,9 +404,17 @@ static void MergeIntoZipEntry(ZipArchive zip, string entryPath, string addition)
     var additionDoc = XDocument.Parse(addition);
     if (additionDoc.Root != null && existingDoc.Root != null)
     {
+        // The addition is authored in the MSBuild 2003 namespace, but the original package targets
+        // may use the namespace-less <Project> form (e.g. Stride.Engine's AOT targets). XLINQ would
+        // then stamp the moved children with a redundant xmlns="...2003", which MSBuild rejects
+        // (MSB4066). Normalize the moved subtree to the existing root's namespace so the merged file
+        // stays consistent either way.
+        var rootNs = existingDoc.Root.Name.Namespace;
         foreach (var child in additionDoc.Root.Elements().ToList())
         {
             child.Remove();
+            foreach (var e in child.DescendantsAndSelf())
+                e.Name = rootNs + e.Name.LocalName;
             existingDoc.Root.Add(child);
         }
     }
