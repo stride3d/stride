@@ -1,0 +1,21 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Multi-platform variant of the Tests SDK.
+
+    Sets StrideMultiPlatformTest=true before delegating to the base Tests SDK so the
+    consumer csproj doesn't need a pre-import PropertyGroup. The flag (read at props time
+    in the base SDK) defaults StrideTestPlatforms from StridePlatforms (Stride.Local.props)
+    and suppresses the single-TFM fallback, letting the targets-time expansion produce
+    multi-TFM TargetFrameworks. Same shape as StrideRuntime in Stride.Frameworks.targets.
+
+    Single-platform tests should keep importing Stride.Build.Sdk.Tests directly.
+  -->
+
+  <PropertyGroup>
+    <StrideMultiPlatformTest>true</StrideMultiPlatformTest>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Tests\Sdk\Sdk.props" />
+
+</Project>

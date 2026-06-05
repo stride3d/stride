@@ -111,20 +111,12 @@ namespace Stride.Engine.Tests
         {
             base.RegisterTests();
 
-            // D3D12 WARP has tessellation rendering bugs on subsequent material/model changes,
-            // but the first frame renders correctly. Limit to first frame only for D3D12 WARP.
-            bool limitedFrames = GraphicsDevice.Platform == GraphicsPlatform.Direct3D12
-                && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
-
             FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
-            if (!limitedFrames)
-            {
-                FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
-                FrameGameSystem.Draw(() => ChangeMaterial(1)).Draw(() => ChangeModel(1)).TakeScreenshot();
-                FrameGameSystem.Draw(() => ChangeMaterial(1)).Draw(() => ChangeModel(-1)).TakeScreenshot();
-                FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
-                FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
-            }
+            FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
+            FrameGameSystem.Draw(() => ChangeMaterial(1)).Draw(() => ChangeModel(1)).TakeScreenshot();
+            FrameGameSystem.Draw(() => ChangeMaterial(1)).Draw(() => ChangeModel(-1)).TakeScreenshot();
+            FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
+            FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -210,9 +202,6 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-            // Note: D3D12 WARP tessellation is limited to first frame only (see RegisterTests)
-
             RunGameTest(new TesselationTest());
         }
 

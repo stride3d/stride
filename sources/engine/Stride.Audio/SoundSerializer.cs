@@ -20,7 +20,7 @@ namespace Stride.Audio
                 var audioEngine = services.GetService<IAudioEngineProvider>()?.AudioEngine;
 
                 obj.FileProvider = services.GetService<IDatabaseFileProviderService>()?.FileProvider;
-                obj.CompressedDataUrl = stream.ReadString();
+                obj.CompressedDataUrl = stream.ReadNullable<string>();
                 obj.SampleRate = stream.ReadInt32();
                 obj.Channels = stream.ReadByte();
                 obj.StreamFromDisk = stream.ReadBoolean();
@@ -29,19 +29,20 @@ namespace Stride.Audio
                 obj.MaxPacketLength = stream.ReadInt16();
                 obj.Samples = stream.ReadInt32();
 
-                if (!obj.StreamFromDisk && audioEngine != null && audioEngine.State != AudioEngineState.Invalidated && audioEngine.State != AudioEngineState.Disposed) //immediatelly preload all the data and decode
-                {
-                    obj.LoadSoundInMemory();
-                }
-
                 if (audioEngine != null)
                 {
+                    if (obj.CompressedDataUrl != null && !obj.StreamFromDisk && audioEngine.State != AudioEngineState.Invalidated && audioEngine.State != AudioEngineState.Disposed)
+                    {
+                        //immediately preload all the data and decode
+                        obj.LoadSoundInMemory();
+                    }
+
                     obj.Attach(audioEngine);
                 }
             }
             else
             {
-                stream.Write(obj.CompressedDataUrl);
+                stream.WriteNullable(obj.CompressedDataUrl);
                 stream.Write(obj.SampleRate);
                 stream.Write((byte)obj.Channels);
                 stream.Write(obj.StreamFromDisk);

@@ -27,8 +27,27 @@
     <!--<StrideNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(StridePackageStridePlatformBin)\'))</StrideNativeOutputPath>-->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so; .a; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
   
+    <!-- Auto-disable Windows ARM64 native build if the VS ARM64 toolset isn't installed.
+         MSVC mode: check VCToolsInstallDir for arm64 cl.exe (env var set by Dev Cmd / vcvarsall).
+         Clang mode: probe standard VS install paths for arm64 CRT libs (no env var available). -->
+    <_StrideArm64ToolsetMissing Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeMSVC)' == 'true' And !Exists('$(VCToolsInstallDir)bin\Hostx64\arm64\cl.exe')">true</_StrideArm64ToolsetMissing>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeClang)' == 'true' And $([MSBuild]::IsOSPlatform('Windows'))">
+    <_StrideArm64LibProbe Include="$(MSBuildProgramFiles32)\Microsoft Visual Studio\*\*\VC\Tools\MSVC\*\lib\arm64\msvcrt.lib" />
+    <_StrideArm64LibProbe Include="$(ProgramW6432)\Microsoft Visual Studio\*\*\VC\Tools\MSVC\*\lib\arm64\msvcrt.lib" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_StrideArm64LibProbeJoined>@(_StrideArm64LibProbe)</_StrideArm64LibProbeJoined>
+    <_StrideArm64ToolsetMissing Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(StrideNativeBuildModeClang)' == 'true' And $([MSBuild]::IsOSPlatform('Windows')) And '$(_StrideArm64LibProbeJoined)' == ''">true</_StrideArm64ToolsetMissing>
+    <StrideNativeWindowsArm64Enabled Condition="'$(StrideNativeWindowsArm64Enabled)' == '' And '$(_StrideArm64ToolsetMissing)' == 'true'">false</StrideNativeWindowsArm64Enabled>
     <StrideNativeWindowsArm64Enabled Condition="'$(StrideNativeWindowsArm64Enabled)' == ''">true</StrideNativeWindowsArm64Enabled>
   </PropertyGroup>
+
+  <Target Name="_StrideWarnArm64ToolsetMissing" BeforeTargets="Build" Condition="'$(_StrideArm64ToolsetMissing)' == 'true' And '$(StrideNativeOutputName)' != ''">
+    <Warning Text="[Stride] Windows ARM64 native build skipped: MSVC ARM64 toolset not found. Install 'MSVC v145 ARM64/ARM64EC build tools' from the VS installer, or set -p:StrideNativeWindowsArm64Enabled=false to silence this warning." />
+  </Target>
 
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
@@ -45,12 +64,16 @@
     </Otherwise>
   </Choose>
   
-  <!-- Define default CPU architectures -->
-  <!-- TODO: Some targets are not crossplatform, so they are restricted to Windows OS -->
+  <!-- Define default CPU architectures.
+       Each desktop RID is gated by both StridePlatforms membership (user opt-in) and the host
+       OS being able to produce it. Today only the Windows host has the bundled toolchain to
+       cross-compile every desktop RID; Linux/macOS hosts build their own. -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
-    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="win-x64;win-x86;win-arm64" LibraryExtension=".dll" LibraryRuntime="win" />
-    <StrideNativeCPU Include="linux-x64"  LibraryExtension=".so" LibraryRuntime="linux" />
-    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="osx-x64"  LibraryExtension=".dylib" LibraryRuntime="osx" />
+    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';Windows;'))" Include="win-x64;win-arm64" LibraryExtension=".dll" LibraryRuntime="win" />
+    <StrideNativeCPU Condition="$(_StridePlatforms.Contains(';Linux;'))" Include="linux-x64" LibraryExtension=".so" LibraryRuntime="linux" />
+    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-x64" LibraryExtension=".dylib" LibraryRuntime="osx" />
+    <!-- macOS host builds its own osx-arm64 dylib via the system clang. -->
+    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StrideNativeCPU Include="android-arm64;android-arm;android-x86;android-x64" LibraryExtension=".so" />
@@ -60,7 +83,7 @@
   </ItemGroup>
   <!-- Can be deleted -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
-    <StrideNativeCPU Include="x86;x64;ARM" LibraryExtension=".dll" />
+    <StrideNativeCPU Include="x64;ARM" LibraryExtension=".dll" />
   </ItemGroup>
   <!-- Use runtimes/*/native folder -->
   <ItemGroup>
@@ -133,12 +156,7 @@
   
 
   <!-- TODO: Target uses vcxproj. This blocks the use of dotnet core msbuild-->
-  <Target Name="CompileNativeClang_Windows" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('Windows')) And $(DesignTimeBuild) != true And $(BuildingProject) != false And '$(StrideNativeBuildModeMsvc)' == 'true'" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
-    <MakeDir Directories="$(OutputObjectPath)\win-x86"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
-    <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\runtimes\win-x86\native;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsWindows_x86);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\win-x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
-
+  <Target Name="CompileNativeClang_Windows" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';Windows;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false And '$(StrideNativeBuildModeMsvc)' == 'true'" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\win-x64"/>
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
@@ -149,15 +167,9 @@
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp' AND '$(StrideNativeWindowsArm64Enabled)' == 'true'" Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-arm64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target aarch64-pc-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\runtimes\win-arm64\native;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsWindowsArm64);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\win-arm64;Configuration=$(Configuration);Platform=arm64" StopOnFirstFailure="true" Condition="'$(StrideNativeWindowsArm64Enabled)' == 'true'" />
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
   <Target Name="CompileNativeClang_UWP" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)"  Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
-    <MakeDir Directories="$(OutputObjectPath)\x86"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32" />
-    <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\x86;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
-
     <MakeDir Directories="$(OutputObjectPath)\x64"/>
     <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m64" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\x64;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
@@ -166,8 +178,6 @@
     <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\ARM\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\ARM;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\ARM;Configuration=$(Configuration);Platform=ARM" StopOnFirstFailure="true" />
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
   <Target Name="CompileNativeClang_iOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
@@ -203,8 +213,6 @@
       <StrideNativeLib Include="@(StrideNativePathLibsiOS->'$(StrideNativeOutputPathiOS)%(Filename)%(Extension)')"/>
     </ItemGroup>
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
   <Target Name="CompileNativeClang_iOS_Clean" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" BeforeTargets="Clean">
@@ -214,47 +222,56 @@
   <Target Name="CompileNativeClang_Android" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <Error Text="The _AndroidNdkDirectory variable is not set!" Condition="'$(_AndroidNdkDirectory)' == ''" />
     <PropertyGroup>
-      <StrideNativeAndroidToolchainFolder Condition="Exists('$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe')">$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64</StrideNativeAndroidToolchainFolder>
-      <StrideNativeAndroidToolchainFolder Condition="$(StrideNativeAndroidToolchainFolder) == '' And Exists('$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows\bin\clang.exe')">$(_AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows</StrideNativeAndroidToolchainFolder>
-      <StrideNativeAndroidClang>-lc++abi -lm --sysroot=&quot;$(StrideNativeAndroidToolchainFolder)\sysroot&quot;</StrideNativeAndroidClang>
+      <!-- NDK toolchain layout: $(NDK)/toolchains/llvm/prebuilt/<host-tag>/bin/clang[.exe].
+           Detect host tag (windows-x86_64 / linux-x86_64 / darwin-x86_64) and the exe extension
+           so the Android native build runs on any host. Older NDKs (<=r15) shipped a 'windows'
+           folder for 32-bit Windows; keep the fallback. -->
+      <_StrideAndroidHostTag Condition="$([MSBuild]::IsOSPlatform('Windows'))">windows-x86_64</_StrideAndroidHostTag>
+      <_StrideAndroidHostTag Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x86_64</_StrideAndroidHostTag>
+      <_StrideAndroidHostTag Condition="$([MSBuild]::IsOSPlatform('OSX'))">darwin-x86_64</_StrideAndroidHostTag>
+      <_StrideAndroidExeExt Condition="$([MSBuild]::IsOSPlatform('Windows'))">.exe</_StrideAndroidExeExt>
 
-      <_StrideNativeAndroidNdkSourceProperties Condition="Exists('$(_AndroidNdkDirectory)\source.properties')">$([System.IO.File]::ReadAllText('$(_AndroidNdkDirectory)\source.properties'))</_StrideNativeAndroidNdkSourceProperties>
+      <StrideNativeAndroidToolchainFolder Condition="Exists('$(_AndroidNdkDirectory)/toolchains/llvm/prebuilt/$(_StrideAndroidHostTag)/bin/clang$(_StrideAndroidExeExt)')">$(_AndroidNdkDirectory)/toolchains/llvm/prebuilt/$(_StrideAndroidHostTag)</StrideNativeAndroidToolchainFolder>
+      <StrideNativeAndroidToolchainFolder Condition="$(StrideNativeAndroidToolchainFolder) == '' And $([MSBuild]::IsOSPlatform('Windows')) And Exists('$(_AndroidNdkDirectory)/toolchains/llvm/prebuilt/windows/bin/clang.exe')">$(_AndroidNdkDirectory)/toolchains/llvm/prebuilt/windows</StrideNativeAndroidToolchainFolder>
+      <_StrideAndroidNdkClang>$(StrideNativeAndroidToolchainFolder)/bin/clang$(_StrideAndroidExeExt)</_StrideAndroidNdkClang>
+      <!-- -Wl,-z,max-page-size=16384: required for Android 16+ 16KB page size compatibility -->
+      <StrideNativeAndroidClang>-lc++abi -lm --sysroot=&quot;$(StrideNativeAndroidToolchainFolder)/sysroot&quot; -Wl,-z,max-page-size=16384</StrideNativeAndroidClang>
+
+      <_StrideNativeAndroidNdkSourceProperties Condition="Exists('$(_AndroidNdkDirectory)/source.properties')">$([System.IO.File]::ReadAllText('$(_AndroidNdkDirectory)/source.properties'))</_StrideNativeAndroidNdkSourceProperties>
       <StrideNativeAndroidNdkVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideNativeAndroidNdkSourceProperties), `Pkg\.Revision = (.*)`).Groups[1].Value)</StrideNativeAndroidNdkVersion>
       <StrideNativeAndroidNdkVersionMinimum>19.0</StrideNativeAndroidNdkVersionMinimum>
 
       <!-- Android NDK version is equivalent to minSdkVersion; note: 64 bits exist only from platform version 21 -->
-      <StrideNativeAndroidPlatformVersion32>16</StrideNativeAndroidPlatformVersion32>
+      <StrideNativeAndroidPlatformVersion32>21</StrideNativeAndroidPlatformVersion32>
       <StrideNativeAndroidPlatformVersion64>21</StrideNativeAndroidPlatformVersion64>
     </PropertyGroup>
 
+    <Error Condition="'$(StrideNativeAndroidToolchainFolder)' == ''" Text="No Android NDK toolchain found for host tag '$(_StrideAndroidHostTag)' under '$(_AndroidNdkDirectory)/toolchains/llvm/prebuilt/'. Install the matching NDK host package." />
     <Error Condition="'$(StrideNativeAndroidNdkVersion)' == ''" Text="Could not figure out Android NDK version from $(_AndroidNdkDirectory). There should be a source.properties file with Pkg.Revision properly set." />
     <Error Condition="$([System.Version]::Parse('$(StrideNativeAndroidNdkVersionMinimum)').CompareTo($([System.Version]::Parse('$(StrideNativeAndroidNdkVersion)')))) >= 0" Text="The Android NDK version is too old. Found: $(StrideNativeAndroidNdkVersion), Expected: $(StrideNativeAndroidNdkVersionMinimum), Location: $(_AndroidNdkDirectory)" />
 
-    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\android-arm\native"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Command="&quot;$(StrideNativeAndroidToolchainFolder)\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\runtimes\android-arm\native\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(_AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/android-arm/native"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
+    <Exec Command="&quot;$(_StrideAndroidNdkClang)&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)/runtimes/android-arm/native/$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/%(Filename)_armeabi-v7a.o&quot;', ' ') @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/armeabi-v7a/%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/armeabi-v7a/libNativePath.a&quot; $(StrideNativeAndroidClang) --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
 
-    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\android-arm64\native"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
-    <Exec Command="&quot;$(StrideNativeAndroidToolchainFolder)\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\runtimes\android-arm64\native\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64-v8a.o&quot;', ' ') --sysroot=&quot;$(_AndroidNdkDirectory)\platforms\android-21\arch-arm64&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\arm64-v8a\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\arm64-v8a\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/android-arm64/native"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <Exec Command="&quot;$(_StrideAndroidNdkClang)&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)/runtimes/android-arm64/native/$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/%(Filename)_arm64-v8a.o&quot;', ' ') @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/arm64-v8a/%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/arm64-v8a/libNativePath.a&quot; $(StrideNativeAndroidClang) --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
 
-    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\android-x86\native"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Command="&quot;$(StrideNativeAndroidToolchainFolder)\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\runtimes\android-x86\native\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') --sysroot=&quot;$(_AndroidNdkDirectory)\platforms\android-9\arch-x86&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    
-    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\android-x64\native"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
-    <Exec Command="&quot;$(StrideNativeAndroidToolchainFolder)\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\runtimes\android-x64\native\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86_64.o&quot;', ' ') --sysroot=&quot;$(_AndroidNdkDirectory)\platforms\android-21\arch-x86_64&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86_64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86_64\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/android-x86/native"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
+    <Exec Command="&quot;$(_StrideAndroidNdkClang)&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)/runtimes/android-x86/native/$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/%(Filename)_x86.o&quot;', ' ') @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/x86/%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/x86/libNativePath.a&quot; $(StrideNativeAndroidClang) --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/android-x64/native"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)/%(StrideNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
+    <Exec Command="&quot;$(_StrideAndroidNdkClang)&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)/runtimes/android-x64/native/$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/%(Filename)_x86_64.o&quot;', ' ') @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/x86_64/%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)../../deps/NativePath/Android/x86_64/libNativePath.a&quot; $(StrideNativeAndroidClang) --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
   </Target>
 
-  <Target Name="CompileNativeClang_Linux" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+  <Target Name="CompileNativeClang_Linux" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $(_StridePlatforms.Contains(';Linux;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\linux-x64"/>
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\linux-x64\native"/>
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -DPLATFORM_LINUX -o &quot;$([System.IO.Path]::Combine('$(OutputObjectPath)',linux-x64, %(StrideNativeCFile.Filename)_x64.o))&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
@@ -262,22 +279,28 @@
     <Exec Condition="!$([MSBuild]::IsOSUnixLike())" Command="&quot;$(StrideNativeLldCommand)&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(StrideNativeOutputPath)\runtimes\linux-x64\native\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\linux-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibsLinux->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\libNativePath.a&quot;" />
     <Exec Condition="$([MSBuild]::IsOSUnixLike())" Command="&quot;$(StrideNativeLldCommand)&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(StrideNativeOutputPath)/runtimes/linux-x64/native/$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)linux-x64/%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibsLinux->'&quot;$(MSBuildThisFileDirectory)../../deps/NativePath/dotnet/linux-x64/%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)../../deps/NativePath/dotnet/linux-x64/libNativePath.a&quot;" />
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
   <!-- TODO: Target uses unknown origin of darwin-ld command. Maybe it comes from apple-llvm?. Blocks xplat build -->
-  <Target Name="CompileNativeClang_macOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('Windows')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+  <Target Name="CompileNativeClang_macOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';macOS;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\osx-x64"/>
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\osx-x64\native"/>
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
     <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\ld64.lld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -platform_version macos 10.11 10.11 -dylib -o &quot;$(StrideNativeOutputPath)\runtimes\osx-x64\native\$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\osx-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibsmacOS->'&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\libNativePath.a&quot;" />
 
-    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
-    <Delete Files="@(IntermediateAssembly)"/>
   </Target>
   
+  <!-- macOS host: system clang (no LLD). Celt and NativePath are true-macOS-arm64 rebuilds
+       under deps/NativePath/dotnet/osx-arm64/ (iOS objects refuse to link into macOS dylibs). -->
+  <Target Name="CompileNativeClang_macOSOnMac" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+    <MakeDir Directories="$(OutputObjectPath)/osx-arm64" />
+    <MakeDir Directories="$(StrideNativeOutputPath)/runtimes/osx-arm64/native" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="clang $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="clang++ $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -arch arm64 -fPIC -o &quot;$(OutputObjectPath)/osx-arm64/%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;" />
+    <Exec Command="clang++ -arch arm64 -dynamiclib -o &quot;$(StrideNativeOutputPath)/runtimes/osx-arm64/native/$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)/osx-arm64/%(Filename)_arm64.o&quot;', ' ') @(StrideNativePathLibsmacOSArm64->'&quot;%(FullPath)&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-arm64\libNativePath.a&quot;" />
+  </Target>
+
   <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean" DependsOnTargets="_StrideRegisterNativeOutputs">
     <ItemGroup Condition="'$(OutputObjectPath)' != ''">
       <ObjFiles Include="$(OutputObjectPath)\**\*.obj" />

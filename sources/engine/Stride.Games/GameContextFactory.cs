@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 
 namespace Stride.Games
@@ -11,6 +12,22 @@ namespace Stride.Games
     /// </summary>
     public static class GameContextFactory
     {
+        /// <summary>
+        /// Whether the Windows Forms windowing backend is available. Set the "Stride.Games.WinFormsBackendEnabled"
+        /// feature switch to <c>false</c> to let trimming/AOT drop <see cref="GameContextWinforms"/> and System.Windows.Forms.
+        /// </summary>
+        [FeatureSwitchDefinition("Stride.Games.WinFormsBackendEnabled")]
+        public static bool WinFormsBackendEnabled
+            => !AppContext.TryGetSwitch("Stride.Games.WinFormsBackendEnabled", out var enabled) || enabled;
+
+        /// <summary>
+        /// Whether the SDL windowing backend is available. Set the "Stride.Games.SDLBackendEnabled" feature switch
+        /// to <c>false</c> to let trimming/AOT drop <see cref="GameContextSDL"/> and the SDL windowing dependency.
+        /// </summary>
+        [FeatureSwitchDefinition("Stride.Games.SDLBackendEnabled")]
+        public static bool SDLBackendEnabled
+            => !AppContext.TryGetSwitch("Stride.Games.SDLBackendEnabled", out var enabled) || enabled;
+
         /// <summary>
         /// Given a <paramref name="type"/> create the appropriate game Context for the current executing platform.
         /// </summary>
@@ -24,10 +41,12 @@ namespace Stride.Games
                     res = NewGameContextAndroid();
                     break;
                 case AppContextType.DesktopWinForms:
-                    res = NewGameContextDesktop(requestedWidth, requestedHeight, isUserManagingRun);
+                    if (WinFormsBackendEnabled)
+                        res = NewGameContextDesktop(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopSDL:
-                    res = NewGameContextSDL(requestedWidth, requestedHeight, isUserManagingRun);
+                    if (SDLBackendEnabled)
+                        res = NewGameContextSDL(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopWPF:
                     res = NewGameContextWpf(requestedWidth, requestedHeight, isUserManagingRun);

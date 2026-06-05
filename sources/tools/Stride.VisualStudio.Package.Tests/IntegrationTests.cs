@@ -193,8 +193,10 @@ namespace Stride.VisualStudio.Package.Tests
 
         private static PackageSession GenerateNewGame(string outputFolder)
         {
-            // Find the game template description for a new game
-            var template = TemplateManager.FindTemplates().FirstOrDefault(matchTemplate => matchTemplate.Id == NewGameTemplateGenerator.TemplateId);
+            // Find the blank-game template (ships as the stride-game dotnet new template
+            // inside Stride.Templates.Games; identity is the .sdtpl Id GUID).
+            var template = TemplateManager.FindTemplates().FirstOrDefault(matchTemplate =>
+                matchTemplate is TemplateDotNetNewDescription dnn && dnn.TemplateShortName == "stride-game");
             Assert.NotNull(template);
 
             var result = new LoggerResult();
@@ -211,7 +213,12 @@ namespace Stride.VisualStudio.Package.Tests
                 Unattended = true,
             };
 
-            NewGameTemplateGenerator.SetParameters(parameters, AssetRegistry.SupportedPlatforms.Where(x => x.Type == Core.PlatformType.Windows).Select(x => new SelectedSolutionPlatform(x, null)));
+            DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
+            {
+                // Windows-only smoke run. Symbol name + choice value are both lowercase
+                // per the template.json emitted by Stride.TemplateGenerator.
+                ["platforms"] = "windows",
+            });
 
             var templateGenerator = TemplateManager.FindTemplateGenerator(parameters);
             templateGenerator.PrepareForRun(parameters);

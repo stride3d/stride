@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -364,6 +365,7 @@ namespace Stride.Physics
         /// Run specific error when physics functions are called on components that do not have proper setup.
         /// Captures good tracing info for debugging purposes.
         /// </summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Diagnostic-only; metadata loss just degrades the log message.")]
         private void LogPhysicsFunctionError()
         {
             StackFrame frame = new StackTrace(true).GetFrame(2);

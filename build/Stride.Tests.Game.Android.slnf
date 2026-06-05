@@ -1,0 +1,17 @@
+{
+  "solution": {
+    "path": "Stride.sln",
+    "projects": [
+      "..\\sources\\engine\\Stride.Audio.Tests\\Stride.Audio.Tests.csproj",
+      "..\\sources\\engine\\Stride.Engine.Tests\\Stride.Engine.Tests.csproj",
+      "..\\sources\\engine\\Stride.Graphics.Tests\\Stride.Graphics.Tests.csproj",
+      "..\\sources\\engine\\Stride.Graphics.Tests.10_0\\Stride.Graphics.Tests.10_0.csproj",
+      "..\\sources\\engine\\Stride.Graphics.Tests.11_0\\Stride.Graphics.Tests.11_0.csproj",
+      "..\\sources\\engine\\Stride.Input.Tests\\Stride.Input.Tests.csproj",
+      "..\\sources\\engine\\Stride.Navigation.Tests\\Stride.Navigation.Tests.csproj",
+      "..\\sources\\engine\\Stride.Particles.Tests\\Stride.Particles.Tests.csproj",
+      "..\\sources\\engine\\Stride.Physics.Tests\\Stride.Physics.Tests.csproj",
+      "..\\sources\\engine\\Stride.UI.Tests\\Stride.UI.Tests.csproj"
+    ]
+  }
+}

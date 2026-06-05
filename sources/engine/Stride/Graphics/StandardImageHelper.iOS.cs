@@ -3,7 +3,6 @@
 #if STRIDE_PLATFORM_IOS
 using System;
 using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
 using CoreGraphics;
 using Foundation;
@@ -12,19 +11,21 @@ using Stride.Core;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// This class is responsible to provide image loader for png, gif, bmp.
-    /// </summary>
+    // iOS-native LoadFromMemory uses UIImage / CGBitmapContext to get hardware-accelerated
+    // image decoding. Save* methods are implemented in the shared StandardImageHelper.cs
+    // using ImageSharp.
     partial class StandardImageHelper
     {
-        public static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode)
         {
             using (var imagedata = NSData.FromBytes(pSource, (uint) size))
             using (var cgImage = new UIImage(imagedata).CGImage)
             {
                 var image = Image.New2D((int)cgImage.Width, (int)cgImage.Height, 1, PixelFormat.R8G8B8A8_UNorm, 1, (int)cgImage.BytesPerRow);
 
-                using (var context = new CGBitmapContext(image.PixelBuffer[0].DataPointer, cgImage.Width, cgImage.Height, 8, cgImage.Width*4, cgImage.ColorSpace, CGBitmapFlags.PremultipliedLast))
+                // CGBitmapContext flag picks premultiplied vs straight alpha at decode time.
+                var bitmapFlags = alphaLoadMode == AlphaLoadMode.EnsurePremultiplied ? CGBitmapFlags.PremultipliedLast : CGBitmapFlags.Last;
+                using (var context = new CGBitmapContext(image.PixelBuffer[0].DataPointer, cgImage.Width, cgImage.Height, 8, cgImage.Width*4, cgImage.ColorSpace, bitmapFlags))
                 {
                     context.DrawImage(new RectangleF(0, 0, cgImage.Width, cgImage.Height), cgImage);
 
@@ -36,36 +37,6 @@ namespace Stride.Graphics
                     return image;
                 }
             }
-        }
-
-        public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
-        {
-            throw new NotImplementedException();
         }
     }
 }

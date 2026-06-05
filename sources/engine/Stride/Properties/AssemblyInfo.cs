@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Audio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Regression" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Graphics.Tests" + Stride.PublicKeys.Default)]
 
 #if !STRIDE_SIGNED
 [assembly: InternalsVisibleTo("Stride.ImageComparerService")]

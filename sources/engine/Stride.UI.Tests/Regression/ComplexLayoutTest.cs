@@ -52,7 +52,7 @@ namespace Stride.UI.Tests.Regression
 
             var button1 = new Button { Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5), LocalMatrix = Matrix.Scaling(2, 2, 2) };
             ApplyButtonDefaultStyle(button1);
-            var textOnly = new TextBlock { Text = "Text only button", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextColor = new Color(1f, 0, 0, 0.5f) };
+            var textOnly = new TextBlock { Text = "Text only button", Font = Content.Load<SpriteFont>("NotoSans15"), TextColor = new Color(1f, 0, 0, 0.5f) };
             button1.Content = textOnly;
 
             var button2 = new Button { Name = "Button2", Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5) };
@@ -64,7 +64,7 @@ namespace Stride.UI.Tests.Regression
             ApplyButtonDefaultStyle(button3);
             var stackContent = new StackPanel { Orientation = Orientation.Horizontal };
             var stackImage = new ImageElement { Name = "Image stack panel", Source = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")), MaximumHeight = 50 };
-            var stackText = new TextBlock { Text = "button text", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Margin = Thickness.UniformRectangle(5) };
+            var stackText = new TextBlock { Text = "button text", Font = Content.Load<SpriteFont>("NotoSans15"), Margin = Thickness.UniformRectangle(5) };
             ApplyTextBlockDefaultStyle(stackText);
             stackContent.Children.Add(stackImage);
             stackContent.Children.Add(stackText);
@@ -77,7 +77,7 @@ namespace Stride.UI.Tests.Regression
 
             var button5 = new Button { Margin = Thickness.UniformRectangle(5), HorizontalAlignment = HorizontalAlignment.Left, Padding = Thickness.UniformRectangle(5) };
             ApplyButtonDefaultStyle(button5);
-            var textOnly2 = new TextBlock { Text = "Left aligned", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            var textOnly2 = new TextBlock { Text = "Left aligned", Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(textOnly2);
             button5.Content = textOnly2;
 
@@ -91,7 +91,7 @@ namespace Stride.UI.Tests.Regression
                 SizeToContent = false,
             };
 
-            var toggleButtonText = new TextBlock { Text = "Toggle button test", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            var toggleButtonText = new TextBlock { Text = "Toggle button test", Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(toggleButtonText);
             toggle = new ToggleButton
             {
@@ -100,23 +100,23 @@ namespace Stride.UI.Tests.Regression
             };
             ApplyToggleButtonBlockDefaultStyle(toggle);
 
-            scrollingText = new ScrollingText { Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Text = "<<<--- Scrolling text in a button ", IsEnabled = ForceInteractiveMode };
+            scrollingText = new ScrollingText { Font = Content.Load<SpriteFont>("NotoSans15"), Text = "<<<--- Scrolling text in a button ", IsEnabled = ForceInteractiveMode };
             ApplyScrollingTextDefaultStyle(scrollingText);
             var button7 = new Button { Margin = Thickness.UniformRectangle(5), Content = scrollingText };
             ApplyButtonDefaultStyle(button7);
 
             var uniformGrid = new UniformGrid { Rows = 2, Columns = 2 };
-            var gridText = new TextBlock { Text = "Uniform grid", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextAlignment = TextAlignment.Center};
+            var gridText = new TextBlock { Text = "Uniform grid", Font = Content.Load<SpriteFont>("NotoSans15"), TextAlignment = TextAlignment.Center};
             ApplyTextBlockDefaultStyle(gridText);
             gridText.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 2);
 
-            var buttonLeftText = new TextBlock { Text = "unif-grid left", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextAlignment = TextAlignment.Center };
+            var buttonLeftText = new TextBlock { Text = "unif-grid left", Font = Content.Load<SpriteFont>("NotoSans15"), TextAlignment = TextAlignment.Center };
             ApplyTextBlockDefaultStyle(buttonLeftText);
             var buttonLeft = new Button { Content = buttonLeftText };
             ApplyButtonDefaultStyle(buttonLeft);
             buttonLeft.DependencyProperties.Set(GridBase.RowPropertyKey, 1);
 
-            var buttonRightText = new TextBlock { Text = "unif-grid right", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextAlignment = TextAlignment.Center };
+            var buttonRightText = new TextBlock { Text = "unif-grid right", Font = Content.Load<SpriteFont>("NotoSans15"), TextAlignment = TextAlignment.Center };
             ApplyTextBlockDefaultStyle(buttonRightText);
             var buttonRight = new Button { Content = buttonRightText };
             ApplyButtonDefaultStyle(buttonRight);

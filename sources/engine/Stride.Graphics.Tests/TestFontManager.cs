@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
+using Stride.Core;
 using Stride.Core.IO;
 using Xunit;
 
@@ -22,37 +23,42 @@ namespace Stride.Graphics.Tests
             Game.InitializeAssetDatabase();
         }
 
+        private const string SkipReasonAndroidReadOnlyData = "FontManager DB setup requires writable /data; on Android /data is the read-only APK mount";
+
         private IDatabaseFileProviderService CreateDatabaseProvider()
         {
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
             return new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase()));
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestCreationDisposal()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
             fontManager.Dispose();
         }
-        
-        [Fact]
+
+        [SkippableFact]
         public void TestDoesFontContains()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
-            Assert.True(fontManager.DoesFontContains("Arial", FontStyle.Regular, 'a'));
-            Assert.False(fontManager.DoesFontContains("Arial", FontStyle.Regular, '都'));
+            Assert.True(fontManager.DoesFontContains("Risaltyp_024", FontStyle.Regular, 'a'));
+            Assert.False(fontManager.DoesFontContains("Risaltyp_024", FontStyle.Regular, '都'));
             fontManager.Dispose();
         }
 
         //Note: Test may fail due to some issues with SharpFont.
         //Updated TestGetFontInfo to now properly check if various Font Info is properly loaded
-        [Fact]
+        [SkippableFact]
         public void TestGetFontInfo()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -71,9 +77,10 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGenerateBitmap()
         {
+            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -81,30 +88,30 @@ namespace Stride.Graphics.Tests
             const int defaultSize = 4;
 
             // test that a simple bitmap generation success
-            var characterA = new CharacterSpecification('a', "Arial", new Vector2(1.73f, 3.57f), FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterA = new CharacterSpecification('a', "Risaltyp_024", new Vector2(1.73f, 3.57f), FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterA, false);
             WaitAndCheck(characterA, waitTime);
-            Assert.Equal(4, characterA.Bitmap.Width);
-            Assert.Equal(6, characterA.Bitmap.Rows);
+            Assert.Equal(3, characterA.Bitmap.Width);
+            Assert.Equal(3, characterA.Bitmap.Rows);
             
             // test that rendering an already existing character to a new size works
-            var characterA2 = new CharacterSpecification('a', "Arial", 10f * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterA2 = new CharacterSpecification('a', "Risaltyp_024", 10f * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterA2, false);
             WaitAndCheck(characterA2, waitTime);
             Assert.NotEqual(2, characterA2.Bitmap.Width);
             Assert.NotEqual(4, characterA2.Bitmap.Rows);
 
             // test that trying to render a character that does not exist does not crash the system
-            var characterTo = new CharacterSpecification('都', "Arial", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
-            var characterB = new CharacterSpecification('b', "Arial", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterTo = new CharacterSpecification('都', "Risaltyp_024", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterB = new CharacterSpecification('b', "Risaltyp_024", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterTo, false);
             fontManager.GenerateBitmap(characterB, false);
             WaitAndCheck(characterB, 2 * waitTime);
             Assert.Null(characterTo.Bitmap);
 
             // test that trying to render a character that does not exist does not crash the system
-            var characterC = new CharacterSpecification('c', "Arial", -1 * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
-            var characterD = new CharacterSpecification('d', "Arial", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterC = new CharacterSpecification('c', "Risaltyp_024", -1 * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            var characterD = new CharacterSpecification('d', "Risaltyp_024", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterC, false);
             fontManager.GenerateBitmap(characterD, false);
             WaitAndCheck(characterD, 2 * waitTime);

@@ -1,2 +1,3 @@
 @echo off
-dotnet run --project "%~dp0..\build\tools\CompareGold"
+taskkill /F /IM Stride.CompareGold.exe >nul 2>&1
+dotnet run --project "%~dp0..\build\tools\Stride.CompareGold"

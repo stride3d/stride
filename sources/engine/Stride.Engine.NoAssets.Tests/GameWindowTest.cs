@@ -18,6 +18,9 @@ namespace Stride.Engine.Tests
         public void RenderToWindow(AppContextType contextType)
         {
             Skip.If(Platform.Type == PlatformType.Linux && contextType == AppContextType.DesktopWinForms, reason: "WinForms not available on Linux");
+            Skip.If(Platform.Type == PlatformType.macOS && contextType == AppContextType.DesktopWinForms, reason: "WinForms not available on macOS");
+            Skip.If(Platform.Type == PlatformType.macOS && contextType == AppContextType.DesktopSDL, reason: "SDL2 + AppKit requires main-thread NSMenu setup; xunit test threads can't do this");
+            Skip.If(Platform.Type == PlatformType.Android, reason: "Desktop window contexts not available on Android");
 
             PerformTest(game =>
             {

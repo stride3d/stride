@@ -1,0 +1,273 @@
+name: PR test chatops
+
+# Lets PR commenters dispatch CI workflows on demand. Each dispatched suite lands a `chatops/<suite>`
+# in-progress check run on the PR head; pr-test-chatops-results.yml flips it to completed
+# when the run completes and posts a summary comment.
+#
+# Authorization: only repo collaborators (OWNER / MEMBER / COLLABORATOR association) can trigger.
+# Tests run against the PR's virtual merge ref (refs/pull/<N>/merge) so same-repo and fork PRs work.
+#
+# === Deployment ===
+# Needs a GitHub App ("stride-chatops" by default) installed on the repo, with permissions:
+#   - Contents: read & write          (repository_dispatch)
+#   - Pull requests: read & write     (comments + reactions)
+#   - Actions: read                   (workflow-run lookups)
+#   - Checks: read & write            (PR check rollup with in_progress state)
+# Then in repo Settings → Secrets and variables → Actions:
+#   - Variable CHATOPS_APP_ID             (the App's numeric ID)
+#   - Secret   CHATOPS_APP_PRIVATE_KEY    (the App's .pem private key, full contents)
+# The companion listener pr-test-chatops-results.yml uses the same App credentials.
+#
+# === Available commands === (post as a PR comment)
+#   /ci help                           — show this list in-thread
+#   /ci all                            — everything (main + e2e)
+#   /ci main                           — what main.yml runs on non-draft PRs (no e2e)
+#   /ci windows / linux / ios          — per-platform build + tests
+#   /ci windows-build / linux-build    — per-platform build only
+#   /ci windows-test / linux-test      — per-platform tests only
+#   /ci e2e                            — editor + samples screenshot regression
+#   Or any specific leaf, e.g. /ci windows-game-d3d11, /ci windows-full, /ci vs-package
+#
+# Multiple suites in one command: `/ci windows-simple linux-game e2e`.
+
+on:
+  issue_comment:
+    types: [created]
+
+# Only the preflight "not configured" comment uses GITHUB_TOKEN; the actual /ci dispatch
+# flow runs under the App token (which carries its own permissions).
+permissions:
+  pull-requests: write
+
+jobs:
+  dispatch:
+    if: github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/ci')
+    runs-on: ubuntu-latest
+    steps:
+      # Friendly fail on unconfigured forks: explain it in a PR comment rather than failing
+      # silently in the Actions tab. Uses the default GITHUB_TOKEN (write perms on issue_comment).
+      - if: vars.CHATOPS_APP_ID == ''
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `\`/ci\` bot isn't configured on this repo. See the deployment notes at the top of \`.github/workflows/pr-test-chatops.yml\`.`,
+            });
+            core.setFailed('chatops not configured (CHATOPS_APP_ID variable unset)');
+
+      # Mint a stride-chatops App installation token. Using the App (rather than the default
+      # GITHUB_TOKEN) means dispatched workflow_runs propagate to downstream listeners — GitHub
+      # blocks workflow_run propagation when the dispatcher uses GITHUB_TOKEN. Also gives the
+      # bot its own identity (stride-chatops[bot]) instead of github-actions[bot].
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.CHATOPS_APP_ID }}
+          private-key: ${{ secrets.CHATOPS_APP_PRIVATE_KEY }}
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const SUITES = {
+              // Tests
+              'editor':                  { kind: 'test',  event: 'test-editor-screenshots',      workflow: 'test-windows-editor.yml' },
+              'samples':                 { kind: 'test',  event: 'test-samples-screenshots',     workflow: 'test-samples-screenshots.yml' },
+              'windows-game-d3d11':      { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D11' } },
+              'windows-game-d3d12':      { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D12' } },
+              'windows-game-vulkan':     { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Vulkan' } },
+              'windows-game-api-neutral':{ kind: 'test',  event: 'test-windows-game-api-neutral',workflow: 'test-windows-game-api-neutral.yml' },
+              'windows-simple':          { kind: 'test',  event: 'test-windows-simple',          workflow: 'test-windows-simple.yml' },
+              'linux-game':              { kind: 'test',  event: 'test-linux-game',              workflow: 'test-linux-game.yml' },
+              'android-game':            { kind: 'test',  event: 'test-android-game',            workflow: 'test-android-game.yml' },
+              'linux-simple':            { kind: 'test',  event: 'test-linux-simple',            workflow: 'test-linux-simple.yml' },
+              // Builds (mirrors main.yml jobs; new entries here also need a matching job in main.yml)
+              'assembly-processor':      { kind: 'build', event: 'build-assembly-processor',     workflow: 'build-assembly-processor.yml' },
+              'vs-package':              { kind: 'build', event: 'build-vs-package',             workflow: 'build-vs-package.yml' },
+              'ios-runtime':             { kind: 'build', event: 'build-ios',                    workflow: 'build-ios.yml' },
+              'linux-runtime':           { kind: 'build', event: 'build-linux-runtime',          workflow: 'build-linux-runtime.yml' },
+              'windows-runtime-d3d11':   { kind: 'build', event: 'build-windows-runtime',        workflow: 'build-windows-runtime.yml',        payload: { 'graphics-api': 'Direct3D11' } },
+              'windows-runtime-d3d12':   { kind: 'build', event: 'build-windows-runtime',        workflow: 'build-windows-runtime.yml',        payload: { 'graphics-api': 'Direct3D12' } },
+              'windows-runtime-vulkan':  { kind: 'build', event: 'build-windows-runtime',        workflow: 'build-windows-runtime.yml',        payload: { 'graphics-api': 'Vulkan' } },
+              'windows-full':            { kind: 'build', event: 'build-windows-full',           workflow: 'build-windows-full.yml' },
+            };
+            // Aliases expand recursively (cycle-safe). `main` mirrors what main.yml runs on a
+            // non-draft PR push; `all` adds e2e screenshot suites which main.yml doesn't run.
+            const ALIASES = {
+              // Group aliases (prefix collapse)
+              'windows-runtime': ['windows-runtime-d3d11', 'windows-runtime-d3d12', 'windows-runtime-vulkan'],
+              'windows-game':    ['windows-game-d3d11', 'windows-game-d3d12', 'windows-game-vulkan', 'windows-game-api-neutral'],
+              // Per-platform build / test / full
+              'windows-build':   ['windows-runtime', 'windows-full'],
+              'windows-test':    ['windows-simple', 'windows-game'],
+              'windows':         ['windows-build', 'windows-test'],
+              'linux-build':     ['linux-runtime'],
+              'linux-test':      ['linux-simple', 'linux-game'],
+              'linux':           ['linux-build', 'linux-test'],
+              'ios':             ['ios-runtime'],
+              // Cross-platform
+              'e2e':             ['editor', 'samples'],
+              // Top-level macros
+              'main':            ['windows', 'linux', 'ios', 'assembly-processor', 'vs-package'],
+              'all':             ['main', 'e2e'],
+            };
+
+            const author = context.payload.comment.user.login;
+            const body = (context.payload.comment.body || '').trim();
+            const m = body.match(/^\/ci\b\s*(.*)$/i);
+            if (!m) return;
+            const args = (m[1] || '').toLowerCase().split(/\s+/).filter(Boolean);
+
+            const post = (text) => github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: text,
+            });
+
+            // /ci help — cheat sheet in-thread
+            if (args.length === 1 && args[0] === 'help') {
+              const suitesByKind = k => Object.entries(SUITES).filter(([_, v]) => v.kind === k).map(([n]) => n);
+              const lines = [
+                'Most users want an alias, not a single suite. Common choices:',
+                '- `/ci all` — everything (= `main` + `e2e`)',
+                '- `/ci main` — what main.yml auto-runs on non-draft PRs',
+                '- `/ci windows` / `linux` / `ios` — per-platform (build + test)',
+                '- `/ci windows-build` / `windows-test` — half the platform (same for `linux-`)',
+                '- `/ci e2e` — screenshot regression (editor + samples)',
+                '',
+                '**Tests:**',
+                ...suitesByKind('test').map(k => `- \`/ci ${k}\``),
+                '',
+                '**Builds:**',
+                ...suitesByKind('build').map(k => `- \`/ci ${k}\``),
+                '',
+                '**Aliases** (full expansion):',
+                ...Object.entries(ALIASES).map(([k, v]) => `- \`/ci ${k}\` → ${v.map(s => '`' + s + '`').join(', ')}`),
+                '',
+                'Combine suites: `/ci windows-simple linux-game e2e`',
+              ];
+              await post(lines.join('\n'));
+              return;
+            }
+
+            // Expand aliases recursively (cycle-safe), validate against SUITES.
+            const expanded = [];
+            const unknown = [];
+            const expand = (name, seen = new Set()) => {
+              if (seen.has(name)) return;
+              seen.add(name);
+              if (ALIASES[name]) ALIASES[name].forEach(c => expand(c, seen));
+              else if (SUITES[name]) expanded.push(name);
+              else unknown.push(name);
+            };
+            for (const a of args) expand(a);
+            const requested = [...new Set(expanded)];
+
+            if (requested.length === 0 || unknown.length > 0) {
+              await post(`@${author} unknown or empty suite. \`/ci help\` for the list.${unknown.length ? ` (unknown: ${unknown.map(u => '`' + u + '`').join(', ')})` : ''}`);
+              return;
+            }
+
+            // Authorize: collaborators only
+            const assoc = context.payload.comment.author_association;
+            if (!['OWNER', 'MEMBER', 'COLLABORATOR'].includes(assoc)) {
+              await post(`@${author} \`/ci\` requires repo collaborator access.`);
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            });
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              comment_id: context.payload.comment.id, content: 'rocket',
+            });
+
+            // Surface workflow-YAML drift between PR and master. Dispatched runs load
+            // their YAML from master (the repository_dispatch trigger ignores PR refs),
+            // so PR-side workflow edits don't take effect until merged. Without this
+            // warning, /ci silently runs an older version of the workflow and the
+            // collaborator chases a ghost failure (e.g. PR adds `submodules: true`,
+            // /ci still runs without it).
+            const crypto = require('crypto');
+            const driftWarnings = [];
+            const checkedPaths = new Set();
+            for (const suite of requested) {
+              const wfPath = `.github/workflows/${SUITES[suite].workflow}`;
+              if (checkedPaths.has(wfPath)) continue;
+              checkedPaths.add(wfPath);
+              try {
+                const [m, p] = await Promise.all([
+                  github.rest.repos.getContent({ owner: context.repo.owner, repo: context.repo.repo, path: wfPath, ref: 'master' }),
+                  github.rest.repos.getContent({ owner: context.repo.owner, repo: context.repo.repo, path: wfPath, ref: `refs/pull/${pr.number}/merge` }),
+                ]);
+                if (m.data.sha !== p.data.sha) {
+                  const anchor = crypto.createHash('sha256').update(wfPath).digest('hex');
+                  driftWarnings.push(`  - [\`${wfPath}\`](https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pr.number}/files#diff-${anchor})`);
+                }
+              } catch (_) { /* missing on either side — skip */ }
+            }
+
+            const lines = [];
+            for (const suite of requested) {
+              const cfg = SUITES[suite];
+              try {
+                const dispatchAt = new Date();
+                await github.rest.repos.createDispatchEvent({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  event_type: cfg.event,
+                  client_payload: { pr_number: pr.number, pr_head_sha: pr.head.sha, dispatched_by: author, ...(cfg.payload || {}) },
+                });
+
+                // Poll for the run we just kicked off so we can post a link comment.
+                // createDispatchEvent returns 204 with no run id; this is the documented workaround.
+                let run = null;
+                for (let i = 0; i < 10; i++) {
+                  await new Promise(r => setTimeout(r, 2000));
+                  const { data } = await github.rest.actions.listWorkflowRuns({
+                    owner: context.repo.owner, repo: context.repo.repo,
+                    workflow_id: cfg.workflow, event: 'repository_dispatch', per_page: 5,
+                  });
+                  run = (data.workflow_runs || []).find(r => new Date(r.created_at) >= dispatchAt);
+                  if (run) break;
+                }
+                // Format matched by pr-test-chatops-results.yml — keep "`<suite>`: <run-url>" shape stable.
+                lines.push(run
+                  ? `- \`${suite}\`: ${run.html_url}`
+                  : `- \`${suite}\`: dispatched (run link will appear in Checks tab — couldn't capture within 20s)`);
+
+                // In-progress check run — listener flips to completed on workflow completion.
+                // Only create it when we have a run URL to link to; otherwise the check would
+                // be orphaned (the listener has no way to match it back).
+                if (run) {
+                  try {
+                    await github.rest.checks.create({
+                      owner: context.repo.owner, repo: context.repo.repo,
+                      name: `chatops/${suite}`,
+                      head_sha: pr.head.sha,
+                      status: 'in_progress',
+                      started_at: dispatchAt.toISOString(),
+                      details_url: run.html_url,
+                      output: { title: 'Dispatched', summary: `Run: ${run.html_url}` },
+                    });
+                  } catch (e) {
+                    core.warning(`Failed to create check run for ${suite}: ${e.message}`);
+                  }
+                }
+              } catch (e) {
+                lines.push(`- \`${suite}\`: failed to dispatch — ${e.message}`);
+              }
+            }
+            // This comment is also load-bearing state for pr-test-chatops-results.yml — it parses
+            // the @author header (for the completion ping), the per-suite run URLs (to detect
+            // "all runs done"), and the hidden chatops-pr-head-sha marker (so status checks land
+            // on the right SHA even if the user pushes more commits). Don't drop the comment just
+            // because the 🚀 reaction + check runs already convey "/ci was accepted".
+            const driftBlock = driftWarnings.length
+              ? `\n\n⚠️ This PR modifies workflow YAML used by \`/ci\`, but the bot runs **master's** version:\n${driftWarnings.join('\n')}\n\nLand workflow changes on master first if you need them tested.`
+              : '';
+            await post(`@${author} — \`/ci\` dispatched:\n${lines.join('\n')}${driftBlock}\n\n<!-- chatops-pr-head-sha:${pr.head.sha} -->`);

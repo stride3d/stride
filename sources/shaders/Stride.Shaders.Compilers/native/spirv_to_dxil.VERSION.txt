@@ -1,0 +1,4 @@
+Local debug build (debugoptimized, no UPX, with PDB)
+Mesa: stride/spirv-to-dxil-tcs-fixes @ 50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6
+Stride patch: build/deps/spirv-to-dxil/mesa-pipeline.patch (applied + spirv_to_nir arity fix)
+Built: 2026-04-29

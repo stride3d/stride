@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Stride.Core.Assets;
@@ -93,7 +94,7 @@ public static class AttachedReferenceManager
     /// <param name="type">The type.</param>
     /// <param name="id">The identifier.</param>
     /// <param name="location">The location.</param>
-    public static object CreateProxyObject(Type type, AssetId id, string location)
+    public static object CreateProxyObject([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type, AssetId id, string location)
     {
         ConstructorInfo? emptyCtor;
         lock (EmptyCtorCache)

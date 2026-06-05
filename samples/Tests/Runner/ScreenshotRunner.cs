@@ -5,10 +5,12 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Stride.Assets.Presentation;
+using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Graphics;
 using Stride.Samples.Generator;
 
 namespace Stride.SampleScreenshotRunner;
@@ -22,7 +24,11 @@ namespace Stride.SampleScreenshotRunner;
 /// </summary>
 public static class ScreenshotRunner
 {
-    private const int LaunchTimeoutSeconds = 60;
+    private const int LaunchTimeoutSeconds = 120;
+    private const int BuildTimeoutSeconds = 300;
+    // A cold NativeAOT publish (ILC compile + native link) is far slower than a JIT build.
+    private const int AotPublishTimeoutSeconds = 1200;
+    internal const string SamplesGeneratedDirName = "samplesGenerated";
 
     private static readonly object InitLock = new();
     private static bool initialized;
@@ -52,7 +58,12 @@ public static class ScreenshotRunner
     /// in build.log and launch.log under that dir — callers (e.g. the xunit wrapper) can dump them
     /// to <c>ITestOutputHelper</c> after this returns.
     /// </summary>
-    public static SampleResult RunOne(string sampleName, string captureRoot, string worktreeRoot, bool headless = true, string configuration = "Debug")
+    /// <param name="aot">
+    /// When true, build the sample with <c>dotnet publish -p:PublishAot=true</c> (self-contained,
+    /// win-x64) instead of a JIT <c>dotnet build</c>, and launch the published native exe. Exercises
+    /// the engine's NativeAOT/trim path end to end.
+    /// </param>
+    public static SampleResult RunOne(string sampleName, string captureRoot, string worktreeRoot, bool headless = true, string configuration = "Debug", bool aot = false)
     {
         Initialize();
 
@@ -68,13 +79,51 @@ public static class ScreenshotRunner
             };
         }
 
-        EnsureSamplesGeneratedTargets(Path.Combine(worktreeRoot, "samplesGenerated"));
-        var sampleDir = Path.Combine(worktreeRoot, "samplesGenerated", fixture.SampleName);
+        EnsureSamplesGeneratedTargets(worktreeRoot);
+        var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
         var regenResult = RegenerateSample(fixture, sampleDir);
         if (regenResult is not null)
             return regenResult;
 
-        return RunSample(sampleDir, captureRoot, headless, configuration);
+        return RunSample(sampleDir, captureRoot, headless, configuration, aot);
+    }
+
+    /// <summary>
+    /// Regenerate <paramref name="sampleName"/> and publish it trimmed (self-contained, win-x64) with
+    /// the given feature <paramref name="switches"/> forced via RuntimeHostConfigurationOption
+    /// (Trim=true), WITHOUT running it. Returns the publish directory so the caller can assert which
+    /// assemblies survived trimming — e.g. that disabling a backend switch actually drops its
+    /// assemblies. Throws on regen/publish failure.
+    /// </summary>
+    public static string PublishTrimmed(string sampleName, string worktreeRoot, IReadOnlyDictionary<string, string> switches, string configuration = "Debug")
+    {
+        Initialize();
+
+        var fixture = LoadFixtures(worktreeRoot).FirstOrDefault(f => string.Equals(f.SampleName, sampleName, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"No fixture in tests/Stride.Samples.Tests/<{sampleName}>.cs.");
+
+        EnsureSamplesGeneratedTargets(worktreeRoot);
+        var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
+        var regenResult = RegenerateSample(fixture, sampleDir);
+        if (regenResult is not null)
+            throw new InvalidOperationException($"Regen failed for '{sampleName}': {regenResult.Detail}");
+
+        // Force the requested feature switches for the trimmer, scoped to this sample (Directory.Build.props
+        // is auto-imported by the .Windows project under it). Written after regen, which wipes sampleDir.
+        var options = string.Join(Environment.NewLine, switches.Select(kv =>
+            $"    <RuntimeHostConfigurationOption Include=\"{kv.Key}\" Value=\"{kv.Value}\" Trim=\"true\" />"));
+        File.WriteAllText(Path.Combine(sampleDir, "Directory.Build.props"),
+            $"<Project>{Environment.NewLine}  <ItemGroup>{Environment.NewLine}{options}{Environment.NewLine}  </ItemGroup>{Environment.NewLine}</Project>{Environment.NewLine}");
+
+        var windowsCsproj = Path.Combine(sampleDir, $"{fixture.SampleName}.Windows", $"{fixture.SampleName}.Windows.csproj");
+        var graphicsApi = GraphicsDevice.Platform.ToString();
+        var publishLog = Path.Combine(sampleDir, "publish-trimmed.log");
+        Console.WriteLine($"[{fixture.SampleName}] trimmed publish (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+        var args = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishTrimmed=true -p:SelfContained=true -p:StrideGraphicsApi={graphicsApi}";
+        if (!RunProcess("dotnet", args, publishLog, sampleDir, env: null, AotPublishTimeoutSeconds))
+            throw new InvalidOperationException($"Trimmed publish failed for '{sampleName}'; see {publishLog}");
+
+        return Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish");
     }
 
     /// <summary>Returns the catalog of discovered fixtures (cached per <paramref name="worktreeRoot"/>).</summary>
@@ -100,7 +149,7 @@ public static class ScreenshotRunner
     {
         var session = new PackageSession();
         return TemplateManager.FindTemplates(session)
-            .Where(t => t is TemplateSampleDescription)
+            .Where(t => t is TemplateDotNetNewDescription)
             .ToDictionary(t => t.Id, t => t.DefaultOutputName ?? t.Name);
     }
 
@@ -140,7 +189,7 @@ public static class ScreenshotRunner
         return fixtures;
     }
 
-    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration)
+    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration, bool aot)
     {
         sampleDir = Path.GetFullPath(sampleDir);
         outputRoot = Path.GetFullPath(outputRoot);
@@ -162,9 +211,21 @@ public static class ScreenshotRunner
             return result;
         }
 
-        Console.WriteLine($"[{sampleName}] building (Configuration={configuration})...");
+        var graphicsApi = GraphicsDevice.Platform.ToString();
         var buildLog = Path.Combine(sampleOut, "build.log");
-        var buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration}", buildLog, sampleDir, env: null, timeoutSeconds: 300);
+        bool buildOk;
+        if (aot)
+        {
+            Console.WriteLine($"[{sampleName}] AOT publishing (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+            var publishArgs = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishAot=true -p:SelfContained=true " +
+                              $"-p:StrideAutoTesting=true -p:StrideAutoTestingAot=true -p:StrideGraphicsApi={graphicsApi}";
+            buildOk = RunProcess("dotnet", publishArgs, buildLog, sampleDir, AotBuildEnv(), AotPublishTimeoutSeconds);
+        }
+        else
+        {
+            Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
+            buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, BuildTimeoutSeconds);
+        }
         if (!buildOk)
         {
             result.Status = "build-failed";
@@ -173,12 +234,15 @@ public static class ScreenshotRunner
             return result;
         }
 
-        // Output path varies: generated samples set RuntimeIdentifier=win-x64, hand-checked-in samples don't.
-        var exeCandidates = new[]
-        {
-            Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", $"{sampleName}.Windows.exe"),
-            Path.Combine(sampleDir, "Bin", "Windows", configuration, $"{sampleName}.Windows.exe"),
-        };
+        // AOT lands the self-contained native exe in the publish/ subfolder; the JIT build path varies
+        // (generated samples set RuntimeIdentifier=win-x64, hand-checked-in samples don't).
+        var exeCandidates = aot
+            ? new[] { Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish", $"{sampleName}.Windows.exe") }
+            : new[]
+            {
+                Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", $"{sampleName}.Windows.exe"),
+                Path.Combine(sampleDir, "Bin", "Windows", configuration, $"{sampleName}.Windows.exe"),
+            };
         var exePath = exeCandidates.FirstOrDefault(File.Exists);
         if (exePath is null)
         {
@@ -224,6 +288,15 @@ public static class ScreenshotRunner
                 result.Status = "done-json-parse-error";
                 result.Detail = ex.Message;
             }
+
+            // A clean run must also exit cleanly: a crash or hang after done.json is written (e.g.
+            // an AOT teardown segfault, or a non-zero exit / timeout-kill) must not be masked by an
+            // "ok" status — otherwise late crashes pass silently.
+            if (result.Status == "ok" && !launchOk)
+            {
+                result.Status = "crashed-after-done";
+                result.Detail = "Process exited non-zero after writing done.json (status=ok); see launch.log.";
+            }
         }
         else
         {
@@ -231,6 +304,25 @@ public static class ScreenshotRunner
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Environment for the AOT publish subprocess: prepend the VS Installer dir to PATH. The NativeAOT
+    /// ILC link step shells out to <c>vswhere.exe</c> to locate the MSVC linker, and it must be on PATH.
+    /// vswhere ships in this fixed location regardless of VS edition (Community/Pro/BuildTools), so we
+    /// don't go through Build.Locator (which resolves the in-proc MSBuild, already set in Initialize).
+    /// Returns null if the dir isn't present, leaving PATH untouched.
+    /// </summary>
+    private static IDictionary<string, string>? AotBuildEnv()
+    {
+        var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var installer = Path.Combine(pf86, "Microsoft Visual Studio", "Installer");
+        if (!Directory.Exists(installer))
+            return null;
+        return new Dictionary<string, string>
+        {
+            ["PATH"] = installer + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH"),
+        };
     }
 
     private static bool RunProcess(string fileName, string arguments, string logPath, string workingDir, IDictionary<string, string>? env, int timeoutSeconds)
@@ -258,6 +350,10 @@ public static class ScreenshotRunner
         if (!process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds)))
         {
             try { process.Kill(entireProcessTree: true); } catch { }
+            // Kill returns before the OS finishes tearing down the process and releasing its file
+            // handles; without this WaitForExit the caller races the kernel and intermittently
+            // fails to copy / overwrite files the killed process had open.
+            try { process.WaitForExit(TimeSpan.FromSeconds(10)); } catch { }
             log.WriteLine($"[runner] killed after {timeoutSeconds}s timeout");
             return false;
         }
@@ -297,54 +393,46 @@ public static class ScreenshotRunner
     }
 
     /// <summary>
-    /// Mirror the canonical samples/Directory.Build.targets to samplesGenerated/Directory.Build.targets
-    /// so MSBuild walking up from each generated project finds the harness wiring. Lives above the
-    /// per-sample dir because SampleGenerator wipes the sample dir at the start of regeneration.
+    /// Write samplesGenerated/Directory.Build.targets from SampleAutoTesting.targets.template,
+    /// substituting the in-tree engine version so the harness PackageReference resolves to the
+    /// locally built dev package. MSBuild auto-imports it for every regenerated sample under it.
+    /// Lives above the per-sample dir because SampleGenerator wipes the sample dir at the start of
+    /// regeneration.
     /// </summary>
-    private static void EnsureSamplesGeneratedTargets(string samplesGeneratedDir)
+    private static void EnsureSamplesGeneratedTargets(string worktreeRoot)
     {
+        var samplesGeneratedDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName);
         Directory.CreateDirectory(samplesGeneratedDir);
-        var targetsPath = Path.Combine(samplesGeneratedDir, "Directory.Build.targets");
-        File.WriteAllText(targetsPath, HarnessTargetsContent);
+
+        var templatePath = Path.Combine(worktreeRoot, "samples", "Tests", "Templates", "SampleAutoTesting.targets.template");
+        var content = File.ReadAllText(templatePath)
+            .Replace("$STRIDE_DEV_VERSION$", GetStrideDevVersion(worktreeRoot));
+
+        File.WriteAllText(Path.Combine(samplesGeneratedDir, "Directory.Build.targets"), content);
     }
 
-    private const string HarnessTargetsContent = """
-<Project>
-  <!--
-    Auto-generated by Stride.SampleScreenshotRunner. Mirrors samples/Directory.Build.targets so the
-    same harness wiring applies to regenerated samples. See that file for the full rationale.
-  -->
-  <PropertyGroup Condition="'$(StrideAutoTesting)' == 'true'">
-    <DefineConstants>$(DefineConstants);STRIDE_AUTOTESTING</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')">
-    <PackageReference Include="Stride.Games.AutoTesting" Version="4.3.0.1" PrivateAssets="contentfiles;analyzers" />
-    <Compile Include="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" />
-  </ItemGroup>
-  <!-- Pin WARP for reproducible D3D11/D3D12 captures. -->
-  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">
-    <PackageReference Include="Microsoft.Direct3D.WARP" Version="1.0.18" GeneratePathProperty="true" />
-    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
-             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
-             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
-  </ItemGroup>
-  <Target Name="_StrideEnsureAutoTestingBootstrap" Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')" BeforeTargets="CoreCompile">
-    <PropertyGroup>
-      <_StrideAutoTestingBootstrapContent>
-using System.Runtime.CompilerServices%3B
-using Stride.Games.AutoTesting%3B
+    /// <summary>
+    /// The in-tree engine NuGet version the samples resolve against. Read back from the deployed
+    /// Stride.Engine dev stub in bin/packages (stride-local): the worktree -devN suffix is only
+    /// patched into SharedAssemblyInfo.cs transiently during a pack (it reads empty at rest), so the
+    /// stub filename is the authoritative source. Falls back to the bare PublicVersion if no stub.
+    /// </summary>
+    private static string GetStrideDevVersion(string worktreeRoot)
+    {
+        var sharedInfo = File.ReadAllText(Path.Combine(worktreeRoot, "sources", "shared", "SharedAssemblyInfo.cs"));
+        var publicVersion = Regex.Match(sharedInfo, @"PublicVersion\s*=\s*""([^""]*)""").Groups[1].Value;
 
-internal static class _AutoTestingHarnessBootstrap
-{
-    [ModuleInitializer]
-    public static void ForceLoadHarness() =&gt; AutoTestingBootstrap.EnsureLoaded()%3B
-}
-</_StrideAutoTestingBootstrapContent>
-    </PropertyGroup>
-    <WriteLinesToFile File="$(MSBuildThisFileDirectory)_AutoTestingBootstrap.g.cs" Lines="$(_StrideAutoTestingBootstrapContent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
-  </Target>
-</Project>
-""";
+        var packagesDir = Path.Combine(worktreeRoot, "bin", "packages");
+        if (Directory.Exists(packagesDir))
+        {
+            var match = Directory.EnumerateFiles(packagesDir, $"Stride.Engine.{publicVersion}*.nupkg")
+                .Select(f => Path.GetFileNameWithoutExtension(f)["Stride.Engine.".Length..])
+                .FirstOrDefault(v => v == publicVersion || v.StartsWith(publicVersion + "-", StringComparison.Ordinal));
+            if (match is not null)
+                return match;
+        }
+        return publicVersion;
+    }
 
     private static void CopyDirectory(string source, string dest)
     {

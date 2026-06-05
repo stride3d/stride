@@ -25,13 +25,18 @@ namespace Stride.Graphics
         internal int ConstantBufferDataPlacementAlignment;
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
-        internal readonly ConcurrentPool<List<Texture>> StagingResourceLists = new ConcurrentPool<List<Texture>>(() => new List<Texture>());
+        internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
 
         private bool simulateReset = false;
         private string rendererName;
+
+        // The instance-level VK_EXT_debug_utils messenger doesn't know which device a validation
+        // message belongs to, so we keep a single weak reference and route through it. Stride
+        // typically runs one device; multi-device debugging would need per-device messengers.
+        internal static GraphicsDevice DebugMessengerDevice;
 
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
@@ -167,6 +172,11 @@ namespace Stride.Graphics
             get { return nativeDeviceApi; }
         }
 
+#if STRIDE_PLATFORM_ANDROID
+        // True when VK_ANDROID_external_memory_android_hardware_buffer + dependencies were enabled.
+        internal bool HasAndroidHardwareBufferSupport { get; private set; }
+#endif
+
         /// <summary>
         ///     Marks context as active on the current thread.
         /// </summary>
@@ -219,6 +229,13 @@ namespace Stride.Graphics
                 };
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
+
+            // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
+            if (FrameFence.NextFenceValue > (ulong)MaxFramesInFlight)
+            {
+                FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
+                graphicsResourceLinkCollector.Release();
             }
         }
 
@@ -285,6 +302,12 @@ namespace Stride.Graphics
                 };
 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                {
+                    for (int i = 0; i < count; i++)
+                        DebugAggregateLocalCounters(commandLists[i].Builder.DebugScopeExtractLocalCounters());
+                }
             }
 
             // Collect resources
@@ -308,6 +331,17 @@ namespace Stride.Graphics
         /// </summary>
         private unsafe partial void InitializePostFeatures()
         {
+            if (IsDebugMode)
+                DebugMessengerDevice = this;
+        }
+
+        // Vulkan messages fire synchronously through the messenger callback, which logs them
+        // inline. End-of-frame drain just dumps the scope tree if anything fired.
+        partial void DrainDebugMessages()
+        {
+            if (debugSawDrawIssue)
+                DebugDumpTree();
+            debugSawDrawIssue = false;
         }
 
         private partial string GetRendererName() => rendererName;
@@ -374,31 +408,35 @@ namespace Stride.Graphics
                 pQueuePriorities = &queuePriorities,
             };
 
-            var enabledFeature = new VkPhysicalDeviceFeatures
-            {
-                fillModeNonSolid = true,
-                shaderClipDistance = true,
-                shaderCullDistance = true,
-                samplerAnisotropy = true,
-                depthClamp = true,
-            };
-
             NativeInstanceApi.vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);
 
-            if (deviceFeatures.shaderStorageImageReadWithoutFormat)
+            // Only request features that the device actually supports
+            var enabledFeature = new VkPhysicalDeviceFeatures
             {
-                enabledFeature.shaderStorageImageReadWithoutFormat = true;
-            }
-
-            if (deviceFeatures.shaderStorageImageWriteWithoutFormat)
-            {
-                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
-            }
+                fillModeNonSolid = deviceFeatures.fillModeNonSolid,
+                shaderClipDistance = deviceFeatures.shaderClipDistance,
+                shaderCullDistance = deviceFeatures.shaderCullDistance,
+                samplerAnisotropy = deviceFeatures.samplerAnisotropy,
+                depthClamp = deviceFeatures.depthClamp,
+                tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
+                shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
+                shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
+            };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
+                VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+#if STRIDE_PLATFORM_ANDROID
+                // AHardwareBuffer import (zero-copy buffers from camera / MediaCodec / etc.).
+                VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+                VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+                VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+                VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
+                VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+                VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+                VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
+#endif
             };
 
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
@@ -409,36 +447,113 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-            if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
+            // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
+            // MoltenVK is the only ICD that advertises it; conformant drivers do not.
+            bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+            if (isPortabilitySubsetDevice)
+                desiredExtensionProperties.Add(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+
+#if STRIDE_PLATFORM_ANDROID
+            // All extensions in the AHardwareBuffer → VkImage chain must be present together.
+            HasAndroidHardwareBufferSupport =
+                availableExtensionProperties.Contains(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            if (HasAndroidHardwareBufferSupport)
             {
-                desiredExtensionProperties.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-                IsProfilingSupported = true;
+                desiredExtensionProperties.Add(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
             }
+#endif
+
+            // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
+            // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
+            // a VK_EXT_debug_report dependency to satisfy validation.
+            IsProfilingSupported = IsDebugMode && GraphicsAdapterFactory.GetInstance(IsDebugMode).HasDebugUtilsSupport;
+
+            // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
+            var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();
+            uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
+            uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
+
+            // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
+            var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
+            {
+                sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
+            };
 
             // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
             // Check if the feature is supported before requesting it
             var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
             {
                 sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
+                pNext = &shaderFloat16Int8Features,
+            };
+            // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
+            var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
+                pNext = &timelineSemaphoreFeatures,
+            };
+            // Queried unconditionally — the feature struct is just metadata; only the AHardwareBuffer
+            // import path on Android actually requires the feature to be enabled.
+            var samplerYcbcrConversionFeatures = new VkPhysicalDeviceSamplerYcbcrConversionFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceSamplerYcbcrConversionFeatures,
+                pNext = &multiviewFeatures,
+            };
+            // Portability subset features (MoltenVK only) — queried so we can forward the device-reported
+            // capabilities verbatim to vkCreateDevice, which is what the portability spec requires.
+            var portabilitySubsetFeatures = new VkPhysicalDevicePortabilitySubsetFeaturesKHR
+            {
+                sType = VkStructureType.PhysicalDevicePortabilitySubsetFeaturesKHR,
+                pNext = &samplerYcbcrConversionFeatures,
             };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &samplerYcbcrConversionFeatures,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
             if (!timelineSemaphoreFeatures.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-
-            // Re-set to request the feature
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
+            // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
+            shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
+            timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
+            shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
+
+            // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
+            void* pNextChainHead = &timelineSemaphoreFeatures;
+            if (multiviewFeatures.multiview)
+            {
+                multiviewFeatures.multiviewGeometryShader = VkBool32.False;
+                multiviewFeatures.multiviewTessellationShader = VkBool32.False;
+                pNextChainHead = &multiviewFeatures;
+            }
+            // Re-attach portability subset at the head of the create-info chain so MoltenVK sees the
+            // feature flags it reported. The values were populated by the query above; pass them back as-is.
+            if (isPortabilitySubsetDevice)
+            {
+                portabilitySubsetFeatures.pNext = pNextChainHead;
+                pNextChainHead = &portabilitySubsetFeatures;
+            }
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
-                pNext = &timelineSemaphoreFeatures,
+                pNext = pNextChainHead,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
@@ -448,7 +563,7 @@ namespace Stride.Graphics
 
             CheckResult(NativeInstanceApi.vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
 
-            nativeDeviceApi = GetApi(NativeInstance, NativeDevice);
+            nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
@@ -629,6 +744,9 @@ namespace Stride.Graphics
 
         private unsafe void ReleaseDevice()
         {
+            if (ReferenceEquals(DebugMessengerDevice, this))
+                DebugMessengerDevice = null;
+
             EmptyTexelBufferInt.Dispose();
             EmptyTexelBufferInt = null;
             EmptyTexelBufferFloat.Dispose();
@@ -719,6 +837,9 @@ namespace Stride.Graphics
                 };
                 
                 CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                if (IsDebugMode)
+                    DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
             }
 
             // Collect resources
@@ -1112,6 +1233,11 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.DescriptorSetLayout, *(ulong*)&handle);
         }
 
+        public static unsafe implicit operator NativeResource(VkSamplerYcbcrConversion handle)
+        {
+            return new NativeResource(VkDebugReportObjectTypeEXT.SamplerYcbcrConversion, *(ulong*)&handle);
+        }
+
         public unsafe void Destroy(GraphicsDevice device)
         {
             var handleCopy = handle;
@@ -1159,6 +1285,9 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
                     device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);
+                    break;
+                case VkDebugReportObjectTypeEXT.SamplerYcbcrConversion:
+                    device.NativeDeviceApi.vkDestroySamplerYcbcrConversion(device.NativeDevice, *(VkSamplerYcbcrConversion*)&handleCopy, null);
                     break;
             }
         }

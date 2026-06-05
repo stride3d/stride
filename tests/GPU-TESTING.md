@@ -44,7 +44,7 @@ Gold images are stored under `tests/<TestProject>/Windows.Direct3D11/WARP/`.
 A visual comparison tool for reviewing gold image differences:
 
 ```bash
-# Launch (opens browser at http://localhost:5555)
+# Launch (opens browser at http://localhost:5505)
 tests\compare-gold.cmd
 
 # Or directly:

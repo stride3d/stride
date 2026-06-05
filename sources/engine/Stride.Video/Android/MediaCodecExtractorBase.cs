@@ -133,10 +133,10 @@ namespace Stride.Video
 
                 StartWorker();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Release();
-                throw e;
+                throw;
             }
         }
 
@@ -334,6 +334,10 @@ namespace Stride.Video
                     {
                         case (int)MediaCodecInfoState.TryAgainLater: // decoder not ready yet (haven't processed input yet)
                         case (int)MediaCodecInfoState.OutputBuffersChanged: //deprecated: we just ignore it
+                            // Yield to the decoder thread. Without this, the worker busy-spins
+                            // on dequeueOutputBuffer(0) and starves the decoder of CPU when both
+                            // run at the same priority (single-core CI emulators).
+                            Thread.Sleep(0);
                             break;
 
                         case (int)MediaCodecInfoState.OutputFormatChanged:

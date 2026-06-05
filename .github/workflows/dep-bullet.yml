@@ -1,0 +1,214 @@
+name: "Dep: Build Bullet"
+
+# Builds libbulletc.{dll,so,dylib} per RID (the native C wrapper around bullet)
+# plus the managed BulletSharp.dll (RID-agnostic). Replaces the binaries that
+# used to ship in deps/BulletPhysics/ and were built off-tree.
+#
+# Upstream:
+#   https://github.com/stride3d/BulletSharpPInvoke  (libbulletc + C# bindings)
+#   bullet3 enters the build as a git submodule of the fork, pinned to the
+#   commit libbulletc/*.cpp were last validated against. Bumping bullet means
+#   bumping the submodule pin in the fork.
+#
+# Output per OS — one shared lib per RID + one managed dll:
+#   Windows: libbulletc.dll (+ libbulletc.pdb)
+#   Linux:   libbulletc.so
+#   macOS:   libbulletc.dylib
+#   Managed: BulletSharp.dll (built once, no RID)
+#
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bulletsharp-repo:
+        description: stride3d/BulletSharpPInvoke (or fork) repository
+        default: stride3d/BulletSharpPInvoke
+        required: true
+      bulletsharp-ref:
+        description: Branch/tag of the BulletSharpPInvoke repo to consume
+        default: master
+        required: true
+
+jobs:
+  build-windows:
+    name: Build libbulletc (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: ARM64
+            rid: win-arm64
+    steps:
+      - name: Checkout BulletSharpPInvoke (+ bullet submodule)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.bulletsharp-repo }}
+          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          submodules: recursive
+          path: BulletSharpPInvoke
+
+      - name: Patch bullet for ARM64 (NEON gate)
+        if: matrix.arch == 'ARM64'
+        shell: pwsh
+        run: |
+          # btScalar.h gates SSE behind _M_ARM only; ARM64 must skip emmintrin.h too.
+          (Get-Content BulletSharpPInvoke/bullet/src/LinearMath/btScalar.h) `
+            -replace '^#if defined \(_M_ARM\)$', '#if defined (_M_ARM) || defined (_M_ARM64)' `
+            | Set-Content BulletSharpPInvoke/bullet/src/LinearMath/btScalar.h
+
+      - name: Strip BulletRobotics from Extras
+        shell: pwsh
+        run: |
+          # BulletRobotics has a broken install() that breaks add_subdirectory; we never use it.
+          # Bullet 2.89 lists every Extras subdir on ONE line, so drop just the word, not the line.
+          (Get-Content BulletSharpPInvoke/bullet/Extras/CMakeLists.txt) `
+            -replace 'BulletRobotics', '' `
+            | Set-Content BulletSharpPInvoke/bullet/Extras/CMakeLists.txt
+
+      - name: Configure & build libbulletc
+        shell: pwsh
+        run: |
+          cmake -S BulletSharpPInvoke/libbulletc -B _build -A ${{ matrix.arch }} `
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" `
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build _build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          Copy-Item _build/lib/Release/libbulletc.dll "out/${{ matrix.rid }}/"
+          Copy-Item _build/lib/Release/libbulletc.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libbulletc-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build libbulletc (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout BulletSharpPInvoke (+ bullet submodule)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.bulletsharp-repo }}
+          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          submodules: recursive
+          path: BulletSharpPInvoke
+
+      - name: Strip BulletRobotics from Extras
+        # Bullet 2.89 lists every Extras subdir on ONE line, so drop just the word.
+        run: sed -i 's/BulletRobotics//g' BulletSharpPInvoke/bullet/Extras/CMakeLists.txt
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Configure & build libbulletc
+        run: |
+          cmake -S BulletSharpPInvoke/libbulletc -B _build -G Ninja \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          # CMake adds 'lib' prefix on Unix to a target already named 'libbulletc' -> liblibbulletc.so
+          cp _build/liblibbulletc.so out/linux-x64/libbulletc.so
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libbulletc-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build libbulletc (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - name: Checkout BulletSharpPInvoke (+ bullet submodule)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.bulletsharp-repo }}
+          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          submodules: recursive
+          path: BulletSharpPInvoke
+
+      - name: Strip BulletRobotics from Extras
+        # Bullet 2.89 lists every Extras subdir on ONE line, so drop just the word.
+        run: sed -i '' 's/BulletRobotics//g' BulletSharpPInvoke/bullet/Extras/CMakeLists.txt
+
+      - name: Configure & build libbulletc
+        run: |
+          cmake -S BulletSharpPInvoke/libbulletc -B _build -G Ninja \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/osx-arm64
+          cp _build/liblibbulletc.dylib out/osx-arm64/libbulletc.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libbulletc-osx-arm64
+          path: out/osx-arm64/
+
+  # Managed BulletSharp.dll is built locally as part of Stride.Physics — the
+  # stride3d fork's .csproj has a PackageReference to Stride.Core.Mathematics
+  # not available in this CI. Native libbulletc is what this workflow ships.
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout BulletSharpPInvoke (+ bullet submodule for hash)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.bulletsharp-repo }}
+          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          submodules: recursive
+          path: bulletsharp-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into Release/ layout
+        run: |
+          OUT=libbulletc-out
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+            mkdir -p $OUT/Release/$rid
+            cp artifacts/libbulletc-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
+          done
+
+          SHARP_COMMIT=$(git -C bulletsharp-src rev-parse HEAD)
+          BULLET_COMMIT=$(git -C bulletsharp-src/bullet rev-parse HEAD)
+          printf 'BulletSharpPInvoke %s\nRepository: https://github.com/%s\nCommit: %s\n\nbullet3 (submodule pin)\nRepository: https://github.com/bulletphysics/bullet3\nCommit: %s\n\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.bulletsharp-ref }}" \
+            "${{ github.event.inputs.bulletsharp-repo }}" \
+            "$SHARP_COMMIT" \
+            "$BULLET_COMMIT" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
+
+      - name: List contents
+        run: find libbulletc-out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libbulletc-all-platforms
+          path: libbulletc-out/

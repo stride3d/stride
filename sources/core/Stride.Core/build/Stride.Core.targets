@@ -66,8 +66,12 @@
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <!-- $(StrideRoot) anchors both in-tree consumers (set by sources/Directory.Build.props)
+         and dev-redirect consumers (seeded from $(StrideDevRoot) by build/<PkgId>.props
+         stubs written by build/GenerateDevPackages.cs). NuGet-only consumers fall back to
+         the tools/ copy shipped in the package. -->
+    <StrideAssemblyProcessorBasePath Condition="'$(StrideRoot)' != ''">$(StrideRoot)deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == ''">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
     <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
     
@@ -204,11 +208,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link Condition="'$(StrideCPU)' != ''">$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Replace('$(StrideCPU)\', ''))</Link>
       </Content>
-    </ItemGroup>
-  </Target>
-  <Target Name="_StrideSetupNativeLibrariesAndroid" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'Android'">
-    <ItemGroup>
-      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
     </ItemGroup>
   </Target>
   <Target Name="_StrideSetupNativeLibrariesiOS" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(StridePlatform)' == 'iOS'">

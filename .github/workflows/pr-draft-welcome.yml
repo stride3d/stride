@@ -1,0 +1,53 @@
+name: PR draft chatops welcome
+
+# Posts a one-time hint comment on draft PRs explaining that automatic CI is skipped
+# and pointing to the /ci chatops bot. Triggered on PR open (if draft) and on
+# transitions to draft. Idempotent via a hidden marker — same PR transitioning
+# open ↔ draft won't get duplicate hints.
+#
+# Uses pull_request_target so the default GITHUB_TOKEN has write perms for fork PRs
+# too (the standard pull_request event ships a read-only token from fork heads).
+# Safe because the workflow only reads the event payload and posts a comment — it
+# never checks out or executes PR-supplied code.
+
+on:
+  pull_request_target:
+    types: [opened, converted_to_draft]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  welcome:
+    if: github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const MARKER = '<!-- ci-draft-hint -->';
+            const pr = context.payload.pull_request;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: pr.number, per_page: 100,
+            });
+            if (comments.some(c => (c.body || '').includes(MARKER))) {
+              core.info('Draft hint already posted, skipping.');
+              return;
+            }
+            const body = [
+              '🤖 Draft PR — automatic CI is skipped to save runner minutes.',
+              '',
+              '- `/ci main` — what would auto-run if this PR weren\'t draft',
+              '- `/ci all` — `main` + screenshot regression (`/ci e2e`)',
+              '- `/ci help` — full list, per-platform and per-suite',
+              '',
+              'Marking ready-for-review re-enables full CI automatically.',
+              '',
+              MARKER,
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: pr.number,
+              body,
+            });

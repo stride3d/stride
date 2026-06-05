@@ -34,6 +34,7 @@
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="SSH.NET" />
     <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net10'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>

@@ -1,5 +1,11 @@
 name: Test Samples (Screenshots)
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test Samples (Screenshots) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Test Samples (Screenshots) @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,16 +16,48 @@ on:
         options:
           - Debug
           - Release
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
+  repository_dispatch:
+    types: [test-samples-screenshots]
   schedule:
-    # Daily at 04:00 UTC.
-    - cron: '0 4 * * *'
+    # Daily at 04:37 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes.
+    - cron: '37 4 * * *'
 
 concurrency:
-  group: test-samples-screenshots-${{ github.ref }}
+  group: test-samples-screenshots-${{ github.event.client_payload.pr_number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # LPIPS comparator falls back to Claude vision for borderline drift; without ANTHROPIC_API_KEY
+  # (typical on forks) flaky frames would surface as false drift. Skip cleanly when missing.
+  #
+  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
+  # workflow_dispatch / repository_dispatch always run.
+  preflight:
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      has-api-key: ${{ steps.check.outputs.has-api-key }}
+    steps:
+      - id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has-api-key=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-api-key=false" >> $GITHUB_OUTPUT
+            echo "::notice::ANTHROPIC_API_KEY not set; skipping samples screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
+          fi
+
   Run:
+    needs: preflight
+    if: needs.preflight.outputs.has-api-key == 'true'
     name: Capture & compare all samples (${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || 'Debug' }})
     # Single job per graphics API: the harness + orchestrator + comparator are sample-agnostic, so a
     # matrix-per-sample would build the engine 15× for the same artifacts. Sequential capture
@@ -31,18 +69,23 @@ jobs:
       matrix:
         graphics-api: [Direct3D11, Direct3D12, Vulkan]
     runs-on: windows-2025-vs2026
-    # TODO: drop continue-on-error once D3D12 and Vulkan captures are stable.
-    continue-on-error: ${{ matrix.graphics-api != 'Direct3D11' }}
     env:
       # Software rendering is the default in the autotesting harness; set STRIDE_TESTS_GPU=1 to opt into the GPU.
       STRIDE_TESTS_RENDERDOC: "error"
       DOTNET_DbgEnableMiniDump: "1"
       DOTNET_DbgMiniDumpType: "1"
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+      # NativeCrashHandler (in the harness + Stride.Graphics.Regression) gates on this: without it it
+      # sets SEM_NOGPFAULTERRORBOX, which suppresses the WER LocalDumps + DOTNET minidump configured
+      # here for pure-native crashes. With it, native AVs route to WER and it writes its own SEH dump.
+      STRIDE_TESTS_CRASH_DUMPS: "1"
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -57,13 +100,6 @@ jobs:
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
-
-      # nuget.config declares `bin/packages` as the `stride-local` source. NuGet validates every
-      # source path at restore time; on a fresh CI checkout that dir doesn't exist yet (it gets
-      # populated by Stride's auto-pack-deploy on first build), so we materialize it as empty.
-      - name: Pre-create bin/packages so restore doesn't fail on missing local source
-        shell: pwsh
-        run: New-Item -ItemType Directory -Path bin/packages -Force | Out-Null
 
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
@@ -86,7 +122,6 @@ jobs:
       - name: Build harness assembly (packs Stride.Games.AutoTesting into bin/packages)
         run: |
           dotnet build sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
@@ -117,7 +152,6 @@ jobs:
       - name: Build test project
         run: |
           dotnet build samples\Tests\Stride.Samples.Tests.csproj `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
@@ -156,6 +190,7 @@ jobs:
           name: screenshots-${{ matrix.graphics-api }}
           path: |
             screenshot-out/
+            screenshot-out-aot/
             TestResults/
           if-no-files-found: warn
 

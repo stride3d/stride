@@ -1,58 +1,136 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using BepuPhysics;
-using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
-using Stride.BepuPhysics.Components;
+using BepuUtilities;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Contacts;
+using Stride.BepuPhysics.Systems.Characters;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
-using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
 [ComponentCategory("Physics - Bepu")]
-public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHandler
+public class CharacterComponent : CharacterComponentAbstract
 {
-    private bool _jumping;
+    private Vector3 _velocity;
 
     /// <summary> Base speed applied when moving, measured in units per second </summary>
     public float Speed { get; set; } = 10f;
+
+    /// <summary> Maximum force the character can apply to move along the supporting surface </summary>
+    public float MaximumHorizontalForce { get; set; } = 200;
 
     /// <summary> Force of the impulse applied when calling <see cref="TryJump"/> </summary>
     [DataAlias("JumpSpeed")]
     public float JumpForce { get; set; } = 10f;
 
-    [DataMemberIgnore]
-    public Vector3 Velocity { get; set; }
+    /// <summary> Maximum force the character can apply to glue itself to the supporting surface </summary>
+    public float MaximumVerticalForce { get; set; } = 1000;
+
+    /// <summary> The maximum slope angle in degrees that the character can treat as a support </summary>
+    [DataMemberRange(1, 89, 1, 10, 1)]
+    public float SlopeAngle { get; set; } = 50;
+
+    /// <summary> Threshold under which a contact is accepted as a support surface if the normal allows it </summary>
+    public float MinimumSupportDepth { get; set; } = 0.005f;
+
+    /// <summary> Threshold under which the previous supporting surfaces' contact is still considered a support </summary>
+    public float MinimumSupportContinuationDepth { get; set; } = 0.1f;
+
+    /// <summary> Ratio of <see cref="MaximumHorizontalForce"/> to use when not on a supporting surface </summary>
+    [DataMemberRange(0, 1, 0.1, 0.25, 3)]
+    public float AirControlForceScale { get; set; } = 0.2f;
+
+    /// <summary> Ratio of <see cref="Speed"/> to use when not on a supporting surface </summary>
+    [DataMemberRange(0, 1, 0.1, 0.25, 3)]
+    public float AirControlScale { get; set; } = 0.2f;
+
+    /// <summary> The direction local to <see cref="BodyComponent.Orientation"/> used when jumping or finding a supporting surface </summary>
+    public Vector3 LocalUp { get; set; } = new(0, 1, 0);
+
+    [DataMemberIgnore, Obsolete($"Use {nameof(MoveVector)} instead")]
+    public Vector3 Velocity
+    {
+        get => _velocity;
+        set
+        {
+            _velocity = value;
+            var inv = Quaternion.Invert(Orientation);
+            value = inv * value;
+            MoveVector = new Vector2(value.X, value.Z) / Speed;
+        }
+    }
+
+    /// <summary>
+    /// The current movement direction of this component, it is local to its <see cref="BodyComponent.Orientation"/>
+    /// </summary>
+    /// <remarks>
+    /// The input is scaled by <see cref="Speed"/> before usage<br/>
+    /// <paramref name="value"/> does not have to be normalized;
+    /// if the vector passed in has a length of 2, the character will go twice as fast
+    /// </remarks>
+    public Vector2 MoveVector
+    {
+        get;
+        set
+        {
+            field = value;
+            _velocity = Orientation * new Vector3(value.X, 0, value.Y) * Speed;
+        }
+    }
 
     [DataMemberIgnore]
-    public bool IsGrounded { get; protected set; }
+    public bool IsGrounded
+    {
+        get
+        {
+            if (BodyReference is { } bodyHandle)
+            {
+                Debug.Assert(Simulation is not null);
+                ref var character = ref Simulation.Characters.GetCharacterByBodyHandle(bodyHandle);
+                return character.Supported;
+            }
 
-    public bool IsJumping => _jumping;
+            return false;
+        }
+        [Obsolete($"{nameof(IsGrounded)} is now handled internally")]
+        protected set
+        {
+        }
+    }
+
+    public bool IsJumping
+    {
+        get
+        {
+            if (BodyReference is { } bodyHandle)
+            {
+                Debug.Assert(Simulation is not null);
+                ref var character = ref Simulation.Characters.GetCharacterByBodyHandle(bodyHandle);
+                return character.TryJump;
+            }
+
+            return false;
+        }
+    }
 
     /// <summary>
     /// Order is not guaranteed and may change at any moment
     /// </summary>
-    [DataMemberIgnore]
+    [DataMemberIgnore, Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     public List<(CollidableComponent Source, Contact Contact)> Contacts { get; } = new();
 
     public CharacterComponent()
     {
         InterpolationMode = InterpolationMode.Interpolated;
-    }
-
-    /// <inheritdoc cref="BodyComponent.AttachInner"/>
-    protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
-    {
-        base.AttachInner(pose, new BodyInertia { InverseMass = 1f }, shapeIndex);
-        FrictionCoefficient = 0f;
-        ContactEventHandler = this;
     }
 
     /// <summary>
@@ -62,10 +140,13 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     /// <paramref name="direction"/> does not have to be normalized;
     /// if the vector passed in has a length of 2, the character will go twice as fast
     /// </remarks>
+    [Obsolete($"Use {nameof(MoveVector)} instead")]
     public virtual void Move(Vector3 direction)
     {
         // Note that this method should be thread safe, see usage in RecastPhysicsNavigationProcessor
-        Velocity = direction * Speed;
+        var inv = Quaternion.Invert(Orientation);
+        direction = inv * direction;
+        MoveVector = new Vector2(direction.X, direction.Z);
     }
 
     /// <summary>
@@ -73,58 +154,80 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     /// </summary>
     public virtual void TryJump()
     {
-        _jumping = true;
-    }
-
-    /// <summary>
-    /// This is called internally right before the physics simulation does a tick
-    /// </summary>
-    /// <param name="sim"> The simulation this <see cref="ISimulationUpdate"/> is bound to, and the one currently updating </param>
-    /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
-    public virtual void SimulationUpdate(BepuSimulation sim, float simTimeStep)
-    {
-        Awake = true; // Keep this body active
-
-        var gravity = Simulation!.PoseGravity;
-
-        // Only keep the vertical component from the linear velocity, be it gravity or jump
-        LinearVelocity = Velocity + Project(LinearVelocity, gravity);
-
-        if (_jumping && LinearVelocity.Y <= 0)
+        if (BodyReference is { } bodyHandle)
         {
-            if (IsGrounded)
-                ApplyLinearImpulse(-Vector3.Normalize(gravity) * JumpForce);
-            else
-                _jumping = false;
+            Debug.Assert(Simulation is not null);
+            ref var character = ref Simulation.Characters.GetCharacterByBodyHandle(bodyHandle);
+            character.TryJump = true;
         }
-        Gravity = (IsGrounded && Velocity.LengthSquared() == 0f) == false; // Apply gravity only when the character is grounded and standing still to avoid sliding down slopes
     }
 
-    /// <summary>
-    /// This is called internally right after the physics simulation does a tick
-    /// </summary>
-    /// <param name="sim"> The simulation this <see cref="ISimulationUpdate"/> is bound to, and the one currently updating </param>
-    /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
-    public virtual void AfterSimulationUpdate(BepuSimulation sim, float simTimeStep)
+    /// <inheritdoc/>
+    protected override void SimulationUpdate(BepuSimulation sim, float simTimeStep, ref InternalCharacterData character, in BodyReference characterBody, out bool wakeupBody)
     {
-        var gravity = Simulation!.PoseGravity;
-        IsGrounded = GroundTest(-gravity.ToNumeric()); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
+        /*Entity.Transform.UpdateWorldMatrix();
+        var viewDirection = (NVector3)Entity.Transform.WorldMatrix.Backward;*/
+        var viewDirection = (NVector3)(Orientation * Vector3.UnitZ);
 
-        bool downwardForce = Vector3.Dot(gravity, LinearVelocity) >= 0f;
+        var newTargetVelocity = new System.Numerics.Vector2(MoveVector.X, MoveVector.Y) * Speed;
+        //Modifying the character's raw data does not automatically wake the character up, so we do so explicitly if necessary.
+        //If you don't explicitly wake the character up, it won't respond to the changed motion goals.
+        //(You can also specify a negative deactivation threshold in the BodyActivityDescription to prevent the character from sleeping at all.)
+        if (!characterBody.Awake)
+        {
+            wakeupBody = (character.TryJump && character.Supported)
+                         || newTargetVelocity != character.TargetVelocity
+                         || (newTargetVelocity != System.Numerics.Vector2.Zero && character.ViewDirection != viewDirection);
+        }
+        else
+        {
+            wakeupBody = false;
+        }
 
-        if (_jumping && downwardForce)
-            _jumping = false; // If we have any downward forces we're past the apex of the jump
+        character.ViewDirection = viewDirection;
+        character.TargetVelocity = newTargetVelocity;
+        character.LocalUp = LocalUp;
+        character.JumpVelocity = JumpForce;
+        character.MaximumHorizontalForce = MaximumHorizontalForce;
+        character.MaximumVerticalForce = MaximumVerticalForce;
+        character.CosMaximumSlope = MathF.Cos(MathUtil.DegreesToRadians(SlopeAngle));
+        character.MinimumSupportDepth = -MinimumSupportDepth;
+        character.MinimumSupportContinuationDepth = -MinimumSupportContinuationDepth;
 
-        if (IsGrounded && Velocity.LengthSquared() == 0f)
-            LinearVelocity = ProjectOnPlane(LinearVelocity, gravity); // Clip gravity when standing still on ground, mostly for slopes
-        else if (downwardForce == false && _jumping == false)
-            LinearVelocity = ProjectOnPlane(LinearVelocity, gravity); // Clip bouncing upward after a collision
+        //The character's motion constraints aren't active while the character is in the air, so if we want air control, we'll need to apply it ourselves.
+        //(You could also modify the constraints to do this, but the robustness of solved constraints tends to be a lot less important for air control.)
+        //There isn't any one 'correct' way to implement air control- it's a nonphysical gameplay thing, and this is just one way to do it.
+        //Note that this permits accelerating along a particular direction, and never attempts to slow down the character.
+        //This allows some movement quirks common in some game character controllers.
+        //Consider what happens if, starting from a standstill, you accelerate fully along X, then along Z- your full velocity magnitude will be sqrt(2) * maximumAirSpeed.
+        //Feel free to try alternative implementations. Again, there is no one correct approach.
+        if (!character.Supported && newTargetVelocity.LengthSquared() > 0)
+        {
+            QuaternionEx.Transform(character.LocalUp, characterBody.Pose.Orientation, out var characterUp);
+            var characterRight = Vector3.Cross(character.ViewDirection, characterUp);
+            var rightLengthSquared = characterRight.LengthSquared();
+            if (rightLengthSquared > 1e-10f)
+            {
+                characterRight /= MathF.Sqrt(rightLengthSquared);
+                var characterForward = Vector3.Cross(characterUp, characterRight);
+                var worldMovementDirection = characterRight * newTargetVelocity.X + characterForward * newTargetVelocity.Y;
+                var currentVelocity = Vector3.Dot(characterBody.Velocity.Linear, worldMovementDirection);
+                //We'll arbitrarily set air control to be a fraction of supported movement's speed/force.
+                var airAccelerationDt = characterBody.LocalInertia.InverseMass * character.MaximumHorizontalForce * AirControlForceScale * simTimeStep;
+                var maximumAirSpeed = Speed * AirControlScale;
+                var targetVelocity = MathF.Min(currentVelocity + airAccelerationDt, maximumAirSpeed);
+                //While we shouldn't allow the character to continue accelerating in the air indefinitely, trying to move in a given direction should never slow us down in that direction.
+                var velocityChangeAlongMovementDirection = MathF.Max(0, targetVelocity - currentVelocity);
+                characterBody.Velocity.Linear += worldMovementDirection * velocityChangeAlongMovementDirection;
+                Debug.Assert(characterBody.Awake, "Velocity changes don't automatically update objects; the character should have already been woken up before applying air control.");
+            }
+        }
     }
 
-    static Vector3 Project(Vector3 vector, Vector3 direction) => direction * Vector3.Dot(vector, direction) / Vector3.Dot(direction, direction);
-
-    static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal) => vector - Project(vector, planeNormal);
-
+    /// <inheritdoc/>
+    protected override void AfterSimulationUpdate(BepuSimulation sim, float simTimeStep, ref InternalCharacterData characterData)
+    {
+    }
 
     /// <summary>
     /// Returns whether this body is in contact with the ground.
@@ -140,9 +243,9 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     /// 0 would return true for a surface that is at most 90 degrees away from <paramref name="groundNormal"/>,
     /// and 1 would return true only when a surface matches <paramref name="groundNormal"/> exactly.
     /// </param>
+    [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     protected bool GroundTest(NVector3 groundNormal, float threshold = 0f)
     {
-        IsGrounded = false;
         if (Simulation == null || Contacts.Count == 0)
             return false;
 
@@ -162,15 +265,12 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
         return false;
     }
 
-    bool IContactHandler.NoContactResponse => NoContactResponse;
-    void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts) => OnStartedTouching(contacts);
-    void IContactHandler.OnTouching<TManifold>(Contacts<TManifold> contacts) => OnTouching(contacts);
-    void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) => OnStoppedTouching(contacts);
 
-
+    [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     protected bool NoContactResponse => false;
 
     /// <inheritdoc cref="IContactHandler.OnStartedTouching{TManifold}"/>
+    [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     protected virtual void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         foreach (var contact in contacts)
@@ -186,6 +286,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     }
 
     /// <inheritdoc cref="IContactHandler.OnTouching{TManifold}"/>
+    [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     protected virtual void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         for (int i = Contacts.Count - 1; i >= 0; i--)
@@ -207,6 +308,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     }
 
     /// <inheritdoc cref="IContactHandler.OnStoppedTouching{TManifold}"/>
+    [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     protected virtual void OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         for (int i = Contacts.Count - 1; i >= 0; i--)

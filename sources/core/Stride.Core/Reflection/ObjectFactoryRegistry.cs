@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Annotations;
 
@@ -41,7 +42,7 @@ public static class ObjectFactoryRegistry
     /// </summary>
     /// <typeparam name="T">Type of the object to create</typeparam>
     /// <returns>A new instance of T</returns>
-    public static T NewInstance<T>()
+    public static T NewInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>()
     {
         return (T)NewInstance(typeof(T));
     }
@@ -51,7 +52,7 @@ public static class ObjectFactoryRegistry
     /// </summary>
     /// <param name="objectType">Type of the object.</param>
     /// <returns>True if it can be created, false otherwise.</returns>
-    public static bool CanCreateInstance(Type objectType)
+    public static bool CanCreateInstance([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type objectType)
     {
         var factory = FindFactory(objectType);
         if (factory != null)
@@ -66,7 +67,7 @@ public static class ObjectFactoryRegistry
     /// </summary>
     /// <param name="objectType">Type of the object.</param>
     /// <returns>A new default instance of an object.</returns>
-    public static object NewInstance(Type objectType)
+    public static object NewInstance([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type objectType)
     {
         var factory = FindFactory(objectType);
 

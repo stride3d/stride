@@ -43,6 +43,57 @@ namespace Stride.Graphics.Tests
             Assert.Equal(10, Texture.CalculateMipMapCount(MipMapCount.Auto, width: 615, height: 342));
         }
 
+        // Block-compressed mips round up to the block size (4); a non-pow2 source has unaligned mips.
+        [Theory]
+        [InlineData(0, 1500, 844)]
+        [InlineData(1, 752, 424)]
+        [InlineData(2, 376, 212)]  // 375x211 -> 376x212
+        [InlineData(3, 188, 108)]
+        [InlineData(4, 96, 52)]
+        [InlineData(5, 48, 28)]
+        [InlineData(6, 24, 16)]
+        [InlineData(7, 12, 8)]
+        [InlineData(8, 8, 4)]
+        [InlineData(9, 4, 4)]
+        [InlineData(10, 4, 4)]
+        public void GetMipDimensionsBlockCompressedAreBlockAligned(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.BC3_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+            Assert.Equal(0, width % 4);
+            Assert.Equal(0, height % 4);
+        }
+
+        // Uncompressed formats keep the exact mip size, no rounding.
+        [Theory]
+        [InlineData(0, 1500, 844)]
+        [InlineData(2, 375, 211)]
+        [InlineData(8, 5, 3)]
+        [InlineData(10, 1, 1)]  // 844 >> 10 == 0, clamped to 1
+        public void GetMipDimensionsUncompressedAreNotRounded(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.R8G8B8A8_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+        }
+
+        // ASTC blocks aren't 4x4: width rounds up to 8, height to 5.
+        [Theory]
+        [InlineData(0, 1504, 845)]  // 1500->1504 (mult of 8), 844->845 (mult of 5)
+        [InlineData(1, 752, 425)]   // 750->752, 422->425
+        public void GetMipDimensionsAstcUseFormatBlockSize(int mipIndex, int expectedWidth, int expectedHeight)
+        {
+            var (width, height) = Image.GetMipDimensions(PixelFormat.ASTC_8x5_UNorm, 1500, 844, mipIndex);
+
+            Assert.Equal(expectedWidth, width);
+            Assert.Equal(expectedHeight, height);
+            Assert.Equal(0, width % 8);
+            Assert.Equal(0, height % 5);
+        }
+
         [Fact]
         public void TestTexture1D()
         {
@@ -231,17 +282,22 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture3D()
         {
-            Skip.If(Platform.Type == PlatformType.Linux, reason: "SwiftShader does not support 3D textures");
-
             PerformTest(
                 game =>
                 {
                     var device = game.GraphicsDevice;
 
-                    // Check Texture creation with an array of data, with usage default to later allow SetData
-                    var data = new byte[32 * 32 * 32];
-                    data[0] = 255;
-                    data[31] = 1;
+                    // Check Texture creation with an array of data, with usage default to later allow SetData.
+                    // Encode (slice, row, col) into each byte so that any misalignment of slice or row
+                    // start in the upload/readback path produces a recognisable mismatch: byte ==
+                    // (sliceIndex * 17 ^ rowIndex * 3 ^ colIndex). The 17/3 multipliers keep slice and
+                    // row contributions distinct mod 256.
+                    const int width = 32, height = 32, depth = 32;
+                    var data = new byte[width * height * depth];
+                    for (int s = 0; s < depth; s++)
+                    for (int r = 0; r < height; r++)
+                    for (int c = 0; c < width; c++)
+                        data[s * width * height + r * width + c] = (byte)((s * 17) ^ (r * 3) ^ c);
 
                     var texture = Texture.New3D(device, width: 32, height: 32, depth: 32, PixelFormat.R8_UNorm, data, usage: GraphicsResourceUsage.Default);
 
@@ -397,11 +453,8 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadSave(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
-            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
 
             PerformTest(
                 game =>
@@ -451,12 +504,9 @@ namespace Stride.Graphics.Tests
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
         public void TestLoadDraw(ImageFileType sourceFormat)
         {
-            Skip.If(sourceFormat is ImageFileType.Wmp, reason: "No input image of this format");
-
-            // TODO: Remove this when Load/Save methods are implemented for these types
-            Skip.If(sourceFormat is ImageFileType.Wmp or ImageFileType.Tga, reason: "Load/Save not implemented for this format");
+            // TODO: Remove this when Load/Save methods are implemented for Tga
+            Skip.If(sourceFormat is ImageFileType.Tga, reason: "Load/Save not implemented for this format");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, reason: "Load/Save not implemented for this format");
-            Skip.If(Platform.Type == PlatformType.Linux && sourceFormat == ImageFileType.Bmp, reason: "FreeImage BMP save not supported on Linux");
 
             PerformDrawTest(
                 (game, context) =>
@@ -477,7 +527,8 @@ namespace Stride.Graphics.Tests
                     using (var inStream = game.Content.OpenAsStream(filePath))
                         texture = Texture.Load(device, inStream, loadAsSrgb: true);
 
-                    game.GraphicsContext.DrawTexture(texture, BlendStates.AlphaBlend);
+                    // Texture.Load returns straight alpha; pair it with the matching blend.
+                    game.GraphicsContext.DrawTexture(texture, BlendStates.NonPremultiplied);
                 },
                 GraphicsProfile.Level_9_1);
         }

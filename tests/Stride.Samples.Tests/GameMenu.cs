@@ -1,6 +1,7 @@
 // Navigate the main menu.
 #if STRIDE_AUTOTESTING
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
@@ -10,6 +11,9 @@ namespace GameMenu.Tests;
 [ScreenshotTest(TemplateId = "7ac2c705-6240-4ddc-af63-fc438d10f4de")]
 public class GameMenuScreenshots : IScreenshotTest
 {
+    [ModuleInitializer]
+    internal static void Register() => AutoTestingBootstrap.RegisterTest(new GameMenuScreenshots());
+
     public async Task Run(IScreenshotTestContext ctx)
     {
         await ctx.WaitTime(TimeSpan.FromMilliseconds(2000));

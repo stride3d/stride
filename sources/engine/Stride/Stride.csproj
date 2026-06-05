@@ -15,8 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
-    <PackageReference Include="System.Drawing.Common" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <ProjectReference Include="..\..\tools\Stride.FreeImage\Stride.FreeImage.csproj" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

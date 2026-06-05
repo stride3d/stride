@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Storage;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
@@ -31,27 +32,53 @@ namespace Stride.Rendering.Materials
 
         private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MaterialRenderFeature.PrepareEffectPermutations");
 
-        public class MaterialInfoBase
+        public class LayoutVariant
         {
-            public int LastFrameUsed;
-            public SpinLock UpdateLock;
-
-            // Any matching effect
             public ResourceGroupLayout PerMaterialLayout;
-
-            /// <summary>
-            /// <c>true</c> if MaterialParameters instance was changed
-            /// </summary>
-            public bool ParametersChanged;
-
             public ParameterCollection ParameterCollection = new ParameterCollection();
             public ParameterCollectionLayout ParameterCollectionLayout;
             public ParameterCollection.Copier ParameterCollectionCopier;
-
-            // PerMaterial
             public ResourceGroup Resources = new ResourceGroup();
             public int ResourceCount;
             public EffectConstantBufferDescription ConstantBufferReflection;
+            internal int LastParametersVersion = -1;
+            internal int LastFrameProcessed;
+        }
+
+        public class MaterialInfoBase
+        {
+            public SpinLock UpdateLock;
+
+            /// <summary>
+            /// Incremented when the source MaterialParameters instance changes (e.g. editor hot reload).
+            /// Each <see cref="LayoutVariant"/> tracks the version it last built its copier against.
+            /// </summary>
+            public int ParametersVersion;
+
+            // Inline fast path for the common single-variant case
+            internal ObjectId SingleVariantHash;
+            internal LayoutVariant SingleVariant;
+            internal Dictionary<ObjectId, LayoutVariant> ExtraVariants;
+
+            internal LayoutVariant GetOrAddVariant(ObjectId hash)
+            {
+                if (SingleVariant == null)
+                {
+                    SingleVariantHash = hash;
+                    SingleVariant = new LayoutVariant();
+                    return SingleVariant;
+                }
+                if (SingleVariantHash == hash)
+                    return SingleVariant;
+
+                ExtraVariants ??= new Dictionary<ObjectId, LayoutVariant>();
+                if (!ExtraVariants.TryGetValue(hash, out var variant))
+                {
+                    variant = new LayoutVariant();
+                    ExtraVariants[hash] = variant;
+                }
+                return variant;
+            }
         }
 
         /// <summary>
@@ -242,7 +269,8 @@ namespace Stride.Rendering.Materials
                                 materialInfo.UseDitheredShadows = material.Parameters.Get(MaterialKeys.UseDitheredShadows);
 
                                 materialInfo.MaterialParameters = material.Parameters;
-                                materialInfo.ParametersChanged = isMaterialParametersChanged;
+                                if (isMaterialParametersChanged)
+                                    materialInfo.ParametersVersion++;
                                 materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
                             }
                         }
@@ -301,8 +329,6 @@ namespace Stride.Rendering.Materials
                         continue;
 
                     // Collect materials and create associated MaterialInfo (includes reflection) first time
-                    // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
-                    // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
                     var material = renderMesh.MaterialPass;
                     var materialInfo = renderMesh.MaterialInfo;
                     var materialParameters = material.Parameters;
@@ -310,11 +336,12 @@ namespace Stride.Rendering.Materials
                     // Register resources usage
                     Context.StreamingManager?.StreamResources(materialParameters);
 
-                    if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
+                    var resources = UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                    if (resources == null)
                         continue;
 
                     var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
                 }
             });
         }
@@ -343,64 +370,86 @@ namespace Stride.Rendering.Materials
             }
         }
 
-        public static unsafe bool UpdateMaterial(RenderSystem renderSystem, RenderDrawContext context, MaterialInfoBase materialInfo, int materialSlotIndex, RenderEffect renderEffect, ParameterCollection materialParameters)
+        public static ResourceGroup UpdateMaterial(RenderSystem renderSystem, RenderDrawContext context, MaterialInfoBase materialInfo, int materialSlotIndex, RenderEffect renderEffect, ParameterCollection materialParameters)
         {
             var resourceGroupDescription = renderEffect.Reflection.ResourceGroupDescriptions[materialSlotIndex];
             if (resourceGroupDescription.DescriptorSetLayout == null)
-                return false;
+                return null;
 
-            // Check if this material was encountered for the first time this frame and mark it as used
-            if (Interlocked.Exchange(ref materialInfo.LastFrameUsed, renderSystem.FrameCounter) == renderSystem.FrameCounter)
-                return true;
+            var hash = resourceGroupDescription.Hash;
 
-            // First time we use the material with a valid effect, let's update layouts
-            if (materialInfo.PerMaterialLayout == null || materialInfo.PerMaterialLayout.Hash != renderEffect.Reflection.ResourceGroupDescriptions[materialSlotIndex].Hash)
+            // Lock-free fast path: single variant already processed this frame
+            var single = materialInfo.SingleVariant;
+            if (single != null && materialInfo.SingleVariantHash == hash && single.LastFrameProcessed == renderSystem.FrameCounter)
+                return single.Resources;
+
+            bool lockTaken = false;
+            try
             {
-                materialInfo.PerMaterialLayout = ResourceGroupLayout.New(renderSystem.GraphicsDevice, resourceGroupDescription);
+                materialInfo.UpdateLock.Enter(ref lockTaken);
 
-                var parameterCollectionLayout = materialInfo.ParameterCollectionLayout = new ParameterCollectionLayout();
-                parameterCollectionLayout.ProcessResources(resourceGroupDescription.DescriptorSetLayout);
-                materialInfo.ResourceCount = parameterCollectionLayout.ResourceCount;
-
-                // Process material cbuffer (if any)
-                if (resourceGroupDescription.ConstantBufferReflection != null)
+                var variant = materialInfo.GetOrAddVariant(hash);
+                if (variant.PerMaterialLayout == null)
+                    SetupVariantLayout(renderSystem, variant, resourceGroupDescription);
+                if (variant.LastFrameProcessed != renderSystem.FrameCounter)
                 {
-                    materialInfo.ConstantBufferReflection = resourceGroupDescription.ConstantBufferReflection;
-                    parameterCollectionLayout.ProcessConstantBuffer(resourceGroupDescription.ConstantBufferReflection);
+                    ProcessVariantData(variant, materialInfo, materialParameters, context);
+                    variant.LastFrameProcessed = renderSystem.FrameCounter;
                 }
-                materialInfo.ParametersChanged = true;
+                return variant.Resources;
             }
-
-            // If the parameters collection instance changed, we need to update it
-            if (materialInfo.ParametersChanged)
+            finally
             {
-                materialInfo.ParameterCollection.UpdateLayout(materialInfo.ParameterCollectionLayout);
-                materialInfo.ParameterCollectionCopier = new ParameterCollection.Copier(materialInfo.ParameterCollection, materialParameters);
-                materialInfo.ParametersChanged = false;
+                if (lockTaken)
+                    materialInfo.UpdateLock.Exit();
+            }
+        }
+
+        private static void SetupVariantLayout(RenderSystem renderSystem, LayoutVariant variant, ResourceGroupDescription resourceGroupDescription)
+        {
+            variant.PerMaterialLayout = ResourceGroupLayout.New(renderSystem.GraphicsDevice, resourceGroupDescription);
+
+            var parameterCollectionLayout = variant.ParameterCollectionLayout = new ParameterCollectionLayout();
+            parameterCollectionLayout.ProcessResources(resourceGroupDescription.DescriptorSetLayout);
+            variant.ResourceCount = parameterCollectionLayout.ResourceCount;
+
+            if (resourceGroupDescription.ConstantBufferReflection != null)
+            {
+                variant.ConstantBufferReflection = resourceGroupDescription.ConstantBufferReflection;
+                parameterCollectionLayout.ProcessConstantBuffer(resourceGroupDescription.ConstantBufferReflection);
             }
 
-            // Copy back to ParameterCollection
-            // TODO GRAPHICS REFACTOR directly copy to resource group?
-            materialInfo.ParameterCollectionCopier.Copy();
+            variant.ParameterCollection.UpdateLayout(variant.ParameterCollectionLayout);
+        }
+
+        private static unsafe void ProcessVariantData(LayoutVariant variant, MaterialInfoBase materialInfo, ParameterCollection materialParameters, RenderDrawContext context)
+        {
+            // Rebuild copier if layout just changed or source parameters instance changed
+            if (variant.LastParametersVersion != materialInfo.ParametersVersion)
+            {
+                variant.ParameterCollectionCopier = new ParameterCollection.Copier(variant.ParameterCollection, materialParameters);
+                variant.LastParametersVersion = materialInfo.ParametersVersion;
+            }
+
+            // Copy from source material parameters
+            variant.ParameterCollectionCopier.Copy();
 
             // Allocate resource groups
-            context.ResourceGroupAllocator.PrepareResourceGroup(materialInfo.PerMaterialLayout, BufferPoolAllocationType.UsedMultipleTime, materialInfo.Resources);
+            context.ResourceGroupAllocator.PrepareResourceGroup(variant.PerMaterialLayout, BufferPoolAllocationType.UsedMultipleTime, variant.Resources);
 
             // Set resource bindings in PerMaterial resource set
-            for (int resourceSlot = 0; resourceSlot < materialInfo.ResourceCount; ++resourceSlot)
+            for (int resourceSlot = 0; resourceSlot < variant.ResourceCount; ++resourceSlot)
             {
-                materialInfo.Resources.DescriptorSet.SetValue(resourceSlot, materialInfo.ParameterCollection.ObjectValues[resourceSlot]);
+                variant.Resources.DescriptorSet.SetValue(resourceSlot, variant.ParameterCollection.ObjectValues[resourceSlot]);
             }
 
             // Process PerMaterial cbuffer
-            if (materialInfo.ConstantBufferReflection != null)
+            if (variant.ConstantBufferReflection != null)
             {
-                var mappedCB = (byte*)materialInfo.Resources.ConstantBuffer.Data;
-                fixed (byte* dataValues = materialInfo.ParameterCollection.DataValues)
-                    MemoryUtilities.CopyWithAlignmentFallback(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
+                var mappedCB = (byte*)variant.Resources.ConstantBuffer.Data;
+                fixed (byte* dataValues = variant.ParameterCollection.DataValues)
+                    MemoryUtilities.CopyWithAlignmentFallback(mappedCB, dataValues, (uint)variant.Resources.ConstantBuffer.Size);
             }
-
-            return true;
         }
 
         private struct TessellationState : IDisposable

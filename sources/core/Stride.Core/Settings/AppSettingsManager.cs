@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Reflection;
 
 namespace Stride.Core.Settings;
@@ -35,6 +36,8 @@ public static class AppSettingsManager
     /// If provider is not set, getter of this property will attempt to find an implementation
     /// among the registered assemblies and cache it.
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Provider types come from the assembly scan registry, which keeps their ctors.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Provider types come from the assembly scan registry.")]
     public static IAppSettingsProvider? SettingsProvider
     {
         get

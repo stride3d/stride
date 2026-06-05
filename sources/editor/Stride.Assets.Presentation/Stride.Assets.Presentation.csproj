@@ -23,13 +23,20 @@
     <PackageReference Include="RoslynPad.Editor.Windows" />
     <PackageReference Include="RoslynPad.Roslyn.Windows" />
     <PackageReference Include="RoslynPad.Roslyn" />
+    <PackageReference Include="DotRecast.Detour" />
+    <PackageReference Include="Microsoft.TemplateEngine.IDE" />
+    <PackageReference Include="Microsoft.TemplateEngine.Edge" />
+    <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Stride.Samples.Templates\ThisPackageVersion.PackageBuild.cs" Link="ThisPackageVersion.PackageBuild.cs" />
-    <Compile Include="..\Stride.Samples.Templates\ThisPackageVersion.DevBuild.cs" Link="ThisPackageVersion.DevBuild.cs" />
+    <!-- Shared with the pack-time tool (sources/tools/Stride.TemplateGenerator). Identical YAML
+         parsing logic on both sides; linking the source file keeps a single definition. -->
+    <Compile Include="..\..\tools\Stride.TemplateGenerator\SdtplMetadata.cs">
+      <Link>Templates\SdtplMetadata.cs</Link>
+    </Compile>
     <None Include="app.config" />
     <None Include="*.cd" />
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
@@ -67,7 +74,19 @@
     <ProjectReference Include="..\..\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
-    <ProjectReference Include="..\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
+    <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
+         GameStudio links. Without this, a fresh checkout that builds only the editor never
+         produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
+         Sibling packages (Stride.Templates.Games.Starters, Stride.Templates.Samples) build
+         standalone and reach users via the future editor template store / CLI dotnet new install.
+         The templates csproj uses TreatAsLocalProperty="StrideSkipAutoPack" so the auto-pack
+         still runs even when an outer build context sets the property — no strip needed here. -->
+    <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

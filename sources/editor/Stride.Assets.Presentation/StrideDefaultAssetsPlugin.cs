@@ -92,9 +92,9 @@ namespace Stride.Assets.Presentation
 
         public static void LoadDefaultTemplates()
         {
-            // Load templates
-            // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.Samples.Templates", Version = Stride.Samples.Templates.ThisPackageVersion.Current } })
+            // Load editor-internal templates (asset / script / project-modification .sdtpl files).
+            // Currently hardcoded, this will need to change with plugin system.
+            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
@@ -106,6 +106,15 @@ namespace Stride.Assets.Presentation
 
                 TemplateManager.RegisterPackage(package);
             }
+
+            // Project-creation templates ship across Stride.Templates.Games (bundled NewGame),
+            // Stride.Templates.Games.Starters (genre starters), and Stride.Templates.Samples
+            // (feature demos) — all dotnet new template packages (vanilla NuGet), not Stride .sdpkgs.
+            // The bridge resolves each via PackageStore (auto-pack drops the .nupkg in dev mode),
+            // installs into the in-process Microsoft.TemplateEngine bootstrapper, then exposes
+            // each dotnet new template as a TemplateDotNetNewDescription so the existing template
+            // list UI picks them up.
+            Templates.DotNetNewTemplateBridge.RegisterProjectTemplates();
         }
 
         /// <inheritdoc />

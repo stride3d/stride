@@ -1,19 +1,12 @@
 name: Build Assembly Processor
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Build Assembly Processor — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Build Assembly Processor @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-assembly-processor.yml'
-      - 'build/Stride.AssemblyProcessor.sln'
-      - 'sources/core/Stride.Core/**'
-      - 'sources/core/Stride.Core.AssemblyProcessor/**'
-      - 'sources/core/Stride.Core.AssemblyProcessor.Tests/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -28,9 +21,12 @@ on:
       build-type:
         default: Debug
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [build-assembly-processor]
 
 concurrency:
-  group: build-assembly-processor-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: build-assembly-processor-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -38,13 +34,13 @@ jobs:
   # Build Assembly Processor
   #
   Assembly-Processor:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

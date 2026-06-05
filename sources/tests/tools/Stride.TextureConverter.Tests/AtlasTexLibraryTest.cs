@@ -14,7 +14,7 @@ namespace Stride.TextureConverter.Tests
     public class AtlasTexLibraryTest : IDisposable
     {
         private readonly AtlasTexLibrary library = new AtlasTexLibrary();
-        private readonly FITexLib fiLib = new FITexLib();
+        private readonly ImageSharpTexLib fiLib = new ImageSharpTexLib();
         private readonly DxtTexLib dxtLib = new DxtTexLib();
 
         public AtlasTexLibraryTest()
@@ -169,7 +169,7 @@ namespace Stride.TextureConverter.Tests
         private TexImage Load(ITexLibrary library, string filePath)
         {
             var image = new TexImage();
-            library.Execute(image, new LoadingRequest(filePath, false));
+            library.Execute(image, new FileLoadingRequest(filePath, false));
             image.Name = Path.GetFileName(filePath);
             image.CurrentLibrary = library;
             return image;

@@ -1,0 +1,21 @@
+<!--
+  AOT/trim defaults for feature switches declared in Stride.Engine. Applied at the consuming game's
+  publish (shipped in build/ + buildTransitive/). The engine ships with these subsystems enabled and
+  they stay on for a normal JIT build; trimming/AOT is where we default them off.
+-->
+<Project>
+  <!--
+    The remote (Game Studio) effect compiler is a development-only tool that talks to the editor over
+    a socket; no standalone shipped game uses it (it falls back to the local compiler). Default the
+    feature switch off when trimming/AOT so the socket stack is dropped. Set
+    StrideRemoteEffectCompilerEnabled=true to keep it.
+  -->
+  <ItemGroup Condition="'$(StrideRemoteEffectCompilerEnabled)' == '' And ('$(PublishAot)' == 'true' Or '$(PublishTrimmed)' == 'true')">
+    <RuntimeHostConfigurationOption Include="Stride.Engine.RemoteEffectCompilerEnabled" Value="false" Trim="true" />
+  </ItemGroup>
+
+  <!-- Explicit opt-in/out always wins. -->
+  <ItemGroup Condition="'$(StrideRemoteEffectCompilerEnabled)' != ''">
+    <RuntimeHostConfigurationOption Include="Stride.Engine.RemoteEffectCompilerEnabled" Value="$(StrideRemoteEffectCompilerEnabled)" Trim="true" />
+  </ItemGroup>
+</Project>

@@ -120,7 +120,7 @@ namespace Stride.Graphics.GeometricPrimitives
                 int horizontalSegments = tessellation * 2;
 
                 var vertices = new VertexPositionNormalTexture[(verticalSegments + 1) * (horizontalSegments + 1)];
-                var indices = new int[(verticalSegments) * (horizontalSegments + 1) * 6];
+                var indices = new int[verticalSegments * horizontalSegments * 6];
 
                 int vertexCount = 0;
 
@@ -180,13 +180,15 @@ namespace Stride.Graphics.GeometricPrimitives
                 // Fill the index buffer with triangles joining each pair of latitude rings.
                 int stride = horizontalSegments + 1;
 
+                // Skip j == horizontalSegments: would produce zero-area seam triangles
+                // (invisible when rasterized, but tessellators still subdivide them).
                 int indexCount = 0;
                 for (int i = 0; i < verticalSegments; i++)
                 {
-                    for (int j = 0; j <= horizontalSegments; j++)
+                    for (int j = 0; j < horizontalSegments; j++)
                     {
                         int nextI = i + 1;
-                        int nextJ = (j + 1) % stride;
+                        int nextJ = j + 1;
 
                         indices[indexCount++] = (i * stride + j);
                         indices[indexCount++] = (nextI * stride + j);

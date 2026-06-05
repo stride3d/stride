@@ -285,63 +285,66 @@ public partial class NugetStore : INugetDownloadProgress
         if (InstallPath == null)
             return;
 
-        var resolver = new VersionFolderPathResolver(InstallPath);
-
-        foreach (var source in PackageSources)
+        Task.Run(async () =>
         {
-            if (!source.IsLocal)
-                continue;
+            var resolver = new VersionFolderPathResolver(InstallPath);
 
-            IList<LocalPackageInfo> localPkgs;
-            try
+            foreach (var source in PackageSources)
             {
-                var v2 = new FindLocalPackagesResourceV2(source.Source);
-                localPkgs = v2.FindPackagesById(packageId, NativeLogger, CancellationToken.None).ToList();
-            }
-            catch
-            {
-                continue;
-            }
-
-            foreach (var pkg in localPkgs)
-            {
-                var nupkgPath = pkg.Path;
-                if (string.IsNullOrEmpty(nupkgPath) || !File.Exists(nupkgPath))
+                if (!source.IsLocal)
                     continue;
 
-                var hashPath = resolver.GetHashPath(pkg.Identity.Id, pkg.Identity.Version);
-                var nupkgWriteTime = File.GetLastWriteTimeUtc(nupkgPath);
-
-                if (File.Exists(hashPath) && File.GetLastWriteTimeUtc(hashPath) >= nupkgWriteTime)
-                    continue;
-
-                var extractedDir = resolver.GetInstallPath(pkg.Identity.Id, pkg.Identity.Version);
-                if (Directory.Exists(extractedDir))
-                {
-                    try { Directory.Delete(extractedDir, recursive: true); }
-                    catch { continue; }
-                }
-
+                IList<LocalPackageInfo> localPkgs;
                 try
                 {
-                    using var stream = File.OpenRead(nupkgPath);
-                    GlobalPackagesFolderUtility.AddPackageAsync(
-                        source: source.Source,
-                        packageIdentity: pkg.Identity,
-                        packageStream: stream,
-                        globalPackagesFolder: InstallPath,
-                        parentId: Guid.Empty,
-                        clientPolicyContext: ClientPolicyContext.GetClientPolicy(settings, NativeLogger),
-                        logger: NativeLogger,
-                        token: CancellationToken.None).GetAwaiter().GetResult();
+                    var v2 = new FindLocalPackagesResourceV2(source.Source);
+                    localPkgs = v2.FindPackagesById(packageId, NativeLogger, CancellationToken.None).ToList();
                 }
                 catch
                 {
-                    // Best-effort: if extraction fails (race with a concurrent build, locked file, etc.)
-                    // fall through to whatever was already in the global cache.
+                    continue;
+                }
+
+                foreach (var pkg in localPkgs)
+                {
+                    var nupkgPath = pkg.Path;
+                    if (string.IsNullOrEmpty(nupkgPath) || !File.Exists(nupkgPath))
+                        continue;
+
+                    var hashPath = resolver.GetHashPath(pkg.Identity.Id, pkg.Identity.Version);
+                    var nupkgWriteTime = File.GetLastWriteTimeUtc(nupkgPath);
+
+                    if (File.Exists(hashPath) && File.GetLastWriteTimeUtc(hashPath) >= nupkgWriteTime)
+                        continue;
+
+                    var extractedDir = resolver.GetInstallPath(pkg.Identity.Id, pkg.Identity.Version);
+                    if (Directory.Exists(extractedDir))
+                    {
+                        try { Directory.Delete(extractedDir, recursive: true); }
+                        catch { continue; }
+                    }
+
+                    try
+                    {
+                        using var stream = File.OpenRead(nupkgPath);
+                        await GlobalPackagesFolderUtility.AddPackageAsync(
+                            source: source.Source,
+                            packageIdentity: pkg.Identity,
+                            packageStream: stream,
+                            globalPackagesFolder: InstallPath,
+                            parentId: Guid.Empty,
+                            clientPolicyContext: ClientPolicyContext.GetClientPolicy(settings, NativeLogger),
+                            logger: NativeLogger,
+                            token: CancellationToken.None).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Best-effort: if extraction fails (race with a concurrent build, locked file, etc.)
+                        // fall through to whatever was already in the global cache.
+                    }
                 }
             }
-        }
+        }).GetAwaiter().GetResult();
     }
 
     /// <summary>

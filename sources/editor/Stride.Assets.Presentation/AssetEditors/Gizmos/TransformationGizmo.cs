@@ -192,10 +192,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     worldMatrix.TranslationVector = AnchorEntity.Transform.WorldMatrix.TranslationVector;
                     break;
                 case TransformationSpace.ObjectSpace:
-                    var parentMatrix = Matrix.Identity;
+                    Matrix parentMatrix;
                     if (AnchorEntity.GetParent() != null)
+                    {
                         parentMatrix = AnchorEntity.TransformValue.Parent.WorldMatrix;
-
+                    }
+                    else
+                    {
+                        // Root entity in subscene — use Scene.Offset as parent matrix
+                        var scene = AnchorEntity.Scene;
+                        parentMatrix = (scene != null && scene.Offset != Vector3.Zero)
+                            ? Matrix.Translation(scene.Offset)
+                            : Matrix.Identity;
+                    }
+                    
                     // We don't use the entity's "WorldMatrix" because its scale could be zero, which would break the gizmo.
                     worldMatrix = Matrix.RotationQuaternion(AnchorEntity.Transform.Rotation) *
                                   Matrix.Translation(AnchorEntity.Transform.Position) *
@@ -335,12 +345,25 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 // Ensure world matrix is computed
                 entity.Transform.UpdateWorldMatrix();
 
+                Matrix inverseParent;
+                if (entity.Transform.Parent != null)
+                {
+                    inverseParent = Matrix.Invert(entity.Transform.Parent.WorldMatrix);
+                }
+                else
+                {
+                    var scene = entity.Scene;
+                    inverseParent = (scene != null && scene.Offset != Vector3.Zero)
+                        ? Matrix.Invert(Matrix.Translation(scene.Offset))
+                        : Matrix.Identity;
+                }
+
                 InitialTransformations[entity] = new InitialTransformation
                 {
                     Scale = entity.Transform.Scale,
                     Translation = entity.Transform.Position,
                     Rotation = entity.Transform.Rotation,
-                    InverseParentMatrix = entity.Transform.Parent != null ? Matrix.Invert(entity.Transform.Parent.WorldMatrix) : Matrix.Identity
+                    InverseParentMatrix = inverseParent
                 };
             }
         }

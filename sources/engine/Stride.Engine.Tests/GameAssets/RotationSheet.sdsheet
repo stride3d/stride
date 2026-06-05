@@ -4,6 +4,7 @@ SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: Sprite2D
 ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsCompressed: false
 Packing:
     BorderSize: 0
 Sprites:

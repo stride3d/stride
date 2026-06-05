@@ -120,11 +120,22 @@
   <!-- Uses BeforeTargets="CopyFilesToOutputDirectory" to run after compilation
        but before output copy. This matches the old build system and avoids
        import-order issues with PrepareForRunDependsOn (which gets overwritten
-       by Microsoft.NET.Sdk Sdk.targets when imported after this file). -->
+       by Microsoft.NET.Sdk Sdk.targets when imported after this file).
+
+       Skipped in the Android SDK's per-RID inner builds (Microsoft.Android.Sdk dispatches
+       one of these per Android RID when RuntimeIdentifiers isn't pinned), which run with
+       SkipCompilerExecution=true so CoreCompile is a no-op. The AP then races against the
+       outer build that actually produced obj\<TFM>\<Assembly>.dll, with the AP often hitting
+       FileNotFoundException because the outer build's writeback hasn't landed yet — and the
+       error is swallowed (build returns success), silently breaking downstream Java-stub /
+       activation-ctor injection for the test APK. Stride.Core.Assets.CompilerApp.targets
+       uses the same gate via StrideCompilerSkipAndroidInnerBuild. -->
   <Target Name="StrideRunAssemblyProcessor"
           BeforeTargets="CopyFilesToOutputDirectory"
           DependsOnTargets="ResolveAssemblyReferences"
-          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != ''">
+          Inputs="$(IntermediateOutputPath)$(TargetName)$(TargetExt);@(ReferencePath);$(StrideAssemblyProcessorPath)"
+          Outputs="$(IntermediateOutputPath)$(TargetName).asmproc.marker"
+          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
 
     <!-- Step 1: Write references to cache file -->
     <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache"
@@ -195,6 +206,9 @@
     <ItemGroup>
       <StrideAddReference Remove="@(StrideAddReference)" />
     </ItemGroup>
+
+    <!-- Touch marker so MSBuild's incremental check skips on next build when nothing changed. -->
+    <Touch Files="$(IntermediateOutputPath)$(TargetName).asmproc.marker" AlwaysCreate="true" />
   </Target>
 
   <!-- ================================================================ -->

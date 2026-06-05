@@ -19,6 +19,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
+using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -76,6 +77,12 @@ namespace Stride.Graphics.Regression
         public int StopOnFrameCount { get; set; }
 
         /// <summary>
+        ///   Maximum per-channel color difference (0-255) allowed when comparing images.
+        ///   Default is 2. Increase for tests with expected minor numerical differences.
+        /// </summary>
+        public int ImageComparisonTolerance { get; set; } = 2;
+
+        /// <summary>
         ///   Gets or sets the name of the test. It will be reflected in the saved images.
         /// </summary>
         public string TestName { get; set; }
@@ -106,14 +113,16 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
-        ///   Controls RenderDoc capture behavior for tests.
-        ///   Set via the <c>STRIDE_TESTS_RENDERDOC</c> environment variable:
+        ///   Controls RenderDoc capture behavior for tests. Defaults to the value of the
+        ///   <c>STRIDE_TESTS_RENDERDOC</c> environment variable (lower-cased) and can be
+        ///   overridden at runtime by the interactive test runner.
         ///   <list type="bullet">
         ///     <item><c>error</c> — capture frames only for failing tests (discard on success)</item>
         ///     <item><c>always</c> — capture frames for all tests</item>
+        ///     <item>anything else / <see langword="null"/> — no capture</item>
         ///   </list>
         /// </summary>
-        private static readonly string RenderDocMode =
+        public static string RenderDocMode { get; set; } =
             Environment.GetEnvironmentVariable("STRIDE_TESTS_RENDERDOC")?.ToLowerInvariant();
 
         private static bool CaptureRenderDocOnError => RenderDocMode is "error" or "always";
@@ -193,7 +202,7 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
-        ///   Saves a Texture locally or on the test server.
+        ///   Saves a Texture and compares it against the gold reference image.
         /// </summary>
         /// <param name="textureToSave">The <see cref="Texture"/> to save.</param>
         /// <param name="testName">
@@ -215,7 +224,7 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
-        ///   Saves the Back-Buffer locally or on the test server.
+        ///   Saves the Back-Buffer and compares it against the gold reference image.
         /// </summary>
         /// <param name="testName">
         ///   An optional name for the test that is wanting to save the Back-Buffer.
@@ -228,32 +237,10 @@ namespace Stride.Graphics.Regression
         {
             TestGameLogger.Info(@"Saving the Back-Buffer");
 
-            // TODO: GRAPHICS REFACTOR: Switched to presenter backbuffer, need to check if it's good
             var backBuffer = GraphicsDevice.Presenter.BackBuffer;
             using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
             SaveImage(image, testName);
         }
-
-        /// <summary>
-        ///   Saves an Image locally or on the test server.
-        /// </summary>
-        /// <param name="imageToSave">The <see cref="Image"/> to save.</param>
-        /// <param name="testName">
-        ///   An optional name for the test that is wanting to save the <paramref name="textureToSave"/>.
-        /// </param>
-        private void SaveImage(Image imageToSave, string? testName = null)
-        {
-            try
-            {
-                SendImage(imageToSave, testName);
-            }
-            catch
-            {
-                TestGameLogger.Error(@"An error occurred when trying to send the data to the server.");
-                throw;
-            }
-        }
-
 
         /// <summary>
         ///   Gets or sets the value indicating if the screenshots automation is enabled.
@@ -287,26 +274,7 @@ namespace Stride.Graphics.Regression
         public BackBufferSizeMode BackBufferSizeMode
         {
             get => backBufferSizeMode;
-            set
-            {
-                backBufferSizeMode = value;
-#if STRIDE_PLATFORM_ANDROID
-                switch (backBufferSizeMode)
-                {
-                    case BackBufferSizeMode.FitToDesiredValues:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToDesiredValues;
-                        break;
-                    case BackBufferSizeMode.FitToWindowSize:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToWindowSize;
-                        break;
-                    case BackBufferSizeMode.FitToWindowRatio:
-                        SwapChainGraphicsPresenter.ProcessPresentationParametersOverride = FitPresentationParametersToWindowRatio;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-#endif // TODO: Implement it for other mobile platforms
-            }
+            set => backBufferSizeMode = value;
         }
 
         /// <summary>
@@ -339,34 +307,6 @@ namespace Stride.Graphics.Regression
                 KeyboardSimulated = InputSourceSimulated.AddKeyboard();
             }
         }
-
-#if STRIDE_PLATFORM_ANDROID
-        private void FitPresentationParametersToDesiredValues(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            // nothing to do (default behavior)
-        }
-
-        private void FitPresentationParametersToWindowSize(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            parameters.BackBufferWidth = windowWidth;
-            parameters.BackBufferHeight = windowHeight;
-        }
-
-        private void FitPresentationParametersToWindowRatio(int windowWidth, int windowHeight, PresentationParameters parameters)
-        {
-            var desiredWidth = parameters.BackBufferWidth;
-            var desiredHeight = parameters.BackBufferHeight;
-
-            if (windowWidth >= windowHeight) // Landscape => use height as base
-            {
-                parameters.BackBufferHeight = (int)(desiredWidth * (float)windowHeight / (float)windowWidth);
-            }
-            else // Portrait => use width as base
-            {
-                parameters.BackBufferWidth = (int)(desiredHeight * (float)windowWidth / (float)windowHeight);
-            }
-        }
-#endif
 
         protected override void OnWindowCreated()
         {
@@ -423,6 +363,7 @@ namespace Stride.Graphics.Regression
             base.Destroy();
         }
 
+#if STRIDE_PLATFORM_DESKTOP
         /// <summary>
         ///   Ends the current frame RenderDoc capture session, finalizing the capture of rendering data,
         ///   allowing the captured data to be saved or processed.
@@ -462,6 +403,7 @@ namespace Stride.Graphics.Regression
                 EndFrameCapture();
             }
         }
+#endif
 
         /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
@@ -636,7 +578,7 @@ namespace Stride.Graphics.Regression
             var gpuValidationWarnings = new List<string>();
             void OnGlobalMessage(ILogMessage msg)
             {
-                if (msg.Module != nameof(GraphicsDevice))
+                if (msg.Module != GraphicsDevice.DebugLogModule)
                     return;
                 if (msg.Type == LogMessageType.Error)
                     gpuValidationErrors.Add(msg.Text);
@@ -703,6 +645,25 @@ namespace Stride.Graphics.Regression
         }
 
         /// <summary>
+        ///   Gets the root directory that contains the <c>tests</c> folder with reference and local images.
+        /// </summary>
+        /// <remarks>
+        ///   On desktop this is the Stride solution root, located by traversing upward for <c>build/Stride.sln</c>.
+        ///   On Android it is the app's internal files directory (Context.FilesDir): targetSdk 30+ scoped
+        ///   storage blocks the app's own writes through the FUSE-bound external-files path. The host
+        ///   script pushes gold + pulls generated images via <c>adb shell run-as &lt;pkg&gt;</c>.
+        /// </remarks>
+        private static string GetTestsRootDirectory()
+        {
+#if STRIDE_PLATFORM_ANDROID
+            return Android.App.Application.Context.FilesDir!.AbsolutePath;
+#else
+            return FindStrideSolutionRootDirectory();
+#endif
+        }
+
+#if !STRIDE_PLATFORM_ANDROID
+        /// <summary>
         ///   Searches for the root folder of the Stride solution by traversing upward from the test's binary directory.
         /// </summary>
         /// <returns>The full path to the root folder of the Stride solution.</returns>
@@ -729,15 +690,17 @@ namespace Stride.Graphics.Regression
             ImageTester.DiagLog($"FindRoot: FAILED from {startDir}");
             throw new InvalidOperationException($"Could not locate the Stride solution root directory (started from {startDir})");
         }
+#endif
 
         /// <summary>
-        ///   Send the test result image data to the server for verification.
+        ///   Compares the test result image against the gold reference and saves a local copy
+        ///   when no match is found (or when <see cref="ForceSaveImageOnSuccess"/> is set).
         /// </summary>
-        /// <param name="image">The Image to send.</param>
+        /// <param name="image">The Image to compare and save.</param>
         /// <param name="testName">
         ///   An optional name for the test. If not provided, the frame index will be used.
         /// </param>
-        public void SendImage(Image image, string? testName)
+        public void SaveImage(Image image, string? testName)
         {
             // Use the test name, or the frame index if no name provided
             var frameName = testName;
@@ -750,9 +713,8 @@ namespace Stride.Graphics.Regression
             //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
             var platformSpecificDir = GetPlatformSpecificDirectory();
-            var strideRootDir = FindStrideSolutionRootDirectory();
 
-            var testsBaseDir = Path.Combine(strideRootDir, "tests");
+            var testsBaseDir = Path.Combine(GetTestsRootDirectory(), "tests");
             var testFileName = GenerateTestArtifactFileName(testsBaseDir, frameName, platformSpecificDir, ".png");
 
             var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
@@ -773,11 +735,14 @@ namespace Stride.Graphics.Regression
                 var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
-                foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
+                if (Directory.Exists(testFileNameRoot))
                 {
-                    if (testFileNameRegex.IsMatch(file))
+                    foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
                     {
-                        testFileNames.Add(file);
+                        if (testFileNameRegex.IsMatch(file))
+                        {
+                            testFileNames.Add(file);
+                        }
                     }
                 }
             }
@@ -785,16 +750,21 @@ namespace Stride.Graphics.Regression
             if (testFileNames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
-                ImageTester.SaveImage(image, testLocalFileName);
+                ImageTester.SaveImage(image, testLocalFileName, ImageTester.BuildMetadata(GraphicsDevice));
                 comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
+                // Treat "missing reference" as a (failed) comparison so interactive runners
+                // can still surface the rendered output and offer a create-gold action.
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
+                {
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = testFileName,
+                    Passed = false,
+                });
             }
             else
             {
                 // Resolve thresholds from thresholds.jsonc
-                var fullClassName = GetType().FullName;
-                var classNameIndex = fullClassName.LastIndexOf('.');
-                var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-                var suiteDir = Path.Combine(testsBaseDir, @namespace);
+                var suiteDir = Path.Combine(testsBaseDir, GetType().Assembly.GetName().Name);
                 var thresholdRules = ImageThreshold.LoadRules(suiteDir);
                 var imageName = Path.GetFileName(testFileName);
                 var platformParts = platformSpecificDir.Split(Path.DirectorySeparatorChar, '/');
@@ -819,36 +789,55 @@ namespace Stride.Graphics.Regression
 
                 // Compare against all available gold images
                 var pendingFailMessages = new List<string>();
+                var attempts = new List<ImageTester.SidecarAttempt>();
                 bool anyMatch = false;
+                string matchedFile = testFileName;
+                ImageTester.ComparisonStats lastStats = default;
                 foreach (var file in testFileNames)
                 {
                     bool match = ImageTester.CompareImage(image, file, out var stats, thresholds);
+                    lastStats = stats;
+                    attempts.Add(ImageTester.ToSidecarAttempt(file, testFileName, stats, thresholds));
                     if (match)
                     {
                         anyMatch = true;
+                        matchedFile = file;
                         break;
                     }
                     var isExactMatch = file == testFileName;
                     pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
                 }
 
+                // Sidecar always; PNG only on fail (sidecar carries the stats CompareGold
+                // needs to render a passing cell; the pixel data would be redundant with gold
+                // for exact matches and isn't worth the disk for the common case).
+                ImageTester.SaveSidecar(testLocalFileName, new ImageTester.Sidecar
+                {
+                    Outcome = anyMatch ? "Pass" : "Fail",
+                    At = DateTime.UtcNow,
+                    Matched = anyMatch ? matchedFile : null,
+                    Attempts = attempts,
+                }, ImageTester.BuildMetadata(GraphicsDevice));
+
                 if (!anyMatch)
                 {
-                    // All comparisons failed — save current version and report
                     ImageTester.SaveImage(image, testLocalFileName);
                     comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
                     comparisonFailedMessages.AddRange(pendingFailMessages);
                 }
-                else if (ForceSaveImageOnSuccess)
+                else if (File.Exists(testLocalFileName))
                 {
-                    ImageTester.SaveImage(image, testLocalFileName);
+                    // Drop any stale PNG from a prior failing run on the same test.
+                    File.Delete(testLocalFileName);
                 }
-                else
+
+                ImageTester.RaiseImageComparison(new ImageComparisonEventArgs
                 {
-                    // If test is a success, let's delete the local file if it was previously generated
-                    if (File.Exists(testLocalFileName))
-                        File.Delete(testLocalFileName);
-                }
+                    CurrentPath = testLocalFileName,
+                    ReferencePath = matchedFile,
+                    Passed = anyMatch,
+                    Stats = lastStats,
+                });
             }
         }
 
@@ -867,23 +856,61 @@ namespace Stride.Graphics.Regression
                 PlatformType.Windows => "Windows",
                 PlatformType.Linux => "Linux",
                 PlatformType.macOS => "macOS",
+                PlatformType.Android => "Android",
                 _ => throw new NotImplementedException($"Platform {Platform.Type} is not supported for image regression tests")
             };
 
+            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", NormalizeDeviceBucket(GraphicsDevice.Adapter));
+        }
+
+        // Stable, vendor-independent bucket name. Avoids Lavapipe's "llvmpipe (LLVM x.y.z, N bits)"
+        // description from leaking into the gold path and breaking on every Mesa rebuild. The
+        // Android emulator-host Vulkan layer stamps the host OS into the device name (e.g.
+        // "...StrideHost=Linux") so Android gold buckets by host, whose Lavapipe build renders
+        // slightly differently → "Lavapipe-LinuxHost".
+        private static string NormalizeDeviceBucket(GraphicsAdapter adapter)
+        {
+            var desc = adapter.Description.Split('\0')[0].TrimEnd(' ');
+
+            // Extract the emulator-host stamp before normalising the rest of the name.
+            string hostTag = null;
+            const string hostMarker = "StrideHost=";
+            int markerIndex = desc.IndexOf(hostMarker, StringComparison.Ordinal);
+            if (markerIndex >= 0)
+            {
+                hostTag = desc.Substring(markerIndex + hostMarker.Length).Trim();
+                desc = desc.Substring(0, markerIndex).TrimEnd();
+            }
+
+            var driverId = adapter.DriverInfo?.DriverId;
             string deviceName;
-            if (Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1")
+            if (driverId == "MesaLLVMPipe" && desc.Contains("llvmpipe", StringComparison.OrdinalIgnoreCase))
+                deviceName = "Lavapipe";
+            else if (driverId == "GoogleSwiftShader" && desc.StartsWith("SwiftShader", StringComparison.OrdinalIgnoreCase))
+                deviceName = "SwiftShader";
+            else if (adapter.VendorId == 0x1414) deviceName = "WARP"; // Microsoft Basic / WARP
+            // Virtualized macOS (e.g. GitHub's macos-15 runner) reports the GPU as
+            // "Apple Paravirtual device". On Apple Silicon the GPU is on the same chip as
+            // the CPU, so the CPU brand string (minus the "(Virtual)" suffix) is a stable
+            // proxy for the chip family — "Apple M1" rather than "Apple Paravirtual device".
+            else if (desc.Contains("Paravirtual", StringComparison.OrdinalIgnoreCase)
+                && HostEnvironment.CpuName is { } cpu && cpu.StartsWith("Apple ", StringComparison.OrdinalIgnoreCase))
             {
-                deviceName = GraphicsDevice.Platform switch
-                {
-                    GraphicsPlatform.Vulkan => "SwiftShader",
-                    _ => "WARP"
-                };
+                var idx = cpu.IndexOf(" (", StringComparison.Ordinal);
+                deviceName = idx > 0 ? cpu[..idx] : cpu;
             }
-            else
-            {
-                deviceName = GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ');
-            }
-            return Path.Combine($"{platformName}.{GraphicsDevice.Platform}", deviceName);
+            else deviceName = desc;
+
+            // Bucket by the layer-reported host; on Android with no stamp the layer wasn't active,
+            // so we genuinely don't know which host's Lavapipe rendered this — fall into a distinct
+            // "UnknownHost" bucket rather than silently aliasing onto a real host's gold.
+            string bucketSuffix =
+                !string.IsNullOrEmpty(hostTag) ? $"{hostTag}Host" :
+                Platform.Type == PlatformType.Android ? "UnknownHost" :
+                null;
+            if (!string.IsNullOrEmpty(bucketSuffix))
+                deviceName += $"-{bucketSuffix}";
+            return deviceName;
         }
 
         /// <summary>
@@ -903,15 +930,13 @@ namespace Stride.Graphics.Regression
         ///   The file extension to append to the generated file name (e.g., ".txt", ".log").
         /// </param>
         /// <returns>
-        ///   A fully qualified file path for the test artifact, including the namespace, class name,
+        ///   A fully qualified file path for the test artifact, including the assembly name, class name,
         ///   test name, frame name, and platform-specific directory.
         /// </returns>
         private string GenerateTestArtifactFileName(string testArtifactPath, string frameName, string platformSpecificDir, string extension)
         {
-            var fullClassName = GetType().FullName;
-            var classNameIndex = fullClassName.LastIndexOf('.');
-            var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
-            var className = fullClassName[(classNameIndex + 1)..];
+            var assemblyName = GetType().Assembly.GetName().Name;
+            var className = GetType().Name;
 
             var testFileName = className;
             if (TestName is not null)
@@ -920,7 +945,7 @@ namespace Stride.Graphics.Regression
                 testFileName += $".{frameName}";
             testFileName += extension;
 
-            var testDir = Path.Combine(testArtifactPath, @namespace);
+            var testDir = Path.Combine(testArtifactPath, assemblyName);
             testFileName = Path.Combine(testDir, platformSpecificDir, testFileName);
             return testFileName;
         }

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<RootNamespace>Stride.Shaders.Generators</RootNamespace>
+		<!-- RS2008: release tracking files not needed for internal build-time generators. -->
+		<NoWarn>$(NoWarn);RS2008</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    	<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    	<PackageReference Include="PolySharp">
+    	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    	  <PrivateAssets>all</PrivateAssets>
+    	</PackageReference>
+		<PackageReference Include="System.Text.Json" GeneratePathProperty="true" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+
+</Project>

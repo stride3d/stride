@@ -1,0 +1,11 @@
+BulletSharpPInvoke master
+Repository: https://github.com/stride3d/BulletSharpPInvoke
+Commit: 0de0f3cd564173474c58d57aad31c8aad82cb99d
+
+bullet3 (submodule pin)
+Repository: https://github.com/bulletphysics/bullet3
+Commit: c6a43e0a5b1e77ab323a5905368e0963cd10bfaf
+
+Stride: https://github.com/xen2/stride @ 8731374aa27c9f830c11ceb31f0c07638c89f96e
+Built: 2026-05-19
+Workflow: https://github.com/xen2/stride/actions/runs/26092468957

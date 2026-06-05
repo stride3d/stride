@@ -63,6 +63,17 @@
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
     <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
+
+    <!--The AssetCompiler runs on the build host: it loads host-built engine assemblies for type
+        discovery only, so it resolves project references for the host's native graphics API —
+        never the device API a project targets (the device asset output is driven by the
+        platform switch). Prefer D3D11 on Windows since it's the most universally-available
+        host API, but if a single-API build excluded it, fall back to whichever API IS being
+        built — otherwise the AssetCompiler would look for D3D11 assemblies that don't exist.-->
+    <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And ($(StrideGraphicsApis.Contains('Direct3D11')) Or '$(StrideGraphicsApi)' == 'Direct3D11')">Direct3D11</StrideHostGraphicsApi>
+    <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And '$(StrideGraphicsApi)' != ''">$(StrideGraphicsApi)</StrideHostGraphicsApi>
+    <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">Direct3D11</StrideHostGraphicsApi>
+    <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == ''">Vulkan</StrideHostGraphicsApi>
   </PropertyGroup>
 
   <!-- Inline sort task: ordinal-sort an item list. Used to make WriteLinesToFile output
@@ -128,10 +139,13 @@
   
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
-      <!-- First try NuGet layout, then git checkout -->
+      <!-- $(StrideRoot) anchors both in-tree consumers (set by sources/Directory.Build.props)
+           and dev-redirect consumers (seeded from $(StrideDevRoot) by the build/<PkgId>.props
+           stub written by build/GenerateDevPackages.cs). -->
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\bin\$(Configuration)\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
+      <!-- NuGet consumer: lib/<TFM>/ relative to this targets file's package root. -->
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net10.0\')">$(MSBuildThisFileDirectory)..\lib\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
@@ -147,10 +161,16 @@
   <Target Name="_StrideEnsureCompilerAppPacked"
           BeforeTargets="StrideCompileAsset"
           Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
+    <!-- Strip BuildingSolutionFile so CompilerApp's _StrideTriggerPackOnInnerBuild fires and packs
+         the engine refs (Stride.UI, Stride.Physics, ...) synchronously before CompilerApp.exe runs;
+         otherwise they pack only via the lagging AfterTargets=Build chain and asset compilation
+         fails its NuGet restore ("Unable to find package Stride.UI").
+         Also strip RuntimeIdentifier(s)/SelfContained/StrideGraphicsApi so a RID-specific parent
+         doesn't leak android-x64 into the net10.0 graph (ResolvePackageAssets -> NETSDK1047). -->
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
              Targets="Pack"
              Properties="TargetFrameworks=$(StrideXplatEditorTargetFramework);TargetFramework=$(StrideXplatEditorTargetFramework)"
-             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi" />
+             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi;BuildingSolutionFile;RuntimeIdentifier;RuntimeIdentifiers;SelfContained" />
   </Target>
 
   <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">
@@ -162,7 +182,7 @@
     <PropertyGroup>
       <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
@@ -173,9 +193,12 @@
     <!-- Compile assets -->
     <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" />
     
-    <!-- Android specific: include build output in _AndroidAssetsDest so that APK is regenerated -->
+    <!-- Android: include compiled bundles in the APK. Items must appear in both lists for
+         Xamarin's <Copy> in _GenerateAndroidAssetsDir (source==dest is a no-op via SkipUnchangedFiles). -->
     <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
-      <_AndroidAssetsDest Include="$(StrideCompileAssetOutputPath)\**\*.*" />
+      <_StrideAndroidCompiledAssets Include="$(StrideCompileAssetOutputPath)\**\*.*" />
+      <_AndroidResolvedAssets Include="@(_StrideAndroidCompiledAssets)" />
+      <_AndroidAssetsDest Include="@(_StrideAndroidCompiledAssets)" />
     </ItemGroup>
   </Target>
 
@@ -264,20 +287,10 @@
     <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
-  <!-- 
-  *****************************************************************************************************************************
-  Default items for sdsl/sdfx (mark generated files as dependent)
-  *****************************************************************************************************************************
-  -->
-  <ItemGroup>
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
-    <!-- Those are needed for as long as we support Xenko to Stride project ugprade -->
-    <Compile Update="**\*.xksl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.xksl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.xkfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.xkfx" Generator="StrideEffectCodeGenerator" />
-  </ItemGroup>
+  <!-- Upgrade assets in place to the current SerializedVersion. User invokes manually:
+       dotnet build -t:StrideUpgradeAssets
+       No-op when assets are already current (PackageSession.Save short-circuits on unmodified packages). -->
+  <Target Name="StrideUpgradeAssets" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --upgrade-assets --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
+  </Target>
 </Project>

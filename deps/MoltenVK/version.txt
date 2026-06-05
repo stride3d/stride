@@ -1,2 +1,23 @@
-master@61fc7564a003884fc4990e587e35cd3119e8f844
-Custom SPIRV-Cross: 522c4eea978ef9a820f16146b7c8bcfd5ecbf86d + https://github.com/KhronosGroup/SPIRV-Cross/pull/831
+v1.4.1
+https://github.com/KhronosGroup/MoltenVK/releases/tag/v1.4.1
+
+To regenerate dotnet/osx-arm64/libvulkan.1.dylib from the upstream release:
+
+  curl -fsSL -o MoltenVK-macos.tar \
+    https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.1/MoltenVK-macos.tar
+  tar -xf MoltenVK-macos.tar MoltenVK/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib
+
+  # 1. Slice arm64 out of the universal binary, renaming to the Vulkan loader name so
+  #    Vortice.Vulkan's leaf-name dlopen finds it.
+  lipo -thin arm64 MoltenVK/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib \
+    -output dotnet/osx-arm64/libvulkan.1.dylib
+
+  # 2. Rewrite LC_ID_DYLIB to the new leaf name so dyld's already-loaded match keys on
+  #    "libvulkan.1.dylib" rather than the original "@rpath/libMoltenVK.dylib".
+  #    Without this, NativeLibraryHelper.PreloadLibrary's full-path dlopen wouldn't
+  #    register the library under a name Vortice's vkInitialize can find.
+  install_name_tool -id libvulkan.1.dylib dotnet/osx-arm64/libvulkan.1.dylib
+
+  # 3. install_name_tool invalidates the ad-hoc signature; re-sign in place so macOS
+  #    will load the dylib on Apple Silicon.
+  codesign --sign - --force dotnet/osx-arm64/libvulkan.1.dylib

@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// A single shader class declaring two cbuffers with the same source-level name
+// — same pattern as Stride.Rendering's Transformation.sdsl which splits PerDraw
+// into two blocks. Each declaration gets a `.0` / `.1` suffix at parse time
+// (RenameCBufferVariables); ShaderMixer.MergeCBuffers must fold the surviving
+// variable's OpName back to the unsuffixed original. Otherwise SPIRV-Cross
+// emits e.g. `cbuffer Settings_1` which mismatches EffectReflection's
+// `Settings` lookup at ShaderCompiler.UpdateReflection.
+shader CSCBufferRenameBase
+{
+    cbuffer Settings
+    {
+        stage float4x4 World;
+    };
+
+    cbuffer Settings
+    {
+        stage float4 Tint;
+    };
+};
+
+shader CSCBufferRename : CSCBufferRenameBase
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWStructuredBuffer<float4> Out;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        // Only Tint is used → World cbuffer (Settings.0) is DCE'd before
+        // MergeCBuffers, leaving cbuffersByNames with a count==1 group on
+        // the surviving Settings.1 variable.
+        Out[streams.DispatchThreadId.x] = Tint;
+    }
+};

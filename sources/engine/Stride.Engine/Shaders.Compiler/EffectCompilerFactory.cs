@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Stride.Core;
 using Stride.Core.IO;
@@ -12,6 +13,16 @@ namespace Stride.Shaders.Compiler
 {
     public static class EffectCompilerFactory
     {
+        /// <summary>
+        /// Whether the remote effect compiler (connecting to Game Studio over a socket to compile shaders)
+        /// is available. Set the "Stride.Engine.RemoteEffectCompilerEnabled" feature switch to <c>false</c>
+        /// to let trimming/AOT drop the remote compiler and its networking stack (e.g. for shipping/iOS
+        /// builds, which only load precompiled effects or compile locally).
+        /// </summary>
+        [FeatureSwitchDefinition("Stride.Engine.RemoteEffectCompilerEnabled")]
+        public static bool RemoteEffectCompilerEnabled
+            => !AppContext.TryGetSwitch("Stride.Engine.RemoteEffectCompilerEnabled", out var enabled) || enabled;
+
         public static IEffectCompiler CreateEffectCompiler(
             IVirtualFileProvider fileProvider, 
             EffectSystem effectSystem = null, 
@@ -37,7 +48,7 @@ namespace Stride.Shaders.Compiler
 
             // Nothing to do remotely
             bool needRemoteCompiler = (compiler == null && (effectCompilationMode & EffectCompilationMode.Remote) != 0);
-            if (needRemoteCompiler || recordEffectRequested)
+            if ((needRemoteCompiler || recordEffectRequested) && RemoteEffectCompilerEnabled)
             {
                 // Create the object that handles the connection
                 var shaderCompilerTarget = new RemoteEffectCompilerClient(packageName);

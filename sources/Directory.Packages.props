@@ -9,17 +9,21 @@
   <!-- Runtime dependencies -->
   <ItemGroup>
     <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.28" />
+    <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast.Toolset" Version="2025.2.1" />
-    <PackageVersion Include="FFmpeg.AutoGen" Version="3.4.0.2" />
+    <PackageVersion Include="FFmpeg.AutoGen" Version="7.1.1" />
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.3.6" />
+    <PackageVersion Include="Microsoft.Direct3D.WARP" Version="1.0.18" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
-    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.5" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.TemplateEngine.IDE" Version="10.0.100" />
+    <PackageVersion Include="Microsoft.TemplateEngine.Edge" Version="10.0.100" />
+    <PackageVersion Include="Microsoft.TemplateEngine.Abstractions" Version="10.0.100" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.264" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="ServiceWire" Version="5.6.0" />
@@ -28,6 +32,7 @@
     <PackageVersion Include="SharpDX.Direct2D1" Version="4.2.0" />
     <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageVersion Include="SharpDX.Direct3D12" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageVersion Include="SharpDX.DirectInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
@@ -52,10 +57,14 @@
   </ItemGroup>
   <!-- Other dependencies -->
   <ItemGroup>
+    <PackageVersion Include="AngleSharp" Version="1.4.0" />
+    <PackageVersion Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1" />
     <PackageVersion Include="JetBrains.Rider.PathLocator" Version="1.0.12" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <!-- 18.3.3 matches what .NET 10 SDK 10.0.202 ships. -->
     <PackageVersion Include="Microsoft.NET.StringTools" Version="18.3.3" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Build" Version="18.3.3" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="18.3.3" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.12" />
@@ -86,6 +95,9 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="10.0.0" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="10.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.0" />
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
@@ -101,17 +113,23 @@
     <PackageVersion Include="xunit.runner.utility" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
-    <PackageVersion Include="Stride.Dependencies.SwiftShader" Version="2026.4.14" />
+    <PackageVersion Include="xunit.v3" Version="3.2.1" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.26" />
+    <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.2" />
+    <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.5.30" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>
-    <AvaloniaVersion>11.0.6</AvaloniaVersion>
+    <AvaloniaVersion>12.0.2</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
+    <!-- DataGrid lags the core release by a few patch versions. -->
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="12.0.0" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />

@@ -83,13 +83,13 @@ namespace Stride.SpriteStudio.Offline
 
                     var keyPrefix = $"[SpriteStudioComponent.Key].Nodes[{nodeIndex}]";
 
-                    if (data.Data.ContainsKey("POSX"))
+                    if (data.Data.TryGetValue("POSX", out List<Dictionary<string, string>> posX))
                     {
                         var posxCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Position)}.{nameof(Vector2.X)}", posxCurve);
-                        posxCurve.InterpolationType = data.Data["POSX"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        posxCurve.InterpolationType = posX.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["POSX"])
+                        foreach (var nodeData in posX)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -97,13 +97,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("POSY"))
+                    if (data.Data.TryGetValue("POSY", out List<Dictionary<string, string>> posY))
                     {
                         var posyCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Position)}.{nameof(Vector2.Y)}", posyCurve);
-                        posyCurve.InterpolationType = data.Data["POSY"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        posyCurve.InterpolationType = posY.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["POSY"])
+                        foreach (var nodeData in posY)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -111,13 +111,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("ROTZ"))
+                    if (data.Data.TryGetValue("ROTZ", out List<Dictionary<string, string>> rotZ))
                     {
                         var anglCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.RotationZ)}", anglCurve);
-                        anglCurve.InterpolationType = data.Data["ROTZ"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        anglCurve.InterpolationType = rotZ.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["ROTZ"])
+                        foreach (var nodeData in rotZ)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = MathUtil.DegreesToRadians(float.Parse(nodeData["value"], CultureInfo.InvariantCulture));
@@ -125,13 +125,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("PRIO"))
+                    if (data.Data.TryGetValue("PRIO", out List<Dictionary<string, string>> prio))
                     {
                         var prioCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Priority)}", prioCurve);
                         prioCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["PRIO"])
+                        foreach (var nodeData in prio)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -139,13 +139,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("SCLX"))
+                    if (data.Data.TryGetValue("SCLX", out List<Dictionary<string, string>> sclX))
                     {
                         var scaxCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Scale)}.{nameof(Vector2.X)}", scaxCurve);
-                        scaxCurve.InterpolationType = data.Data["SCLX"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        scaxCurve.InterpolationType = sclX.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["SCLX"])
+                        foreach (var nodeData in sclX)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -153,13 +153,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("SCLY"))
+                    if (data.Data.TryGetValue("SCLY", out List<Dictionary<string, string>> sclY))
                     {
                         var scayCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Scale)}.{nameof(Vector2.Y)}", scayCurve);
-                        scayCurve.InterpolationType = data.Data["SCLY"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        scayCurve.InterpolationType = sclY.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["SCLY"])
+                        foreach (var nodeData in sclY)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -167,13 +167,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("ALPH"))
+                    if (data.Data.TryGetValue("ALPH", out List<Dictionary<string, string>> alph))
                     {
                         var tranCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Transparency)}", tranCurve);
-                        tranCurve.InterpolationType = data.Data["ALPH"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        tranCurve.InterpolationType = alph.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["ALPH"])
+                        foreach (var nodeData in alph)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -181,13 +181,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("HIDE"))
+                    if (data.Data.TryGetValue("HIDE", out List<Dictionary<string, string>> hide))
                     {
                         var hideCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.Hide)}", hideCurve);
                         hideCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["HIDE"])
+                        foreach (var nodeData in hide)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -195,13 +195,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("FLPH"))
+                    if (data.Data.TryGetValue("FLPH", out List<Dictionary<string, string>> flph))
                     {
                         var flphCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.HFlipped)}", flphCurve);
                         flphCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["FLPH"])
+                        foreach (var nodeData in flph)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -209,13 +209,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("FLPV"))
+                    if (data.Data.TryGetValue("FLPV", out List<Dictionary<string, string>> flpv))
                     {
                         var flpvCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.VFlipped)}", flpvCurve);
                         flpvCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["FLPV"])
+                        foreach (var nodeData in flpv)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -223,13 +223,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("CELL"))
+                    if (data.Data.TryGetValue("CELL", out List<Dictionary<string, string>> cell))
                     {
                         var cellCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.SpriteId)}", cellCurve);
                         cellCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["CELL"])
+                        foreach (var nodeData in cell)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -237,13 +237,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("COLV"))
+                    if (data.Data.TryGetValue("COLV", out List<Dictionary<string, string>> colv))
                     {
                         var colvCurve = new AnimationCurve<Vector4>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.BlendColor)}", colvCurve);
                         colvCurve.InterpolationType = AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["COLV"])
+                        foreach (var nodeData in colv)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var color = new Color4(Color.FromBgra(int.Parse(nodeData["value"], CultureInfo.InvariantCulture)));
@@ -252,13 +252,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("COLB"))
+                    if (data.Data.TryGetValue("COLB", out List<Dictionary<string, string>> colb))
                     {
                         var colbCurve = new AnimationCurve<int>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.BlendType)}", colbCurve);
                         colbCurve.InterpolationType = AnimationCurveInterpolationType.Constant;
 
-                        foreach (var nodeData in data.Data["COLB"])
+                        foreach (var nodeData in colb)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = int.Parse(nodeData["value"], CultureInfo.InvariantCulture);
@@ -266,13 +266,13 @@ namespace Stride.SpriteStudio.Offline
                         }
                     }
 
-                    if (data.Data.ContainsKey("COLF"))
+                    if (data.Data.TryGetValue("COLF", out List<Dictionary<string, string>> colf))
                     {
                         var colfCurve = new AnimationCurve<float>();
                         animation.AddCurve($"{keyPrefix}.{nameof(SpriteStudioNodeState.BlendFactor)}", colfCurve);
-                        colfCurve.InterpolationType = data.Data["COLF"].Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
+                        colfCurve.InterpolationType = colf.Any(x => x["curve"] != "linear") ? AnimationCurveInterpolationType.Cubic : AnimationCurveInterpolationType.Linear;
 
-                        foreach (var nodeData in data.Data["COLF"])
+                        foreach (var nodeData in colf)
                         {
                             var time = CompressedTimeSpan.FromSeconds((1.0 / anim.Fps) * int.Parse(nodeData["time"], CultureInfo.InvariantCulture));
                             var value = float.Parse(nodeData["value"], CultureInfo.InvariantCulture);

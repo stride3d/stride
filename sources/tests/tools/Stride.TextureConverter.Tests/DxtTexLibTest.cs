@@ -70,7 +70,7 @@ namespace Stride.TextureConverter.Tests
             Assert.True(library.CanHandleRequest(image, new FixedRescalingRequest(0, 0, Filter.Rescaling.Nearest)));
             Assert.True(library.CanHandleRequest(image, new MipMapsGenerationRequest(Filter.MipMapGeneration.Nearest)));
             Assert.True(library.CanHandleRequest(image, new NormalMapGenerationRequest(1)));
-            Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
+            Assert.True(library.CanHandleRequest(image, new FileLoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.dds", 0)));
             Assert.True(library.CanHandleRequest(image, new CompressingRequest(Stride.Graphics.PixelFormat.BC3_UNorm)));
             Assert.False(library.CanHandleRequest(image, new GammaCorrectionRequest(0)));
@@ -227,6 +227,38 @@ namespace Stride.TextureConverter.Tests
             TexLibraryTest.PreMultiplyAlphaTest(image, library);
 
             image.Dispose();
+        }
+
+        // Smoke test: exercises native lib loading, P/Invoke marshalling, struct layout, and
+        // load+convert+save round-trip. Uses an InputImages fixture present in bin/Tests.
+        [Fact]
+        public void SmokeLoadConvertSave()
+        {
+            const string inputName = "BgraSheet.dds";
+            string inputPath = Module.PathToInputImages + inputName;
+            Assert.True(System.IO.File.Exists(inputPath), $"Test fixture missing: {inputPath}");
+
+            var image = new TexImage();
+            library.Execute(image, new FileLoadingRequest(inputPath, false));
+            image.CurrentLibrary = library;
+            Assert.True(image.Width > 0);
+            Assert.True(image.Height > 0);
+
+            library.Execute(image, new ConvertingRequest(Stride.Graphics.PixelFormat.R8G8B8A8_UNorm));
+
+            string outputPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                $"DxtSmokeRoundTrip_{Guid.NewGuid():N}.dds");
+            try
+            {
+                library.Execute(image, new ExportRequest(outputPath, 0));
+                Assert.True(System.IO.File.Exists(outputPath));
+                Assert.True(new System.IO.FileInfo(outputPath).Length > 0);
+            }
+            finally
+            {
+                if (System.IO.File.Exists(outputPath)) System.IO.File.Delete(outputPath);
+                image.Dispose();
+            }
         }
     }
 }

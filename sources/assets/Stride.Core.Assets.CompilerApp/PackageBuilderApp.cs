@@ -28,6 +28,14 @@ namespace Stride.Core.Assets.CompilerApp
 {
     class PackageBuilderApp : IPackageBuilderApp
     {
+        private enum BuilderMode
+        {
+            Build,
+            Pack,
+            UpdateGeneratedFiles,
+            UpgradeAssets,
+        }
+
         private static Stopwatch clock;
 
         private LogListener globalLoggerOnGlobalMessageLogged;
@@ -59,8 +67,7 @@ namespace Stride.Core.Assets.CompilerApp
 
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
-            var packMode = false;
-            var updateGeneratedFilesMode = false;
+            var mode = BuilderMode.Build;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
 
@@ -103,8 +110,9 @@ namespace Stride.Core.Assets.CompilerApp
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
-                { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => packMode = true },
-                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => updateGeneratedFilesMode = true },
+                { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
+                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
+                { "upgrade-assets", "Special mode to upgrade assets in place to the current SerializedVersion", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -164,7 +172,7 @@ namespace Stride.Core.Assets.CompilerApp
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
                 }
 
-                if (updateGeneratedFilesMode)
+                if (mode == BuilderMode.UpdateGeneratedFiles)
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
@@ -200,6 +208,66 @@ namespace Stride.Core.Assets.CompilerApp
                     return (int)BuildResultCode.Successful;
                 }
 
+                if (mode == BuilderMode.UpgradeAssets)
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+                    // Restore packages first so PackageSession.Load sees a fully-resolved dep
+                    // graph. Today's narrow asset-YAML schema migration doesn't strictly require
+                    // this (path-based .sdpkg AssetFolders discovery + no code transforms), but
+                    // anything code-aware does — Roslyn upgrades, MSBuild item enumeration that
+                    // includes items contributed by package-imported targets (.sdsl/.sdfx, etc.).
+                    // Restoring up-front avoids surprises when the upgrader grows beyond schema
+                    // bumps. Also cleans up Session log noise from unresolved engine asset refs.
+                    // Incremental for already-restored projects, so cheap when called from the
+                    // StrideUpgradeAssets MSBuild target inside a real consumer build.
+                    var csprojForRestore = options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                        ? options.PackageFile
+                        : System.IO.Path.ChangeExtension(options.PackageFile, ".csproj");
+                    if (System.IO.File.Exists(csprojForRestore))
+                    {
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "dotnet",
+                            ArgumentList = { "restore", csprojForRestore, "--nologo", "-v", "quiet" },
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                        };
+                        using var proc = System.Diagnostics.Process.Start(psi)!;
+                        // Drain both streams concurrently to avoid pipe-buffer deadlock.
+                        var stdoutTask = proc.StandardOutput.ReadToEndAsync();
+                        var stderrTask = proc.StandardError.ReadToEndAsync();
+                        proc.WaitForExit();
+                        if (proc.ExitCode != 0)
+                        {
+                            // Fail hard rather than tolerate: caller invoked UpgradeAssets expecting
+                            // it to fully work, and code-aware upgrade paths (Roslyn, MSBuild item
+                            // enum) silently produce wrong results on partial state. Surfacing the
+                            // restore error early is the right failure mode.
+                            options.Logger.Error($"dotnet restore failed for {csprojForRestore} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
+                            return (int)BuildResultCode.BuildError;
+                        }
+                    }
+
+                    var loadParameters = new PackageLoadParameters
+                    {
+                        AutoCompileProjects = false,
+                        LoadAssemblyReferences = false,
+                        LoadMissingDependencies = false,
+                        AutoLoadTemporaryAssets = true,
+                        PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
+                    };
+
+                    var sessionResult = PackageSession.Load(options.PackageFile, loadParameters);
+                    sessionResult.CopyTo(options.Logger);
+                    if (sessionResult.HasErrors || sessionResult.Session == null)
+                        return (int)BuildResultCode.BuildError;
+
+                    sessionResult.Session.Save(options.Logger);
+                    return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
+                }
+
                 if (unexpectedArgs.Any())
                 {
                     throw new OptionException("Unexpected arguments [{0}]".ToFormat(string.Join(", ", unexpectedArgs)), "args");
@@ -218,7 +286,7 @@ namespace Stride.Core.Assets.CompilerApp
                     p.WriteOptionDescriptions(Console.Out);
                     return (int)BuildResultCode.Successful;
                 }
-                else if (packMode)
+                else if (mode == BuilderMode.Pack)
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 

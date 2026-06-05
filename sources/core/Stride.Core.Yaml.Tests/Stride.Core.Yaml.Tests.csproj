@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" />
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
   </ItemGroup>

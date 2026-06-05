@@ -1,8 +1,22 @@
 name: "Dep: Build & Deploy SPIRV-Tools"
 
-# Skeleton workflow — the full implementation lives on a feature branch.
-# This exists on master only so the workflow is triggerable via workflow_dispatch
-# with the expected inputs. Checkout the feature branch ref to run the real build.
+# Ships a single combined library — stride_spirv_tools — that bundles
+# SPIRV-Tools-static + SPIRV-Tools-opt + a thin C shim (stride_spvopt_shim.cpp),
+# re-exporting both the upstream libspirv.h C API (validator, etc.) and our
+# stride_spv* optimizer entry points. See build/deps/spirv-tools/CMakeLists.txt.
+#
+# Upstream: https://github.com/KhronosGroup/SPIRV-Tools
+#   Dependencies fetched via `python utils/git-sync-deps` (gets SPIRV-Headers).
+#
+# Output per OS — one DLL to ship per RID:
+#   Windows:  stride_spirv_tools.dll
+#   Linux:    libstride_spirv_tools.so
+#   macOS:    libstride_spirv_tools.dylib
+#   iOS:      libstride_spirv_tools.dylib   (cross-compiled on macOS)
+#   Android:  libstride_spirv_tools.so      (cross-compiled via NDK)
+#
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
+#               android-arm64, android-x64.
 
 on:
   workflow_dispatch:
@@ -20,11 +34,327 @@ on:
         required: false
 
 jobs:
-  placeholder:
-    name: Skeleton (run on feature branch for real build)
-    runs-on: ubuntu-latest
+  # ---------------------------------------------------------------------------
+  # Windows x64
+  # ---------------------------------------------------------------------------
+  build-windows-x64:
+    name: Build SPIRV-Tools (Windows x64)
+    runs-on: windows-2025-vs2026
     steps:
-      - name: Notice
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        shell: pwsh
         run: |
-          echo "This is a skeleton. The real build lives on a feature branch."
-          echo "Trigger this workflow against that branch ref to run the actual build."
+          $url = "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin $url
+          git -C spirv-tools-src fetch --depth 1 origin $ref
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python spirv-tools-src/utils/git-sync-deps
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with: { arch: x64 }
+
+      - name: Configure & build stride_spirv_tools
+        shell: cmd
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DSPIRV_TOOLS_SOURCE_DIR=%CD%/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          mkdir spirv-tools-out
+          Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-win-x64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
+  # Windows ARM64 — same host, MSVC ARM64 cross-compile.
+  # ---------------------------------------------------------------------------
+  build-windows-arm64:
+    name: Build SPIRV-Tools (Windows ARM64)
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        shell: pwsh
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python spirv-tools-src/utils/git-sync-deps
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with: { arch: amd64_arm64 }
+
+      - name: Configure & build stride_spirv_tools
+        shell: cmd
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DSPIRV_TOOLS_SOURCE_DIR=%CD%/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          mkdir spirv-tools-out
+          Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-win-arm64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
+  # Linux x64
+  # ---------------------------------------------------------------------------
+  build-linux-x64:
+    name: Build SPIRV-Tools (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python3 spirv-tools-src/utils/git-sync-deps
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
+
+      - name: Configure & build stride_spirv_tools
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        run: |
+          mkdir -p spirv-tools-out
+          cp _build/libstride_spirv_tools.so spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-linux-x64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
+  # macOS ARM64
+  # ---------------------------------------------------------------------------
+  build-macos-arm64:
+    name: Build SPIRV-Tools (macOS ARM64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python3 spirv-tools-src/utils/git-sync-deps
+
+      - name: Configure & build stride_spirv_tools
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        run: |
+          mkdir -p spirv-tools-out
+          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-osx-arm64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
+  # iOS ARM64 — cross-compiled on macOS.
+  # Note: BUILD_SHARED_LIBS on iOS produces dylibs; if App Store requires
+  # static-only or .framework bundles, revisit once integration lands.
+  # ---------------------------------------------------------------------------
+  build-ios-arm64:
+    name: Build SPIRV-Tools (iOS ARM64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python3 spirv-tools-src/utils/git-sync-deps
+
+      - name: Configure & build stride_spirv_tools
+        run: |
+          # Ninja, not Xcode: SPIRV-Tools' build-version.inc custom command is
+          # attached to both SPIRV-Tools-shared and SPIRV-Tools-static, which
+          # the Xcode "new build system" rejects (no common dependency).
+          # CMAKE_OSX_SYSROOT must be set explicitly because Ninja doesn't
+          # auto-detect the iOS SDK path like the Xcode generator does.
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=iphoneos \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+            -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        run: |
+          mkdir -p spirv-tools-out
+          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: spirv-tools-ios-arm64, path: spirv-tools-out/ }
+
+  # ---------------------------------------------------------------------------
+  # Android — one job per ABI, cross-compiled via NDK toolchain file.
+  # ---------------------------------------------------------------------------
+  build-android:
+    name: Build SPIRV-Tools (Android ${{ matrix.abi }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { abi: arm64-v8a, rid: android-arm64 }
+          - { abi: x86_64,    rid: android-x64   }
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+
+      - name: Clone SPIRV-Tools
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+          python3 spirv-tools-src/utils/git-sync-deps
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
+
+      - name: Configure & build stride_spirv_tools
+        run: |
+          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=android-24 \
+            -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
+          cmake --build _build --target stride_spirv_tools
+
+      - name: Collect output
+        run: |
+          mkdir -p spirv-tools-out
+          cp _build/libstride_spirv_tools.so spirv-tools-out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spirv-tools-${{ matrix.rid }}
+          path: spirv-tools-out/
+
+  # ---------------------------------------------------------------------------
+  # Pack NuGet from all artifacts.
+  # ---------------------------------------------------------------------------
+  pack:
+    name: Pack & Publish NuGet
+    needs:
+      - build-windows-x64
+      - build-windows-arm64
+      - build-linux-x64
+      - build-macos-arm64
+      - build-ios-arm64
+      - build-android
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone SPIRV-Tools (for commit hash)
+        shell: pwsh
+        run: |
+          git init spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src checkout FETCH_HEAD
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with: { path: artifacts, pattern: spirv-tools-* }
+
+      - name: Stage native payload into csproj
+        shell: pwsh
+        run: |
+          $destRoot = "build/deps/spirv-tools/runtimes"
+          $rids = 'win-x64','win-arm64','linux-x64','osx-arm64','ios-arm64','android-arm64','android-x64'
+          foreach ($rid in $rids) {
+            $native = "$destRoot/$rid/native"
+            New-Item -Path $native -ItemType Directory -Force | Out-Null
+            Copy-Item -Recurse "artifacts/spirv-tools-$rid/*" $native
+          }
+
+      - name: Pack NuGet (dotnet pack)
+        shell: pwsh
+        run: |
+          $commitHash = git -C spirv-tools-src rev-parse --short HEAD
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
+          dotnet pack build/deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
+            -c Release `
+            -p:PackageVersion=$version `
+            -p:RepositoryCommit=$commitHash `
+            -o nupkg
+
+      - uses: actions/upload-artifact@v4
+        with: { name: Stride.Dependencies.SPIRVTools.nupkg, path: nupkg/*.nupkg }
+
+  publish:
+    name: Sign & Publish to NuGet.org
+    needs: pack
+    runs-on: windows-2025-vs2026
+    environment: production
+    steps:
+      - name: Install signing tool
+        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
+
+      - uses: actions/download-artifact@v4
+        with: { name: Stride.Dependencies.SPIRVTools.nupkg }
+
+      - name: Sign NuGet package
+        shell: pwsh
+        run: |
+          ./sign-tool/sign code azure-key-vault *.nupkg `
+            --description "Stride" `
+            --description-url "https://stride3d.net" `
+            --publisher-name "Stride" `
+            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
+            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
+            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
+            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
+            -v Information
+
+      - name: Publish
+        run: |
+          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

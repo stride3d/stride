@@ -67,7 +67,6 @@ public class ProfilingMessage : LogMessage
     public override string Text
     {
         get => Message?.ToString() ?? string.Empty;
-        set => Message = value != null ? new ProfilingEventMessage(value) : null;
     }
 
     /// <summary>

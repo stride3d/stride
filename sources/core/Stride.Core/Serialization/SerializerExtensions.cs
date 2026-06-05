@@ -419,6 +419,38 @@ public static class SerializerExtensions
     }
 
     /// <summary>
+    /// Writes a nullable reference as a presence bool followed by the value when non-null.
+    /// </summary>
+    public static void WriteNullable<T>(this SerializationStream stream, T? value) where T : class
+    {
+        var hasValue = value != null;
+        stream.Serialize(ref hasValue);
+        if (hasValue)
+            stream.Write(value!);
+    }
+
+    /// <summary>
+    /// Reads a nullable reference previously written with <see cref="WriteNullable"/>.
+    /// </summary>
+    public static T? ReadNullable<T>(this SerializationStream stream) where T : class
+    {
+        var hasValue = false;
+        stream.Serialize(ref hasValue);
+        return hasValue ? stream.Read<T>() : null;
+    }
+
+    /// <summary>
+    /// Reads or writes a nullable reference depending on <paramref name="mode"/>.
+    /// </summary>
+    public static void SerializeNullable<T>(this SerializationStream stream, ref T? value, ArchiveMode mode) where T : class
+    {
+        if (mode == ArchiveMode.Serialize)
+            stream.WriteNullable(value);
+        else
+            value = stream.ReadNullable<T>();
+    }
+
+    /// <summary>
     /// Writes a unicode character to the specified stream.
     /// </summary>
     /// <param name="stream">The stream.</param>

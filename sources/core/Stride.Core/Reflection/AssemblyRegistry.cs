@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
@@ -69,6 +70,8 @@ public static class AssemblyRegistry
     /// <returns>The type instance or null if not found.</returns>
     /// <seealso cref="Type.GetType(string,bool)"/>
     /// <seealso cref="Assembly.GetType(string,bool)"/>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Name lookup over registered assemblies; callers root the concrete types.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "Name lookup over registered assemblies; callers root the concrete types.")]
     public static Type? GetType(string fullyQualifiedTypeName, bool throwOnError = true)
     {
         ArgumentNullException.ThrowIfNull(fullyQualifiedTypeName);

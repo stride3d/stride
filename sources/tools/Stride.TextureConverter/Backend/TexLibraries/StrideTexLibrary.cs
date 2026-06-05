@@ -85,13 +85,13 @@ namespace Stride.TextureConverter.TexLibraries
                     return true;
 
                 case RequestType.Loading: // Stride can load dds file or his own format or a Stride <see cref="Image"/> instance.
-                    LoadingRequest load = (LoadingRequest)request;
-                    if (load.Mode == LoadingRequest.LoadingMode.XkImage) return true;
-                    else if (load.Mode == LoadingRequest.LoadingMode.FilePath)
+                    return request switch
                     {
-                        string extension = Path.GetExtension(load.FilePath);
-                        return extension.Equals(".dds") || extension.Equals(Extension);
-                    } else return false;
+                        XkImageLoadingRequest => true,
+                        FileLoadingRequest file when Path.GetExtension(file.FilePath) is var ext
+                            && (ext.Equals(".dds") || ext.Equals(Extension)) => true,
+                        _ => false,
+                    };
 
             }
             return false;
@@ -386,20 +386,18 @@ namespace Stride.TextureConverter.TexLibraries
             image.LibraryData[this] = libraryData;
 
             Image inputImage;
-            if (request.Mode == LoadingRequest.LoadingMode.XkImage)
+            switch (request)
             {
-                inputImage = request.XkImage;
-            }
-            else if (request.Mode == LoadingRequest.LoadingMode.FilePath)
-            {
-                using (var fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read))
-                    inputImage = Image.Load(fileStream);
-
-                libraryData.XkImage = inputImage; // the image need to be disposed by the stride text library
-            }
-            else
-            {
-                throw new NotImplementedException();
+                case XkImageLoadingRequest xk:
+                    inputImage = xk.XkImage;
+                    break;
+                case FileLoadingRequest file:
+                    using (var fileStream = new FileStream(file.FilePath, FileMode.Open, FileAccess.Read))
+                        inputImage = Image.Load(fileStream);
+                    libraryData.XkImage = inputImage; // the image needs to be disposed by the stride text library
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
 
             var inputFormat = inputImage.Description.Format;

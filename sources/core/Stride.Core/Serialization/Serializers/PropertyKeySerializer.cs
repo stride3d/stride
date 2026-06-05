@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 using Stride.Core.Reflection;
@@ -9,6 +10,7 @@ namespace Stride.Core.Serialization.Serializers;
 
 public class PropertyKeySerializer<T> : DataSerializer<T> where T : PropertyKey
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Key static fields kept by ParameterKeyProcessor.")]
     public override void Serialize(ref T obj, ArchiveMode mode, SerializationStream stream)
     {
         if (mode == ArchiveMode.Serialize)

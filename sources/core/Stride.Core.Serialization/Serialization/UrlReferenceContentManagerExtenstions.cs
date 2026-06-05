@@ -58,23 +58,6 @@ public static class UrlReferenceContentManagerExtenstions
     }
 
     /// <summary>
-    /// Loads content from the specified URL asynchronously.
-    /// </summary>
-    /// <typeparam name="T">The content type.</typeparam>
-    /// <param name="content">The <see cref="IContentManager"/>.</param>
-    /// <param name="urlReference">The URL to load from.</param>
-    /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default"/>.</param>
-    /// <returns>The loaded content.</returns>
-    /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
-    public static Task<T> LoadAsync<T>(this IContentManager content, UrlReference<T> urlReference, ContentManagerLoaderSettings? settings = null)
-        where T : class
-    {
-        CheckArguments(content, urlReference);
-
-        return content.LoadAsync<T>(urlReference.Url, settings);
-    }
-
-    /// <summary>
     /// Gets a previously loaded asset from its URL.
     /// </summary>
     /// <typeparam name="T">The type of asset to retrieve.</typeparam>

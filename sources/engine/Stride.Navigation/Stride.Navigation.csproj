@@ -16,9 +16,9 @@
     <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotRecast.Core" />
-    <PackageReference Include="DotRecast.Detour" />
-    <PackageReference Include="DotRecast.Recast" />
+    <PackageReference Include="DotRecast.Core" PrivateAssets="compile" />
+    <PackageReference Include="DotRecast.Detour" PrivateAssets="compile" />
+    <PackageReference Include="DotRecast.Recast" PrivateAssets="compile" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

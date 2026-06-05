@@ -3,20 +3,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
-    using System.Drawing;
-    using System.Drawing.Imaging;
-
     internal unsafe class SignedDistanceFieldFontImporter : IFontImporter
     {
+        // Matches msdfgen CLI default range when no -range / -pxrange argument is passed.
+        private const double MsdfgenRange = 4.0;
+
         // Properties hold the imported font data.
         public IEnumerable<Glyph> Glyphs { get; private set; }
 
@@ -25,53 +28,33 @@ namespace Stride.Assets.SpriteFont.Compiler
         public float BaseLine { get; private set; }
 
         private string fontSource;
-        private string msdfgenExe;
-#if DEBUG
-        private string tempDir;
-#endif
+        private IntPtr msdfgenContext;
+        private IntPtr msdfgenFont;
 
-        /// <summary>
-        /// Generates and load a SDF font glyph using the msdfgen.exe
-        /// </summary>
-        private Bitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
+        private Image<Rgba32> LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
         {
             try
             {
-                var characterCodeArg = "0x" + Convert.ToUInt32(c).ToString("x4");
-#if DEBUG
-                var outputFilePath = $"{tempDir}{characterCodeArg}_{Guid.NewGuid()}.bmp";
-#else
-                var outputFilePath = Path.GetTempFileName();
-#endif
-                var exportSizeArg = $"-size {width} {height}";
-                var translateArg = $"-translate {offsetX} {offsetY}";
-                var scaleArg = $"-ascale {scaleX} {scaleY}";
-
-                var startInfo = new ProcessStartInfo
+                var rgba = new byte[width * height * 4];
+                int rc;
+                fixed (byte* outRgba = rgba)
                 {
-                    FileName = msdfgenExe,
-                    Arguments = $"msdf -font \"{fontSource}\" {characterCodeArg} -o \"{outputFilePath}\" -format bmp {exportSizeArg} {translateArg} {scaleArg}",
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false
-                };
-                var msdfgenProcess = Process.Start(startInfo);
-
-                if (msdfgenProcess == null)
-                    return null;
-
-                msdfgenProcess.WaitForExit();
-
-                if (File.Exists(outputFilePath))
-                {
-                    var bitmap = (Bitmap)Image.FromFile(outputFilePath);
-
-                    Normalize(bitmap);
-
-                    return bitmap;
+                    rc = MsdfgenNative.msdfgenGenerateMsdf(
+                        msdfgenFont,
+                        unicode: c,
+                        width, height,
+                        offsetX, offsetY,
+                        scaleX, scaleY,
+                        MsdfgenRange,
+                        outRgba);
                 }
+
+                if (rc != 0)
+                    return new Image<Rgba32>(1, 1);
+
+                var bitmap = Image.LoadPixelData<Rgba32>(rgba, width, height);
+                Normalize(bitmap);
+                return bitmap;
             }
             catch
             {
@@ -79,7 +62,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // If font generation failed for any reason, ignore it and return an empty glyph
-            return new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+            return new Image<Rgba32>(1, 1);
         }
 
         /// <summary>
@@ -87,10 +70,10 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// Msdfgen will produce an inverted picture on occasion.
         /// Because we use offset we can easily detect if the corner pixel has negative (correct) or positive distance (incorrect)
         /// </summary>
-        private void Normalize(Bitmap bitmap)
+        private void Normalize(Image<Rgba32> bitmap)
         {
             // Case 1 - corner pixel is negative (outside), do not invert
-            var firstPixel = bitmap.GetPixel(0, 0);
+            var firstPixel = bitmap[0, 0];
             var colorChannels = 0;
             if (firstPixel.R > 0) colorChannels++;
             if (firstPixel.G > 0) colorChannels++;
@@ -98,18 +81,15 @@ namespace Stride.Assets.SpriteFont.Compiler
             if (colorChannels <= 1)
                 return;
 
-            // Case 2 - corner pixel is positive (inside), invert the image
+            // Case 2 - corner pixel is positive (inside), invert the image.
+            // Note: alpha is forced to 0 here to match the previous GDI+ behavior
+            // (Color.FromArgb(int) with no alpha bits zeros the alpha channel).
             for (var i = 0; i < bitmap.Width; i++)
                 for (var j = 0; j < bitmap.Height; j++)
                 {
-                    var pixel = bitmap.GetPixel(i, j);
+                    var pixel = bitmap[i, j];
 
-                    int invertR = ((int)255 - pixel.R);
-                    int invertG = ((int)255 - pixel.G);
-                    int invertB = ((int)255 - pixel.B);
-                    var invertedPixel = Color.FromArgb((invertR << 16) + (invertG << 8) + (invertB));
-
-                    bitmap.SetPixel(i, j, invertedPixel);
+                    bitmap[i, j] = new Rgba32((byte)(255 - pixel.R), (byte)(255 - pixel.G), (byte)(255 - pixel.B), (byte)0);
                 }
         }
 
@@ -120,20 +100,28 @@ namespace Stride.Assets.SpriteFont.Compiler
             if (string.IsNullOrEmpty(fontSource))
                 return;
 
-            // Get the msdfgen.exe location
-            var msdfgen = ToolLocator.LocateTool("msdfgen") ?? throw new AssetException("Failed to compile a font asset, msdfgen was not found.");
-
-            msdfgenExe = msdfgen.FullPath;
-#if DEBUG
-            tempDir = $"{Environment.GetEnvironmentVariable("TEMP")}\\StrideGlyphs\\";
-            Directory.CreateDirectory(tempDir);
-#endif
-
             NativeLibraryHelper.PreloadLibrary("freetype", typeof(SignedDistanceFieldFontImporter));
+            NativeLibraryHelper.PreloadLibrary("stride_msdfgen", typeof(SignedDistanceFieldFontImporter));
 
             int err = FreeTypeNative.FT_Init_FreeType(out var library);
             if (err != 0)
                 throw new InvalidOperationException($"Failed to initialize FreeType library (error {err})");
+
+            msdfgenContext = MsdfgenNative.msdfgenContextCreate();
+            if (msdfgenContext == IntPtr.Zero)
+            {
+                FreeTypeNative.FT_Done_FreeType(library);
+                throw new InvalidOperationException("Failed to initialize msdfgen context");
+            }
+
+            msdfgenFont = MsdfgenNative.msdfgenLoadFont(msdfgenContext, fontSource);
+            if (msdfgenFont == IntPtr.Zero)
+            {
+                MsdfgenNative.msdfgenContextDestroy(msdfgenContext);
+                msdfgenContext = IntPtr.Zero;
+                FreeTypeNative.FT_Done_FreeType(library);
+                throw new AssetException($"Failed to load font '{fontSource}' into msdfgen.");
+            }
 
             try
             {
@@ -183,6 +171,10 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
             finally
             {
+                MsdfgenNative.msdfgenUnloadFont(msdfgenFont);
+                msdfgenFont = IntPtr.Zero;
+                MsdfgenNative.msdfgenContextDestroy(msdfgenContext);
+                msdfgenContext = IntPtr.Zero;
                 FreeTypeNative.FT_Done_FreeType(library);
             }
         }
@@ -197,7 +189,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             // Load glyph to get metrics (no rendering needed — msdfgen does that)
             if (glyphIndex == 0 || FreeTypeNative.FT_Load_Glyph(face, glyphIndex, (int)FreeTypeLoadFlags.Default) != 0)
             {
-                return new Glyph(character, new Bitmap(1, 1, PixelFormat.Format32bppArgb))
+                return new Glyph(character, new Image<Rgba32>(1, 1))
                 {
                     XOffset = 0, YOffset = 0, XAdvance = 0,
                 };
@@ -222,10 +214,10 @@ namespace Stride.Assets.SpriteFont.Compiler
             float bitmapOffsetXPx = fontOffsetXPx - MarginPx;
             float bitmapOffsetYPx = fontOffsetYPx - MarginPx;
 
-            Bitmap bitmap;
+            Image<Rgba32> bitmap;
             if (char.IsWhiteSpace(character))
             {
-                bitmap = new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+                bitmap = new Image<Rgba32>(1, 1);
             }
             else
             {
@@ -263,5 +255,32 @@ namespace Stride.Assets.SpriteFont.Compiler
                 YOffset = bitmapOffsetYPx,
             };
         }
+    }
+
+    internal static unsafe class MsdfgenNative
+    {
+        private const string Lib = "stride_msdfgen";
+
+        [DllImport(Lib)]
+        public static extern IntPtr msdfgenContextCreate();
+
+        [DllImport(Lib)]
+        public static extern void msdfgenContextDestroy(IntPtr ctx);
+
+        [DllImport(Lib)]
+        public static extern IntPtr msdfgenLoadFont(IntPtr ctx, [MarshalAs(UnmanagedType.LPUTF8Str)] string utf8Path);
+
+        [DllImport(Lib)]
+        public static extern void msdfgenUnloadFont(IntPtr font);
+
+        [DllImport(Lib)]
+        public static extern int msdfgenGenerateMsdf(
+            IntPtr font,
+            uint unicode,
+            int width, int height,
+            double translateX, double translateY,
+            double scaleX, double scaleY,
+            double range,
+            byte* outRgba);
     }
 }

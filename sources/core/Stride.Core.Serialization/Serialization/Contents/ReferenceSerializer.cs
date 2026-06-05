@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets;
 using Stride.Core.Reflection;
 
@@ -19,6 +20,7 @@ public sealed class ReferenceSerializer<T> : DataSerializer<T> where T : class
 {
     private IContentSerializer? cachedContentSerializer;
 
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Proxy type read from the stream; ctor kept by serializer registration.")]
     public override void Serialize(ref T obj, ArchiveMode mode, SerializationStream stream)
     {
         var referenceSerialization = stream.Context.Get(ContentSerializerContext.SerializeAttachedReferenceProperty);

@@ -159,6 +159,7 @@ namespace Stride.Graphics
             if (bufferDescription.Usage == GraphicsResourceUsage.Staging || Usage == GraphicsResourceUsage.Dynamic)
             {
                 memoryProperties = VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent;
+                IsHostVisibleHeap = true;
             }
 
             GraphicsDevice.NativeDeviceApi.vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
@@ -243,7 +244,11 @@ namespace Stride.Graphics
                 viewFormat = PixelFormat.R32_Typeless;
             }
 
-            if ((ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0)
+            // Structured buffers bind as VK_DESCRIPTOR_TYPE_STORAGE_BUFFER and don't need a
+            // VkBufferView — only typed (Buffer<T>/RWBuffer<T>) and raw views go through
+            // VK_DESCRIPTOR_TYPE_*_TEXEL_BUFFER, which require a real VkFormat.
+            if ((ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0
+                && viewFormat != PixelFormat.None)
             {
                 NativeBufferView = GetShaderResourceView(viewFormat);
             }

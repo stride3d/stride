@@ -71,11 +71,11 @@ namespace Stride.Video.Android
 
         protected override void ProcessOutputBuffer(MediaCodec.BufferInfo bufferInfo, int outputIndex)
         {
+            // Render the decoded frame to the ImageReader's Surface; the backend pulls it with
+            // AcquireLatestImage on the next game-thread Update.
             MediaDecoder.ReleaseOutputBuffer(outputIndex, true);
 
             isSeekRequestCompleted = true;
-
-            VideoInstance.OnReceiveNotificationToUpdateVideoTextureSurface();
         }
     }
 }
