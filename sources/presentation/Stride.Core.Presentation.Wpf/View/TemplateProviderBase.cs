@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Markup;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Presentation.View
 {
@@ -26,7 +27,6 @@ namespace Stride.Core.Presentation.View
         /// <inheritdoc/>
         public abstract string Name { get; }
 
-        /// <inheritdoc/>
         public DataTemplate Template { get; set; }
 
         /// <inheritdoc/>
