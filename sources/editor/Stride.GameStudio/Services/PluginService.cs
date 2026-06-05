@@ -15,6 +15,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 using Stride.Core.Settings;
 using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;

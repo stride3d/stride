@@ -5,6 +5,7 @@ using System;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.View
 {

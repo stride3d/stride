@@ -15,6 +15,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;

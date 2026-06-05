@@ -12,6 +12,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.Services
 {
