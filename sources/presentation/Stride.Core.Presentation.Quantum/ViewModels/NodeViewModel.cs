@@ -318,6 +318,33 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? UnsetValue;
     }
 
+    // FIXME xplat-editor workaround to AvaloniaUI/Avalonia#1949
+    public object? this[string name]
+    {
+        get
+        {
+            if (name.StartsWith(GraphViewModel.HasChildPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasChildPrefix.Length..];
+                return GetChild(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasCommandPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasCommandPrefix.Length..];
+                return GetCommand(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasAssociatedDataPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasAssociatedDataPrefix.Length..];
+                return GetAssociatedData(name) is not null;
+            }
+
+            return GetDynamicObject(name);
+        }
+    }
+
     /// <inheritdoc/>
     public DynamicMetaObject GetMetaObject(Expression parameter)
     {
