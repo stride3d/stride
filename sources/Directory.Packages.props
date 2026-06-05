@@ -34,9 +34,14 @@
     <PackageVersion Include="Silk.NET.Direct3D11" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Direct3D12" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Direct3D.Compilers" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.Input" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.OpenXR" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Sdl" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.Shaderc" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.SPIRV.Cross" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.SPIRV.Cross.Native" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.Vulkan" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="$(SilkVersion)" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
@@ -72,6 +77,7 @@
     <PackageVersion Include="NuGet.Protocol" Version="7.3.1" />
     <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
     <PackageVersion Include="Silk.NET.Assimp" Version="$(SilkVersion)" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
