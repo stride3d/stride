@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;

@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using Stride.Core.Yaml.Serialization;
 
-namespace Stride.TemplateGenerator;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Subset of <c>!TemplateSample</c> / <c>!Template</c> fields the preprocessor cares about.

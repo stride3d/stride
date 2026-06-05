@@ -12,9 +12,8 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Packages;
-using Stride.TemplateGenerator;
 
-namespace Stride.Assets.Presentation.Templates;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Boots the <see cref="DotNetNewTemplateRegistry"/>, installs each known Stride template
@@ -28,7 +27,7 @@ namespace Stride.Assets.Presentation.Templates;
 /// with the user's global <c>dotnet new</c> installation, and so side-by-side Stride versions
 /// keep their own template caches.
 /// </remarks>
-internal static class DotNetNewTemplateBridge
+public static class DotNetNewTemplateBridge
 {
     /// <summary>
     /// Package IDs the bridge tries to resolve via <see cref="PackageStore"/> on startup.

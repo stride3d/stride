@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Stride.Assets.Templates;
 using Stride.Core.Diagnostics;
 
 namespace Stride.TemplateGenerator;

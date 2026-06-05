@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.TemplateEngine.Abstractions;
 
-namespace Stride.Assets.Presentation.Templates;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// <see cref="IEnvironment"/> that delegates to <see cref="Environment"/> for most queries but

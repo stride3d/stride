@@ -3,7 +3,7 @@
 
 using Stride.Core.Assets.Templates;
 
-namespace Stride.Assets.Presentation.Templates;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// <see cref="TemplateDescription"/> backed by a Microsoft.TemplateEngine dotnet new template.

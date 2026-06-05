@@ -21,6 +21,7 @@ using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Assets.Templates;
 using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
@@ -114,7 +115,7 @@ namespace Stride.Assets.Presentation
             // installs into the in-process Microsoft.TemplateEngine bootstrapper, then exposes
             // each dotnet new template as a TemplateDotNetNewDescription so the existing template
             // list UI picks them up.
-            Templates.DotNetNewTemplateBridge.RegisterProjectTemplates();
+            DotNetNewTemplateBridge.RegisterProjectTemplates();
         }
 
         /// <inheritdoc />

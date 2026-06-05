@@ -13,7 +13,7 @@ using Microsoft.TemplateEngine.Edge;
 using Microsoft.TemplateEngine.Edge.Settings;
 using Microsoft.TemplateEngine.IDE;
 
-namespace Stride.Assets.Presentation.Templates;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Thin wrapper over <see cref="Bootstrapper"/> that installs Stride template nupkgs,
@@ -26,7 +26,7 @@ namespace Stride.Assets.Presentation.Templates;
 /// + package install. <see cref="InstallPackageAsync"/> is idempotent — repeat calls with the
 /// same path reinstall over the same managed package (engine version bumps work this way).
 /// </remarks>
-internal sealed class DotNetNewTemplateRegistry : IDisposable
+public sealed class DotNetNewTemplateRegistry : IDisposable
 {
     private const string HostIdentifier = "Stride.GameStudio";
 

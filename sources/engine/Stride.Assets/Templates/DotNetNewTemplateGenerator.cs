@@ -11,12 +11,10 @@ using Microsoft.TemplateEngine.Edge.Template;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Diagnostics;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Templates;
-using SDDialogResult = Stride.Core.Presentation.Services.DialogResult;
+using Stride.Core.Diagnostics;
 
-namespace Stride.Assets.Presentation.Templates;
+namespace Stride.Assets.Templates;
 
 /// <summary>
 /// <see cref="SessionTemplateGenerator"/> that instantiates a
@@ -28,6 +26,17 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// <summary>User-supplied parameter values from the parameter dialog (or unattended setup).</summary>
     private static readonly PropertyKey<IReadOnlyDictionary<string, string>> ParameterValuesKey
         = new("ParameterValues", typeof(DotNetNewTemplateGenerator));
+
+    private readonly IDotNetNewParameterPrompt? prompt;
+
+    /// <summary>Headless ctor (no UI). PrepareForRun returns true without collecting parameter values; callers must <see cref="SetParameters"/> on parameters.Unattended runs.</summary>
+    public DotNetNewTemplateGenerator() : this(null) { }
+
+    /// <summary>Editor ctor — <paramref name="prompt"/> collects parameter values via UI in attended PrepareForRun.</summary>
+    public DotNetNewTemplateGenerator(IDotNetNewParameterPrompt? prompt)
+    {
+        this.prompt = prompt;
+    }
 
     public override bool IsSupportingTemplate(TemplateDescription templateDescription)
     {
@@ -52,7 +61,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 
         // Skip the dialog when running unattended (e.g. CI / programmatic instantiation); the
         // caller is expected to have stuffed ParameterValues directly via SetParameters.
-        if (parameters.Unattended)
+        if (parameters.Unattended || prompt == null)
             return true;
 
         var description = (TemplateDotNetNewDescription)parameters.Description;
@@ -63,12 +72,11 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             return false;
         }
 
-        var dialog = new DotNetNewTemplateParametersWindow(template);
-        var result = await dialog.ShowModal();
-        if (result != SDDialogResult.Ok)
+        var values = await prompt.PromptAsync(template).ConfigureAwait(true);
+        if (values == null)
             return false;
 
-        parameters.SetTag(ParameterValuesKey, dialog.Parameters);
+        parameters.SetTag(ParameterValuesKey, values);
         return true;
     }
 

@@ -24,18 +24,10 @@
     <PackageReference Include="RoslynPad.Roslyn.Windows" />
     <PackageReference Include="RoslynPad.Roslyn" />
     <PackageReference Include="DotRecast.Detour" />
-    <PackageReference Include="Microsoft.TemplateEngine.IDE" />
-    <PackageReference Include="Microsoft.TemplateEngine.Edge" />
-    <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <!-- Shared with the pack-time tool (sources/tools/Stride.TemplateGenerator). Identical YAML
-         parsing logic on both sides; linking the source file keeps a single definition. -->
-    <Compile Include="..\..\tools\Stride.TemplateGenerator\SdtplMetadata.cs">
-      <Link>Templates\SdtplMetadata.cs</Link>
     </Compile>
     <None Include="app.config" />
     <None Include="*.cd" />
