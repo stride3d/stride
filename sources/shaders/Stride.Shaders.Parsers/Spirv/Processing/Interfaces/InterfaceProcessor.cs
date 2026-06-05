@@ -267,7 +267,13 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         if (stream.Value.Input && stream.Value.InputLayoutLocation is { } inputLayoutLocation)
                         {
                             if (stream.Value.Semantic == null)
-                                throw new InvalidOperationException($"Vertex shader input {stream.Value.Name} doesn't have semantic");
+                            {
+                                var readBy = stream.Value.ReadByMethod is { } m ? $" (read by '{m}')" : "";
+                                throw new InvalidOperationException(
+                                    $"Stream '{stream.Value.Name}'{readBy} is expected as a vertex shader input and is never written by any shader stage before being read. " +
+                                    $"Without a semantic it cannot be sourced from a vertex buffer, so it has to be produced by a shader: " +
+                                    $"write to streams.{stream.Value.Name} before reading it, or give it a semantic if it really is a vertex buffer input.");
+                            }
                             var semantic = SemanticAnalyzer.ParseSemantic(stream.Value.Semantic);
                             inputAttributes.Add(new ShaderInputAttributeDescription { Location = inputLayoutLocation, SemanticName = semantic.Name, SemanticIndex = semantic.Index });
                         }

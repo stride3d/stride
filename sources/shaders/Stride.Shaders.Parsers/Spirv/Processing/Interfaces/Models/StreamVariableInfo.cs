@@ -43,6 +43,12 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     public int? InputStructFieldIndex { get; internal set; }
     public int? OutputStructFieldIndex { get; internal set; }
 
+    /// <summary>
+    /// Name of the first method that reads this stream before any write (set during read/write analysis).
+    /// Used to produce a helpful diagnostic when such a stream ends up with no producer and no semantic.
+    /// </summary>
+    public string? ReadByMethod { get; set; }
+
     // Note: if Patch is true, it will be index in CONSTANTS struct, otherwise STREAMS struct
     public int StreamStructFieldIndex { get; internal set; }
 
