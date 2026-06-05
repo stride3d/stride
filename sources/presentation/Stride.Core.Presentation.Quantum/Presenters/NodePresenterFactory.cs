@@ -159,7 +159,6 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
     protected void FinalizeTree(INodePresenter rootPresenter)
     {
         ArgumentNullException.ThrowIfNull(rootPresenter);
-
         // We might enter here while we're still constructing the hierarchy, if for example we create
         // a virtual node in one updater. In this case we skip this call because our hierarchy is still
         // incomplete. It's guaranteed that this method will be called again at the end of the creation.

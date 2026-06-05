@@ -1,5 +1,6 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -24,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Translation.Presentation.Wpf\Stride.Core.Translation.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Core.Translation.Presentation.Wpf\Stride.Core.Translation.Presentation.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
 
@@ -44,5 +45,6 @@
     <Resource Include="Resources\Images\cursor_west_east.png" />
     <Resource Include="Resources\Images\warning-32.png" />
   </ItemGroup>
+
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
