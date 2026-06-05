@@ -83,8 +83,8 @@
     <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
     <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.8" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
     <PackageVersion Include="SSH.NET" Version="2023.0.1" />
     <PackageVersion Include="System.Management" Version="10.0.0" />
