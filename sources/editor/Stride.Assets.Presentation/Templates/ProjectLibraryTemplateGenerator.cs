@@ -71,7 +71,7 @@ namespace Stride.Assets.Presentation.Templates
             return !collision;  // we cannot allow to flow the creation request in case of name collision, because the underlying viewmodel system does not have protection against it.
         }
 
-        protected sealed override bool Generate(SessionTemplateGeneratorParameters parameters)
+        public sealed override bool Generate(SessionTemplateGeneratorParameters parameters)
         {
             if (parameters == null) throw new ArgumentNullException(nameof(parameters));
             parameters.Validate();

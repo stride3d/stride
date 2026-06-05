@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Core.Assets.Quantum.Templates;
 using Stride.Core.Assets.Templates;
 
 namespace Stride.Assets.Presentation.Templates
@@ -9,8 +10,13 @@ namespace Stride.Assets.Presentation.Templates
         public static void Register()
         {
             // TODO: Attribute-based auto registration would be better I guess
-            TemplateManager.Register(new DotNetNewTemplateGenerator());
-            TemplateManager.Register(ProjectLibraryTemplateGenerator.Default);
+            // SessionTemplateGenerator-derived generators are wrapped with the Quantum-aware
+            // decorator at registration time so override metadata is materialized through the
+            // asset graph before save. CLI / headless flows (Samples Tests, sample regen)
+            // register session generators directly via TemplateManager.Register and skip the
+            // wrap.
+            QuantumTemplateRegistration.Register(new DotNetNewTemplateGenerator());
+            QuantumTemplateRegistration.Register(ProjectLibraryTemplateGenerator.Default);
             TemplateManager.Register(UpdatePlatformsTemplateGenerator.Default);
             TemplateManager.Register(AssetFactoryTemplateGenerator.Default);
             TemplateManager.Register(AssetFromFileTemplateGenerator.Default);

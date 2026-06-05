@@ -72,7 +72,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         return true;
     }
 
-    protected override bool Generate(SessionTemplateGeneratorParameters parameters)
+    public override bool Generate(SessionTemplateGeneratorParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         parameters.Validate();
@@ -158,7 +158,6 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         // fallback to rewrite the Id to the current engine asset, emitting a warning.
         AssetAnalysis.FixAssetReferences(loaded.Package.Assets);
 
-        ApplyMetadata(parameters);
         return true;
     }
 
