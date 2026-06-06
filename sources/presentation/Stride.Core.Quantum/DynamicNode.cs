@@ -186,7 +186,7 @@ public abstract class DynamicNode : DynamicObject, IEnumerable
             {
                 if (descriptor is SetDescriptor setDescriptor)
                 {
-                    if (setDescriptor.Contains(value, index.Value))
+                    if (setDescriptor.Contains(value!, index.Value))
                     {
                         return true;
                     }
@@ -204,7 +204,7 @@ public abstract class DynamicNode : DynamicObject, IEnumerable
             else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 if (dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value)
-                    && dictionaryDescriptor.ContainsKey(value, index.Value))
+                    && dictionaryDescriptor.ContainsKey(value!, index.Value))
                 {
                     return true;
                 }
@@ -239,7 +239,7 @@ public abstract class DynamicNode : DynamicObject, IEnumerable
         return false;
     }
 
-    protected static bool UpdateCollection(IObjectNode node, object value, NodeIndex index)
+    protected static bool UpdateCollection(IObjectNode node, object? value, NodeIndex index)
     {
         if (IsIndexExisting(node, index))
         {
@@ -287,7 +287,7 @@ internal class DynamicDirectNode : DynamicNode
         return false;
     }
 
-    protected override object RetrieveValue()
+    protected override object? RetrieveValue()
     {
         return Node.Retrieve();
     }
@@ -335,7 +335,7 @@ internal class DynamicIndexedNode : DynamicNode
         return false;
     }
 
-    protected override object RetrieveValue()
+    protected override object? RetrieveValue()
     {
         return Node.Retrieve(index);
     }

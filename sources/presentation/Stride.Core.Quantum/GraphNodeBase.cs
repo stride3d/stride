@@ -68,7 +68,7 @@ public abstract class GraphNodeBase : IInitializingGraphNode
         {
             if (node.Descriptor.Category == DescriptorCategory.Set)
             {
-                var enumerator = (node.Retrieve() as IEnumerable).GetEnumerator();
+                var enumerator = ((IEnumerable)node.Retrieve()!).GetEnumerator();
                 NodeIndex[] valueArr = new NodeIndex[collectionDescriptor.GetCollectionCount(node.Retrieve())];
                 int i = 0;
                 while (enumerator.MoveNext())
@@ -84,11 +84,11 @@ public abstract class GraphNodeBase : IInitializingGraphNode
         }
         else if (node.Descriptor is DictionaryDescriptor dictionaryDescriptor)
         {
-            return dictionaryDescriptor.GetKeys(node.Retrieve()).Cast<object>().Select(x => new NodeIndex(x));
+            return dictionaryDescriptor.GetKeys(node.Retrieve()!).Cast<object>().Select(x => new NodeIndex(x));
         }
         else if (node.Descriptor is ArrayDescriptor arrayDescriptor)
         {
-            return Enumerable.Range(0, arrayDescriptor.GetLength(node.Retrieve())).Select(x => new NodeIndex(x));
+            return Enumerable.Range(0, arrayDescriptor.GetLength(node.Retrieve()!)).Select(x => new NodeIndex(x));
         }
         return null;
     }

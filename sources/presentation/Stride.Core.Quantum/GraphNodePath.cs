@@ -416,11 +416,11 @@ public sealed class GraphNodePath : IEnumerable<IGraphNode>, IEquatable<GraphNod
                     var descriptor = node.Descriptor;
                     if (descriptor is CollectionDescriptor collectionDescriptor)
                     {
-                        memberPath.Push(collectionDescriptor, index.Value);
+                        memberPath.Push(collectionDescriptor, index.Value!);
                     }
                     else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
                     {
-                        memberPath.Push(dictionaryDescriptor, index.Value);
+                        memberPath.Push(dictionaryDescriptor, index.Value!);
                     }
 
                     if (i != path.Count - 1)

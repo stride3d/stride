@@ -135,7 +135,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
         {
             var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionAdd, null, newItem);
             NotifyItemChanging(args);
-            dictionaryDescriptor.AddToDictionary(value, itemIndex.Value, newItem);
+            dictionaryDescriptor.AddToDictionary(value, itemIndex.Value!, newItem);
             UpdateReferences();
             NotifyItemChanged(args);
         }
@@ -234,7 +234,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
         }
         else if (Descriptor is ArrayDescriptor arrayDescriptor)
         {
-            arrayDescriptor.SetValue(Value, (int)indexValue, ConvertValue(newValue, arrayDescriptor.ElementType));
+            arrayDescriptor.SetValue(Value, (int)indexValue, ConvertValue(newValue, arrayDescriptor.ElementType)!);
         }
         else
         {
@@ -244,7 +244,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
         UpdateReferences();
         if (sendNotification)
         {
-            NotifyItemChanged(itemArgs);
+            NotifyItemChanged(itemArgs!);
         }
     }
 

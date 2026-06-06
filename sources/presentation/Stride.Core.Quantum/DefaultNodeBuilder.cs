@@ -141,7 +141,7 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
         if (descriptor is CollectionDescriptor or DictionaryDescriptor)
         {
             var valueType = GetElementValueType(descriptor);
-            return !PrimitiveTypeFilter.IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
+            return valueType != null && !PrimitiveTypeFilter.IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
         }
 
         return null;
