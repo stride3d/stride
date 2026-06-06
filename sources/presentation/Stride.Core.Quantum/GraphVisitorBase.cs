@@ -164,7 +164,7 @@ public class GraphVisitorBase
     {
         ArgumentNullException.ThrowIfNull(referencer);
         ArgumentNullException.ThrowIfNull(reference);
-        VisitNode(reference.TargetNode);
+        VisitNode(reference.TargetNode!);
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class GraphVisitorBase
     protected internal virtual bool ShouldVisitMemberTarget(IMemberNode memberNode)
     {
         ArgumentNullException.ThrowIfNull(memberNode);
-        return !visitedNodes.Contains(memberNode.Target);
+        return !visitedNodes.Contains(memberNode.Target!);
     }
 
     /// <summary>
@@ -190,6 +190,6 @@ public class GraphVisitorBase
     {
         ArgumentNullException.ThrowIfNull(collectionNode);
         var target = collectionNode.IndexedTarget(index);
-        return !visitedNodes.Contains(target);
+        return target != null && !visitedNodes.Contains(target);
     }
 }
