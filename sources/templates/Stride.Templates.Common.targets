@@ -116,11 +116,26 @@
     <None Include="$(MSBuildThisFileDirectory)PackageReadme.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 
+  <!-- Eval-time mirror of StrideEnsureWorktreeVersion: reads the same ledger so UpToDateCheckBuilt
+       below can name the actually-produced .nupkg (e.g. 4.4.0.2-dev1) rather than the un-suffixed
+       4.4.0.2. Without this, VS's fast up-to-date check looks for the wrong file every build and
+       this project rebuilds on every F5. The build-time target stays authoritative; this only feeds
+       the up-to-date check. -->
+  <PropertyGroup Condition="'$(CI)' != 'true' And '$(GITHUB_ACTIONS)' != 'true' And '$(TF_BUILD)' != 'true' And '$(StrideSkipWorktreeVersion)' != 'true' And '$(StridePackageBuild)' != 'true'">
+    <_StrideEvalWorktreeLedger Condition="'$(StrideWorktreeLedger)' != ''">$(StrideWorktreeLedger)</_StrideEvalWorktreeLedger>
+    <_StrideEvalWorktreeLedger Condition="'$(_StrideEvalWorktreeLedger)' == ''">$(LocalAppData)\Stride\worktree-ids.txt</_StrideEvalWorktreeLedger>
+    <_StrideEvalWorktreeLedgerContent Condition="Exists('$(_StrideEvalWorktreeLedger)')">$([System.IO.File]::ReadAllText('$(_StrideEvalWorktreeLedger)'))</_StrideEvalWorktreeLedgerContent>
+    <_StrideEvalRootNorm>$([System.IO.Path]::GetFullPath('$(StrideRoot)').TrimEnd('\').TrimEnd('/'))</_StrideEvalRootNorm>
+    <_StrideEvalRootEscaped>$([System.Text.RegularExpressions.Regex]::Escape('$(_StrideEvalRootNorm)'))</_StrideEvalRootEscaped>
+    <_StrideEvalWorktreeToken Condition="'$(_StrideEvalWorktreeLedgerContent)' != ''">$([System.Text.RegularExpressions.Regex]::Match($(_StrideEvalWorktreeLedgerContent), `(?im)^\s*([^\s#=][^=]*?)\s*=\s*$(_StrideEvalRootEscaped)\s*$`).Groups[1].Value)</_StrideEvalWorktreeToken>
+    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
+  </PropertyGroup>
+
   <!-- VS fast up-to-date inputs: project has no .cs files, so without these VS skips Build → no Pack → stale nupkg. -->
   <ItemGroup>
     <UpToDateCheckInput Include="$(StrideTemplatesDll)" />
     <UpToDateCheckInput Include="@(StrideSampleTemplate->'%(SamplePath)/**/*')" Exclude="@(StrideSampleTemplate->'%(SamplePath)/bin/**;%(SamplePath)/obj/**;%(SamplePath)/Cache/**')" />
-    <UpToDateCheckBuilt Include="$(StrideRoot)bin\packages\$(PackageId).$(PackageVersion).nupkg" />
+    <UpToDateCheckBuilt Include="$(StrideRoot)bin\packages\$(PackageId).$(PackageVersion)$(_StrideEvalWorktreeSuffix).nupkg" />
   </ItemGroup>
 
   <Target Name="StrideGenerateTemplateContent" BeforeTargets="_GetPackageFiles;GenerateNuspec">
