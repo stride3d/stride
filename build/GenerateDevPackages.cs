@@ -108,9 +108,12 @@ Console.WriteLine("\nBuilding + packing fresh packages...");
 // ->GenerateNuspec->Pack circular dependency and fail every engine project.
 // StrideDevPackages=false: forces engine projects through normal build (not the dev-redirect path)
 // regardless of the caller's Stride.Local.props.
+// StridePackAssets=false: skip the asset/.sdpkg packing step. The dev-redirect consumes assets +
+// shader source straight from the checkout (NugetStore.GetRealPath -> StrideDevProjectDirectory),
+// so packed asset content would be dead weight; skipping it also drops the slow per-package copy.
 // Output -> tempPackDir (not NugetDev); we deploy stubs there explicitly in step 3.
 // No --no-build: self-bootstraps a fresh checkout in one go.
-RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
+RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
 {
     // "Successfully created package 'X.nupkg'." is emitted once per project at pack completion.
     var packMarker = "Successfully created package '";
