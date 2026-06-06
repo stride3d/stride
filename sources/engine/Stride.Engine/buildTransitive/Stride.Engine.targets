@@ -3,7 +3,7 @@
   publish (shipped in build/ + buildTransitive/). The engine ships with these subsystems enabled and
   they stay on for a normal JIT build; trimming/AOT is where we default them off.
 -->
-<Project>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--
     The remote (Game Studio) effect compiler is a development-only tool that talks to the editor over
     a socket; no standalone shipped game uses it (it falls back to the local compiler). Default the
