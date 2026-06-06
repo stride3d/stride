@@ -486,6 +486,9 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
     // it self-correcting per project/TFM.
     var portableDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0{gfxSeg}/{projInfo.AssemblyName}.dll";
     var tfmDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/$(TargetFramework){gfxSeg}/{projInfo.AssemblyName}.dll";
+    // Fall back to the no-graphics-API TFM layout when the gfx-segmented dll is absent (e.g. iOS,
+    // which has no per-API subdir), rather than the host net10.0 portable build.
+    var tfmDllNoGfx = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/$(TargetFramework)/{projInfo.AssemblyName}.dll";
 
     // Replace dots with underscores in target/property names; MSBuild rejects dotted target names.
     var safeId = pkgId.Replace('.', '_');
@@ -499,6 +502,7 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
             <PropertyGroup>
               <_StrideDev_{{safeId}}_DevDll>{{portableDll}}</_StrideDev_{{safeId}}_DevDll>
               <_StrideDev_{{safeId}}_DevDll Condition="'$(TargetFramework)' != 'net10.0' And Exists('{{tfmDll}}')">{{tfmDll}}</_StrideDev_{{safeId}}_DevDll>
+              <_StrideDev_{{safeId}}_DevDll Condition="'$(TargetFramework)' != 'net10.0' And !Exists('{{tfmDll}}') And Exists('{{tfmDllNoGfx}}')">{{tfmDllNoGfx}}</_StrideDev_{{safeId}}_DevDll>
             </PropertyGroup>
 
             <!-- Match by NuGetPackageId AND Filename: some packages ship sibling DLLs in their
