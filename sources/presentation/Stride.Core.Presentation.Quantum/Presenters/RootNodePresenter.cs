@@ -37,7 +37,7 @@ public class RootNodePresenter : NodePresenterBase
 
     public override ITypeDescriptor Descriptor => RootNode.Descriptor;
 
-    public override object Value => RootNode.Retrieve();
+    public override object? Value => RootNode.Retrieve();
 
     protected override IObjectNode ParentingNode => RootNode;
 
