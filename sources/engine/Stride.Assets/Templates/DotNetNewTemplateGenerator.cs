@@ -21,6 +21,13 @@ namespace Stride.Assets.Templates;
 /// <see cref="TemplateDotNetNewDescription"/> through <see cref="DotNetNewTemplateRegistry"/> —
 /// the same dotnet new flow CLI users get.
 /// </summary>
+/// <remarks>
+/// Generation runs as three phases: <see cref="InstantiateFiles"/> →
+/// <see cref="UpgradeGeneratedProjects"/> → <see cref="IntegrateIntoSession"/>. The editor-facing
+/// <see cref="Generate"/> runs all three; the headless <see cref="GenerateFilesOnly"/> stops after
+/// phase 2, so test runners and CLI tools get the file output without an
+/// <see cref="Stride.Core.Reflection.AssemblyContainer"/> in the loop.
+/// </remarks>
 public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 {
     /// <summary>User-supplied parameter values from the parameter dialog (or unattended setup).</summary>
@@ -82,6 +89,30 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 
     public override bool Generate(SessionTemplateGeneratorParameters parameters)
     {
+        var sdpkg = InstantiateFiles(parameters);
+        if (sdpkg == null)
+            return false;
+        if (!UpgradeGeneratedProjects(parameters))
+            return false;
+        return IntegrateIntoSession(sdpkg, parameters);
+    }
+
+    /// <summary>
+    /// Headless entry point: runs <see cref="InstantiateFiles"/> + <see cref="UpgradeGeneratedProjects"/>
+    /// without touching the session graph or the <see cref="Stride.Core.Reflection.AssemblyContainer"/>.
+    /// For test runners and CLI tools that only need the files on disk.
+    /// </summary>
+    public bool GenerateFilesOnly(SessionTemplateGeneratorParameters parameters)
+    {
+        return InstantiateFiles(parameters) != null && UpgradeGeneratedProjects(parameters);
+    }
+
+    /// <summary>
+    /// Phase 1 — invokes the dotnet new bootstrapper. Writes the project tree under
+    /// <see cref="TemplateGeneratorParameters.OutputDirectory"/> and returns the generated .sdpkg path.
+    /// </summary>
+    protected virtual string? InstantiateFiles(SessionTemplateGeneratorParameters parameters)
+    {
         ArgumentNullException.ThrowIfNull(parameters);
         parameters.Validate();
 
@@ -91,57 +122,82 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         if (DotNetNewTemplateBridge.Registry == null)
         {
             log.Error("DotNetNewTemplateBridge is not initialized; cannot dispatch template.");
-            return false;
+            return null;
         }
 
         var template = ResolveTemplate(description).GetAwaiter().GetResult();
         if (template == null)
         {
             log.Error($"Template '{description.TemplateIdentity}' could not be resolved from the bootstrapper.");
-            return false;
+            return null;
         }
 
         var values = parameters.TryGetTag(ParameterValuesKey) ?? new Dictionary<string, string>();
 
         // The dotnet new sourceName substitution is fed by the project name; this is the same
         // value the user typed in GameStudio's New-Project name field.
-        var name = parameters.Name;
         var outputDir = parameters.OutputDirectory;
         Directory.CreateDirectory(outputDir);
 
         ITemplateCreationResult creation;
         try
         {
-            creation = DotNetNewTemplateBridge.Registry.InstantiateAsync(template, name, outputDir, values)
+            creation = DotNetNewTemplateBridge.Registry.InstantiateAsync(template, parameters.Name, outputDir, values)
                 .GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
             log.Error($"Template instantiation failed: {ex.Message}", ex);
-            return false;
+            return null;
         }
 
         if (creation.Status != CreationResultStatus.Success)
         {
             log.Error($"Template instantiation failed: {creation.Status} — {creation.ErrorMessage}");
-            return false;
+            return null;
         }
 
-        // Discover the produced game library project. Convention: the .sdpkg sits next to its
-        // owning .csproj (the game library); per-platform exec csprojs live alongside in sibling
-        // directories.
+        // Convention: the .sdpkg sits next to its owning .csproj (the game library); per-platform
+        // exec csprojs live alongside in sibling directories.
         var sdpkg = Directory
             .EnumerateFiles(outputDir, "*.sdpkg", SearchOption.AllDirectories)
             .FirstOrDefault();
         if (sdpkg == null)
+            log.Error("Instantiated template contains no .sdpkg.");
+        return sdpkg;
+    }
+
+    /// <summary>
+    /// Phase 2 — fresh templates ship with Stride.* <c>PackageReference</c>s pinned to the
+    /// previous release (samples track stable versions, not dev1/dev2 suffixes); this rewrites
+    /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>. Runs without a session or
+    /// AssemblyContainer — same standalone path the legacy session-load uses internally.
+    /// </summary>
+    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters)
+    {
+        var log = parameters.Logger;
+        foreach (var csproj in Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories))
         {
-            log.Error("Instantiated template contains no .sdpkg; cannot add to session.");
-            return false;
+            StridePackageUpgrader.UpgradeProjectVersions(csproj, log);
+            // Future: also invoke StridePackageUpgrader.UpgradeProjectCode here once the
+            // Roslyn-based code upgrade is implemented (fromVersion derived from a Stride.*
+            // PackageReference scan — the version the template's .cs files were authored against).
         }
+        return true;
+    }
+
+    /// <summary>
+    /// Phase 3 — wires the generated package into <see cref="TemplateGeneratorParameters.Session"/>:
+    /// <see cref="PackageSession.AddExistingProject"/>, per-platform exec registration,
+    /// dependency resolution, and asset-reference fixup. Skipped by <see cref="GenerateFilesOnly"/>.
+    /// </summary>
+    protected virtual bool IntegrateIntoSession(string sdpkgPath, SessionTemplateGeneratorParameters parameters)
+    {
+        var log = parameters.Logger;
 
         var loadParams = PackageLoadParameters.Default();
         loadParams.GenerateNewAssetIds = false;  // GUIDs are already fresh per-instantiation via template.json's generated/guid symbols.
-        var loaded = parameters.Session.AddExistingProject(sdpkg, log, loadParams);
+        var loaded = parameters.Session.AddExistingProject(sdpkgPath, log, loadParams);
         if (loaded == null)
         {
             log.Error("Failed to add generated project to session.");
@@ -152,7 +208,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         // exec csprojs are siblings and aren't reachable via project references (the dep flow runs
         // exec -> library, not vice versa). Without explicit registration here, the session's
         // VSSolution drops them on save and Run/LivePlay can't find an exec target.
-        RegisterPerPlatformExecutables(parameters, sdpkg, log);
+        RegisterPerPlatformExecutables(parameters, sdpkgPath, log);
 
         // Resolve dependencies for the per-platform exec projects: NuGet restore (so F5/build
         // finds obj/project.assets.json) and FlattenedDependencies graph (so editor flows that

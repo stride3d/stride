@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Stride.Assets.Presentation;
-using Stride.Assets.Presentation.Templates;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
@@ -55,7 +53,7 @@ public static class SampleGenerator
             }
         }
 
-        StrideDefaultAssetsPlugin.LoadDefaultTemplates();
+        StrideDefaultTemplates.Load(loadAssemblyReferences: false);
         var strideTemplates = TemplateManager.FindTemplates(session);
 
         parameters.Description = strideTemplates.First(x => x.Id == templateGuid);
@@ -67,8 +65,12 @@ public static class SampleGenerator
         if (!generator.PrepareForRun(parameters).Result)
             logger.Error("PrepareForRun returned false");
 
-        if (!generator.Run(parameters))
-            logger.Error("Run returned false");
+        // Headless: only the file output is needed (sample is built + run as a subprocess);
+        // skipping IntegrateIntoSession avoids loading per-template Stride.Particles/etc. assemblies
+        // into the AssemblyContainer, which would duplicate-register DataContract aliases across
+        // sequential test cases.
+        if (!generator.GenerateFilesOnly(parameters))
+            logger.Error("GenerateFilesOnly returned false");
 
         if (logger.HasErrors)
             throw new InvalidOperationException($"Error generating sample {sampleName} from template:\r\n{logger.ToText()}");

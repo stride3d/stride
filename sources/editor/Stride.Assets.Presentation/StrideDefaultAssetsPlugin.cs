@@ -25,7 +25,6 @@ using Stride.Assets.Templates;
 using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
-using Stride.Core.Packages;
 using Stride.Core.Serialization;
 using Stride.Engine.Gizmos;
 using Stride.Editor.Annotations;
@@ -91,32 +90,7 @@ namespace Stride.Assets.Presentation
             LoadDefaultTemplates();
         }
 
-        public static void LoadDefaultTemplates()
-        {
-            // Load editor-internal templates (asset / script / project-modification .sdtpl files).
-            // Currently hardcoded, this will need to change with plugin system.
-            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
-            {
-                var logger = new LoggerResult();
-                var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
-                if (packageFile is null)
-                    throw new InvalidOperationException($"Could not find package {packageInfo.Name} {packageInfo.Version}. Ensure packages have been resolved.");
-                var package = Package.Load(logger, packageFile.ToOSPath());
-                if (logger.HasErrors)
-                    throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
-
-                TemplateManager.RegisterPackage(package);
-            }
-
-            // Project-creation templates ship across Stride.Templates.Games (bundled NewGame),
-            // Stride.Templates.Games.Starters (genre starters), and Stride.Templates.Samples
-            // (feature demos) — all dotnet new template packages (vanilla NuGet), not Stride .sdpkgs.
-            // The bridge resolves each via PackageStore (auto-pack drops the .nupkg in dev mode),
-            // installs into the in-process Microsoft.TemplateEngine bootstrapper, then exposes
-            // each dotnet new template as a TemplateDotNetNewDescription so the existing template
-            // list UI picks them up.
-            DotNetNewTemplateBridge.RegisterProjectTemplates();
-        }
+        public static void LoadDefaultTemplates() => StrideDefaultTemplates.Load();
 
         /// <inheritdoc />
         protected override void Initialize(ILogger logger)
