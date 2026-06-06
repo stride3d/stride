@@ -452,6 +452,9 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
           <ItemGroup Condition="false">
             <Reference Include="{projInfo.AssemblyName}">
               <HintPath>{hintPath}</HintPath>
+              <!-- In-tree source project dir, read by NugetStore.GetRealPath so the asset compiler
+                   consumes assets + shader source straight from the checkout instead of the stub. -->
+              <StrideDevProjectDirectory>$(StrideDevRoot)/{relProjDir}</StrideDevProjectDirectory>
             </Reference>
           </ItemGroup>
         </Project>
