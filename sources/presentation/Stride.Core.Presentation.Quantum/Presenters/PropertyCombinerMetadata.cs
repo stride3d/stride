@@ -13,7 +13,7 @@ public class PropertyCombinerMetadata : PropertyKeyMetadata
     /// Initializes a new instance of the <see cref="PropertyCombinerMetadata"/> class.
     /// </summary>
     /// <param name="combiner">The method to use to combine values of the related attached property.</param>
-    public PropertyCombinerMetadata(Func<IEnumerable<object>, object> combiner)
+    public PropertyCombinerMetadata(Func<IEnumerable<object>, object?> combiner)
     {
         Combiner = combiner;
     }
@@ -21,5 +21,5 @@ public class PropertyCombinerMetadata : PropertyKeyMetadata
     /// <summary>
     /// Gets the method that will combine multiple values of the same attached property into a single resulting value.
     /// </summary>
-    public Func<IEnumerable<object>, object> Combiner { get; }
+    public Func<IEnumerable<object>, object?> Combiner { get; }
 }

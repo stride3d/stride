@@ -31,6 +31,10 @@ public class ItemNodePresenter : NodePresenterBase
         {
             Type = arrayDescriptor.ElementType;
         }
+        else
+        {
+            throw new ArgumentException($"Container descriptor must be a collection, dictionary, or array descriptor, got {container.Descriptor.GetType().Name}.", nameof(container));
+        }
         Index = index;
         Name = index.ToString();
         Order = index.IsInt ? (int?)index.Int : null; // So items are sorted by index instead of string
@@ -64,7 +68,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override ITypeDescriptor? Descriptor { get; }
 
-    public override object Value => Container.Retrieve(Index);
+    public override object? Value => Container.Retrieve(Index);
 
     protected override IObjectNode? ParentingNode => Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
 
@@ -87,7 +91,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Add(value);
+            Container.IndexedTarget(Index)!.Add(value);
         }
         catch (Exception e)
         {
@@ -102,7 +106,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Add(value, index);
+            Container.IndexedTarget(Index)!.Add(value, index);
         }
         catch (Exception e)
         {
@@ -117,7 +121,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Remove(value, index);
+            Container.IndexedTarget(Index)!.Remove(value, index);
         }
         catch (Exception e)
         {

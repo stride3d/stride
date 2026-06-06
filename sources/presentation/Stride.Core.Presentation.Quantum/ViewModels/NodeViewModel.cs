@@ -24,14 +24,14 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     protected static readonly HashSet<string> ReservedNames = [];
     private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
     private readonly ObservableCollection<NodePresenterCommandWrapper> commands = [];
-    private readonly Dictionary<string, object> associatedData = [];
+    private readonly Dictionary<string, object?> associatedData = [];
     private readonly List<string> changingProperties = [];
     private readonly GraphViewModel owner;
     private readonly List<INodePresenter> nodePresenters;
     private List<NodeViewModel>? initializingChildren = [];
     private bool isVisible;
     private bool isReadOnly;
-    private string displayName;
+    private string displayName = null!;
     private bool isHighlighted;
     private bool valueChanging;
     private readonly (Type declarer, int token)? sortingHint;
@@ -70,7 +70,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             if (nodePresenter is MemberNodePresenter memberNodePresenter)
             {
                 var descriptor = memberNodePresenter.MemberDescriptor;
-                sortingHint = (descriptor.MemberInfo.DeclaringType, descriptor.MemberInfo.MetadataToken);
+                sortingHint = (descriptor.MemberInfo.DeclaringType!, descriptor.MemberInfo.MetadataToken);
             }
         }
 
@@ -158,7 +158,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets additional data associated to this content. This can be used when the content itself does not contain enough information to be used as a view model.
     /// </summary>
-    public IReadOnlyDictionary<string, object> AssociatedData => associatedData;
+    public IReadOnlyDictionary<string, object?> AssociatedData => associatedData;
 
     /// <summary>
     /// Gets the level of depth of this node, starting from 0 for the root node.
@@ -623,7 +623,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void RemoveCommand(NodePresenterCommandWrapper command) => ChangeAndNotify(() => commands.Remove(command), $"{GraphViewModel.HasCommandPrefix}{command.Name}", command.Name);
 
-    private void AddAssociatedData(string key, object value) => ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    private void AddAssociatedData(string key, object? value) => ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
 
     private void RemoveAssociatedData(string key) => ChangeAndNotify(() => associatedData.Remove(key), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
 

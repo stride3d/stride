@@ -19,7 +19,7 @@ public class GraphViewModel : DispatcherViewModel
     public const string HasChildPrefix = "HasChild_";
     public const string HasCommandPrefix = "HasCommand_";
     public const string HasAssociatedDataPrefix = "HasAssociatedData_";
-    private NodeViewModel rootNode;
+    private NodeViewModel rootNode = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GraphViewModel"/> class.

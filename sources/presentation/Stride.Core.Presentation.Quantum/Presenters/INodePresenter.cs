@@ -38,7 +38,7 @@ public interface INodePresenter : IDisposable
 
     int? Order { get; set; }
 
-    object Value { get; }
+    object? Value { get; }
 
     string CombineKey { get; set; }
 
