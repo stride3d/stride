@@ -1,0 +1,8 @@
+!Template
+Id: 7B79F1B7-3A55-4C84-AED9-3F4F3EE4B6E5
+Name: "Code library"
+Scope: Session
+Description: Create a new library and add it to the solution
+FullDescription: A blank C# class library with Stride engine references.
+Group: General
+DefaultOutputName: MyLibrary

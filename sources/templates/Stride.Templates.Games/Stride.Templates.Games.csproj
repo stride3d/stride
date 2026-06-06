@@ -19,5 +19,10 @@
     <StrideSampleTemplate Include="stride-game">
       <SamplePath>$(StrideRoot)samples/NewGame/NewGame</SamplePath>
     </StrideSampleTemplate>
+    <!-- Code library: bare csproj with Stride engine references. Used by GameStudio's
+         "Add Library" flow to scaffold a new shared-platform library into an existing solution. -->
+    <StrideSampleTemplate Include="stride-library">
+      <SamplePath>$(StrideRoot)samples/Library/Library</SamplePath>
+    </StrideSampleTemplate>
   </ItemGroup>
 </Project>

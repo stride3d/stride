@@ -17,7 +17,9 @@ namespace Stride.Assets.Presentation.Templates
             // register session generators directly via TemplateManager.Register and skip the
             // wrap.
             QuantumTemplateRegistration.Register(new DotNetNewTemplateGenerator(new WpfDotNetNewParameterPrompt()));
-            QuantumTemplateRegistration.Register(ProjectLibraryTemplateGenerator.Default);
+            // AddLibraryGenerator registered after DotNetNew so it takes precedence for stride-library
+            // templates (TemplateManager iterates most-recent-first).
+            QuantumTemplateRegistration.Register(new AddLibraryGenerator(new WpfAddLibraryParameterPrompt()));
             TemplateManager.Register(UpdatePlatformsTemplateGenerator.Default);
             TemplateManager.Register(AssetFactoryTemplateGenerator.Default);
             TemplateManager.Register(AssetFromFileTemplateGenerator.Default);
