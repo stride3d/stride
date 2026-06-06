@@ -60,13 +60,13 @@ public class MemberNodePresenter : NodePresenterBase
 
     public override ITypeDescriptor Descriptor => Member.Descriptor;
 
-    public override object Value => Member.Retrieve();
+    public override object? Value => Member.Retrieve();
 
     public IMemberDescriptor MemberDescriptor => Member.MemberDescriptor;
 
     public IReadOnlyList<Attribute> MemberAttributes => memberAttributes;
 
-    protected override IObjectNode ParentingNode => Member.Target;
+    protected override IObjectNode? ParentingNode => Member.Target;
 
     public override void UpdateValue(object? newValue)
     {
