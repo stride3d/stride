@@ -11,24 +11,24 @@ public class TestDynamicNode
     public class SimpleClass
     {
         public int Member1;
-        public SimpleClass Member2;
+        public SimpleClass? Member2;
     }
 
     public class ComplexClass
     {
         public int Member1;
-        public SimpleClass Member2;
-        public object Member3;
+        public SimpleClass? Member2;
+        public object? Member3;
         public Struct Member4;
-        public List<string> Member5;
-        public List<SimpleClass> Member6;
-        public List<Struct> Member7;
+        public List<string>? Member5;
+        public List<SimpleClass>? Member6;
+        public List<Struct>? Member7;
     }
 
     public struct Struct
     {
         public string Member1;
-        public SimpleClass Member2;
+        public SimpleClass? Member2;
     }
 
     [Fact(Skip = "DynamicNode will be fixed later")]
@@ -68,7 +68,7 @@ public class TestDynamicNode
     public void TestChangeReferenceMemberToNull()
     {
         var nodeContainer = new NodeContainer();
-        SimpleClass[] obj = [new(), null, new()];
+        SimpleClass?[] obj = [new(), null, new()];
         var instance = new ComplexClass { Member2 = obj[0] };
         var rootNode = nodeContainer.GetOrCreateNode(instance);
         var dynNode = DynamicNode.FromNode(rootNode);
@@ -147,7 +147,7 @@ public class TestDynamicNode
         dynNode.Member4.Member1 = obj[1];
         Assert.Equal(obj[1], (string)dynNode.Member4.Member1);
         Assert.Equal(instance.Member4, (Struct)dynNode.Member4);
-        rootNode[nameof(ComplexClass.Member4)].Target[nameof(Struct.Member1)].Update(obj[2]);
+        rootNode[nameof(ComplexClass.Member4)].Target![nameof(Struct.Member1)].Update(obj[2]);
         Assert.Equal(obj[2], (string)dynNode.Member4.Member1);
         Assert.Equal(instance.Member4, (Struct)dynNode.Member4);
     }
@@ -183,7 +183,7 @@ public class TestDynamicNode
         dynNode.Member5[0] = obj[1];
         Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
         Assert.Equal(obj[1], (string)dynNode.Member5[0]);
-        rootNode[nameof(ComplexClass.Member5)].Target.Update(obj[2], new NodeIndex(0));
+        rootNode[nameof(ComplexClass.Member5)].Target!.Update(obj[2], new NodeIndex(0));
         Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
         Assert.Equal(obj[2], (string)dynNode.Member5[0]);
     }
@@ -201,7 +201,7 @@ public class TestDynamicNode
         dynNode.Member5.Add(obj[1]);
         Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
         Assert.Equal(obj[1], (string)dynNode.Member5[1]);
-        rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new NodeIndex(2));
+        rootNode[nameof(ComplexClass.Member5)].Target!.Add(obj[2], new NodeIndex(2));
         Assert.Equal(instance.Member5[2], (string)dynNode.Member5[2]);
         Assert.Equal(obj[2], (string)dynNode.Member5[2]);
     }
@@ -221,7 +221,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
         Assert.Equal(obj[1], (string)dynNode.Member5[0]);
         Assert.Equal(obj[0], (string)dynNode.Member5[1]);
-        rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member5)].Target!.Add(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
         Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
         Assert.Equal(instance.Member5[2], (string)dynNode.Member5[2]);
@@ -249,7 +249,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
         Assert.Equal(obj[0], (string)dynNode.Member5[0]);
         Assert.Equal(obj[2], (string)dynNode.Member5[1]);
-        rootNode[nameof(ComplexClass.Member5)].Target.Remove(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member5)].Target!.Remove(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
         Assert.Equal(obj[0], (string)dynNode.Member5[0]);
     }
@@ -285,7 +285,7 @@ public class TestDynamicNode
         dynNode.Member6[0] = obj[1];
         Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[0]);
-        rootNode[nameof(ComplexClass.Member6)].Target.Update(obj[2], new NodeIndex(0));
+        rootNode[nameof(ComplexClass.Member6)].Target!.Update(obj[2], new NodeIndex(0));
         Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[0]);
     }
@@ -303,7 +303,7 @@ public class TestDynamicNode
         dynNode.Member6.Add(obj[1]);
         Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
         Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[1]);
-        rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new NodeIndex(2));
+        rootNode[nameof(ComplexClass.Member6)].Target!.Add(obj[2], new NodeIndex(2));
         Assert.Equal(instance.Member6[2], (SimpleClass)dynNode.Member6[2]);
         Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[2]);
     }
@@ -323,7 +323,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
         Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[1]);
-        rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member6)].Target!.Add(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
         Assert.Equal(instance.Member6[2], (SimpleClass)dynNode.Member6[2]);
@@ -351,7 +351,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
         Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[1]);
-        rootNode[nameof(ComplexClass.Member6)].Target.Remove(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member6)].Target!.Remove(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
         Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
     }
@@ -370,7 +370,7 @@ public class TestDynamicNode
         Assert.Equal(obj[1], (int)dynNode.Member6[1].Member1);
         Assert.Equal(instance.Member6[1].Member1, (int)dynNode.Member6[1].Member1);
         NodeIndex index = new NodeIndex(1);
-        rootNode[nameof(ComplexClass.Member6)].Target.IndexedTarget(index)[nameof(SimpleClass.Member1)].Update(obj[2]);
+        rootNode[nameof(ComplexClass.Member6)].Target!.IndexedTarget(index)![nameof(SimpleClass.Member1)].Update(obj[2]);
         Assert.Equal(obj[2], (int)dynNode.Member6[1].Member1);
         Assert.Equal(instance.Member6[1].Member1, (int)dynNode.Member6[1].Member1);
     }
@@ -406,7 +406,7 @@ public class TestDynamicNode
         dynNode.Member7[0] = obj[1];
         Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
         Assert.Equal(obj[1], (Struct)dynNode.Member7[0]);
-        rootNode[nameof(ComplexClass.Member7)].Target.Update(obj[2], new NodeIndex(0));
+        rootNode[nameof(ComplexClass.Member7)].Target!.Update(obj[2], new NodeIndex(0));
         Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
         Assert.Equal(obj[2], (Struct)dynNode.Member7[0]);
     }
@@ -424,7 +424,7 @@ public class TestDynamicNode
         dynNode.Member7.Add(obj[1]);
         Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
         Assert.Equal(obj[1], (Struct)dynNode.Member7[1]);
-        rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new NodeIndex(2));
+        rootNode[nameof(ComplexClass.Member7)].Target!.Add(obj[2], new NodeIndex(2));
         Assert.Equal(instance.Member7[2], (Struct)dynNode.Member7[2]);
         Assert.Equal(obj[2], (Struct)dynNode.Member7[2]);
     }
@@ -444,7 +444,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
         Assert.Equal(obj[1], (Struct)dynNode.Member7[0]);
         Assert.Equal(obj[0], (Struct)dynNode.Member7[1]);
-        rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member7)].Target!.Add(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
         Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
         Assert.Equal(instance.Member7[2], (Struct)dynNode.Member7[2]);
@@ -472,7 +472,7 @@ public class TestDynamicNode
         Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
         Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
         Assert.Equal(obj[2], (Struct)dynNode.Member7[1]);
-        rootNode[nameof(ComplexClass.Member7)].Target.Remove(obj[2], new NodeIndex(1));
+        rootNode[nameof(ComplexClass.Member7)].Target!.Remove(obj[2], new NodeIndex(1));
         Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
         Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
     }
@@ -491,7 +491,7 @@ public class TestDynamicNode
         Assert.Equal(obj[1], (string)dynNode.Member7[1].Member1);
         Assert.Equal(instance.Member7[1].Member1, (string)dynNode.Member7[1].Member1);
         NodeIndex index = new NodeIndex(1);
-        rootNode[nameof(ComplexClass.Member7)].Target.IndexedTarget(index)[nameof(SimpleClass.Member1)].Update(obj[2]);
+        rootNode[nameof(ComplexClass.Member7)].Target!.IndexedTarget(index)![nameof(SimpleClass.Member1)].Update(obj[2]);
         Assert.Equal(obj[2], (string)dynNode.Member7[1].Member1);
         Assert.Equal(instance.Member7[1].Member1, (string)dynNode.Member7[1].Member1);
     }

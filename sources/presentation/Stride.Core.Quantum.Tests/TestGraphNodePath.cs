@@ -16,7 +16,7 @@ public class TestGraphNodePath
     {
         public int IntMember;
         public Struct StructMember;
-        public Class ClassMember;
+        public Class? ClassMember;
         public List<Class> ListMember = [];
     }
 
@@ -198,8 +198,8 @@ public class TestGraphNodePath
         path.PushTarget();
         path.PushMember(nameof(Struct.StringMember));
         var structNode = rootNode[nameof(Class.StructMember)];
-        var targetNode = rootNode[nameof(Class.StructMember)].Target;
-        var memberNode = rootNode[nameof(Class.StructMember)].Target[nameof(Struct.StringMember)];
+        var targetNode = rootNode[nameof(Class.StructMember)].Target!;
+        var memberNode = rootNode[nameof(Class.StructMember)].Target![nameof(Struct.StringMember)];
         IGraphNode[] nodes = [rootNode, structNode, targetNode, memberNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(memberNode);
@@ -223,8 +223,8 @@ public class TestGraphNodePath
         var path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ClassMember));
         path.PushTarget();
-        var targetNode = nodeContainer.GetNode(obj.ClassMember);
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode];
+        var targetNode = nodeContainer.GetNode(obj.ClassMember!);
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode!];
         Assert.NotNull(targetNode);
         Assert.False(path.IsEmpty);
         AssertAreEqual(rootNode, path.RootNode);
@@ -247,9 +247,9 @@ public class TestGraphNodePath
         path.PushMember(nameof(Class.ClassMember));
         path.PushTarget();
         path.PushMember(nameof(Class.IntMember));
-        var targetNode = nodeContainer.GetNode(obj.ClassMember);
-        var intNode = targetNode[nameof(Class.IntMember)];
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode, intNode];
+        var targetNode = nodeContainer.GetNode(obj.ClassMember!);
+        var intNode = targetNode![nameof(Class.IntMember)];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode!, intNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(intNode);
         Assert.False(path.IsEmpty);
@@ -274,7 +274,7 @@ public class TestGraphNodePath
         path.PushTarget();
         path.PushIndex(new NodeIndex(1));
         var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target, targetNode];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target!, targetNode!];
         Assert.NotNull(targetNode);
         Assert.False(path.IsEmpty);
         AssertAreEqual(rootNode, path.RootNode);
@@ -299,8 +299,8 @@ public class TestGraphNodePath
         path.PushIndex(new NodeIndex(1));
         path.PushMember(nameof(Class.IntMember));
         var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
-        var intNode = targetNode[nameof(Class.IntMember)];
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target, targetNode, intNode];
+        var intNode = targetNode![nameof(Class.IntMember)];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target!, targetNode!, intNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(intNode);
         Assert.False(path.IsEmpty);
@@ -324,21 +324,21 @@ public class TestGraphNodePath
         var path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.IntMember));
         var parentPath = new GraphNodePath(rootNode);
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
 
         path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.StructMember));
         path.PushMember(nameof(Struct.StringMember));
         parentPath = new GraphNodePath(rootNode);
         parentPath.PushMember(nameof(Class.StructMember));
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
 
         path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ClassMember));
         path.PushTarget();
         parentPath = new GraphNodePath(rootNode);
         parentPath.PushMember(nameof(Class.ClassMember));
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
 
         path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ClassMember));
@@ -347,14 +347,14 @@ public class TestGraphNodePath
         parentPath = new GraphNodePath(rootNode);
         parentPath.PushMember(nameof(Class.ClassMember));
         parentPath.PushTarget();
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
 
         path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ListMember));
         path.PushIndex(new NodeIndex(1));
         parentPath = new GraphNodePath(rootNode);
         parentPath.PushMember(nameof(Class.ListMember));
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
 
         path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ListMember));
@@ -363,7 +363,7 @@ public class TestGraphNodePath
         parentPath = new GraphNodePath(rootNode);
         parentPath.PushMember(nameof(Class.ListMember));
         parentPath.PushIndex(new NodeIndex(1));
-        AssertAreEqual(parentPath, path.GetParent());
+        AssertAreEqual(parentPath, path.GetParent()!);
     }
 
     // NUnit does not use the Equals method for objects that implement IEnumerable, but that's what we want to use for GraphNodePath

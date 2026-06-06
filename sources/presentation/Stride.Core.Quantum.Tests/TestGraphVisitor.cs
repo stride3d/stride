@@ -10,14 +10,14 @@ public class TestGraphVisitor
     public class SimpleClass
     {
         public int Member1;
-        public SimpleClass Member2;
+        public SimpleClass? Member2;
     }
 
     public class SimpleClass2
     {
         public int Member1;
-        public SimpleClass Member2;
-        public SimpleClass Member3;
+        public SimpleClass? Member2;
+        public SimpleClass? Member3;
     }
 
     public class StructClass
@@ -29,32 +29,32 @@ public class TestGraphVisitor
     public class PrimitiveListClass
     {
         public int Member1;
-        public List<string> Member2;
+        public List<string>? Member2;
     }
 
     public class ObjectListClass
     {
         public int Member1;
-        public List<SimpleClass> Member2;
+        public List<SimpleClass?>? Member2;
     }
 
     public class StructListClass
     {
         public int Member1;
-        public List<Struct> Member2;
+        public List<Struct>? Member2;
     }
 
     public struct Struct
     {
-        public string Member1;
-        public SimpleClass Member2;
+        public string? Member1;
+        public SimpleClass? Member2;
     }
 
     public class TestVisitor : GraphVisitorBase
     {
         public readonly List<Tuple<IGraphNode, GraphNodePath>> Result = [];
 
-        public override void Visit(IGraphNode node, MemberNode memberNode = null, GraphNodePath initialPath = null)
+        public override void Visit(IGraphNode node, MemberNode? memberNode = null, GraphNodePath? initialPath = null)
         {
             Result.Clear();
             base.Visit(node, memberNode, initialPath);
@@ -81,9 +81,9 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(SimpleClass.Member1)],
             rootNode[nameof(SimpleClass.Member2)],
-            rootNode[nameof(SimpleClass.Member2)].Target,
-            rootNode[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass.Member2)].Target!,
+            rootNode[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)],
         ];
         var expectedPaths = new GraphNodePath[6];
         expectedPaths[0] = new GraphNodePath(rootNode);
@@ -118,9 +118,9 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(SimpleClass.Member1)],
             rootNode[nameof(SimpleClass.Member2)],
-            rootNode[nameof(SimpleClass.Member2)].Target,
-            rootNode[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass.Member2)].Target!,
+            rootNode[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)],
         ];
         var expectedPaths = new GraphNodePath[6];
         expectedPaths[0] = initialPath.Clone();
@@ -173,9 +173,9 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(StructClass.Member1)],
             rootNode[nameof(StructClass.Member2)],
-            rootNode[nameof(StructClass.Member2)].Target,
-            rootNode[nameof(StructClass.Member2)].Target[nameof(Struct.Member1)],
-            rootNode[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)],
+            rootNode[nameof(StructClass.Member2)].Target!,
+            rootNode[nameof(StructClass.Member2)].Target![nameof(Struct.Member1)],
+            rootNode[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)],
         ];
         var expectedPaths = new GraphNodePath[6];
         expectedPaths[0] = new GraphNodePath(rootNode);
@@ -205,7 +205,7 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(PrimitiveListClass.Member1)],
             rootNode[nameof(PrimitiveListClass.Member2)],
-            rootNode[nameof(PrimitiveListClass.Member2)].Target,
+            rootNode[nameof(PrimitiveListClass.Member2)].Target!,
         ];
         var expectedPaths = new GraphNodePath[4];
         expectedPaths[0] = new GraphNodePath(rootNode);
@@ -232,13 +232,13 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(ObjectListClass.Member1)],
             rootNode[nameof(ObjectListClass.Member2)],
-            rootNode[nameof(ObjectListClass.Member2)].Target,
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0)),
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(ObjectListClass.Member1)],
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(ObjectListClass.Member2)],
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2)),
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(ObjectListClass.Member1)],
-            rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(ObjectListClass.Member2)],
+            rootNode[nameof(ObjectListClass.Member2)].Target!,
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))!,
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(ObjectListClass.Member1)],
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(ObjectListClass.Member2)],
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))!,
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(ObjectListClass.Member1)],
+            rootNode[nameof(ObjectListClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(ObjectListClass.Member2)],
         ];
         var expectedPaths = new GraphNodePath[10];
         expectedPaths[0] = new GraphNodePath(rootNode);
@@ -277,13 +277,13 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(StructListClass.Member1)],
             rootNode[nameof(StructListClass.Member2)],
-            rootNode[nameof(StructListClass.Member2)].Target,
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0)),
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(StructListClass.Member1)],
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(StructListClass.Member2)],
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1)),
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(StructListClass.Member1)],
-            rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(StructListClass.Member2)],
+            rootNode[nameof(StructListClass.Member2)].Target!,
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))!,
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(StructListClass.Member1)],
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(StructListClass.Member2)],
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))!,
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(StructListClass.Member1)],
+            rootNode[nameof(StructListClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(StructListClass.Member2)],
         ];
         var expectedPaths = new GraphNodePath[10];
         expectedPaths[0] = new GraphNodePath(rootNode);
@@ -382,19 +382,19 @@ public class TestGraphVisitor
             rootNode,
             rootNode[nameof(SimpleClass2.Member1)],
             rootNode[nameof(SimpleClass2.Member2)],
-            rootNode[nameof(SimpleClass2.Member2)].Target,
-            rootNode[nameof(SimpleClass2.Member2)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass2.Member2)].Target[nameof(SimpleClass.Member2)],
-            rootNode[nameof(SimpleClass2.Member2)].Target[nameof(SimpleClass.Member2)].Target,
-            rootNode[nameof(SimpleClass2.Member2)].Target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass2.Member2)].Target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass2.Member2)].Target!,
+            rootNode[nameof(SimpleClass2.Member2)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass2.Member2)].Target![nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass2.Member2)].Target![nameof(SimpleClass.Member2)].Target!,
+            rootNode[nameof(SimpleClass2.Member2)].Target![nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass2.Member2)].Target![nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)],
             rootNode[nameof(SimpleClass2.Member3)],
-            rootNode[nameof(SimpleClass2.Member3)].Target,
-            rootNode[nameof(SimpleClass2.Member3)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass2.Member3)].Target[nameof(SimpleClass.Member2)],
-            rootNode[nameof(SimpleClass2.Member3)].Target[nameof(SimpleClass.Member2)].Target,
-            rootNode[nameof(SimpleClass2.Member3)].Target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)],
-            rootNode[nameof(SimpleClass2.Member3)].Target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass2.Member3)].Target!,
+            rootNode[nameof(SimpleClass2.Member3)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass2.Member3)].Target![nameof(SimpleClass.Member2)],
+            rootNode[nameof(SimpleClass2.Member3)].Target![nameof(SimpleClass.Member2)].Target!,
+            rootNode[nameof(SimpleClass2.Member3)].Target![nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)],
+            rootNode[nameof(SimpleClass2.Member3)].Target![nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)],
         ];
         var expectedPaths = new GraphNodePath[16];
         expectedPaths[0] = new GraphNodePath(rootNode);
