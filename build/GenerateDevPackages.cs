@@ -535,6 +535,7 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
                 <NuGetPackageId>{{pkgId}}</NuGetPackageId>
                 <NuGetPackageVersion>{{version}}</NuGetPackageVersion>
                 <ExternallyResolved>true</ExternallyResolved>
+                <Private>false</Private>
               </ResolvedCompileFileDefinitions>
             </ItemGroup>
           </Target>
