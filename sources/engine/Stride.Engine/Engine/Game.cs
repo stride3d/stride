@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
+using Stride.Data;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Games;
@@ -260,6 +261,8 @@ namespace Stride.Engine
             // Init assets
             if (Context.InitializeDatabase)
             {
+                PlatformConfigurations.RendererName = GraphicsAdapterFactory.DefaultAdapter?.Description ?? string.Empty;
+
                 databaseFileProvider = InitializeAssetDatabase();
                 ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
 
