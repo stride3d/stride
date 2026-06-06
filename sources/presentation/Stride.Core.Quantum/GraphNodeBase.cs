@@ -66,7 +66,7 @@ public abstract class GraphNodeBase : IInitializingGraphNode
     {
         if (node.Descriptor is CollectionBaseDescriptor collectionDescriptor)
         {
-            return collectionDescriptor.EnumerateKeys(node.Retrieve()).Select(x => new NodeIndex(x));
+            return collectionDescriptor.EnumerateKeys(node.Retrieve()!).Select(x => new NodeIndex(x));
         }
 
         return null;
