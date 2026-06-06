@@ -28,7 +28,7 @@ public class TestDependentProperties
         {
             if (node.Name == nameof(Types.DependentPropertyContainer.Title))
             {
-                var instance = (Types.DependentPropertyContainer)node.Root.Value;
+                var instance = (Types.DependentPropertyContainer)node.Root.Value!;
                 node.AttachedProperties.Set(TestData, instance.Instance.Name);
                 node.AttachedProperties.Set(UpdateCount, count++);
             }
