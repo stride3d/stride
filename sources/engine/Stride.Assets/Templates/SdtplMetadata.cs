@@ -24,6 +24,8 @@ internal sealed class SdtplMetadata
     public string? DefaultOutputName { get; set; }
     public string? Icon { get; set; }
     public List<string> Screenshots { get; } = new();
+    /// <summary>Raw scope literal from the .sdtpl (e.g. "Session", "Package"); null = omitted.</summary>
+    public string? Scope { get; set; }
 
     /// <summary>
     /// Per-template opt-in to optional preprocessor-emitted parameters. Values are case-
@@ -92,6 +94,7 @@ internal sealed class SdtplMetadata
                 case "Icon":              meta.Icon = ScalarOrNull(entry.Value); break;
                 case "Screenshots":       AppendScalars(entry.Value, meta.Screenshots); break;
                 case "Parameters":        AppendScalars(entry.Value, meta.Parameters); break;
+                case "Scope":             meta.Scope = ScalarOrNull(entry.Value); break;
             }
         }
         return meta;

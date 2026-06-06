@@ -124,7 +124,9 @@ public static class DotNetNewTemplateBridge
                     FullDescription = sdtpl?.FullDescription,
                     DefaultOutputName = sdtpl?.DefaultOutputName ?? template.DefaultName ?? "MyGame",
                     Group = sdtpl?.Group ?? template.GroupIdentity ?? "Stride",
-                    Scope = TemplateScope.Session,
+                    Scope = (sdtpl?.Scope != null && Enum.TryParse<TemplateScope>(sdtpl.Scope, ignoreCase: true, out var parsedScope))
+                        ? parsedScope
+                        : TemplateScope.Session,
                     TemplateIdentity = template.Identity,
                     TemplateShortName = shortName ?? string.Empty,
                     // FullPath must be non-null: TemplateDescriptionViewModel calls
