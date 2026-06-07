@@ -103,7 +103,12 @@ internal static class ReadWriteAnalyzer
                         // In case of streams or constants access, check if there was a previous write on the variable
                         // (in which case it is read after being written, which we do not need to write as a read from previous stage)
                         if (!streamInfo.Write)
+                        {
                             streamInfo.Read = true;
+                            // Remember who read it first (before any write) for diagnostics: if this stream ends up
+                            // with no producer and no semantic, we can point at the method that expects it.
+                            streamInfo.ReadByMethod ??= context.Names.TryGetValue(functionId, out var readerName) ? readerName : null;
+                        }
                     }
                 }
                 if (variables.TryGetValue(accessChain.Base, out var variableInfo))

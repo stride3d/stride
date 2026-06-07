@@ -813,15 +813,53 @@ public partial class NugetStore : INugetDownloadProgress
 
     public string GetRealPath(NugetLocalPackage package)
     {
-        if (IsDevRedirectPackage(package) && package.Version < new PackageVersion(3, 1, 0, 0))
+        if (IsDevRedirectPackage(package))
         {
-            var realPath = File.ReadAllText(GetRedirectFile(package));
-            if (!Directory.Exists(realPath))
-                throw new DirectoryNotFoundException();
-            return realPath;
+            // Legacy dev-redirect (<3.1): a "<Id>.redirect" file holds the source directory directly.
+            if (package.Version < new PackageVersion(3, 1, 0, 0))
+            {
+                var realPath = File.ReadAllText(GetRedirectFile(package));
+                if (!Directory.Exists(realPath))
+                    throw new DirectoryNotFoundException();
+                return realPath;
+            }
+
+            // Modern dev-redirect stub: resolve the in-tree source project directory from the
+            // build/<Id>.props the stub generator emitted, so the asset compiler reads assets and
+            // shader source straight from the checkout instead of the (asset-less) stub.
+            var sourceDir = TryGetDevRedirectProjectDirectory(package);
+            if (sourceDir != null)
+                return sourceDir;
         }
 
         return package.Path;
+    }
+
+    /// <summary>
+    /// Reads <c>StrideDevProjectDirectory</c> (with <c>$(StrideDevRoot)</c> resolved) from a modern
+    /// dev-redirect stub's <c>build/&lt;Id&gt;.props</c>. Returns null if it isn't a resolvable stub.
+    /// </summary>
+    private static string? TryGetDevRedirectProjectDirectory(NugetLocalPackage package)
+    {
+        var propsPath = Path.Combine(package.Path, "build", $"{package.Id}.props");
+        if (!File.Exists(propsPath))
+            return null;
+
+        var text = File.ReadAllText(propsPath);
+        var dir = Regex.Match(text, "<StrideDevProjectDirectory>(.*?)</StrideDevProjectDirectory>").Groups[1].Value;
+        if (string.IsNullOrEmpty(dir))
+            return null;
+
+        if (dir.Contains("$(StrideDevRoot)"))
+        {
+            var root = Regex.Match(text, "<StrideDevRoot[^>]*>(.*?)</StrideDevRoot>").Groups[1].Value;
+            if (string.IsNullOrEmpty(root))
+                return null;
+            dir = dir.Replace("$(StrideDevRoot)", root);
+        }
+
+        dir = dir.Replace('/', Path.DirectorySeparatorChar);
+        return Directory.Exists(dir) ? dir : null;
     }
 
     public string GetRedirectFile(NugetLocalPackage package)

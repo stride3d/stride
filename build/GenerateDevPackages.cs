@@ -108,9 +108,12 @@ Console.WriteLine("\nBuilding + packing fresh packages...");
 // ->GenerateNuspec->Pack circular dependency and fail every engine project.
 // StrideDevPackages=false: forces engine projects through normal build (not the dev-redirect path)
 // regardless of the caller's Stride.Local.props.
+// StridePackAssets=false: skip the asset/.sdpkg packing step. The dev-redirect consumes assets +
+// shader source straight from the checkout (NugetStore.GetRealPath -> StrideDevProjectDirectory),
+// so packed asset content would be dead weight; skipping it also drops the slow per-package copy.
 // Output -> tempPackDir (not NugetDev); we deploy stubs there explicitly in step 3.
 // No --no-build: self-bootstraps a fresh checkout in one go.
-RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
+RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
 {
     // "Successfully created package 'X.nupkg'." is emitted once per project at pack completion.
     var packMarker = "Successfully created package '";
@@ -404,9 +407,17 @@ static void MergeIntoZipEntry(ZipArchive zip, string entryPath, string addition)
     var additionDoc = XDocument.Parse(addition);
     if (additionDoc.Root != null && existingDoc.Root != null)
     {
+        // The addition is authored in the MSBuild 2003 namespace, but the original package targets
+        // may use the namespace-less <Project> form (e.g. Stride.Engine's AOT targets). XLINQ would
+        // then stamp the moved children with a redundant xmlns="...2003", which MSBuild rejects
+        // (MSB4066). Normalize the moved subtree to the existing root's namespace so the merged file
+        // stays consistent either way.
+        var rootNs = existingDoc.Root.Name.Namespace;
         foreach (var child in additionDoc.Root.Elements().ToList())
         {
             child.Remove();
+            foreach (var e in child.DescendantsAndSelf())
+                e.Name = rootNs + e.Name.LocalName;
             existingDoc.Root.Add(child);
         }
     }
@@ -444,6 +455,9 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
           <ItemGroup Condition="false">
             <Reference Include="{projInfo.AssemblyName}">
               <HintPath>{hintPath}</HintPath>
+              <!-- In-tree source project dir, read by NugetStore.GetRealPath so the asset compiler
+                   consumes assets + shader source straight from the checkout instead of the stub. -->
+              <StrideDevProjectDirectory>$(StrideDevRoot)/{relProjDir}</StrideDevProjectDirectory>
             </Reference>
           </ItemGroup>
         </Project>
@@ -472,6 +486,9 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
     // it self-correcting per project/TFM.
     var portableDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0{gfxSeg}/{projInfo.AssemblyName}.dll";
     var tfmDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/$(TargetFramework){gfxSeg}/{projInfo.AssemblyName}.dll";
+    // Fall back to the no-graphics-API TFM layout when the gfx-segmented dll is absent (e.g. iOS,
+    // which has no per-API subdir), rather than the host net10.0 portable build.
+    var tfmDllNoGfx = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/$(TargetFramework)/{projInfo.AssemblyName}.dll";
 
     // Replace dots with underscores in target/property names; MSBuild rejects dotted target names.
     var safeId = pkgId.Replace('.', '_');
@@ -485,6 +502,7 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
             <PropertyGroup>
               <_StrideDev_{{safeId}}_DevDll>{{portableDll}}</_StrideDev_{{safeId}}_DevDll>
               <_StrideDev_{{safeId}}_DevDll Condition="'$(TargetFramework)' != 'net10.0' And Exists('{{tfmDll}}')">{{tfmDll}}</_StrideDev_{{safeId}}_DevDll>
+              <_StrideDev_{{safeId}}_DevDll Condition="'$(TargetFramework)' != 'net10.0' And !Exists('{{tfmDll}}') And Exists('{{tfmDllNoGfx}}')">{{tfmDllNoGfx}}</_StrideDev_{{safeId}}_DevDll>
             </PropertyGroup>
 
             <!-- Match by NuGetPackageId AND Filename: some packages ship sibling DLLs in their
@@ -517,6 +535,7 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
                 <NuGetPackageId>{{pkgId}}</NuGetPackageId>
                 <NuGetPackageVersion>{{version}}</NuGetPackageVersion>
                 <ExternallyResolved>true</ExternallyResolved>
+                <Private>false</Private>
               </ResolvedCompileFileDefinitions>
             </ItemGroup>
           </Target>
