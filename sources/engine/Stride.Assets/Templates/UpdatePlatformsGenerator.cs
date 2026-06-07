@@ -15,14 +15,22 @@ using Stride.Core.IO;
 namespace Stride.Assets.Templates;
 
 /// <summary>
-/// Adds, regenerates, or removes per-platform exec projects via the <c>stride-platforms</c>
-/// dotnet new template. Mirrors the AddLibrary pattern: bootstrapper does the file copy +
-/// substitution, this class drives the prompt, computes the platform diff, and registers the
-/// produced csprojs as Executable projects on the session.
+/// Adds, regenerates, or removes per-platform exec projects by driving the shared
+/// <c>stride-game</c> dotnet new template with <c>updateOnly=true</c>. This class collects the
+/// platform diff via the prompt, dispatches the bootstrapper, and registers the produced csprojs
+/// as Executable projects on the session.
 /// </summary>
 public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemplateGeneratorParameters>
 {
-    public const string PlatformsTemplateShortName = "stride-platforms";
+    /// <summary>
+    /// Stable Id (matches the legacy Platforms.sdtpl Id) for the synthetic description registered in StrideTemplates.Register.
+    /// </summary>
+    public static readonly Guid TemplateId = new("2D1A7C7E-44B6-4E94-8B6C-6E2C5D4A3F11");
+
+    /// <summary>
+    /// dotnet new short name of the template UpdatePlatforms drives (stride-game with updateOnly=true).
+    /// </summary>
+    private const string GameTemplateShortName = "stride-game";
 
     private static readonly PropertyKey<IReadOnlyList<PlatformType>> SelectedPlatformsKey = new("SelectedPlatforms", typeof(UpdatePlatformsGenerator));
     private static readonly PropertyKey<bool> ForceRegenerationKey = new("ForceRegeneration", typeof(UpdatePlatformsGenerator));
@@ -47,8 +55,7 @@ public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemp
     public override bool IsSupportingTemplate(TemplateDescription templateDescription)
     {
         ArgumentNullException.ThrowIfNull(templateDescription);
-        return templateDescription is TemplateDotNetNewDescription dnn
-            && string.Equals(dnn.TemplateShortName, PlatformsTemplateShortName, StringComparison.Ordinal);
+        return templateDescription.Id == TemplateId;
     }
 
     public override async Task<bool> PrepareForRun(PackageTemplateGeneratorParameters parameters)
@@ -202,13 +209,15 @@ public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemp
             return false;
         }
 
-        var description = (TemplateDotNetNewDescription)parameters.Description;
+        // Resolve the shared game starter — UpdatePlatforms drives the same template as NewGame,
+        // just with updateOnly=true to skip the game library + .sln (sources/modifiers in
+        // template.json handles the exclusion).
         var template = DotNetNewTemplateBridge.Registry.GetTemplatesAsync()
             .GetAwaiter().GetResult()
-            .FirstOrDefault(t => string.Equals(t.Identity, description.TemplateIdentity, StringComparison.Ordinal));
+            .FirstOrDefault(t => t.ShortNameList.Any(s => string.Equals(s, GameTemplateShortName, StringComparison.Ordinal)));
         if (template == null)
         {
-            log.Error($"Template '{description.TemplateIdentity}' could not be resolved from the bootstrapper.");
+            log.Error($"Template '{GameTemplateShortName}' could not be resolved from the bootstrapper.");
             return false;
         }
 
@@ -218,7 +227,11 @@ public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemp
         {
             creation = DotNetNewTemplateBridge.Registry
                 .InstantiateAsync(template, baseName, sessionDir.ToOSPath(),
-                    new Dictionary<string, string> { ["platforms"] = platformsValue })
+                    new Dictionary<string, string>
+                    {
+                        ["platforms"] = platformsValue,
+                        ["updateOnly"] = "true",
+                    })
                 .GetAwaiter().GetResult();
         }
         catch (Exception ex)

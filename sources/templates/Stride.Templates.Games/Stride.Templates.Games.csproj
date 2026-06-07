@@ -24,9 +24,6 @@
     <StrideSampleTemplate Include="stride-library">
       <SamplePath>$(StrideRoot)samples/Library/Library</SamplePath>
     </StrideSampleTemplate>
-    <!-- Per-platform exec projects only (no game library); used by Update Platforms. -->
-    <StrideSampleTemplate Include="stride-platforms">
-      <SamplePath>$(StrideRoot)samples/Platforms/Platforms</SamplePath>
-    </StrideSampleTemplate>
   </ItemGroup>
+  <!-- Update Platforms drives stride-game with updateOnly=true (see UpdatePlatformsGenerator) — no dedicated template. -->
 </Project>

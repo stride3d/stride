@@ -1,7 +1,0 @@
-!Template
-Id: 2D1A7C7E-44B6-4E94-8B6C-6E2C5D4A3F11
-Name: "Update platforms"
-Scope: Package
-Description: Add or update per-platform executable projects for the current game
-Group: General
-DefaultOutputName: MyGame
