@@ -21,7 +21,7 @@ param(
     [string]$Apk,                                          # APK to install; skip if already deployed
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
-    [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
+    [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local
     [string]$Avd,                                          # AVD name to boot if no device is connected
     [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
     [int]$Port,                                            # emulator console port for cold-boot via -Avd (even; required with -Avd).
@@ -65,14 +65,29 @@ function Find-RepoRoot {
 if (-not $RepoRoot) { $RepoRoot = Find-RepoRoot }
 if (-not $ResultsDir) {
     if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
-    $ResultsDir = Join-Path $RepoRoot "tests/local/$Suite"
+    $ResultsDir = Join-Path $RepoRoot "tests/local"
 }
+# Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the APK's build dir
+# for *.Tests*.dll. Each one keys gold lookup by Assembly.GetName().Name at runtime, so we push
+# <RepoRoot>/tests/<DllName>/ for each. Single-suite APKs surface their own *.Tests.dll alongside,
+# so the discovery list collapses to one and behavior matches the pre-Combined flow.
+# `*.Tests*` (not `*.Tests.dll`) so suffixed variants like Stride.Graphics.Tests.10_0.dll match.
+$innerSuites = @()
+if ($Apk -and (Test-Path $Apk)) {
+    $apkDir = Split-Path -Parent $Apk
+    $innerSuites = Get-ChildItem -Path $apkDir -Filter '*.dll' -ErrorAction SilentlyContinue |
+        Where-Object { $_.BaseName -like '*.Tests*' } |
+        ForEach-Object { $_.BaseName } |
+        Sort-Object -Unique
+}
+if ($innerSuites.Count -eq 0) { $innerSuites = @($Suite) }
+# $GoldDir override applies only to $Suite (back-compat with single-suite callers).
 if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
-    # Auto-default gold source only when caller didn't specify; pass -GoldDir '' to opt out.
     $candidate = Join-Path $RepoRoot "tests/$Suite"
     if (Test-Path $candidate) { $GoldDir = $candidate }
 }
 Write-Host "Suite:    $Suite"
+Write-Host "Inner:    $($innerSuites -join ', ')"
 Write-Host "Repo:     $(if ($RepoRoot) { $RepoRoot } else { '<not in repo>' })"
 Write-Host "Gold:     $(if ($GoldDir) { $GoldDir } else { '<none>' })"
 Write-Host "Results:  $ResultsDir"
@@ -200,25 +215,26 @@ if ($Apk) {
     }
 }
 
-# 3. Targets write to the app's internal FilesDir (/data/user/0/<pkg>/files/) because
-# targetSdk 30+ scoped storage blocks app writes through the FUSE-bound external path.
-# Push/pull go through tar streams + run-as to bridge adb-shell uid <-> app uid.
-# rm -rf first so stale gold from a prior run can't linger — tar x merges onto existing files.
-Invoke-Adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
-
-# 4. Push gold images (-GoldDir contents -> device's files/tests/<Suite>/)
-# Wipe the device gold dir before pushing so it mirrors the host: a gold file deleted on the
-# host (e.g. a stale primary that's been promoted away) must also disappear from the device,
-# otherwise the on-device framework still finds it as "primary" and ignores fallback golds.
-if ($GoldDir) {
-    if (-not (Test-Path $GoldDir)) { throw "GoldDir not found: $GoldDir" }
-    Write-Host "Pushing gold $GoldDir/* -> files/tests/$Suite/ on device (cleared first)"
-    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
+# 3+4. Push gold images per inner suite into the app's internal FilesDir
+# (/data/user/0/<pkg>/files/tests/<SuiteName>/). targetSdk 30+ scoped storage blocks app
+# writes through the FUSE-bound external path, so we bridge adb-shell uid <-> app uid via
+# tar streams + run-as. Multi-suite hosts (Combined) push one dir per inner suite, keyed
+# by AssemblyName (matching GameTestBase's Assembly.GetName().Name gold lookup).
+# Wipe each device gold dir before pushing so it mirrors the host: a gold file deleted on
+# the host (e.g. a stale primary that's been promoted away) must also disappear from the
+# device, otherwise the on-device framework still finds it as "primary" and ignores fallbacks.
+foreach ($s in $innerSuites) {
+    $src = if ($s -eq $Suite -and $GoldDir) { $GoldDir }
+           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/$s" }
+           else { $null }
+    if (-not $src -or -not (Test-Path $src)) { continue }
+    Write-Host "Pushing gold $src/* -> files/tests/$s/ on device (cleared first)"
+    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/$s && mkdir -p files/tests/$s'" 2>$null | Out-Null
     $localTar = [IO.Path]::GetTempFileName()
     try {
-        & $tar c -C $GoldDir -f $localTar . 2>$null
+        & $tar c -C $src -f $localTar . 2>$null
         Invoke-Adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
-        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$Suite" 2>$null | Out-Null
+        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$s" 2>$null | Out-Null
         Invoke-Adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
     } finally {
         Remove-Item $localTar -ErrorAction SilentlyContinue
@@ -303,20 +319,22 @@ if ((Get-Date) -ge $deadline) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
 
-# 9. Pull TRX + generated images from device's files/tests/local/<Suite>/ into $ResultsDir.
-# tar device-side via run-as, write to a shell-readable /data/local/tmp file, adb pull, untar.
-# Wipe $ResultsDir first so the host mirrors the device — otherwise a previously-failing
-# test that now passes (no fresh image written) would leave its stale failure PNG behind
-# and mislead CompareGold. Trade-off: no incremental, every run is a clean pull.
+# 9. Pull TRX + generated images from device's files/tests/local/ into $ResultsDir.
+# Each inner suite writes files/tests/local/<SuiteName>/<SuiteName>.trx (+ generated images);
+# pulling the whole local/ dir captures every suite in one shot for both single-suite and
+# Combined hosts. tar device-side via run-as, write to a shell-readable /data/local/tmp file,
+# adb pull, untar. Wipe $ResultsDir first so the host mirrors the device — otherwise a
+# previously-failing test that now passes (no fresh image written) would leave its stale
+# failure PNG behind and mislead CompareGold.
 Write-Host "Pulling results -> $ResultsDir (cleared first)"
 if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
 else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
 $localTar = [IO.Path]::GetTempFileName()
 try {
     # The outer shell (uid 2000 = shell) writes to /data/local/tmp; the inner run-as streams
-    # the tarball through stdout. If the suite dir doesn't exist yet, fallback creates an
+    # the tarball through stdout. If the local/ dir doesn't exist yet, fallback creates an
     # empty tarball so we don't break the pipe.
-    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local/$Suite 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
+    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
     Invoke-Adb pull "/data/local/tmp/$Package-results.tar" $localTar 2>$null | Out-Null
     Invoke-Adb shell "rm /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
     & $tar x -C $ResultsDir -f $localTar 2>$null

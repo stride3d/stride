@@ -88,8 +88,11 @@
 
   <!-- WinExe (set in props) doesn't trigger APK packaging on Android — switch to Exe.
        .NET-Android also gates APK packaging on AndroidApplication=true; Microsoft.NET.Test.Sdk
-       forces it false by default, so override explicitly. -->
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
+       forces it false by default, so override explicitly. IncludeXunitLauncher=false suppresses
+       the APK build for suites consumed by Stride.Tests.Combined (meta packages the single APK);
+       without this each suite would also try to package its own APK, finding [Application] in
+       every aggregated assembly. -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(IncludeXunitLauncher)' != 'false' ">
     <OutputType>Exe</OutputType>
     <AndroidApplication>true</AndroidApplication>
     <!-- Pin a default RID so Microsoft.Android.Sdk doesn't dispatch its per-RID inner-build
@@ -292,22 +295,32 @@
        same obj/, racing on the AssemblyProcessor / pdb files. Strip the globals at the test
        boundary so they only configure the test itself.
 
-       Suite refs need the test globals propagated, so the strip is skipped for them. Identified
-       by Filename pattern (well-known metadata, allowed in eval-time conditions — custom
-       metadata like StrideTestSuiteRef is not, MSB4191). The marker is set on each suite ref
-       in Stride.Tests.Combined.csproj as documentation of intent.
-
-       Runs at eval time (no Target wrapper) because MSBuild dispatches ProjectReferences during
-       both restore and several pre-PrepareProjectReferences targets (notably
-       _GetProjectReferenceTargetFrameworkProperties), all of which read the metadata at csproj
-       evaluation time, not at any later target's runtime. -->
+       Suite refs need the test globals propagated, so the strip is skipped for them via
+       the StrideTestSuiteRef="true" marker set on each suite ref in Stride.Tests.Combined.csproj.
+       Custom metadata can't be read in ItemGroup conditions outside a Target (MSB4191), so this
+       Update runs inside a target with BeforeTargets="AssignProjectConfiguration" — the first
+       step in PrepareProjectReferencesDependsOn, ahead of every PR dispatch target. -->
+  <!-- StrideCompilerSkipBuild is set on the meta's shadow-host TFM (net10.0) inner build to skip
+       its own asset compile. As a propagated global it leaks into suites' iOS/Android inner builds
+       and skips _StrideEnsureCompilerAppPacked there too — StrideCompileAsset then errors with
+       "Stride AssetCompiler could not be found". Strip unconditionally at eval time (so NuGet
+       restore's PR-graph dispatch sees it; a target-time strip would be too late for restore). -->
   <ItemGroup>
-    <ProjectReference Update="@(ProjectReference)"
-                      Condition=" !$([System.String]::Copy('%(Filename)').EndsWith('.Tests'))
-                              And '%(Filename)' != 'xunit.runner.stride' ">
-      <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(GlobalPropertiesToRemove)', ''));IncludeXunitLauncher;OutputType;StrideIsExecutable;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
+    <ProjectReference Update="@(ProjectReference)">
+      <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(GlobalPropertiesToRemove)', ''));StrideCompilerSkipBuild</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
+
+  <!-- Other test-only globals (IncludeXunitLauncher=false etc.) need to PROPAGATE to suite refs,
+       so the strip skips them via the StrideTestSuiteRef="true" marker. Custom metadata can't be
+       read in eval-time conditions (MSB4191), so this runs inside a target before any PR dispatch. -->
+  <Target Name="_StrideStripGlobalsOnNonSuiteRefs" BeforeTargets="AssignProjectConfiguration">
+    <ItemGroup>
+      <ProjectReference Update="@(ProjectReference)" Condition=" '%(ProjectReference.StrideTestSuiteRef)' != 'true' ">
+        <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(ProjectReference.GlobalPropertiesToRemove)', ''));IncludeXunitLauncher;OutputType;StrideIsExecutable;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
 
   <!-- ================================================================ -->
   <!-- Asset Compilation Support -->
@@ -317,6 +330,14 @@
        runs. -->
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
           Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+
+  <!-- Strip test-SDK globals from the auto-attached CompilerApp ref (its own strip list
+       stays generic — it ships to end users). -->
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Update="@(ProjectReference)" Condition="$([System.String]::Copy('%(Filename)').Equals('Stride.Core.Assets.CompilerApp'))">
+      <GlobalPropertiesToRemove>%(GlobalPropertiesToRemove);IncludeXunitLauncher;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
 
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
@@ -370,19 +391,15 @@
   <!-- ================================================================ -->
   <!-- Android: push gold reference images to the device after install   -->
   <!-- ================================================================ -->
-  <!-- GameTestBase keys gold images by test-class namespace, not project name, so projects
-       that share a RootNamespace (e.g. Stride.Graphics.Tests.10_0 → Stride.Graphics.Tests)
-       share one gold directory. RootNamespace defaults to MSBuildProjectName when unset.
-
-       $(StrideRoot)tests\<RootNamespace>\ on the host maps to
-       /sdcard/Android/data/<package>/files/tests/<RootNamespace>/ on device. adb push with the
-       sync flag only transfers files whose mtime/size differs, so first deploy uploads the
-       whole set and subsequent deploys are near-instant. The Exists() gate covers projects
-       with no gold images yet (e.g. first Android bring-up). -->
+  <!-- GameTestBase keys gold paths by Assembly.GetName().Name at runtime, so each suite reads
+       <deviceRoot>/tests/<AssemblyName>/. adb push with the sync flag only transfers files
+       whose mtime/size differs, so subsequent deploys are near-instant. Exists() gates
+       projects with no gold images yet. Multi-suite hosts (Stride.Tests.Combined) extend
+       this in their csproj to push gold for each referenced suite. -->
   <Target Name="_StridePushTestGoldImages"
           AfterTargets="Install"
-          Condition="'$(StridePlatform)' == 'Android' And Exists('$(StrideRoot)tests\$(RootNamespace)')">
-    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\$(RootNamespace)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/$(RootNamespace)&quot;" />
+          Condition="'$(StridePlatform)' == 'Android' And Exists('$(StrideRoot)tests\$(AssemblyName)')">
+    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\$(AssemblyName)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/$(AssemblyName)&quot;" />
   </Target>
 
 </Project>

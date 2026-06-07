@@ -54,12 +54,26 @@ if (-not $ResultsDir) {
     if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
     $ResultsDir = Join-Path $RepoRoot "tests/local/$Suite"
 }
+# Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the .app for
+# *.Tests.dll names. Each one keys gold lookup by Assembly.GetName().Name at runtime, so we
+# push <RepoRoot>/tests/<DllName>/ for each. Single-suite apps surface their own *.Tests.dll
+# alongside, so the discovery list collapses to one and behavior matches the pre-Combined flow.
+# `*.Tests*` (not `*.Tests.dll`) so suffixed variants like Stride.Graphics.Tests.10_0.dll match.
+$innerSuites = @()
+if ($App -and (Test-Path $App)) {
+    $innerSuites = Get-ChildItem -Path $App -Filter '*.dll' -ErrorAction SilentlyContinue |
+        Where-Object { $_.BaseName -like '*.Tests*' } |
+        ForEach-Object { $_.BaseName } |
+        Sort-Object -Unique
+}
+if ($innerSuites.Count -eq 0) { $innerSuites = @($Suite) }
+# $GoldDir override applies only to $Suite (back-compat with single-suite callers).
 if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
-    # Auto-default gold source only when caller didn't specify; pass -GoldDir '' to opt out.
     $candidate = Join-Path $RepoRoot "tests/$Suite"
     if (Test-Path $candidate) { $GoldDir = $candidate }
 }
 Write-Host "Suite:    $Suite"
+Write-Host "Inner:    $($innerSuites -join ', ')"
 Write-Host "Repo:     $(if ($RepoRoot) { $RepoRoot } else { '<not in repo>' })"
 Write-Host "Gold:     $(if ($GoldDir) { $GoldDir } else { '<none>' })"
 Write-Host "Results:  $ResultsDir"
@@ -131,20 +145,24 @@ if ($App) {
 }
 
 # 3. Push gold images. Simulator data is host-visible — copy directly into the app's Documents.
-# Wipe the device gold dir before pushing so it mirrors the host: a gold file deleted on the
+# Wipe each device gold dir before pushing so it mirrors the host: a gold file deleted on the
 # host (e.g. a stale iOS primary that's been promoted away) must also disappear from the device,
 # otherwise the on-device framework still finds it as "primary" and ignores fallback golds.
+# Multi-suite hosts (Combined) push one dir per inner suite, keyed by AssemblyName.
 $dataContainer = (Invoke-Simctl get_app_container,$udid,$Package,data).Trim()
 if (-not $dataContainer -or -not (Test-Path $dataContainer)) {
     throw "Could not resolve data container for $Package on $udid (app not installed?)"
 }
-$goldTarget = Join-Path $dataContainer "Documents/tests/$Suite"
-if ($GoldDir) {
-    if (-not (Test-Path $GoldDir)) { throw "GoldDir not found: $GoldDir" }
-    Write-Host "Pushing gold $GoldDir/* -> $goldTarget (cleared first)"
-    if (Test-Path $goldTarget) { Remove-Item -Recurse -Force $goldTarget }
-    New-Item -ItemType Directory -Force -Path $goldTarget | Out-Null
-    Copy-Item -Path (Join-Path $GoldDir '*') -Destination $goldTarget -Recurse -Force
+foreach ($s in $innerSuites) {
+    $src = if ($s -eq $Suite -and $GoldDir) { $GoldDir }
+           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/$s" }
+           else { $null }
+    if (-not $src -or -not (Test-Path $src)) { continue }
+    $target = Join-Path $dataContainer "Documents/tests/$s"
+    Write-Host "Pushing gold $src/* -> $target (cleared first)"
+    if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+    New-Item -ItemType Directory -Force -Path $target | Out-Null
+    Copy-Item -Path (Join-Path $src '*') -Destination $target -Recurse -Force
 }
 
 # Clear previous results so a stale TRX doesn't fool detection.
@@ -199,30 +217,20 @@ if ($StreamLog) {
     $liveLogProc = Start-Process @liveLogArgs
 }
 
-# 5. Wait for the test process to exit. simctl has no built-in wait, so:
-#  - Primary signal: the suite's TRX appeared on disk — the test wrote its final summary and is
-#    on its way out. Lets us proceed without waiting on the launchctl list to clean up.
-#  - Fallback signal: the launched PID is no longer alive in the simulator. Handles the
-#    crashed-before-writing-TRX case so we don't sit on the deadline.
-# Simulator apps run as ordinary macOS processes, so the PID `simctl launch` returns is
-# directly usable with the host's `kill -0`. (Earlier `simctl spawn ... kill -0` rounds
-# through launchd_sim and rejects arbitrary binaries with code 111 on newer Xcode — if
-# that gets relaxed in a future Xcode the in-sim variant can come back: uncomment the
-# `simctl spawn` line below and remove `kill -0 $procPid`.)
-$trxOnDevice = Join-Path $dataContainer "Documents/tests/local/$Suite/$Suite.trx"
-Write-Host "Waiting for $trxOnDevice or PID $procPid to exit (timeout: ${TimeoutSeconds}s)..."
+# 5. Wait for the test process to exit. simctl has no built-in wait; poll the PID directly.
+# Simulator apps run as ordinary macOS processes, so the PID `simctl launch` returns is usable
+# with the host's `kill -0`. (TRX-write-detect is unreliable for multi-suite hosts — the first
+# TRX appears mid-run, not at exit.)
+$resultsOnDevice = Join-Path $dataContainer "Documents/tests/local"
+Write-Host "Waiting for PID $procPid to exit (timeout: ${TimeoutSeconds}s)..."
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 while ((Get-Date) -lt $deadline) {
-    if (Test-Path $trxOnDevice) { Write-Host "TRX written — proceeding."; break }
     & kill -0 $procPid 2>$null
-    # & xcrun simctl spawn $udid sh -c "kill -0 $procPid" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        # PID gone — but the TRX write the test app issued just before exit can take a couple
-        # of seconds to surface on the host-visible simulator filesystem. Give a brief grace
-        # window so we don't proceed to the pull before the file appears.
-        for ($i = 0; $i -lt 10 -and -not (Test-Path $trxOnDevice); $i++) { Start-Sleep -Seconds 1 }
-        if (Test-Path $trxOnDevice) { Write-Host "PID $procPid gone; TRX appeared after wait." }
-        else { Write-Host "PID $procPid gone (no TRX written)." }
+        # PID gone — but the final TRX writeback can take a couple of seconds to surface on the
+        # host-visible simulator filesystem. Give a brief grace window before proceeding to pull.
+        Start-Sleep -Seconds 2
+        Write-Host "PID $procPid gone — proceeding."
         break
     }
     Start-Sleep -Seconds 3
@@ -247,28 +255,28 @@ if ($liveLogProc -and -not $liveLogProc.HasExited) {
 # the same --process arg in their command lines.
 & xcrun simctl spawn $udid pkill -f "log stream --process $procPid" 2>$null | Out-Null
 
-# If the test process exited without writing a TRX (early crash, abort in startup), the live
+# If the test process exited without writing any TRX (early crash, abort in startup), the live
 # `log stream` started AFTER launch and missed the early output. Query the simulator's unified
-# log STORE retroactively to recover startup logs / abort messages. Always emit on no-TRX path;
-# if the file ends up empty (process never wrote to the log) that's still useful signal.
-$trxOnDevice = Join-Path $dataContainer "Documents/tests/local/$Suite/$Suite.trx"
-if (-not (Test-Path $trxOnDevice)) {
+# log STORE retroactively to recover startup logs / abort messages.
+$anyTrx = Test-Path $resultsOnDevice -PathType Container
+if ($anyTrx) { $anyTrx = (Get-ChildItem -Path $resultsOnDevice -Filter '*.trx' -Recurse -ErrorAction SilentlyContinue).Count -gt 0 }
+if (-not $anyTrx) {
     $crashPath = Join-Path $ResultsDir "$Package.crashlog.txt"
     if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
     Write-Host "No TRX — extracting unified log for $Package from simulator -> $crashPath"
     & xcrun simctl spawn $udid log show --predicate "process == '$Package'" --info --debug --last 5m 2>&1 | Set-Content $crashPath
 }
 
-# 6. Pull TRX + images from the simulator's Documents/tests/local/<Suite>/ to $ResultsDir.
+# 6. Pull TRX + images from the simulator's Documents/tests/local/ to $ResultsDir.
+# Each inner suite writes Documents/tests/local/<SuiteName>/<SuiteName>.trx (+ generated images).
 # Wipe $ResultsDir first so the host mirrors the device — otherwise a previously-failing
 # test that now passes (no fresh image written) would leave its stale failure PNG behind
 # and mislead CompareGold. Trade-off: no incremental, every run is a clean pull.
-$suiteResults = Join-Path $dataContainer "Documents/tests/local/$Suite"
-if (Test-Path $suiteResults) {
+if (Test-Path $resultsOnDevice) {
     if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
     else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-    Write-Host "Pulling results $suiteResults -> $ResultsDir (cleared first)"
-    Copy-Item -Path (Join-Path $suiteResults '*') -Destination $ResultsDir -Recurse -Force
+    Write-Host "Pulling results $resultsOnDevice -> $ResultsDir (cleared first)"
+    Copy-Item -Path (Join-Path $resultsOnDevice '*') -Destination $ResultsDir -Recurse -Force
 } else {
     Write-Warning "No results dir on device — tests may not have written any TRX."
 }

@@ -27,7 +27,8 @@ public class ObjectDatabase : IDisposable
     /// <param name="indexName">Name of the index file.</param>
     /// <param name="vfsAdditionalUrl">The VFS additional URL. It will be used only if vfsMainUrl is read-only.</param>
     /// <param name="loadDefaultBundle"></param>
-    public ObjectDatabase(string vfsMainUrl, string indexName, string? vfsAdditionalUrl = null, bool loadDefaultBundle = true)
+    /// <param name="defaultBundleName">Bundle name to load when <paramref name="loadDefaultBundle"/> is true.</param>
+    public ObjectDatabase(string vfsMainUrl, string indexName, string? vfsAdditionalUrl = null, bool loadDefaultBundle = true, string defaultBundleName = "default")
     {
         ArgumentNullException.ThrowIfNull(vfsMainUrl);
 
@@ -57,12 +58,12 @@ public class ObjectDatabase : IDisposable
 
         BundleBackend = new BundleOdbBackend(vfsMainUrl);
 
-        // Try to open "default" pack file synchronously
+        // Try to open the default pack file synchronously
         if (loadDefaultBundle)
         {
             try
             {
-                BundleBackend.LoadBundle("default", ContentIndexMap).GetAwaiter().GetResult();
+                BundleBackend.LoadBundle(defaultBundleName, ContentIndexMap).GetAwaiter().GetResult();
             }
             catch (FileNotFoundException)
             {
@@ -77,10 +78,11 @@ public class ObjectDatabase : IDisposable
     /// <summary>
     /// Creates a new instance of the <see cref="ObjectDatabase"/> class using default database path, index name, and local database path, and loading default bundle.
     /// </summary>
+    /// <param name="defaultBundleName">Name of the bundle to load (defaults to <c>"default"</c>).</param>
     /// <returns>A new instance of the <see cref="ObjectDatabase"/> class.</returns>
-    public static ObjectDatabase CreateDefaultDatabase()
+    public static ObjectDatabase CreateDefaultDatabase(string defaultBundleName = "default")
     {
-        return new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName, VirtualFileSystem.LocalDatabasePath);
+        return new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName, VirtualFileSystem.LocalDatabasePath, loadDefaultBundle: true, defaultBundleName);
     }
 
     public void Dispose()

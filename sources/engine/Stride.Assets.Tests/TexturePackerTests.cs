@@ -30,7 +30,9 @@ namespace Stride.Assets.Tests
 
         public TexturePackerTests()
         {
-            Game.InitializeAssetDatabase();
+            // Combined renames each suite's bundle default → <SuiteName>; pass the test
+            // assembly's name so the lookup finds this suite's bundle.
+            Game.InitializeAssetDatabase(typeof(TexturePackerTests).Assembly.GetName().Name);
         }
 
         [Fact]

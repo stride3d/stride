@@ -24,6 +24,10 @@ on:
         description: Capture and upload build binlog (off by default; adds some I/O overhead)
         default: false
         type: boolean
+      use-combined:
+        description: 'Combine all test suites into one .app (faster build/install/run); false = per-suite .apps'
+        default: true
+        type: boolean
   workflow_call:
     inputs:
       build-type:
@@ -34,6 +38,9 @@ on:
         type: string
       upload-binlog:
         default: false
+        type: boolean
+      use-combined:
+        default: true
         type: boolean
   repository_dispatch:
     types: [test-ios-game]
@@ -59,20 +66,6 @@ jobs:
       # simctl when launching the sim app. Mode 0 = NEVER (mode 1 still uses them when
       # descriptor indexing is required, which didn't avoid the crash).
       SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
-      # Multi-platform test suites we build & run on the iOS Simulator. Suite name == assembly
-      # name (matches the master "tests key paths by assembly name" convention).
-      IOS_TEST_SUITES: |
-        Stride.Engine.NoAssets.Tests
-        Stride.Input.Tests
-        Stride.Audio.Tests
-        Stride.Particles.Tests
-        Stride.UI.Tests
-        Stride.Navigation.Tests
-        Stride.Physics.Tests
-        Stride.Engine.Tests
-        Stride.Graphics.Tests
-        Stride.Graphics.Tests.10_0
-        Stride.Graphics.Tests.11_0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -118,21 +111,48 @@ jobs:
           xcrun simctl boot $UDID
           echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
 
-      - name: Build iOS test .app bundles
+      - name: Resolve build target / suite
         run: |
-          # Multi-platform test projects build their iOS .app when StridePlatforms=iOS.
-          # Single slnf build evaluates the graph once; failed projects don't block independents,
-          # and the test step still runs whichever .app bundles were produced for partial coverage.
-          # No explicit RuntimeIdentifier: passing one as a global property leaks into the host
-          # shadow net10.0 build (used to load assemblies into the AssetCompiler) and crashes its
-          # ResolveNativeReferences. The iOS SDK infers iossimulator-arm64 on its own for net10.0-ios
-          # on an arm64 macOS host.
-          dotnet build build/Stride.Tests.Game.iOS.slnf \
+          # use-combined=true (default): Combined.csproj — all suites in one .app, one install,
+          # one process run (faster build/testing).
+          # use-combined=false → slnf build + per-suite .apps + per-suite install/run.
+          USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
+          if [ "$USE_COMBINED" = "true" ]; then
+            echo "IOS_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "IOS_TEST_SUITES=Stride.Tests.Combined" >> "$GITHUB_ENV"
+          else
+            # slnf path: one build evaluates the graph once; per-suite .app bundles land under
+            # bin/Tests/<Suite>/iOS-Vulkan/<Config>/<Suite>.app. Run step iterates IOS_TEST_SUITES.
+            echo "IOS_BUILD_TARGET=build/Stride.Tests.Game.iOS.slnf" >> "$GITHUB_ENV"
+            {
+              echo "IOS_TEST_SUITES<<EOF"
+              echo "Stride.Engine.NoAssets.Tests"
+              echo "Stride.Input.Tests"
+              echo "Stride.Audio.Tests"
+              echo "Stride.Particles.Tests"
+              echo "Stride.UI.Tests"
+              echo "Stride.Navigation.Tests"
+              echo "Stride.Physics.Tests"
+              echo "Stride.Engine.Tests"
+              echo "Stride.Graphics.Tests"
+              echo "Stride.Graphics.Tests.10_0"
+              echo "Stride.Graphics.Tests.11_0"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          fi
+
+      - name: Build iOS test .app bundle
+        # No explicit RuntimeIdentifier: passing one as a global property leaks into the host
+        # net10.0 build (used to load assemblies into the AssetCompiler) and crashes its
+        # ResolveNativeReferences. The iOS SDK infers iossimulator-arm64 on its own for
+        # net10.0-ios on an arm64 host.
+        run: |
+          dotnet build "$IOS_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
+            -p:StrideSkipAutoPack=true \
             ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
-            -p:StridePlatforms=iOS \
-            || echo "::warning::Build had failures — test step will run whichever .app bundles were produced"
+            -p:StridePlatforms=iOS
 
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
@@ -153,44 +173,41 @@ jobs:
         run: |
           $ErrorActionPreference = 'Continue'
           New-Item -ItemType Directory -Force -Path TestResults | Out-Null
-          $failedSuites = @()
-          $suites = @"
-          ${{ env.IOS_TEST_SUITES }}
-          "@ -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          # IOS_TEST_SUITES is single-line (Combined) OR multi-line (slnf path).
+          # Loop over them — one suite means one launch (matches the Combined case identically).
+          $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
+          $worstExit = 0
           foreach ($suite in $suites) {
-              # The iOS build emits the .app under bin/Tests/<Suite>/iOS-Vulkan/<Config>/<RID>/.
-              $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
-              $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter '*.app' -ErrorAction SilentlyContinue | Select-Object -First 1
+              $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter "$suite.app" -ErrorAction SilentlyContinue | Select-Object -First 1
               if (-not $appPath) {
-                  Write-Host "::warning::.app not built for $suite"
-                  $failedSuites += "$suite (no .app)"
+                  Write-Host "::warning::$suite.app not built — skipping"
                   continue
               }
               # Bundle id lives in the .app's Info.plist.
               $plist = Join-Path $appPath.FullName 'Info.plist'
               $package = (& /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' $plist).Trim()
-              Write-Host "::group::Run $suite (bundle=$package)"
-              & pwsh tests/ios/run-ios-tests.ps1 `
-                  -Package $package `
-                  -Suite $suite `
-                  -App $appPath.FullName `
-                  -Simulator $env:IOS_SIM_UDID `
-                  -TimeoutSeconds 1800 `
-                  -KeepSimulator `
-                  -StreamLog
-              if ($LASTEXITCODE -eq 0) {
-                  Write-Host "PASS: $suite"
-              } else {
-                  Write-Host "FAIL: $suite"
-                  $failedSuites += $suite
-              }
-              # Copy this suite's TRX into the per-job TestResults dir for the test reporter.
-              Copy-Item -Path "tests/local/$suite/$suite.trx" -Destination 'TestResults/' -ErrorAction SilentlyContinue
+              Write-Host "::group::Running $suite (bundle=$package)"
+              $driverArgs = @(
+                  '-Package', $package,
+                  '-Suite', $suite,
+                  '-App', $appPath.FullName,
+                  '-Simulator', $env:IOS_SIM_UDID,
+                  '-ResultsDir', "$PWD/tests/local",
+                  '-TimeoutSeconds', '1800',
+                  '-KeepSimulator',
+                  '-StreamLog'
+              )
+              & pwsh tests/ios/run-ios-tests.ps1 @driverArgs
+              if ($LASTEXITCODE -ne 0 -and $worstExit -eq 0) { $worstExit = $LASTEXITCODE }
               Write-Host "::endgroup::"
           }
-          if ($failedSuites.Count -gt 0) {
-              Write-Host "::error::Failed suites: $($failedSuites -join ', ')"
-              exit 1
+          # Flatten per-suite TRX into TestResults/ for the test-reporting action (no recurse).
+          Get-ChildItem -Path 'tests/local' -Recurse -Filter '*.trx' -ErrorAction SilentlyContinue |
+              ForEach-Object { Copy-Item $_.FullName 'TestResults/' -Force }
+          if ($worstExit -ne 0) {
+              Write-Host "::error::At least one suite exited with non-zero code (worst=$worstExit)"
+              exit $worstExit
           }
 
       - name: Publish Test Report

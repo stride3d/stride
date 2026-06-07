@@ -3,6 +3,7 @@
     "path": "Stride.sln",
     "projects": [
       "..\\sources\\engine\\Stride.Audio.Tests\\Stride.Audio.Tests.csproj",
+      "..\\sources\\engine\\Stride.Engine.NoAssets.Tests\\Stride.Engine.NoAssets.Tests.csproj",
       "..\\sources\\engine\\Stride.Engine.Tests\\Stride.Engine.Tests.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests\\Stride.Graphics.Tests.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests.10_0\\Stride.Graphics.Tests.10_0.csproj",

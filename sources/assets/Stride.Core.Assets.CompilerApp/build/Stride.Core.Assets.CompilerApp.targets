@@ -57,10 +57,7 @@
     <!--asset BuildPath for all platforms (same as package)-->
     <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)stride\assetbuild\data</StrideCompileAssetBuildPath>
 
-    <!--asset OutputPath for Android.-->
-    <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == '' and '$(StridePlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</StrideCompileAssetOutputPath>
-
-    <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
+    <!-- Compiled-asset output path, unified across platforms. -->
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
     <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
@@ -156,6 +153,7 @@
        before StrideCompileAsset runs. SkipGet+RemoveProperties=TargetFramework dispatches
        at outer (cross-targets all TFMs); remaining RemoveProperties strip consumer-specific
        globals that shouldn't leak (RID/SelfContained/OutputType/StrideIsExecutable).
+       Test-suite globals are stripped by Stride.Build.Sdk.Tests on top of this.
        Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
   <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')
                         And '$(MSBuildProjectName)' != 'Stride.Core.Assets.CompilerApp'">
@@ -163,7 +161,7 @@
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <GlobalPropertiesToRemove>TargetFramework;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;IncludeXunitLauncher;StrideIsExecutable</GlobalPropertiesToRemove>
+      <GlobalPropertiesToRemove>TargetFramework;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
 
@@ -189,14 +187,6 @@
 
     <!-- Compile assets -->
     <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" />
-    
-    <!-- Android: include compiled bundles in the APK. Items must appear in both lists for
-         Xamarin's <Copy> in _GenerateAndroidAssetsDir (source==dest is a no-op via SkipUnchangedFiles). -->
-    <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
-      <_StrideAndroidCompiledAssets Include="$(StrideCompileAssetOutputPath)\**\*.*" />
-      <_AndroidResolvedAssets Include="@(_StrideAndroidCompiledAssets)" />
-      <_AndroidAssetsDest Include="@(_StrideAndroidCompiledAssets)" />
-    </ItemGroup>
   </Target>
 
   <!-- Clean assets -->
@@ -282,6 +272,24 @@
     <PropertyGroup>
       <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
     </PropertyGroup>
+  </Target>
+
+  <!-- Android: emit AndroidAsset items for compiled assets into the APK. -->
+  <Target Name="_StrideDeployAssetsAsAndroidAsset"
+          AfterTargets="StrideCompileAsset"
+          BeforeTargets="_GenerateAndroidAssetsDir"
+          Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'Android'">
+    <ItemGroup>
+      <_StrideCompiledAndroidAsset Include="$(StrideCompileAssetOutputPath)/**/*.*" />
+    </ItemGroup>
+    <AssignTargetPath Files="@(_StrideCompiledAndroidAsset)" RootFolder="$(StrideCompileAssetOutputPath)">
+      <Output TaskParameter="AssignedFiles" ItemName="_StrideCompiledAndroidAssetTargeted" />
+    </AssignTargetPath>
+    <ItemGroup>
+      <AndroidAsset Include="@(_StrideCompiledAndroidAssetTargeted)">
+        <Link>data/%(_StrideCompiledAndroidAssetTargeted.TargetPath)</Link>
+      </AndroidAsset>
+    </ItemGroup>
   </Target>
 
   <!-- Pack target -->

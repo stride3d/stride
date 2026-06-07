@@ -260,7 +260,7 @@ namespace Stride.Engine
             // Init assets
             if (Context.InitializeDatabase)
             {
-                databaseFileProvider = InitializeAssetDatabase();
+                databaseFileProvider = InitializeAssetDatabase(AssetBundleName);
                 ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
@@ -398,12 +398,17 @@ namespace Stride.Engine
             OnGameStarted(this);
         }
 
-        internal static DatabaseFileProvider InitializeAssetDatabase()
+        /// <summary>
+        /// Name of the bundle loaded into the asset database at <see cref="PrepareContext"/>. Defaults to <c>"default"</c>.
+        /// </summary>
+        public string AssetBundleName { get; set; } = "default";
+
+        internal static DatabaseFileProvider InitializeAssetDatabase(string defaultBundleName = "default")
         {
             using (Profiler.Begin(GameProfilingKeys.ObjectDatabaseInitialize))
             {
                 // Create and mount database file system
-                var objDatabase = ObjectDatabase.CreateDefaultDatabase();
+                var objDatabase = ObjectDatabase.CreateDefaultDatabase(defaultBundleName);
 
                 // Only set a mount path if not mounted already
                 var mountPath = VirtualFileSystem.ResolveProviderUnsafe("/asset", true).Provider == null ? "/asset" : null;
