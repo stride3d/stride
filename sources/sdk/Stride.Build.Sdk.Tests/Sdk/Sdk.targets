@@ -283,6 +283,33 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- Strip test-only globals from transitive ProjectReferences         -->
+  <!-- ================================================================ -->
+  <!-- Globals set by the meta on its test refs (Stride.Tests.Combined) propagate transitively
+       to engine libs by default. The same libs are also reached via host-tool paths (e.g.
+       Stride.Importer.Common, Stride.Shaders.Compilers) that lack those globals — distinct
+       global sets make MSBuild's project graph dispatch two parallel inner builds writing the
+       same obj/, racing on the AssemblyProcessor / pdb files. Strip the globals at the test
+       boundary so they only configure the test itself.
+
+       Suite refs need the test globals propagated, so the strip is skipped for them. Identified
+       by Filename pattern (well-known metadata, allowed in eval-time conditions — custom
+       metadata like StrideTestSuiteRef is not, MSB4191). The marker is set on each suite ref
+       in Stride.Tests.Combined.csproj as documentation of intent.
+
+       Runs at eval time (no Target wrapper) because MSBuild dispatches ProjectReferences during
+       both restore and several pre-PrepareProjectReferences targets (notably
+       _GetProjectReferenceTargetFrameworkProperties), all of which read the metadata at csproj
+       evaluation time, not at any later target's runtime. -->
+  <ItemGroup>
+    <ProjectReference Update="@(ProjectReference)"
+                      Condition=" !$([System.String]::Copy('%(Filename)').EndsWith('.Tests'))
+                              And '%(Filename)' != 'xunit.runner.stride' ">
+      <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(GlobalPropertiesToRemove)', ''));IncludeXunitLauncher;OutputType;StrideIsExecutable;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
   <!-- Asset Compilation Support -->
   <!-- ================================================================ -->
   <!-- CompilerApp.targets self-attaches a ProjectReference back to CompilerApp.csproj

@@ -31,12 +31,13 @@
   Compile Asset 
   *****************************************************************************************************************************
   -->
-  <PropertyGroup>
-    <PrepareForRunDependsOn>
-      $(PrepareForRunDependsOn);
-      StrideCompileAsset
-    </PrepareForRunDependsOn>
+  <!-- Asset compile hooks directly via BeforeTargets="CopyFilesToOutputDirectory" on the
+       StrideCompileAsset target itself (defined below). PrepareForRunDependsOn injection is
+       unreliable because Microsoft.NET.Sdk Sdk.targets unconditionally resets the property
+       when imported after this file — same import-order issue documented on
+       StrideRunAssemblyProcessor in Stride.AssemblyProcessor.targets. -->
 
+  <PropertyGroup>
     <!--Semi-hack: Microsoft.Android.Sdk execs 'inner' MSBuild's for each Android RID if you do not explicity set any <RuntimeIdentifiers> in your game's Android.csproj,
         which triggers this compiler to execute when this happens causing the compiler to run with the same 'build-path' but differing 'output-path' which ends up locking files.
         There is no official way to detect when we're in an nested MSBuild, however as see done in this line in the source code
@@ -170,8 +171,11 @@
     <Message Importance="Normal" Text="Android inner MSBuild execution detected - skipping compilation" Condition="'$(StrideCompilerSkipAndroidInnerBuild)' == 'true'" />
   </Target>
 
-  <!--Compile assets for all StridePackage items and only for an executable-->
-  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+  <!-- Compile assets for all StridePackage items. BeforeTargets="CopyFilesToOutputDirectory"
+       so the bundle lands in OutputPath before the standard copy step picks it up, and so the
+       hook works even on OutputType=Library (PrepareForRunDependsOn injection is unreliable
+       per the comment above). -->
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
       <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
