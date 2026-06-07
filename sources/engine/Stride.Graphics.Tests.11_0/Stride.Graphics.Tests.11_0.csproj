@@ -5,7 +5,6 @@
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <AndroidResgenNamespace>Stride.Graphics.Tests</AndroidResgenNamespace>
     <StrideCompileAssets>true</StrideCompileAssets>
-    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>

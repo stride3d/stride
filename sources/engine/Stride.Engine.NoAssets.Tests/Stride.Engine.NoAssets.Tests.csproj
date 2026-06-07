@@ -4,7 +4,6 @@
     <AssemblyName>Stride.Engine.NoAssets.Tests</AssemblyName>
     <RootNamespace>Stride.Engine.Tests</RootNamespace>
     <StrideCompileAssets>false</StrideCompileAssets>
-    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
   </PropertyGroup>
   <ItemGroup>
