@@ -3,7 +3,7 @@ using Stride.Core.Assets;
 namespace Stride.Assets.Templates
 {
     /// <summary>
-    /// Represents a <see cref="SolutionPlatform"/> with some additional parameters (such as <see cref="SolutionPlatformTemplate"/>), as selected in <see cref="UpdatePlatformsTemplateGenerator"/>.
+    /// Represents a <see cref="SolutionPlatform"/> with some additional parameters (such as <see cref="SolutionPlatformTemplate"/>), as selected by the user in the Update Platforms dialog.
     /// </summary>
     public struct SelectedSolutionPlatform
     {

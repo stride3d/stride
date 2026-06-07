@@ -1,13 +1,6 @@
 !Package
 SerializedVersion: {Assets: 3.1.0.0}
 TemplateFolders:
-    - Path: !dir Templates/Core
-      Group: Core
-      Exclude: "**/*.cs;**/*.xaml"
-      Files:
-        - !file Templates/Core/ProjectExecutable.sdtpl
-        - !file Templates/Core/ProjectLibrary.sdtpl
-        - !file Templates/Core/UpdatePlatforms.sdtpl
     - Path: !dir ../../data/StridePackage/Templates/Core
       Group: Core
       Exclude: "**/*.psd;**/*.md"
