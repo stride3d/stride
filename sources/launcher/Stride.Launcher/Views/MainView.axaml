@@ -581,6 +581,7 @@
                                             <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
                                               <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
                                                       Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
+                                                      CommandParameter="{Binding}"
                                                       HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
                                             </DataTemplate>
                                           </ItemsControl.ItemTemplate>
