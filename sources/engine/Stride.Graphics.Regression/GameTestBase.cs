@@ -16,6 +16,7 @@ using Xunit;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
@@ -146,6 +147,8 @@ namespace Stride.Graphics.Regression
         /// </remarks>
         protected GameTestBase()
         {
+            AssetBundleName = FindBundleName(GetType());
+
             ConsoleLogMode = ConsoleLogMode.Always;
 
             // Override the default Graphic Device manager and settings
@@ -175,6 +178,17 @@ namespace Stride.Graphics.Regression
             // Only make window visible in interactive mode,
             // otherwise it's quite disrupting for user: new window might display on top and steal focus
             MakeWindowVisibleOnRun = ForceInteractiveMode;
+        }
+
+        /// <summary>
+        /// Resolves the bundle to load for a test type: Stride.Tests.Combined renames each suite's
+        /// bundle to its assembly name; per-suite builds keep "default". Picks whichever is present.
+        /// </summary>
+        public static string FindBundleName(Type testType)
+        {
+            var suite = testType.Assembly.GetName().Name;
+            return suite != null && VirtualFileSystem.FileExists($"{VirtualFileSystem.ApplicationDatabasePath}/bundles/{suite}.bundle")
+                ? suite : "default";
         }
 
         /// <inheritdoc />

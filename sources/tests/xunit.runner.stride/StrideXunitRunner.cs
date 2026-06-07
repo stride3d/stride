@@ -42,38 +42,99 @@ public static class StrideXunitRunner
     }
 #endif
 
-    // Discover and run all tests in the entry assembly via XunitFrontController, printing a
-    // compact summary so direct exe invocation isn't a no-op. Test Explorer / dotnet test
-    // route through the xunit adapter and bypass this path entirely.
-    private static int RunHeadless(string[] args)
+    // Discover and run all tests via XunitFrontController, printing a compact summary so direct
+    // exe invocation isn't a no-op. Test Explorer / dotnet test route through the xunit adapter
+    // and bypass this path entirely.
+    //
+    // Iterates over every loaded assembly whose name contains ".Tests" — supports combined-test
+    // hosts (Stride.Tests.Combined) that aggregate multiple suites via ProjectReference. Each
+    // assembly runs as an independent xunit pass with its own .trx, matching the per-suite output
+    // CI scripts already consume; total/failed counts are summed for the process exit code.
+    internal static int RunHeadless(string[] args)
     {
-        var testAssembly = App.TestAssembly ?? Assembly.GetEntryAssembly()!;
-        using var controller = new StrideTestController(testAssembly);
-
-        using var discoverySink = new TestDiscoverySink();
-        controller.Find(includeSourceInformation: false, discoverySink, TestFrameworkOptions.ForDiscovery());
-        discoverySink.Finished.WaitOne();
-
         var filter = ParseVstestFilter(args);
-        IList<ITestCase> testCases = discoverySink.TestCases;
-        if (filter is not null)
-            testCases = testCases.Where(filter).ToList();
+        // Always discover: a single-suite host has just the entry assembly; the Combined host
+        // (Stride.Tests.Combined) has 0 [Fact]s of its own and must load every inner suite.
+        IReadOnlyList<Assembly> assemblies = DiscoverTestAssemblies();
 
-        Console.WriteLine(filter is null
-            ? $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}"
-            : $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}, running {testCases.Count} after --filter");
+        int total = 0, passed = 0, failed = 0, skipped = 0;
+        decimal totalTime = 0m;
+        foreach (var testAssembly in assemblies)
+        {
+            // No bundle setup here: GameTestBase resolves AssetBundleName from its concrete
+            // subclass's assembly, which lives in the per-suite .Tests.dll. The Combined host
+            // packages each suite's bundle as <SuiteName>.bundle alongside the meta's default
+            // bundle, so each test naturally loads its own suite's bundle by name.
+            using var controller = new StrideTestController(testAssembly);
 
-        using var executionSink = new ConsoleExecutionSink();
-        using var trxSink = new TrxWriter();
-        var composite = new CompositeSink(executionSink, trxSink);
-        controller.RunTests(testCases, composite, TestFrameworkOptions.ForExecution());
-        executionSink.Finished.WaitOne();
-        trxSink.Finished.WaitOne();
+            using var discoverySink = new TestDiscoverySink();
+            controller.Find(includeSourceInformation: false, discoverySink, TestFrameworkOptions.ForDiscovery());
+            discoverySink.Finished.WaitOne();
 
-        trxSink.WriteTo(GetTrxPath(testAssembly));
+            IList<ITestCase> testCases = discoverySink.TestCases;
+            if (filter is not null)
+                testCases = testCases.Where(filter).ToList();
+            if (testCases.Count == 0)
+                continue;
 
-        Console.WriteLine($"Total: {executionSink.Total}, Passed: {executionSink.Passed}, Failed: {executionSink.Failed}, Skipped: {executionSink.Skipped}, Time: {executionSink.ExecutionTime:F2}s");
-        return executionSink.Failed > 0 ? 1 : 0;
+            Console.WriteLine(filter is null
+                ? $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}"
+                : $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}, running {testCases.Count} after --filter");
+
+            using var executionSink = new ConsoleExecutionSink();
+            using var trxSink = new TrxWriter();
+            var composite = new CompositeSink(executionSink, trxSink);
+            controller.RunTests(testCases, composite, TestFrameworkOptions.ForExecution());
+            executionSink.Finished.WaitOne();
+            trxSink.Finished.WaitOne();
+
+            trxSink.WriteTo(GetTrxPath(testAssembly));
+
+            total   += executionSink.Total;
+            passed  += executionSink.Passed;
+            failed  += executionSink.Failed;
+            skipped += executionSink.Skipped;
+            totalTime += executionSink.ExecutionTime;
+            Console.WriteLine($"  {testAssembly.GetName().Name}: total={executionSink.Total} passed={executionSink.Passed} failed={executionSink.Failed} skipped={executionSink.Skipped}");
+        }
+
+        Console.WriteLine($"Total: {total}, Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Time: {totalTime:F2}s");
+        return failed > 0 ? 1 : 0;
+    }
+
+    // Discover test assemblies whose name contains ".Tests". Two passes because the Combined host
+    // (Stride.Tests.Combined) has no code using inner-suite types, so the C# compiler drops the
+    // ProjectReference-derived assembly refs from its IL — Assembly.Load against GetReferencedAssemblies
+    // would miss them. Second pass scans the .app/APK/bin directory for *.Tests.dll and LoadFrom each.
+    private static List<Assembly> DiscoverTestAssemblies()
+    {
+        // Android has no managed entry point, so Assembly.GetEntryAssembly() returns null; the
+        // launcher sets App.TestAssembly to the host assembly instead. Desktop/iOS keep a real
+        // entry assembly. Without this fallback the null deref aborts the headless run silently.
+        var entry = Assembly.GetEntryAssembly() ?? App.TestAssembly
+            ?? throw new InvalidOperationException("No test host assembly: GetEntryAssembly() and App.TestAssembly are both null.");
+        foreach (var refName in entry.GetReferencedAssemblies())
+        {
+            if (refName.Name?.Contains(".Tests", StringComparison.Ordinal) != true)
+                continue;
+            try { Assembly.Load(refName); } catch { /* missing or unavailable; let scan skip it */ }
+        }
+        try
+        {
+            foreach (var dll in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.Tests.dll", SearchOption.TopDirectoryOnly))
+            {
+                try { Assembly.LoadFrom(dll); } catch { /* unloadable on this platform; let scan skip it */ }
+            }
+        }
+        catch { /* AppContext.BaseDirectory not enumerable */ }
+        var result = new List<Assembly> { entry };
+        foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (a == entry || a.IsDynamic) continue;
+            if (a.GetName().Name?.Contains(".Tests", StringComparison.Ordinal) == true)
+                result.Add(a);
+        }
+        return result;
     }
 
     // Minimal `dotnet test --filter` / VSTest filter parser: single binary op `<Property><op><Value>`

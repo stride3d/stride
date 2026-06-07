@@ -32,6 +32,10 @@ on:
         description: Capture and upload build binlog (off by default; adds some I/O overhead)
         default: false
         type: boolean
+      use-combined:
+        description: 'Combine all test suites into one APK (faster build/install/run); false = per-suite APKs'
+        default: true
+        type: boolean
   workflow_call:
     inputs:
       build-type:
@@ -53,6 +57,9 @@ on:
         type: boolean
       upload-binlog:
         default: false
+        type: boolean
+      use-combined:
+        default: true
         type: boolean
   repository_dispatch:
     types: [test-android-game]
@@ -76,19 +83,6 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_MAX_PARALLELISM: "8"
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
-      # Multi-platform test suites we build & run on emulator. Suite name == assembly name
-      # (matches the master "tests key paths by assembly name" convention).
-      ANDROID_TEST_SUITES: |
-        Stride.Input.Tests
-        Stride.Audio.Tests
-        Stride.Particles.Tests
-        Stride.UI.Tests
-        Stride.Navigation.Tests
-        Stride.Physics.Tests
-        Stride.Engine.Tests
-        Stride.Graphics.Tests
-        Stride.Graphics.Tests.10_0
-        Stride.Graphics.Tests.11_0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,22 +150,44 @@ jobs:
 
       - name: Resolve build target / suite
         run: |
-          # `project` (a single test .csproj) narrows the APK build + run to one suite, whose
-          # name == the .csproj filename; blank builds/runs every Android suite.
+          # `project` set (gold-gen: one suite only) → that .csproj's APK + run-suites.sh.
+          # Unset → use-combined=true (default): Combined.csproj — all suites in one APK,
+          # one install, one process run (faster build/testing).
+          # use-combined=false → slnf build + per-suite APKs + per-suite install/run.
           PROJ="${{ github.event.inputs.project || inputs.project }}"
+          USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
           if [ -n "$PROJ" ]; then
             echo "ANDROID_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
             echo "ANDROID_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+          elif [ "$USE_COMBINED" = "true" ]; then
+            echo "ANDROID_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-combined.sh" >> "$GITHUB_ENV"
           else
+            # slnf path: one build evaluates the graph once; per-suite APKs land under
+            # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
             echo "ANDROID_BUILD_TARGET=build/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+            {
+              echo "ANDROID_TEST_SUITES<<EOF"
+              echo "Stride.Engine.NoAssets.Tests"
+              echo "Stride.Input.Tests"
+              echo "Stride.Audio.Tests"
+              echo "Stride.Particles.Tests"
+              echo "Stride.UI.Tests"
+              echo "Stride.Navigation.Tests"
+              echo "Stride.Physics.Tests"
+              echo "Stride.Engine.Tests"
+              echo "Stride.Graphics.Tests"
+              echo "Stride.Graphics.Tests.10_0"
+              echo "Stride.Graphics.Tests.11_0"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
           fi
 
-      - name: Build Android test APKs
+      - name: Build Android test APK(s)
         run: |
-          # Multi-platform test projects build their Android APK when StridePlatforms=Android.
           # Embed assemblies into the APK so the test runner has everything (no Fast Deployment).
-          # Single slnf build evaluates the graph once; failed projects don't block independents,
-          # and the test step still runs whatever APKs were produced for partial coverage.
           dotnet build "$ANDROID_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
@@ -180,8 +196,7 @@ jobs:
             -p:StridePlatforms=Android \
             -p:EmbedAssembliesIntoApk=true \
             -p:AndroidUseSharedRuntime=false \
-            -p:_AndroidNdkDirectory="$ANDROID_NDK_ROOT" \
-            || echo "::warning::Build had failures — test step will run whichever APKs were produced"
+            -p:_AndroidNdkDirectory="$ANDROID_NDK_ROOT"
 
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
@@ -228,9 +243,9 @@ jobs:
           emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192
           disable-animations: true
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
-          # shell blocks (while/if) break with "unexpected end of file". Loop lives in a
-          # standalone script invoked as a single command.
-          script: bash tests/android/run-suites.sh "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # shell blocks break with "unexpected end of file". The driver lives in a standalone
+          # script — Combined or per-suite — chosen by the Resolve step above.
+          script: bash "$ANDROID_RUN_SCRIPT" "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}"
 
       - name: Publish Test Report
         if: always()
@@ -258,5 +273,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts-android-vulkan
-          path: tests/local/
+          # logcat is written to ResultsDir's parent (tests/) to survive the pre-pull wipe;
+          # include both so the per-suite outputs AND logcat land in the artifact.
+          path: |
+            tests/local/
+            tests/*.logcat.txt
           if-no-files-found: ignore

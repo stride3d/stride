@@ -96,26 +96,30 @@ public partial class App : Avalonia.Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    // Idempotent: triggered once the single-view VM exists and HeadlessMode is set. MainActivity
-    // calls this after seeing the xunit_command Intent extra, since on Android 12 the Avalonia
-    // lifetime is brought up by the custom Application before MainActivity.OnCreate fires.
+    // Bypasses TestsViewModel — its single-assembly discovery (App.TestAssembly = entry) misses
+    // inner suites in the Combined host. RunHeadless walks every loaded *.Tests assembly and
+    // honours --filter (we forward HeadlessFilter as the args RunHeadless's ParseVstestFilter
+    // expects). The try/catch keeps a crash from being swallowed as an unobserved Task
+    // exception — without it the process stays alive until CI's inactivity guard fires.
     public static void TryStartHeadlessRun()
     {
         if (!HeadlessMode || singleViewVm is null) return;
-        var vm = singleViewVm.Tests;
         singleViewVm = null;
-        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        System.Threading.Tasks.Task.Run(() =>
         {
-            await vm.DiscoveryTask;
-            if (vm.TestCases.Count > 0)
+            try
             {
-                var predicate = StrideXunitRunner.ParseVstestFilter(HeadlessFilter ?? "");
-                if (predicate is not null)
-                    await vm.RunFilteredAsync(predicate);
-                else
-                    await vm.RunTestsAsync(vm.TestCases[0]);
+                var args = string.IsNullOrEmpty(HeadlessFilter)
+                    ? Array.Empty<string>()
+                    : new[] { "--filter", HeadlessFilter };
+                var exit = StrideXunitRunner.RunHeadless(args);
+                System.Environment.Exit(exit);
             }
-            System.Environment.Exit(vm.FailedCount > 0 ? 1 : 0);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Headless test run crashed: {ex}");
+                System.Environment.Exit(2);
+            }
         });
     }
 

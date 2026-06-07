@@ -51,6 +51,7 @@ for SUITE in "${SUITES[@]}"; do
       -Package "$PACKAGE" \
       -Suite "$SUITE" \
       -Apk "$APK" \
+      -ResultsDir "$PWD/tests/local" \
       -TimeoutSeconds 900 \
       -KeepEmulator \
       ${FILTER:+-Filter "$FILTER"} &
