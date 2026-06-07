@@ -15,6 +15,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate\MyTemplate.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Android</StridePlatform>
+    <AndroidApplicationIcon>@mipmap/appicon</AndroidApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
