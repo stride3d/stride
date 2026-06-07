@@ -43,15 +43,30 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
     /// <inheritdoc/>
     protected override void RemoveItem(int index)
     {
-        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[index], null, index, true));
+        var item = this[index];
         base.RemoveItem(index);
+        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, null, index, true));
     }
 
     /// <inheritdoc/>
     protected override void ClearItems()
     {
-        ClearItemsEvents();
+        // Note: Changing CollectionChanged is not thread-safe
+        var collectionChanged = itemRemoved;
+        if (collectionChanged == null)
+        {
+            base.ClearItems();
+            return;
+        }
+
+        var removedItems = new List<(T Item, int Index)>(Count);
+        for (var i = Count - 1; i >= 0; --i)
+            removedItems.Add((this[i], i));
+
         base.ClearItems();
+
+        foreach (var removedItem in removedItems)
+            collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItem.Item, null, removedItem.Index, true));
     }
 
     protected void ClearItemsEvents()

@@ -47,20 +47,38 @@ public class FastTrackingCollection<T> : FastCollection<T>
     /// <inheritdoc/>
     protected override void RemoveItem(int index)
     {
+        var item = this[index];
+        base.RemoveItem(index);
+
         var collectionChanged = itemRemoved;
         if (collectionChanged != null)
         {
-            var e = new FastTrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[index], null, index, true);
+            var e = new FastTrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, null, index, true);
             collectionChanged(this, ref e);
         }
-        base.RemoveItem(index);
     }
 
     /// <inheritdoc/>
     protected override void ClearItems()
     {
-        ClearItemsEvents();
+        var collectionChanged = itemRemoved;
+        if (collectionChanged == null)
+        {
+            base.ClearItems();
+            return;
+        }
+
+        var removedItems = new List<(T Item, int Index)>(Count);
+        for (var i = Count - 1; i >= 0; --i)
+            removedItems.Add((this[i], i));
+
         base.ClearItems();
+
+        foreach (var removedItem in removedItems)
+        {
+            var e = new FastTrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItem.Item, null, removedItem.Index, true);
+            collectionChanged(this, ref e);
+        }
     }
 
     protected void ClearItemsEvents()

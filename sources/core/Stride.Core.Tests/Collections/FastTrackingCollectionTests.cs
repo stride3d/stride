@@ -44,12 +44,14 @@ public class FastTrackingCollectionTests
     {
         var collection = new FastTrackingCollection<string> { "test" };
         var eventRaised = false;
+        var itemRemovedBeforeEvent = false;
         FastTrackingCollectionChangedEventArgs capturedArgs = default;
 
         FastTrackingCollection<string>.FastEventHandler<FastTrackingCollectionChangedEventArgs> handler =
             (object sender, ref FastTrackingCollectionChangedEventArgs e) =>
         {
             eventRaised = true;
+            itemRemovedBeforeEvent = !collection.Contains("test");
             capturedArgs = e;
         };
         collection.CollectionChanged += handler;
@@ -60,6 +62,7 @@ public class FastTrackingCollectionTests
         Assert.Equal(NotifyCollectionChangedAction.Remove, capturedArgs.Action);
         Assert.Equal("test", capturedArgs.Item);
         Assert.Equal(0, capturedArgs.Index);
+        Assert.True(itemRemovedBeforeEvent);
     }
 
     [Fact]
@@ -68,6 +71,7 @@ public class FastTrackingCollectionTests
         var collection = new FastTrackingCollection<int> { 1, 2, 3 };
         var removeCount = 0;
         var removedItems = new List<int>();
+        var removedItemsWereGone = new List<bool>();
 
         FastTrackingCollection<int>.FastEventHandler<FastTrackingCollectionChangedEventArgs> handler =
             (object sender, ref FastTrackingCollectionChangedEventArgs e) =>
@@ -76,6 +80,7 @@ public class FastTrackingCollectionTests
             {
                 removeCount++;
                 removedItems.Add((int)e.Item!);
+                removedItemsWereGone.Add(!collection.Contains((int)e.Item!));
             }
         };
         collection.CollectionChanged += handler;
@@ -84,6 +89,7 @@ public class FastTrackingCollectionTests
 
         Assert.Equal(3, removeCount);
         Assert.Equal(new[] { 3, 2, 1 }, removedItems); // Reverse order
+        Assert.Equal(new[] { true, true, true }, removedItemsWereGone);
         Assert.Empty(collection);
     }
 

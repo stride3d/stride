@@ -35,10 +35,14 @@ public class TrackingDictionaryTests
     {
         var dict = new TrackingDictionary<string, int> { { "key1", 10 } };
         TrackingCollectionChangedEventArgs? eventArgs = null;
+        var keyRemovedBeforeEvent = false;
         dict.CollectionChanged += (sender, args) =>
         {
             if (args.Action == NotifyCollectionChangedAction.Remove)
+            {
                 eventArgs = args;
+                keyRemovedBeforeEvent = !dict.ContainsKey("key1");
+            }
         };
 
         var result = dict.Remove("key1");
@@ -49,6 +53,33 @@ public class TrackingDictionaryTests
         Assert.Equal(NotifyCollectionChangedAction.Remove, eventArgs.Action);
         Assert.Equal("key1", eventArgs.Key);
         Assert.Equal(10, eventArgs.Item);
+        Assert.True(keyRemovedBeforeEvent);
+    }
+
+    [Fact]
+    public void Remove_KeyValuePair_RemovesItemAndTriggersEvent()
+    {
+        var dict = new TrackingDictionary<string, int> { { "key1", 10 } };
+        TrackingCollectionChangedEventArgs? eventArgs = null;
+        var keyRemovedBeforeEvent = false;
+        dict.CollectionChanged += (sender, args) =>
+        {
+            if (args.Action == NotifyCollectionChangedAction.Remove)
+            {
+                eventArgs = args;
+                keyRemovedBeforeEvent = !dict.ContainsKey("key1");
+            }
+        };
+
+        var result = dict.Remove(new KeyValuePair<string, int>("key1", 10));
+
+        Assert.True(result);
+        Assert.Empty(dict);
+        Assert.NotNull(eventArgs);
+        Assert.Equal(NotifyCollectionChangedAction.Remove, eventArgs.Action);
+        Assert.Equal("key1", eventArgs.Key);
+        Assert.Equal(10, eventArgs.Item);
+        Assert.True(keyRemovedBeforeEvent);
     }
 
     [Fact]
@@ -161,16 +192,21 @@ public class TrackingDictionaryTests
             { "key2", 20 }
         };
         var removeCount = 0;
+        var removedKeysWereGone = new List<bool>();
         dict.CollectionChanged += (sender, args) =>
         {
             if (args.Action == NotifyCollectionChangedAction.Remove)
+            {
                 removeCount++;
+                removedKeysWereGone.Add(!dict.ContainsKey((string)args.Key!));
+            }
         };
 
         dict.Clear();
 
         Assert.Empty(dict);
         Assert.Equal(2, removeCount);
+        Assert.Equal(new[] { true, true }, removedKeysWereGone);
     }
 
     [Fact]

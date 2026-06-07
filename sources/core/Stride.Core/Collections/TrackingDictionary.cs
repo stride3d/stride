@@ -74,7 +74,12 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     {
         var collectionChanged = itemRemoved;
         if (collectionChanged != null && innerDictionary.TryGetValue(key, out var dictValue))
-            collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, key, dictValue, null, true));
+        {
+            var removed = innerDictionary.Remove(key);
+            if (removed)
+                collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, key, dictValue, null, true));
+            return removed;
+        }
 
         return innerDictionary.Remove(key);
     }
@@ -171,7 +176,12 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     {
         var collectionChanged = itemRemoved;
         if (collectionChanged != null && innerDictionary.Contains(item))
-            return innerDictionary.Remove(item.Key);
+        {
+            var removed = ((IDictionary<TKey, TValue>)innerDictionary).Remove(item);
+            if (removed)
+                collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item.Key, item.Value, null, true));
+            return removed;
+        }
 
         return ((IDictionary<TKey, TValue>)innerDictionary).Remove(item);
     }
