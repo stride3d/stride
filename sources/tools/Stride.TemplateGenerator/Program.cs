@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using Mono.Options;
+using Stride.Assets.Templates;
 using Stride.Core.Diagnostics;
 
 namespace Stride.TemplateGenerator;

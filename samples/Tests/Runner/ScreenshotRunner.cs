@@ -4,8 +4,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Stride.Assets.Presentation;
-using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -45,7 +44,7 @@ public static class ScreenshotRunner
             if (initialized)
                 return;
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            StrideDefaultAssetsPlugin.LoadDefaultTemplates();
+            StrideDefaultTemplates.Load(loadAssemblyReferences: false);
             initialized = true;
         }
     }

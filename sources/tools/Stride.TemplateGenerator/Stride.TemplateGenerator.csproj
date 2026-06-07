@@ -13,6 +13,9 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\engine\Stride.Assets\Templates\SdtplMetadata.cs">
+      <Link>SdtplMetadata.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <!-- Stride.Core for ILogger / GlobalLogger; no need for engine asset deps (preprocessor

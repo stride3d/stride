@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Stride.Assets.Templates;
 using Stride.Core.Diagnostics;
 
 namespace Stride.TemplateGenerator;
@@ -1063,9 +1064,9 @@ internal class TemplatePreprocessor
     }
 
     /// <summary>
-    /// Always-emitted: Platforms multichoice + the env-bind / computed-bool chain that turns the
-    /// "Host" sentinel into per-platform Active bools used by sources/modifiers. Every template
-    /// has per-platform exec projects, so this set applies universally.
+    /// Always-emitted: Platforms multichoice + env-bind / computed-bool chain turning the "Host"
+    /// sentinel into per-platform Active bools used by sources/modifiers, plus the
+    /// <c>updateOnly</c> flag UpdatePlatforms uses to skip the game library + .sln.
     /// </summary>
     private static void EmitBaseParameterSymbols(StringBuilder sb)
     {
@@ -1084,6 +1085,12 @@ internal class TemplatePreprocessor
                     { "choice": "ios",     "description": "iOS arm64" },
                     { "choice": "android", "description": "Android arm64/x64" }
                   ]
+                },
+                "updateOnly": {
+                  "type": "parameter",
+                  "datatype": "bool",
+                  "description": "Emit only per-platform exec projects (skip game library + .sln). Used by GameStudio's Update Platforms flow.",
+                  "defaultValue": "false"
                 },
                 "envOS":     { "type": "bind", "binding": "env:OS",     "defaultValue": "" },
                 "envOSTYPE": { "type": "bind", "binding": "env:OSTYPE", "defaultValue": "" },
@@ -1185,7 +1192,8 @@ internal class TemplatePreprocessor
                 { "condition": "(!LinuxActive)",   "exclude": [ "MyTemplate.Linux/**"   ] },
                 { "condition": "(!MacOSActive)",   "exclude": [ "MyTemplate.macOS/**"   ] },
                 { "condition": "(!iOsActive)",     "exclude": [ "MyTemplate.iOS/**"     ] },
-                { "condition": "(!AndroidActive)", "exclude": [ "MyTemplate.Android/**" ] }
+                { "condition": "(!AndroidActive)", "exclude": [ "MyTemplate.Android/**" ] },
+                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.sln" ] }
         """);
         if (Sdtpl?.HasParameter("HDR") == true && Sdtpl?.HasParameter("GraphicsProfile") == true)
         {
