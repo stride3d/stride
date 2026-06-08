@@ -17,6 +17,9 @@ namespace Stride.BepuPhysics.Systems;
 
 public class CollidableProcessor : EntityProcessor<CollidableComponent>
 {
+    private PoseToUpdate[] _workingBuffer = Array.Empty<PoseToUpdate>();
+    private int _workingBufferHead = 0;
+
     internal readonly UnsortedO1List<StaticComponent, Matrix4x4> Statics = new();
 
     internal ShapeCacheSystem ShapeCache { get; private set; } = null!;
@@ -26,6 +29,13 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
 
     public Action<CollidableComponent>? OnPostAdd;
     public Action<CollidableComponent>? OnPreRemove;
+
+    private struct PoseToUpdate
+    {
+        public StaticComponent Component;
+        public Vector3 Position;
+        public Quaternion Rotation;
+    }
 
     public CollidableProcessor()
     {
@@ -40,28 +50,33 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
 
     public override unsafe void Draw(RenderContext context) // While this is not related to drawing, we're doing this in draw as it runs after the TransformProcessor updates WorldMatrix
     {
-        Dispatcher.ForBatched(Statics.Count, Statics, &Process);
+        _workingBufferHead = 0;
+        if (Statics.Count > _workingBuffer.Length)
+            _workingBuffer = new PoseToUpdate[System.Numerics.BitOperations.RoundUpToPowerOf2((uint)Statics.Count)];
 
-        static void Process(UnsortedO1List<StaticComponent, Matrix4x4> statics, int from, int toExclusive)
+        Dispatcher.ForBatched(Statics.Count, this, &Collect);
+
+        foreach (var poseToUpdate in _workingBuffer.AsSpan()[.._workingBufferHead])
+            poseToUpdate.Component.TeleportNoTransformUpdate(poseToUpdate.Position, poseToUpdate.Rotation);
+
+        static void Collect(CollidableProcessor @this, int from, int toExclusive)
         {
-            Span<UnsortedO1List<StaticComponent, Matrix4x4>.SequentialData> span = statics.UnsafeGetSpan();
+            var span = @this.Statics.UnsafeGetSpan();
             for (int i = from; i < toExclusive; i++)
             {
-                var collidable = span[i].Key;
+                ref var iData = ref span[i];
+                var collidable = iData.Key;
+
                 ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref collidable.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
-                if (span[i].Value == numericMatrix)
+                if (iData.Value == numericMatrix)
                     continue; // This static did not move
 
-                span[i].Value = numericMatrix;
+                iData.Value = numericMatrix;
 
-                if (collidable.StaticReference is { } sRef)
-                {
-                    var description = sRef.GetDescription();
-                    collidable.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
-                    description.Pose.Position = (translation + collidable.CenterOfMass).ToNumeric();
-                    description.Pose.Orientation = rotation.ToNumeric();
-                    sRef.ApplyDescription(description);
-                }
+                PoseToUpdate poseToUpdate;
+                poseToUpdate.Component = collidable;
+                collidable.Entity.Transform.WorldMatrix.Decompose(out _, out poseToUpdate.Rotation, out poseToUpdate.Position);
+                @this._workingBuffer[Interlocked.Increment(ref @this._workingBufferHead) - 1] = poseToUpdate;
             }
         }
     }
