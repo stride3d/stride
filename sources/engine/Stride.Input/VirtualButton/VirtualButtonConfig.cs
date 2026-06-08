@@ -117,9 +117,9 @@ namespace Stride.Input
             return false;
         }
 
-        private void Bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<VirtualButtonBinding> e)
         {
-            var virtualButtonBinding = (VirtualButtonBinding)e.Item;
+            var virtualButtonBinding = e.Item;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
