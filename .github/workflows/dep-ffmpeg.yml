@@ -127,10 +127,10 @@ jobs:
 
       - name: Collect CLI artifact
         run: |
-          mkdir -p out-cli
-          cp ffmpeg-cli-install/bin/ffmpeg out-cli/
-          strip out-cli/ffmpeg || true
-          ls -la out-cli/
+          mkdir -p out-cli/linux-x64
+          cp ffmpeg-cli-install/bin/ffmpeg out-cli/linux-x64/
+          strip out-cli/linux-x64/ffmpeg || true
+          ls -la out-cli/linux-x64/
           du -sh out-cli/
 
       - uses: actions/upload-artifact@v4
@@ -225,10 +225,10 @@ jobs:
 
       - name: Collect CLI artifact
         run: |
-          mkdir -p out-cli
-          cp ffmpeg-cli-install/bin/ffmpeg out-cli/
-          strip out-cli/ffmpeg || true
-          ls -la out-cli/
+          mkdir -p out-cli/osx-arm64
+          cp ffmpeg-cli-install/bin/ffmpeg out-cli/osx-arm64/
+          strip out-cli/osx-arm64/ffmpeg || true
+          ls -la out-cli/osx-arm64/
           du -sh out-cli/
 
       - uses: actions/upload-artifact@v4
@@ -356,10 +356,10 @@ jobs:
 
       - name: Collect CLI artifact
         run: |
-          mkdir -p out-cli
-          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/
-          strip out-cli/ffmpeg.exe || true
-          ls -la out-cli/
+          mkdir -p out-cli/win-x64
+          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/win-x64/
+          strip out-cli/win-x64/ffmpeg.exe || true
+          ls -la out-cli/win-x64/
           du -sh out-cli/
 
       - uses: actions/upload-artifact@v4
@@ -466,10 +466,10 @@ jobs:
 
       - name: Collect CLI artifact
         run: |
-          mkdir -p out-cli
-          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/
-          strip out-cli/ffmpeg.exe || true
-          ls -la out-cli/
+          mkdir -p out-cli/win-arm64
+          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/win-arm64/
+          strip out-cli/win-arm64/ffmpeg.exe || true
+          ls -la out-cli/win-arm64/
           du -sh out-cli/
 
       - uses: actions/upload-artifact@v4

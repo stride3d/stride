@@ -73,19 +73,19 @@
     </StrideNativeLib>
     <!-- Asset compiler ffmpeg CLI — ship every RID under runtimes/<rid>/native/ so the package
          is portable across hosts. ToolLocator resolves the right one at runtime via the current RID. -->
-    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+    <Content Include="..\..\..\deps\FFmpeg\win-x64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-x64\native\">
       <Link>runtimes\win-x64\native\ffmpeg.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.win-arm64.exe">
+    <Content Include="..\..\..\deps\FFmpeg\win-arm64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-arm64\native\">
       <Link>runtimes\win-arm64\native\ffmpeg.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.linux-x64">
+    <Content Include="..\..\..\deps\FFmpeg\linux-x64\ffmpeg" Pack="true" PackagePath="runtimes\linux-x64\native\">
       <Link>runtimes\linux-x64\native\ffmpeg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.osx-arm64">
+    <Content Include="..\..\..\deps\FFmpeg\osx-arm64\ffmpeg" Pack="true" PackagePath="runtimes\osx-arm64\native\">
       <Link>runtimes\osx-arm64\native\ffmpeg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

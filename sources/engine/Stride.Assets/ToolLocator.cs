@@ -8,7 +8,12 @@ namespace Stride.Assets;
 
 static class ToolLocator
 {
-    public static UFile LocateTool(string toolName)
+    /// <summary>
+    /// Finds an executable tool by name. Pass <paramref name="ensureExecutable"/>=true for native
+    /// CLI binaries shipped via nupkg — flips the Unix execute bit on Linux/macOS, where pack/restore
+    /// drops it.
+    /// </summary>
+    public static UFile LocateTool(string toolName, bool ensureExecutable = false)
     {
         // Bin-dir lookups use the platform-correct extension so we don't try to exec a
         // Windows .exe on Unix.
@@ -24,32 +29,67 @@ static class ToolLocator
             {
                 var toolLocation = Path.Combine(directory, toolName);
                 if (File.Exists(toolLocation))
-                    return new UFile(toolLocation);
+                    return EnsureExecutable(new UFile(toolLocation), ensureExecutable);
             }
         }
 
         var asmDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        // RID-keyed bundled binary: runtimes/<rid>/native/<tool>{.exe}. This is where
-        // Stride.Assets.csproj copies the per-platform ffmpeg CLIs.
+        // RID-keyed bundled binary: runtimes/<rid>/native/<tool>{.exe}. Two layouts to cover:
+        //  * Source-tree build / single-flat publish — runtimes/ sits alongside the assembly.
+        //  * NuGet package cache — assembly is at <pkgRoot>/lib/<tfm>/<dll>, natives at
+        //    <pkgRoot>/runtimes/<rid>/native/ (standard NuGet layout, two levels up).
         var rid = GetCurrentRid();
         if (rid != null)
         {
-            var ridTool = UPath.Combine(asmDir, new UFile($"runtimes/{rid}/native/{toolName}{exeExt}"));
+            var nativeRel = new UFile($"runtimes/{rid}/native/{toolName}{exeExt}");
+            var ridTool = UPath.Combine(asmDir, nativeRel);
             if (File.Exists(ridTool))
-                return ridTool;
+                return EnsureExecutable(ridTool, ensureExecutable);
+
+            var pkgRoot = Path.GetDirectoryName(Path.GetDirectoryName(asmDir));
+            if (pkgRoot != null)
+            {
+                var pkgRidTool = UPath.Combine(pkgRoot, nativeRel);
+                if (File.Exists(pkgRidTool))
+                    return EnsureExecutable(pkgRidTool, ensureExecutable);
+            }
         }
 
         // Legacy locations kept for backward compatibility with older deps/ layouts.
         var tool = UPath.Combine(asmDir, new UFile($"{toolName}{exeExt}"));
         if (File.Exists(tool))
-            return tool;
+            return EnsureExecutable(tool, ensureExecutable);
 
         tool = UPath.Combine(asmDir, new UFile($"../../content/{toolName}{exeExt}"));
         if (File.Exists(tool))
-            return tool;
+            return EnsureExecutable(tool, ensureExecutable);
 
         return null;
+    }
+
+    private static UFile EnsureExecutable(UFile path, bool ensureExecutable)
+    {
+        if (!ensureExecutable)
+            return path;
+        // +x normalization only applies to ELF / Mach-O executables. Skip on any other host
+        // (Windows, future targets) — the file mode concept doesn't apply or is irrelevant.
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+            return path;
+        try
+        {
+            var osPath = path.ToOSPath();
+            var current = File.GetUnixFileMode(osPath);
+            const UnixFileMode anyExecute = UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            if ((current & anyExecute) == 0)
+                File.SetUnixFileMode(osPath, current | UnixFileMode.UserExecute);
+        }
+        catch
+        {
+            // Best-effort; if chmod fails (read-only fs, foreign filesystem with no POSIX attrs,
+            // etc.) the subsequent Process.Start will surface a clearer error to the user.
+        }
+        return path;
     }
 
     private static string GetCurrentRid()
