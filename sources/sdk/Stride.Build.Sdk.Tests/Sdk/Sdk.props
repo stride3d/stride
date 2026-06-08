@@ -37,6 +37,12 @@
 
     <!-- Enable assembly processor for test projects -->
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+
+    <!-- Microsoft.NET.Test.Sdk ships Microsoft.CodeCoverage.targets which injects
+         MsCoverageReferencedPathMaps BeforeTargets=CoreCompile. The target serially walks
+         every transitive ProjectReference (vstest#15295) and blocks CoreCompile until done,
+         throttling parallelism for the whole build. We don't collect coverage in CI. -->
+    <DisableMsCoverageReferencedPathMaps>true</DisableMsCoverageReferencedPathMaps>
   </PropertyGroup>
 
   <!-- Multi-platform tests set <StrideMultiPlatformTest>true</StrideMultiPlatformTest> BEFORE
