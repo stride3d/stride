@@ -135,6 +135,7 @@
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Video;</_StrideGraphicsApiDependentProjectList>
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.Regression;</_StrideGraphicsApiDependentProjectList>
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.RenderDocPlugin;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Games.AutoTesting;</_StrideGraphicsApiDependentProjectList>
     <!-- Current API for this evaluation. In an API-dep inner build this is the dispatched
          API (set via global from _ComputeTargetFrameworkItems); in a non-API-dep build it
          falls back to the first entry of StrideGraphicsApis so A(API-dep)→B(non-API-dep)→

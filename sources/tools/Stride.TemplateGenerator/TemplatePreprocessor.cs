@@ -116,6 +116,13 @@ internal class TemplatePreprocessor
     public bool SkipPrune { get; set; }
 
     /// <summary>
+    /// Reference template (NewGame) whose <c>MyTemplate.{Platform}/</c> exec-project folders are
+    /// copied verbatim into the staged tree for any platform the input sample doesn't already ship.
+    /// Null disables injection.
+    /// </summary>
+    public string? PlatformTemplatePath { get; set; }
+
+    /// <summary>
     /// Map of original GUID → placeholder index (1-based). Populated by the GUID scan pass,
     /// consumed by the placeholder substitution pass and template.json emission.
     /// </summary>
@@ -191,19 +198,24 @@ internal class TemplatePreprocessor
         // slow.
         CleanBuildArtifacts(logger);
 
-        // Generate MyTemplate.sln if absent. Samples typically don't include their sln (input is
-        // the inner dir, not the sample root); synthesize one referencing only the csprojs that
-        // exist in staging. Per-platform exec csprojs get wrapped in #if (XActive) conditional
-        // regions so template.json's SpecialCustomOperations strips unselected platforms at
-        // instantiation.
-        GenerateSlnIfMissing(logger);
-
         // Sample-name → MyTemplate rename. Replaces the sample's literal name (CSharpBeginner /
         // SpriteStudioDemo / ...) with the sourceName placeholder "MyTemplate" across file
         // contents, file names, and directory names. The template engine then sourceName-
         // substitutes "MyTemplate" → user's -n value at instantiation. No-op when the detected
         // source name is already "MyTemplate" (NewGame scaffold case).
         RenameSourceName(logger);
+
+        // Copy MyTemplate.{Platform}/ from --platform-template-path for any platform the sample
+        // didn't author. EmitTemplateJson's per-platform modifiers then gate the result by the
+        // platforms parameter at instantiation. No-op when the flag isn't set.
+        InjectMissingPlatforms(logger);
+
+        // Generate MyTemplate.sln if absent. Samples typically don't include their sln (input is
+        // the inner dir, not the sample root); synthesize one referencing every csproj in staging,
+        // including any platform exec project injected above. Per-platform exec csprojs get wrapped
+        // in #if (XActive) conditional regions so template.json's SpecialCustomOperations strips
+        // unselected platforms at instantiation.
+        GenerateSlnIfMissing(logger);
 
         // Inject a BasicCameraController placeholder component into the Camera entity, BEFORE
         // the GUID scan so the injected component's Id gets caught by the placeholder pass
@@ -599,6 +611,54 @@ internal class TemplatePreprocessor
         var slnPath = Path.Combine(OutputDirectory!, "MyTemplate.sln");
         File.WriteAllText(slnPath, sb.ToString());
         logger.Info($"Generated MyTemplate.sln with {ordered.Count} project(s)");
+    }
+
+    /// <summary>
+    /// Copies any platform exec-project folder (<c>MyTemplate.{Linux,macOS,iOS,Android,Windows}</c>)
+    /// from <see cref="PlatformTemplatePath"/> into the staged output when the sample didn't ship
+    /// its own. Verbatim copy — the reference template (NewGame) and samples both use
+    /// <c>MyTemplate.Game/</c> as the shared-library dir name, so injected csprojs reference the
+    /// correct sibling unchanged.
+    /// </summary>
+    private void InjectMissingPlatforms(ILogger logger)
+    {
+        if (string.IsNullOrEmpty(PlatformTemplatePath))
+            return;
+        if (!Directory.Exists(PlatformTemplatePath))
+        {
+            logger.Warning($"--platform-template-path does not exist: {PlatformTemplatePath}");
+            return;
+        }
+        // Only inject into templates that look like runnable games (have a MyTemplate.Game/
+        // shared-library dir). Library-only templates (stride-library) use bare MyTemplate/
+        // and shouldn't gain platform exec projects.
+        if (!Directory.Exists(Path.Combine(OutputDirectory!, "MyTemplate.Game")))
+        {
+            logger.Info("No MyTemplate.Game/ shared-library dir in staged tree; skipping platform injection (looks like a library, not a game).");
+            return;
+        }
+
+        var injected = 0;
+        foreach (var srcDir in Directory.EnumerateDirectories(PlatformTemplatePath, "MyTemplate.*", SearchOption.TopDirectoryOnly))
+        {
+            var dirName = Path.GetFileName(srcDir);
+            // Only inject directories that match a known platform suffix (Linux/macOS/iOS/Android/Windows).
+            if (!dirName.StartsWith("MyTemplate.", StringComparison.Ordinal))
+                continue;
+            var suffix = dirName["MyTemplate.".Length..];
+            if (!PlatformActiveSymbol.ContainsKey(suffix))
+                continue;
+            var destDir = Path.Combine(OutputDirectory!, dirName);
+            if (Directory.Exists(destDir))
+                continue;
+
+            CopyDirectory(srcDir, destDir);
+            injected++;
+            logger.Info($"Injected platform folder: {dirName}");
+        }
+
+        if (injected > 0)
+            logger.Info($"Injected {injected} platform folder(s) from {PlatformTemplatePath}");
     }
 
     /// <summary>
@@ -1040,10 +1100,12 @@ internal class TemplatePreprocessor
         sb.AppendLine($"  \"defaultName\": \"{defaultName}\",");
         sb.AppendLine("  \"tags\": { \"language\": \"C#\", \"type\": \"project\" },");
         sb.AppendLine("  \"preferNameDirectory\": true,");
-        // sourceName: every literal occurrence of "MyTemplate" in template content gets replaced
-        // with the user's -n value at instantiation. The preprocessor injects "MyTemplate" into
-        // the Camera entity's script-component type/assembly ref; users get a working camera
-        // script bound to their own namespace.
+        // sourceName: every literal occurrence of "MyTemplate" in template content + file paths
+        // gets replaced with the user's -n value at instantiation. The source tree uses
+        // MyTemplate.Game/ for the shared lib and MyTemplate.{Platform}/ for exec projects, so
+        // a user running e.g. `dotnet new stride-game -n JumpyClone` lands JumpyClone.Game/ +
+        // JumpyClone.Windows/ + JumpyClone.Linux/ — the .Game suffix on the shared lib is
+        // preserved to mirror what samples already use.
         sb.AppendLine("  \"sourceName\": \"MyTemplate\",");
         sb.AppendLine("  \"symbols\": {");
 

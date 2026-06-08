@@ -144,8 +144,10 @@
     <Message Text="StrideTemplates [$(PackageId)]: pack mode = $(StrideTemplatesPackMode), templates = @(StrideSampleTemplate->Count())" Importance="high" />
 
     <!-- Per-template preprocess. MSBuild's per-item Exec batching runs one command per item.
-         The engine-version flag substitutes $EngineVersion$ literals in template content. -->
-    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(PackageVersion)&quot; $(_StrideTemplatesSkipPruneFlag)" />
+         The engine-version flag substitutes $EngineVersion$ literals in template content.
+         platform-template-path points the preprocessor at the NewGame scaffold so samples that ship
+         only Windows (most of them) gain Linux/macOS/iOS/Android exec projects in the packed output. -->
+    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(PackageVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag)" />
 
     <!-- Aggregate every wrapped template's .sdtpl into a single multi-doc YAML at the package
          root. GameStudio's bridge reads this one file for display metadata. -->

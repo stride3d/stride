@@ -12,12 +12,12 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <!-- Use AssemblyName for Resource class to avoid clashes between MyTemplate and MyTemplate.Android -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
-    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate\MyTemplate.sdpkg</StrideCurrentPackagePath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Android</StridePlatform>
     <AndroidApplicationIcon>@mipmap/appicon</AndroidApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
+    <ProjectReference Include="..\MyTemplate.Game\MyTemplate.Game.csproj" />
   </ItemGroup>
 </Project>

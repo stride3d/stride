@@ -34,6 +34,32 @@
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
     <ProjectReference Include="..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
+    <!-- Build-time trigger: regenerated samples PackageReference Stride.Games.AutoTesting
+         (via samplesGenerated/Directory.Build.targets) when StrideAutoTesting=true. -->
+    <ProjectReference Include="..\..\sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- Build-time triggers: ensure engine nupkgs that samples PackageReference end up in
+         bin/packages. Stride.Assets pulls Engine/Physics/UI/Video; these three are not in
+         that graph but are referenced by regenerated samples (asset compiler + particles +
+         sprite-studio). -->
+    <ProjectReference Include="..\..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <!-- Build-time triggers: ensure each Stride template nupkg lands in bin/packages
          (DotNetNewTemplateBridge resolves them via PackageStore). -->
     <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">

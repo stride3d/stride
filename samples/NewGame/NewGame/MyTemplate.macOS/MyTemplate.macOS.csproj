@@ -6,11 +6,11 @@
     <OutputPath>..\Bin\macOS\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate\MyTemplate.sdpkg</StrideCurrentPackagePath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>macOS</StridePlatform>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
+    <ProjectReference Include="..\MyTemplate.Game\MyTemplate.Game.csproj" />
   </ItemGroup>
 </Project>
