@@ -42,7 +42,8 @@ public static partial class NuGetAssemblyResolver
         if (packagesConfigs.Count == 0) return;
 
         // Make sure our nuget local store is added to nuget config
-        var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var executingPath = Assembly.GetExecutingAssembly().Location;
+        var folder = Path.GetDirectoryName(executingPath);
         var devSourcePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DevSource);
 
         while (folder != null)
@@ -59,6 +60,12 @@ public static partial class NuGetAssemblyResolver
             }
             folder = Path.GetDirectoryName(folder);
         }
+
+        // Sibling .deps.json present = standard .NET app layout (source-tree bin/, dev-redirected
+        // install): the host's own probing already resolves transitive deps, our restore would be
+        // redundant. Only the NuGet-cache pack path (no deps.json) needs the restore handler.
+        if (File.Exists(Path.ChangeExtension(executingPath, ".deps.json")))
+            return;
 
         // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
         AppDomain.CurrentDomain.AssemblyResolve += (_, eventArgs) =>
