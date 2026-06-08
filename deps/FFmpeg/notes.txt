@@ -3,8 +3,8 @@ Built by .github/workflows/dep-ffmpeg.yml — re-run that workflow and copy
 the artifacts to refresh.
 
 Layout:
-  ffmpeg.exe               Windows x64 CLI    (libx264 + MF + NVENC)
-  ffmpeg.win-arm64.exe     Windows arm64 CLI  (libx264 + MF)
-  ffmpeg.linux-x64         Linux x64 CLI      (libx264 + VA-API)
-  ffmpeg.osx-arm64         macOS arm64 CLI    (libx264 + VideoToolbox)
+  win-x64/ffmpeg.exe       Windows x64 CLI    (libx264 + MF + NVENC)
+  win-arm64/ffmpeg.exe     Windows arm64 CLI  (libx264 + MF)
+  linux-x64/ffmpeg         Linux x64 CLI      (libx264 + VA-API)
+  osx-arm64/ffmpeg         macOS arm64 CLI    (libx264 + VideoToolbox)
   dotnet/<rid>/            Shared libav* libraries shipped with games
