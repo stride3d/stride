@@ -35,6 +35,10 @@ public static partial class NativeLockFile
     private const short F_UNLCK = 2;
 
     private const int EINVAL = 22;
+    // Contention errnos (Linux/Android EAGAIN/EACCES, Windows ERROR_LOCK_VIOLATION) — distinct from EINVAL (unsupported).
+    private const int EAGAIN = 11;
+    private const int EACCES = 13;
+    private const int ERROR_LOCK_VIOLATION = 33;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Flock
@@ -44,6 +48,14 @@ public static partial class NativeLockFile
         public long l_start;
         public long l_len;      // 0 = to EOF
         public int l_pid;       // must be 0 for OFD locks
+    }
+
+    /// <summary>Outcome of <see cref="TryAcquireFile"/> — contention means retry, unsupported means stop trying.</summary>
+    public enum FileLockResult
+    {
+        Acquired,
+        Contended,
+        Unsupported,
     }
 
     /// <summary>
@@ -79,8 +91,41 @@ public static partial class NativeLockFile
         }
         else
         {
-            return UnixLock(fileStream, offset, count, exclusive);
+            return UnixLock(fileStream, offset, count, exclusive) == FileLockResult.Acquired;
         }
+    }
+
+    /// <summary>Non-blocking lock acquisition that classifies failure for retry decisions.</summary>
+    public static FileLockResult TryAcquireFile(FileStream fileStream, long offset, long count, bool exclusive)
+    {
+        if (Platform.Type == PlatformType.Android)
+        {
+            count = (count + offset > int.MaxValue) ? int.MaxValue - offset : count;
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            var countLow = (uint)count;
+            var countHigh = (uint)(count >> 32);
+
+            var overlapped = new NativeOverlapped()
+            {
+                OffsetLow = (int)(offset & uint.MaxValue),
+                OffsetHigh = (int)(offset >> 32),
+            };
+
+            if (LockFileEx(fileStream.SafeFileHandle,
+                (exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0) | LOCKFILE_FAIL_IMMEDIATELY,
+                0, countLow, countHigh, ref overlapped))
+            {
+                return FileLockResult.Acquired;
+            }
+            return Marshal.GetLastWin32Error() == ERROR_LOCK_VIOLATION
+                ? FileLockResult.Contended
+                : FileLockResult.Unsupported;
+        }
+
+        return UnixLock(fileStream, offset, count, exclusive);
     }
 
     /// <summary>
@@ -120,7 +165,7 @@ public static partial class NativeLockFile
     ///   falls back to standard fcntl (per-process) if OFD is not supported.
     ///   On macOS/iOS, uses standard fcntl directly (OFD not available on XNU).
     /// </summary>
-    private static bool UnixLock(FileStream fileStream, long offset, long count, bool exclusive)
+    private static FileLockResult UnixLock(FileStream fileStream, long offset, long count, bool exclusive)
     {
         int fd = fileStream.SafeFileHandle.DangerousGetHandle().ToInt32();
 
@@ -143,7 +188,7 @@ public static partial class NativeLockFile
                 if (fcntl(fd, F_OFD_SETLK, ref lockInfo) == 0)
                 {
                     useOfdLocks = true;
-                    return true;
+                    return FileLockResult.Acquired;
                 }
 
                 int errno = Marshal.GetLastWin32Error();
@@ -154,15 +199,17 @@ public static partial class NativeLockFile
                 }
                 else
                 {
-                    // OFD is supported but lock failed (contention or other error)
-                    return false;
+                    return (errno == EAGAIN || errno == EACCES) ? FileLockResult.Contended : FileLockResult.Unsupported;
                 }
             }
         }
 
         // Standard fcntl (per-process) — used on macOS/iOS, or as fallback on old Linux kernels.
         // Always non-blocking to avoid hanging.
-        return fcntl(fd, F_SETLK, ref lockInfo) == 0;
+        if (fcntl(fd, F_SETLK, ref lockInfo) == 0)
+            return FileLockResult.Acquired;
+        int fallbackErrno = Marshal.GetLastWin32Error();
+        return (fallbackErrno == EAGAIN || fallbackErrno == EACCES) ? FileLockResult.Contended : FileLockResult.Unsupported;
     }
 
     private static void UnixUnlock(FileStream fileStream, long offset, long count)
