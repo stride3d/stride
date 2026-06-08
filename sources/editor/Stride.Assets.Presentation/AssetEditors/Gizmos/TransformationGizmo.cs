@@ -43,12 +43,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
 
         private bool transformationInitialized;
-        private bool duplicationDone;
 
+        /// <summary>
+        /// Event triggered when a gizmo transformation starts.
+        /// </summary>
+        public event EventHandler TransformationStarted;
         /// <summary>
         /// Event triggered when a gizmo transformation finishes.
         /// </summary>
-        public event EventHandler TransformationEnded;
+        public event EventHandler<TransformationEndedEventArgs> TransformationEnded;
 
         /// <summary>
         /// Gets the gizmo default scale in ratio of screen height ( 1 => full screen vertically )
@@ -58,7 +61,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// <summary>
         /// Returns whether the transformation has started or not
         /// </summary>
-        protected bool TransformationStarted { get; private set; }
+        public bool IsTransformationInProgress { get; private set; }
 
         /// <summary>
         /// The default material for the origin elements
@@ -89,7 +92,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// The value of the gizmo world matrix at the beginning of the transformation.
         /// </summary>
         protected Matrix StartWorldMatrix = Matrix.Identity;
-        
+
         /// <summary>
         /// The projection plane of the transformation.
         /// </summary>
@@ -129,7 +132,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// Gets or sets the entity modified by the gizmo.
         /// </summary>
         public IReadOnlyCollection<Entity> ModifiedEntities { get; set; }
-        
+
         protected TransformationGizmo()
         {
             RenderGroup = TransformationGizmoGroup;
@@ -138,7 +141,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         protected override Entity Create()
         {
             base.Create();
-            
+
             DefaultOriginMaterial = CreateEmissiveColorMaterial(Color.White);
             ElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold);
             TransparentElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold.WithAlpha(86));
@@ -166,7 +169,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             return TransformationAxes != GizmoTransformationAxes.None;
         }
-        
+
         /// <summary>
         /// Gets the world matrix of the gizmo
         /// </summary>
@@ -269,23 +272,27 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (Game.EditorServices.Get<IEditorGameCameraService>().IsMoving)
                 return;
 
-            if (duplicationDone)
+            if (IsTransformationInProgress)
                 return;
 
             UpdateTransformationAxis();
         }
 
+        /// <summary>
+        /// Update which axes are hovered over by the mouse.
+        /// </summary>
         protected abstract void UpdateTransformationAxis();
 
         protected abstract InitialTransformation CalculateTransformation();
 
-        protected virtual void OnTransformationFinished()
+        protected virtual void OnTransformationFinished(bool wasCanceled)
         {
-            duplicationDone = false;
+            IsTransformationInProgress = false;
             if (InitialTransformations.Count > 0)
             {
                 InitialTransformations.Clear();
-                TransformationEnded?.Invoke(this, EventArgs.Empty);
+                var eventArgs = wasCanceled ? TransformationEndedEventArgs.Canceled : TransformationEndedEventArgs.Successful;
+                TransformationEnded?.Invoke(this, eventArgs);
             }
         }
 
@@ -336,7 +343,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected virtual void OnTransformationStarted(Vector2 mouseDragPixel)
         {
-            TransformationStarted = true;
+            IsTransformationInProgress = true;
 
             // keep in memory all initial transformation states
             InitialTransformations.Clear();
@@ -369,24 +376,51 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         }
 
         /// <summary>
+        /// Cancel any in-progress transform.
+        /// </summary>
+        public void CancelTransform()
+        {
+            if (!IsTransformationInProgress)
+            {
+                return;
+            }
+
+            // Revert transforms
+            foreach (var (entity, initTransform) in InitialTransformations)
+            {
+                entity.Transform.Scale = initTransform.Scale;
+                entity.Transform.Position = initTransform.Translation;
+                entity.Transform.Rotation = initTransform.Rotation;
+            }
+            ClearTransformationAxes();
+            OnTransformationFinished(wasCanceled: true);
+            transformationInitialized = false;
+        }
+
+        /// <summary>
         /// Update the transformation of the selected entity. The transformation applied depends on the current TransformationAxes.
         /// For all types of transformations, we calculate the change between the start click position and the current mouse position instead of working with delta changes.
         /// This ensures that when the user returns to start click position the transformation is as it was at the beginning of the transformation.
         /// The transformation direction is either horizontal (left->right) or vertical (bottom->top) and is determined at the beginning of the gesture depending on the user move direction.
         /// </summary>
-        private async Task TransformSceneEntityBase()
+        private void TransformSceneEntityBase()
         {
-            if (!Input.IsKeyDown(Keys.LeftCtrl) && !Input.IsKeyDown(Keys.RightCtrl))
-                duplicationDone = false;
-
             // skip the update if no transformation is currently performed
-            if (!IsEnabled || AnchorEntity == null || TransformationAxes == GizmoTransformationAxes.None || !Input.IsMouseButtonDown(MouseButton.Left))
+            if (!IsEnabled || AnchorEntity == null)
+            {
+                return;
+            }
+            bool isMouseDown = Input.IsMouseButtonDown(MouseButton.Left);
+            if (!IsTransformationInProgress && (TransformationAxes == GizmoTransformationAxes.None || !isMouseDown))
+            {
+                return;
+            }
+            if (IsTransformationInProgress && !isMouseDown)
             {
                 if (transformationInitialized)
-                    OnTransformationFinished();
+                    OnTransformationFinished(wasCanceled: false);
 
                 transformationInitialized = false;
-                TransformationStarted = false;
                 return;
             }
 
@@ -401,7 +435,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var mouseDrag = mousePosition - StartMousePosition;
 
             // start the transformation only if user has dragged from a given amount of pixel. Determine direction of the transformation.
-            if (!TransformationStarted)
+            if (!IsTransformationInProgress)
             {
                 // ensure that the mouse cursor has been moved enough
                 var screenSize = new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
@@ -416,16 +450,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 if (currentTransformation.IsIdentity())
                     return;
 
-                // check if Ctrl is pressed and initiate a duplication in this case.
-                if (ModifiedEntities.Count > 0 && !duplicationDone && Input.IsKeyDown(Keys.LeftCtrl) || Input.IsKeyDown(Keys.RightCtrl))
-                {
-                    duplicationDone = true;
-                    await Game.EditorServices.Get<IEditorGameEntitySelectionService>().DuplicateSelection();
-                }
-
                 OnTransformationStarted(mouseDragPixel);
+                TransformationStarted?.Invoke(this, EventArgs.Empty);
             }
-            
+
             // determine the transformation to apply
             var transformation = CalculateTransformation();
 
@@ -434,7 +462,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             {
                 var initialTransfo = InitialTransformations[entity];
                 var entityTransfo = entity.Transform;
-                
+
                 if (initialTransfo.InverseParentMatrix == Matrix.Zero)
                 {
                     // This usually occurs when at least one axis is scaled to zero (because the matrix inversion
@@ -454,7 +482,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 // calculate the gizmo to parent space matrix
                 Matrix gizmoToParentMatrix;
                 Matrix.Multiply(ref StartWorldMatrix, ref initialTransfo.InverseParentMatrix, out gizmoToParentMatrix);
-                
+
                 // the scale
                 entityTransfo.Scale = initialTransfo.Scale * transformation.Scale;
 
@@ -475,7 +503,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        public virtual async Task Update()
+        public virtual void Update()
         {
             if (!IsEnabled)
                 return;
@@ -483,7 +511,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             UpdateShape();
             UpdateTransformationAxisBase();
             UpdateColors();
-            await TransformSceneEntityBase();
+            TransformSceneEntityBase();
             UpdateTransformation();
         }
 
@@ -496,8 +524,31 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         public void ClearTransformationAxes()
         {
-            if (!duplicationDone)
-                TransformationAxes = GizmoTransformationAxes.None;
+            TransformationAxes = GizmoTransformationAxes.None;
+        }
+
+        public void RemapModifyingEntities(Dictionary<Entity, Entity> remapEntities)
+        {
+            if (!IsTransformationInProgress)
+            {
+                throw new InvalidOperationException($"Transform is not in-progress.");
+            }
+
+            var newModifyEntities = new List<Entity>();
+            foreach (var (srcEntity, destEntity) in remapEntities)
+            {
+                if (InitialTransformations.Remove(srcEntity, out var initTransform))
+                {
+                    InitialTransformations[destEntity] = initTransform;
+                    newModifyEntities.Add(destEntity);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Entity '{srcEntity.Name ?? srcEntity.Id.ToString()}' was not being modified.");
+                }
+            }
+
+            ModifiedEntities = newModifyEntities;
         }
     }
 }

@@ -5,20 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core;
-using Stride.Core.Annotations;
-using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
-using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.Interop;
-using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.Windows;
-using Stride.Core.Translation;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
@@ -31,6 +17,21 @@ using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.View;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
@@ -208,6 +209,81 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             SelectedItems.AddRange(duplicatedAssets);
 
             return duplicatedAssets;
+        }
+
+        [NotNull]
+        public async Task DuplicateEntities([NotNull] IReadOnlyDictionary<AbsoluteId, TransformationTRS?> transformations, bool selectDuplicatedEntites = true)
+        {
+            var dialogService = ServiceProvider.Get<IEditorDialogService>();
+
+            var logger = new LoggerResult();
+            var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
+            {
+                Title = Tr._p("Title", "Duplicate entities"),
+                KeepOpen = KeepOpen.OnWarningsOrErrors,
+                IsIndeterminate = true,
+                IsCancellable = false,
+                Minimum = 0,
+                Maximum = 1,
+            };
+            dialogService.ShowProgressWindow(workProgress, minDelay: 500);
+
+            try
+            {
+                // save elements to copy and remove them from current selection.
+                var selectedEntityViewModels = new List<EntityViewModel>();
+                foreach (var (id, _) in transformations)
+                {
+                    var entityViewModel = (EntityViewModel)FindPartViewModel(id);
+                    if (entityViewModel is null)
+                    {
+                        logger.Error(string.Format(Tr._p("Log", "Entity {0} no longer exists."), id.ObjectId));  // Can occur if a user uses undo command in the middle of transforming
+                        return;
+                    }
+                    selectedEntityViewModels.Add(entityViewModel);
+                }
+                var entitiesToDuplicate = GetCommonRoots(selectedEntityViewModels);
+                if (entitiesToDuplicate.Count == 0)
+                    return;
+
+                workProgress.Maximum = entitiesToDuplicate.Count;
+                workProgress.UpdateProgressAsync(Tr._p("Message", "Duplicating entities..."), newProgressValue: 0);
+                if (selectDuplicatedEntites)
+                {
+                    SelectedItems.Clear();
+                }
+                // duplicate the elements
+                var duplicatedAssets = new Dictionary<EntityViewModel, EntityViewModel>();
+                using (var transaction = UndoRedoService.CreateTransaction())
+                {
+                    int count = 0;
+                    foreach (var entityViewModel in entitiesToDuplicate)
+                    {
+                        count++;
+                        workProgress.UpdateProgressAsync(string.Format(Tr._p("Message", "Duplicating entities {0}/{1}"), count, entitiesToDuplicate.Count), newProgressValue: count);
+                        await Task.Delay(1);    // HACK: required so the progress bar updates, since we're already in the UI thread
+
+                        var duplicatedEntity = entityViewModel.Duplicate(transformations);
+                        duplicatedAssets[entityViewModel] = duplicatedEntity;
+                    }
+
+                    UndoRedoService.SetName(transaction, "Duplicate entities");
+                }
+
+                if (selectDuplicatedEntites)
+                {
+                    // set selection to new copied elements.
+                    SelectedItems.AddRange(duplicatedAssets.Values);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Error(Tr._p("Log", "An exception occurred while duplicating entites."), e);
+            }
+            finally
+            {
+                await workProgress.NotifyWorkFinished(cancelled: false, logger.HasErrors);
+            }
         }
 
         [NotNull]

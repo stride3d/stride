@@ -150,9 +150,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             return entity;
         }
 
-        public override async Task Update()
+        public override void Update()
         {
-            await base.Update();
+            base.Update();
 
             UpdateDrawOrder();
         }

@@ -5,28 +5,27 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
-using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
@@ -371,11 +370,31 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Editor.Controller.GetService<IEditorGameEntityCameraViewModelService>().CenterOnEntity(target, meshIndex);
         }
 
-        public EntityViewModel Duplicate()
+        public EntityViewModel Duplicate(IReadOnlyDictionary<AbsoluteId, TransformationTRS?> transformations = null)
         {
             var flags = SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects;
             var clonedHierarchy = EntityHierarchyPropertyGraph.CloneSubHierarchies(Asset.Session.AssetNodeContainer, Asset.Asset, AssetSideEntity.Id.Yield(), flags, out Dictionary<Guid, Guid> idRemapping);
             AssetPartsAnalysis.GenerateNewBaseInstanceIds(clonedHierarchy);
+
+            if (transformations?.Count > 0)
+            {
+                var absIdRemapping = new Dictionary<AbsoluteId, AbsoluteId>();
+                var clonedEntitiesById = clonedHierarchy.RootParts.BreadthFirst(x => x.Transform.Children.Select(y => y.Entity)).ToDictionary(x => x.Id);
+                foreach (var (srcId, transformData) in transformations)
+                {
+                    if (transformData is not TransformationTRS transformDataValue)
+                    {
+                        continue;
+                    }
+                    if (idRemapping.TryGetValue(srcId.ObjectId, out var destEntityId)
+                        && clonedEntitiesById.TryGetValue(destEntityId, out var clonedEntity))
+                    {
+                        clonedEntity.Transform.Position = transformDataValue.Position;
+                        clonedEntity.Transform.Rotation = transformDataValue.Rotation;
+                        clonedEntity.Transform.Scale = transformDataValue.Scale;
+                    }
+                }
+            }
 
             var addedRoot = clonedHierarchy.Parts[clonedHierarchy.RootParts.Single().Id];
             addedRoot.Folder = (Parent as EntityFolderViewModel)?.Path;
