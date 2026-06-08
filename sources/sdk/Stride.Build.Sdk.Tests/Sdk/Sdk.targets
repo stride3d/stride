@@ -205,9 +205,10 @@
   <!-- Test Framework Package References -->
   <!-- ================================================================ -->
   <!-- Microsoft.NET.Test.Sdk and xunit.runner.visualstudio are dotnet test / VS Test Explorer
-       integration — irrelevant for Android APK runs, and they appear to interfere with how
-       xunit.abstractions gets bundled into libxamarin-app.so. Skip them on Android. -->
-  <ItemGroup Condition="'$(StridePlatform)' != 'Android'">
+       integration. Skip on Android+iOS: VSTest can't reach the simulator/device-side process
+       (we drive the .app/APK via our own runner), the deps would just bloat the bundle, and
+       on Android they also break the xunit.abstractions bundling into libxamarin-app.so. -->
+  <ItemGroup Condition="'$(StridePlatform)' != 'Android' And '$(StridePlatform)' != 'iOS'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
     <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
       <PrivateAssets>all</PrivateAssets>
