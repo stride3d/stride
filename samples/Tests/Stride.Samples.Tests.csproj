@@ -5,8 +5,7 @@
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
@@ -35,14 +34,9 @@
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
     <ProjectReference Include="..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
-    <!-- Build-time triggers: ensure dependency nupkgs land in bin/packages (StrideDefaultTemplates
-         + ScreenshotRunner resolve them via PackageStore) without linking the assemblies in. -->
-    <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>false</Private>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-    </ProjectReference>
-    <ProjectReference Include="..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
+    <!-- Build-time triggers: ensure each Stride template nupkg lands in bin/packages
+         (DotNetNewTemplateBridge resolves them via PackageStore). -->
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

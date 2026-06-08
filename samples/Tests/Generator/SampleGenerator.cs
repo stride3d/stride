@@ -17,7 +17,8 @@ namespace Stride.Samples.Generator;
 /// Regenerates a sample from its template GUID into <paramref name="outputPath"/>. Returns the
 /// resulting <see cref="PackageSession"/> so callers can inspect or build the generated projects.
 /// Caller is responsible for arranging the MSBuild environment via
-/// <c>PackageSessionPublicHelper.FindAndSetMSBuildVersion()</c> before invoking this.
+/// <c>PackageSessionPublicHelper.FindAndSetMSBuildVersion()</c> and registering project
+/// templates via <c>DotNetNewTemplateBridge.RegisterProjectTemplates()</c> before invoking this.
 /// </summary>
 public static class SampleGenerator
 {
@@ -33,10 +34,15 @@ public static class SampleGenerator
 
         logger.MessageLogged += (sender, eventArgs) => Console.WriteLine(eventArgs.Message.Text);
 
+        // Pick the platform variant matching the host OS so the regenerated sample's project
+        // layout (and the runner's exe lookup) match what we can actually build/run here.
+        var platform = OperatingSystem.IsLinux() ? "linux"
+                     : OperatingSystem.IsMacOS() ? "macos"
+                     : "windows";
         var parameters = new SessionTemplateGeneratorParameters { Session = session, Unattended = true };
         DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
         {
-            ["platforms"] = "windows",
+            ["platforms"] = platform,
         });
 
         session.SolutionPath = UPath.Combine<UFile>(outputPath, sampleName + ".sln");
@@ -53,7 +59,6 @@ public static class SampleGenerator
             }
         }
 
-        StrideDefaultTemplates.Load(loadAssemblyReferences: false);
         var strideTemplates = TemplateManager.FindTemplates(session);
 
         parameters.Description = strideTemplates.First(x => x.Id == templateGuid);

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Stride.Assets.Templates;
@@ -29,6 +30,14 @@ public static class ScreenshotRunner
     private const int AotPublishTimeoutSeconds = 1200;
     internal const string SamplesGeneratedDirName = "samplesGenerated";
 
+    // Per-host info used to locate the regenerated sample's project + exe. The dotnet-new templates
+    // emit one project per platform under <SampleName>.<Folder>/, with OutputPath=Bin/<Folder>/...
+    // and only Windows uses a .exe extension.
+    private static readonly (string Folder, string Rid, string ExeExt) HostPlatform =
+        OperatingSystem.IsLinux()  ? ("Linux",   "linux-x64", "") :
+        OperatingSystem.IsMacOS()  ? ("macOS",   RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64", "") :
+                                     ("Windows", "win-x64",   ".exe");
+
     private static readonly object InitLock = new();
     private static bool initialized;
     private static List<DiscoveredFixture>? cachedFixtures;
@@ -44,7 +53,9 @@ public static class ScreenshotRunner
             if (initialized)
                 return;
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            StrideDefaultTemplates.Load(loadAssemblyReferences: false);
+            // Registers the dotnet-new project templates (NewGame + Starters + Samples) with
+            // TemplateManager so SampleGenerator's FindTemplates lookup resolves the requested sample.
+            DotNetNewTemplateBridge.RegisterProjectTemplates();
             initialized = true;
         }
     }
@@ -59,7 +70,7 @@ public static class ScreenshotRunner
     /// </summary>
     /// <param name="aot">
     /// When true, build the sample with <c>dotnet publish -p:PublishAot=true</c> (self-contained,
-    /// win-x64) instead of a JIT <c>dotnet build</c>, and launch the published native exe. Exercises
+    /// host RID) instead of a JIT <c>dotnet build</c>, and launch the published native exe. Exercises
     /// the engine's NativeAOT/trim path end to end.
     /// </param>
     public static SampleResult RunOne(string sampleName, string captureRoot, string worktreeRoot, bool headless = true, string configuration = "Debug", bool aot = false)
@@ -108,21 +119,21 @@ public static class ScreenshotRunner
             throw new InvalidOperationException($"Regen failed for '{sampleName}': {regenResult.Detail}");
 
         // Force the requested feature switches for the trimmer, scoped to this sample (Directory.Build.props
-        // is auto-imported by the .Windows project under it). Written after regen, which wipes sampleDir.
+        // is auto-imported by the per-platform project under it). Written after regen, which wipes sampleDir.
         var options = string.Join(Environment.NewLine, switches.Select(kv =>
             $"    <RuntimeHostConfigurationOption Include=\"{kv.Key}\" Value=\"{kv.Value}\" Trim=\"true\" />"));
         File.WriteAllText(Path.Combine(sampleDir, "Directory.Build.props"),
             $"<Project>{Environment.NewLine}  <ItemGroup>{Environment.NewLine}{options}{Environment.NewLine}  </ItemGroup>{Environment.NewLine}</Project>{Environment.NewLine}");
 
-        var windowsCsproj = Path.Combine(sampleDir, $"{fixture.SampleName}.Windows", $"{fixture.SampleName}.Windows.csproj");
+        var platformCsproj = Path.Combine(sampleDir, $"{fixture.SampleName}.{HostPlatform.Folder}", $"{fixture.SampleName}.{HostPlatform.Folder}.csproj");
         var graphicsApi = GraphicsDevice.Platform.ToString();
         var publishLog = Path.Combine(sampleDir, "publish-trimmed.log");
         Console.WriteLine($"[{fixture.SampleName}] trimmed publish (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
-        var args = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishTrimmed=true -p:SelfContained=true -p:StrideGraphicsApi={graphicsApi}";
+        var args = $"publish \"{platformCsproj}\" -c {configuration} -r {HostPlatform.Rid} -p:PublishTrimmed=true -p:SelfContained=true -p:StrideGraphicsApi={graphicsApi}";
         if (!RunProcess("dotnet", args, publishLog, sampleDir, env: null, AotPublishTimeoutSeconds))
             throw new InvalidOperationException($"Trimmed publish failed for '{sampleName}'; see {publishLog}");
 
-        return Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish");
+        return Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, "publish");
     }
 
     /// <summary>Returns the catalog of discovered fixtures (cached per <paramref name="worktreeRoot"/>).</summary>
@@ -201,11 +212,11 @@ public static class ScreenshotRunner
         var stopwatch = Stopwatch.StartNew();
         var result = new SampleResult { Name = sampleName, Status = "unknown" };
 
-        var windowsCsproj = Path.Combine(sampleDir, $"{sampleName}.Windows", $"{sampleName}.Windows.csproj");
-        if (!File.Exists(windowsCsproj))
+        var platformCsproj = Path.Combine(sampleDir, $"{sampleName}.{HostPlatform.Folder}", $"{sampleName}.{HostPlatform.Folder}.csproj");
+        if (!File.Exists(platformCsproj))
         {
             result.Status = "missing-csproj";
-            result.Detail = windowsCsproj;
+            result.Detail = platformCsproj;
             result.Duration = stopwatch.Elapsed;
             return result;
         }
@@ -216,14 +227,14 @@ public static class ScreenshotRunner
         if (aot)
         {
             Console.WriteLine($"[{sampleName}] AOT publishing (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
-            var publishArgs = $"publish \"{windowsCsproj}\" -c {configuration} -r win-x64 -p:PublishAot=true -p:SelfContained=true " +
+            var publishArgs = $"publish \"{platformCsproj}\" -c {configuration} -r {HostPlatform.Rid} -p:PublishAot=true -p:SelfContained=true " +
                               $"-p:StrideAutoTesting=true -p:StrideAutoTestingAot=true -p:StrideGraphicsApi={graphicsApi}";
             buildOk = RunProcess("dotnet", publishArgs, buildLog, sampleDir, AotBuildEnv(), AotPublishTimeoutSeconds);
         }
         else
         {
             Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
-            buildOk = RunProcess("dotnet", $"build \"{windowsCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, BuildTimeoutSeconds);
+            buildOk = RunProcess("dotnet", $"build \"{platformCsproj}\" -p:StrideAutoTesting=true -p:Configuration={configuration} -p:StrideGraphicsApi={graphicsApi}", buildLog, sampleDir, env: null, BuildTimeoutSeconds);
         }
         if (!buildOk)
         {
@@ -234,13 +245,14 @@ public static class ScreenshotRunner
         }
 
         // AOT lands the self-contained native exe in the publish/ subfolder; the JIT build path varies
-        // (generated samples set RuntimeIdentifier=win-x64, hand-checked-in samples don't).
+        // (some csprojs set RuntimeIdentifier, others don't).
+        var exeName = $"{sampleName}.{HostPlatform.Folder}{HostPlatform.ExeExt}";
         var exeCandidates = aot
-            ? new[] { Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", "publish", $"{sampleName}.Windows.exe") }
+            ? new[] { Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, "publish", exeName) }
             : new[]
             {
-                Path.Combine(sampleDir, "Bin", "Windows", configuration, "win-x64", $"{sampleName}.Windows.exe"),
-                Path.Combine(sampleDir, "Bin", "Windows", configuration, $"{sampleName}.Windows.exe"),
+                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, exeName),
+                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, exeName),
             };
         var exePath = exeCandidates.FirstOrDefault(File.Exists);
         if (exePath is null)
