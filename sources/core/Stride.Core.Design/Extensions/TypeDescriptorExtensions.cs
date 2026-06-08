@@ -136,7 +136,8 @@ public static class TypeDescriptorExtensions
     /// <summary>
     /// Attempts to return the type of inner values of an <see cref="ITypeDescriptor"/>, if it represents an enumerable type. If the given type descriptor is
     /// a <see cref="CollectionDescriptor"/>, this method will return its <see cref="CollectionDescriptor.ElementType"/> property. If the given type descriptor
-    /// is a <see cref="DictionaryDescriptor"/>, this method will return its <see cref="DictionaryDescriptor.ValueType"/>. Otherwise, it will return the
+    /// is a <see cref="DictionaryDescriptor"/>, this method will return its <see cref="DictionaryDescriptor.ValueType"/>. If the given type descriptor
+    /// is a <see cref="ArrayDescriptor"/>, this method will return its <see cref="ArrayDescriptor.ElementType"/>. Otherwise, it will return the
     /// <see cref="ITypeDescriptor.Type"/> property.
     /// </summary>
     /// <param name="typeDescriptor">The type descriptor.</param>
@@ -145,11 +146,8 @@ public static class TypeDescriptorExtensions
     {
         var type = typeDescriptor.Type;
 
-        if (typeDescriptor is CollectionDescriptor collectionDescriptor)
-            type = collectionDescriptor.ElementType;
-
-        if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
-            type = dictionaryDescriptor.ValueType;
+        if (typeDescriptor is CollectionBaseDescriptor collectionDescriptor)
+            type = collectionDescriptor.ValueType;
 
         return type;
     }

@@ -182,32 +182,10 @@ public abstract class DynamicNode : DynamicObject, IEnumerable
         {
             var value = node.Retrieve();
             var descriptor = node.Descriptor;
-            if (descriptor is CollectionDescriptor collectionDescriptor)
+            if (descriptor is CollectionBaseDescriptor collectionDescriptor)
             {
-                if (descriptor is SetDescriptor setDescriptor)
-                {
-                    if (setDescriptor.Contains(value, index.Value))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (index.IsInt
-                        && index.Int >= 0
-                        && index.Int < collectionDescriptor.GetCollectionCount(value))
-                    {
-                        return true;
-                    }
-                }
-            }
-            else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-            {
-                if (dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value)
-                    && dictionaryDescriptor.ContainsKey(value, index.Value))
-                {
+                if (collectionDescriptor.ContainsKey(value, index.Value))
                     return true;
-                }
             }
         }
         return false;
@@ -221,21 +199,11 @@ public abstract class DynamicNode : DynamicObject, IEnumerable
             return reference != null;
         }
 
-        if (node.Descriptor is CollectionDescriptor collectionDescriptor)
+        if (node.Descriptor is CollectionBaseDescriptor collectionBaseDescriptor)
         {
-            if (node.Descriptor.Category == DescriptorCategory.Set)
-            {
-                return collectionDescriptor.ElementType.IsInstanceOfType(index.Value);
-            }
-            else
-            {
-                return index.IsInt && index.Int >= 0;
-            }
+            return collectionBaseDescriptor.IsKeyValid(index.Value);
         }
-        else if (node.Descriptor is DictionaryDescriptor dictionaryDescriptor)
-        {
-            return dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value);
-        }
+
         return false;
     }
 

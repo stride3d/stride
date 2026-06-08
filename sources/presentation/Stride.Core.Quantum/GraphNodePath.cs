@@ -414,13 +414,9 @@ public sealed class GraphNodePath : IEnumerable<IGraphNode>, IEquatable<GraphNod
                     var index = itemPath.Index;
                     var enumerableReference = ((IObjectNode)node!).ItemReferences;
                     var descriptor = node.Descriptor;
-                    if (descriptor is CollectionDescriptor collectionDescriptor)
+                    if (descriptor is CollectionBaseDescriptor collectionDescriptor)
                     {
                         memberPath.Push(collectionDescriptor, index.Value);
-                    }
-                    else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-                    {
-                        memberPath.Push(dictionaryDescriptor, index.Value);
                     }
 
                     if (i != path.Count - 1)
