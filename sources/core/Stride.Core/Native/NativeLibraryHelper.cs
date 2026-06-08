@@ -372,8 +372,10 @@ public static partial class NativeLibraryHelper
 
         lock (loadedLibrariesLock)
         {
-            var libraryNameWithoutExtension = Path.GetFileNameWithoutExtension(libraryPath);
             var libraryNameWithExtension = Path.GetFileName(libraryPath);
+            // Strip the full platform extension (.so[.N] / [.N].dylib / .dll) so the key matches
+            // what PreloadLibrary looks up regardless of SONAME-versioned filenames.
+            var libraryNameWithoutExtension = StripPlatformNativeExtension(libraryNameWithExtension);
             nativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
             nativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
 
@@ -388,6 +390,40 @@ public static partial class NativeLibraryHelper
 #if STRIDE_PLATFORM_DESKTOP
             EnsureGlobalResolverRegistered();
 #endif
+        }
+    }
+
+    /// <summary>
+    /// Strips the native-library extension from <paramref name="fileName"/>, returning the bare
+    /// library name. Handles all four conventions: Windows <c>foo.dll</c>, Linux <c>libfoo.so</c>
+    /// and SONAME-versioned <c>libfoo.so.5</c>, macOS <c>libfoo.dylib</c> and versioned
+    /// <c>libfoo.5.dylib</c>.
+    /// </summary>
+    private static string StripPlatformNativeExtension(string fileName)
+    {
+        switch (Platform.Type)
+        {
+            case PlatformType.Linux:
+                var soIdx = fileName.IndexOf(".so", StringComparison.Ordinal);
+                return soIdx >= 0 ? fileName[..soIdx] : fileName;
+            case PlatformType.macOS:
+                // .dylib at end: trim it; then trim a trailing ".N" version component if present.
+                if (fileName.EndsWith(".dylib", StringComparison.Ordinal))
+                {
+                    var trimmed = fileName[..^".dylib".Length];
+                    var lastDot = trimmed.LastIndexOf('.');
+                    if (lastDot > 0)
+                    {
+                        var allDigits = true;
+                        for (int i = lastDot + 1; i < trimmed.Length; i++)
+                            if (!char.IsDigit(trimmed[i])) { allDigits = false; break; }
+                        if (allDigits) trimmed = trimmed[..lastDot];
+                    }
+                    return trimmed;
+                }
+                return fileName;
+            default: // Windows + everything else: standard single-extension semantics.
+                return Path.GetFileNameWithoutExtension(fileName);
         }
     }
 
