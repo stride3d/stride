@@ -138,9 +138,9 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
         }
 
         var descriptor = TypeDescriptorFactory.Find(value?.GetType());
-        if (descriptor is CollectionDescriptor or DictionaryDescriptor)
+        if (descriptor is CollectionBaseDescriptor collection)
         {
-            var valueType = GetElementValueType(descriptor);
+            var valueType = collection.ValueType;
             return !PrimitiveTypeFilter.IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
         }
 
@@ -165,12 +165,6 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
     private static bool IsCollection(Type type)
     {
         return typeof(ICollection).IsAssignableFrom(type);
-    }
-
-    private static Type? GetElementValueType(ITypeDescriptor descriptor)
-    {
-        var collectionDescriptor = descriptor as CollectionDescriptor;
-        return descriptor is DictionaryDescriptor dictionaryDescriptor ? dictionaryDescriptor.ValueType : collectionDescriptor?.ElementType;
     }
 
     private class DefaultPrimitiveFilter : IPrimitiveTypeFilter
