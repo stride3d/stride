@@ -3,7 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <TargetFrameworks>$(StrideXplatEditorTargetFramework);$(StrideEditorTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(StrideXplatEditorTargetFramework)</TargetFrameworks>
+    <TargetFrameworks Condition="$(StridePlatforms.Contains('Windows'))">$(StrideFrameworkWindows);$(TargetFrameworks)</TargetFrameworks>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
