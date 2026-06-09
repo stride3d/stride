@@ -64,7 +64,8 @@ public static partial class NuGetAssemblyResolver
         // Sibling .deps.json present = standard .NET app layout (source-tree bin/, dev-redirected
         // install): the host's own probing already resolves transitive deps, our restore would be
         // redundant. Only the NuGet-cache pack path (no deps.json) needs the restore handler.
-        if (File.Exists(Path.ChangeExtension(executingPath, ".deps.json")))
+        var entryPath = Assembly.GetEntryAssembly()?.Location;
+        if (entryPath != null && File.Exists(Path.ChangeExtension(entryPath, ".deps.json")))
             return;
 
         // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
