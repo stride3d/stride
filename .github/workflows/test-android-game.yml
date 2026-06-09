@@ -273,9 +273,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts-android-vulkan
-          # logcat is written to ResultsDir's parent (tests/) to survive the pre-pull wipe;
-          # include both so the per-suite outputs AND logcat land in the artifact.
-          path: |
-            tests/local/
-            tests/*.logcat.txt
+          # Single path so upload-artifact uses tests/local/ as the common ancestor: per-suite
+          # outputs land as Stride.<Suite>.Tests/... at the artifact root, matching what
+          # comparegold and the per-suite (master) flow expect. The driver moves the logcat
+          # into ResultsDir after the pre-pull wipe is past so it ships with this artifact.
+          path: tests/local/
           if-no-files-found: ignore

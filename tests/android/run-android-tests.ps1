@@ -264,9 +264,13 @@ $logcatProc = $null
 $liveLogcatProc = $null
 try {
 
-# 6. Start logcat capture (full ring buffer; threadtime format aids triage)
-if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-$logcatPath = Join-Path $ResultsDir "$Package.logcat.txt"
+# 6. Start logcat capture (full ring buffer; threadtime format aids triage).
+# Write to ResultsDir's PARENT, not ResultsDir itself: step 8 (pre-pull) wipes ResultsDir/*
+# and would unlink the file out from under the still-running adb-logcat child — the FD lives
+# on but the captured bytes go to a freed inode, lost when the finally block kills it.
+$parentDir = Split-Path -Parent $ResultsDir
+if (-not (Test-Path $parentDir)) { New-Item -ItemType Directory -Force -Path $parentDir | Out-Null }
+$logcatPath = Join-Path $parentDir "$Package.logcat.txt"
 Write-Host "Logcat -> $logcatPath"
 # -WindowStyle is Windows-only on pwsh 7.6+; errors on non-Windows. Splat conditionally so
 # the same call works on every host pwsh supports.
@@ -380,6 +384,13 @@ exit 0
     }
     if ($liveLogcatProc -and -not $liveLogcatProc.HasExited) {
         Stop-Process -Id $liveLogcatProc.Id -Force -ErrorAction SilentlyContinue
+    }
+    # Now that the pre-pull wipe is past, move the logcat into ResultsDir so it ships with
+    # the test artifact rather than orphaned alongside it. (It had to live outside ResultsDir
+    # during the run — see step 6's comment — otherwise the wipe would unlink the file out
+    # from under the still-writing adb-logcat child.)
+    if ($logcatPath -and (Test-Path $logcatPath) -and (Test-Path $ResultsDir)) {
+        try { Move-Item -Force $logcatPath (Join-Path $ResultsDir (Split-Path -Leaf $logcatPath)) } catch { }
     }
     # On a normal run the on-device runner has already called Environment.Exit; force-stop
     # is idempotent there and stops the APK on cancellation paths (Ctrl-C / workflow cancel).
