@@ -312,11 +312,15 @@
   </Target>
 
   <!-- ================================================================ -->
-  <!-- Force Pack on Inner Builds from CLI -->
+  <!-- Cascade Pack to ProjectReferences (re-dispatch at outer for auto-Pack) -->
   <!-- ================================================================ -->
+  <!-- Natural ProjectReference dispatch goes to inner (TF set via NuGet's nearest-TFM probe);
+       _PackAsBuildAfterTarget is gated on IsInnerBuild!=true so refs never auto-pack via that
+       path. Re-dispatch at outer (TF stripped) so the cross-targeting outer Build's
+       AfterTargets Pack fires. -->
   <Target Name="_StrideTriggerPackOnInnerBuild"
           BeforeTargets="CoreCompile"
-          Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(BuildingSolutionFile)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
+          Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"

@@ -151,27 +151,20 @@
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
   </Target>
 
-  <!-- In-tree consumers invoke CompilerApp.exe via ProjectReference. CompilerApp's own
-       Stride.NuGetResolver needs Stride.Core.Assets.CompilerApp.<version>.nupkg in
-       bin\packages\ to resolve its runtime dep graph. Under parallel MSBuild, the normal
-       AfterTargets=Build Pack chain isn't guaranteed to complete before another consumer's
-       StrideCompileAsset fires. Dispatch Pack explicitly here so it's done before we run
-       CompilerApp.exe. Gated by the source-tree existence check — NuGet-package consumers
-       already have the .nupkg. -->
-  <Target Name="_StrideEnsureCompilerAppPacked"
-          BeforeTargets="StrideCompileAsset"
-          Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">
-    <!-- Strip BuildingSolutionFile so CompilerApp's _StrideTriggerPackOnInnerBuild fires and packs
-         the engine refs (Stride.UI, Stride.Physics, ...) synchronously before CompilerApp.exe runs;
-         otherwise they pack only via the lagging AfterTargets=Build chain and asset compilation
-         fails its NuGet restore ("Unable to find package Stride.UI").
-         Also strip RuntimeIdentifier(s)/SelfContained/StrideGraphicsApi so a RID-specific parent
-         doesn't leak android-x64 into the net10.0 graph (ResolvePackageAssets -> NETSDK1047). -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj"
-             Targets="Pack"
-             Properties="TargetFrameworks=$(StrideXplatEditorTargetFramework);TargetFramework=$(StrideXplatEditorTargetFramework)"
-             RemoveProperties="StrideSkipAutoPack;StrideGraphicsApi;BuildingSolutionFile;RuntimeIdentifier;RuntimeIdentifiers;SelfContained" />
-  </Target>
+  <!-- Auto-attach CompilerApp as a ProjectReference so source-tree consumers build it
+       before StrideCompileAsset runs. SkipGet+RemoveProperties=TargetFramework dispatches
+       at outer (cross-targets all TFMs); remaining RemoveProperties strip consumer-specific
+       globals that shouldn't leak (RID/SelfContained/OutputType/StrideIsExecutable).
+       Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')
+                        And '$(MSBuildProjectName)' != 'Stride.Core.Assets.CompilerApp'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <GlobalPropertiesToRemove>TargetFramework;StrideSkipAutoPack;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;IncludeXunitLauncher;StrideIsExecutable</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
 
   <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">
     <Message Importance="Normal" Text="Android inner MSBuild execution detected - skipping compilation" Condition="'$(StrideCompilerSkipAndroidInnerBuild)' == 'true'" />

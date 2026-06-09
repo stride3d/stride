@@ -208,27 +208,9 @@
   <!-- ================================================================ -->
   <!-- Asset Compilation Support -->
   <!-- ================================================================ -->
-  <!-- When StrideCompileAssets=true, add a build-only reference to the asset compiler
-       and import its targets for asset compilation during build.
-       Uses $(StrideRoot) from sources/Directory.Build.props to locate the source tree. -->
-  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
-    <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <!-- Pin to xplat TFM to avoid VS design-time GetTargetPath error on CompilerApp's
-           cross-targeting (cross-targeting outer build has no GetTargetPath target). -->
-      <SetTargetFramework>TargetFramework=$(StrideXplatEditorTargetFramework)</SetTargetFramework>
-      <!-- Strip StrideSkipAutoPack so CompilerApp still packs its .nupkg (needed at
-           AssetCompiler time for the test's package graph resolution).
-           Strip RuntimeIdentifier(s) and SelfContained so an Android (or other
-           RID-specific) test app doesn't drag the net10.0 host tool into a
-           net10.0/<rid> restore: the Android SDK's inner per-RID builds pass
-           SelfContained=true, which would otherwise make the SDK infer the host
-           RID (win-x64) for CompilerApp (an Exe). -->
-      <GlobalPropertiesToRemove>StrideSkipAutoPack;RuntimeIdentifier;RuntimeIdentifiers;SelfContained</GlobalPropertiesToRemove>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-    </ProjectReference>
-  </ItemGroup>
+  <!-- CompilerApp.targets self-attaches a ProjectReference back to CompilerApp.csproj
+       (gated on source-tree existence) so MSBuild builds it before our StrideCompileAsset
+       runs. -->
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
           Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
