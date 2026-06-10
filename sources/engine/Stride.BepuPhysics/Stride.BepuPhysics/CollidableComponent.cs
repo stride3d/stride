@@ -261,7 +261,7 @@ public abstract class CollidableComponent : EntityComponent
 
     internal void TryUpdateFeatures()
     {
-#warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
+        #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
             ReAttach(Simulation);
         else if (Processor is not null) // We may have to fall back to this when 'Collider.TryAttach' failed previously; when this collidable didn't have any collider before
