@@ -136,6 +136,7 @@ jobs:
           # and the test step still runs whatever APKs were produced for partial coverage.
           dotnet build build/Stride.Tests.Game.Android.slnf \
             -nr:false -v:m -p:WarningLevel=0 \
+            -p:StrideSkipAutoPack=true \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Android \
             -p:EmbedAssembliesIntoApk=true \

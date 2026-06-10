@@ -92,6 +92,7 @@ jobs:
         run: |
           dotnet build build/Stride.Tests.Game.GPU.slnf \
             -p:StrideTestRuntimeIdentifier=linux-x64 \
+            -p:StrideSkipAutoPack=true \
             -nr:false \
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
@@ -101,6 +102,7 @@ jobs:
         run: |
           dotnet build build/Stride.Tests.Game.Runtime.slnf \
             -p:StrideTestRuntimeIdentifier=linux-x64 \
+            -p:StrideSkipAutoPack=true \
             -nr:false \
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
