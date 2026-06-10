@@ -159,7 +159,7 @@ namespace Stride.Assets.SpriteFont
         private static string GetDefaultFontName()
         {
             //Note : Both macOS and Windows contains Arial
-            return OperatingSystem.IsLinux() ? "Liberation" : "Arial";
+            return OperatingSystem.IsLinux() ? "Liberation Sans" : "Arial";
         }
     }
 }
