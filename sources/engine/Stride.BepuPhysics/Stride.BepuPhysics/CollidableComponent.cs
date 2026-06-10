@@ -101,6 +101,7 @@ public abstract class CollidableComponent : EntityComponent
     /// If the contact is trying to make a bounce happen at 240hz,
     /// but the integrator timestep is only 60hz,
     /// the unrepresentable motion will get damped out and the body won't bounce as much.
+    /// <para>Defaults to <c>30</c>.</para>
     /// </remarks>
     [Display(category: CategoryForces)]
     public float SpringFrequency
@@ -119,6 +120,9 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The amount of energy/velocity lost when this collidable bounces off
     /// </summary>
+    /// <remarks>
+    /// Defaults to <c>3</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float SpringDampingRatio
     {
@@ -133,6 +137,12 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// The friction coefficient applied when this collidable slides against another surface.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to <c>1</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float FrictionCoefficient
     {
@@ -147,6 +157,9 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The maximum speed this object will exit out of the collision when overlapping another collidable
     /// </summary>
+    /// <remarks>
+    /// Defaults to <c>1000</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float MaximumRecoveryVelocity
     {
@@ -248,7 +261,7 @@ public abstract class CollidableComponent : EntityComponent
 
     internal void TryUpdateFeatures()
     {
-        #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
+#warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
             ReAttach(Simulation);
         else if (Processor is not null) // We may have to fall back to this when 'Collider.TryAttach' failed previously; when this collidable didn't have any collider before
