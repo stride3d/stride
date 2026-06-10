@@ -162,7 +162,7 @@
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <GlobalPropertiesToRemove>TargetFramework;StrideSkipAutoPack;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;IncludeXunitLauncher;StrideIsExecutable</GlobalPropertiesToRemove>
+      <GlobalPropertiesToRemove>TargetFramework;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;IncludeXunitLauncher;StrideIsExecutable</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
 
