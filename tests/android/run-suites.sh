@@ -24,6 +24,8 @@ exec > >(grep --line-buffered -vE 'gfxstream/host/gl/glestranslator/.*error null
 exec 2>&1
 
 CONFIGURATION="${1:-Debug}"
+# Optional vstest --filter expression, forwarded to the on-device runner via the launch Intent.
+FILTER="${2:-$ANDROID_TEST_FILTER}"
 
 mkdir -p TestResults
 rm -f /tmp/failed_suites
@@ -50,7 +52,8 @@ for SUITE in "${SUITES[@]}"; do
       -Suite "$SUITE" \
       -Apk "$APK" \
       -TimeoutSeconds 900 \
-      -KeepEmulator &
+      -KeepEmulator \
+      ${FILTER:+-Filter "$FILTER"} &
   CHILD_PID=$!
   if wait "$CHILD_PID"; then
     echo "PASS: $SUITE"

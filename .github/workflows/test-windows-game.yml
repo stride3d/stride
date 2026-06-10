@@ -25,6 +25,14 @@ on:
           - Direct3D11
           - Direct3D12
           - Vulkan
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj path to build/test (blank = whole GPU solution filter)'
+        type: string
+        default: ''
       commit-sha:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
@@ -37,9 +45,20 @@ on:
       graphics-api:
         default: ''
         type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
       commit-sha:
         default: ''
         type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
   repository_dispatch:
     # Fired by chatops bot. Payload: { pr_number, graphics-api, dispatched_by }.
     types: [test-windows-game]
@@ -124,9 +143,17 @@ jobs:
           } else {
             Write-Warning "Lavapipe DLL not found in NuGet cache"
           }
+      - name: Resolve build/test target
+        shell: pwsh
+        run: |
+          # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU solution filter.
+          $proj = "${{ github.event.inputs.project || inputs.project }}"
+          $target = if ($proj) { $proj } else { 'build\Stride.Tests.Game.GPU.slnf' }
+          Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
+          Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
       - name: Build
         run: |
-          dotnet build build\Stride.Tests.Game.GPU.slnf `
+          dotnet build $env:STRIDE_TEST_TARGET `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideSkipAutoPack=true `
             -nr:false `
@@ -137,14 +164,17 @@ jobs:
             -p:StrideGraphicsApi=${{ matrix.graphics-api }}
       - name: Test
         if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
-          dotnet test build\Stride.Tests.Game.GPU.slnf `
+          $filterArgs = if ($env:STRIDE_TEST_FILTER) { @('--filter', $env:STRIDE_TEST_FILTER) } else { @() }
+          dotnet test $env:STRIDE_TEST_TARGET `
             --no-build `
             --logger:trx --results-directory TestResults `
             --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+            @filterArgs `
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
@@ -155,6 +185,9 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+          # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
+          # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh

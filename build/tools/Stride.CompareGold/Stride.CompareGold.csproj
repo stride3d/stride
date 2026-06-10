@@ -10,4 +10,10 @@
     <StrideCodeAnalysis>false</StrideCodeAnalysis>
     <ApplicationIcon>wwwroot\favicon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Reuse the runtime's threshold rules so headless promote/dedup match the tests' verdict. -->
+    <Compile Include="..\..\..\sources\engine\Stride.Graphics.Regression\ImageThreshold.cs" Link="Linked\ImageThreshold.cs" />
+    <!-- Managed PNG decode for the headless compare (avoids the engine's native FreeImage path). -->
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
+  </ItemGroup>
 </Project>

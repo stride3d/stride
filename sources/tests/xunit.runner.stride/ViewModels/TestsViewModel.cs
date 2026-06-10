@@ -115,6 +115,11 @@ public class TestsViewModel : ViewModelBase
     public Task RunTestsAsync(TestNodeViewModel testNodeViewModel)
         => RunTestCases(testNodeViewModel.EnumerateTestCases().ToList(), interactive: false);
 
+    // Headless run narrowed by a vstest --filter predicate (Android/iOS launcher passes the
+    // expression as a launch parameter). Mirrors the desktop StrideXunitRunner.RunHeadless filter.
+    public Task RunFilteredAsync(Func<ITestCase, bool> predicate)
+        => RunTestCases(EnumerateAllTestCases().Where(c => predicate(c.TestCase)).ToList(), interactive: false);
+
     // async void to satisfy Avalonia's method-as-Command binding (per-row buttons), but the
     // body is wrapped so a test-run exception can't take down the process.
     public async void RunTests(TestNodeViewModel testNodeViewModel, bool interactive)

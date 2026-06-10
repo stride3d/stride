@@ -29,7 +29,8 @@ param(
     [int]$ConnectTimeoutSeconds = 60,                      # max wait for adb connect + device online (near-instant vs a live emulator; generous headroom for adb cold-start / relay)
     [int]$BootTimeoutSeconds = 300,                        # max wait for sys.boot_completed (only relevant when we cold-boot)
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
-    [switch]$StreamLogcat                                  # also tee Stride-tag logcat to console (local interactive use)
+    [switch]$StreamLogcat,                                 # also tee Stride-tag logcat to console (local interactive use)
+    [string]$Filter                                        # optional vstest --filter expr passed on to the on-device runner
 )
 if ($Avd -and -not $Port) { throw "-Avd requires -Port (even, e.g. 5556)." }
 
@@ -273,8 +274,12 @@ if ($StreamLogcat) {
 }
 
 # 7. Launch with intent extras
-Write-Host "Launching with xunit_command=run..."
-Invoke-Adb shell am start -W -n $activity --es xunit_command run --ez xunit_exit_on_complete true | Out-Null
+# adb shell joins args with spaces before the device shell re-splits, so a filter value
+# with spaces wouldn't survive; name-based vstest filters (no spaces) round-trip fine.
+Write-Host "Launching with xunit_command=run$(if ($Filter) { " xunit_filter=$Filter" })..."
+$amArgs = @('shell', 'am', 'start', '-W', '-n', $activity, '--es', 'xunit_command', 'run', '--ez', 'xunit_exit_on_complete', 'true')
+if ($Filter) { $amArgs += @('--es', 'xunit_filter', $Filter) }
+Invoke-Adb @amArgs | Out-Null
 
 # 8. Wait for process to exit (heuristic: pidof goes empty)
 Write-Host "Waiting for process to exit (timeout: ${TimeoutSeconds}s)..."

@@ -82,32 +82,38 @@ public static class StrideXunitRunner
     private static Func<ITestCase, bool>? ParseVstestFilter(string[] args)
     {
         for (int i = 0; i + 1 < args.Length; i++)
+            if (args[i] == "--filter")
+                return ParseVstestFilter(args[i + 1]);
+        return null;
+    }
+
+    // Shared by the desktop --filter args path and the Android/iOS headless launcher, which
+    // passes the raw expression as an intent/launch parameter (App.HeadlessFilter).
+    internal static Func<ITestCase, bool>? ParseVstestFilter(string expr)
+    {
+        if (string.IsNullOrEmpty(expr)) return null;
+        // Order matters: check 2-char ops before 1-char ones to avoid splitting on the wrong byte.
+        foreach (var op in new[] { "!~", "!=", "~", "=" })
         {
-            if (args[i] != "--filter") continue;
-            var expr = args[i + 1];
-            // Order matters: check 2-char ops before 1-char ones to avoid splitting on the wrong byte.
-            foreach (var op in new[] { "!~", "!=", "~", "=" })
+            int idx = expr.IndexOf(op, StringComparison.Ordinal);
+            if (idx < 0) continue;
+            var prop = expr[..idx].Trim();
+            var val = expr[(idx + op.Length)..].Trim();
+            Func<ITestCase, string> get = prop switch
             {
-                int idx = expr.IndexOf(op, StringComparison.Ordinal);
-                if (idx < 0) continue;
-                var prop = expr[..idx].Trim();
-                var val = expr[(idx + op.Length)..].Trim();
-                Func<ITestCase, string> get = prop switch
-                {
-                    "FullyQualifiedName" => tc => tc.TestMethod.TestClass.Class.Name + "." + tc.TestMethod.Method.Name,
-                    "DisplayName"        => tc => tc.DisplayName,
-                    "Name"               => tc => tc.TestMethod.Method.Name,
-                    _                    => tc => tc.DisplayName,
-                };
-                return op switch
-                {
-                    "="  => tc => string.Equals(get(tc), val, StringComparison.OrdinalIgnoreCase),
-                    "!=" => tc => !string.Equals(get(tc), val, StringComparison.OrdinalIgnoreCase),
-                    "~"  => tc => get(tc).Contains(val, StringComparison.OrdinalIgnoreCase),
-                    "!~" => tc => !get(tc).Contains(val, StringComparison.OrdinalIgnoreCase),
-                    _    => null,
-                };
-            }
+                "FullyQualifiedName" => tc => tc.TestMethod.TestClass.Class.Name + "." + tc.TestMethod.Method.Name,
+                "DisplayName"        => tc => tc.DisplayName,
+                "Name"               => tc => tc.TestMethod.Method.Name,
+                _                    => tc => tc.DisplayName,
+            };
+            return op switch
+            {
+                "="  => tc => string.Equals(get(tc), val, StringComparison.OrdinalIgnoreCase),
+                "!=" => tc => !string.Equals(get(tc), val, StringComparison.OrdinalIgnoreCase),
+                "~"  => tc => get(tc).Contains(val, StringComparison.OrdinalIgnoreCase),
+                "!~" => tc => !get(tc).Contains(val, StringComparison.OrdinalIgnoreCase),
+                _    => null,
+            };
         }
         return null;
     }

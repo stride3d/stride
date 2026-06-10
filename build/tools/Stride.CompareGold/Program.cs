@@ -7,6 +7,26 @@ using System.Text.Json;
 // 5505 instead of 5555: the latter is Android ADB's daemon port, which the Android emulator
 // already binds when running test pulls — they collide otherwise. Override with --port N
 // when running a second instance against another checkout.
+// Top-level help (subcommand help is handled inside HeadlessPromote). No args = start the UI.
+if (args is [var first, ..] && first is "--help" or "-h" or "help")
+{
+    Console.WriteLine("""
+        Stride.CompareGold — gold image review tool.
+
+          (no args)       Start the web UI at http://localhost:5505 (default mode).
+          --port N        Bind a different port.
+          --lan           Expose the UI on the local network (no auth; trusted networks only).
+
+          promote [...]   Headless: promote generated images to gold.  See `promote --help`.
+          dedup   [...]   Headless: remove redundant existing gold.     See `dedup --help`.
+        """);
+    return 0;
+}
+
+// Headless gold subcommands (test-gold-gen CI flow) — run and exit without the server.
+if (args.Length > 0 && (args[0] == "promote" || args[0] == "dedup"))
+    return HeadlessPromote.Run(args, FindStrideRoot);
+
 int port = 5505;
 for (int i = 0; i < args.Length; i++)
 {
@@ -32,7 +52,7 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 });
 var app = builder.Build();
 
-const string UpstreamRepo = "stride3d/stride";
+const string UpstreamRepo = CiArtifacts.UpstreamRepo;
 
 // Find Stride root
 var strideRoot = FindStrideRoot(AppContext.BaseDirectory)
@@ -379,24 +399,12 @@ app.MapPost("/api/sources/add-ci", async (HttpRequest request) =>
         Directory.Delete(tmpDir, true);
     Directory.CreateDirectory(tmpDir);
 
-    // Download this artifact
-    var proc = Process.Start(new ProcessStartInfo
+    // Download this artifact (shared with the headless promote/dedup so both download identically).
+    var dlError = CiArtifacts.Download(body.RunId, repo, artifactName, tmpDir);
+    if (dlError != null)
     {
-        FileName = "gh",
-        Arguments = $"run download {body.RunId} --repo {repo} --name {artifactName} --dir \"{tmpDir}\"",
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false
-    });
-    if (proc != null)
-    {
-        await proc.WaitForExitAsync();
-        if (proc.ExitCode != 0)
-        {
-            var err = await proc.StandardError.ReadToEndAsync();
-            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-            return Results.Problem($"gh failed for {artifactName}: {err}");
-        }
+        if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+        return Results.Problem(dlError);
     }
 
     // Merge temp into cache dir (overwrite existing files)
@@ -660,6 +668,7 @@ app.MapPost("/api/gold/delete", async (HttpRequest request) =>
 });
 
 app.Run();
+return 0;
 
 // === Helpers ===
 

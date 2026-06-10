@@ -36,6 +36,8 @@ public class MainActivity : AvaloniaMainActivity
         if (Intent?.GetStringExtra("xunit_command") == "run")
         {
             App.HeadlessMode = true;
+            // Optional --es xunit_filter "<vstest --filter expr>" narrows the run to matching tests.
+            App.HeadlessFilter = Intent.GetStringExtra("xunit_filter");
             App.TryStartHeadlessRun();
         }
 

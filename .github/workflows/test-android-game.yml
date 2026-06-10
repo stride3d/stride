@@ -16,6 +16,14 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'vstest --filter expression forwarded to the on-device runner (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj to build/run (blank = all Android suites)'
+        type: string
+        default: ''
       commit-sha:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
@@ -25,9 +33,20 @@ on:
       build-type:
         default: Debug
         type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
       commit-sha:
         default: ''
         type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
   repository_dispatch:
     types: [test-android-game]
   schedule:
@@ -128,13 +147,25 @@ jobs:
         # tell which host it's on).
         run: pwsh tests/android/stride_android_emu_helper_layer/build-and-install.ps1
 
+      - name: Resolve build target / suite
+        run: |
+          # `project` (a single test .csproj) narrows the APK build + run to one suite, whose
+          # name == the .csproj filename; blank builds/runs every Android suite.
+          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          if [ -n "$PROJ" ]; then
+            echo "ANDROID_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
+            echo "ANDROID_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
+          else
+            echo "ANDROID_BUILD_TARGET=build/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
+          fi
+
       - name: Build Android test APKs
         run: |
           # Multi-platform test projects build their Android APK when StridePlatforms=Android.
           # Embed assemblies into the APK so the test runner has everything (no Fast Deployment).
           # Single slnf build evaluates the graph once; failed projects don't block independents,
           # and the test step still runs whatever APKs were produced for partial coverage.
-          dotnet build build/Stride.Tests.Game.Android.slnf \
+          dotnet build "$ANDROID_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
@@ -153,6 +184,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run tests on Android emulator
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         # Action handles emulator boot/teardown; we run the per-suite pwsh driver inside.
         # API 34 / google_apis / x86_64 — API 36+ (Android 16) crashes Mono JIT on the
         # emulator (W^X enforcement), so we pin to 34.
@@ -181,7 +213,7 @@ jobs:
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
           # shell blocks (while/if) break with "unexpected end of file". Loop lives in a
           # standalone script invoked as a single command.
-          script: bash tests/android/run-suites.sh "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          script: bash tests/android/run-suites.sh "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}"
 
       - name: Publish Test Report
         if: always()
@@ -192,6 +224,9 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+          # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
+          # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
 
       - name: Upload test results
         if: always()

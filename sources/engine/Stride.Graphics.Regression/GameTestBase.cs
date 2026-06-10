@@ -623,14 +623,16 @@ namespace Stride.Graphics.Regression
                 void AssertImageComparisonFailed()
                 {
                     var failedImages = string.Join(Environment.NewLine, game.comparisonFailedMessages);
-                    Assert.Fail("Some image comparison failed:" + Environment.NewLine + failedImages);
+                    Assert.Fail("Image comparison failed — review the diff, it may be a regression:" + Environment.NewLine
+                        + failedImages + Environment.NewLine + GoldHelp(game.GetType(), suggestPromote: false));
                 }
 
                 [DoesNotReturn]
                 void AssertMissingComparisonImages()
                 {
                     var missingImages = string.Join(Environment.NewLine, game.comparisonMissingMessages);
-                    Assert.Fail("Some reference images are missing, please copy them manually:" + Environment.NewLine + missingImages);
+                    Assert.Fail("No gold reference yet for these images:" + Environment.NewLine
+                        + missingImages + Environment.NewLine + GoldHelp(game.GetType(), suggestPromote: true));
                 }
             }
         }
@@ -643,6 +645,117 @@ namespace Stride.Graphics.Regression
         {
             return text.Contains("Live ");                        // D3D11/D3D12: ReportLiveObjects at shutdown
         }
+
+        // Help text appended to gold comparison failures: a CompareGold pointer plus a ready
+        // `gh workflow run test-gold-gen` command pre-filtered to the failing test class, with the
+        // broader whole-suite / everything scopes shown too.
+        private static string GoldHelp(Type testType, bool suggestPromote)
+        {
+            var (repo, branch) = RepoAndBranch.Value;
+            // Always emit both flags: if a value couldn't be resolved, leave an obvious placeholder
+            // to fill in (better than dropping the flag and letting gh silently pick the wrong repo /
+            // default branch).
+            var ctx = $" --repo {(string.IsNullOrEmpty(repo) ? "<owner>/stride" : repo)}"
+                    + $" --ref {(string.IsNullOrEmpty(branch) ? "<branch>" : branch)}";
+            var promote = suggestPromote ? " -f update-gold=auto" : "";
+
+            // Build only this suite's project (not the whole solution). The csproj is named by the
+            // assembly (unlike the namespace-based test filter); emitted only when it actually exists.
+            var assembly = testType.Assembly.GetName().Name;
+            var projectRel = $"sources/engine/{assembly}/{assembly}.csproj";
+            var project = "";
+            try { if (File.Exists(Path.Combine(GetTestsRootDirectory(), projectRel))) project = $" -f project={projectRel}"; }
+            catch { /* root not resolvable (e.g. Android) — omit, builds all */ }
+
+            return $"Regenerate gold on CI (or review/promote locally with CompareGold -- tests/compare-gold.cmd):{Environment.NewLine}"
+                 + $"  gh workflow run test-gold-gen.yml{ctx}{project} -f test-filter='FullyQualifiedName~{testType.FullName}'{promote}{Environment.NewLine}"
+                 + $"  (widen: trim -f test-filter to a namespace; remove -f project to span all assemblies)";
+        }
+
+        // Resolved once per process: repo/branch don't change within a run, and the lookup shells
+        // out to git up to four times — not worth repeating for every test's failure message.
+        private static readonly Lazy<(string Repo, string Branch)> RepoAndBranch = new(ResolveRepoAndBranch);
+
+        // --repo/--ref for the gh command. On CI the env vars are authoritative. Locally we fill them
+        // from the checkout's push remote + current branch: `gh workflow run` otherwise defaults
+        // --ref to the repo's *default* branch (not the one you're on), so the pasted command would
+        // silently target master. Any lookup failure leaves a fill-in placeholder.
+        private static (string Repo, string Branch) ResolveRepoAndBranch()
+        {
+            var repo = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+            var branch = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
+            if (!string.IsNullOrEmpty(repo) && !string.IsNullOrEmpty(branch))
+                return (repo, branch);
+
+            try
+            {
+                var root = GetTestsRootDirectory();
+                if (string.IsNullOrEmpty(branch))
+                {
+                    var b = RunGit(root, "rev-parse --abbrev-ref HEAD");
+                    if (!string.IsNullOrEmpty(b) && b != "HEAD")    // omit on detached HEAD
+                        branch = b;
+                }
+                if (string.IsNullOrEmpty(repo))
+                {
+                    // Resolve the remote this branch *pushes to* (fork-aware), following git's own
+                    // precedence, not just origin: someone working from a fork pushes feature
+                    // branches there, so that's where `gh workflow run --ref <branch>` must dispatch.
+                    var remote = "";
+                    if (!string.IsNullOrEmpty(branch))
+                        remote = FirstNonEmpty(
+                            RunGit(root, $"config branch.{branch}.pushRemote"),
+                            RunGit(root, "config remote.pushDefault"),
+                            RunGit(root, $"config branch.{branch}.remote"));
+
+                    if (string.IsNullOrEmpty(remote))
+                    {
+                        // No push tracking. A lone remote is unambiguous; with several we can't tell
+                        // which fork this branch belongs to, so leave the owner as a "<owner>"
+                        // placeholder rather than guess origin (which may be upstream, not the fork).
+                        var remotes = RunGit(root, "remote")
+                            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        if (remotes.Length == 1)
+                            remote = remotes[0];
+                    }
+
+                    if (!string.IsNullOrEmpty(remote))
+                    {
+                        var m = Regex.Match(RunGit(root, $"remote get-url {remote}"),
+                            @"github\.com[:/](?<slug>[^/]+/[^/]+?)(?:\.git)?/?\s*$");
+                        if (m.Success)
+                            repo = m.Groups["slug"].Value;
+                    }
+                }
+            }
+            catch { /* git unavailable / not a repo (e.g. Android) — leave gh to deduce */ }
+
+            return (repo ?? "", branch ?? "");
+        }
+
+        private static string RunGit(string root, string args)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("git", $"-C \"{root}\" {args}")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var p = System.Diagnostics.Process.Start(psi);
+            if (p is null)
+                return "";
+            var output = p.StandardOutput.ReadToEnd().Trim();
+            if (!p.WaitForExit(2000))
+            {
+                try { p.Kill(); } catch { }
+                return "";
+            }
+            return p.ExitCode == 0 ? output : "";
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+            => values.FirstOrDefault(v => !string.IsNullOrEmpty(v)) ?? "";
 
         /// <summary>
         ///   Gets the root directory that contains the <c>tests</c> folder with reference and local images.

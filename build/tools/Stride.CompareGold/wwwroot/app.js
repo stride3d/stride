@@ -325,6 +325,14 @@ function buildSuiteImages(suite) {
   });
 }
 
+// New (no gold yet) and pending (still loading) count as "Failing" — both need a gold decision,
+// matching the failing count and Select Failing. The separate "New" filter still isolates new only.
+function passesStatusFilter(status, filter) {
+  if (!filter) return true;
+  if (filter === 'fail') return status === 'fail' || status === 'new' || status === 'pending';
+  return status === filter;
+}
+
 function renderTable() {
   const filter = document.getElementById('statusFilter').value;
 
@@ -345,7 +353,7 @@ function renderTable() {
 
   for (const suite of Object.keys(suiteData).sort()) {
     let images = buildSuiteImages(suite);
-    if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
+    if (filter) images = images.filter(i => passesStatusFilter(i.status, filter));
     if (search) images = images.filter(i => i.name.toLowerCase().includes(search));
     if (images.length === 0) continue;
 
@@ -1075,7 +1083,7 @@ function toggleSelect(name) {
 function toggleSelectSuite(suite, checked) {
   const filter = document.getElementById('statusFilter').value;
   let images = buildSuiteImages(suite);
-  if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
+  if (filter) images = images.filter(i => passesStatusFilter(i.status, filter));
   images.forEach(i => {
     const key = `${i.suite}:${i.name}`;
     if (checked) selected.add(key); else selected.delete(key);
@@ -1091,7 +1099,7 @@ function toggleSelectAll() {
   const filter = document.getElementById('statusFilter').value;
   for (const suite of Object.keys(suiteData)) {
     let images = buildSuiteImages(suite);
-    if (filter) images = images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending'));
+    if (filter) images = images.filter(i => passesStatusFilter(i.status, filter));
     images.forEach(i => {
       const key = `${i.suite}:${i.name}`;
       if (checked) selected.add(key); else selected.delete(key);
@@ -1110,11 +1118,16 @@ function getMaxDiffForImage(img) {
   return null;
 }
 
+// "Select Failing/Fixable" ignore the status dropdown (the button itself defines the status — and
+// fixable rows pass, so a status filter would hide them) but honour the search box, so they select
+// within the name-narrowed scope you're looking at rather than across the whole suite list.
 function selectAllFailing() {
   selected.clear();
+  const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
   for (const suite of Object.keys(suiteData)) {
-    const images = buildSuiteImages(suite);
-    images.filter(i => i.status === 'fail' || i.status === 'new').forEach(i => selected.add(`${i.suite}:${i.name}`));
+    let images = buildSuiteImages(suite).filter(i => i.status === 'fail' || i.status === 'new');
+    if (search) images = images.filter(i => i.name.toLowerCase().includes(search));
+    images.forEach(i => selected.add(`${i.suite}:${i.name}`));
   }
   syncCheckboxes();
   updateSelectedCount();
@@ -1126,8 +1139,10 @@ function selectFixable() {
   // alternate gold) while still carrying a stale primary gold at the current
   // platform. Selecting them lets the user clean up those redundant primaries.
   selected.clear();
+  const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
   for (const suite of Object.keys(suiteData)) {
     for (const img of buildSuiteImages(suite)) {
+      if (search && !img.name.toLowerCase().includes(search)) continue;
       const fixKey = `${img.suite}:${img.name}`;
       if (fixableVia[fixKey]) selected.add(fixKey);
     }
@@ -1235,7 +1250,7 @@ function syncCheckboxes() {
     if (!cb) return;
     const images = buildSuiteImages(suite);
     const filter = document.getElementById('statusFilter').value;
-    const filtered = filter ? images.filter(i => i.status === filter || (filter === 'fail' && i.status === 'pending')) : images;
+    const filtered = filter ? images.filter(i => passesStatusFilter(i.status, filter)) : images;
     const keys = filtered.map(i => `${i.suite}:${i.name}`);
     const allSel = keys.length > 0 && keys.every(k => selected.has(k));
     const someSel = !allSel && keys.some(k => selected.has(k));
@@ -1272,10 +1287,12 @@ function updateSuiteBadges() {
 }
 
 function updateActionCounts() {
+  // Scoped to the search box so the counts match what Select Failing/Fixable would select.
+  const search = (document.getElementById('searchFilter')?.value || '').toLowerCase();
   let failCount = 0, fixableCount = 0;
   for (const suite of Object.keys(suiteData)) {
-    const images = buildSuiteImages(suite);
-    for (const i of images) {
+    for (const i of buildSuiteImages(suite)) {
+      if (search && !i.name.toLowerCase().includes(search)) continue;
       if (i.status === 'fail' || i.status === 'new') failCount++;
       if (fixableVia[`${i.suite}:${i.name}`]) fixableCount++;
     }
@@ -1410,11 +1427,14 @@ async function loadCiRuns() {
     const allRuns = await res.json();
     // Deduplicate by (repo, SHA) — keep one per commit per repo, prefer the CI workflow.
     // Different forks at the same SHA still get separate rows so the user can tell them apart.
+    // Test Gold Generation runs are launched deliberately to review freshly generated gold, so
+    // they get their own key and are never collapsed into the umbrella CI run at the same SHA.
     const seen = new Map();
     for (const run of allRuns) {
       const repo = run.repo ?? 'stride3d/stride';
-      const key = `${repo}|${run.head_sha ?? ''}`;
       const name = run.name ?? '';
+      const goldGen = name === 'Test Gold Generation';
+      const key = `${repo}|${run.head_sha ?? ''}${goldGen ? '|goldgen' : ''}`;
       if (!seen.has(key) || name === 'CI')
         seen.set(key, run);
     }

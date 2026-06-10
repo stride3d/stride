@@ -34,6 +34,10 @@ public partial class App : Avalonia.Application
     //   adb shell am start --es xunit_command run --ez xunit_exit_on_complete true
     public static bool HeadlessMode;
 
+    // Optional vstest --filter expression for headless runs (Android/iOS launcher reads it from
+    // the launch Intent: --es xunit_filter "<expr>"). Null/empty runs the whole suite.
+    public static string? HeadlessFilter;
+
     // SingleView VM kept here so MainActivity can drive a headless run after Avalonia init
     // (in Avalonia 12 the lifetime starts in the custom Application class, well before
     // MainActivity.OnCreate gets a chance to read the launch Intent).
@@ -104,7 +108,13 @@ public partial class App : Avalonia.Application
         {
             await vm.DiscoveryTask;
             if (vm.TestCases.Count > 0)
-                await vm.RunTestsAsync(vm.TestCases[0]);
+            {
+                var predicate = StrideXunitRunner.ParseVstestFilter(HeadlessFilter ?? "");
+                if (predicate is not null)
+                    await vm.RunFilteredAsync(predicate);
+                else
+                    await vm.RunTestsAsync(vm.TestCases[0]);
+            }
             System.Environment.Exit(vm.FailedCount > 0 ? 1 : 0);
         });
     }

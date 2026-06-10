@@ -12,6 +12,14 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj path to build/test (blank = whole GPU + Runtime solutions)'
+        type: string
+        default: ''
       commit-sha:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
@@ -21,9 +29,20 @@ on:
       build-type:
         default: Debug
         type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
       commit-sha:
         default: ''
         type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
   repository_dispatch:
     # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
     types: [test-macos-game]
@@ -62,9 +81,15 @@ jobs:
           echo "VK_LAYER_PATH=$(brew --prefix vulkan-validationlayers)/share/vulkan/explicit_layer.d" >> $GITHUB_ENV
           echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib" >> $GITHUB_ENV
           echo "MVK_CONFIG_LOG_LEVEL=3" >> $GITHUB_ENV
+      - name: Resolve build/test target
+        run: |
+          # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU + Runtime solutions.
+          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          echo "STRIDE_TEST_TARGET=${PROJ:-build/Stride.Tests.Game.GPU.slnf}" >> "$GITHUB_ENV"
+          echo "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}" >> "$GITHUB_ENV"
       - name: Build GPU tests
         run: |
-          dotnet build build/Stride.Tests.Game.GPU.slnf \
+          dotnet build "$STRIDE_TEST_TARGET" \
             -p:StrideTestRuntimeIdentifier=osx-arm64 \
             -p:StrideSkipAutoPack=true \
             -nr:false \
@@ -73,6 +98,7 @@ jobs:
             -p:StridePlatforms=macOS \
             -p:StrideGraphicsApis=Vulkan
       - name: Build non-GPU game tests
+        if: ${{ (github.event.inputs.project || inputs.project) == '' }}
         run: |
           dotnet build build/Stride.Tests.Game.Runtime.slnf \
             -p:StrideTestRuntimeIdentifier=osx-arm64 \
@@ -84,16 +110,21 @@ jobs:
             -p:StrideGraphicsApis=Vulkan
       - name: Test GPU
         if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
-          dotnet test build/Stride.Tests.Game.GPU.slnf \
+          FILTER_ARG=()
+          if [ -n "$STRIDE_TEST_FILTER" ]; then FILTER_ARG=(--filter "$STRIDE_TEST_FILTER"); fi
+          dotnet test "$STRIDE_TEST_TARGET" \
             --no-build \
             --logger:trx --results-directory TestResults \
             --blame-hang-timeout 5m --blame-hang-dump-type full \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StrideGraphicsApis=Vulkan \
+            "${FILTER_ARG[@]}" \
             -- RunConfiguration.MaxCpuCount=1
       - name: Test non-GPU
-        if: always()
+        if: ${{ always() && (github.event.inputs.project || inputs.project) == '' }}
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
           dotnet test build/Stride.Tests.Game.Runtime.slnf \
             --no-build \
@@ -111,6 +142,9 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+          # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
+          # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
