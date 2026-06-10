@@ -32,7 +32,8 @@ param(
     [int]$InactivityTimeoutSeconds = 300,                  # fast-fail: kill if the logcat capture sees no new bytes for this long (test hung — GPU lockup, native crash with no exit, etc.)
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
     [switch]$StreamLogcat,                                 # also tee Stride-tag logcat to console (local interactive use)
-    [string]$Filter                                        # optional vstest --filter expr passed on to the on-device runner
+    [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
+    [int]$Repeat = 1                                       # rerun the filtered set up to N times (stop on first fail)
 )
 if ($Avd -and -not $Port) { throw "-Avd requires -Port (even, e.g. 5556)." }
 
@@ -305,6 +306,7 @@ if ($StreamLogcat) {
 Write-Host "Launching with xunit_command=run$(if ($Filter) { " xunit_filter=$Filter" })..."
 $amArgs = @('shell', 'am', 'start', '-W', '-n', $activity, '--es', 'xunit_command', 'run', '--ez', 'xunit_exit_on_complete', 'true')
 if ($Filter) { $amArgs += @('--es', 'xunit_filter', $Filter) }
+if ($Repeat -gt 1) { $amArgs += @('--es', 'xunit_repeat', "$Repeat") }
 Invoke-Adb @amArgs | Out-Null
 
 # 8. Wait for process to exit (heuristic: pidof goes empty).

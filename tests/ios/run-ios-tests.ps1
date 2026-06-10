@@ -25,6 +25,7 @@ param(
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
     [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
+    [int]$Repeat = 1,                                      # rerun the filtered set up to N times (stop on first fail)
     [switch]$KeepSimulator,                                # don't shutdown a simulator we booted
     [switch]$StreamLog                                     # also tee live log to console (CI live status / local interactive)
 )
@@ -181,6 +182,7 @@ if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $R
 # `simctl launch` returns immediately with the PID; we poll for exit below.
 $launchArgs = @('launch', $udid, $Package, '--xunit-command', 'run', '--xunit-exit-on-complete', 'true')
 if ($Filter) { $launchArgs += @('--xunit-filter', $Filter) }
+if ($Repeat -gt 1) { $launchArgs += @('--xunit-repeat', "$Repeat") }
 $launchOut = & xcrun simctl @launchArgs 2>&1
 if ($LASTEXITCODE -ne 0) { throw "simctl launch failed: $launchOut" }
 # Output is like "com.stride.engine.tests: 12345"

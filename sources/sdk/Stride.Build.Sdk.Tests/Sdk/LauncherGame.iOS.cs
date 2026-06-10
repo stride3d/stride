@@ -44,6 +44,8 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
                 App.HeadlessMode = true;
             else if (args[i] == "--xunit-filter")
                 App.HeadlessFilter = args[i + 1];
+            else if (args[i] == "--xunit-repeat")
+                App.HeadlessRepeat = args[i + 1];
         }
 
         return base.CustomizeAppBuilder(builder).WithInterFont();
