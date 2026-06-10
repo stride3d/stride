@@ -28,6 +28,10 @@ on:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
         default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       build-type:
@@ -45,6 +49,9 @@ on:
       # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
       # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
       tolerate-test-failures:
+        default: false
+        type: boolean
+      upload-binlog:
         default: false
         type: boolean
   repository_dispatch:
@@ -168,12 +175,22 @@ jobs:
           dotnet build "$ANDROID_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Android \
             -p:EmbedAssembliesIntoApk=true \
             -p:AndroidUseSharedRuntime=false \
             -p:_AndroidNdkDirectory="$ANDROID_NDK_ROOT" \
             || echo "::warning::Build had failures — test step will run whichever APKs were produced"
+
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-android-game
+          path: build.binlog
+          if-no-files-found: ignore
 
       - name: Enable KVM
         # Hosted ubuntu runners expose /dev/kvm but the device node has restrictive perms

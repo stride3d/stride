@@ -16,11 +16,18 @@ on:
         options:
           - Debug
           - Release
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      upload-binlog:
+        default: false
+        type: boolean
   repository_dispatch:
     types: [test-windows-game-api-neutral]
 
@@ -55,10 +62,19 @@ jobs:
             -p:StrideNativeBuildMode=Clang `
             -p:StrideSkipAutoPack=true `
             -nr:false `
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-api-neutral
+          path: build.binlog
+          if-no-files-found: ignore
       - name: Test
         run: |
           dotnet test build\Stride.Tests.Game.slnf `

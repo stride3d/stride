@@ -37,6 +37,10 @@ on:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
         default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       build-type:
@@ -57,6 +61,9 @@ on:
       # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
       # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
       tolerate-test-failures:
+        default: false
+        type: boolean
+      upload-binlog:
         default: false
         type: boolean
   repository_dispatch:
@@ -157,11 +164,20 @@ jobs:
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideSkipAutoPack=true `
             -nr:false `
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-game-${{ matrix.graphics-api }}
+          path: build.binlog
+          if-no-files-found: ignore
       - name: Test
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
