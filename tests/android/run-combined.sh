@@ -28,6 +28,8 @@ CONFIGURATION="${1:-Debug}"
 # Optional vstest --filter expression, forwarded to the on-device runner via the launch Intent
 # (xunit_filter extra). Matches run-suites.sh's signature so the workflow driver call is uniform.
 FILTER="${2:-$ANDROID_TEST_FILTER}"
+# Optional repeat count (flake hunting), forwarded as the xunit_repeat extra.
+REPEAT="${3:-1}"
 
 mkdir -p TestResults
 
@@ -47,7 +49,8 @@ pwsh tests/android/run-android-tests.ps1 \
     -Apk "$APK" \
     -ResultsDir "$PWD/tests/local" \
     -KeepEmulator \
-    ${FILTER:+-Filter "$FILTER"} &
+    ${FILTER:+-Filter "$FILTER"} \
+    -Repeat "$REPEAT" &
 CHILD_PID=$!
 # `|| EXIT=$?` keeps set -e from killing the script here on test failure —
 # the TRX flatten below must run so the report still publishes on red runs.

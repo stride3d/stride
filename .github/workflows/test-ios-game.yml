@@ -36,6 +36,10 @@ on:
         description: 'Combine all test suites into one .app (faster build/install/run); false = per-suite .apps'
         default: true
         type: boolean
+      repeat:
+        description: 'Rerun the filtered test set up to N times in-process, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
@@ -61,6 +65,9 @@ on:
       use-combined:
         default: true
         type: boolean
+      repeat:
+        type: number
+        default: 1
   repository_dispatch:
     types: [test-ios-game]
 
@@ -200,6 +207,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path TestResults | Out-Null
           $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $repeat = "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
           # IOS_TEST_SUITES is single-line (Combined / project=set) OR multi-line (slnf path).
           # Loop over them — one suite means one launch (matches the Combined case identically).
           $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
@@ -225,6 +233,7 @@ jobs:
                   '-StreamLog'
               )
               if ($filter) { $driverArgs += @('-Filter', $filter) }
+              if ([int]$repeat -gt 1) { $driverArgs += @('-Repeat', $repeat) }
               & pwsh tests/ios/run-ios-tests.ps1 @driverArgs
               if ($LASTEXITCODE -ne 0 -and $worstExit -eq 0) { $worstExit = $LASTEXITCODE }
               Write-Host "::endgroup::"

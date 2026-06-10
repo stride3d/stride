@@ -38,6 +38,10 @@ public partial class App : Avalonia.Application
     // the launch Intent: --es xunit_filter "<expr>"). Null/empty runs the whole suite.
     public static string? HeadlessFilter;
 
+    // Optional --repeat N: run the filtered set up to N times, stop on first failed iteration.
+    // String so empty/missing == default 1 (parsed in RunHeadless).
+    public static string? HeadlessRepeat;
+
     // SingleView VM kept here so MainActivity can drive a headless run after Avalonia init
     // (in Avalonia 12 the lifetime starts in the custom Application class, well before
     // MainActivity.OnCreate gets a chance to read the launch Intent).
@@ -109,10 +113,10 @@ public partial class App : Avalonia.Application
         {
             try
             {
-                var args = string.IsNullOrEmpty(HeadlessFilter)
-                    ? Array.Empty<string>()
-                    : new[] { "--filter", HeadlessFilter };
-                var exit = StrideXunitRunner.RunHeadless(args);
+                var argList = new List<string>();
+                if (!string.IsNullOrEmpty(HeadlessFilter)) { argList.Add("--filter"); argList.Add(HeadlessFilter); }
+                if (!string.IsNullOrEmpty(HeadlessRepeat)) { argList.Add("--repeat"); argList.Add(HeadlessRepeat); }
+                var exit = StrideXunitRunner.RunHeadless(argList.ToArray());
                 System.Environment.Exit(exit);
             }
             catch (Exception ex)

@@ -53,6 +53,7 @@ public static class StrideXunitRunner
     internal static int RunHeadless(string[] args)
     {
         var filter = ParseVstestFilter(args);
+        var repeat = ParseRepeat(args);
         // Always discover: a single-suite host has just the entry assembly; the Combined host
         // (Stride.Tests.Combined) has 0 [Fact]s of its own and must load every inner suite.
         IReadOnlyList<Assembly> assemblies = DiscoverTestAssemblies();
@@ -81,21 +82,39 @@ public static class StrideXunitRunner
                 ? $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}"
                 : $"Discovered {discoverySink.TestCases.Count} tests in {testAssembly.GetName().Name}, running {testCases.Count} after --filter");
 
-            using var executionSink = new ConsoleExecutionSink();
-            using var trxSink = new TrxWriter();
-            var composite = new CompositeSink(executionSink, trxSink);
-            controller.RunTests(testCases, composite, TestFrameworkOptions.ForExecution());
-            executionSink.Finished.WaitOne();
-            trxSink.Finished.WaitOne();
+            // --repeat=N: run the filtered set up to N times, stop on first failed iteration.
+            // Pass = N consecutive greens, fail = trx captures the failing iteration (no entry-
+            // count inflation for downstream test reporters). Fresh TrxWriter per iteration so
+            // a clean pass only persists the last run's results.
+            int iterTotal = 0, iterPassed = 0, iterFailed = 0, iterSkipped = 0;
+            decimal iterTime = 0m;
+            TrxWriter lastTrxSink = null!;
+            for (int iter = 0; iter < repeat; iter++)
+            {
+                if (repeat > 1)
+                    Console.WriteLine($"  iteration {iter + 1}/{repeat}");
+                using var executionSink = new ConsoleExecutionSink();
+                var trxSink = new TrxWriter();
+                lastTrxSink = trxSink;
+                var composite = new CompositeSink(executionSink, trxSink);
+                controller.RunTests(testCases, composite, TestFrameworkOptions.ForExecution());
+                executionSink.Finished.WaitOne();
+                trxSink.Finished.WaitOne();
+                iterTotal   = executionSink.Total;
+                iterPassed  = executionSink.Passed;
+                iterFailed  = executionSink.Failed;
+                iterSkipped = executionSink.Skipped;
+                iterTime    = executionSink.ExecutionTime;
+                if (iterFailed > 0) break;
+            }
+            lastTrxSink.WriteTo(GetTrxPath(testAssembly));
 
-            trxSink.WriteTo(GetTrxPath(testAssembly));
-
-            total   += executionSink.Total;
-            passed  += executionSink.Passed;
-            failed  += executionSink.Failed;
-            skipped += executionSink.Skipped;
-            totalTime += executionSink.ExecutionTime;
-            Console.WriteLine($"  {testAssembly.GetName().Name}: total={executionSink.Total} passed={executionSink.Passed} failed={executionSink.Failed} skipped={executionSink.Skipped}");
+            total   += iterTotal;
+            passed  += iterPassed;
+            failed  += iterFailed;
+            skipped += iterSkipped;
+            totalTime += iterTime;
+            Console.WriteLine($"  {testAssembly.GetName().Name}: total={iterTotal} passed={iterPassed} failed={iterFailed} skipped={iterSkipped}");
         }
 
         Console.WriteLine($"Total: {total}, Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Time: {totalTime:F2}s");
@@ -135,6 +154,21 @@ public static class StrideXunitRunner
                 result.Add(a);
         }
         return result;
+    }
+
+    // --repeat=N or "--repeat N": run the filtered test set N times in the same process.
+    // Default 1. Used to catch sporadic failures (decoder timing, GPU race) cheaply — one
+    // assembly load + one runner setup + N executions of the same case list.
+    private static int ParseRepeat(string[] args)
+    {
+        for (int i = 0; i < args.Length; i++)
+        {
+            string? value = null;
+            if (args[i] == "--repeat" && i + 1 < args.Length) value = args[i + 1];
+            else if (args[i].StartsWith("--repeat=", StringComparison.Ordinal)) value = args[i]["--repeat=".Length..];
+            if (value != null && int.TryParse(value, out var n) && n >= 1) return n;
+        }
+        return 1;
     }
 
     // Minimal `dotnet test --filter` / VSTest filter parser: single binary op `<Property><op><Value>`

@@ -36,6 +36,10 @@ on:
         description: 'Combine all test suites into one APK (faster build/install/run); false = per-suite APKs'
         default: true
         type: boolean
+      repeat:
+        description: 'Rerun the filtered test set up to N times in-process, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
@@ -61,6 +65,9 @@ on:
       use-combined:
         default: true
         type: boolean
+      repeat:
+        type: number
+        default: 1
   repository_dispatch:
     types: [test-android-game]
   schedule:
@@ -245,7 +252,7 @@ jobs:
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
           # shell blocks break with "unexpected end of file". The driver lives in a standalone
           # script — Combined or per-suite — chosen by the Resolve step above.
-          script: bash "$ANDROID_RUN_SCRIPT" "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          script: bash "$ANDROID_RUN_SCRIPT" "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}" "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
 
       - name: Publish Test Report
         if: always()
