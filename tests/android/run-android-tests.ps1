@@ -25,9 +25,11 @@ param(
     [string]$Avd,                                          # AVD name to boot if no device is connected
     [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
     [int]$Port,                                            # emulator console port for cold-boot via -Avd (even; required with -Avd).
-    [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
+    [int]$TimeoutSeconds = 900,                            # max wait for tests to finish (15 min: combined suite finishes well under this on healthy emulator)
     [int]$ConnectTimeoutSeconds = 60,                      # max wait for adb connect + device online (near-instant vs a live emulator; generous headroom for adb cold-start / relay)
     [int]$BootTimeoutSeconds = 300,                        # max wait for sys.boot_completed (only relevant when we cold-boot)
+    [int]$StartupTimeoutSeconds = 120,                     # fast-fail: if `am start` never produces a visible pid (broken emulator/GPU), abort before the full TimeoutSeconds wait
+    [int]$InactivityTimeoutSeconds = 300,                  # fast-fail: kill if the logcat capture sees no new bytes for this long (test hung — GPU lockup, native crash with no exit, etc.)
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
     [switch]$StreamLogcat,                                 # also tee Stride-tag logcat to console (local interactive use)
     [string]$Filter                                        # optional vstest --filter expr passed on to the on-device runner
@@ -305,20 +307,53 @@ $amArgs = @('shell', 'am', 'start', '-W', '-n', $activity, '--es', 'xunit_comman
 if ($Filter) { $amArgs += @('--es', 'xunit_filter', $Filter) }
 Invoke-Adb @amArgs | Out-Null
 
-# 8. Wait for process to exit (heuristic: pidof goes empty)
-Write-Host "Waiting for process to exit (timeout: ${TimeoutSeconds}s)..."
+# 8. Wait for process to exit (heuristic: pidof goes empty).
+# Three guards: startup (process never appears), inactivity (the app produces no log lines —
+# test hung after partial progress; on broken emulator GPU, Vulkan device creation blocks
+# in-kernel and the app stays alive but silent), and total deadline. Filter by PID rather
+# than total log volume — system processes log continuously and would mask a hung app.
+Write-Host "Waiting for process to exit (startup<= ${StartupTimeoutSeconds}s, idle<= ${InactivityTimeoutSeconds}s, total<= ${TimeoutSeconds}s)..."
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+$startupDeadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
 $lastPid = $null
+$pidLogcatPath = $null
+$pidLogcatProc = $null
+$lastPidLogcatSize = -1
+$lastPidLogcatGrowth = Get-Date
 while ((Get-Date) -lt $deadline) {
     $procPid = (Invoke-Adb shell pidof $Package 2>$null) -replace '\s', ''
     if (-not $procPid) {
         if ($lastPid) { break }   # we saw it running, now it's gone
-        # not yet started -- give it a moment
+        if ((Get-Date) -ge $startupDeadline) {
+            throw "Process $Package never appeared within $StartupTimeoutSeconds seconds (emulator/GPU likely broken)."
+        }
     } else {
+        # First sighting: start a pid-filtered logcat alongside the full one so inactivity
+        # tracks app activity, not device-wide chatter.
+        if (-not $lastPid) {
+            $pidLogcatPath = Join-Path $parentDir "$Package.pid$procPid.logcat.txt"
+            $pidArgs = @{
+                FilePath               = $adb
+                ArgumentList           = @('-s', $Serial, 'logcat', '-v', 'threadtime', "--pid=$procPid")
+                RedirectStandardOutput = $pidLogcatPath
+                PassThru               = $true
+            }
+            if ($IsWindows) { $pidArgs.WindowStyle = 'Hidden' }
+            $pidLogcatProc = Start-Process @pidArgs
+            $lastPidLogcatGrowth = Get-Date
+        }
         $lastPid = $procPid
+        $size = if ($pidLogcatPath) { (Get-Item $pidLogcatPath -ErrorAction SilentlyContinue).Length } else { $null }
+        if ($size -ne $null -and $size -gt $lastPidLogcatSize) {
+            $lastPidLogcatSize = $size
+            $lastPidLogcatGrowth = Get-Date
+        } elseif (((Get-Date) - $lastPidLogcatGrowth).TotalSeconds -ge $InactivityTimeoutSeconds) {
+            throw "Process $Package alive but produced no log output for $InactivityTimeoutSeconds seconds (likely hung in Vulkan init or similar; killing)."
+        }
     }
     Start-Sleep -Seconds 3
 }
+if ($pidLogcatProc -and -not $pidLogcatProc.HasExited) { try { $pidLogcatProc.Kill() } catch { } }
 if ((Get-Date) -ge $deadline) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
