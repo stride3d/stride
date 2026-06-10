@@ -2,6 +2,6 @@ msdfgen v1.12
 Repository: https://github.com/Chlumsky/msdfgen
 Commit: 85e8b3d47b3d1a42e4a5ebda0a24fb1cc2e669e0
 FreeType: VER-2-13-3
-Stride: https://github.com/xen2/stride @ 772066770fb579eb3f2f5321bc68c67bc7d11815
-Built: 2026-05-19
-Workflow: https://github.com/xen2/stride/actions/runs/26072337268
+Stride: https://github.com/xen2/stride @ ba0d30302e6aa25f9f369d41781539747a09b133
+Built: 2026-06-09
+Workflow: https://github.com/xen2/stride/actions/runs/27241762173

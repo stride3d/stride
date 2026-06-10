@@ -12,7 +12,7 @@ namespace Stride.Graphics.Tests
 {
     public class TestSpriteFont(string assetPrefix, string saveImageSuffix) : GraphicTestGameBase
     {
-        private SpriteBatch spriteBatch;
+        protected SpriteBatch spriteBatch;
 
         private SpriteFont notoSans18;
         private SpriteFont notoSans13;
