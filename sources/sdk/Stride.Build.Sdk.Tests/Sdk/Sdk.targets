@@ -15,15 +15,18 @@
        Windows / Linux / macOS all collapse to the cross-platform desktop $(StrideFramework). -->
   <PropertyGroup Condition="'$(StrideTestPlatforms)' != ''">
     <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
+    <!-- Game = host-loadable library TFM (test analog of MyGame.Game.dll); the asset compiler loads
+         the suite and its refs at the host TFM, so auto-add it for mobile-only platform lists (a desktop
+         platform fills that role when present). Opt out with StrideTestRequiresHostAssembly=false. -->
+    <_StrideTestPlatforms Condition="'$(StrideTestRequiresHostAssembly)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
     <_StrideTestTargetFrameworks></_StrideTestTargetFrameworks>
-    <!-- net10.0 desktop TFM: cross-platform desktop testing (Linux/macOS), Windows-only without
-         mobile, or shadow host TFM on Linux/macOS host when targeting mobile (so ProjectReferences
-         build for the host AssetCompiler that loads them at compile time). -->
+    <!-- net10.0 desktop TFM: runnable on Linux/macOS, runnable on Windows without mobile,
+         or the Game library shadow (asset-compiler-only, no launcher). -->
     <_StrideTestTargetFrameworks Condition="
         $(_StrideTestPlatforms.Contains(';Linux;'))
         Or $(_StrideTestPlatforms.Contains(';macOS;'))
         Or ($(_StrideTestPlatforms.Contains(';Windows;')) And !($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))))
-        Or (!$([MSBuild]::IsOSPlatform(Windows)) And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))))
+        Or $(_StrideTestPlatforms.Contains(';Game;'))
     ">$(_StrideTestTargetFrameworks)$(StrideFramework);</_StrideTestTargetFrameworks>
     <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Windows;')) And '$([MSBuild]::IsOSPlatform(Windows))' == 'true' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))">$(_StrideTestTargetFrameworks)$(StrideFrameworkWindows);</_StrideTestTargetFrameworks>
     <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Android;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkAndroid);</_StrideTestTargetFrameworks>
@@ -35,9 +38,9 @@
     <TargetFrameworks>$([MSBuild]::Unescape($(_StrideTestTargetFrameworks.TrimEnd(';'))))</TargetFrameworks>
   </PropertyGroup>
 
-  <!-- Shadow host TFM exists only to dispatch ProjectReferences for the AssetCompiler.
-       Skip asset compile + APK packaging on it. -->
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')) Or ($(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'))">
+  <!-- Game TFM is asset-compiler-load-only: skip asset compile + APK packaging on it.
+       Also fires when macOS opted in with StrideExplicitMacOSRuntime on the shared net10.0 TFM. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And ($(_StrideTestPlatforms.Contains(';Game;')) Or ($(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'))">
     <StrideCompilerSkipBuild>true</StrideCompilerSkipBuild>
   </PropertyGroup>
 
@@ -84,6 +87,20 @@
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">macOS</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
+    <!-- net10.0 + Game in test platforms: tag StridePlatform=Game so the host-loadable
+         library TFM gets its own output folder (bin/Tests/.../Game-Vulkan/) instead of
+         colliding with net10.0-macos on darwin host (which would otherwise both resolve
+         StridePlatform=macOS via Stride.Platform.props's host fallback). Game is suppressed
+         when a runnable host (Linux/macOS/Windows-without-mobile) is also in the list: the
+         runnable's net10.0 .dll is already host-loadable by CompilerApp, so Game would be
+         redundant and would clobber the runnable's StridePlatform identity. -->
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' And $(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !($(_StrideTestPlatforms.Contains(';Windows;')) And !($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))) ">Game</StridePlatform>
+  </PropertyGroup>
+
+  <!-- Game is a host-loadable library shadow with no runner / no entry point. Override the
+       props default (WinExe) so CoreCompile doesn't demand a Main. -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Game'">
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <!-- WinExe (set in props) doesn't trigger APK packaging on Android — switch to Exe.
@@ -182,6 +199,12 @@
     <StrideGraphicsApis>Vulkan</StrideGraphicsApis>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
+  <!-- Game's StridePlatform is set above in this file (after Sdk.props ran), so Sdk.props's
+       IntermediateOutputPath used the host fallback (e.g. obj/macOS-Vulkan/) which collides with
+       the real net10.0-macos TFM. Recompute now that StridePlatform=Game is resolved. -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Game' ">
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
@@ -207,8 +230,9 @@
   <!-- Microsoft.NET.Test.Sdk and xunit.runner.visualstudio are dotnet test / VS Test Explorer
        integration. Skip on Android+iOS: VSTest can't reach the simulator/device-side process
        (we drive the .app/APK via our own runner), the deps would just bloat the bundle, and
-       on Android they also break the xunit.abstractions bundling into libxamarin-app.so. -->
-  <ItemGroup Condition="'$(StridePlatform)' != 'Android' And '$(StridePlatform)' != 'iOS'">
+       on Android they also break the xunit.abstractions bundling into libxamarin-app.so.
+       Skip on Game: it's the host-loadable library shadow, never run via dotnet test. -->
+  <ItemGroup Condition="'$(StridePlatform)' != 'Android' And '$(StridePlatform)' != 'iOS' And '$(StridePlatform)' != 'Game'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
     <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
       <PrivateAssets>all</PrivateAssets>
@@ -339,6 +363,20 @@
       <GlobalPropertiesToRemove>%(GlobalPropertiesToRemove);IncludeXunitLauncher;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
+
+  <!-- Force the Game inner build to finish before any peer TFM (Android/iOS/macOS) runs
+       StrideCompileAsset. CompilerApp resolves the project's TargetPath via VSProjectHelper
+       which picks TargetFrameworks.First() — that's $(StrideFramework) = Game. Cross-targeting
+       dispatches inner builds in parallel by default, so without this barrier a peer TFM's
+       compile-asset step can race ahead of Game finishing. Re-entering the same csproj is
+       cached by MSBuild — no-op if Game is already built, blocking barrier otherwise. -->
+  <Target Name="_StrideWaitForGameInnerBuild"
+          BeforeTargets="StrideCompileAsset"
+          Condition="$(_StrideTestPlatforms.Contains(';Game;')) And '$(StridePlatform)' != 'Game' And '$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Build"
+             Properties="TargetFramework=$(StrideFramework)" />
+  </Target>
 
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
