@@ -1425,18 +1425,16 @@ async function loadCiRuns() {
     }
     const res = await fetch('/api/ci/runs?limit=30');
     const allRuns = await res.json();
-    // Deduplicate by (repo, SHA) — keep one per commit per repo, prefer the CI workflow.
-    // Different forks at the same SHA still get separate rows so the user can tell them apart.
-    // Test Gold Generation runs are launched deliberately to review freshly generated gold, so
-    // they get their own key and are never collapsed into the umbrella CI run at the same SHA.
+    // Deduplicate by (repo, SHA, workflow) so each platform-specific workflow at a SHA gets
+    // its own row (a commit with separate iOS + Android dispatches shows both). The "CI"
+    // umbrella collapses to one row across re-runs. Different forks at the same SHA also get
+    // separate rows. Latest run wins per key (allRuns is created_at desc).
     const seen = new Map();
     for (const run of allRuns) {
       const repo = run.repo ?? 'stride3d/stride';
       const name = run.name ?? '';
-      const goldGen = name === 'Test Gold Generation';
-      const key = `${repo}|${run.head_sha ?? ''}${goldGen ? '|goldgen' : ''}`;
-      if (!seen.has(key) || name === 'CI')
-        seen.set(key, run);
+      const key = `${repo}|${run.head_sha ?? ''}|${name}`;
+      if (!seen.has(key)) seen.set(key, run);
     }
     ciRuns = [...seen.values()].slice(0, 15);
     console.log('CI runs:', ciRuns);
