@@ -14,7 +14,7 @@
   </ItemGroup>
   <!-- Pin WARP for reproducible D3D11/D3D12 captures. -->
   <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">
-    <PackageReference Include="Microsoft.Direct3D.WARP" Version="1.0.18" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Direct3D.WARP" Version="1.0.20" GeneratePathProperty="true" />
     <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
              Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
              Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
