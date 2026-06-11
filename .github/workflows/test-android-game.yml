@@ -92,6 +92,15 @@ jobs:
       STRIDE_MAX_PARALLELISM: "8"
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
     steps:
+      # Hosted runners vary per VM (free space, CPU model, noisy neighbors); record the
+      # initial state to diagnose "No space left on device" failures and timing variance.
+      - name: Report runner resources
+        run: |
+          df -h /
+          nproc
+          lscpu | grep -E 'Model name|MHz' || true
+          free -h
+
       - uses: actions/checkout@v4
         with:
           lfs: true
