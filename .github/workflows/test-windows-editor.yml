@@ -63,11 +63,14 @@ jobs:
       DOTNET_DbgMiniDumpType: "1"
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          exclude: samples
 
       - uses: actions/setup-dotnet@v4
         with:

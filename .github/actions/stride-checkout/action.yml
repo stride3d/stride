@@ -1,0 +1,46 @@
+name: Stride checkout
+description: >-
+  Checkout with a sparse working tree and a matching trimmed LFS fetch. LFS ignores the
+  sparse tree when deciding what to fetch, so the exclusions are also fed to lfs.fetchexclude.
+  The sparse tree is applied after checkout rather than via the action's sparse-checkout
+  input: that input switches the fetch to blob:none, and git-lfs then faults in every
+  excluded path's pointer blob one round-trip at a time (minutes of serial fetches).
+  Callers must bootstrap .github with a plain sparse checkout first (a local action can't
+  check out the repo it lives in).
+
+inputs:
+  ref:
+    description: Ref to check out (passed to actions/checkout)
+    default: ''
+  exclude:
+    description: 'Comma-separated repo dirs to drop from the working tree and LFS fetch (empty = full checkout). Typical: samples,deps/LLVM — deps/LLVM is only used by Windows-host native builds.'
+    default: ''
+  fetch-depth:
+    description: Passed to actions/checkout
+    default: '1'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+        ref: ${{ inputs.ref }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    - name: Apply sparse working tree
+      if: inputs.exclude != ''
+      shell: bash
+      run: |
+        PATTERNS=('/*')
+        IFS=',' read -ra EXCLUDES <<< "${{ inputs.exclude }}"
+        for e in "${EXCLUDES[@]}"; do PATTERNS+=("!${e%/}/"); done
+        git sparse-checkout set --no-cone "${PATTERNS[@]}"
+
+    - name: Pull LFS
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.exclude }}" ]; then
+          git config lfs.fetchexclude '${{ inputs.exclude }}'
+        fi
+        git lfs pull
