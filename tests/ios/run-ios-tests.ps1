@@ -268,8 +268,13 @@ if ($anyTrx) { $anyTrx = (Get-ChildItem -Path $resultsOnDevice -Filter '*.trx' -
 if (-not $anyTrx) {
     $crashPath = Join-Path $ResultsDir "$Package.crashlog.txt"
     if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-    Write-Host "No TRX — extracting unified log for $Package from simulator -> $crashPath"
-    & xcrun simctl spawn $udid log show --predicate "process == '$Package'" --info --debug --last 5m 2>&1 | Set-Content $crashPath
+    # The log's process field is the executable name ($Suite), not the bundle id.
+    Write-Host "No TRX — extracting unified log for $Suite from simulator -> $crashPath"
+    & xcrun simctl spawn $udid log show --predicate "process == '$Suite'" --info --debug --last 5m 2>&1 | Set-Content $crashPath
+    # Simulator app crashes also land as .ips reports on the HOST.
+    Get-ChildItem "$HOME/Library/Logs/DiagnosticReports" -Filter "$Suite*.ips" -ErrorAction SilentlyContinue |
+        Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-1) } |
+        ForEach-Object { Copy-Item $_.FullName $ResultsDir -Force; Write-Host "Crash report: $($_.Name)" }
 }
 
 # 6. Pull TRX + images from the simulator's Documents/tests/local/ to $ResultsDir.
