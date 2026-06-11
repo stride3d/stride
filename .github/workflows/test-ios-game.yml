@@ -16,6 +16,14 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'vstest --filter expression forwarded to the on-device runner (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj to build/run (blank = Combined .app aggregating all suites)'
+        type: string
+        default: ''
       commit-sha:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
@@ -33,9 +41,20 @@ on:
       build-type:
         default: Debug
         type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
       commit-sha:
         default: ''
         type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
       upload-binlog:
         default: false
         type: boolean
@@ -113,11 +132,16 @@ jobs:
 
       - name: Resolve build target / suite
         run: |
-          # use-combined=true (default): Combined.csproj — all suites in one .app, one install,
-          # one process run (faster build/testing).
+          # `project` set (gold-gen: one suite only) → that .csproj's .app (~4 min build).
+          # Unset → use-combined=true (default): Combined.csproj — all suites in one .app,
+          # one install, one process run (faster build/testing).
           # use-combined=false → slnf build + per-suite .apps + per-suite install/run.
+          PROJ="${{ github.event.inputs.project || inputs.project }}"
           USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
-          if [ "$USE_COMBINED" = "true" ]; then
+          if [ -n "$PROJ" ]; then
+            echo "IOS_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
+            echo "IOS_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
+          elif [ "$USE_COMBINED" = "true" ]; then
             echo "IOS_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
             echo "IOS_TEST_SUITES=Stride.Tests.Combined" >> "$GITHUB_ENV"
           else
@@ -170,11 +194,13 @@ jobs:
 
       - name: Run tests on iOS Simulator
         shell: pwsh
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
           $ErrorActionPreference = 'Continue'
           New-Item -ItemType Directory -Force -Path TestResults | Out-Null
           $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
-          # IOS_TEST_SUITES is single-line (Combined) OR multi-line (slnf path).
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # IOS_TEST_SUITES is single-line (Combined / project=set) OR multi-line (slnf path).
           # Loop over them — one suite means one launch (matches the Combined case identically).
           $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
           $worstExit = 0
@@ -198,6 +224,7 @@ jobs:
                   '-KeepSimulator',
                   '-StreamLog'
               )
+              if ($filter) { $driverArgs += @('-Filter', $filter) }
               & pwsh tests/ios/run-ios-tests.ps1 @driverArgs
               if ($LASTEXITCODE -ne 0 -and $worstExit -eq 0) { $worstExit = $LASTEXITCODE }
               Write-Host "::endgroup::"
