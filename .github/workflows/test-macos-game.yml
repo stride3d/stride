@@ -1,6 +1,9 @@
 name: Test macOS Game (Vulkan)
 
-run-name: ${{ github.event.inputs.commit-sha != '' && format('Test macOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
+run-name: >-
+  ${{ (github.event.inputs.commit-sha != '' && format('Test macOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
+      || (github.event.inputs.test-filter != '' && 'Test macOS Game (Vulkan)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
 
 on:
   workflow_dispatch:
