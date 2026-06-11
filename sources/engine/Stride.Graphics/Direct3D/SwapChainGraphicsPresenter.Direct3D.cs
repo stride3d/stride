@@ -414,6 +414,10 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
+            // Drain the GPU before releasing the swap-chain and its buffers: the last Present may
+            // still be in flight, and DXGI only tears the swap-chain down once it completes.
+            GraphicsDevice.WaitForGpuIdle();
+
             // Manually update Back-Buffer Texture
             backBuffer.OnDestroyed(immediately);
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
