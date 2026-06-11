@@ -96,7 +96,9 @@
   <Target Name="_StrideSetupNativeLibraries" DependsOnTargets="_StrideBuildDependencies;GetCopyToOutputDirectoryItems"
           BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways;_CopyFilesMarkedCopyLocal"
           Condition="'$(StrideDependenciesCopy)' != 'false'">
-    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' ">
+    <!-- net10.0-macos also copies to the output dir: the .app gets dylibs via NativeReference
+         below, but test hosts (vstest) run the bare output dir and dlopen from there. -->
+    <ItemGroup Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">
       <!-- When RuntimeIdentifier is set, drop runtimes/<rid'>/native/X items whose <rid'> isn't ours
            and flatten the kept ones to the output root (matching .NET's RID-aware NuGet flattening).
            NativeLibraryHelper probes both the runtimes/<rid>/native/ subdir and the bare root, so
