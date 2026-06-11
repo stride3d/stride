@@ -17,7 +17,7 @@ function Test-PortFree([int]$p) {
     try { $l = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $p); $l.Start(); $l.Stop(); return $true }
     catch { return $false }
 }
-foreach ($p in @($Port, $Port + 1)) {
+foreach ($p in @($Port, ($Port + 1))) {
     if (-not (Test-PortFree $p)) { throw "Port $p already in use." }
 }
 
