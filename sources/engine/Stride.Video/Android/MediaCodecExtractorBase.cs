@@ -32,6 +32,9 @@ namespace Stride.Video
 
         //The media scheduler will check this field to determine whether he can stop waiting for the extractors getting ready
         public volatile bool isSeekRequestCompleted = true;
+
+        // Target of the seek being processed; catch-up output before it can be dropped by subclasses.
+        protected TimeSpan SeekTargetTime { get; private set; }
         
         private enum SchedulerAsyncCommandEnum
         {
@@ -205,6 +208,7 @@ namespace Stride.Video
         protected void SeekMediaAt(TimeSpan expectedTime)
         {
             isSeekRequestCompleted = false;
+            SeekTargetTime = expectedTime;
             MediaDecoder.Flush();
             mediaExtractor.SeekTo(expectedTime.TotalMicroSeconds(), MediaExtractorSeekTo.PreviousSync);
             inputExtractionDone = false;
