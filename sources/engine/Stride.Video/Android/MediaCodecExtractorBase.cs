@@ -80,6 +80,7 @@ namespace Stride.Video
 
         //Variables used for managing the synchornization and the main extraction loop
         private bool inputExtractionDone;
+        private bool inputQueuedSinceFlush;
         private volatile bool isEOF;
 
         protected MediaSynchronizer Scheduler { get; }
@@ -209,7 +210,13 @@ namespace Stride.Video
         {
             isSeekRequestCompleted = false;
             SeekTargetTime = expectedTime;
-            MediaDecoder.Flush();
+            // With no input queued the flush is a no-op, and flushing a just-started codec
+            // wedges the emulator's C2 decoder before its surface handshake completes.
+            if (inputQueuedSinceFlush)
+            {
+                MediaDecoder.Flush();
+                inputQueuedSinceFlush = false;
+            }
             mediaExtractor.SeekTo(expectedTime.TotalMicroSeconds(), MediaExtractorSeekTo.PreviousSync);
             inputExtractionDone = false;
             isEOF = false;
@@ -299,7 +306,9 @@ namespace Stride.Video
 
                 //=================================================================================================
                 //Extract video inputs
-                if (!inputExtractionDone)
+                // While stopped with no seek pending, outputs are not dequeued either, so feeding
+                // the decoder would only build up buffers that the next seek has to flush away.
+                if (!inputExtractionDone && (!isSeekRequestCompleted || currentState != SchedulerAsyncCommandEnum.Stop))
                 {
                     int inputBufIndex = MediaDecoder.DequeueInputBuffer(0);
                     if (inputBufIndex >= 0)
@@ -315,11 +324,13 @@ namespace Stride.Video
                                 throw new Exception($"Got media sample from track {mediaExtractor.SampleTrackIndex}, track expected {mediaTrackIndex}");
                             
                             MediaDecoder.QueueInputBuffer(inputBufIndex, 0, chunkSize, mediaExtractor.SampleTime, 0);
+                            inputQueuedSinceFlush = true;
                             mediaExtractor.Advance();
                         }
                         else // End of stream -- send empty frame with EOS flag set.
                         {
                             MediaDecoder.QueueInputBuffer(inputBufIndex, 0, 0, 0L, MediaCodecBufferFlags.EndOfStream);
+                            inputQueuedSinceFlush = true;
                             inputExtractionDone = true;
                         }
                     }
