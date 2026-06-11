@@ -170,8 +170,13 @@
       <!-- References file (all references) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
 
-      <!-- Platform -->
-      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform)</StrideAssemblyProcessorOptions>
+      <!-- Platform — Game is a test-SDK build-time TFM identity (host-loadable library shadow
+           for the asset compiler), not a runtime platform; AssemblyProcessor's PlatformType enum
+           doesn't know it. Map to Shared, which is the right answer for an asset-compiler-only
+           library that runs no platform-specific code paths. -->
+      <_StrideAssemblyProcessorPlatform>$(StridePlatform)</_StrideAssemblyProcessorPlatform>
+      <_StrideAssemblyProcessorPlatform Condition="'$(StridePlatform)' == 'Game'">Shared</_StrideAssemblyProcessorPlatform>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(_StrideAssemblyProcessorPlatform)</StrideAssemblyProcessorOptions>
 
       <!-- Target assembly (last positional argument) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>

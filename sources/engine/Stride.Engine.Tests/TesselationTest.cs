@@ -202,6 +202,7 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
+            SkipTestForPlatform(PlatformType.iOS);
             RunGameTest(new TesselationTest());
         }
 

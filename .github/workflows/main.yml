@@ -57,6 +57,7 @@ jobs:
     outputs:
       runtime: ${{ steps.filter.outputs.runtime || 'true' }}
       ios: ${{ steps.filter.outputs.ios || 'true' }}
+      ios-tests: ${{ steps.filter.outputs.ios-tests || 'true' }}
       android: ${{ steps.filter.outputs.android || 'true' }}
       full: ${{ steps.filter.outputs.full || 'true' }}
     steps:
@@ -86,6 +87,18 @@ jobs:
               - 'sources/sdk/**'
               - 'deps/**'
               - 'build/Stride.iOS.slnf'
+            # Strictly iOS-specific paths: shared engine / MoltenVK / AVFoundation code is
+            # already covered per-PR by macOS-Tests-Game on the cheaper macOS-vs-iOS surface.
+            ios-tests:
+              - 'sources/engine/Stride.Games/**'
+              - 'sources/**/*.iOS.*'
+              - 'sources/**/Platforms/iOS/**'
+              - 'sources/native/**'
+              - 'sources/sdk/**'
+              - 'tests/ios/**'
+              - 'tests/**/iOS.Vulkan/**'
+              - 'build/Stride.iOS.slnf'
+              - '.github/workflows/test-ios-game.yml'
             android:
               - 'sources/engine/Stride.Games/**'
               - 'sources/**/*.Android.*'
@@ -292,6 +305,21 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-macos-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # iOS Simulator tests run on macOS runners and take ~24 min, so PRs only trigger them on
+  # strictly iOS-specific paths (ios-tests filter); master pushes still run them per-commit.
+  iOS-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      always()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.ios-tests == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-ios-game.yml
     secrets: inherit
     with:
       build-type: Debug

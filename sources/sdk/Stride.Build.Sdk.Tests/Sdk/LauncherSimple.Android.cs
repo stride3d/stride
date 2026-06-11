@@ -38,6 +38,8 @@ public class MainActivity : AvaloniaMainActivity
             App.HeadlessMode = true;
             // Optional --es xunit_filter "<vstest --filter expr>" narrows the run to matching tests.
             App.HeadlessFilter = Intent.GetStringExtra("xunit_filter");
+            // Optional --es xunit_repeat "N" reruns the filtered set up to N times (stop on fail).
+            App.HeadlessRepeat = Intent.GetStringExtra("xunit_repeat");
             App.TryStartHeadlessRun();
         }
 

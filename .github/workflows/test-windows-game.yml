@@ -4,7 +4,8 @@ run-name: >-
   ${{ github.event.client_payload.pr_number
       && format('Test Windows (Game) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
       || (github.event.inputs.commit-sha != '' && format('Test Windows (Game) @ {0}', github.event.inputs.commit-sha))
-      || '' }}
+      || (github.event.inputs.test-filter != '' && 'Test Windows (Game)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
 
 on:
   workflow_dispatch:

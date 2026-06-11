@@ -1,0 +1,99 @@
+name: "Dep: Build MoltenVK"
+
+# Vendors MoltenVK binaries for Stride. Clones KhronosGroup/MoltenVK at the
+# requested git ref (tag / branch / commit), runs fetchDependencies, and
+# builds the macOS dylib + iOS + iOS-simulator static libs.
+#
+# Output per RID:
+#   osx-arm64           libvulkan.1.dylib  (arm64-thinned dynamic dylib,
+#                                           renamed + signed so dyld matches
+#                                           the leaf name Vortice.Vulkan
+#                                           dlopen()s)
+#   ios-arm64           libMoltenVK.a      (device static, statically linked
+#                                           into the .app, accessed via
+#                                           [DllImport("__Internal")])
+#   iossimulator-arm64  libMoltenVK.a      (Apple Silicon simulator static)
+#
+# RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      moltenvk-version:
+        description: MoltenVK git ref to build (tag like v1.4.1, branch like main, or a commit SHA)
+        default: v1.4.1
+        required: true
+
+jobs:
+  vendor:
+    name: Build & repackage MoltenVK
+    runs-on: macos-15
+    steps:
+      - name: Build MoltenVK from source
+        run: |
+          # Shallow init + fetch supports both refnames (tags/branches) and raw
+          # SHAs uniformly, unlike `git clone --branch`.
+          mkdir -p mvk-src && cd mvk-src
+          git init -q
+          git remote add origin https://github.com/KhronosGroup/MoltenVK.git
+          git fetch --depth 1 origin "${{ github.event.inputs.moltenvk-version }}"
+          git checkout -q FETCH_HEAD
+          # SPIRV-Cross / SPIRV-Tools / etc. — must be built per-platform.
+          ./fetchDependencies --macos --ios --iossim
+          # Release config for parity with upstream release artifacts.
+          make macos
+          make ios
+          make iossim
+          BUILT_SHA=$(git rev-parse --short HEAD)
+          echo "MVK_BUILD_LABEL=${{ github.event.inputs.moltenvk-version }}@${BUILT_SHA}" >> $GITHUB_ENV
+
+      - name: Repackage macOS dylib (osx-arm64)
+        run: |
+          mkdir -p out/dotnet/osx-arm64
+          # Slice arm64 out of the universal dylib, renaming to the Vulkan loader
+          # leaf name so Vortice.Vulkan's dlopen("libvulkan.1.dylib") matches.
+          lipo -thin arm64 mvk-src/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib \
+            -output out/dotnet/osx-arm64/libvulkan.1.dylib
+          # Rewrite LC_ID_DYLIB so dyld's already-loaded match keys on the new
+          # leaf name rather than the original "@rpath/libMoltenVK.dylib".
+          install_name_tool -id libvulkan.1.dylib out/dotnet/osx-arm64/libvulkan.1.dylib
+          # install_name_tool invalidates the ad-hoc signature; re-sign so macOS
+          # will load the dylib on Apple Silicon.
+          codesign --sign - --force out/dotnet/osx-arm64/libvulkan.1.dylib
+
+      - name: Repackage iOS device static (ios-arm64)
+        run: |
+          mkdir -p out/dotnet/ios-arm64
+          cp mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64/libMoltenVK.a \
+             out/dotnet/ios-arm64/libMoltenVK.a
+
+      - name: Repackage iOS simulator static (iossimulator-arm64)
+        run: |
+          mkdir -p out/dotnet/iossimulator-arm64
+          # Upstream ships a fat arm64+x86_64 simulator slice; thin to arm64.
+          lipo -thin arm64 \
+            mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64_x86_64-simulator/libMoltenVK.a \
+            -output out/dotnet/iossimulator-arm64/libMoltenVK.a
+
+      - name: Write VERSION.txt
+        run: |
+          {
+            printf 'MoltenVK %s\n' "$MVK_BUILD_LABEL"
+            printf 'Repository: https://github.com/KhronosGroup/MoltenVK\n'
+            printf 'Source: built from git ref "%s" on the macos-15 runner\n' \
+              "${{ github.event.inputs.moltenvk-version }}"
+            printf '\n'
+            printf 'Stride: %s/%s @ %s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}"
+            printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
+            printf 'Workflow: %s/%s/actions/runs/%s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+          } > out/VERSION.txt
+
+      - name: List contents
+        run: find out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: moltenvk-all-platforms
+          path: out/

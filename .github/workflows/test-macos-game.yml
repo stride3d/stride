@@ -1,6 +1,9 @@
 name: Test macOS Game (Vulkan)
 
-run-name: ${{ github.event.inputs.commit-sha != '' && format('Test macOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
+run-name: >-
+  ${{ (github.event.inputs.commit-sha != '' && format('Test macOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
+      || (github.event.inputs.test-filter != '' && 'Test macOS Game (Vulkan)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
 
 on:
   workflow_dispatch:
@@ -62,7 +65,9 @@ concurrency:
 jobs:
   macOS-Tests-Game:
     name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: macos-15
+    # macos-26 ships Xcode 26.x; we select 26.5 below to match the .NET macOS 26.5 SDK pack's
+    # strict version check (same situation as test-ios-game.yml).
+    runs-on: macos-26
     # macOS minutes bill 10× Linux on GitHub-hosted runners; keep timeouts tight.
     timeout-minutes: 20
     env:
@@ -76,6 +81,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Select Xcode 26.5
+        # Default on macos-26 is 26.4.1; the .NET macOS 26.5 SDK pack needs exactly 26.5.
+        run: sudo xcode-select -s /Applications/Xcode_26.5.app
       - name: Install Vulkan validation layer
         # Stride loads the LunarG loader on macOS when present so the validation layer chain works;
         # its DebugReport callback routes errors+warnings to GraphicsDevice.DebugLog, which

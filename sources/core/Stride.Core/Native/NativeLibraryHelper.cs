@@ -37,7 +37,10 @@ public static partial class NativeLibraryHelper
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
 
-    // The expected library extension for the current platform
+    // The expected library extension for the current platform.
+    // iOS statically links everything via [DllImport("__Internal")] so the
+    // PreloadLibrary code path is #if'd out; ".a" / "ios" just keep the
+    // field initializers from throwing at type load.
     private static readonly string libExtension = Platform.Type switch
     {
         PlatformType.Windows => ".dll",
@@ -438,6 +441,34 @@ public static partial class NativeLibraryHelper
             globalResolverRegistered = true;
             System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
         }
+    }
+#endif
+
+#if STRIDE_PLATFORM_IOS
+    // iOS-only: a single main-binary handle, populated lazily by ResolveIOSMainBinary.
+    private static nint iosMainBinaryHandle;
+
+    // [DllImport("X")] resolver for third-party wrappers (Silk.NET.SDL, Vortice.*) we can't switch
+    // to "__Internal": on iOS all native code is statically linked, so any DLL name resolves to the
+    // main executable and dlsym finds symbols exported via NativeReference LinkerFlags.
+    [System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void RegisterIOSResolver()
+    {
+        System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolveIOSMainBinary;
+    }
+
+    private static nint ResolveIOSMainBinary(Assembly assembly, string name)
+    {
+        // Cache the main-binary handle on first call. Returning a non-zero handle tells the
+        // runtime to retry dlsym on it; if the symbol isn't exported the runtime falls through
+        // to other handlers / the original DllNotFoundException.
+        if (iosMainBinaryHandle == 0)
+        {
+            var path = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(path))
+                NativeLibrary.TryLoad(path, out iosMainBinaryHandle);
+        }
+        return iosMainBinaryHandle;
     }
 #endif
 

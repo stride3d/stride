@@ -8,5 +8,8 @@
          props <Import> (which uses GetDirectoryNameOfFileAbove to locate Sdk.props
          without any pre-set property). See docs/build/SDK-GUIDE.md for details. -->
     <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</StrideRoot>
+    <!-- Stride's own assemblies aren't trimmed/AOT-published by the engine repo build;
+         end-user games re-enable the analyzer via Microsoft.NET.Sdk defaults. -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
   </PropertyGroup>
 </Project>

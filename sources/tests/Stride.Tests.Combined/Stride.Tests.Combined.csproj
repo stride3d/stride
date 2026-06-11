@@ -1,0 +1,136 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <AssemblyName>Stride.Tests.Combined</AssemblyName>
+    <RootNamespace>Stride.Tests.Combined</RootNamespace>
+    <!-- StrideTestPlatforms defaults from StridePlatforms via the MultiPlatform Tests SDK; pass
+         -p:StridePlatforms=<iOS|Android|macOS|Windows|Linux> to target a different platform. -->
+    <StrideCompileAssets>false</StrideCompileAssets>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
+    <!-- Forwarded to each suite ref: drop its launcher/entry point but keep asset compile +
+         native-lib copy active, align suites onto the meta's TFM, keep macOS-opted suites off
+         net10.0-macos. Stride.Build.Sdk.Tests stops these globals propagating past the suite itself. -->
+    <_StrideSuiteRefProperties>IncludeXunitLauncher=false;OutputType=Library;StrideIsExecutable=true;StrideTestPlatforms=$(StrideTestPlatforms);StrideExplicitMacOSRuntime=false</_StrideSuiteRefProperties>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- xunit.runner.stride is a shared library, not a suite: referenced with clean globals so
+         this dispatch dedups with the suites' own direct references. -->
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Input.Tests\Stride.Input.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Audio.Tests\Stride.Audio.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Particles.Tests\Stride.Particles.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.UI.Tests\Stride.UI.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Physics.Tests\Stride.Physics.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.csproj"
+                      Properties="$(_StrideSuiteRefProperties)"
+                      StrideTestSuiteRef="true" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
+
+  <!-- Per-suite asset bundle collection. Every suite emits data/db/bundles/default.bundle
+       (+ incremental default.<hash>.bundle siblings), which would collide in the meta's bin, so
+       each is renamed to <SuiteName>.bundle / <SuiteName>.<hash>.bundle — the name GameTestBase
+       loads via Assembly.GetName().Name. Siblings must share the main bundle's prefix because
+       BundleOdbBackend derives incremental URLs from it. -->
+  <Target Name="_StrideCollectSuiteBundles"
+          AfterTargets="ResolveProjectReferences"
+          BeforeTargets="_CollectBundleResources;_GenerateAndroidAssetsDir">
+    <ItemGroup>
+      <_StrideSuiteBundle Include="$(StrideRoot)bin\Tests\%(ProjectReference.Filename)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\data\db\bundles\default.bundle"
+                          Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests'))">
+        <SuiteName>%(ProjectReference.Filename)</SuiteName>
+      </_StrideSuiteBundle>
+      <!-- SuiteName captured so the incremental siblings rename to match the main bundle below. -->
+      <_StrideSuiteDepBundle Include="$(StrideRoot)bin\Tests\%(ProjectReference.Filename)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\data\db\bundles\default.*.bundle"
+                             Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests'))">
+        <SuiteName>%(ProjectReference.Filename)</SuiteName>
+      </_StrideSuiteDepBundle>
+      <!-- Update pass: computing DestPath inside the Include above (or inline on the Copy) binds
+           %(Filename) to the ProjectReference batch qualifier, not the matched bundle file.
+           Replace strips the "default." prefix from "default.<hash>" to recover the hash. -->
+      <_StrideSuiteDepBundle Update="@(_StrideSuiteDepBundle)">
+        <DestPath>$(OutputPath)data\db\bundles\%(SuiteName).$([System.String]::Copy('%(Filename)').Replace('default.', ''))%(Extension)</DestPath>
+      </_StrideSuiteDepBundle>
+      <_StrideSuiteIndex Include="$(StrideRoot)bin\Tests\%(ProjectReference.Filename)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\data\db\index"
+                         Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests'))" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_StrideSuiteBundle)"
+          DestinationFiles="@(_StrideSuiteBundle->'$(OutputPath)data\db\bundles\%(SuiteName).bundle')"
+          SkipUnchangedFiles="true"
+          Condition="Exists('%(_StrideSuiteBundle.Identity)')" />
+    <Copy SourceFiles="@(_StrideSuiteDepBundle)"
+          DestinationFiles="@(_StrideSuiteDepBundle->'%(DestPath)')"
+          SkipUnchangedFiles="true" />
+    <!-- Any suite's index works — it only satisfies FileOdbBackend's open-on-init; per-suite
+         bundles carry their own content maps. Items batch to one destination; last write wins. -->
+    <Copy SourceFiles="%(_StrideSuiteIndex.Identity)"
+          DestinationFiles="$(OutputPath)data\db\index"
+          SkipUnchangedFiles="true"
+          Condition="Exists('%(_StrideSuiteIndex.Identity)')" />
+  </Target>
+
+  <!-- iOS/Android: package the collected data/db tree into the .app/APK. CompilerApp.targets'
+       deploy targets only fire when StrideCompileAssets=true; the meta consumes per-suite
+       outputs instead, so do the platform packaging here. -->
+  <Target Name="_StrideEmitCombinedAssetItems"
+          AfterTargets="_StrideCollectSuiteBundles"
+          BeforeTargets="_CollectBundleResources;_GenerateAndroidAssetsDir"
+          Condition="'$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Android'">
+    <ItemGroup>
+      <_StrideCombinedAssetFile Include="$(OutputPath)data\db\**\*.*" />
+    </ItemGroup>
+    <AssignTargetPath Files="@(_StrideCombinedAssetFile)" RootFolder="$([System.IO.Path]::GetFullPath('$(OutputPath)'))">
+      <Output TaskParameter="AssignedFiles" ItemName="_StrideCombinedAssetTargeted" />
+    </AssignTargetPath>
+    <ItemGroup Condition="'$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'macOS'">
+      <BundleResource Include="@(_StrideCombinedAssetTargeted)">
+        <LogicalName>%(_StrideCombinedAssetTargeted.TargetPath)</LogicalName>
+      </BundleResource>
+    </ItemGroup>
+    <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
+      <AndroidAsset Include="@(_StrideCombinedAssetTargeted)">
+        <Link>%(_StrideCombinedAssetTargeted.TargetPath)</Link>
+      </AndroidAsset>
+    </ItemGroup>
+    <!-- Keep .bundle uncompressed in the APK. _StrideDeployAssetsAndroid usually does
+         this but skipped (StrideCompileAssets=false) -->
+    <PropertyGroup Condition="'$(StridePlatform)' == 'Android'">
+      <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Android: push each referenced suite's gold images. The base _StridePushTestGoldImages only
+       pushes this project's own gold dir (tests/Stride.Tests.Combined/, which doesn't exist);
+       push each ProjectReference's tests/<Filename>/ instead. -->
+  <Target Name="_StridePushSuiteGoldImages"
+          AfterTargets="Install"
+          Condition="'$(StridePlatform)' == 'Android'">
+    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\%(ProjectReference.Filename)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/%(ProjectReference.Filename)&quot;"
+          Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests')) And Exists('$(StrideRoot)tests\%(ProjectReference.Filename)')" />
+  </Target>
+</Project>
