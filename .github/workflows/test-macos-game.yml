@@ -81,6 +81,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Install macOS Workload
+        # Single-project builds (gold-gen) dispatch all TFMs of referenced engine projects,
+        # including net10.0-macos; the slnf path never does, so this only bites project mode.
+        run: dotnet workload install macos
       - name: Select Xcode 26.5
         # Default on macos-26 is 26.4.1; the .NET macOS 26.5 SDK pack needs exactly 26.5.
         run: sudo xcode-select -s /Applications/Xcode_26.5.app
