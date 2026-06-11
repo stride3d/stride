@@ -105,6 +105,11 @@
   <!-- Native C/C++ compilation (when StrideNativeOutputName is set) -->
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(StrideRoot)sources\native\Stride.Native.targets" />
 
+  <!-- LLVM toolchain for Windows hosts; build-time only, never a package dependency. -->
+  <ItemGroup Condition="'$(StrideNativeOutputName)' != '' And $([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="Stride.Dependencies.LLVM.Windows" GeneratePathProperty="true" PrivateAssets="all" />
+  </ItemGroup>
+
   <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->

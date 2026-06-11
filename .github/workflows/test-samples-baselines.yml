@@ -21,13 +21,9 @@ jobs:
     name: Refresh tests/Stride.Samples.Tests baselines
     runs-on: ubuntu-latest
     steps:
-      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: .github
-      - uses: ./.github/actions/stride-checkout
-        with:
-          exclude: deps/LLVM
+          lfs: true
           # Need full history for the auto-generated branch name to be stable.
           fetch-depth: 0
 

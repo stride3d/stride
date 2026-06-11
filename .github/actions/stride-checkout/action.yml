@@ -13,7 +13,7 @@ inputs:
     description: Ref to check out (passed to actions/checkout)
     default: ''
   exclude:
-    description: 'Comma-separated repo dirs to drop from the working tree and LFS fetch (empty = full checkout). Typical: samples,deps/LLVM — deps/LLVM is only used by Windows-host native builds.'
+    description: 'Comma-separated repo dirs to drop from the working tree and LFS fetch (empty = full checkout).'
     default: ''
   fetch-depth:
     description: Passed to actions/checkout
