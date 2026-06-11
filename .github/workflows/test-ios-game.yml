@@ -94,11 +94,14 @@ jobs:
       # descriptor indexing is required, which didn't avoid the crash).
       SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          exclude: samples,deps/LLVM
 
       - uses: actions/setup-dotnet@v4
         with:

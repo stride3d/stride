@@ -36,6 +36,15 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true

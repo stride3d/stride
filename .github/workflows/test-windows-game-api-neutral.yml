@@ -45,6 +45,7 @@ jobs:
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
     steps:
+      # Full checkout: TestSceneUpgrader validates asset migration of the scenes under samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true
