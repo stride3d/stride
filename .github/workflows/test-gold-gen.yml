@@ -41,6 +41,10 @@ on:
         description: Android (Vulkan / emulator)
         type: boolean
         default: true
+      ios:
+        description: iOS (Vulkan / MoltenVK / simulator)
+        type: boolean
+        default: true
       graphics-api:
         description: Windows graphics API (blank = all three)
         type: choice
@@ -97,7 +101,7 @@ jobs:
   # dispatch) via the run summary + a notice annotation: whether the promote job lands it
   # automatically (per update-gold), plus the local promote/review command either way.
   info:
-    if: ${{ inputs.windows || inputs.linux || inputs.macos || inputs.android }}
+    if: ${{ inputs.windows || inputs.linux || inputs.macos || inputs.android || inputs.ios }}
     runs-on: ubuntu-latest
     steps:
       - name: Show gold landing info
@@ -184,11 +188,24 @@ jobs:
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
       tolerate-test-failures: true
 
+  ios:
+    if: ${{ inputs.ios }}
+    uses: ./.github/workflows/test-ios-game.yml
+    secrets: inherit
+    with:
+      build-type: ${{ inputs.build-type }}
+      test-filter: ${{ inputs.test-filter }}
+      project: ${{ inputs.project }}
+      commit-sha: ${{ inputs.commit-sha }}
+      # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
+      # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
+      tolerate-test-failures: true
+
   # Merge every platform's tests/local/ output into one downloadable zip. Review + promotion
   # happen in CompareGold (per-pixel compare, visual diff, dedup-aware promote), not here.
   gather:
-    needs: [windows, linux, macos, android]
-    if: ${{ always() && (inputs.windows || inputs.linux || inputs.macos || inputs.android) }}
+    needs: [windows, linux, macos, android, ios]
+    if: ${{ always() && (inputs.windows || inputs.linux || inputs.macos || inputs.android || inputs.ios) }}
     runs-on: ubuntu-latest
     steps:
       - name: Download generated images
@@ -201,8 +218,17 @@ jobs:
         run: |
           # merge-multiple flattens the per-platform artifacts into one <Assembly>/<Platform.Api>/...
           # tree, mirroring tests/local/ — the layout CompareGold expects for a source.
+          mkdir -p gold-staging
           find gold-staging -type f | sed 's|^gold-staging/||' | sort | head -200
-          echo "Total files: $(find gold-staging -type f | wc -l)"
+          COUNT=$(find gold-staging -type f | wc -l)
+          echo "Total files: $COUNT"
+          # Zero renders = the platform jobs were cancelled/superseded or produced nothing.
+          # Fail here so promote (gated on gather success) skips instead of failing on a
+          # missing gold-images artifact.
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::No renders gathered from any platform job."
+            exit 1
+          fi
       - name: Upload combined gold images
         uses: actions/upload-artifact@v4
         with:

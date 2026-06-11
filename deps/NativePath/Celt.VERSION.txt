@@ -1,0 +1,7 @@
+Celt (from Opus v1.1.3)
+Repository: https://github.com/xiph/opus
+Commit: aa32042a50f2cbe0ff9d339948cb4712f5cc3d6e
+
+Stride: https://github.com/xen2/stride @ 4185454c91b5ea920d39c38b281be19888010cca
+Built: 2026-05-26
+Workflow: https://github.com/xen2/stride/actions/runs/26428312583

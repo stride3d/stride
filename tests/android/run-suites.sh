@@ -26,6 +26,8 @@ exec 2>&1
 CONFIGURATION="${1:-Debug}"
 # Optional vstest --filter expression, forwarded to the on-device runner via the launch Intent.
 FILTER="${2:-$ANDROID_TEST_FILTER}"
+# Optional repeat count (flake hunting), forwarded as the xunit_repeat extra.
+REPEAT="${3:-1}"
 
 mkdir -p TestResults
 rm -f /tmp/failed_suites
@@ -51,9 +53,11 @@ for SUITE in "${SUITES[@]}"; do
       -Package "$PACKAGE" \
       -Suite "$SUITE" \
       -Apk "$APK" \
+      -ResultsDir "$PWD/tests/local" \
       -TimeoutSeconds 900 \
       -KeepEmulator \
-      ${FILTER:+-Filter "$FILTER"} &
+      ${FILTER:+-Filter "$FILTER"} \
+      -Repeat "$REPEAT" &
   CHILD_PID=$!
   if wait "$CHILD_PID"; then
     echo "PASS: $SUITE"

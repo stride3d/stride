@@ -21,16 +21,19 @@ param(
     [string]$Apk,                                          # APK to install; skip if already deployed
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
-    [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
+    [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local
     [string]$Avd,                                          # AVD name to boot if no device is connected
     [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
     [int]$Port,                                            # emulator console port for cold-boot via -Avd (even; required with -Avd).
-    [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
+    [int]$TimeoutSeconds = 900,                            # max wait for tests to finish (15 min: combined suite finishes well under this on healthy emulator)
     [int]$ConnectTimeoutSeconds = 60,                      # max wait for adb connect + device online (near-instant vs a live emulator; generous headroom for adb cold-start / relay)
     [int]$BootTimeoutSeconds = 300,                        # max wait for sys.boot_completed (only relevant when we cold-boot)
+    [int]$StartupTimeoutSeconds = 120,                     # fast-fail: if `am start` never produces a visible pid (broken emulator/GPU), abort before the full TimeoutSeconds wait
+    [int]$InactivityTimeoutSeconds = 300,                  # fast-fail: kill if the logcat capture sees no new bytes for this long (test hung — GPU lockup, native crash with no exit, etc.)
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
     [switch]$StreamLogcat,                                 # also tee Stride-tag logcat to console (local interactive use)
-    [string]$Filter                                        # optional vstest --filter expr passed on to the on-device runner
+    [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
+    [int]$Repeat = 1                                       # rerun the filtered set up to N times (stop on first fail)
 )
 if ($Avd -and -not $Port) { throw "-Avd requires -Port (even, e.g. 5556)." }
 
@@ -65,14 +68,29 @@ function Find-RepoRoot {
 if (-not $RepoRoot) { $RepoRoot = Find-RepoRoot }
 if (-not $ResultsDir) {
     if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
-    $ResultsDir = Join-Path $RepoRoot "tests/local/$Suite"
+    $ResultsDir = Join-Path $RepoRoot "tests/local"
 }
+# Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the APK's build dir
+# for *.Tests*.dll. Each one keys gold lookup by Assembly.GetName().Name at runtime, so we push
+# <RepoRoot>/tests/<DllName>/ for each. Single-suite APKs surface their own *.Tests.dll alongside,
+# so the discovery list collapses to one and behavior matches the pre-Combined flow.
+# `*.Tests*` (not `*.Tests.dll`) so suffixed variants like Stride.Graphics.Tests.10_0.dll match.
+$innerSuites = @()
+if ($Apk -and (Test-Path $Apk)) {
+    $apkDir = Split-Path -Parent $Apk
+    $innerSuites = Get-ChildItem -Path $apkDir -Filter '*.dll' -ErrorAction SilentlyContinue |
+        Where-Object { $_.BaseName -like '*.Tests*' } |
+        ForEach-Object { $_.BaseName } |
+        Sort-Object -Unique
+}
+if ($innerSuites.Count -eq 0) { $innerSuites = @($Suite) }
+# $GoldDir override applies only to $Suite (back-compat with single-suite callers).
 if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
-    # Auto-default gold source only when caller didn't specify; pass -GoldDir '' to opt out.
     $candidate = Join-Path $RepoRoot "tests/$Suite"
     if (Test-Path $candidate) { $GoldDir = $candidate }
 }
 Write-Host "Suite:    $Suite"
+Write-Host "Inner:    $($innerSuites -join ', ')"
 Write-Host "Repo:     $(if ($RepoRoot) { $RepoRoot } else { '<not in repo>' })"
 Write-Host "Gold:     $(if ($GoldDir) { $GoldDir } else { '<none>' })"
 Write-Host "Results:  $ResultsDir"
@@ -200,21 +218,26 @@ if ($Apk) {
     }
 }
 
-# 3. Targets write to the app's internal FilesDir (/data/user/0/<pkg>/files/) because
-# targetSdk 30+ scoped storage blocks app writes through the FUSE-bound external path.
-# Push/pull go through tar streams + run-as to bridge adb-shell uid <-> app uid.
-# rm -rf first so stale gold from a prior run can't linger — tar x merges onto existing files.
-Invoke-Adb shell "run-as $Package sh -c 'rm -rf files/tests/$Suite && mkdir -p files/tests/$Suite'" 2>$null | Out-Null
-
-# 4. Push gold images (-GoldDir contents -> device's files/tests/<Suite>/)
-if ($GoldDir) {
-    if (-not (Test-Path $GoldDir)) { throw "GoldDir not found: $GoldDir" }
-    Write-Host "Pushing gold $GoldDir/* -> files/tests/$Suite/ on device"
+# 3+4. Push gold images per inner suite into the app's internal FilesDir
+# (/data/user/0/<pkg>/files/tests/<SuiteName>/). targetSdk 30+ scoped storage blocks app
+# writes through the FUSE-bound external path, so we bridge adb-shell uid <-> app uid via
+# tar streams + run-as. Multi-suite hosts (Combined) push one dir per inner suite, keyed
+# by AssemblyName (matching GameTestBase's Assembly.GetName().Name gold lookup).
+# Wipe each device gold dir before pushing so it mirrors the host: a gold file deleted on
+# the host (e.g. a stale primary that's been promoted away) must also disappear from the
+# device, otherwise the on-device framework still finds it as "primary" and ignores fallbacks.
+foreach ($s in $innerSuites) {
+    $src = if ($s -eq $Suite -and $GoldDir) { $GoldDir }
+           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/$s" }
+           else { $null }
+    if (-not $src -or -not (Test-Path $src)) { continue }
+    Write-Host "Pushing gold $src/* -> files/tests/$s/ on device (cleared first)"
+    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/$s && mkdir -p files/tests/$s'" 2>$null | Out-Null
     $localTar = [IO.Path]::GetTempFileName()
     try {
-        & $tar c -C $GoldDir -f $localTar . 2>$null
+        & $tar c -C $src -f $localTar . 2>$null
         Invoke-Adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
-        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$Suite" 2>$null | Out-Null
+        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$s" 2>$null | Out-Null
         Invoke-Adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
     } finally {
         Remove-Item $localTar -ErrorAction SilentlyContinue
@@ -244,9 +267,13 @@ $logcatProc = $null
 $liveLogcatProc = $null
 try {
 
-# 6. Start logcat capture (full ring buffer; threadtime format aids triage)
-if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-$logcatPath = Join-Path $ResultsDir "$Package.logcat.txt"
+# 6. Start logcat capture (full ring buffer; threadtime format aids triage).
+# Write to ResultsDir's PARENT, not ResultsDir itself: step 8 (pre-pull) wipes ResultsDir/*
+# and would unlink the file out from under the still-running adb-logcat child — the FD lives
+# on but the captured bytes go to a freed inode, lost when the finally block kills it.
+$parentDir = Split-Path -Parent $ResultsDir
+if (-not (Test-Path $parentDir)) { New-Item -ItemType Directory -Force -Path $parentDir | Out-Null }
+$logcatPath = Join-Path $parentDir "$Package.logcat.txt"
 Write-Host "Logcat -> $logcatPath"
 # -WindowStyle is Windows-only on pwsh 7.6+; errors on non-Windows. Splat conditionally so
 # the same call works on every host pwsh supports.
@@ -279,36 +306,76 @@ if ($StreamLogcat) {
 Write-Host "Launching with xunit_command=run$(if ($Filter) { " xunit_filter=$Filter" })..."
 $amArgs = @('shell', 'am', 'start', '-W', '-n', $activity, '--es', 'xunit_command', 'run', '--ez', 'xunit_exit_on_complete', 'true')
 if ($Filter) { $amArgs += @('--es', 'xunit_filter', $Filter) }
+if ($Repeat -gt 1) { $amArgs += @('--es', 'xunit_repeat', "$Repeat") }
 Invoke-Adb @amArgs | Out-Null
 
-# 8. Wait for process to exit (heuristic: pidof goes empty)
-Write-Host "Waiting for process to exit (timeout: ${TimeoutSeconds}s)..."
+# 8. Wait for process to exit (heuristic: pidof goes empty).
+# Three guards: startup (process never appears), inactivity (the app produces no log lines —
+# test hung after partial progress; on broken emulator GPU, Vulkan device creation blocks
+# in-kernel and the app stays alive but silent), and total deadline. Filter by PID rather
+# than total log volume — system processes log continuously and would mask a hung app.
+Write-Host "Waiting for process to exit (startup<= ${StartupTimeoutSeconds}s, idle<= ${InactivityTimeoutSeconds}s, total<= ${TimeoutSeconds}s)..."
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+$startupDeadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
 $lastPid = $null
+$pidLogcatPath = $null
+$pidLogcatProc = $null
+$lastPidLogcatSize = -1
+$lastPidLogcatGrowth = Get-Date
 while ((Get-Date) -lt $deadline) {
     $procPid = (Invoke-Adb shell pidof $Package 2>$null) -replace '\s', ''
     if (-not $procPid) {
         if ($lastPid) { break }   # we saw it running, now it's gone
-        # not yet started -- give it a moment
+        if ((Get-Date) -ge $startupDeadline) {
+            throw "Process $Package never appeared within $StartupTimeoutSeconds seconds (emulator/GPU likely broken)."
+        }
     } else {
+        # First sighting: start a pid-filtered logcat alongside the full one so inactivity
+        # tracks app activity, not device-wide chatter.
+        if (-not $lastPid) {
+            $pidLogcatPath = Join-Path $parentDir "$Package.pid$procPid.logcat.txt"
+            $pidArgs = @{
+                FilePath               = $adb
+                ArgumentList           = @('-s', $Serial, 'logcat', '-v', 'threadtime', "--pid=$procPid")
+                RedirectStandardOutput = $pidLogcatPath
+                PassThru               = $true
+            }
+            if ($IsWindows) { $pidArgs.WindowStyle = 'Hidden' }
+            $pidLogcatProc = Start-Process @pidArgs
+            $lastPidLogcatGrowth = Get-Date
+        }
         $lastPid = $procPid
+        $size = if ($pidLogcatPath) { (Get-Item $pidLogcatPath -ErrorAction SilentlyContinue).Length } else { $null }
+        if ($size -ne $null -and $size -gt $lastPidLogcatSize) {
+            $lastPidLogcatSize = $size
+            $lastPidLogcatGrowth = Get-Date
+        } elseif (((Get-Date) - $lastPidLogcatGrowth).TotalSeconds -ge $InactivityTimeoutSeconds) {
+            throw "Process $Package alive but produced no log output for $InactivityTimeoutSeconds seconds (likely hung in Vulkan init or similar; killing)."
+        }
     }
     Start-Sleep -Seconds 3
 }
+if ($pidLogcatProc -and -not $pidLogcatProc.HasExited) { try { $pidLogcatProc.Kill() } catch { } }
 if ((Get-Date) -ge $deadline) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
 
-# 9. Pull TRX + generated images from device's files/tests/local/<Suite>/ into $ResultsDir.
-# tar device-side via run-as, write to a shell-readable /data/local/tmp file, adb pull, untar.
-Write-Host "Pulling results -> $ResultsDir"
-if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
+# 9. Pull TRX + generated images from device's files/tests/local/ into $ResultsDir.
+# Each inner suite writes files/tests/local/<SuiteName>/<SuiteName>.trx (+ generated images);
+# pulling the whole local/ dir captures every suite in one shot for both single-suite and
+# Combined hosts. tar device-side via run-as, write to a shell-readable /data/local/tmp file,
+# adb pull, untar. Wipe $ResultsDir first so the host mirrors the device — otherwise a
+# previously-failing test that now passes (no fresh image written) would leave its stale
+# failure PNG behind and mislead CompareGold.
+Write-Host "Pulling results -> $ResultsDir (cleared first)"
+if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
+else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
 $localTar = [IO.Path]::GetTempFileName()
 try {
     # The outer shell (uid 2000 = shell) writes to /data/local/tmp; the inner run-as streams
-    # the tarball through stdout. If the suite dir doesn't exist yet, fallback creates an
+    # the tarball through stdout. If the local/ dir doesn't exist yet, fallback creates an
     # empty tarball so we don't break the pipe.
-    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local/$Suite 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
+    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
     Invoke-Adb pull "/data/local/tmp/$Package-results.tar" $localTar 2>$null | Out-Null
     Invoke-Adb shell "rm /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
     & $tar x -C $ResultsDir -f $localTar 2>$null
@@ -354,6 +421,13 @@ exit 0
     }
     if ($liveLogcatProc -and -not $liveLogcatProc.HasExited) {
         Stop-Process -Id $liveLogcatProc.Id -Force -ErrorAction SilentlyContinue
+    }
+    # Now that the pre-pull wipe is past, move the logcat into ResultsDir so it ships with
+    # the test artifact rather than orphaned alongside it. (It had to live outside ResultsDir
+    # during the run — see step 6's comment — otherwise the wipe would unlink the file out
+    # from under the still-writing adb-logcat child.)
+    if ($logcatPath -and (Test-Path $logcatPath) -and (Test-Path $ResultsDir)) {
+        try { Move-Item -Force $logcatPath (Join-Path $ResultsDir (Split-Path -Leaf $logcatPath)) } catch { }
     }
     # On a normal run the on-device runner has already called Environment.Exit; force-stop
     # is idempotent there and stops the APK on cancellation paths (Ctrl-C / workflow cancel).

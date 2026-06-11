@@ -184,8 +184,16 @@ jobs:
           path: out/${{ matrix.rid }}/
 
   build-ios:
-    name: Build FreeType (iOS)
+    name: Build FreeType (${{ matrix.rid }})
     runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: ios-arm64
+            sysroot: iphoneos
+          - rid: iossimulator-arm64
+            sysroot: iphonesimulator
     steps:
       - name: Checkout FreeType
         uses: actions/checkout@v4
@@ -201,6 +209,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=${{ matrix.sysroot }} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
             -DFT_DISABLE_BZIP2=ON \
             -DFT_DISABLE_BROTLI=ON \
@@ -211,14 +220,14 @@ jobs:
 
       - name: Collect output
         run: |
-          mkdir -p out/ios
-          cp freetype-build/libfreetype.a out/ios/
+          mkdir -p out/${{ matrix.rid }}
+          cp freetype-build/libfreetype.a out/${{ matrix.rid }}/
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: freetype-ios
-          path: out/ios/
+          name: freetype-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
 
   collect:
     name: Collect all platforms
@@ -242,8 +251,8 @@ jobs:
         run: |
           OUT=freetype-out
 
-          # Desktop → dotnet/{rid}/
-          for rid in win-x64 win-arm64 linux-x64 osx-x64 osx-arm64; do
+          # Desktop + iOS → dotnet/{rid}/
+          for rid in win-x64 win-arm64 linux-x64 osx-x64 osx-arm64 ios-arm64 iossimulator-arm64; do
             mkdir -p $OUT/dotnet/$rid
             cp artifacts/freetype-$rid/* $OUT/dotnet/$rid/ 2>/dev/null || true
           done
@@ -253,10 +262,6 @@ jobs:
             mkdir -p $OUT/Android/$rid
             cp artifacts/freetype-$rid/* $OUT/Android/$rid/ 2>/dev/null || true
           done
-
-          # iOS → iOS/
-          mkdir -p $OUT/iOS
-          cp artifacts/freetype-ios/* $OUT/iOS/
 
           # Version info
           COMMIT=$(git -C freetype-src rev-parse HEAD)

@@ -6,8 +6,20 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
+    <!-- net10.0-macos to test AVFoundation -->
+    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <!-- Mirror Stride.Video.csproj's per-TFM STRIDE_VIDEO_* defines -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
+    <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">
+    <DefineConstants>STRIDE_VIDEO_AVFOUNDATION;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
     <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />

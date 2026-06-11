@@ -1,0 +1,72 @@
+name: "Dep: Build NativePath"
+
+# Builds libNativePath.a from stride3d/NativePath upstream for the Apple RIDs
+# Stride consumes (osx-arm64 + iOS device + iOS simulator). The upstream
+# buildApple.sh handles all three slices in one xcodebuild invocation; this
+# workflow just packages the outputs into the per-RID layout the engine
+# expects under deps/NativePath/dotnet/<rid>/.
+#
+# Output per RID:
+#   dotnet/osx-arm64/libNativePath.a          (PLATFORM_MACOS)
+#   dotnet/ios-arm64/libNativePath.a          (PLATFORM_IOS)
+#   dotnet/iossimulator-arm64/libNativePath.a (PLATFORM_IOSSIMULATOR)
+#
+# RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      nativepath-repo:
+        description: stride3d/NativePath (or fork) repository
+        default: stride3d/NativePath
+        required: true
+      nativepath-ref:
+        description: Branch/tag of the NativePath repo to consume
+        default: master
+        required: true
+
+jobs:
+  build:
+    name: Build NativePath (osx-arm64 + iOS device + simulator)
+    runs-on: macos-15
+    steps:
+      - name: Checkout NativePath
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.nativepath-repo }}
+          ref: ${{ github.event.inputs.nativepath-ref }}
+          path: NativePath
+
+      - name: Build
+        working-directory: NativePath
+        run: ./buildApple.sh
+
+      - name: Stage outputs under dotnet/<rid>/
+        run: |
+          mkdir -p out/dotnet/osx-arm64 out/dotnet/ios-arm64 out/dotnet/iossimulator-arm64
+          cp NativePath/build/osx-arm64/libNativePath.a          out/dotnet/osx-arm64/
+          cp NativePath/build/ios-arm64/libNativePath.a          out/dotnet/ios-arm64/
+          cp NativePath/build/iossimulator-arm64/libNativePath.a out/dotnet/iossimulator-arm64/
+
+      - name: Write VERSION.txt
+        run: |
+          COMMIT=$(git -C NativePath rev-parse HEAD)
+          {
+            printf 'NativePath %s\n' "${{ github.event.inputs.nativepath-ref }}"
+            printf 'Repository: https://github.com/%s\n' "${{ github.event.inputs.nativepath-repo }}"
+            printf 'Commit: %s\n' "$COMMIT"
+            printf '\n'
+            printf 'Stride: %s/%s @ %s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}"
+            printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
+            printf 'Workflow: %s/%s/actions/runs/%s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+          } > out/VERSION.txt
+
+      - name: List contents
+        run: find out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nativepath-all-platforms
+          path: out/

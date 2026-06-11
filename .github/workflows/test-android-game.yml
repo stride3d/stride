@@ -4,7 +4,8 @@ run-name: >-
   ${{ github.event.client_payload.pr_number
       && format('Test Android Game (Vulkan) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
       || (github.event.inputs.commit-sha != '' && format('Test Android Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
-      || '' }}
+      || (github.event.inputs.test-filter != '' && 'Test Android Game (Vulkan)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
 
 on:
   workflow_dispatch:
@@ -32,6 +33,14 @@ on:
         description: Capture and upload build binlog (off by default; adds some I/O overhead)
         default: false
         type: boolean
+      use-combined:
+        description: 'Combine all test suites into one APK (faster build/install/run); false = per-suite APKs'
+        default: true
+        type: boolean
+      repeat:
+        description: 'Rerun the filtered test set up to N times in-process, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
@@ -54,6 +63,12 @@ on:
       upload-binlog:
         default: false
         type: boolean
+      use-combined:
+        default: true
+        type: boolean
+      repeat:
+        type: number
+        default: 1
   repository_dispatch:
     types: [test-android-game]
   schedule:
@@ -76,20 +91,16 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_MAX_PARALLELISM: "8"
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
-      # Multi-platform test suites we build & run on emulator. Suite name == assembly name
-      # (matches the master "tests key paths by assembly name" convention).
-      ANDROID_TEST_SUITES: |
-        Stride.Input.Tests
-        Stride.Audio.Tests
-        Stride.Particles.Tests
-        Stride.UI.Tests
-        Stride.Navigation.Tests
-        Stride.Physics.Tests
-        Stride.Engine.Tests
-        Stride.Graphics.Tests
-        Stride.Graphics.Tests.10_0
-        Stride.Graphics.Tests.11_0
     steps:
+      # Hosted runners vary per VM (free space, CPU model, noisy neighbors); record the
+      # initial state to diagnose "No space left on device" failures and timing variance.
+      - name: Report runner resources
+        run: |
+          df -h /
+          nproc
+          lscpu | grep -E 'Model name|MHz' || true
+          free -h
+
       - uses: actions/checkout@v4
         with:
           lfs: true
@@ -103,17 +114,16 @@ jobs:
       - name: Install Android Workload
         run: dotnet workload install android
 
-      - name: Setup Android SDK + NDK
+      - name: Setup Android SDK
+        # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
+        # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk
+        # strips it from ProjectReference dispatches so the value never fragments build
+        # cache keys; Stride.Native.targets enforces a minimum version at compile time).
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
-          packages: tools platform-tools ndk;21.4.7075529 build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
-
-      - name: Configure NDK Environment
-        run: |
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
+          packages: tools platform-tools build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
 
       - name: Install Linux host runtime deps (for asset compilation)
         run: |
@@ -156,22 +166,44 @@ jobs:
 
       - name: Resolve build target / suite
         run: |
-          # `project` (a single test .csproj) narrows the APK build + run to one suite, whose
-          # name == the .csproj filename; blank builds/runs every Android suite.
+          # `project` set (gold-gen: one suite only) → that .csproj's APK + run-suites.sh.
+          # Unset → use-combined=true (default): Combined.csproj — all suites in one APK,
+          # one install, one process run (faster build/testing).
+          # use-combined=false → slnf build + per-suite APKs + per-suite install/run.
           PROJ="${{ github.event.inputs.project || inputs.project }}"
+          USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
           if [ -n "$PROJ" ]; then
             echo "ANDROID_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
             echo "ANDROID_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+          elif [ "$USE_COMBINED" = "true" ]; then
+            echo "ANDROID_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-combined.sh" >> "$GITHUB_ENV"
           else
+            # slnf path: one build evaluates the graph once; per-suite APKs land under
+            # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
             echo "ANDROID_BUILD_TARGET=build/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+            {
+              echo "ANDROID_TEST_SUITES<<EOF"
+              echo "Stride.Engine.NoAssets.Tests"
+              echo "Stride.Input.Tests"
+              echo "Stride.Audio.Tests"
+              echo "Stride.Particles.Tests"
+              echo "Stride.UI.Tests"
+              echo "Stride.Navigation.Tests"
+              echo "Stride.Physics.Tests"
+              echo "Stride.Engine.Tests"
+              echo "Stride.Graphics.Tests"
+              echo "Stride.Graphics.Tests.10_0"
+              echo "Stride.Graphics.Tests.11_0"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
           fi
 
-      - name: Build Android test APKs
+      - name: Build Android test APK(s)
         run: |
-          # Multi-platform test projects build their Android APK when StridePlatforms=Android.
           # Embed assemblies into the APK so the test runner has everything (no Fast Deployment).
-          # Single slnf build evaluates the graph once; failed projects don't block independents,
-          # and the test step still runs whatever APKs were produced for partial coverage.
           dotnet build "$ANDROID_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
@@ -179,9 +211,7 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Android \
             -p:EmbedAssembliesIntoApk=true \
-            -p:AndroidUseSharedRuntime=false \
-            -p:_AndroidNdkDirectory="$ANDROID_NDK_ROOT" \
-            || echo "::warning::Build had failures — test step will run whichever APKs were produced"
+            -p:AndroidUseSharedRuntime=false
 
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
@@ -228,9 +258,9 @@ jobs:
           emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192
           disable-animations: true
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
-          # shell blocks (while/if) break with "unexpected end of file". Loop lives in a
-          # standalone script invoked as a single command.
-          script: bash tests/android/run-suites.sh "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # shell blocks break with "unexpected end of file". The driver lives in a standalone
+          # script — Combined or per-suite — chosen by the Resolve step above.
+          script: bash "$ANDROID_RUN_SCRIPT" "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}" "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
 
       - name: Publish Test Report
         if: always()
@@ -258,5 +288,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts-android-vulkan
+          # Single path so upload-artifact uses tests/local/ as the common ancestor: per-suite
+          # outputs land as Stride.<Suite>.Tests/... at the artifact root, matching what
+          # comparegold and the per-suite (master) flow expect. The driver moves the logcat
+          # into ResultsDir after the pre-pull wipe is past so it ships with this artifact.
           path: tests/local/
           if-no-files-found: ignore

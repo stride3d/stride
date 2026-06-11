@@ -208,6 +208,13 @@ public static class PlatformFolders
 #elif STRIDE_PLATFORM_UWP
         return Windows.ApplicationModel.Package.Current.InstalledLocation.Path + @"\data";
 #else
+        // macOS .app: assemblies live in Contents/MonoBundle, bundled assets in Contents/Resources.
+        if (OperatingSystem.IsMacOS())
+        {
+            var baseDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+            if (Path.GetFileName(baseDir) == "MonoBundle")
+                return Path.GetFullPath(Path.Combine(baseDir, "..", "Resources", "data"));
+        }
         return Path.Combine(GetApplicationBinaryDirectory(), "data");
 #endif
     }

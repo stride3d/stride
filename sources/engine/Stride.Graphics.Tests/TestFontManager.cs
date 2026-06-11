@@ -10,6 +10,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Engine;
 using Stride.Graphics.Font;
+using Stride.Graphics.Regression;
 
 namespace Stride.Graphics.Tests
 {
@@ -18,23 +19,27 @@ namespace Stride.Graphics.Tests
     /// </summary>
     public class TestFontManager
     {
+        private static readonly string SuiteBundleName = GameTestBase.FindBundleName(typeof(TestFontManager));
+
         private void Init()
         {
-            Game.InitializeAssetDatabase();
+            // Pass the suite bundle so the /asset mount uses this suite's bundle (side effect
+            // on VirtualFileSystem, used by other ContentManager paths in the process).
+            Game.InitializeAssetDatabase(SuiteBundleName);
         }
-
-        private const string SkipReasonAndroidReadOnlyData = "FontManager DB setup requires writable /data; on Android /data is the read-only APK mount";
 
         private IDatabaseFileProviderService CreateDatabaseProvider()
         {
-            VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
-            return new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase()));
+            // FontManager builds its own ContentManager off the provider we return here, so we
+            // must point it at this suite's bundle directly — the Init() mount is for other code
+            // paths, not this one. /data/db is read-only on mobile (APK / .app); FileOdbBackend's
+            // ctor handles that and writes go to /local/db (vfsAdditionalUrl).
+            return new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase(SuiteBundleName)));
         }
 
         [SkippableFact]
         public void TestCreationDisposal()
         {
-            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -44,7 +49,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestDoesFontContains()
         {
-            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -58,7 +62,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestGetFontInfo()
         {
-            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
@@ -80,7 +83,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestGenerateBitmap()
         {
-            Skip.If(Platform.Type == PlatformType.Android, SkipReasonAndroidReadOnlyData);
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());

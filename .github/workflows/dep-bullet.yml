@@ -14,9 +14,12 @@ name: "Dep: Build Bullet"
 #   Windows: libbulletc.dll (+ libbulletc.pdb)
 #   Linux:   libbulletc.so
 #   macOS:   libbulletc.dylib
+#   iOS:     libbulletc.a       (static, statically linked into the .app and
+#                                 accessed via [DllImport("__Internal")])
 #   Managed: BulletSharp.dll (built once, no RID)
 #
-# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
+#               iossimulator-arm64.
 
 on:
   workflow_dispatch:
@@ -162,13 +165,88 @@ jobs:
           name: libbulletc-osx-arm64
           path: out/osx-arm64/
 
+  build-ios:
+    name: Build libbulletc (${{ matrix.rid }})
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: ios-arm64
+            sysroot: iphoneos
+          - rid: iossimulator-arm64
+            sysroot: iphonesimulator
+    steps:
+      - name: Checkout BulletSharpPInvoke (+ bullet submodule)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.bulletsharp-repo }}
+          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          submodules: recursive
+          path: BulletSharpPInvoke
+
+      - name: Strip BulletRobotics from Extras
+        # Bullet 2.89 lists every Extras subdir on ONE line, so drop just the word.
+        run: sed -i '' 's/BulletRobotics//g' BulletSharpPInvoke/bullet/Extras/CMakeLists.txt
+
+      - name: Patch libbulletc to build as STATIC
+        # iOS forbids loading arbitrary dylibs at runtime; libbulletc must be
+        # linked into the app and reached via [DllImport("__Internal")].
+        # libbulletc/CMakeLists.txt has `ADD_LIBRARY(${BULLETC_LIB} SHARED`
+        # (uppercase macro, variable expansion); flip the type to STATIC.
+        run: sed -i '' 's/\${BULLETC_LIB} SHARED/\${BULLETC_LIB} STATIC/' BulletSharpPInvoke/libbulletc/CMakeLists.txt
+
+      - name: Configure & build libbulletc
+        run: |
+          # Cross-compile (CMAKE_SYSTEM_NAME=iOS) reroots find_path() PATHS through
+          # the iOS sysroot, so libbulletc's "find btBulletCollisionCommon.h in
+          # ${PROJECT_SOURCE_DIR}/../bullet/src" misses the submodule on disk.
+          # Pass BULLET_INCLUDE_DIR explicitly to bypass find_path entirely.
+          cmake -S BulletSharpPInvoke/libbulletc -B _build -G Ninja \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=${{ matrix.sysroot }} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DBULLET_INCLUDE_DIR="$(pwd)/BulletSharpPInvoke/bullet/src"
+          cmake --build _build
+
+      - name: Merge bullet component archives into libbulletc.a
+        # CMake STATIC archives only contain the target's own objects; dependent static libs
+        # (BulletDynamics, BulletCollision, BulletSoftBody, LinearMath, …) aren't merged in.
+        # SHARED builds on desktop bake those in at link time, but for iOS (forced to STATIC
+        # above), the final .app link sees libbulletc references to btSolveDantzigLCP /
+        # btAlignedAllocInternal / btSetTaskScheduler etc. with no definitions and fails.
+        # libtool -static merges all the .a files produced by the libbulletc cmake build
+        # (libbulletc itself + bullet's component archives) into a single fat archive.
+        run: |
+          set -e
+          ARCHIVES=$(find _build -name '*.a' | sort -u)
+          echo "Merging:"
+          printf '  %s\n' $ARCHIVES
+          libtool -static -o _build/liblibbulletc-merged.a $ARCHIVES
+          mv _build/liblibbulletc-merged.a _build/liblibbulletc.a
+
+      - name: Collect output
+        run: |
+          mkdir -p out/${{ matrix.rid }}
+          # CMake adds 'lib' prefix to target named 'libbulletc' → liblibbulletc.a
+          cp _build/liblibbulletc.a out/${{ matrix.rid }}/libbulletc.a
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libbulletc-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
   # Managed BulletSharp.dll is built locally as part of Stride.Physics — the
   # stride3d fork's .csproj has a PackageReference to Stride.Core.Mathematics
   # not available in this CI. Native libbulletc is what this workflow ships.
 
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos]
+    needs: [build-windows, build-linux, build-macos, build-ios]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule for hash)
@@ -188,7 +266,7 @@ jobs:
       - name: Organize into Release/ layout
         run: |
           OUT=libbulletc-out
-          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64 ios-arm64 iossimulator-arm64; do
             mkdir -p $OUT/Release/$rid
             cp artifacts/libbulletc-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
           done
