@@ -66,11 +66,6 @@ jobs:
               );
               if (!dispatcher) continue;
 
-              if ((dispatcher.body || '').includes(RESULTS_MARKER)) {
-                core.info(`Dispatcher ${dispatcher.id} already has results posted; skipping.`);
-                return;
-              }
-
               // Parse "- `suite`: <run-url>" lines from the dispatcher body.
               const re = /^- `([^`]+)`: (https:\/\/github\.com\/[^\s/]+\/[^\s/]+\/actions\/runs\/(\d+))/gm;
               const suites = [];
@@ -126,6 +121,13 @@ jobs:
                 } catch (e) {
                   core.warning(`Failed to update check run for ${completed.name}: ${e.message}`);
                 }
+              }
+
+              // Summary dedup: the marker only guards the comment below, not the check flip
+              // above — two near-simultaneous completions must each flip their own check.
+              if ((dispatcher.body || '').includes(RESULTS_MARKER)) {
+                core.info(`Dispatcher ${dispatcher.id} already has results posted; skipping summary.`);
+                return;
               }
 
               const pending = statuses.filter(s => s.status !== 'completed');
