@@ -256,6 +256,7 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
 
       - name: Upload test results
         if: always()
