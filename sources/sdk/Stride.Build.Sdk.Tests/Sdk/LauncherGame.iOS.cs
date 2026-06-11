@@ -34,17 +34,16 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
             subscribe(new ImageCompareResult(e.CurrentPath, e.ReferencePath, e.Passed, e.Stats.ToString()));
 
         // Non-interactive entry point for the host orchestration script:
-        //   xcrun simctl launch <udid> <bundleid> --xunit-command run
+        //   xcrun simctl launch <udid> <bundleid> --xunit-command run [--xunit-filter <expr>]
         // Avalonia still hosts the Stride game surfaces, but RunAll fires immediately and the
-        // process exits with the failed-test count when done. Mirrors the Android Intent extra.
+        // process exits with the failed-test count when done. Mirrors the Android Intent extras.
         var args = NSProcessInfo.ProcessInfo.Arguments;
         for (int i = 0; i + 1 < args.Length; i++)
         {
             if (args[i] == "--xunit-command" && args[i + 1] == "run")
-            {
                 App.HeadlessMode = true;
-                break;
-            }
+            else if (args[i] == "--xunit-filter")
+                App.HeadlessFilter = args[i + 1];
         }
 
         return base.CustomizeAppBuilder(builder).WithInterFont();

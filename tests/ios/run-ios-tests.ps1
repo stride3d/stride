@@ -24,6 +24,7 @@ param(
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
+    [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
     [switch]$KeepSimulator,                                # don't shutdown a simulator we booted
     [switch]$StreamLog                                     # also tee live log to console (CI live status / local interactive)
 )
@@ -178,7 +179,9 @@ Invoke-Simctl terminate,$udid,$Package -AllowFailure | Out-Null
 $logPath = Join-Path $ResultsDir "$Package.console.txt"
 if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
 # `simctl launch` returns immediately with the PID; we poll for exit below.
-$launchOut = & xcrun simctl launch $udid $Package '--xunit-command' 'run' '--xunit-exit-on-complete' 'true' 2>&1
+$launchArgs = @('launch', $udid, $Package, '--xunit-command', 'run', '--xunit-exit-on-complete', 'true')
+if ($Filter) { $launchArgs += @('--xunit-filter', $Filter) }
+$launchOut = & xcrun simctl @launchArgs 2>&1
 if ($LASTEXITCODE -ne 0) { throw "simctl launch failed: $launchOut" }
 # Output is like "com.stride.engine.tests: 12345"
 $procPid = ($launchOut | Select-String -Pattern ':\s*(\d+)$').Matches.Groups[1].Value
