@@ -82,11 +82,14 @@ jobs:
               'windows-simple':          { kind: 'test',  event: 'test-windows-simple',          workflow: 'test-windows-simple.yml' },
               'linux-game':              { kind: 'test',  event: 'test-linux-game',              workflow: 'test-linux-game.yml' },
               'android-game':            { kind: 'test',  event: 'test-android-game',            workflow: 'test-android-game.yml' },
+              'ios-game':                { kind: 'test',  event: 'test-ios-game',                workflow: 'test-ios-game.yml' },
+              'macos-game':              { kind: 'test',  event: 'test-macos-game',              workflow: 'test-macos-game.yml' },
               'linux-simple':            { kind: 'test',  event: 'test-linux-simple',            workflow: 'test-linux-simple.yml' },
               // Builds (mirrors main.yml jobs; new entries here also need a matching job in main.yml)
               'assembly-processor':      { kind: 'build', event: 'build-assembly-processor',     workflow: 'build-assembly-processor.yml' },
               'vs-package':              { kind: 'build', event: 'build-vs-package',             workflow: 'build-vs-package.yml' },
               'ios-runtime':             { kind: 'build', event: 'build-ios',                    workflow: 'build-ios.yml' },
+              'android-runtime':         { kind: 'build', event: 'build-android',               workflow: 'build-android.yml' },
               'linux-runtime':           { kind: 'build', event: 'build-linux-runtime',          workflow: 'build-linux-runtime.yml' },
               'windows-runtime-d3d11':   { kind: 'build', event: 'build-windows-runtime',        workflow: 'build-windows-runtime.yml',        payload: { 'graphics-api': 'Direct3D11' } },
               'windows-runtime-d3d12':   { kind: 'build', event: 'build-windows-runtime',        workflow: 'build-windows-runtime.yml',        payload: { 'graphics-api': 'Direct3D12' } },
@@ -106,11 +109,18 @@ jobs:
               'linux-build':     ['linux-runtime'],
               'linux-test':      ['linux-simple', 'linux-game'],
               'linux':           ['linux-build', 'linux-test'],
-              'ios':             ['ios-runtime'],
+              'ios-build':       ['ios-runtime'],
+              'ios-test':        ['ios-game'],
+              'ios':             ['ios-build', 'ios-test'],
+              'macos-test':      ['macos-game'],
+              'macos':           ['macos-test'],
+              'android-build':   ['android-runtime'],
+              'android-test':    ['android-game'],
+              'android':         ['android-build', 'android-test'],
               // Cross-platform
               'e2e':             ['editor', 'samples'],
               // Top-level macros
-              'main':            ['windows', 'linux', 'ios', 'assembly-processor', 'vs-package'],
+              'main':            ['windows', 'linux', 'macos', 'android', 'ios', 'assembly-processor', 'vs-package'],
               'all':             ['main', 'e2e'],
             };
 

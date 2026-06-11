@@ -15,6 +15,9 @@ on:
       build-type:
         default: Debug
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [build-android]
 
 concurrency:
   group: build-android-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -34,6 +37,7 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
           exclude: samples
       - uses: actions/setup-dotnet@v4
         with:
