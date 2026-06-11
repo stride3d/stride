@@ -104,17 +104,16 @@ jobs:
       - name: Install Android Workload
         run: dotnet workload install android
 
-      - name: Setup Android SDK + NDK
+      - name: Setup Android SDK
+        # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
+        # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk
+        # strips it from ProjectReference dispatches so the value never fragments build
+        # cache keys; Stride.Native.targets enforces a minimum version at compile time).
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
-          packages: tools platform-tools ndk;21.4.7075529 build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
-
-      - name: Configure NDK Environment
-        run: |
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
+          packages: tools platform-tools build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
 
       - name: Install Linux host runtime deps (for asset compilation)
         run: |
@@ -202,8 +201,7 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Android \
             -p:EmbedAssembliesIntoApk=true \
-            -p:AndroidUseSharedRuntime=false \
-            -p:_AndroidNdkDirectory="$ANDROID_NDK_ROOT"
+            -p:AndroidUseSharedRuntime=false
 
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
