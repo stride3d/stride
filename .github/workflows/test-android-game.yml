@@ -108,7 +108,7 @@ jobs:
       - uses: ./.github/actions/stride-checkout
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
-          exclude: samples,deps/LLVM
+          exclude: samples
 
       - uses: actions/setup-dotnet@v4
         with:

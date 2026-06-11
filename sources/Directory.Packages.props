@@ -114,6 +114,7 @@
     <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.26" />
     <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.3" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.5.30" />
+    <PackageVersion Include="Stride.Dependencies.LLVM.Windows" Version="2026.6.11" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>
