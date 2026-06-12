@@ -40,7 +40,9 @@ jobs:
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
           exclude: samples
       - name: Install Android Workload
-        run: dotnet workload install android
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: android
       - name: Setup Android
         # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
         # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk

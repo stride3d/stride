@@ -107,7 +107,9 @@ jobs:
         # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
         # AVFoundation/Metal bring-up work). slnf-driven builds dispatch all TFMs of every project
         # they pull in, so the iOS slnf still needs the macOS workload available.
-        run: dotnet workload install ios macos
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios macos
 
       - name: Select Xcode 26.5
         # Default on macos-26 is 26.4.1; the .NET iOS 26.5 SDK pack needs exactly 26.5.
