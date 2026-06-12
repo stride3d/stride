@@ -39,7 +39,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\shaders\Stride.Shaders.Effects\Stride.Shaders.Effects.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
-    <PackageReference Include="System.Memory" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <!-- PrivateAssets="compile": native bindings stay out of consumer compile graphs (analyzer perf);
          consumers calling GraphicsMarshal interop add their own PackageReference. -->
