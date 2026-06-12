@@ -1155,29 +1155,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The Texture description to check.</param>
-        /// <returns>The updated Texture description.</returns>
-        /// <remarks>
-        ///   This check is to prevent issues with Direct3D 9.x where the driver may not be able to create mipmaps
-        ///   whose resolution in less than 4x4 pixels.
-        /// </remarks>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            // Troubles with DXT images whose resolution in less than 4x4 in DX9.x
-            // TODO: Stale comment?
-
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
-            {
-                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
-            }
-            return description;
-        }
-
-        /// <summary>
         ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
         ///   a minimum mip-level size.
         /// </summary>
