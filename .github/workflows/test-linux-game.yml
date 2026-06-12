@@ -167,7 +167,7 @@ jobs:
             "${FILTER_ARG[@]}" \
             -- RunConfiguration.MaxCpuCount=1
       - name: Test non-GPU
-        if: ${{ always() && (github.event.inputs.project || inputs.project) == '' }}
+        if: ${{ !cancelled() && (github.event.inputs.project || inputs.project) == '' }}
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
           dotnet test build/Stride.Tests.Game.Runtime.slnf \

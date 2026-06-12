@@ -190,7 +190,7 @@ jobs:
           done
           exit $worst
       - name: Test non-GPU
-        if: ${{ always() && (github.event.inputs.project || inputs.project) == '' }}
+        if: ${{ !cancelled() && (github.event.inputs.project || inputs.project) == '' }}
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
           CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
