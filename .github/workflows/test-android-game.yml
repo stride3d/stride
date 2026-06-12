@@ -111,7 +111,9 @@ jobs:
           exclude: samples
 
       - name: Install Android Workload
-        run: dotnet workload install android
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: android
 
       - name: Setup Android SDK
         # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's

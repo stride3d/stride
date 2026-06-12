@@ -1,0 +1,26 @@
+name: Stride workload install
+description: >-
+  dotnet workload install. On Windows it pins to the image manifests (--skip-manifest-update,
+  else the set update re-downloads every VS-preinstalled workload, ~4min -> ~2min). macOS/Linux
+  have no preinstalled workloads and install in seconds, so they take the latest set plain —
+  also required on macOS, where the latest set's packs must match the Xcode version the
+  workflows select. No pack caching: --download-to-cache/--from-cache is unreliable with the
+  MSI-based installer (packs reported downloaded are then not found by --from-cache).
+
+inputs:
+  workloads:
+    description: Space-separated workload ids (e.g. "ios macos")
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install workloads
+      if: runner.os == 'Windows'
+      shell: bash
+      run: dotnet workload install ${{ inputs.workloads }} --skip-manifest-update
+
+    - name: Install workloads
+      if: runner.os != 'Windows'
+      shell: bash
+      run: dotnet workload install ${{ inputs.workloads }}

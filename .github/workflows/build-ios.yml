@@ -46,7 +46,9 @@ jobs:
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
           exclude: samples
       - name: Install .NET iOS Workload
-        run: dotnet workload install ios
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios
       - name: Build
         run: |
           dotnet build build\Stride.iOS.slnf `
