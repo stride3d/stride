@@ -118,8 +118,25 @@ public unsafe partial class GraphicsDevice
         /// </remarks>
         internal void WaitForFenceCPUInternal(ulong fenceValue)
         {
+            WaitForFenceCPUInternal(fenceValue, Timeout.Infinite);
+        }
+
+        /// <summary>
+        ///   Waits for the specified fence value to be signaled by a Command Queue, blocking
+        ///   the calling thread up to <paramref name="millisecondsTimeout"/>.
+        /// </summary>
+        /// <param name="fenceValue">The fence value to wait for.</param>
+        /// <param name="millisecondsTimeout">
+        ///   The maximum time to wait, or <see cref="Timeout.Infinite"/> to wait indefinitely.
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if the fence value was reached;
+        ///   <see langword="false"/> if the wait timed out.
+        /// </returns>
+        internal bool WaitForFenceCPUInternal(ulong fenceValue, int millisecondsTimeout)
+        {
             if (IsFenceCompleteInternal(fenceValue))
-                return;
+                return true;
 
             // TODO: D3D12: In case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue than the first one
             lock (lockObject)
@@ -127,8 +144,15 @@ public unsafe partial class GraphicsDevice
                 var localFenceEvent = fenceEvent ??= new AutoResetEvent(initialState: false);
 
                 fence->SetEventOnCompletion(fenceValue, (void*) localFenceEvent.GetSafeWaitHandle().DangerousGetHandle());
-                localFenceEvent.WaitOne();
+                if (!localFenceEvent.WaitOne(millisecondsTimeout))
+                {
+                    // A late completion would still signal the abandoned event; replace it so the
+                    // next wait on this thread cannot wake up spuriously.
+                    fenceEvent = new AutoResetEvent(initialState: false);
+                    return false;
+                }
                 LastCompletedFence = fenceValue;
+                return true;
             }
         }
 
