@@ -56,9 +56,6 @@ jobs:
       - uses: ./.github/actions/stride-checkout
         with:
           exclude: samples
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Build
         run: |
           dotnet build build\Stride.Launcher.sln `

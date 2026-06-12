@@ -103,10 +103,6 @@ jobs:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
           exclude: samples
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
       - name: Install iOS + macOS Workloads
         # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
         # AVFoundation/Metal bring-up work). slnf-driven builds dispatch all TFMs of every project
