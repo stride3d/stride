@@ -252,9 +252,6 @@ jobs:
           # Compare against the tested commit's gold. A detached commit-sha can't be pushed to, so
           # those runs always land via PR (see can_branch below).
           ref: ${{ inputs.commit-sha || github.ref }}
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Download combined gold images
         uses: actions/download-artifact@v4
         with:

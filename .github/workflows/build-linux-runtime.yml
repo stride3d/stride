@@ -45,9 +45,6 @@ jobs:
         with:
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
           exclude: samples
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Build
         run: |
           dotnet build build\Stride.Runtime.slnf `
