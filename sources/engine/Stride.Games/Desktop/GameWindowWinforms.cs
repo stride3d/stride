@@ -191,6 +191,7 @@ namespace Stride.Games
                     {
                         if (Exiting)
                         {
+                            OnClosing(this, EventArgs.Empty);
                             Destroy();
                             return;
                         }
