@@ -538,14 +538,12 @@ namespace Stride.Graphics.Tests
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestGetData(GraphicsProfile profile, GraphicsResourceUsage usage)
         {
-            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
-
             PerformTest(
                 game =>
                 {
                     const int width = 16;
                     const int height = width;
-                    var arraySize = testArray ? 2 : 1;
+                    var arraySize = 2;
                     var flags = usage == GraphicsResourceUsage.Default?
                         new[] { TextureFlags.ShaderResource, TextureFlags.RenderTarget, TextureFlags.RenderTarget | TextureFlags.ShaderResource }:
                         new[] { TextureFlags.None };
@@ -567,8 +565,6 @@ namespace Stride.Graphics.Tests
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestCopy(GraphicsProfile profile, GraphicsResourceUsage usageSource)
         {
-            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
-
             PerformTest(
                 game =>
                 {
