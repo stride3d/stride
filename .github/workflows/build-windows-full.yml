@@ -42,9 +42,6 @@ jobs:
           lfs: true
           submodules: true
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Build
         run: |
           dotnet build build\Stride.sln `

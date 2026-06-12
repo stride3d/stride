@@ -37,14 +37,14 @@ jobs:
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          exclude: samples
       - name: Build
         run: |
           dotnet build build\Stride.Runtime.slnf `

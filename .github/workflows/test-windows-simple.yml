@@ -36,14 +36,13 @@ jobs:
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     steps:
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Simple.slnf `

@@ -301,11 +301,12 @@ if ($StreamLogcat) {
 }
 
 # 7. Launch with intent extras
-# adb shell joins args with spaces before the device shell re-splits, so a filter value
-# with spaces wouldn't survive; name-based vstest filters (no spaces) round-trip fine.
+# adb shell joins args with spaces and the device shell re-interprets them, so the filter
+# is single-quoted for the device shell: an unquoted `|` (vstest OR) would silently truncate
+# the expression into a device-side pipeline. Spaces still don't survive.
 Write-Host "Launching with xunit_command=run$(if ($Filter) { " xunit_filter=$Filter" })..."
 $amArgs = @('shell', 'am', 'start', '-W', '-n', $activity, '--es', 'xunit_command', 'run', '--ez', 'xunit_exit_on_complete', 'true')
-if ($Filter) { $amArgs += @('--es', 'xunit_filter', $Filter) }
+if ($Filter) { $amArgs += @('--es', 'xunit_filter', "'$Filter'") }
 if ($Repeat -gt 1) { $amArgs += @('--es', 'xunit_repeat', "$Repeat") }
 Invoke-Adb @amArgs | Out-Null
 
