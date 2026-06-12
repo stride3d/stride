@@ -51,9 +51,10 @@ public enum PackageState
 [DebuggerDisplay("Name: {Meta.Name}, Version: {Meta.Version}, Assets [{Assets.Count}]")]
 [AssetFormatVersion("Assets", PackageFileVersion, "0.0.0.4")]
 [AssetUpgrader("Assets", "0.0.0.4", "3.1.0.0", typeof(MovePackageInsideProject))]
+[AssetUpgrader("Assets", "3.1.0.0", "3.2.0.0", typeof(EmptyAssetUpgrader))]
 public sealed partial class Package : IFileSynchronizable, IAssetFinder
 {
-    private const string PackageFileVersion = "3.1.0.0";
+    private const string PackageFileVersion = "3.2.0.0";
 
     internal readonly List<UFile> FilesToDelete = [];
 
@@ -163,6 +164,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// </summary>
     [DataMember(100)]
     public RootAssetCollection RootAssets { get; private set; } = [];
+
+    /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// </summary>
+    [DataMember(105)]
+    public List<UFile> AssetAssemblies { get; } = [];
 
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
