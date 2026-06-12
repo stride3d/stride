@@ -94,21 +94,22 @@ jobs:
       # descriptor indexing is required, which didn't avoid the crash).
       SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: true
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
-
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          exclude: samples
 
       - name: Install iOS + macOS Workloads
         # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
         # AVFoundation/Metal bring-up work). slnf-driven builds dispatch all TFMs of every project
         # they pull in, so the iOS slnf still needs the macOS workload available.
-        run: dotnet workload install ios macos
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios macos
 
       - name: Select Xcode 26.5
         # Default on macos-26 is 26.4.1; the .NET iOS 26.5 SDK pack needs exactly 26.5.
@@ -256,6 +257,7 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
 
       - name: Upload test results
         if: always()

@@ -45,14 +45,12 @@ jobs:
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
     steps:
+      # Full checkout: TestSceneUpgrader validates asset migration of the scenes under samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build

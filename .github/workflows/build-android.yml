@@ -15,6 +15,9 @@ on:
       build-type:
         default: Debug
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [build-android]
 
 concurrency:
   group: build-android-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -28,15 +31,18 @@ jobs:
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: true
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          exclude: samples
       - name: Install Android Workload
-        run: dotnet workload install android
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: android
       - name: Setup Android
         # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
         # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk

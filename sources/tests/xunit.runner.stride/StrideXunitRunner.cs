@@ -171,9 +171,9 @@ public static class StrideXunitRunner
         return 1;
     }
 
-    // Minimal `dotnet test --filter` / VSTest filter parser: single binary op `<Property><op><Value>`
-    // where op ∈ { =, !=, ~, !~ } and Property ∈ { FullyQualifiedName, DisplayName, Name }.
-    // Compound (& |) and parens aren't supported — the "run one test" path doesn't need them.
+    // Minimal `dotnet test --filter` / VSTest filter parser: binary ops `<Property><op><Value>`
+    // where op ∈ { =, !=, ~, !~ } and Property ∈ { FullyQualifiedName, DisplayName, Name },
+    // combinable with | and & (OR binds loosest, as in vstest). Parens/escapes unsupported.
     private static Func<ITestCase, bool>? ParseVstestFilter(string[] args)
     {
         for (int i = 0; i + 1 < args.Length; i++)
@@ -187,6 +187,18 @@ public static class StrideXunitRunner
     internal static Func<ITestCase, bool>? ParseVstestFilter(string expr)
     {
         if (string.IsNullOrEmpty(expr)) return null;
+        var orParts = expr.Split('|');
+        if (orParts.Length > 1)
+        {
+            var parsed = Array.ConvertAll(orParts, ParseVstestFilter);
+            return Array.IndexOf(parsed, null) >= 0 ? null : tc => Array.Exists(parsed, p => p!(tc));
+        }
+        var andParts = expr.Split('&');
+        if (andParts.Length > 1)
+        {
+            var parsed = Array.ConvertAll(andParts, ParseVstestFilter);
+            return Array.IndexOf(parsed, null) >= 0 ? null : tc => Array.TrueForAll(parsed, p => p!(tc));
+        }
         // Order matters: check 2-char ops before 1-char ones to avoid splitting on the wrong byte.
         foreach (var op in new[] { "!~", "!=", "~", "=" })
         {

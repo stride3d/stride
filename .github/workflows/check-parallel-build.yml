@@ -32,10 +32,6 @@ jobs:
         with:
           lfs: true
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
       - name: Build ParallelBuildAuditor
         run: dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:m
 
