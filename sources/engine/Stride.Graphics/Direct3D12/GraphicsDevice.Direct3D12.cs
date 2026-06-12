@@ -854,8 +854,13 @@ namespace Stride.Graphics
         /// </summary>
         partial void WaitForGPUIdle()
         {
+            // Bounded: a queued Present can never complete once its window is destroyed, and a
+            // healthy queue drains well within this (hardware TDR caps command lists at ~2s).
+            const int GpuIdleTimeoutMs = 10_000;
+
             FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
-            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
+            if (!FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue, GpuIdleTimeoutMs))
+                Log.Error($"[D3D12] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
         }
 
         protected partial void DestroyPlatformDevice()
