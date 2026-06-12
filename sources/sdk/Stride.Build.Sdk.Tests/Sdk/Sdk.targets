@@ -17,8 +17,8 @@
     <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
     <!-- Game = host-loadable library TFM (test analog of MyGame.Game.dll); the asset compiler loads
          the suite and its refs at the host TFM, so auto-add it for mobile-only platform lists (a desktop
-         platform fills that role when present). Opt out with StrideTestRequiresHostAssembly=false. -->
-    <_StrideTestPlatforms Condition="'$(StrideTestRequiresHostAssembly)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
+         platform fills that role when present). Opt out with StrideAssetAssembly=false. -->
+    <_StrideTestPlatforms Condition="'$(StrideAssetAssembly)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
     <_StrideTestTargetFrameworks></_StrideTestTargetFrameworks>
     <!-- net10.0 desktop TFM: runnable on Linux/macOS, runnable on Windows without mobile,
          or the Game library shadow (asset-compiler-only, no launcher). -->
