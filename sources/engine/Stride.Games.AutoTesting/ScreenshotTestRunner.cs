@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
@@ -62,6 +63,7 @@ internal sealed class ScreenshotTestRunner
     private const string ScreenshotsSubDir = "screenshots";
     private const string DoneFileName = "done.json";
     private const string ErrorLogName = "error.log";
+    private const int ErrorLoggedExitCode = 102;
 
     private readonly Game game;
     private readonly IScreenshotTest test;
@@ -91,9 +93,29 @@ internal sealed class ScreenshotTestRunner
             return;
 
         // Skip back-buffer clamp so portrait samples don't get cropped on smaller host desktops.
-        // OnGameStarted fires before graphicsDeviceManager.CreateDevice, so the flag is in effect
+        // OnGameStarted fires before graphicsDeviceManager.CreateDevice, so the flags are in effect
         // by the time the swap chain is created.
-        ((GraphicsDeviceManager)game.GraphicsDeviceManager).SkipBackBufferClampToWindow = true;
+        var deviceManager = (GraphicsDeviceManager)game.GraphicsDeviceManager;
+        deviceManager.SkipBackBufferClampToWindow = true;
+
+        // Present without vsync: tests don't need display pacing, and compositor pacing is
+        // unreliable for hidden CI windows (throttled or unserviced presents slow the run).
+        deviceManager.SynchronizeWithVerticalRetrace = false;
+
+        // Fail the run if the engine logs an error, even when the game otherwise exits cleanly.
+        // Mapped to the exit code at process exit because some errors (e.g. a GPU drain timeout
+        // during teardown) happen after the test already set its exit code.
+        var errorLogged = false;
+        GlobalLogger.GlobalMessageLogged += message =>
+        {
+            if (message.Type >= LogMessageType.Error)
+                errorLogged = true;
+        };
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            if (errorLogged && Environment.ExitCode == 0)
+                Environment.ExitCode = ErrorLoggedExitCode;
+        };
 
         // The test fixture self-registers from a [ModuleInitializer] (see AutoTestingBootstrap.RegisterTest).
         var test = AutoTestingBootstrap.RegisteredTest;

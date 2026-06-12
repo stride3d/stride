@@ -360,7 +360,12 @@ public static class ScreenshotRunner
 
         if (!process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds)))
         {
-            try { process.Kill(entireProcessTree: true); } catch { }
+            // A hang here is almost always a teardown deadlock (the sample wrote done.json then
+            // failed to exit). Snapshot the hung process's thread stacks before killing it so the
+            // next CI occurrence ships the actual deadlock callstack as an artifact.
+            try { CaptureHangDump(process, Path.GetDirectoryName(logPath)!, log); } catch (Exception e) { log.WriteLine($"[runner] hang dump failed: {e.Message}"); }
+
+            try { process.Kill(entireProcessTree: true); } catch (Exception e) { log.WriteLine($"[runner] kill failed: {e.Message}"); }
             // Kill returns before the OS finishes tearing down the process and releasing its file
             // handles; without this WaitForExit the caller races the kernel and intermittently
             // fails to copy / overwrite files the killed process had open.
@@ -370,6 +375,85 @@ public static class ScreenshotRunner
         }
         return process.ExitCode == 0;
     }
+
+    /// <summary>
+    /// Captures a heap process dump of a hung sample into the per-sample output dir so it rides along
+    /// with the uploaded artifacts. On Windows uses <c>MiniDumpWriteDump</c> (Windows' <c>createdump</c>
+    /// can only dump the current process); elsewhere uses the runtime's <c>createdump</c>, which still
+    /// takes a target pid. Best-effort: any failure is logged and swallowed.
+    /// </summary>
+    private static void CaptureHangDump(Process process, string outputDir, TextWriter log)
+    {
+        var dumpPath = Path.Combine(outputDir, "hang-dump.dmp");
+        log.WriteLine($"[runner] capturing hang dump of pid {process.Id} -> {dumpPath}");
+
+        if (OperatingSystem.IsWindows())
+        {
+            // Prefer a full-memory dump (managed + native callstacks under SOS). If the full read
+            // fails — graphics processes can have mapped regions that aren't fully readable — fall
+            // back to a stacks dump (Normal + ThreadInfo + IndirectlyReferencedMemory + HandleData),
+            // which still carries every thread's native callstack, enough to pinpoint the deadlock.
+            if (!TryMiniDump(process, dumpPath, 0x2 | 0x4 | 0x1000, "full", log))
+                TryMiniDump(process, dumpPath, 0x0 | 0x1000 | 0x40 | 0x4, "stacks", log);
+            return;
+        }
+
+        var createdump = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "createdump");
+        if (!File.Exists(createdump))
+        {
+            log.WriteLine($"[runner] createdump not found at '{createdump}'; skipping hang dump");
+            return;
+        }
+        var psi = new ProcessStartInfo(createdump, $"--withheap --name \"{dumpPath}\" {process.Id}")
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        using var dumper = Process.Start(psi);
+        if (dumper is null)
+        {
+            log.WriteLine("[runner] failed to start createdump");
+            return;
+        }
+        var stdout = dumper.StandardOutput.ReadToEnd();
+        var stderr = dumper.StandardError.ReadToEnd();
+        if (!dumper.WaitForExit(TimeSpan.FromSeconds(120)))
+        {
+            try { dumper.Kill(entireProcessTree: true); } catch { }
+            log.WriteLine("[runner] createdump timed out");
+            return;
+        }
+        foreach (var line in stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries)) log.WriteLine($"[createdump] {line.TrimEnd()}");
+        foreach (var line in stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries)) log.WriteLine($"[createdump:stderr] {line.TrimEnd()}");
+        log.WriteLine($"[runner] createdump exited {dumper.ExitCode}");
+    }
+
+    private static bool TryMiniDump(Process process, string dumpPath, int dumpType, string label, TextWriter log)
+    {
+        try
+        {
+            using var fs = new FileStream(dumpPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            if (MiniDumpWriteDump(process.Handle, (uint)process.Id, fs.SafeFileHandle.DangerousGetHandle(),
+                                  dumpType, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero))
+            {
+                log.WriteLine($"[runner] hang dump ({label}) written: {fs.Length} bytes");
+                return true;
+            }
+            log.WriteLine($"[runner] MiniDumpWriteDump ({label}) failed (win32 error {Marshal.GetLastWin32Error()})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            log.WriteLine($"[runner] hang dump ({label}) threw: {ex.Message}");
+            return false;
+        }
+    }
+
+    [DllImport("Dbghelp.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile, int dumpType,
+                                                 IntPtr exceptionParam, IntPtr userStreamParam, IntPtr callbackParam);
 
     /// <summary>
     /// Regenerate one sample from its template into <paramref name="targetDir"/>, then copy the

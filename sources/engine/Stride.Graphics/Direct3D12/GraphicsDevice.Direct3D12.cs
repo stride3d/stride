@@ -33,6 +33,11 @@ namespace Stride.Graphics
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
 
+        // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
+        private const uint AgilitySDKVersion = 619;
+        private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
+        private static bool agilitySDKChecked;
+
         private ID3D12InfoQueue* nativeInfoQueue;
         private ID3D12InfoQueue1* nativeInfoQueue1;
         private uint debugMessageCallbackCookie;
@@ -418,6 +423,9 @@ namespace Stride.Graphics
             IsDeferred = true;
 
             var d3d12 = D3D12.GetApi();
+
+            // Opt into an app-local Agility SDK (if shipped) before the debug layer / device load D3D12Core.
+            TryActivateAgilitySDK(d3d12);
 
             // The Debug Layer must be initialized before creating the device
             if (IsDebugMode)
@@ -808,12 +816,51 @@ namespace Stride.Graphics
         private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription) { }
 
         /// <summary>
+        ///   Activates an app-local D3D12 Agility SDK (shipped under <c>D3D12\</c>) once per process,
+        ///   before any device or debug interface is created. No-op if the redist isn't present.
+        /// </summary>
+        private static void TryActivateAgilitySDK(D3D12 d3d12)
+        {
+            lock (debugLayerLock)
+            {
+                if (agilitySDKChecked)
+                    return;
+                agilitySDKChecked = true;
+
+                if (!System.IO.File.Exists(System.IO.Path.Combine(AppContext.BaseDirectory, "D3D12", "D3D12Core.dll")))
+                    return;
+
+                var clsid = CLSID_D3D12SDKConfiguration;
+                int hr = d3d12.GetInterface(ref clsid, out ComPtr<ID3D12SDKConfiguration> sdkConfig);
+                if (hr < 0 || sdkConfig.IsNull())
+                {
+                    Log.Warning($"[D3D12] Agility SDK present but ID3D12SDKConfiguration is unavailable (0x{hr:X8}); using system D3D12.");
+                    return;
+                }
+
+                // Path is relative to the exe and must end with a separator.
+                hr = sdkConfig.SetSDKVersion(AgilitySDKVersion, "D3D12\\");
+                sdkConfig.Release();
+
+                if (hr < 0)
+                    Log.Warning($"[D3D12] Agility SDK SetSDKVersion({AgilitySDKVersion}) failed (0x{hr:X8}); using system D3D12.");
+                else
+                    Log.Info($"[D3D12] Using app-local Agility SDK {AgilitySDKVersion}.");
+            }
+        }
+
+        /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
         partial void WaitForGPUIdle()
         {
+            // Bounded: a queued Present can never complete once its window is destroyed, and a
+            // healthy queue drains well within this (hardware TDR caps command lists at ~2s).
+            const int GpuIdleTimeoutMs = 10_000;
+
             FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
-            FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue);
+            if (!FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue, GpuIdleTimeoutMs))
+                Log.Error($"[D3D12] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
         }
 
         protected partial void DestroyPlatformDevice()

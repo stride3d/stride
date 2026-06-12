@@ -396,6 +396,7 @@ namespace Stride.Games
                     coreWindow.Dispatcher.ProcessEvents(CoreProcessEventsOption.ProcessAllIfPresent);
                     if (Exiting)
                     {
+                        OnClosing(this, EventArgs.Empty);
                         Destroy();
                         break;
                     }

@@ -374,6 +374,11 @@ namespace Stride.Games
                     // Setup the graphics device if it was not already setup.
                     SetupGraphicsDeviceEvents();
 
+                    // Drain pending GPU work before the window is destroyed: a queued flip-model
+                    // Present can only complete while its window is alive, and the device is
+                    // destroyed after the window on the exit path.
+                    Window.Closing += (_, _) => GraphicsDevice?.WaitForGpuIdle();
+
                     // Bind Graphics Context enabling initialize to use GL API eg. SetData to texture ...etc
                     BeginDraw();
 

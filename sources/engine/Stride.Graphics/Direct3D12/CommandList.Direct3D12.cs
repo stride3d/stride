@@ -1115,11 +1115,13 @@ namespace Stride.Graphics
             else
             {
                 // Fallback: use D3D12 built-in event markers (visible in RenderDoc, NSight, etc.)
+                // Metadata 1 = PIX_EVENT_ANSI_VERSION, matching the ANSI payload — tools (and the
+                // debug layer's event accounting) can't decode the marker otherwise.
                 var maxBytes = System.Text.Encoding.ASCII.GetMaxByteCount(name.Length) + 1;
                 var nameBytes = stackalloc byte[maxBytes];
                 int written = System.Text.Encoding.ASCII.GetBytes(name, new Span<byte>(nameBytes, maxBytes));
                 nameBytes[written] = 0;
-                currentCommandList.NativeCommandList.BeginEvent(Metadata: 0, nameBytes, (uint)(written + 1));
+                currentCommandList.NativeCommandList.BeginEvent(Metadata: 1, nameBytes, (uint)(written + 1));
             }
         }
 
