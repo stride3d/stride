@@ -1064,24 +1064,16 @@ namespace Stride.Graphics
             var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
             if (needsTypelessDepth)
             {
-                // Determine TypeLess Format and ShaderResourceView Format
+                // Determine Typeless Format and Shader Resource View Format
                 format = textureDescription.Format switch
                 {
-                    throw new NotSupportedException($"Creating Shader Resource Views for Depth-Stencil Buffers are not supported for Graphics Profiles < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
-                }
-                else
-                {
-                    // Determine Typeless Format and Shader Resource View Format
-                    format = textureDescription.Format switch
-                    {
-                        PixelFormat.D16_UNorm => Silk.NET.DXGI.Format.FormatR16Typeless,
-                        PixelFormat.D32_Float => Silk.NET.DXGI.Format.FormatR32Typeless,
-                        PixelFormat.D24_UNorm_S8_UInt => Silk.NET.DXGI.Format.FormatR24G8Typeless,
-                        PixelFormat.D32_Float_S8X24_UInt => Silk.NET.DXGI.Format.FormatR32G8X24Typeless,
+                    PixelFormat.D16_UNorm => Silk.NET.DXGI.Format.FormatR16Typeless,
+                    PixelFormat.D32_Float => Silk.NET.DXGI.Format.FormatR32Typeless,
+                    PixelFormat.D24_UNorm_S8_UInt => Silk.NET.DXGI.Format.FormatR24G8Typeless,
+                    PixelFormat.D32_Float_S8X24_UInt => Silk.NET.DXGI.Format.FormatR32G8X24Typeless,
 
-                        _ => throw new NotSupportedException($"Unsupported Depth format [{textureDescription.Format}] for Depth Buffer")
-                    };
-                }
+                    _ => throw new NotSupportedException($"Unsupported Depth format [{textureDescription.Format}] for Depth Buffer")
+                };
             }
 
             return new ResourceDesc
