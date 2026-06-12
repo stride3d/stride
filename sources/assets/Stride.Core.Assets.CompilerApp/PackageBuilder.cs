@@ -96,6 +96,8 @@ namespace Stride.Core.Assets.CompilerApp
                     ?? projectSession.LocalPackages.FirstOrDefault()
                     ?? projectSession.Packages.FirstOrDefault();
 
+                AssetBuildManifestValidator.Validate(projectSession, builderOptions.PackageFile, builderOptions.BuildManifestFile, builderOptions.BuildDirectory, builderOptions.Logger);
+
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
                 var outputDirectory = builderOptions.OutputDirectory;
