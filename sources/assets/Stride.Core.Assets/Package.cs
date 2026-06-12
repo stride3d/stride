@@ -165,6 +165,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public RootAssetCollection RootAssets { get; private set; } = [];
 
     /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// </summary>
+    [DataMember(105)]
+    public List<AssetAssembly> AssetAssemblies { get; } = [];
+
+    /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
     /// </summary>
     /// <value>The templates.</value>
