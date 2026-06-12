@@ -15,18 +15,9 @@ on:
       - '!**/.gitignore'
       - '!**/*.md'
       - '!crowdin.yml'
+  # No paths filter here: the Gate job is a required check, so CI must report on every PR.
+  # The changes job's filters skip the actual work for out-of-scope PRs.
   pull_request:
-    paths:
-      - '.github/workflows/**'
-      - 'build/**'
-      - 'deps/**'
-      - 'sources/**'
-      - 'tests/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
@@ -201,7 +192,7 @@ jobs:
   Windows-Tests-Game-ApiNeutral:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
@@ -215,7 +206,7 @@ jobs:
   Windows-Tests-Simple:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
@@ -228,7 +219,7 @@ jobs:
   Windows-Tests-Game-D3D11:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
@@ -242,7 +233,7 @@ jobs:
   Windows-Tests-Game-D3D12:
     needs: [changes, Windows-Runtime-D3D12]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D12'].result != 'failure'
@@ -256,7 +247,7 @@ jobs:
   Windows-Tests-Game-Vulkan:
     needs: [changes, Windows-Runtime-Vulkan]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-Vulkan'].result != 'failure'
@@ -270,7 +261,7 @@ jobs:
   Linux-Tests-Simple:
     needs: [changes, Linux-Runtime]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
@@ -283,7 +274,7 @@ jobs:
   Linux-Tests-Game:
     needs: [changes, Linux-Runtime]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
@@ -299,7 +290,7 @@ jobs:
   macOS-Tests-Game:
     needs: [changes, Linux-Runtime]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
@@ -314,7 +305,7 @@ jobs:
   iOS-Tests-Game:
     needs: [changes, Linux-Runtime]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.ios-tests == 'true'
       && needs['Linux-Runtime'].result != 'failure'
@@ -329,7 +320,7 @@ jobs:
   Android-Tests-Game:
     needs: [changes, Linux-Runtime]
     if: |
-      always()
+      !cancelled()
       && github.event.pull_request.draft != true
       && needs.changes.outputs.android == 'true'
       && needs['Linux-Runtime'].result != 'failure'
@@ -338,3 +329,39 @@ jobs:
     secrets: inherit
     with:
       build-type: Debug
+
+  # Aggregate result for branch protection: mark only "Gate" as required.
+  # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
+  # always() on purpose (unlike the !cancelled() test jobs): a cancelled run must
+  # report a red Gate, not a skipped (= passing) one.
+  Gate:
+    needs:
+      - changes
+      - Assembly-Processor
+      - VS-Package
+      - iOS-Runtime
+      - Android-Runtime
+      - Linux-Runtime
+      - Windows-Runtime-D3D11
+      - Windows-Runtime-D3D12
+      - Windows-Runtime-Vulkan
+      - Windows-Full
+      - Windows-Tests-Game-ApiNeutral
+      - Windows-Tests-Simple
+      - Windows-Tests-Game-D3D11
+      - Windows-Tests-Game-D3D12
+      - Windows-Tests-Game-Vulkan
+      - Linux-Tests-Simple
+      - Linux-Tests-Game
+      - macOS-Tests-Game
+      - iOS-Tests-Game
+      - Android-Tests-Game
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any needed job failed or was cancelled
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
+          test "$(echo "$NEEDS" | jq '[.[] | select(.result=="failure" or .result=="cancelled")] | length')" -eq 0
