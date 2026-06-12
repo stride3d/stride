@@ -144,8 +144,20 @@ jobs:
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          # net10.0-macos suites build a .app and need its host (the Microsoft.macOS ObjC
+          # bridge is only initialized there); the next step runs them. Exclude from vstest.
+          EXCLUDE=""
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            EXCLUDE="$EXCLUDE${EXCLUDE:+ & }FullyQualifiedName!~$(basename "$app" .app)"
+          done
+          FILTER=""
+          if [ -n "$STRIDE_TEST_FILTER" ] && [ -n "$EXCLUDE" ]; then FILTER="($STRIDE_TEST_FILTER) & $EXCLUDE"
+          elif [ -n "$STRIDE_TEST_FILTER" ]; then FILTER="$STRIDE_TEST_FILTER"
+          else FILTER="$EXCLUDE"; fi
           FILTER_ARG=()
-          if [ -n "$STRIDE_TEST_FILTER" ]; then FILTER_ARG=(--filter "$STRIDE_TEST_FILTER"); fi
+          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
           dotnet test "$STRIDE_TEST_TARGET" \
             --no-build \
             --logger:trx --results-directory TestResults \
@@ -154,16 +166,52 @@ jobs:
             -p:StrideGraphicsApis=Vulkan \
             "${FILTER_ARG[@]}" \
             -- RunConfiguration.MaxCpuCount=1
+      - name: Test .app-hosted suites
+        if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          worst=0
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            suite=$(basename "$app" .app)
+            echo "::group::Run $suite (.app)"
+            args=(--xunit-command run --xunit-exit-on-complete true)
+            if [ -n "$STRIDE_TEST_FILTER" ]; then args+=(--xunit-filter "$STRIDE_TEST_FILTER"); fi
+            "$app/Contents/MacOS/$suite" "${args[@]}" || worst=$?
+            # The binary's exit code doesn't reflect test failures; parse the TRX like the
+            # Android/iOS drivers do.
+            trx="$app/Contents/MonoBundle/TestResults/$suite.trx"
+            if [ -f "$trx" ]; then
+              cp "$trx" TestResults/
+              failed=$(grep -o 'outcome="Failed"' "$trx" | wc -l)
+              if [ "$failed" -gt 0 ]; then echo "::error::$suite: $failed failed test(s)"; worst=1; fi
+            else
+              echo "::error::$suite: no TRX produced"; worst=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $worst
       - name: Test non-GPU
         if: ${{ always() && (github.event.inputs.project || inputs.project) == '' }}
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          # Same .app-hosted exclusion as Test GPU (Audio.Tests is in both slnfs).
+          EXCLUDE=""
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            EXCLUDE="$EXCLUDE${EXCLUDE:+ & }FullyQualifiedName!~$(basename "$app" .app)"
+          done
+          FILTER_ARG=()
+          if [ -n "$EXCLUDE" ]; then FILTER_ARG=(--filter "$EXCLUDE"); fi
           dotnet test build/Stride.Tests.Game.Runtime.slnf \
             --no-build \
             --logger:trx --results-directory TestResults \
             --blame-hang-timeout 5m --blame-hang-dump-type full \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StrideGraphicsApis=Vulkan \
+            "${FILTER_ARG[@]}" \
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
