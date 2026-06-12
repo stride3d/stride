@@ -47,21 +47,17 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
             Span<UnsortedO1List<StaticComponent, Matrix4x4>.SequentialData> span = statics.UnsafeGetSpan();
             for (int i = from; i < toExclusive; i++)
             {
-                var collidable = span[i].Key;
+                ref var iData = ref span[i];
+                var collidable = iData.Key;
+
                 ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref collidable.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
-                if (span[i].Value == numericMatrix)
+                if (iData.Value == numericMatrix)
                     continue; // This static did not move
 
-                span[i].Value = numericMatrix;
+                iData.Value = numericMatrix;
 
-                if (collidable.StaticReference is { } sRef)
-                {
-                    var description = sRef.GetDescription();
-                    collidable.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
-                    description.Pose.Position = (translation + collidable.CenterOfMass).ToNumeric();
-                    description.Pose.Orientation = rotation.ToNumeric();
-                    sRef.ApplyDescription(description);
-                }
+                collidable.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
+                collidable.TeleportNoTransformUpdate(translation, rotation);
             }
         }
     }
