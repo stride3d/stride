@@ -1,0 +1,241 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Derived asset-build manifest (.sdbuild): per-TFM artifact in obj/ describing what the
+       asset compiler needs from this project (authored package, asset items, assemblies to
+       load, referenced manifests, NuGet lock file). Regenerated on every build, written only
+       when content changes so downstream timestamps stay stable. -->
+
+  <PropertyGroup>
+    <StrideAssetBuildManifest Condition="'$(StrideAssetBuildManifest)' == ''">true</StrideAssetBuildManifest>
+    <!-- StrideProjectAssetExtensions: project-source asset extensions captured into the manifest.
+         Not defaulted here — Stride.Core is asset-type-agnostic. The asset-owning build layer
+         contributes its extensions next to where it globs the files (shaders append .sdsl;.sdfx in
+         Stride.targets / Sdk.targets); a plugin appends its own in its buildTransitive .targets.
+         AssetRegistry is the runtime source of truth but can't be queried at build time without
+         loading every asset assembly+plugin — the cost the manifest exists to avoid. -->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' != ''">
+    <StrideAssetBuildManifestPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(MSBuildProjectName).sdbuild'))</StrideAssetBuildManifestPath>
+  </PropertyGroup>
+
+  <Target Name="GetStrideAssetBuildManifestPath" Returns="$(StrideAssetBuildManifestPath)" />
+
+  <!-- Returns this project's declared project-asset extensions. Harvested across ProjectReferences
+       below: unlike PackageReference, a ProjectReference does not import the referenced project's
+       buildTransitive targets, so a consumer authoring asset files of a type defined by a
+       referenced plugin project wouldn't otherwise know that plugin's extension. -->
+  <Target Name="GetStrideProjectAssetExtensions" Returns="$(StrideProjectAssetExtensions)" />
+
+  <UsingTask TaskName="StrideWriteAssetBuildManifest"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ManifestPath Required="true" />
+      <ProjectFile />
+      <PackagePath />
+      <PackageName />
+      <PackageVersion />
+      <TargetFramework />
+      <ProjectAssetsFile />
+      <RootNamespace />
+      <ProjectDirectory Required="true" />
+      <ExcludeDirectory />
+      <Extensions />
+      <AssetAssemblies ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <ReferencedManifests ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <CandidateItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var sep = Path.DirectorySeparatorChar;
+        var manifestDir = Path.GetDirectoryName(Path.GetFullPath(ManifestPath));
+        var manifestBaseUri = new Uri(manifestDir + sep);
+        var projectDirPrefix = Path.GetFullPath(ProjectDirectory).TrimEnd(sep) + sep;
+        var extensions = new HashSet<string>(
+            Extensions.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim().ToLowerInvariant()),
+            StringComparer.Ordinal);
+
+        Func<string, string> rel = p => Uri.UnescapeDataString(manifestBaseUri.MakeRelativeUri(new Uri(Path.GetFullPath(p))).ToString());
+        Func<string, string> q = s => "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("!AssetBuildManifest");
+        sb.AppendLine("Version: 1");
+        if (!string.IsNullOrEmpty(ProjectFile))
+            sb.AppendLine("ProjectFile: " + q(rel(ProjectFile)));
+        if (!string.IsNullOrEmpty(PackagePath))
+            sb.AppendLine("Package: " + q(rel(PackagePath)));
+        if (!string.IsNullOrEmpty(PackageName))
+            sb.AppendLine("PackageName: " + q(PackageName));
+        if (!string.IsNullOrEmpty(PackageVersion))
+            sb.AppendLine("PackageVersion: " + q(PackageVersion));
+        if (!string.IsNullOrEmpty(TargetFramework))
+            sb.AppendLine("TargetFramework: " + q(TargetFramework));
+        if (!string.IsNullOrEmpty(ProjectAssetsFile))
+            sb.AppendLine("ProjectAssetsFile: " + q(rel(ProjectAssetsFile)));
+        if (!string.IsNullOrEmpty(RootNamespace))
+            sb.AppendLine("RootNamespace: " + q(RootNamespace));
+
+        var assemblies = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var item in AssetAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var path = item.GetMetadata("FullPath");
+            if (!string.IsNullOrEmpty(path))
+                assemblies.Add(rel(path));
+        }
+        if (assemblies.Count > 0)
+        {
+            sb.AppendLine("AssetAssemblies:");
+            foreach (var assembly in assemblies)
+                sb.AppendLine("    - " + q(assembly));
+        }
+
+        var manifests = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var item in ReferencedManifests ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var path = item.GetMetadata("FullPath");
+            if (!string.IsNullOrEmpty(path))
+                manifests.Add(rel(path));
+        }
+        if (manifests.Count > 0)
+        {
+            sb.AppendLine("ReferencedManifests:");
+            foreach (var manifest in manifests)
+                sb.AppendLine("    - " + q(manifest));
+        }
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var entries = new List<KeyValuePair<string, string>>();
+        var excludePrefix = string.IsNullOrEmpty(ExcludeDirectory) ? null : Path.GetFullPath(ExcludeDirectory).TrimEnd(sep) + sep;
+        foreach (var item in CandidateItems ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            if (!string.IsNullOrEmpty(item.GetMetadata("AutoGen")))
+                continue;
+            var full = item.GetMetadata("FullPath");
+            if (string.IsNullOrEmpty(full))
+                continue;
+            var extension = Path.GetExtension(full);
+            if (extension == null || !extensions.Contains(extension.ToLowerInvariant()))
+                continue;
+            full = Path.GetFullPath(full);
+            if (excludePrefix != null && full.StartsWith(excludePrefix, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (!seen.Add(full))
+                continue;
+            var link = item.GetMetadata("Link");
+            // Items outside the project directory get a link, mirroring Package.FindAssetsInProject
+            if (string.IsNullOrEmpty(link) && !full.StartsWith(projectDirPrefix, StringComparison.OrdinalIgnoreCase))
+                link = Path.GetFileName(full);
+            entries.Add(new KeyValuePair<string, string>(rel(full), string.IsNullOrEmpty(link) ? null : link.Replace('\\', '/')));
+        }
+        entries.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+        if (entries.Count > 0)
+        {
+            sb.AppendLine("ProjectAssets:");
+            foreach (var entry in entries)
+            {
+                sb.AppendLine("    - Path: " + q(entry.Key));
+                if (entry.Value != null)
+                    sb.AppendLine("      Link: " + q(entry.Value));
+            }
+        }
+
+        var text = sb.ToString();
+        if (!File.Exists(ManifestPath) || File.ReadAllText(ManifestPath) != text)
+        {
+            Directory.CreateDirectory(manifestDir);
+            File.WriteAllText(ManifestPath, text);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="StrideWriteAssetBuildManifest"
+          AfterTargets="ResolveProjectReferences"
+          Condition="'$(StrideAssetBuildManifest)' == 'true' And '$(DesignTimeBuild)' != 'true' And '$(StrideAssetBuildManifestPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
+    <ItemGroup>
+      <_StrideManifestProjectReference Include="@(_MSBuildProjectReferenceExistent)"
+                                       Condition="'%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)' != 'false'" />
+    </ItemGroup>
+
+    <MSBuild Projects="@(_StrideManifestProjectReference)"
+             Targets="GetStrideAssetBuildManifestPath"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_StrideManifestProjectReference.SetConfiguration); %(_StrideManifestProjectReference.SetPlatform); %(_StrideManifestProjectReference.SetTargetFramework)"
+             RemoveProperties="%(_StrideManifestProjectReference.GlobalPropertiesToRemove)"
+             SkipNonexistentTargets="true"
+             RebaseOutputs="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideReferencedManifest" />
+    </MSBuild>
+
+    <!-- Union project-asset extensions declared by ProjectReferences into the local set (see the
+         GetStrideProjectAssetExtensions target above). The write task dedups, so repeats are fine. -->
+    <MSBuild Projects="@(_StrideManifestProjectReference)"
+             Targets="GetStrideProjectAssetExtensions"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_StrideManifestProjectReference.SetConfiguration); %(_StrideManifestProjectReference.SetPlatform); %(_StrideManifestProjectReference.SetTargetFramework)"
+             RemoveProperties="%(_StrideManifestProjectReference.GlobalPropertiesToRemove)"
+             SkipNonexistentTargets="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideReferencedProjectAssetExtension" />
+    </MSBuild>
+
+    <PropertyGroup>
+      <_StrideManifestExtensions>$(StrideProjectAssetExtensions);@(_StrideReferencedProjectAssetExtension)</_StrideManifestExtensions>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <!-- Conventional sdpkg next to the project, mirroring Package.LoadProject's
+           ChangeExtension(.csproj, .sdpkg): a platform-head with no sdpkg of its own becomes an
+           implicit package named after the head (e.g. MyGame.Windows), with assets flowing in from
+           the referenced game library. Don't use StrideCurrentPackagePath here — pointing the head
+           at the shared game sdpkg would rename the root package and break bundle naming. -->
+      <_StrideAuthoredPackagePath>$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAuthoredPackagePath>
+      <_StrideManifestHostFramework>$(StrideFramework)</_StrideManifestHostFramework>
+      <_StrideManifestHostFramework Condition="'$(_StrideManifestHostFramework)' == ''">$(TargetFramework)</_StrideManifestHostFramework>
+      <_StrideManifestProjectAssetsFile Condition="Exists('$(ProjectAssetsFile)')">$(ProjectAssetsFile)</_StrideManifestProjectAssetsFile>
+      <_StrideManifestIsHostFramework Condition="'$(TargetFramework)' == '$(_StrideManifestHostFramework)'">true</_StrideManifestIsHostFramework>
+      <!-- Package identity, mirroring PreLoadPackageDependencies: PackageId ?? AssemblyName -->
+      <_StrideManifestPackageName>$(PackageId)</_StrideManifestPackageName>
+      <_StrideManifestPackageName Condition="'$(_StrideManifestPackageName)' == ''">$(AssemblyName)</_StrideManifestPackageName>
+      <_StrideManifestPackageName Condition="'$(_StrideManifestPackageName)' == ''">$(MSBuildProjectName)</_StrideManifestPackageName>
+    </PropertyGroup>
+
+    <!-- The asset compiler loads host builds: non-host manifests reference their host-TFM
+         sibling (which carries the AssetAssemblies entry) instead of naming assemblies -->
+    <MSBuild Condition="'$(StrideAssetAssembly)' == 'true' And '$(_StrideManifestIsHostFramework)' != 'true'"
+             Projects="$(MSBuildProjectFullPath)"
+             Targets="GetStrideAssetBuildManifestPath"
+             Properties="TargetFramework=$(_StrideManifestHostFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideReferencedManifest" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_StrideAssetBuildManifestAssembly Include="$(TargetPath)" Condition="'$(StrideAssetAssembly)' == 'true' And '$(_StrideManifestIsHostFramework)' == 'true'" />
+      <_StrideAssetBuildManifestAssembly Include="@(StrideAssetAssembly)" />
+      <_StrideAssetBuildManifestCandidate Include="@(Compile);@(None);@(AdditionalFiles)" />
+    </ItemGroup>
+
+    <StrideWriteAssetBuildManifest
+        ManifestPath="$(StrideAssetBuildManifestPath)"
+        ProjectFile="$(MSBuildProjectFullPath)"
+        PackagePath="$(_StrideAuthoredPackagePath)"
+        PackageName="$(_StrideManifestPackageName)"
+        PackageVersion="$(PackageVersion)"
+        TargetFramework="$(TargetFramework)"
+        ProjectAssetsFile="$(_StrideManifestProjectAssetsFile)"
+        RootNamespace="$(RootNamespace)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"
+        Extensions="$(_StrideManifestExtensions)"
+        AssetAssemblies="@(_StrideAssetBuildManifestAssembly)"
+        ReferencedManifests="@(_StrideReferencedManifest)"
+        CandidateItems="@(_StrideAssetBuildManifestCandidate)" />
+  </Target>
+
+</Project>

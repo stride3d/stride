@@ -14,6 +14,7 @@
        CLI -p:StrideTestPlatforms=… is a global property and still wins.
        Windows / Linux / macOS all collapse to the cross-platform desktop $(StrideFramework). -->
   <PropertyGroup Condition="'$(StrideTestPlatforms)' != ''">
+    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == ''">true</StrideAssetAssembly>
     <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
     <!-- Game = host-loadable library TFM (test analog of MyGame.Game.dll); the asset compiler loads
          the suite and its refs at the host TFM, so auto-add it for mobile-only platform lists (a desktop

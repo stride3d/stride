@@ -11,6 +11,11 @@
     <AdditionalFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
   </ItemGroup>
 
+  <!-- Declare shader extensions so package consumers (buildTransitive) capture them into the .sdbuild manifest. -->
+  <PropertyGroup>
+    <StrideProjectAssetExtensions>$(StrideProjectAssetExtensions);.sdsl;.sdfx</StrideProjectAssetExtensions>
+  </PropertyGroup>
+
   <Target Name="StrideStripSilkSpirvCrossNative" AfterTargets="ResolvePackageAssets" BeforeTargets="ResolveLockFileCopyLocalFiles;ComputeFilesToPublish">
     <ItemGroup>
       <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />

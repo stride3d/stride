@@ -111,6 +111,12 @@
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />
 
+  <!-- Asset build manifest (engine self-build path; NuGet consumers get it via Stride.Core buildTransitive) -->
+  <Import Project="$(StrideRoot)sources\core\Stride.Core\build\Stride.AssetBuildManifest.targets" Condition="'$(StrideAssetBuildManifestImported)' == '' And Exists('$(StrideRoot)sources\core\Stride.Core\build\Stride.AssetBuildManifest.targets')" />
+  <PropertyGroup>
+    <StrideAssetBuildManifestImported>true</StrideAssetBuildManifestImported>
+  </PropertyGroup>
+
   <!-- ================================================================ -->
   <!-- Native build mode configuration (Clang/MSVC selection) -->
   <!-- ================================================================ -->
@@ -143,6 +149,11 @@
     <AdditionalFiles Include="@(StrideShaderFiles)" />
     <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(StrideRoot)sources\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <!-- Shaders are the project-source assets the asset compiler builds; declare their extensions for
+       the .sdbuild manifest here, next to where the files are globbed. -->
+  <PropertyGroup>
+    <StrideProjectAssetExtensions>$(StrideProjectAssetExtensions);.sdsl;.sdfx</StrideProjectAssetExtensions>
+  </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Stride.Core.CompilerServices Roslyn Analyzer -->
