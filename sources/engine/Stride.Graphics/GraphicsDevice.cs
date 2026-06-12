@@ -114,7 +114,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>.
+        ///     and <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <param name="creationFlags">
@@ -146,7 +146,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>.
+        ///     and <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <param name="creationFlags">
@@ -352,7 +352,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>.
+        ///     and <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
@@ -378,7 +378,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>.
+        ///     and <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
@@ -409,7 +409,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>.
+        ///     and <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
