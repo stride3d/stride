@@ -18,7 +18,8 @@
   <!-- Default Graphics API per Platform -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <!-- Default graphics API for each platform (can be overridden) -->
+    <!-- Default graphics API: the first requested API, else the platform's native default. -->
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11</StrideGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Linux'">Vulkan</StrideGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApi>

@@ -78,6 +78,10 @@
       <_InnerBuildProjects Include="$(MSBuildProjectFile)">
         <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework)</AdditionalProperties>
         <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' == 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework);StrideGraphicsApi=%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApi)</AdditionalProperties>
+        <!-- Single-API TFMs (iOS/Android/macOS/UWP): drop any StrideGraphicsApi inherited as a
+             global from a desktop API-dep consumer's reference, so the inner build resolves its
+             own default (Vulkan) instead of compiling D3D sources it has no references for. -->
+        <UndefineProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">StrideGraphicsApi</UndefineProperties>
       </_InnerBuildProjects>
     </ItemGroup>
   </Target>
@@ -145,11 +149,11 @@
     <!-- TFMs where Stride.Graphics.targets disables per-API dispatch (single inner build,
          no StrideGraphicsApi in cache key). Consumer refs at these TFMs must NOT add
          StrideGraphicsApi, or they'd diverge from the callee's own outer→inner dispatch. -->
-    <_StrideGraphicsApiDependentDisabledAtCurrentTF Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)'">true</_StrideGraphicsApiDependentDisabledAtCurrentTF>
+    <_StrideGraphicsApiDependentDisabledAtCurrentTF Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">true</_StrideGraphicsApiDependentDisabledAtCurrentTF>
   </PropertyGroup>
 
   <!-- Consistency checks on the _StrideGraphicsApiDependentProjectList. Skipped on TFMs where Stride.Graphics.targets
-       overrides StrideGraphicsApiDependent (iOS/Android/UWP) since the flag's in-memory value
+       overrides StrideGraphicsApiDependent (iOS/Android/UWP/macOS) since the flag's in-memory value
        no longer matches the user's csproj declaration. -->
   <Target Name="_StrideValidateGraphicsApiDependentProjectList" BeforeTargets="Build"
           Condition="'$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
@@ -172,17 +176,17 @@
   <Target Name="_StrideAnnotateProjectReferences" BeforeTargets="_GetProjectReferenceTargetFrameworkProperties;PrepareProjectReferences"
           Condition="'$(_StrideGraphicsApiCurrent)' != ''">
     <ItemGroup>
-      <!-- API-dep ref: pass the current API so consumer and callee share a per-API cache entry.
-           Gated off for TFMs where Stride.Graphics.targets disables per-API dispatch (single
-           inner build, no StrideGraphicsApi in cache key) — adding it would diverge from the
-           callee's own outer→inner dispatch. -->
+      <!-- In-list ref: pass the current API explicitly so the consumer shares the project's per-API
+           inner-build cache key instead of a second unset compile that races it. Gated off at
+           single-API consumer TFMs, where the ref resolves to the callee's flat (no per-API subfolder)
+           output and an explicit API global would instead race that build's unset inner. -->
       <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
                                         Condition="'$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true' And $(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
         <AdditionalProperties>%(_MSBuildProjectReferenceExistent.AdditionalProperties);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</AdditionalProperties>
       </_MSBuildProjectReferenceExistent>
       <!-- Non-API-dep ref: strip StrideGraphicsApi so different-API callers collapse to one
            cache entry per (project, TF) instead of racing on a shared obj/ path. Runs on
-           every TFM including Android/iOS/UWP: StrideGraphicsApi can leak in from the
+           every TFM including Android/iOS/UWP/macOS: StrideGraphicsApi can leak in from the
            consumer's scope and fragment the cache key even when the target has a single
            runtime API — which causes parallel inner-builds of the same non-API-dep ref
            (e.g. Stride.Audio) to race in obj/ and crash StrideRunAssemblyProcessor with
