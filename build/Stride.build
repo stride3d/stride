@@ -15,7 +15,6 @@ Example of use:
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
     <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
-    <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
     <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
     <AdvancedInstallerBuildScript Condition="'$(StrideSign)' == 'true'">$(MSBuildThisFileDirectory)advancedinstaller-signed.aic</AdvancedInstallerBuildScript>
@@ -280,15 +279,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideiOSSolution)" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildUWP">
-    <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
-      <StridePlatforms>UWP</StridePlatforms>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
   <Target Name="BuildWindowsVulkan">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
@@ -314,81 +304,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StridemacOSSolution)" Properties="$(BuildProperties);Platform=macOS"/>
   </Target> 
 
-  <Target Name="DownloadXunitRunnerConsole">
-    <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
-    <PropertyGroup>
-      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.exe</XunitRunnerConsolePathDefault>
-      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.x86.exe</XunitRunnerConsolePathX86>
-    </PropertyGroup>
-    <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePathDefault)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
-    <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
-  </Target>
-  
-  <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
-    <!-- Remove artifacts generated during previous run -->
-    <Delete Files="$(MSBuildThisFileDirectory)..\tests\local\**\*.*" />
-    <!-- By default, enable all known categories -->
-    <PropertyGroup>
-      <StrideTestCategories Condition="'$(StrideTestCategories)' == ''">Simple;Game;VSPackage</StrideTestCategories>
-    </PropertyGroup>
-    <CreateItem Include="$(StrideTestCategories)">
-      <Output TaskParameter="Include" ItemName="StrideTestCategoriesItem"/>
-    </CreateItem>
-    <!-- Restore NuGet packages -->
-    <Message Importance="High" Text="Restoring NuGet packages"/>
-    <MSBuild Targets="Restore" Projects="$(StrideSolution)" />
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
-    <!-- Build -->
-    <Message Importance="High" Text="Building unit tests"/>
-    <MSBuild Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
-    <!-- Run tests -->
-    <Message Importance="High" Text="Running unit tests"/>
-    <Exec Command="dotnet test Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf --no-build" IgnoreStandardErrorWarningFormat="true"/>
-  </Target>
-  
-  <ItemGroup>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Input.Tests\Stride.Input.Tests.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.$(PlatformToBuild).csproj"/>
-    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.$(PlatformToBuild).csproj"/>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Engine.Tests\Stride.Engine.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Physics.Tests\Stride.Physics.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Audio.Tests\Stride.Audio.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests_10_0-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Graphics.Tests\Stride.Graphics.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Input.Tests\Stride.Input.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Particles.Tests\Stride.Particles.Tests-Signed.apk"/>
-  </ItemGroup>
-  
-  <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
-    <PropertyGroup>
-      <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
-      <StridePlatform></StridePlatform>
-      <StridePlatform Condition="'$(PlatformToBuild)' == 'iOS'">Platform=iPhone</StridePlatform>
-      <StridePlatform Condition="'$(PlatformToBuild)' == 'Android'">Platform=Android</StridePlatform>
-      <StrideBuildOptions></StrideBuildOptions>
-      <StrideBuildOptions Condition="'$(PlatformToBuild)' == 'iOS'">ServerAddress=pc13095;ServerUser=virgile;BuildIpa=true;MtouchUseLlvm=true</StrideBuildOptions>
-      <StrideBuildTargets>Rebuild</StrideBuildTargets>
-      <StrideBuildTargets Condition="'$(PlatformToBuild)' == 'Android'">SignAndroidPackage</StrideBuildTargets>
-      <StrideBuildConfig>Release</StrideBuildConfig>
-      <StrideBuildConfig Condition="'$(PlatformToBuild)' == 'Windows'">Debug</StrideBuildConfig>
-    </PropertyGroup>
-  
-    <MSBuild Projects ="%(MobileUnitTestProject.Identity)" Targets="SignAndroidPackage"
-             Properties="SolutionName=Stride.Android; SolutionDir=$(MSBuildThisFileDirectory);$(StridePlatform);Configuration=$(StrideBuildConfig);$(StrideBuildOptions)">
-    </MSBuild>
-    <Exec IgnoreExitCode="True" Command='taskkill /F /FI "Imagename eq Stride.Core.Assets.CompilerApp*"' />
-    
-    <Exec Condition="'$(PlatformToBuild)' == 'Android'" Command="$(StrideRoot)sources\tools\Stride.TestRunner\bin\Release\net472\Stride.TestRunner.exe %(MobileUnitTestApk.Identity)">
-      <Output TaskParameter="ExitCode" ItemName="exitCode" />
-    </Exec>
-  </Target>
   
   <!--
   Package Launcher
