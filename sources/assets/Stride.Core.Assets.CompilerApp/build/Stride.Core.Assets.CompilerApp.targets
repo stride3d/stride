@@ -178,13 +178,14 @@
       <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
-      <!-- Manifest mode: load the session from the .sdbuild chain (no csproj walk). Otherwise load the csproj and shadow-validate against the manifest. -->
-      <StrideCompileAssetCommandProxy Condition="'$(StrideAssetBuildManifestMode)' == 'true' And '$(StrideAssetBuildManifestPath)' != ''">$(StrideCompileAssetCommandProxy) --package-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
-      <StrideCompileAssetCommandProxy Condition="!('$(StrideAssetBuildManifestMode)' == 'true' And '$(StrideAssetBuildManifestPath)' != '')">$(StrideCompileAssetCommandProxy) --package-file=&quot;$(MSBuildProjectFullPath)&quot;</StrideCompileAssetCommandProxy>
-      <StrideCompileAssetCommandProxy Condition="'$(StrideAssetBuildManifestMode)' != 'true' And '$(StrideAssetBuildManifestPath)' != ''">$(StrideCompileAssetCommandProxy) --build-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
+      <!-- Load the session from the .sdbuild manifest chain. -->
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) --package-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
+
+    <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
+           Text="Asset build manifest not found: $(StrideAssetBuildManifestPath). Manifest generation (StrideAssetBuildManifest) must run before asset compilation." />
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>

@@ -24,7 +24,6 @@ namespace Stride.Core.Assets.CompilerApp
         public Guid PackageId { get; set; }
         public PlatformType Platform { get; set; }
         public string PackageFile { get; set; }
-        public string BuildManifestFile { get; set; }
         public string PackageManifestFile { get; set; }
         public string PackAssetAssemblies { get; set; }
         public string MSBuildUpToDateCheckFileBase { get; set; }
