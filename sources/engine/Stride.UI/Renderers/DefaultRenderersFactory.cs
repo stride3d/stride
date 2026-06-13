@@ -23,6 +23,7 @@ namespace Stride.UI.Renderers
             defaultRenderer = new ElementRenderer(services);
             typeToRenderers[typeof(Border)] = new DefaultBorderRenderer(services);
             typeToRenderers[typeof(Button)] = new DefaultButtonRenderer(services);
+            typeToRenderers[typeof(DropDown)] = new DefaultDropDownRenderer(services);
             typeToRenderers[typeof(ContentDecorator)] = new DefaultContentDecoratorRenderer(services);
             typeToRenderers[typeof(EditText)] = new DefaultEditTextRenderer(services);
             typeToRenderers[typeof(ImageElement)] = new DefaultImageRenderer(services);

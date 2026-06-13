@@ -11,6 +11,7 @@ PublicUIElements:
     6a778e64-1d79-44c8-b209-be1779349abb: TextBlock
     72d195ac-472a-4f9b-8540-9f4f7d5fc53e: Grid
     7d51286a-f844-48de-afe1-cb6b00e2dcb8: ScrollingText
+    8fa7caaf-4e9c-4efb-80ad-58f7f61c25e0: DropDown
     97a0fc3a-e627-4122-b585-d33a6a7cd785: StackPanel
     9b996723-bbd3-44c3-9406-fdc49875d2a2: Canvas
     a35da784-9d42-4fe0-bd28-3eb547bc2812: ContentDecorator
@@ -25,6 +26,7 @@ Hierarchy:
     RootParts:
         - !Button ref!! e8985e3a-8d82-40a6-adb1-76619eb19cd8
         - !EditText ref!! eef44bd6-bd2d-4abe-8335-0971d5d83b10
+        - !DropDown ref!! 8fa7caaf-4e9c-4efb-80ad-58f7f61c25e0
         - !Slider ref!! fcd540ef-6f9e-4cab-b24d-ba1533b0fdb9
         - !ToggleButton ref!! 1dfd7e9f-ab5a-4849-b6e3-1c50b0974f5f
         - !Border ref!! 606486b0-61b1-498a-beed-5425893fc384
@@ -120,6 +122,42 @@ Hierarchy:
                 Text: 'Scrolling text! '
                 Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !DropDown
+                Id: 8fa7caaf-4e9c-4efb-80ad-58f7f61c25e0
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 3
+                CanBeHitByUser: true
+                Margin: {}
+                Name: DropDown
+                Padding: {}
+                OpenedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 2
+                ClosedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                ListBackground: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 4
+                ListItemNotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 1
+                ListItemPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 2
+                ListItemMouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                ItemTextColor: {R: 240, G: 240, B: 240, A: 255}
+                ItemTextSize: 20.0
+                ScrollBarColor: {R: 25, G: 25, B: 25, A: 255}
+                PlaceholderText: Select an option
+                Items: {}
         -   UIElement: !StackPanel
                 Id: 97a0fc3a-e627-4122-b585-d33a6a7cd785
                 DependencyProperties: {}
