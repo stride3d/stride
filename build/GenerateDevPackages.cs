@@ -67,14 +67,13 @@ if (string.IsNullOrEmpty(solution))
 
 if (string.IsNullOrEmpty(version))
 {
-    // Prefer SharedAssemblyInfo.Worktree.cs when present: that's the auto-generated overlay
-    // with NuGetVersionSuffix patched to "-devN" on non-primary checkouts (see
-    // Stride.WorktreeVersion.targets). Falls back to the plain file on the primary checkout.
+    // Package versions use the committed base version (no git height — that lives only in
+    // the compiled constants; see Stride.WorktreeVersion.targets). The -devN suffix comes
+    // from the generated overlay when present.
     var worktreeFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Worktree.cs");
     var plainFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.cs");
-    var sharedInfo = File.ReadAllText(File.Exists(worktreeFile) ? worktreeFile : plainFile);
-    var publicMatch = Regex.Match(sharedInfo, @"PublicVersion\s*=\s*""([^""]+)""");
-    var suffixMatch = Regex.Match(sharedInfo, @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
+    var publicMatch = Regex.Match(File.ReadAllText(plainFile), @"PublicVersion\s*=\s*""([^""]+)""");
+    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(worktreeFile) ? worktreeFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
     if (!publicMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
     version = publicMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }
