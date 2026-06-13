@@ -38,6 +38,21 @@ internal static class WellKnownReferences
         return compilation.GetTypeByMetadataName(ModuleInitializerAttributeName);
     }
 
+    public static INamedTypeSymbol? IProjectAsset(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("Stride.Core.Assets.IProjectAsset");
+    }
+
+    public static INamedTypeSymbol? IProjectFileGeneratorAsset(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("Stride.Core.Assets.IProjectFileGeneratorAsset");
+    }
+
+    public static INamedTypeSymbol? AssetDescriptionAttribute(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("Stride.Core.Assets.AssetDescriptionAttribute");
+    }
+
     public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
     {
         if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
