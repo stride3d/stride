@@ -19,10 +19,9 @@ namespace Stride.Core.Assets;
 partial class PackageSession
 {
     /// <summary>
-    /// Loads a session from a build manifest (.sdbuild) chain instead of walking csproj files.
-    /// Each manifest contributes its authored package (folders/metadata), the exact assemblies to
-    /// load (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets — no MSBuild
-    /// evaluation, no reference-graph loading.
+    /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its authored
+    /// package (folders/metadata), the exact assemblies to load
+    /// (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets.
     /// </summary>
     public static void LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
     {
@@ -162,7 +161,7 @@ partial class PackageSession
         foreach (var assembly in manifest.AssetAssemblies)
             container.Assemblies.Add(Resolve(assembly));
 
-        // Project assets resolved at build time (the manifest replaces FindAssetsInProject)
+        // Project assets resolved at build time
         if (projectDirectory is not null)
         {
             var precomputed = container.Package.PrecomputedProjectAssets!;
@@ -236,9 +235,49 @@ partial class PackageSession
             package.Meta.Name = library.Name;
             package.Meta.Version = library.Version.ToPackageVersion();
             var container = new StandalonePackage(package);
-            container.Assemblies.AddRange(assemblies);
+            // Prefer the assemblies the packed sdpkg declares (host-loadable, narrowed to asset
+            // types); fall back to the lock file's runtime assemblies when it declares none.
+            var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
+            var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies);
+            if (hostAssetAssemblies.Count > 0)
+                container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
+            else
+                container.Assemblies.AddRange(assemblies);
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
         }
+    }
+
+    /// <summary>
+    /// Picks, per declared asset assembly, the single build matching this asset compiler's runtime.
+    /// </summary>
+    /// <remarks>
+    /// A package may declare its asset assembly built for several host TFMs (net10.0, net10.0-windows*).
+    /// On Windows the -windows build is preferred, else the base (netX.0, no platform suffix); on other hosts
+    /// only the base loads. Untagged legacy entries load unconditionally. Entries are grouped by file name so
+    /// a package declaring multiple distinct assemblies resolves one host build per assembly.
+    /// </remarks>
+    private static List<AssetAssembly> SelectHostAssetAssemblies(List<AssetAssembly> declared)
+    {
+        var result = new List<AssetAssembly>();
+        var isWindows = OperatingSystem.IsWindows();
+        foreach (var group in declared.Where(a => a.Path is not null)
+                     .GroupBy(a => Path.GetFileName(a.Path!.ToOSPath()), StringComparer.OrdinalIgnoreCase))
+        {
+            AssetAssembly? best = null;
+            var bestRank = -1;
+            foreach (var a in group)
+            {
+                var tfm = a.TargetFramework;
+                int rank;
+                if (tfm is null || !tfm.Contains('-')) rank = 1;            // base host (netX.0), loads anywhere
+                else if (isWindows && tfm.Contains("-windows")) rank = 2;   // most-specific on Windows
+                else continue;                                             // incompatible with this host
+                if (rank > bestRank) { bestRank = rank; best = a; }
+            }
+            if (best is not null)
+                result.Add(best);
+        }
+        return result;
     }
 }
