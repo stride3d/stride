@@ -10,12 +10,12 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 
 ## Triggering CI tests on a PR
 
-Most CI runs automatically on PR commits. Two suites — editor screenshots and samples
+Most CI runs automatically on PR commits. Two suites — editor screenshots and end-user
 screenshots — only run on demand because they're slow and drift-prone. A bot listens for
 `/test` comments to dispatch them. Comment `/test help` on any PR for the full command list.
 
 Quick examples:
-- `/test editor samples` — run both screenshot suites
+- `/test editor enduser` — run both screenshot suites
 - `/test linux-game` — re-run a specific main-CI suite (useful for transient failures)
 - `/test windows-game-vulkan` — re-run a specific graphics-API variant
 
