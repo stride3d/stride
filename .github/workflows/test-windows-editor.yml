@@ -20,7 +20,7 @@ on:
     types: [test-editor-screenshots]
   schedule:
     # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
-    # gap from test-samples-screenshots (04:37) so they don't compete for runners.
+    # gap from test-enduser (04:37) so they don't compete for runners.
     - cron: '17 5 * * *'
 
 concurrency:
