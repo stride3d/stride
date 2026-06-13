@@ -10,7 +10,7 @@ namespace Stride.Core.Reflection;
 /// <summary>
 /// Provides a descriptor for a <see cref="IDictionary"/>.
 /// </summary>
-public class DictionaryDescriptor : ObjectDescriptor
+public class DictionaryDescriptor : CollectionBaseDescriptor
 {
     private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Keys", "Values", "Capacity"];
 
@@ -86,7 +86,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     /// Gets the type of the value.
     /// </summary>
     /// <value>The type of the value.</value>
-    public Type ValueType { get; }
+    public override Type ValueType { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this instance is pure dictionary.
@@ -123,7 +123,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     /// <param name="key">The key.</param>
     /// <param name="value">The value.</param>
     /// <exception cref="InvalidOperationException">No Add() method found on dictionary [{0}].ToFormat(Type)</exception>
-    public void SetValue(object dictionary, object key, object? value)
+    public override void SetValue(object dictionary, object key, object? value)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         setValueMethod(dictionary, key, value);
@@ -158,7 +158,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     /// </summary>
     /// <param name="dictionary">The dictionary.</param>
     /// <param name="key">The key.</param>
-    public bool ContainsKey(object dictionary, object key)
+    public override bool ContainsKey(object dictionary, object key)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         return containsKeyMethod.Invoke(dictionary, key);
@@ -199,7 +199,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     /// </summary>
     /// <param name="dictionary">The dictionary.</param>
     /// <param name="key">The key.</param>
-    public object? GetValue(object dictionary, object key)
+    public override object? GetValue(object dictionary, object key)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         return getValueMethod.Invoke(dictionary, key);
@@ -241,5 +241,18 @@ public class DictionaryDescriptor : ObjectDescriptor
         }
 
         return base.PrepareMember(member, metadataClassMemberInfo);
+    }
+
+    public override IEnumerable<object> EnumerateKeys(object collection)
+    {
+        foreach (var key in GetKeys(collection))
+        {
+            yield return key;
+        }
+    }
+
+    public override bool IsKeyValid(object? key)
+    {
+        return KeyType.IsInstanceOfType(key);
     }
 }

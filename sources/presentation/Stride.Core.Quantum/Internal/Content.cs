@@ -24,17 +24,9 @@ internal static class Content
 
         ArgumentNullException.ThrowIfNull(value);
 
-        if (descriptor is CollectionDescriptor collectionDescriptor)
+        if (descriptor is CollectionBaseDescriptor collectionBaseDescriptor)
         {
-            return collectionDescriptor.GetValue(value, indexValue);
-        }
-        else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-        {
-            return dictionaryDescriptor.GetValue(value, indexValue);
-        }
-        else if (descriptor is ArrayDescriptor arrayDescriptor)
-        {
-            return arrayDescriptor.GetValue(value, (int)indexValue);
+            return collectionBaseDescriptor.GetValue(value, indexValue);
         }
 
         // Try with the concrete type descriptor

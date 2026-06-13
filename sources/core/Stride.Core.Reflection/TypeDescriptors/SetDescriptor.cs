@@ -180,6 +180,8 @@ public class SetDescriptor : CollectionDescriptor
         }
     }
 
+    public override Type ValueType => ElementType;
+
     /// <summary>
     /// Determines whether the specified type is a .NET set.
     /// </summary>
@@ -211,5 +213,25 @@ public class SetDescriptor : CollectionDescriptor
         }
 
         return base.PrepareMember(member, metadataClassMemberInfo);
+    }
+
+    public override IEnumerable<object> EnumerateKeys(object coll)
+    {
+        var enumerable = coll as System.Collections.IEnumerable;
+        var enumerator = enumerable.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            yield return enumerator.Current;
+        }
+    }
+
+    public override bool IsKeyValid(object? key)
+    {
+        return ElementType.IsInstanceOfType(key);
+    }
+
+    public override bool ContainsKey(object collection, object? key)
+    {
+        return Contains(collection, key);
     }
 }
