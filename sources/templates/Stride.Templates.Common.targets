@@ -159,7 +159,7 @@
     <ItemGroup>
       <!-- nuget.config is preprocessor staging machinery for `dotnet restore` against sample
            templates; sources/modifiers strips it on instantiation. -->
-      <_StrideTemplateFiles Include="$(TemplateContentRoot)/**/*" Exclude="$(TemplateContentRoot)/**/nuget.config" />
+      <_StrideTemplateFiles Include="$(TemplateContentRoot)/**/*" Exclude="$(TemplateContentRoot)/**/nuget.config;$(TemplateContentRoot)/**/bin/**;$(TemplateContentRoot)/**/obj/**;$(TemplateContentRoot)/**/Cache/**" />
       <_PackageFiles Include="@(_StrideTemplateFiles)">
         <BuildAction>Content</BuildAction>
         <PackagePath>content/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
