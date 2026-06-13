@@ -13,6 +13,10 @@
          Stride.targets / Sdk.targets); a plugin appends its own in its buildTransitive .targets.
          AssetRegistry is the runtime source of truth but can't be queried at build time without
          loading every asset assembly+plugin — the cost the manifest exists to avoid. -->
+    <!-- Out-of-tree game/code projects declare their own assembly by default: their scripts are
+         asset types, so the asset compiler must load them in manifest mode. The engine source tree
+         ($(StrideRoot) set) and the test SDK set this explicitly. Opt out with StrideAssetAssembly=false. -->
+    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == '' And '$(StrideRoot)' == ''">true</StrideAssetAssembly>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != ''">

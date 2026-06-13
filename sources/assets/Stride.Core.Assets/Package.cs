@@ -268,8 +268,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMemberIgnore]
     public List<PackageLoadedAssembly> LoadedAssemblies { get; } = [];
 
+    /// <summary>
+    /// Build-time-resolved project asset files (from a .sdbuild manifest). When set, project
+    /// asset discovery uses this list directly.
+    /// </summary>
     [DataMemberIgnore]
-    public string? RootNamespace { get; private set; }
+    internal List<PackageLoadingAssetFile>? PrecomputedProjectAssets { get; set; }
+
+    [DataMemberIgnore]
+    public string? RootNamespace { get; internal set; }
 
     [DataMemberIgnore]
     public bool IsImplicitProject
@@ -1286,6 +1293,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
     {
         if (package.IsSystem) return;
+
+        // Manifest mode: project assets were resolved at build time, no MSBuild evaluation
+        if (package.PrecomputedProjectAssets is not null)
+        {
+            foreach (var assetFile in package.PrecomputedProjectAssets)
+                list.Add(assetFile);
+            return;
+        }
 
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;
