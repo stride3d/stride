@@ -26,6 +26,7 @@ namespace Stride.Core.Assets.CompilerApp
         public string PackageFile { get; set; }
         public string BuildManifestFile { get; set; }
         public string PackageManifestFile { get; set; }
+        public string PackAssetAssemblies { get; set; }
         public string MSBuildUpToDateCheckFileBase { get; set; }
         public List<string> MonitorPipeNames = new List<string>();
         public bool EnableFileLogging;

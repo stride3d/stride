@@ -19,10 +19,9 @@ namespace Stride.Core.Assets;
 partial class PackageSession
 {
     /// <summary>
-    /// Loads a session from a build manifest (.sdbuild) chain instead of walking csproj files.
-    /// Each manifest contributes its authored package (folders/metadata), the exact assemblies to
-    /// load (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets — no MSBuild
-    /// evaluation, no reference-graph loading.
+    /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its authored
+    /// package (folders/metadata), the exact assemblies to load
+    /// (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets.
     /// </summary>
     public static void LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
     {
@@ -157,7 +156,7 @@ partial class PackageSession
         foreach (var assembly in manifest.AssetAssemblies)
             container.Assemblies.Add(Resolve(assembly));
 
-        // Project assets resolved at build time (the manifest replaces FindAssetsInProject)
+        // Project assets resolved at build time
         if (projectDirectory is not null)
         {
             foreach (var item in manifest.ProjectAssets)
@@ -222,7 +221,13 @@ partial class PackageSession
             package.Meta.Name = library.Name;
             package.Meta.Version = library.Version.ToPackageVersion();
             var container = new StandalonePackage(package);
-            container.Assemblies.AddRange(assemblies);
+            // Prefer the assemblies the packed sdpkg declares (host-loadable, narrowed to asset
+            // types); fall back to the lock file's runtime assemblies when it declares none.
+            var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
+            if (package.AssetAssemblies.Count > 0)
+                container.Assemblies.AddRange(package.AssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.ToOSPath()))));
+            else
+                container.Assemblies.AddRange(assemblies);
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
         }

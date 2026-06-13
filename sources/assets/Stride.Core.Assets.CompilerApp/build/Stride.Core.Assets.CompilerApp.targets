@@ -303,7 +303,12 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+    <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so the
+         asset compiler loads exactly it when a consumer references this package. -->
+    <PropertyGroup>
+      <_StridePackAssetAssembliesArg Condition="'$(StrideAssetAssembly)' == 'true'"> --pack-asset-assemblies=&quot;lib/$(TargetFramework)/$(AssemblyName).dll&quot;</_StridePackAssetAssembliesArg>
+    </PropertyGroup>
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
