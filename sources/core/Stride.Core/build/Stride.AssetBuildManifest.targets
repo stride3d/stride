@@ -7,17 +7,25 @@
 
   <PropertyGroup>
     <StrideAssetBuildManifest Condition="'$(StrideAssetBuildManifest)' == ''">true</StrideAssetBuildManifest>
-    <!-- StrideProjectAssetExtensions: project-source asset extensions captured into the manifest.
-         Not defaulted here — Stride.Core is asset-type-agnostic. The asset-owning build layer
-         contributes its extensions next to where it globs the files (shaders append .sdsl;.sdfx in
-         Stride.targets / Sdk.targets); a plugin appends its own in its buildTransitive .targets.
-         AssetRegistry is the runtime source of truth but can't be queried at build time without
-         loading every asset assembly+plugin — the cost the manifest exists to avoid. -->
-    <!-- Out-of-tree game/code projects declare their own assembly by default: their scripts are
-         asset types, so the asset compiler must load them in manifest mode. The engine source tree
-         ($(StrideRoot) set) and the test SDK set this explicitly. Opt out with StrideAssetAssembly=false. -->
+    <!-- Project-source asset extensions captured into the manifest. Declared by the asset-owning
+         layer next to where it globs the files (shaders in Stride.targets / Sdk.targets); a plugin
+         appends its own in its buildTransitive .targets. -->
+    <!-- Game/code projects' scripts are asset types, so the asset compiler must load their assembly;
+         default it on. The engine source tree ($(StrideRoot) set) and the test SDK set it explicitly.
+         Opt out with StrideAssetAssembly=false. -->
     <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == '' And '$(StrideRoot)' == ''">true</StrideAssetAssembly>
   </PropertyGroup>
+
+  <!-- Expose the extension list to the STRDIAG011 analyzer as a comma-separated copy (editorconfig
+       treats ';' as a comment). Computed in a target so it sees the fully-appended value. -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="StrideProjectAssetExtensionsForAnalyzer" />
+  </ItemGroup>
+  <Target Name="_StrideExposeProjectAssetExtensions" BeforeTargets="GenerateMSBuildEditorConfigFileCore">
+    <PropertyGroup>
+      <StrideProjectAssetExtensionsForAnalyzer>$(StrideProjectAssetExtensions.Replace(';', ','))</StrideProjectAssetExtensionsForAnalyzer>
+    </PropertyGroup>
+  </Target>
 
   <PropertyGroup Condition="'$(TargetFramework)' != ''">
     <StrideAssetBuildManifestPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(MSBuildProjectName).sdbuild'))</StrideAssetBuildManifestPath>
@@ -25,10 +33,9 @@
 
   <Target Name="GetStrideAssetBuildManifestPath" Returns="$(StrideAssetBuildManifestPath)" />
 
-  <!-- Returns this project's declared project-asset extensions. Harvested across ProjectReferences
-       below: unlike PackageReference, a ProjectReference does not import the referenced project's
-       buildTransitive targets, so a consumer authoring asset files of a type defined by a
-       referenced plugin project wouldn't otherwise know that plugin's extension. -->
+  <!-- This project's declared project-asset extensions, harvested across ProjectReferences below
+       (a ProjectReference doesn't import the referenced project's buildTransitive targets, so its
+       extensions don't otherwise reach the consumer). -->
   <Target Name="GetStrideProjectAssetExtensions" Returns="$(StrideProjectAssetExtensions)" />
 
   <UsingTask TaskName="StrideWriteAssetBuildManifest"
@@ -133,7 +140,7 @@
             if (!seen.Add(full))
                 continue;
             var link = item.GetMetadata("Link");
-            // Items outside the project directory get a link, mirroring Package.FindAssetsInProject
+            // Items outside the project directory get a link
             if (string.IsNullOrEmpty(link) && !full.StartsWith(projectDirPrefix, StringComparison.OrdinalIgnoreCase))
                 link = Path.GetFileName(full);
             entries.Add(new KeyValuePair<string, string>(rel(full), string.IsNullOrEmpty(link) ? null : link.Replace('\\', '/')));
@@ -194,17 +201,15 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <!-- Conventional sdpkg next to the project, mirroring Package.LoadProject's
-           ChangeExtension(.csproj, .sdpkg): a platform-head with no sdpkg of its own becomes an
-           implicit package named after the head (e.g. MyGame.Windows), with assets flowing in from
-           the referenced game library. Don't use StrideCurrentPackagePath here — pointing the head
-           at the shared game sdpkg would rename the root package and break bundle naming. -->
+      <!-- Conventional sdpkg next to the project (.csproj -> .sdpkg). A platform-head with no sdpkg
+           of its own becomes an implicit package named after the head (e.g. MyGame.Windows), with
+           assets flowing in from the referenced game library. -->
       <_StrideAuthoredPackagePath>$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAuthoredPackagePath>
       <_StrideManifestHostFramework>$(StrideFramework)</_StrideManifestHostFramework>
       <_StrideManifestHostFramework Condition="'$(_StrideManifestHostFramework)' == ''">$(TargetFramework)</_StrideManifestHostFramework>
       <_StrideManifestProjectAssetsFile Condition="Exists('$(ProjectAssetsFile)')">$(ProjectAssetsFile)</_StrideManifestProjectAssetsFile>
       <_StrideManifestIsHostFramework Condition="'$(TargetFramework)' == '$(_StrideManifestHostFramework)'">true</_StrideManifestIsHostFramework>
-      <!-- Package identity, mirroring PreLoadPackageDependencies: PackageId ?? AssemblyName -->
+      <!-- Package identity: PackageId ?? AssemblyName -->
       <_StrideManifestPackageName>$(PackageId)</_StrideManifestPackageName>
       <_StrideManifestPackageName Condition="'$(_StrideManifestPackageName)' == ''">$(AssemblyName)</_StrideManifestPackageName>
       <_StrideManifestPackageName Condition="'$(_StrideManifestPackageName)' == ''">$(MSBuildProjectName)</_StrideManifestPackageName>
