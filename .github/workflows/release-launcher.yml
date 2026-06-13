@@ -11,6 +11,10 @@ on:
         description: Deploy to NuGet.org
         default: false
         type: boolean
+      upload-binlog:
+        description: Capture and upload an MSBuild binlog (diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
+        default: false
+        type: boolean
 
 concurrency:
   group: release-launcher-${{ github.ref }}
@@ -82,7 +86,7 @@ jobs:
         run: |
           msbuild build\Stride.build `
             /t:FullBuildLauncher `
-            /bl /m /nr:false `
+            ${{ inputs.upload-binlog && !inputs.sign && '/bl' || '' }} /m /nr:false `
             /p:StrideSign=${{ inputs.sign }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
@@ -108,6 +112,14 @@ jobs:
             bin/launcher/*.nupkg
             bin/launcher/*.exe
           retention-days: 30
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
+        with:
+          name: build-log
+          path: msbuild.binlog
+          if-no-files-found: ignore
 
   Deploy:
     name: Deploy Launcher

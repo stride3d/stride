@@ -152,7 +152,8 @@
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Newtonsoft.Json.dll" />
     </ItemGroup>
   </Target>
-  <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+  <!-- NET Sdk must be imported before VsSDK so IntermediateOutputPath is set when VsSDK
+       derives ResourceManifest/cto manifest paths (otherwise they resolve to the drive root). -->
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>
