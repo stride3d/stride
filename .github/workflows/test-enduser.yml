@@ -58,7 +58,7 @@ jobs:
   Run:
     needs: preflight
     if: needs.preflight.outputs.has-api-key == 'true'
-    name: Capture & compare all samples (${{ matrix.os-label }}, ${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || 'Debug' }})
+    name: ${{ matrix.platform }} / ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || 'Debug' }})
     # Single job per (OS, graphics API): the harness + orchestrator + comparator are sample-agnostic,
     # so a matrix-per-sample would build the engine N× for the same artifacts. Sequential capture
     # via xunit's DisableParallelization keeps total compute low at comparable wall-clock to a
@@ -68,10 +68,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-2025-vs2026, os-label: Windows, graphics-api: Direct3D11, platform: Windows, rid: win-x64 }
-          - { os: windows-2025-vs2026, os-label: Windows, graphics-api: Direct3D12, platform: Windows, rid: win-x64 }
-          - { os: windows-2025-vs2026, os-label: Windows, graphics-api: Vulkan,     platform: Windows, rid: win-x64 }
-          - { os: ubuntu-24.04,        os-label: Linux,   graphics-api: Vulkan,     platform: Linux,   rid: linux-x64 }
+          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Direct3D11, rid: win-x64 }
+          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Direct3D12, rid: win-x64 }
+          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Vulkan,     rid: win-x64 }
+          - { os: ubuntu-24.04,        platform: Linux,   graphics-api: Vulkan,     rid: linux-x64 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -251,7 +251,7 @@ jobs:
         if: always()
         uses: phoenix-actions/test-reporting@v15
         with:
-          name: 'Sample screenshot regression (${{ matrix.os-label }}, ${{ matrix.graphics-api }})'
+          name: 'Sample screenshot regression (${{ matrix.platform }}, ${{ matrix.graphics-api }})'
           path: TestResults/*.trx
           reporter: dotnet-trx
           output-to: step-summary
@@ -261,7 +261,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots-${{ matrix.os-label }}-${{ matrix.graphics-api }}
+          name: screenshots-${{ matrix.platform }}-${{ matrix.graphics-api }}
           path: |
             screenshot-out/
             screenshot-out-aot/
@@ -272,6 +272,98 @@ jobs:
         if: always() && runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: crash-dumps-${{ matrix.os-label }}-${{ matrix.graphics-api }}
+          name: crash-dumps-${{ matrix.platform }}-${{ matrix.graphics-api }}
           path: crash-dumps/
           if-no-files-found: ignore
+
+  # NuGet packaging + consumer suite. Deliberately independent of the screenshot job: it builds the
+  # engine into bin/packages itself, then packs a sample plugin and builds a consumer against it, plus
+  # an external-consumer build of a generated sample. Running in parallel (not chained behind the slow
+  # screenshot job) gives packaging feedback at ~build time and needs no Anthropic key, so it also
+  # covers forks. The duplicate engine build is the intended cost of that decoupling. Carries the same
+  # schedule/fork gate as preflight so it doesn't depend on (and serialize behind) that job.
+  Packaging:
+    if: github.event_name != 'schedule' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    name: Packaging + consumer (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025-vs2026, platform: Windows }
+          - { os: ubuntu-24.04,        platform: Linux }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet restore),
+      # tripping on legacy BCL packages whose timestamping CAs have expired.
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lld
+
+      # The consumer-template generation (NuGetConsumerTests → PackageStore) reads the *user* NuGet
+      # config (Settings.LoadDefaultSettings(null) ignores the workspace config), so register the
+      # locally-built feed there. Mirrors the screenshot job. The path is recorded now; the build
+      # below populates it.
+      - name: Register bin/packages with user NuGet config (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      - name: Register bin/packages with user NuGet config (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p "$HOME/.nuget/NuGet"
+          [ -f "$HOME/.nuget/NuGet/NuGet.Config" ] || cat > "$HOME/.nuget/NuGet/NuGet.Config" <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+            </packageSources>
+          </configuration>
+          EOF
+          dotnet nuget add source "${{ github.workspace }}/bin/packages" --name stride-local --configfile "$HOME/.nuget/NuGet/NuGet.Config"
+
+      # Build + test in one invocation: the test project's ProjectReferences pack the engine into
+      # bin/packages, then the pack/consume + external-consumer tests run against it. StridePlatforms
+      # is required for the test SDK to emit the test assembly (host platform; graphics API defaults
+      # per OS — D3D11 on Windows, Vulkan on Linux — and is irrelevant to these headless build tests).
+      - name: Run packaging + consumer tests
+        run: |
+          dotnet test tests/enduser/Stride.Packaging.Tests/Stride.Packaging.Tests.csproj \
+            -nr:false -v:m -p:WarningLevel=0 \
+            -p:StridePlatforms=${{ matrix.platform }} \
+            --logger "trx;LogFileName=packaging.trx" \
+            --results-directory TestResults \
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
+      - name: Publish test report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Packaging + consumer (${{ matrix.platform }})'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+
+      - name: Upload test artifacts (TRX)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-${{ matrix.platform }}
+          path: TestResults/
+          if-no-files-found: warn
