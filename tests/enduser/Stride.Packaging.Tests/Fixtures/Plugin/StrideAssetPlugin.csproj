@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>StrideAssetPlugin</RootNamespace>
+    <PackageId>StrideAssetPlugin</PackageId>
+    <Version>1.0.0</Version>
+    <!-- Pack the project as a Stride asset package: the dll is declared as an asset assembly
+         automatically (out-of-tree default), so consumers load it for asset compilation.
+         Override StrideAssetAssembly=false to exercise the negative case. -->
+    <StridePackAssets>true</StridePackAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>
