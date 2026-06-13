@@ -81,41 +81,28 @@ namespace Stride.Core.Assets.CompilerApp
                     BuildConfiguration = builderOptions.ProjectConfiguration,
                 };
 
-                // Loads the root Package — from a build manifest chain (manifest mode) or by
-                // walking the csproj (legacy)
-                var manifestMode = !string.IsNullOrEmpty(builderOptions.PackageManifestFile);
-                UFile packageFile;
-                if (manifestMode)
+                // Load the root Package from the .sdbuild manifest chain.
+                if (string.IsNullOrEmpty(builderOptions.PackageManifestFile))
                 {
-                    var projectSessionResult = new PackageSessionResult();
-                    PackageSession.LoadFromBuildManifest(builderOptions.PackageManifestFile, projectSessionResult, sessionLoadParameters);
-                    projectSessionResult.CopyTo(builderOptions.Logger);
-                    if (projectSessionResult.HasErrors)
-                        return BuildResultCode.BuildError;
-                    projectSession = projectSessionResult.Session;
-                    // Root package = the manifest's authored package (may not exist on disk; FullPath is still set)
-                    var rootManifest = YamlSerializer.Load<AssetBuildManifest>(builderOptions.PackageManifestFile);
-                    packageFile = rootManifest.Package is not null
-                        ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.Package.ToOSPath()))
-                        : null;
+                    builderOptions.Logger.Error("No build manifest provided; the asset build requires --package-manifest.");
+                    return BuildResultCode.BuildError;
                 }
-                else
-                {
-                    var projectSessionResult = PackageSession.Load(builderOptions.PackageFile, sessionLoadParameters);
-                    projectSessionResult.CopyTo(builderOptions.Logger);
-                    if (projectSessionResult.HasErrors)
-                        return BuildResultCode.BuildError;
-                    projectSession = projectSessionResult.Session;
-                    packageFile = (UFile)builderOptions.PackageFile;
-                }
+                var projectSessionResult = new PackageSessionResult();
+                PackageSession.LoadFromBuildManifest(builderOptions.PackageManifestFile, projectSessionResult, sessionLoadParameters);
+                projectSessionResult.CopyTo(builderOptions.Logger);
+                if (projectSessionResult.HasErrors)
+                    return BuildResultCode.BuildError;
+                projectSession = projectSessionResult.Session;
+                // Root package = the manifest's authored package (may not exist on disk; FullPath is still set)
+                var rootManifest = YamlSerializer.Load<AssetBuildManifest>(builderOptions.PackageManifestFile);
+                var packageFile = rootManifest.Package is not null
+                    ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.Package.ToOSPath()))
+                    : null;
 
-                // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
+                // Find loaded package -- otherwise fallback to first one
                 var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
                     ?? projectSession.LocalPackages.FirstOrDefault()
                     ?? projectSession.Packages.FirstOrDefault();
-
-                if (!manifestMode)
-                    AssetBuildManifestValidator.Validate(projectSession, builderOptions.PackageFile, builderOptions.BuildManifestFile, builderOptions.BuildDirectory, builderOptions.Logger);
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
