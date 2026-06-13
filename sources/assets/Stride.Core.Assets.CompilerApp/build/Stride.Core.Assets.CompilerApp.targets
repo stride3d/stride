@@ -303,7 +303,24 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+    <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
+         loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
+         $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset
+         compiler can load — a base netX.0 (no platform suffix) or a net*-windows* — emitting one entry
+         per match (';'-separated; the consumer picks the one matching its runtime). -->
+    <ItemGroup Condition="'$(StrideAssetAssembly)' == 'true'">
+      <_StrideAssetAssemblyTfm Include="$(TargetFrameworks)" Condition="'$(TargetFrameworks)' != ''" />
+      <_StrideAssetAssemblyTfm Include="$(TargetFramework)" Condition="'$(TargetFrameworks)' == ''" />
+      <_StrideHostAssetAssemblyTfm Include="@(_StrideAssetAssemblyTfm)"
+                                   Condition="!$([System.String]::Copy('%(Identity)').Contains('-')) Or $([System.String]::Copy('%(Identity)').Contains('-windows'))" />
+      <_StrideHostAssetAssembly Include="lib/%(_StrideHostAssetAssemblyTfm.Identity)/$(AssemblyName).dll" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(StrideAssetAssembly)' == 'true'">
+      <_StridePackAssetAssembliesArg>@(_StrideHostAssetAssembly->' --pack-asset-assembly=&quot;%(Identity)&quot;', '')</_StridePackAssetAssembliesArg>
+    </PropertyGroup>
+    <Error Condition="'$(StrideAssetAssembly)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
+           Text="StrideAssetAssembly=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

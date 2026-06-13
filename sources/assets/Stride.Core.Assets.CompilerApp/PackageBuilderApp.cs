@@ -113,6 +113,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
+                { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
                 { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
                 { "upgrade-assets", "Special mode to upgrade assets in place to the current SerializedVersion", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
@@ -296,7 +297,7 @@ namespace Stride.Core.Assets.CompilerApp
                     var intermediatePackagePath = options.BuildDirectory;
                     var generatedItems = new List<(string SourcePath, string PackagePath)>();
                     var logger = new LoggerResult();
-                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackAssetAssemblies))
                     {
                         foreach (var message in logger.Messages)
                         {
