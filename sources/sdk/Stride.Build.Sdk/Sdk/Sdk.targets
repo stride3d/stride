@@ -50,6 +50,20 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Skip compilation of test projects in package builds              -->
+  <!-- ================================================================ -->
+  <!-- Stride.Build.Sdk.Tests sets StrideCompilerTargetsEnable=false on StridePackageBuild /
+       StrideSkipUnitTests. Disable compilation by pointing LanguageTargets at a no-op so test
+       projects don't compile (and don't build APKs/AOT) when producing packages.
+       MUST run before the Microsoft.NET.Sdk import below: the SDK assigns LanguageTargets
+       (Microsoft.CSharp.targets) under a '$(LanguageTargets)' == '' guard, so the override only
+       wins if it's already set when that import runs. Gated on IsTestProject so the dormant
+       windows-only StrideCompilerTargetsEnable skip further down stays cosmetic (unchanged). -->
+  <PropertyGroup Condition="'$(StrideCompilerTargetsEnable)' == 'false' And '$(IsTestProject)' == 'true'">
+    <LanguageTargets>$(MSBuildThisFileDirectory)Stride.DisableBuild.targets</LanguageTargets>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import base Microsoft.NET.Sdk targets -->
   <!-- ================================================================ -->
   <!-- This gives us all standard .NET SDK functionality -->
