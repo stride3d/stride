@@ -1,0 +1,23 @@
+!SceneAsset
+Id: 2a7c4e10-9f3b-4c21-8d65-1e2f3a4b5c6d
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 3b8d5f21-a04c-4d32-9e76-2f3a4b5c6d7e
+    Parts:
+        -   Entity:
+                Id: 3b8d5f21-a04c-4d32-9e76-2f3a4b5c6d7e
+                Name: Spinner
+                Components:
+                    a1b2c3d4e5f60718293a4b5c6d7e8f90: !TransformComponent
+                        Id: 4c9e6032-b15d-4e43-af87-3a4b5c6d7e8f
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b2c3d4e5f6071829304b5c6d7e8f9001: !StrideAssetPlugin.SpinScript,StrideAssetPlugin
+                        Id: 5d0f7143-c26e-4f54-b098-4b5c6d7e8f90
+                        Speed: 2.0
