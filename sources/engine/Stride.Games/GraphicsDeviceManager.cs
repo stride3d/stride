@@ -163,10 +163,9 @@ namespace Stride.Games
         /// </summary>
         /// <remarks>
         ///   By default, the preferred graphics profiles are, in order of preference, better first:
-        ///   <see cref="Level_11_1"/>, <see cref="Level_11_0"/>, <see cref="Level_10_1"/>, <see cref="Level_10_0"/>,
-        ///   <see cref="Level_9_3"/>, <see cref="Level_9_2"/>, and <see cref="Level_9_1"/>.
+        ///   <see cref="Level_11_1"/>, <see cref="Level_11_0"/>, <see cref="Level_10_1"/>, <see cref="Level_10_0"/>.
         /// </remarks>
-        public GraphicsProfile[] PreferredGraphicsProfile { get; set; } = [ Level_11_1, Level_11_0, Level_10_1, Level_10_0, Level_9_3, Level_9_2, Level_9_1 ];
+        public GraphicsProfile[] PreferredGraphicsProfile { get; set; } = [ Level_11_1, Level_11_0, Level_10_1, Level_10_0 ];
 
         /// <summary>
         ///   Gets or sets the Shader graphics profile that will be used to compile shaders.
@@ -866,7 +865,7 @@ namespace Stride.Games
         /// </returns>
         protected virtual bool IsPreferredProfileAvailable(GraphicsProfile[] preferredProfiles, out GraphicsProfile availableProfile)
         {
-            availableProfile = Level_9_1;  // Start from the lowest profile
+            availableProfile = Level_10_0;  // Start from the lowest profile
 
             var graphicsProfiles = Enum.GetValues<GraphicsProfile>();
 

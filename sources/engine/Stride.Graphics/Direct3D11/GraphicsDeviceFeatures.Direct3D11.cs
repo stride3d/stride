@@ -115,19 +115,6 @@ namespace Stride.Graphics
                     MaximumTexture3DSize = 2048;
                     MaximumTextureCubeSize = 8192;
                     break;
-
-                case Level_9_1:
-                case Level_9_2:
-                case Level_9_3:
-                    MaximumMipLevels = 14;
-                    ResourceSizeInMegabytes = 128;
-                    MaximumTexture1DArraySize = 512;
-                    MaximumTexture2DArraySize = 512;
-                    MaximumTexture1DSize = CurrentProfile < Level_9_3 ? 2048 : 4096;
-                    MaximumTexture2DSize = CurrentProfile < Level_9_3 ? 2048 : 4096;
-                    MaximumTexture3DSize = 256;
-                    MaximumTextureCubeSize = CurrentProfile < Level_9_3 ? 512 : 4096;
-                    break;
             }
 
             /// <summary>

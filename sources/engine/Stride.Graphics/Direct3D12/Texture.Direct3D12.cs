@@ -1064,38 +1064,16 @@ namespace Stride.Graphics
             var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
             if (needsTypelessDepth)
             {
-                if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
+                // Determine Typeless Format and Shader Resource View Format
+                format = textureDescription.Format switch
                 {
-                    throw new NotSupportedException($"Creating Shader Resource Views for Depth-Stencil Buffers are not supported for Graphics Profiles < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
-                }
-                else
-                {
-                    // Determine Typeless Format and Shader Resource View Format
-                    if (GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
-                    {
-                        format = textureDescription.Format switch
-                        {
-                            PixelFormat.D16_UNorm => Silk.NET.DXGI.Format.FormatD16Unorm,
-                            PixelFormat.D32_Float => Silk.NET.DXGI.Format.FormatD32Float,
-                            PixelFormat.D24_UNorm_S8_UInt => Silk.NET.DXGI.Format.FormatD24UnormS8Uint,
-                            PixelFormat.D32_Float_S8X24_UInt => Silk.NET.DXGI.Format.FormatD32FloatS8X24Uint,
+                    PixelFormat.D16_UNorm => Silk.NET.DXGI.Format.FormatR16Typeless,
+                    PixelFormat.D32_Float => Silk.NET.DXGI.Format.FormatR32Typeless,
+                    PixelFormat.D24_UNorm_S8_UInt => Silk.NET.DXGI.Format.FormatR24G8Typeless,
+                    PixelFormat.D32_Float_S8X24_UInt => Silk.NET.DXGI.Format.FormatR32G8X24Typeless,
 
-                            _ => throw new NotSupportedException($"Unsupported Depth format [{textureDescription.Format}] for Depth Buffer")
-                        };
-                    }
-                    else // GraphicsProfile >= 10.0
-                    {
-                        format = textureDescription.Format switch
-                        {
-                            PixelFormat.D16_UNorm => Silk.NET.DXGI.Format.FormatR16Typeless,
-                            PixelFormat.D32_Float => Silk.NET.DXGI.Format.FormatR32Typeless,
-                            PixelFormat.D24_UNorm_S8_UInt => Silk.NET.DXGI.Format.FormatR24G8Typeless,
-                            PixelFormat.D32_Float_S8X24_UInt => Silk.NET.DXGI.Format.FormatR32G8X24Typeless,
-
-                            _ => throw new NotSupportedException($"Unsupported Depth format [{textureDescription.Format}] for Depth Buffer")
-                        };
-                    }
-                }
+                    _ => throw new NotSupportedException($"Unsupported Depth format [{textureDescription.Format}] for Depth Buffer")
+                };
             }
 
             return new ResourceDesc
@@ -1166,29 +1144,6 @@ namespace Stride.Graphics
                 Layout = TextureLayout.LayoutUnknown,
                 Alignment = 0
             };
-        }
-
-        /// <summary>
-        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The Texture description to check.</param>
-        /// <returns>The updated Texture description.</returns>
-        /// <remarks>
-        ///   This check is to prevent issues with Direct3D 9.x where the driver may not be able to create mipmaps
-        ///   whose resolution in less than 4x4 pixels.
-        /// </remarks>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            // Troubles with DXT images whose resolution in less than 4x4 in DX9.x
-            // TODO: Stale comment?
-
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
-            {
-                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
-            }
-            return description;
         }
 
         /// <summary>

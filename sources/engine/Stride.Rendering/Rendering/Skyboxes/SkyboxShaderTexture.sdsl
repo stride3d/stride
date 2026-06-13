@@ -14,11 +14,7 @@ namespace Stride.Rendering.Skyboxes
 			var u = atan2(-samplingDir.z, -samplingDir.x)/(2*Math.PI) + 0.5;
 			var v = atan2(-samplingDir.y, length(samplingDir.xz))/Math.PI + 0.5;
 
-#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0
             var color = Texture.SampleLevel(LinearSampler, float2(u, v), 0).rgb;
-#else
-            var color = Texture.Sample(LinearSampler, float2(u, v)).rgb;
-#endif
             return float4(color * Intensity, 1.0);
         }
     };
