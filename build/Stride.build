@@ -43,82 +43,8 @@ Example: dotnet build build/Stride.build -t:Package
     <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideInstallerAip)" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;" />
   </Target>
 
-  <!-- Inline so there is no task assembly to build, lock, or resolve dependencies for.
-       Height = total commit count (rev-list count). The old libgit2 metric (DAG longest path)
-       never reset on version bumps either, so this stays monotonic — with a one-time jump. -->
-  <UsingTask TaskName="StrideGitVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-    <Task>
-      <Code Type="Class" Language="cs">
-        <![CDATA[
-        using System;
-        using System.Diagnostics;
-        using System.IO;
-        using System.Text.RegularExpressions;
-        using Microsoft.Build.Framework;
-        using Microsoft.Build.Utilities;
-
-        public class StrideGitVersion : Task
-        {
-            [Required] public string RootDirectory { get; set; }
-            [Required] public string VersionFile { get; set; }
-            [Required] public string GeneratedVersionFile { get; set; }
-
-            [Output] public string NuGetVersion { get; set; }
-
-            public override bool Execute()
-            {
-                try
-                {
-                    VersionFile = VersionFile.Replace('\\', '/');
-                    GeneratedVersionFile = GeneratedVersionFile.Replace('\\', '/');
-                    string data = File.ReadAllText(Path.Combine(RootDirectory, VersionFile));
-                    string publicVersion = Regex.Match(data, "PublicVersion = \"(.*)\";").Groups[1].Value;
-                    string suffix = Regex.Match(data, "NuGetVersionSuffix = \"(.*)\";").Groups[1].Value;
-
-                    string sha = Git("rev-parse HEAD").Substring(0, 8);
-                    int height = int.Parse(Git("rev-list --count HEAD"));
-
-                    var v = Version.Parse(publicVersion);
-                    publicVersion = new Version(v.Major, v.Minor, height).ToString();
-
-                    data = Regex.Replace(data, "PublicVersion = \"(.*)\";", "PublicVersion = \"" + publicVersion + "\";");
-                    data = Regex.Replace(data, "BuildMetadata = (.*);", "BuildMetadata = \"+g" + sha + "\";");
-                    File.WriteAllText(Path.Combine(RootDirectory, GeneratedVersionFile), data);
-
-                    NuGetVersion = publicVersion + suffix;
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Log.LogError("StrideGitVersion failed: " + e.Message);
-                    return false;
-                }
-            }
-
-            private string Git(string args)
-            {
-                var psi = new ProcessStartInfo("git", args)
-                {
-                    WorkingDirectory = RootDirectory,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false
-                };
-                using (var p = Process.Start(psi))
-                {
-                    string output = p.StandardOutput.ReadToEnd().Trim();
-                    p.WaitForExit();
-                    if (p.ExitCode != 0) throw new Exception("git " + args + " exited with " + p.ExitCode);
-                    return output;
-                }
-            }
-        }
-        ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-  
   <Target Name="Help">
-    <Message Importance="high" Text="TODO"/>
+    <Message Importance="high" Text="Stride build targets (run: dotnet build build/Stride.build -t:&lt;Target&gt;)%0a%0a  Build         - build the full Stride solution (Windows)%0a  BuildWindows / BuildWindowsDirect3D11 / BuildWindowsDirect3D12 / BuildWindowsVulkan%0a  BuildLinux / BuildAndroid / BuildiOS / BuildmacOS - build a platform's runtime%0a  BuildRuntime  - build the runtime slnf (with tests/packing)%0a  Package       - build + pack + sign NuGet packages (BuildPackages = build only, no signing)%0a  VSIXPlugin    - build + pack the Visual Studio extension%0a  FullBuildLauncher - build the launcher + installer%0a  Publish / PublishVSIX / PublishLauncher - push packages to the NuGet store%0a  Clean         - delete the Bin output folder%0a%0aCommon properties: -p:StrideSign=false  -p:StrideGraphicsApiDependentBuildAll=true" />
   </Target>
 
   <!--
@@ -238,6 +164,53 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
+  <!-- Shared body for the per-platform build entry points below. Restores + builds
+       $(StrideTargetSolution) scoped by the ambient StridePlatforms/StrideGraphicsApis, skipping
+       packing and unit tests (these are local "build the binaries" shortcuts). The BuildXxx
+       targets exist so users don't need to know which slnf / properties each platform wants. -->
+  <Target Name="_BuildPlatform">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideTargetSolution);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=$(StrideGraphicsApis);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideTargetSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=$(StrideGraphicsApis);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+  </Target>
+
+  <Target Name="BuildWindows">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideSolution)" />
+  </Target>
+
+  <Target Name="BuildWindowsDirect3D11">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D11" />
+  </Target>
+
+  <Target Name="BuildWindowsDirect3D12">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D12" />
+  </Target>
+
+  <Target Name="BuildWindowsVulkan">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Vulkan" />
+  </Target>
+
+  <Target Name="BuildAndroid">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Android.slnf;StridePlatforms=Android" />
+  </Target>
+
+  <Target Name="BuildiOS">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.iOS.slnf;StridePlatforms=iOS" />
+  </Target>
+
+  <Target Name="BuildLinux">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StridePlatforms=Linux" />
+  </Target>
+
+  <!-- macOS is bespoke: uses the full .sln with Platform=macOS (not StridePlatforms). -->
+  <Target Name="BuildmacOS">
+    <PropertyGroup>
+      <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.sln</StridemacOSSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StridemacOSSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StridemacOSSolution)" Properties="$(BuildProperties);Platform=macOS"/>
+  </Target>
+
+  <!-- BuildRuntime is bespoke: builds the runtime slnf WITH packing/tests (no skip flags). -->
   <Target Name="BuildRuntime">
     <PropertyGroup>
       <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
@@ -245,68 +218,6 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>
   </Target>
-
-  <Target Name="BuildWindows">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-  </Target>
-
-  <Target Name="BuildWindowsDirect3D11">
-    <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildWindowsDirect3D12">
-    <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=Direct3D12"/>
-    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildAndroid">
-    <PropertyGroup>
-      <StrideAndroidSolution>$(StrideRoot)build\Stride.Android.slnf</StrideAndroidSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Android;StrideSolution=$(StrideAndroidSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideAndroidSolution)" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildiOS">
-    <PropertyGroup>
-      <StrideiOSSolution>$(StrideRoot)build\Stride.iOS.slnf</StrideiOSSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideiOSSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideiOSSolution)" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildWindowsVulkan">
-    <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=Vulkan"/>
-    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildLinux">
-    <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
-      <StridePlatforms>Linux</StridePlatforms>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-  </Target>
-
-  <Target Name="BuildmacOS">
-    <PropertyGroup>
-      <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.sln</StridemacOSSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StridemacOSSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StridemacOSSolution)" Properties="$(BuildProperties);Platform=macOS"/>
-  </Target> 
 
   
   <!--
@@ -379,5 +290,80 @@ Example: dotnet build build/Stride.build -t:Package
     </ItemGroup>
     <CallTarget Targets="_SignFiles" />
   </Target>
+
+  <!-- Version-stamping task kept at the end so the targets above read first. -->
+  <!-- Inline so there is no task assembly to build, lock, or resolve dependencies for.
+       Height = total commit count (rev-list count). The old libgit2 metric (DAG longest path)
+       never reset on version bumps either, so this stays monotonic — with a one-time jump. -->
+  <UsingTask TaskName="StrideGitVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <Task>
+      <Code Type="Class" Language="cs">
+        <![CDATA[
+        using System;
+        using System.Diagnostics;
+        using System.IO;
+        using System.Text.RegularExpressions;
+        using Microsoft.Build.Framework;
+        using Microsoft.Build.Utilities;
+
+        public class StrideGitVersion : Task
+        {
+            [Required] public string RootDirectory { get; set; }
+            [Required] public string VersionFile { get; set; }
+            [Required] public string GeneratedVersionFile { get; set; }
+
+            [Output] public string NuGetVersion { get; set; }
+
+            public override bool Execute()
+            {
+                try
+                {
+                    VersionFile = VersionFile.Replace('\\', '/');
+                    GeneratedVersionFile = GeneratedVersionFile.Replace('\\', '/');
+                    string data = File.ReadAllText(Path.Combine(RootDirectory, VersionFile));
+                    string publicVersion = Regex.Match(data, "PublicVersion = \"(.*)\";").Groups[1].Value;
+                    string suffix = Regex.Match(data, "NuGetVersionSuffix = \"(.*)\";").Groups[1].Value;
+
+                    string sha = Git("rev-parse HEAD").Substring(0, 8);
+                    int height = int.Parse(Git("rev-list --count HEAD"));
+
+                    var v = Version.Parse(publicVersion);
+                    publicVersion = new Version(v.Major, v.Minor, height).ToString();
+
+                    data = Regex.Replace(data, "PublicVersion = \"(.*)\";", "PublicVersion = \"" + publicVersion + "\";");
+                    data = Regex.Replace(data, "BuildMetadata = (.*);", "BuildMetadata = \"+g" + sha + "\";");
+                    File.WriteAllText(Path.Combine(RootDirectory, GeneratedVersionFile), data);
+
+                    NuGetVersion = publicVersion + suffix;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Log.LogError("StrideGitVersion failed: " + e.Message);
+                    return false;
+                }
+            }
+
+            private string Git(string args)
+            {
+                var psi = new ProcessStartInfo("git", args)
+                {
+                    WorkingDirectory = RootDirectory,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                };
+                using (var p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd().Trim();
+                    p.WaitForExit();
+                    if (p.ExitCode != 0) throw new Exception("git " + args + " exited with " + p.ExitCode);
+                    return output;
+                }
+            }
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
 
 </Project>
