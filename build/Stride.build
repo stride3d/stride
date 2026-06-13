@@ -216,7 +216,14 @@ Example: dotnet build build/Stride.build -t:Package
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage"/>
+  <!-- Build phase: produce packages WITHOUT signing. Secret-free, so the workflow can run this
+       as its own step and confine signing secrets to the SignPackage step (TODO: wire that split
+       in release.yml — needs a signed-build test; note the prerequisites installer still signs
+       inline during build via AdvancedInstaller, so full scoping requires building it unsigned). -->
+  <Target Name="BuildPackages" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build"/>
+  <!-- Build + sign, in order. Same behavior as before; the BuildPackages/SignPackage seam lets
+       callers run the two phases separately. -->
+  <Target Name="Package" DependsOnTargets="BuildPackages;SignPackage"/>
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
