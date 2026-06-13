@@ -50,7 +50,9 @@ jobs:
     # Only the canonical repo holds the production environment, signing and NuGet secrets;
     # forks validate the pack job above but never attempt to publish.
     if: github.repository == 'stride3d/stride'
-    runs-on: ubuntu-latest
+    # The sign tool is Windows-only (P/Invokes kernel32), so signing runs on Windows even
+    # though the managed pack above runs on Linux.
+    runs-on: windows-2025-vs2026
     environment: production
     steps:
       - name: Install signing tool
