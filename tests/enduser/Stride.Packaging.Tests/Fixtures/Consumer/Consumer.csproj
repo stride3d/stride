@@ -4,11 +4,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Consumer</RootNamespace>
     <Nullable>enable</Nullable>
-    <!-- Opt into manifest-mode asset loading: dependency packages contribute their declared
+    <!-- Manifest-mode asset loading is the default: dependency packages contribute their declared
          asset assemblies (from the packed stride/<Id>.sdpkg) so the scene below can resolve the
-         plugin's script type. -->
-    <StrideAssetBuildManifestMode>true</StrideAssetBuildManifestMode>
-    <!-- This consumer defines no asset types of its own (the scene only uses the plugin's
+         plugin's script type.
+         This consumer defines no asset types of its own (the scene only uses the plugin's
          SpinScript), so don't declare Consumer.dll as an asset assembly. A single Exe project
          compiles assets before its own dll lands in bin/, so declaring it would fail to load;
          real multi-project games avoid that via the .Game/.Exe split. -->
