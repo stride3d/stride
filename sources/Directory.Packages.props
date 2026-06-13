@@ -72,7 +72,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
+    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.14.2075" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
@@ -99,7 +99,7 @@
   <!-- Visual Studio dependencies -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="18.6.38345" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>

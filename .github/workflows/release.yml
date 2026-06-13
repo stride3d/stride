@@ -5,15 +5,19 @@ on:
     inputs:
       platform-linux:
         description: Include Linux
-        default: false
+        default: true
         type: boolean
       platform-android:
         description: Include Android
-        default: false
+        default: true
         type: boolean
       platform-ios:
         description: Include iOS
-        default: false
+        default: true
+        type: boolean
+      platform-macos:
+        description: Include macOS
+        default: true
         type: boolean
       sign:
         description: Code sign packages
@@ -25,6 +29,10 @@ on:
         type: boolean
       deploy:
         description: Deploy to NuGet.org and create GitHub Release
+        default: false
+        type: boolean
+      upload-binlog:
+        description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
         type: boolean
 
@@ -83,7 +91,12 @@ jobs:
             6.0.x
             10.0.x
 
-      - uses: microsoft/setup-msbuild@v2
+      - name: Install Apple Workloads
+        # VS provisions the android workload but not ios/macos.
+        if: ${{ inputs.platform-ios || inputs.platform-macos }}
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ${{ inputs.platform-ios && inputs.platform-macos && 'ios macos' || inputs.platform-ios && 'ios' || 'macos' }}
 
       - name: Install Advanced Installer
         if: ${{ inputs.build-prerequisites-installer }}
@@ -102,15 +115,19 @@ jobs:
           if ("${{ inputs.platform-linux }}" -eq "true") { $platforms += ";Linux" }
           if ("${{ inputs.platform-android }}" -eq "true") { $platforms += ";Android" }
           if ("${{ inputs.platform-ios }}" -eq "true") { $platforms += ";iOS" }
+          if ("${{ inputs.platform-macos }}" -eq "true") { $platforms += ";macOS" }
           echo "Building for platforms: $platforms"
-          msbuild build\Stride.build `
-            /t:Package `
-            /bl /m /nr:false `
-            /p:StridePlatforms="$platforms" `
-            /p:StrideGraphicsApiDependentBuildAll=true `
-            /p:StrideSign=${{ inputs.sign }} `
-            /p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
-            /p:StrideNativeBuildMode=Clang
+          # --no-restore: Stride.build's targets restore their own solutions (same as the
+          # previous desktop msbuild invocation, which never passed /restore).
+          dotnet build build\Stride.build `
+            -t:Package `
+            --no-restore `
+            ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
+            -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
+            -p:StrideGraphicsApiDependentBuildAll=true `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
+            -p:StrideNativeBuildMode=Clang
         env:
           StrideDisableAssetCompilerExecServerProxy: true
           StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
@@ -143,7 +160,7 @@ jobs:
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
-        if: ${{ always() && !inputs.sign }}
+        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log
           path: msbuild.binlog
