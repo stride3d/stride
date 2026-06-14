@@ -229,7 +229,7 @@
                     int best = -1;
                     foreach (var tag in Git("tag --list releases/" + majorMinor + ".*").Split('\n'))
                     {
-                        var pm = Regex.Match(tag.Trim(), "^releases/\\d+\\.\\d+\\.(\\d+)$");
+                        var pm = Regex.Match(tag.Trim(), "^releases/\\d+\\.\\d+\\.(\\d+)(-.*)?$");
                         if (pm.Success)
                         {
                             int patch = int.Parse(pm.Groups[1].Value);

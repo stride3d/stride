@@ -27,6 +27,10 @@ on:
         description: Build prerequisites installer
         default: true
         type: boolean
+      version-suffix:
+        description: Prerelease suffix, no leading dash (e.g. "beta" -> 4.4.123-beta). Empty = stable.
+        default: ''
+        type: string
       deploy:
         description: Deploy to NuGet.org and create GitHub Release
         default: false
@@ -126,6 +130,7 @@ jobs:
             -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
             -p:StrideGraphicsApiDependentBuildAll=true `
             -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideVersionSuffix=${{ inputs.version-suffix }} `
             -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
             -p:StrideNativeBuildMode=Clang
         env:
