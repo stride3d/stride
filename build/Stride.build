@@ -132,7 +132,7 @@ Example: dotnet build build/Stride.build -t:Package
     <Delete Files="@(FilesToDeletePackages)"/>
 
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs">
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SuffixOverride="$(StrideVersionSuffix)">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </StrideGitVersion>
 
@@ -311,6 +311,7 @@ Example: dotnet build build/Stride.build -t:Package
             [Required] public string RootDirectory { get; set; }
             [Required] public string VersionFile { get; set; }
             [Required] public string GeneratedVersionFile { get; set; }
+            public string SuffixOverride { get; set; }
 
             [Output] public string NuGetVersion { get; set; }
 
@@ -323,6 +324,9 @@ Example: dotnet build build/Stride.build -t:Package
                     string data = File.ReadAllText(Path.Combine(RootDirectory, VersionFile));
                     string publicVersion = Regex.Match(data, "PublicVersion = \"(.*)\";").Groups[1].Value;
                     string suffix = Regex.Match(data, "NuGetVersionSuffix = \"(.*)\";").Groups[1].Value;
+                    // SuffixOverride (from -p:StrideVersionSuffix) is the bare word; add the dash here.
+                    if (!string.IsNullOrEmpty(SuffixOverride))
+                        suffix = "-" + SuffixOverride.TrimStart('-');
 
                     string sha = Git("rev-parse HEAD").Substring(0, 8);
                     int height = int.Parse(Git("rev-list --count HEAD"));
@@ -331,6 +335,7 @@ Example: dotnet build build/Stride.build -t:Package
                     publicVersion = new Version(v.Major, v.Minor, height).ToString();
 
                     data = Regex.Replace(data, "PublicVersion = \"(.*)\";", "PublicVersion = \"" + publicVersion + "\";");
+                    data = Regex.Replace(data, "NuGetVersionSuffix = \"(.*)\";", "NuGetVersionSuffix = \"" + suffix + "\";");
                     data = Regex.Replace(data, "BuildMetadata = (.*);", "BuildMetadata = \"+g" + sha + "\";");
                     File.WriteAllText(Path.Combine(RootDirectory, GeneratedVersionFile), data);
 
