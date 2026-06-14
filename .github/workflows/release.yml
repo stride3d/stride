@@ -172,6 +172,18 @@ jobs:
           if-no-files-found: ignore
 
   #
+  # Surface the package version in the run UI. A job can't reference its own outputs in its
+  # name, so this lightweight job shows Package's version even when Deploy is skipped.
+  #
+  Version:
+    name: Packaged ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: ${{ always() && needs.Package.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice title=Packaged::${{ needs.Package.outputs.version }}"
+
+  #
   # Deploy to NuGet.org and create GitHub Release
   #
   Deploy:
