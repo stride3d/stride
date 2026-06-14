@@ -249,6 +249,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+          fetch-tags: true  # tag-based versioning (engine version must dominate sample versions)
           # Compare against the tested commit's gold. A detached commit-sha can't be pushed to, so
           # those runs always land via PR (see can_branch below).
           ref: ${{ inputs.commit-sha || github.ref }}

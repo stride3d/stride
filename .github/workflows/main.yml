@@ -45,15 +45,53 @@ jobs:
       || github.repository == 'stride3d/stride'
       || vars.STRIDE_ENABLE_PUSH_CI == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
-      runtime: ${{ steps.filter.outputs.runtime || 'true' }}
-      ios: ${{ steps.filter.outputs.ios || 'true' }}
-      ios-tests: ${{ steps.filter.outputs.ios-tests || 'true' }}
-      android: ${{ steps.filter.outputs.android || 'true' }}
-      full: ${{ steps.filter.outputs.full || 'true' }}
+      runtime: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.runtime || 'true' }}
+      ios: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios || 'true' }}
+      ios-tests: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios-tests || 'true' }}
+      android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
+      full: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.full || 'true' }}
     steps:
       - uses: actions/checkout@v4
         if: github.event_name == 'pull_request'
+      # Comment-only PRs skip everything (Gate stays green via skipped jobs). Conservative:
+      # only whole-line comments/blanks in known file types count; anything else (inline
+      # comment edits, unknown extensions, huge/binary patches) runs CI normally. Known
+      # hole: comment-looking lines inside multi-line string literals.
+      - name: Detect comment-only changes
+        id: comments
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate --slurp > /tmp/pr-files.json
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, os
+          markers = {'.cs': '//', '.yml': '#', '.yaml': '#'}
+          files = [f for page in json.load(open('/tmp/pr-files.json')) for f in page]
+          def comment_only():
+              if len(files) >= 3000:  # API truncates the file list there
+                  return False
+              for f in files:
+                  marker = markers.get(os.path.splitext(f['filename'])[1].lower())
+                  patch = f.get('patch')  # absent for binary/oversized diffs
+                  if marker is None or patch is None:
+                      return False
+                  for line in patch.split('\n'):
+                      if line[:1] in ('+', '-'):
+                          body = line[1:].strip()
+                          # U+2028/29: line terminators to the C# compiler but not to diff;
+                          # code could hide behind a comment marker on the same diff line.
+                          if '\u2028' in body or '\u2029' in body:
+                              return False
+                          if body and not body.startswith(marker):
+                              return False
+              return bool(files)
+          print('comment_only=' + str(comment_only()).lower())
+          EOF
       - uses: dorny/paths-filter@v3
         if: github.event_name == 'pull_request'
         id: filter
@@ -95,8 +133,7 @@ jobs:
               - 'sources/**/*.Android.*'
               - 'sources/**/Platforms/Android/**'
               - 'sources/native/**'
-              - 'sources/sdk/**/Android*'
-              - 'sources/sdk/**/*.Android.*'
+              - 'sources/sdk/**'
               - 'tests/android/**'
               - 'tests/**/Android.Vulkan/**'
               - 'build/Stride.Tests.Game.Android.slnf'

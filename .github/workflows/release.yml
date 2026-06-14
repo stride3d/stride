@@ -5,15 +5,19 @@ on:
     inputs:
       platform-linux:
         description: Include Linux
-        default: false
+        default: true
         type: boolean
       platform-android:
         description: Include Android
-        default: false
+        default: true
         type: boolean
       platform-ios:
         description: Include iOS
-        default: false
+        default: true
+        type: boolean
+      platform-macos:
+        description: Include macOS
+        default: true
         type: boolean
       sign:
         description: Code sign packages
@@ -23,8 +27,16 @@ on:
         description: Build prerequisites installer
         default: true
         type: boolean
+      version-suffix:
+        description: Prerelease suffix, no leading dash (e.g. "beta" -> 4.4.123-beta). Empty = stable.
+        default: ''
+        type: string
       deploy:
         description: Deploy to NuGet.org and create GitHub Release
+        default: false
+        type: boolean
+      upload-binlog:
+        description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
         type: boolean
 
@@ -74,7 +86,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 0  # Full history needed for GitVersioning
+          fetch-depth: 0  # Full history + tags needed for tag-based versioning
+          fetch-tags: true
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -83,7 +96,12 @@ jobs:
             6.0.x
             10.0.x
 
-      - uses: microsoft/setup-msbuild@v2
+      - name: Install Apple Workloads
+        # VS provisions the android workload but not ios/macos.
+        if: ${{ inputs.platform-ios || inputs.platform-macos }}
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ${{ inputs.platform-ios && inputs.platform-macos && 'ios macos' || inputs.platform-ios && 'ios' || 'macos' }}
 
       - name: Install Advanced Installer
         if: ${{ inputs.build-prerequisites-installer }}
@@ -102,15 +120,20 @@ jobs:
           if ("${{ inputs.platform-linux }}" -eq "true") { $platforms += ";Linux" }
           if ("${{ inputs.platform-android }}" -eq "true") { $platforms += ";Android" }
           if ("${{ inputs.platform-ios }}" -eq "true") { $platforms += ";iOS" }
+          if ("${{ inputs.platform-macos }}" -eq "true") { $platforms += ";macOS" }
           echo "Building for platforms: $platforms"
-          msbuild build\Stride.build `
-            /t:Package `
-            /bl /m /nr:false `
-            /p:StridePlatforms="$platforms" `
-            /p:StrideGraphicsApiDependentBuildAll=true `
-            /p:StrideSign=${{ inputs.sign }} `
-            /p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
-            /p:StrideNativeBuildMode=Clang
+          # --no-restore: Stride.build's targets restore their own solutions (same as the
+          # previous desktop msbuild invocation, which never passed /restore).
+          dotnet build build\Stride.build `
+            -t:Package `
+            --no-restore `
+            ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
+            -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
+            -p:StrideGraphicsApiDependentBuildAll=true `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideVersionSuffix=${{ inputs.version-suffix }} `
+            -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
+            -p:StrideNativeBuildMode=Clang
         env:
           StrideDisableAssetCompilerExecServerProxy: true
           StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
@@ -133,6 +156,18 @@ jobs:
             exit 1
           }
 
+      # Backstop: a stale/fallback version (e.g. tags not fetched) would re-use an already-released
+      # number. The version is max(reachable tags)+1, so its tag should not exist unless we're rebuilding
+      # the exact tagged commit. Fail a deploy that would re-publish a number tagged on another commit.
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} already exists as $TAG on a different commit (tags likely not fetched). Aborting deploy."
+            exit 1
+          fi
+
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
         with:
@@ -143,11 +178,23 @@ jobs:
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
-        if: ${{ always() && !inputs.sign }}
+        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log
           path: msbuild.binlog
           if-no-files-found: ignore
+
+  #
+  # Surface the package version in the run UI. A job can't reference its own outputs in its
+  # name, so this lightweight job shows Package's version even when Deploy is skipped.
+  #
+  Version:
+    name: Packaged ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: ${{ always() && needs.Package.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice title=Packaged::${{ needs.Package.outputs.version }}"
 
   #
   # Deploy to NuGet.org and create GitHub Release
@@ -164,6 +211,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true  # Tag release step checks for an existing releases/<version> tag
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -235,3 +283,22 @@ jobs:
             bin/packages/*.nupkg
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Publish summary
+        if: success()
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.Package.outputs.version }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          $v = $env:VERSION
+          echo "## Published $v" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "[GitHub Release]($env:REPO_URL/releases/tag/releases/$v)" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Package | nuget.org |" >> $env:GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Path bin/packages -Filter "*.nupkg" | Sort-Object Name | ForEach-Object {
+            $id = $_.Name -replace "\.$([regex]::Escape($v))\.nupkg$", ''
+            echo "| $id | https://www.nuget.org/packages/$id/$v |" >> $env:GITHUB_STEP_SUMMARY
+          }

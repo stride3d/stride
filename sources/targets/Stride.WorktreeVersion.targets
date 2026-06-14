@@ -1,4 +1,4 @@
-<!-- Per-checkout NuGet version suffix.
+<!-- Per-checkout NuGet version suffix + local git version stamping.
 
      Multiple checkouts of Stride on one machine (git worktrees or independent clones) all
      auto-pack first-party packages at the same version and clobber each other in the shared
@@ -6,14 +6,23 @@
      checkout a distinct suffix so they stop colliding.
 
      A per-machine ledger at <LocalApplicationData>/Stride/worktree-ids.txt maps each checkout
-     path to a token: the first checkout to register is "(primary)" (no suffix, builds 4.4.0.1
-     unchanged), the rest are "dev1", "dev2", ... The token feeds NuGetVersionSuffix on both
+     path to a token: the first checkout to register is "(primary)" (no suffix), the rest are
+     "dev1", "dev2", ... The token feeds NuGetVersionSuffix on both
      ends — the .nupkg version (producer, via StrideAppendWorktreeVersion in
      Stride.PackageInfo.targets) and the StrideVersion.NuGetVersion const baked into
      Stride.Assets.dll (consumer, via the SharedAssemblyInfo.cs -> SharedAssemblyInfo.Worktree.cs
      swap below).
 
-     Disabled on CI and package builds: there the suffix stays empty and builds are unchanged. -->
+     Dev builds also stamp PublicVersion = "<major.minor>.<last releases/<M.m>.* tag + 1>" so a
+     local build sits just above the most recent release (and thus loads release-made assets
+     correctly) without per-commit churn: it is keyed to the latest release *tag*, not HEAD, so
+     it changes only when a new release tag is fetched — a tag-state stamp embedded in the
+     generated file skips git work otherwise. Override via StridePublicVersion (set it in the
+     gitignored build/Stride.Local.props — never the tracked source) when you need a higher
+     ceiling, e.g. while authoring several asset upgraders in sequence.
+
+     Disabled on CI and package builds: there the suffix stays empty and builds are unchanged
+     (the release pipeline stamps the real git height via StrideGitVersion in Stride.build). -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
@@ -32,6 +41,7 @@
         <![CDATA[
         using System;
         using System.Collections.Generic;
+        using System.Diagnostics;
         using System.IO;
         using System.Text.RegularExpressions;
         using System.Threading;
@@ -52,7 +62,12 @@
             [Required] public string SourceVersionFile { get; set; }
             [Required] public string GeneratedVersionFile { get; set; }
 
+            // Explicit dev PublicVersion (StridePublicVersion property, set in the gitignored
+            // build/Stride.Local.props). Overrides the default "last release tag + 1".
+            public string PublicVersionOverride { get; set; }
+
             [Output] public string WorktreeSuffix { get; set; }
+            [Output] public bool Generated { get; set; }
 
             public override bool Execute()
             {
@@ -60,6 +75,9 @@
                 try
                 {
                     string root = NormalizePath(StrideRoot);
+                    string stamp = ComputeStamp(root) + "|" + (PublicVersionOverride ?? string.Empty);
+                    if (string.IsNullOrWhiteSpace(OverrideId) && TryFastPath(stamp))
+                        return true;
                     string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                         ? LedgerPath
                         : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stride", "worktree-ids.txt");
@@ -78,11 +96,7 @@
                                     : ResolveOrRegister(ledgerPath, root);
 
                                 WorktreeSuffix = TokenToSuffix(token);
-
-                                if (WorktreeSuffix.Length != 0)
-                                    WriteGeneratedFile(WorktreeSuffix);
-                                else if (File.Exists(GeneratedVersionFile))
-                                    File.Delete(GeneratedVersionFile);
+                                WriteGeneratedFile(WorktreeSuffix, stamp);
                             }
                             return true;
                         }
@@ -174,13 +188,145 @@
                 return newToken;
             }
 
-            private void WriteGeneratedFile(string suffix)
+            private void WriteGeneratedFile(string suffix, string stamp)
             {
                 string source = File.ReadAllText(SourceVersionFile);
+                string baseVersion = Regex.Match(source, "PublicVersion = \"([^\"]*)\";").Groups[1].Value;
+                string devVersion = GetDevVersion(baseVersion);
+
+                if (suffix.Length == 0 && devVersion == baseVersion)
+                {
+                    // Primary checkout, no release tag/override: nothing differs from the committed file.
+                    if (File.Exists(GeneratedVersionFile))
+                        File.Delete(GeneratedVersionFile);
+                    return;
+                }
+
                 string patched = Regex.Replace(source, "NuGetVersionSuffix = \"[^\"]*\";",
                     m => "NuGetVersionSuffix = \"" + suffix + "\";");
+                patched = Regex.Replace(patched, "PublicVersion = \"[^\"]*\";",
+                    m => "PublicVersion = \"" + devVersion + "\";");
+                // stamp = tag-state|override ; append the resolved suffix as the 3rd field.
+                patched += "\n// git-stamp: " + stamp + "|" + suffix + "\n";
                 if (!File.Exists(GeneratedVersionFile) || File.ReadAllText(GeneratedVersionFile) != patched)
                     File.WriteAllText(GeneratedVersionFile, patched);
+                Generated = true;
+            }
+
+            // Dev PublicVersion: explicit override, else the next release number from releases/<M.m>.* tags
+            // reachable from HEAD (exact tag on HEAD -> that tag, no +1; else highest reachable + 1), else the
+            // committed base. Ancestor-scoped so branches and fork-only tags don't leak in; all-local so it
+            // works offline / with an unpushed HEAD. Tag-based (not HEAD height) -> stable between releases,
+            // and always >= the last release so dev builds load release-made assets.
+            private string GetDevVersion(string baseVersion)
+            {
+                if (!string.IsNullOrWhiteSpace(PublicVersionOverride))
+                    return PublicVersionOverride.Trim();
+                var mm = Regex.Match(baseVersion, "^(\\d+)\\.(\\d+)");
+                if (!mm.Success)
+                    return baseVersion;
+                string majorMinor = mm.Groups[1].Value + "." + mm.Groups[2].Value;
+                try
+                {
+                    int best;
+                    if (TryMaxReleasePatch(Git("tag --points-at HEAD --list releases/" + majorMinor + ".*"), majorMinor, out best))
+                        return majorMinor + "." + best;
+                    if (TryMaxReleasePatch(Git("tag --list releases/" + majorMinor + ".* --merged HEAD"), majorMinor, out best))
+                        return majorMinor + "." + (best + 1);
+                    bool shallow = Git("rev-parse --is-shallow-repository") == "true";
+                    Log.LogMessage(MessageImportance.High, "No releases/" + majorMinor + ".* tags reachable from HEAD - using " + baseVersion + ". " +
+                        (shallow ? "Shallow clone; run `git fetch --unshallow` for the real dev version."
+                                 : "Run `git fetch --tags` for the real dev version."));
+                }
+                catch (Exception e)
+                {
+                    Log.LogMessage(MessageImportance.Low, "Dev version tag lookup skipped: " + e.Message);
+                }
+                return baseVersion;
+            }
+
+            // Highest patch N among "releases/<mm>.<N>" lines (stable releases only; suffixed prerelease
+            // tags are ignored, so the suffix is the pre-release of the same N). Returns false if none.
+            private bool TryMaxReleasePatch(string tagList, string mm, out int best)
+            {
+                best = -1;
+                var rx = new Regex("^releases/" + Regex.Escape(mm) + "\\.(\\d+)$");
+                foreach (var tag in tagList.Split('\n'))
+                {
+                    var m = rx.Match(tag.Trim());
+                    if (m.Success)
+                    {
+                        int p = int.Parse(m.Groups[1].Value);
+                        if (p > best) best = p;
+                    }
+                }
+                return best >= 0;
+            }
+
+            // Tag-state signature: mtimes/size of packed-refs + loose refs/tags. Changes when release
+            // tags are created/fetched, NOT on commits -- so the dev version (last tag + 1) is recomputed
+            // only when it could actually change. Handles the worktree ".git file -> gitdir -> commondir"
+            // indirection (linked worktrees share the common dir's tags).
+            private string ComputeStamp(string root)
+            {
+                try
+                {
+                    string gitPath = Path.Combine(root, ".git");
+                    string gitDir = gitPath;
+                    if (File.Exists(gitPath))
+                    {
+                        string line = File.ReadAllText(gitPath).Trim();
+                        if (!line.StartsWith("gitdir: ", StringComparison.Ordinal))
+                            return string.Empty;
+                        gitDir = Path.GetFullPath(Path.Combine(root, line.Substring(8)));
+                    }
+                    string commonDirFile = Path.Combine(gitDir, "commondir");
+                    if (File.Exists(commonDirFile))
+                        gitDir = Path.GetFullPath(Path.Combine(gitDir, File.ReadAllText(commonDirFile).Trim()));
+                    var packed = new FileInfo(Path.Combine(gitDir, "packed-refs"));
+                    var looseTags = new DirectoryInfo(Path.Combine(gitDir, "refs", "tags"));
+                    string s = packed.Exists ? packed.LastWriteTimeUtc.Ticks + ":" + packed.Length : "0";
+                    s += "/" + (looseTags.Exists ? looseTags.LastWriteTimeUtc.Ticks.ToString() : "0");
+                    return s;
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+
+            private bool TryFastPath(string stamp)
+            {
+                // Reuse the generated file when tag-state + override are unchanged. stamp = "tagstate|override";
+                // the file marker is "tagstate|override|suffix", so the stored key must start with stamp + "|".
+                if (!File.Exists(GeneratedVersionFile))
+                    return false;
+                var m = Regex.Match(File.ReadAllText(GeneratedVersionFile), "// git-stamp: (.*)");
+                if (!m.Success)
+                    return false;
+                string key = m.Groups[1].Value;
+                if (!key.StartsWith(stamp + "|", StringComparison.Ordinal))
+                    return false;
+                WorktreeSuffix = key.Substring(stamp.Length + 1).Trim();
+                Generated = true;
+                return true;
+            }
+
+            private string Git(string args)
+            {
+                var psi = new ProcessStartInfo("git", args)
+                {
+                    WorkingDirectory = StrideRoot,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                };
+                using (var p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd().Trim();
+                    p.WaitForExit();
+                    if (p.ExitCode != 0) throw new Exception("git " + args + " exited with " + p.ExitCode);
+                    return output;
+                }
             }
 
             // Windows file paths are case-insensitive; Linux is case-sensitive; macOS depends on
@@ -238,12 +384,14 @@
     <ResolveStrideWorktreeVersion
         StrideRoot="$(StrideRoot)"
         OverrideId="$(StrideWorktreeId)"
+        PublicVersionOverride="$(StridePublicVersion)"
         LedgerPath="$(StrideWorktreeLedger)"
         SourceVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.cs"
         GeneratedVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.Worktree.cs">
       <Output TaskParameter="WorktreeSuffix" PropertyName="StrideWorktreeSuffix" />
+      <Output TaskParameter="Generated" PropertyName="_StrideWorktreeGenerated" />
     </ResolveStrideWorktreeVersion>
-    <ItemGroup Condition="'$(StrideWorktreeSuffix)' != ''">
+    <ItemGroup Condition="'$(_StrideWorktreeGenerated)' == 'true'">
       <_StrideWorktreeSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(StrideRoot)sources\shared\SharedAssemblyInfo.cs`))'" />
       <Compile Remove="@(_StrideWorktreeSharedAssemblyFile)" />
       <Compile Include="@(_StrideWorktreeSharedAssemblyFile->'$(StrideRoot)sources\shared\SharedAssemblyInfo.Worktree.cs')" />

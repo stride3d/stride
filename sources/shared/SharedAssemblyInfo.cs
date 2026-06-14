@@ -7,7 +7,7 @@
 using System.Reflection;
 using Stride;
 
-[assembly: AssemblyVersion(StrideVersion.PublicVersion)]
+[assembly: AssemblyVersion(StrideVersion.AssemblyVersion)]
 [assembly: AssemblyFileVersion(StrideVersion.PublicVersion)]
 
 [assembly: AssemblyInformationalVersion(StrideVersion.AssemblyInformationalVersion)]
@@ -18,19 +18,19 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// During package build, PackageUpdateVersionTask is updating that file and expect some specific text regex so be careful if you change any of this.
+/// The StrideGitVersion task (Stride.build) and Stride.WorktreeVersion.targets patch this file via regex, so be careful if you change the shape of these lines.
 /// </remarks>
 internal class StrideVersion
 {
     /// <summary>
-    /// The version used by editor for display purpose. The 4th digit will automatically be replaced by the git height when building packages with Stride.Build.
+    /// The version used by editor for display purpose. The 3rd digit is the git height, set automatically for release packages (StrideGitVersion) and for dev builds (last release tag + 1; override via StridePublicVersion in build/Stride.Local.props).
     /// </summary>
-    public const string PublicVersion = "4.4.0.2";
+    public const string PublicVersion = "4.4.0";
 
     /// <summary>
-    /// The current assembly version as text, currently same as <see cref="PublicVersion"/>.
+    /// The assembly binding identity: pinned per major.minor (git height must not churn it). Bump together with <see cref="PublicVersion"/>.
     /// </summary>
-    public const string AssemblyVersion = PublicVersion;
+    public const string AssemblyVersion = "4.4.0.0";
 
     /// <summary>
     /// The NuGet package version without special tags.
@@ -48,7 +48,7 @@ internal class StrideVersion
     public const string NuGetVersionSuffix = "";
 
     /// <summary>
-    /// The build metadata, usually +g[git_hash] during package. Automatically set by Stride.GitVersioning.GenerateVersionFile.
+    /// The build metadata, usually +g[git_hash] during package. Automatically set by the StrideGitVersion task and dev builds.
     /// </summary>
     public const string BuildMetadata = "";
 
