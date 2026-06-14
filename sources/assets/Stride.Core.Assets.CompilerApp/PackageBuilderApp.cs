@@ -95,6 +95,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
                 { "package-file=", "Input Package File Name", v => options.PackageFile = v },
+                { "package-manifest=", "Load the session from this build manifest (.sdbuild) chain", v => options.PackageManifestFile = v },
                 { "msbuild-uptodatecheck-filebase=", "BuildUpToDate File base for MSBuild; it will create one .inputs and one .outputs files", v => options.MSBuildUpToDateCheckFileBase = v },
                 { "o|output-path=", "Output path", v => options.OutputDirectory = v },
                 { "b|build-path=", "Build path", v => options.BuildDirectory = v },
@@ -111,6 +112,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
+                { "pack-asset-assemblies=", "Host-loadable asset assemblies (package-relative paths, ';'-separated) to declare in the packed sdpkg", v => options.PackAssetAssemblies = v },
                 { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
                 { "upgrade-assets", "Special mode to upgrade assets in place to the current SerializedVersion", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
@@ -294,7 +296,10 @@ namespace Stride.Core.Assets.CompilerApp
                     var intermediatePackagePath = options.BuildDirectory;
                     var generatedItems = new List<(string SourcePath, string PackagePath)>();
                     var logger = new LoggerResult();
-                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                    var packAssetAssemblies = string.IsNullOrEmpty(options.PackAssetAssemblies)
+                        ? Array.Empty<string>()
+                        : options.PackAssetAssemblies.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, packAssetAssemblies))
                     {
                         foreach (var message in logger.Messages)
                         {

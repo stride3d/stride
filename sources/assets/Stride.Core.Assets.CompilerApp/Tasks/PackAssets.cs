@@ -19,7 +19,7 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
 {
     public static class PackAssetsHelper
     {
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems)
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -226,8 +226,15 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
             foreach (var rootAsset in package.RootAssets)
                 newPackage.RootAssets.Add(rootAsset);
 
-            // Save package only if there is any resources and/or assets
-            if (generatedItems.Count > 0)
+            // Host-loadable asset assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg)
+            if (assetAssemblies != null)
+            {
+                foreach (var assetAssembly in assetAssemblies)
+                    newPackage.AssetAssemblies.Add((UFile)("../" + assetAssembly.Replace('\\', '/')));
+            }
+
+            // Save package if there are resources, assets, or declared asset assemblies
+            if (generatedItems.Count > 0 || newPackage.AssetAssemblies.Count > 0)
             {
                 // Make sure we have a standalone package
                 var standalonePackage = new StandalonePackage(newPackage);

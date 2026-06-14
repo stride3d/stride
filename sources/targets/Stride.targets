@@ -65,6 +65,11 @@
 
     <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(MSBuildThisFileDirectory)..\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <!-- Shaders are the project-source assets the asset compiler builds; declare their extensions for
+       the .sdbuild manifest here, next to where the files are globbed. -->
+  <PropertyGroup>
+    <StrideProjectAssetExtensions>$(StrideProjectAssetExtensions);.sdsl;.sdfx</StrideProjectAssetExtensions>
+  </PropertyGroup>
   <PropertyGroup>
     <EmitCompilerGeneratedFiles Condition="'$(Configuration)' == 'Debug'">true</EmitCompilerGeneratedFiles>
     <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>

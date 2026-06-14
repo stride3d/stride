@@ -94,14 +94,18 @@ namespace Stride.Core.Tasks
                     }
                     case "pack-assets":
                     {
-                        if (commandArgs.Count != 3)
-                            throw new OptionException("Need two extra arguments", "");
+                        if (commandArgs.Count < 3 || commandArgs.Count > 4)
+                            throw new OptionException("Need two or three extra arguments", "");
 
                         var csprojFile = commandArgs[1];
                         var intermediatePackagePath = commandArgs[2];
+                        // Optional: package-relative paths of the host-loadable asset assemblies (e.g. lib/net10.0/X.dll), ';'-separated
+                        var assetAssemblies = commandArgs.Count == 4
+                            ? commandArgs[3].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            : Array.Empty<string>();
                         var generatedItems = new List<(string SourcePath, string PackagePath)>();
                         var logger = new LoggerResult();
-                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, assetAssemblies))
                         {
                             foreach (var message in logger.Messages)
                             {

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
+using Stride.Core.Yaml;
 using Stride.Assets;
 using ServiceWire.NamedPipes;
 using System.IO;
@@ -80,18 +81,25 @@ namespace Stride.Core.Assets.CompilerApp
                     BuildConfiguration = builderOptions.ProjectConfiguration,
                 };
 
-                // Loads the root Package
-                var projectSessionResult = PackageSession.Load(builderOptions.PackageFile, sessionLoadParameters);
-                projectSessionResult.CopyTo(builderOptions.Logger);
-                if (projectSessionResult.HasErrors)
+                // Load the root Package from the .sdbuild manifest chain.
+                if (string.IsNullOrEmpty(builderOptions.PackageManifestFile))
                 {
+                    builderOptions.Logger.Error("No build manifest provided; the asset build requires --package-manifest.");
                     return BuildResultCode.BuildError;
                 }
-
+                var projectSessionResult = new PackageSessionResult();
+                PackageSession.LoadFromBuildManifest(builderOptions.PackageManifestFile, projectSessionResult, sessionLoadParameters);
+                projectSessionResult.CopyTo(builderOptions.Logger);
+                if (projectSessionResult.HasErrors)
+                    return BuildResultCode.BuildError;
                 projectSession = projectSessionResult.Session;
+                // Root package = the manifest's authored package (may not exist on disk; FullPath is still set)
+                var rootManifest = YamlSerializer.Load<AssetBuildManifest>(builderOptions.PackageManifestFile);
+                var packageFile = rootManifest.Package is not null
+                    ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.Package.ToOSPath()))
+                    : null;
 
-                // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
-                var packageFile = (UFile)builderOptions.PackageFile;
+                // Find loaded package -- otherwise fallback to first one
                 var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
                     ?? projectSession.LocalPackages.FirstOrDefault()
                     ?? projectSession.Packages.FirstOrDefault();

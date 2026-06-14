@@ -51,9 +51,10 @@ public enum PackageState
 [DebuggerDisplay("Name: {Meta.Name}, Version: {Meta.Version}, Assets [{Assets.Count}]")]
 [AssetFormatVersion("Assets", PackageFileVersion, "0.0.0.4")]
 [AssetUpgrader("Assets", "0.0.0.4", "3.1.0.0", typeof(MovePackageInsideProject))]
+[AssetUpgrader("Assets", "3.1.0.0", "3.2.0.0", typeof(EmptyAssetUpgrader))]
 public sealed partial class Package : IFileSynchronizable, IAssetFinder
 {
-    private const string PackageFileVersion = "3.1.0.0";
+    private const string PackageFileVersion = "3.2.0.0";
 
     internal readonly List<UFile> FilesToDelete = [];
 
@@ -165,6 +166,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public RootAssetCollection RootAssets { get; private set; } = [];
 
     /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// </summary>
+    [DataMember(105)]
+    public List<UFile> AssetAssemblies { get; } = [];
+
+    /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
     /// </summary>
     /// <value>The templates.</value>
@@ -261,8 +268,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMemberIgnore]
     public List<PackageLoadedAssembly> LoadedAssemblies { get; } = [];
 
+    /// <summary>
+    /// Build-time-resolved project asset files (from a .sdbuild manifest). When set, project
+    /// asset discovery uses this list directly.
+    /// </summary>
     [DataMemberIgnore]
-    public string? RootNamespace { get; private set; }
+    internal List<PackageLoadingAssetFile>? PrecomputedProjectAssets { get; set; }
+
+    [DataMemberIgnore]
+    public string? RootNamespace { get; internal set; }
 
     [DataMemberIgnore]
     public bool IsImplicitProject
@@ -1279,6 +1293,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
     {
         if (package.IsSystem) return;
+
+        // Manifest mode: project assets were resolved at build time, no MSBuild evaluation
+        if (package.PrecomputedProjectAssets is not null)
+        {
+            foreach (var assetFile in package.PrecomputedProjectAssets)
+                list.Add(assetFile);
+            return;
+        }
 
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;

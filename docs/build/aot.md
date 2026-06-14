@@ -79,7 +79,7 @@ slow):
   catching any un-gated `System.Windows.Forms` reference).
 
 ```sh
-dotnet test samples/Tests/Stride.Samples.Tests.csproj --filter "FullyQualifiedName~TopDownRPGAot"
+dotnet test tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj --filter "FullyQualifiedName~TopDownRPGAot"
 ```
 
 CI must set `STRIDE_TESTS_CRASH_DUMPS=1` for these — see below.

@@ -177,10 +177,15 @@
     <PropertyGroup>
       <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
+      <!-- Load the session from the .sdbuild manifest chain. -->
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) --package-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
+
+    <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
+           Text="Asset build manifest not found: $(StrideAssetBuildManifestPath). Manifest generation (StrideAssetBuildManifest) must run before asset compilation." />
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
@@ -299,7 +304,12 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+    <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so the
+         asset compiler loads exactly it when a consumer references this package. -->
+    <PropertyGroup>
+      <_StridePackAssetAssembliesArg Condition="'$(StrideAssetAssembly)' == 'true'"> --pack-asset-assemblies=&quot;lib/$(TargetFramework)/$(AssemblyName).dll&quot;</_StridePackAssetAssembliesArg>
+    </PropertyGroup>
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

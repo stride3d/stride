@@ -85,7 +85,7 @@ public static class ScreenshotRunner
             {
                 Name = sampleName,
                 Status = "unknown-sample",
-                Detail = $"No fixture in tests/Stride.Samples.Tests/<{sampleName}>.cs. Available: {string.Join(", ", fixtures.Select(f => f.SampleName))}",
+                Detail = $"No fixture in tests/enduser/Stride.Samples.Tests/Fixtures/<{sampleName}>.cs. Available: {string.Join(", ", fixtures.Select(f => f.SampleName))}",
             };
         }
 
@@ -110,7 +110,7 @@ public static class ScreenshotRunner
         Initialize();
 
         var fixture = LoadFixtures(worktreeRoot).FirstOrDefault(f => string.Equals(f.SampleName, sampleName, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"No fixture in tests/Stride.Samples.Tests/<{sampleName}>.cs.");
+            ?? throw new InvalidOperationException($"No fixture in tests/enduser/Stride.Samples.Tests/Fixtures/<{sampleName}>.cs.");
 
         EnsureSamplesGeneratedTargets(worktreeRoot);
         var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
@@ -164,13 +164,13 @@ public static class ScreenshotRunner
     }
 
     /// <summary>
-    /// Scans <c>tests/Stride.Samples.Tests/*.cs</c> for <c>[ScreenshotTest(TemplateId = "...")]</c> attribute
+    /// Scans <c>tests/enduser/Stride.Samples.Tests/Fixtures/*.cs</c> for <c>[ScreenshotTest(TemplateId = "...")]</c> attribute
     /// usages. Cross-references each GUID with the template catalog to confirm the template still
     /// exists and to get its current name. Skips files that don't carry the attribute.
     /// </summary>
     private static List<DiscoveredFixture> DiscoverFixtures(string worktreeRoot, Dictionary<Guid, string> catalog)
     {
-        var fixturesDir = Path.Combine(worktreeRoot, "tests", "Stride.Samples.Tests");
+        var fixturesDir = Path.Combine(worktreeRoot, "tests", "enduser", "Stride.Samples.Tests", "Fixtures");
         if (!Directory.Exists(fixturesDir))
             return [];
 
@@ -542,7 +542,7 @@ public static class ScreenshotRunner
     }
 }
 
-/// <summary>Fixture discovered in <c>tests/Stride.Samples.Tests/&lt;Name&gt;.cs</c>: GUID + resolved template name + source file.</summary>
+/// <summary>Fixture discovered in <c>tests/enduser/Stride.Samples.Tests/Fixtures/&lt;Name&gt;.cs</c>: GUID + resolved template name + source file.</summary>
 public sealed record DiscoveredFixture(string FixtureFile, Guid TemplateId, string SampleName);
 
 /// <summary>Outcome of a single sample run.</summary>
