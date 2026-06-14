@@ -86,7 +86,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 0  # Full history needed for GitVersioning
+          fetch-depth: 0  # Full history + tags needed for tag-based versioning
+          fetch-tags: true
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -155,6 +156,18 @@ jobs:
             exit 1
           }
 
+      # Backstop: a stale/fallback version (e.g. tags not fetched) would re-use an already-released
+      # number. The version is max(reachable tags)+1, so its tag should not exist unless we're rebuilding
+      # the exact tagged commit. Fail a deploy that would re-publish a number tagged on another commit.
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} already exists as $TAG on a different commit (tags likely not fetched). Aborting deploy."
+            exit 1
+          fi
+
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
         with:
@@ -198,6 +211,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true  # Tag release step checks for an existing releases/<version> tag
 
       - uses: actions/setup-dotnet@v4
         with:
