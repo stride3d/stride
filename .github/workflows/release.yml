@@ -269,3 +269,22 @@ jobs:
             bin/packages/*.nupkg
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Publish summary
+        if: success()
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.Package.outputs.version }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          $v = $env:VERSION
+          echo "## Published $v" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "[GitHub Release]($env:REPO_URL/releases/tag/releases/$v)" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Package | nuget.org |" >> $env:GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Path bin/packages -Filter "*.nupkg" | Sort-Object Name | ForEach-Object {
+            $id = $_.Name -replace "\.$([regex]::Escape($v))\.nupkg$", ''
+            echo "| $id | https://www.nuget.org/packages/$id/$v |" >> $env:GITHUB_STEP_SUMMARY
+          }
