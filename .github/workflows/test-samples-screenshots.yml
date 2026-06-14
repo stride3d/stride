@@ -98,6 +98,10 @@ jobs:
         with:
           lfs: true
           submodules: true
+          # Full history + tags so the engine version dominates the committed samples' versions
+          # (otherwise a shallow base version < a sample's version silently skips PackageUpgrader).
+          fetch-depth: 0
+          fetch-tags: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
 
       - name: Configure crash dumps (Windows)
