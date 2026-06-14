@@ -72,7 +72,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
+    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.14.2075" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
@@ -84,8 +84,8 @@
     <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
     <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
-    <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
+    <PackageVersion Include="Stride.GNU.Getopt" Version="3.0.0" />
+    <PackageVersion Include="Stride.GNU.Gettext" Version="3.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
     <PackageVersion Include="SSH.NET" Version="2023.0.1" />
     <PackageVersion Include="System.Management" Version="10.0.0" />
@@ -99,7 +99,7 @@
   <!-- Visual Studio dependencies -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="18.6.38345" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>

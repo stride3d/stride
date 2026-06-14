@@ -1,2 +1,12 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- No-op LanguageTargets for skipped test projects in package builds: define empty
+       Build/Pack entry points so solution and cross-targeting dispatch succeed, but nothing
+       compiles. No Common.targets import (that would run RAR and pull the wrong TFM). -->
+  <Target Name="Build" />
+  <Target Name="Rebuild" />
+  <Target Name="Clean" />
+  <Target Name="Pack" />
+  <Target Name="Publish" />
+
 </Project>

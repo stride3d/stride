@@ -26,6 +26,7 @@ jobs:
           lfs: true
           # Need full history for the auto-generated branch name to be stable.
           fetch-depth: 0
+          fetch-tags: true  # tag-based versioning (engine version must dominate sample versions)
 
       - name: Resolve target run id
         id: resolve
