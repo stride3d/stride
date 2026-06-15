@@ -104,11 +104,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public Dictionary<string, PackageVersion>? SerializedVersion { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this package is a system package.
+    /// Gets a value indicating whether this package is read-only: a restored dependency (or otherwise
+    /// not backed by an editable in-solution <see cref="SolutionProject"/>), so it is never edited or saved.
     /// </summary>
-    /// <value><c>true</c> if this package is a system package; otherwise, <c>false</c>.</value>
     [DataMemberIgnore]
-    public bool IsSystem => Container is not SolutionProject;
+    public bool IsReadOnly => Container is not SolutionProject;
 
     /// <summary>
     /// Gets or sets the metadata associated with this package.
@@ -802,7 +802,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 .Join(TemporaryAssets, o => o.Id, t => t.Id, (_, t) => t)
                 .ToList();
             // Dirty assets (except in system package) should be mark as deleted so that are properly saved again later.
-            if (!IsSystem && dirtyAssets.Count > 0)
+            if (!IsReadOnly && dirtyAssets.Count > 0)
             {
                 IsDirty = true;
 
@@ -1219,7 +1219,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
                     //make sure to add default shaders in this case, since we don't have a csproj for them
                     //(skipped in manifest mode: project assets come from PrecomputedProjectAssets instead)
-                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && package.PrecomputedProjectAssets is null && (package.Container is not SolutionProject || package.IsSystem))
+                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && package.PrecomputedProjectAssets is null && package.IsReadOnly)
                     {
                         listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                         continue;

@@ -949,7 +949,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             await ActiveProperties.RefreshSelectedPropertiesAsync();
 
             // Notify assets view model that their underlying assets has been saved
-            foreach (var asset in AllPackages.Where(project => !project.Package.IsSystem).SelectMany(package => package.Assets))
+            foreach (var asset in AllPackages.Where(project => !project.Package.IsReadOnly).SelectMany(package => package.Assets))
             {
                 // Note: we use AssetItem.IsDirty rather than AssetViewModel.IsDirty since OnSessionSaved() might be the place where we update AssetViewModel.IsDirty
                 if (!asset.AssetItem.IsDirty)
@@ -1157,7 +1157,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                session.Projects.RemoveWhere(x => !x.Package.IsSystem);
+                session.Projects.RemoveWhere(x => !x.Package.IsReadOnly);
             }
             if (e.NewItems != null)
             {
@@ -1648,7 +1648,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 foreach (var selectedPackage in packagesToDelete)
                 {
                     // Note: this should never happen. UI rules should ensure that the user cannot attempt a system package deletion.
-                    if (selectedPackage.Package.IsSystem && !systemPackageWarningDisplayed)
+                    if (selectedPackage.Package.IsReadOnly && !systemPackageWarningDisplayed)
                     {
                         await Dialogs.MessageBoxAsync(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
                         systemPackageWarningDisplayed = true;
