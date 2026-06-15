@@ -1,0 +1,67 @@
+name: Build Windows (Full, VS MSBuild)
+
+# Desktop-MSBuild fidelity check: builds Stride.sln the way Visual Studio does —
+# .NET Framework MSBuild engine, separate restore (no dotnet-build sugar), VS dev
+# environment so VCINSTALLDIR selects the MSVC native build mode (the
+# WindowsDesktop.vcxproj link path VS users get with the C++ workload). Everything
+# else in CI uses dotnet build (core MSBuild), so without this job the engine that
+# all VS users run would be exercised only at release time.
+
+on:
+  schedule:
+    - cron: '52 4 * * *'
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  pull_request:
+    # Build-logic paths only: the places engine-compat regressions actually come from.
+    paths:
+      - 'sources/sdk/**'
+      - 'sources/targets/**'
+      - 'sources/native/**'
+      - '.github/workflows/build-windows-full-msbuild.yml'
+
+concurrency:
+  group: build-windows-full-msbuild-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Windows-MSBuild:
+    name: Build (${{ github.event.inputs.build-type || 'Debug' }}, VS MSBuild)
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      # VsDevCmd environment (VCINSTALLDIR etc.), exported for the following steps.
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Restore
+        # VS restores via its NuGet integration before building; bare /t:Restore is the
+        # CLI equivalent. Same properties as Build so the TFM graph matches.
+        run: |
+          msbuild build\Stride.sln `
+            /t:Restore `
+            /m /nr:false /v:m /p:WarningLevel=0 `
+            /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            /p:StridePlatforms=Windows `
+            /p:StrideGraphicsApiDependentBuildAll=true `
+            /p:StrideSkipUnitTests=true `
+            /p:StrideSkipAutoPack=true
+      - name: Build
+        run: |
+          msbuild build\Stride.sln `
+            /m /nr:false /v:m /p:WarningLevel=0 `
+            /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            /p:StridePlatforms=Windows `
+            /p:StrideGraphicsApiDependentBuildAll=true `
+            /p:StrideSkipUnitTests=true `
+            /p:StrideSkipAutoPack=true

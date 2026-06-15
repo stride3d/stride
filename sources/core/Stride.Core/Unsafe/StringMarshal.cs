@@ -179,9 +179,16 @@ public static unsafe class StringMarshal
     /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<byte> GetUtf8Span(byte* source, int maxLength = -1)
-        => source is not null
-            ? GetUtf8Span(in source[0], maxLength)
-            : null;
+    {
+        if (source is null)
+            return null;
+        // Page-safe scan when the length is unknown: a vectorized IndexOf over an
+        // int.MaxValue-sized span can fault when the string sits within ~64 bytes
+        // of an unmapped page boundary, even if the null terminator is present.
+        if (maxLength < 0)
+            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(source);
+        return GetUtf8Span(in source[0], maxLength);
+    }
 
     /// <summary>
     ///   Gets a span for a null-terminated UTF-8 character sequence.
@@ -197,27 +204,16 @@ public static unsafe class StringMarshal
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<byte> GetUtf8Span(in byte source, int maxLength = -1)
     {
-        ReadOnlySpan<byte> result;
+        if (IsNullRef(in source))
+            return null;
 
-        if (!IsNullRef(in source))
-        {
-            if (maxLength < 0)
-                maxLength = int.MaxValue;
+        if (maxLength < 0)
+            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(
+                (byte*) Unsafe.AsPointer(ref Unsafe.AsRef(in source)));
 
-            result = CreateReadOnlySpan(in source, maxLength);
-            var length = result.IndexOf((byte) '\0');
-
-            if (length != -1)
-            {
-                result = result[..length];
-            }
-        }
-        else
-        {
-            result = null;
-        }
-
-        return result;
+        var result = CreateReadOnlySpan(in source, maxLength);
+        var length = result.IndexOf((byte) '\0');
+        return length != -1 ? result[..length] : result;
     }
 
     /// <summary>

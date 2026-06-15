@@ -106,7 +106,7 @@ namespace Stride.Core.Assets.Tests
             var result = new LoggerResult();
             session.Save(result);
 
-            var project2Result = PackageSession.Load(DirectoryTestBase + @"TestPackage2\TestPackage2.sdpkg");
+            var project2Result = PackageSession.Load(Path.Combine(DirectoryTestBase, "TestPackage2", "TestPackage2.sdpkg"));
             AssertResult(project2Result);
             var project2 = project2Result.Session.Packages.Single(x => x.FullPath.GetFileNameWithoutExtension() == "TestPackage2");
             Assert.NotNull(project2);

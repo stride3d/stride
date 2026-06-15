@@ -48,7 +48,7 @@ namespace Stride.UI.Tests.Regression
             cube.Transform.Position = new Vector3(0, 0, 10);
             Scene.Entities.Add(cube);
             
-            var font = Content.Load<SpriteFont>("CourierNew12");
+            var font = Content.Load<SpriteFont>("LiberationMono12");
             var textBlockZ0 = new TextBlock { Font = font, TextColor = Color.Black, TextSize = 20, Text = "At depth 0", VerticalAlignment = VerticalAlignment.Center, SynchronousCharacterGeneration = true, BackgroundColor = Color.Red };
             var entity1 = new Entity { new UIComponent { Page = new UIPage { RootElement = textBlockZ0 }, IsFullScreen = false, IsBillboard = false, Resolution = new Vector3(150), Size = new Vector3(1.0f) } };
             entity1.Transform.Scale = new Vector3(150);

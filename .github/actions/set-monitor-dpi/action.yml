@@ -1,0 +1,97 @@
+name: Set per-monitor DPI scale
+description: >-
+  Override the per-monitor DPI scaling for every display Windows knows about. Re-runnable —
+  call as many times as needed within a job to switch DPI between test sessions.
+
+inputs:
+  target-dpi:
+    description: >-
+      Target DPI scale percentage (100, 125, 150, 175, 200, 225, 250, 300, 350, 400, 450, 500).
+    required: true
+  monitor-height:
+    description: >-
+      Physical height of the active monitor in pixels. Used to derive the scale Windows
+      considers "recommended" (Windows Server 2025 picks `recommended_pct = height/720*100`
+      snapped to the standard table for GH-hosted runners regardless of EDID).
+    required: true
+  pnp-cycle:
+    description: >-
+      PnP-cycle active displays after writing the registry. Required for Windows to re-read
+      PerMonitorSettings mid-session (registry-only change is otherwise cached). Set to
+      'false' when this is the initial DPI setup right after a VDD install, since the
+      Hyper-V→VDD switch is already a display-config-change event that triggers the read.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    # Writes HKCU\Control Panel\Desktop\PerMonitorSettings\<monitor-id>\DpiValue for each
+    # monitor enumerated under HKLM ScaleFactors. DpiValue is a signed-DWORD step offset from
+    # recommended; the standard scale table is { 100, 125, 150, 175, 200, 225, 250, 300, 350,
+    # 400, 450, 500 } percent. Applies live without session logoff via WM_SETTINGCHANGE.
+    - name: Apply per-monitor DPI scale (target ${{ inputs.target-dpi }}%)
+      shell: pwsh
+      env:
+        TARGET_DPI: ${{ inputs.target-dpi }}
+        MONITOR_HEIGHT: ${{ inputs.monitor-height }}
+        PNP_CYCLE: ${{ inputs.pnp-cycle }}
+      run: |
+        $scaleSteps = @(100, 125, 150, 175, 200, 225, 250, 300, 350, 400, 450, 500)
+        function ClosestStepIdx($pct) {
+          $best = 0; $bestDist = [int]::MaxValue
+          for ($i = 0; $i -lt $scaleSteps.Count; $i++) {
+            $d = [Math]::Abs($scaleSteps[$i] - $pct)
+            if ($d -lt $bestDist) { $bestDist = $d; $best = $i }
+          }
+          return $best
+        }
+
+        $target = [int]$env:TARGET_DPI
+        $height = [int]$env:MONITOR_HEIGHT
+        $recommendedPct = $height / 720.0 * 100
+        $recommendedIdx = ClosestStepIdx $recommendedPct
+        $targetIdx = ClosestStepIdx $target
+        $offset = $targetIdx - $recommendedIdx
+        $offsetDword = if ($offset -lt 0) { 0x100000000 + $offset } else { [uint32]$offset }
+        Write-Host "monitor ${height}p → recommended ~$([int]$recommendedPct)% (idx $recommendedIdx); target $target% (idx $targetIdx); offset=$offset (DWORD 0x$('{0:X8}' -f $offsetDword))"
+
+        $pms = "HKCU:\Control Panel\Desktop\PerMonitorSettings"
+        if (-not (Test-Path $pms)) { New-Item -Path $pms -Force | Out-Null }
+        $sf = "HKLM:\System\CurrentControlSet\Control\GraphicsDrivers\ScaleFactors"
+        if (-not (Test-Path $sf)) {
+          Write-Host "HKLM ScaleFactors path not present (no monitors registered) — DPI override skipped."
+          return
+        }
+        foreach ($m in Get-ChildItem -Path $sf) {
+          $sub = Join-Path $pms $m.PSChildName
+          if (-not (Test-Path $sub)) { New-Item -Path $sub -Force | Out-Null }
+          Set-ItemProperty -Path $sub -Name "DpiValue" -Value $offsetDword -Type DWord -Force
+          Write-Host "  $($m.PSChildName) → DpiValue=$offset"
+        }
+
+        # PowerShell here-string `'@` at column 0 conflicts with YAML block-scalar indentation —
+        # build the C# source as a string array joined with newlines instead.
+        $cs = @(
+          'using System;',
+          'using System.Runtime.InteropServices;',
+          'public static class P {',
+          '  [DllImport("user32.dll")]',
+          '  public static extern int SendMessageTimeout(IntPtr h, uint m, IntPtr w, IntPtr l, uint f, uint t, out IntPtr r);',
+          '}'
+        ) -join "`n"
+        Add-Type -TypeDefinition $cs
+        $r = [IntPtr]::Zero
+        [P]::SendMessageTimeout([IntPtr]0xFFFF, 0x001A, [IntPtr]::Zero, [IntPtr]::Zero, 2, 5000, [ref]$r) | Out-Null
+        Start-Sleep -Seconds 2
+
+        # PnP-cycle active displays so Windows re-reads PerMonitorSettings (registry-only
+        # change is otherwise cached after the first display config change of the session).
+        if ($env:PNP_CYCLE -eq 'true') {
+          $active = Get-PnpDevice -Class Display | Where-Object { $_.Status -eq 'OK' }
+          foreach ($d in $active) { Disable-PnpDevice -InstanceId $d.InstanceId -Confirm:$false -ErrorAction Continue }
+          Start-Sleep -Seconds 2
+          foreach ($d in $active) { Enable-PnpDevice  -InstanceId $d.InstanceId -Confirm:$false -ErrorAction Continue }
+          Start-Sleep -Seconds 5
+          Write-Host "PnP-cycled $($active.Count) display device(s)"
+        }

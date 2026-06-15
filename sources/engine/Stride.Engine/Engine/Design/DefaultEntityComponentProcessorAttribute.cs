@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Annotations;
 
 namespace Stride.Engine.Design
@@ -16,7 +17,7 @@ namespace Stride.Engine.Design
         /// Initializes a new instance of the <see cref="DefaultEntityComponentProcessorAttribute"/> class.
         /// </summary>
         /// <param name="type">The type must derived from <see cref="EntityProcessor"/>.</param>
-        public DefaultEntityComponentProcessorAttribute(Type type) : base(type)
+        public DefaultEntityComponentProcessorAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type) : base(type)
         {
         }
 

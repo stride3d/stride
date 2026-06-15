@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
 using Stride.Core;
 using Stride.Rendering;
@@ -19,6 +20,8 @@ namespace Stride.Engine.Design
 
         public override Type SupportedType => typeof(ParameterCollection);
 
+        [UnconditionalSuppressMessage("Trimming", "IL2076", Justification = "Accessor instantiations rooted by UpdateEngineProcessor (InstantiateValueAccessor<KeyType>).")]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Accessor instantiation rooted by UpdateEngineProcessor (InstantiateValueAccessor<KeyType>).")]
         public override UpdatableMember ResolveIndexer(string indexerName)
         {
             var key = ParameterKeys.FindByName(indexerName);

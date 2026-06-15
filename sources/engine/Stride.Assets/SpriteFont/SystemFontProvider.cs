@@ -49,14 +49,37 @@ namespace Stride.Assets.SpriteFont
 
         public override string GetFontPath(AssetCompilerResult result = null)
         {
-            string fontPath = null;
-
+            string[] searchDirs;
             if (OperatingSystem.IsWindows())
-                fontPath = FindFontInDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), result);
+                searchDirs = [Environment.GetFolderPath(Environment.SpecialFolder.Fonts)];
             else if (OperatingSystem.IsLinux())
-                fontPath = FindFontInDirectory("/usr/share/fonts", result);
+                searchDirs = ["/usr/share/fonts", "/usr/local/share/fonts", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/share/fonts")];
             else if (OperatingSystem.IsMacOS())
-                fontPath = FindFontInDirectory("/Library/Fonts", result);
+                // Modern macOS (Catalina+) keeps most system fonts under /System/Library/Fonts, with the
+                // bundled "extras" like Arial under the Supplemental subfolder. /Library/Fonts is largely
+                // empty on stock installs; ~/Library/Fonts holds user-installed fonts.
+                searchDirs = [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Fonts"), "/Library/Fonts", "/System/Library/Fonts"];
+            else
+                searchDirs = [];
+
+            // Run an exact-match pass across every directory before falling back to partial matches,
+            // so a partial hit in an earlier directory doesn't shadow an exact hit in a later one.
+            string fontPath = null;
+            foreach (var dir in searchDirs)
+            {
+                fontPath = FindFontInDirectory(dir, exactMatch: true);
+                if (fontPath != null)
+                    break;
+            }
+            if (fontPath == null)
+            {
+                foreach (var dir in searchDirs)
+                {
+                    fontPath = FindFontInDirectory(dir, exactMatch: false);
+                    if (fontPath != null)
+                        break;
+                }
+            }
 
             if (fontPath != null)
                 return fontPath;
@@ -74,7 +97,7 @@ namespace Stride.Assets.SpriteFont
             return null;
         }
 
-        private unsafe string FindFontInDirectory(string directory, AssetCompilerResult result)
+        private unsafe string FindFontInDirectory(string directory, bool exactMatch)
         {
             if (!Directory.Exists(directory))
                 return null;
@@ -86,10 +109,7 @@ namespace Stride.Assets.SpriteFont
 
             int err = FreeTypeNative.FT_Init_FreeType(out var library);
             if (err != 0)
-            {
-                result?.Warning("Failed to initialize FreeType library for font discovery.");
                 return null;
-            }
 
             try
             {
@@ -113,35 +133,11 @@ namespace Stride.Assets.SpriteFont
 
                         FreeTypeNative.FT_Done_Face(face);
 
-                        if (string.Equals(familyName, FontName, StringComparison.OrdinalIgnoreCase)
-                            && isBold == wantBold && isItalic == wantItalic)
-                            return file;
-                    }
-                }
-
-                // Second pass: partial match (e.g. "Liberation" matches "Liberation Sans")
-                foreach (string file in Directory.EnumerateFiles(directory, "*.*", SearchOption.AllDirectories))
-                {
-                    var ext = Path.GetExtension(file).ToLowerInvariant();
-                    if (ext != ".ttf" && ext != ".otf" && ext != ".ttc")
-                        continue;
-
-                    var fontData = File.ReadAllBytes(file);
-                    fixed (byte* ptr = fontData)
-                    {
-                        err = FreeTypeNative.FT_New_Memory_Face(library, ptr, new CLong(fontData.Length), new CLong(0), out FT_FaceRec* face);
-                        if (err != 0)
-                            continue;
-
-                        var familyName = Marshal.PtrToStringAnsi((nint)face->family_name) ?? "";
-                        long styleFlags = (long)face->style_flags.Value;
-                        bool isBold = (styleFlags & 0x2) != 0;
-                        bool isItalic = (styleFlags & 0x1) != 0;
-
-                        FreeTypeNative.FT_Done_Face(face);
-
-                        if (familyName.Contains(FontName, StringComparison.OrdinalIgnoreCase)
-                            && isBold == wantBold && isItalic == wantItalic)
+                        // Partial match (e.g. "Liberation" matches "Liberation Sans") is the looser fallback.
+                        bool nameMatches = exactMatch
+                            ? string.Equals(familyName, FontName, StringComparison.OrdinalIgnoreCase)
+                            : familyName.Contains(FontName, StringComparison.OrdinalIgnoreCase);
+                        if (nameMatches && isBold == wantBold && isItalic == wantItalic)
                             return file;
                     }
                 }
@@ -163,7 +159,7 @@ namespace Stride.Assets.SpriteFont
         private static string GetDefaultFontName()
         {
             //Note : Both macOS and Windows contains Arial
-            return OperatingSystem.IsLinux() ? "Liberation" : "Arial";
+            return OperatingSystem.IsLinux() ? "Liberation Sans" : "Arial";
         }
     }
 }

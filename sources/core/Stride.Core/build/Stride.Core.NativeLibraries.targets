@@ -1,0 +1,180 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Core.NativeLibraries.targets - Shared platform wiring
+    ================================================================
+
+    Consumed by BOTH:
+      - sources/core/Stride.Core/build/Stride.Core.targets
+          (NuGet PackageReference path: Microsoft.NET.Sdk consumers)
+      - sources/sdk/Stride.Build.Sdk/Sdk/Stride.Dependencies.targets
+          (engine self-build / ProjectReference path)
+
+    Each consumer defines its own _StrideListDepsFiles (different
+    item collections matter per context) and depends on the shared
+    _StrideBuildDependencies below to parse them.
+
+    iOS NativeReference shaping is the only platform-specific bit
+    here — both consumer paths have identical needs (static .a +
+    ForceLoad metadata; Microsoft.iOS.Sdk doesn't auto-derive that
+    from runtimes/<rid>/native/*.a). NuGet consumers source items
+    from @(RuntimeCopyLocalItems); engine self-build sources from
+    .ssdeps via @(_StrideDependencyNativeLib).
+
+    macOS / Android stay in Stride.Dependencies.targets (engine
+    self-build only): macOS dylibs auto-resolve via standard NuGet
+    RID assets, and Microsoft.Android.Sdk auto-converts Android
+    runtime assets to AndroidNativeLibrary — the .ssdeps-based glue
+    is only needed for the engine's in-tree non-RID layouts.
+    ================================================================
+  -->
+
+  <!-- Reads every .ssdeps file in one task call. Returns items with the absolute resolved
+       source path as Include + Type and Link metadata. A single non-batched call keeps the
+       produced items in the project's global scope for downstream targets to pick up.
+
+       Line format: "Type;Path". The Path column is the source path relative to the .ssdeps
+       file's directory; the writer always co-locates natives with the .ssdeps in the producer's
+       bin, so Path.Combine resolves directly for engine self-build / ProjectReference. NuGet
+       PackageReference layout hoists natives to package-root runtimes/<rid>/native/ while the
+       .ssdeps stays under lib/<TFM>/, so the combine points at a non-existent path — those
+       lines are skipped silently; NuGet consumers get items via @(RuntimeCopyLocalItems) in
+       _StrideSetupNativeLibrariesiOS below.
+
+       Back-compat: older .ssdeps files used "Type;Source;Link" (three columns); the reader
+       accepts the extra column but ignores it and derives Link from the source path. -->
+  <UsingTask TaskName="_StrideReadDepsFiles" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Items ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var items = new List<Microsoft.Build.Framework.ITaskItem>();
+        foreach (var file in Files)
+        {
+          if (!File.Exists(file.ItemSpec)) continue;
+          var dir = Path.GetDirectoryName(file.ItemSpec) + Path.DirectorySeparatorChar;
+          foreach (var line in File.ReadAllLines(file.ItemSpec))
+          {
+            var parts = line.Split(';');
+            if (parts.Length < 2) continue;
+            var source = parts[1];
+            var resolved = Path.Combine(dir, source);
+            if (!File.Exists(resolved)) continue;
+            var item = new Microsoft.Build.Utilities.TaskItem(resolved);
+            item.SetMetadata("Type", parts[0]);
+            // Link = source with leading "./" stripped — downstream uses it for RID filtering
+            // and as deployment subpath. Always derived from source (not the back-compat 3rd col).
+            item.SetMetadata("Link", source.TrimStart('.', '/', '\\'));
+            items.Add(item);
+          }
+        }
+        Items = items.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Same .a (libNativePath.a, libCelt.a) often appears in multiple consuming projects'
+       .ssdeps; the iOS linker rejects duplicate symbols. -->
+  <UsingTask TaskName="_StrideDistinctByFilename" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Items ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Distinct ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        var result = new List<Microsoft.Build.Framework.ITaskItem>();
+        foreach (var item in Items)
+        {
+          if (seen.Add(Path.GetFileName(item.ItemSpec)))
+            result.Add(item);
+        }
+        Distinct = result.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Shared .ssdeps→@(_StrideDependencyNativeLib) parsing. Each consumer file defines its own
+       _StrideListDepsFiles (the discovery step) feeding into this. -->
+  <Target Name="_StrideBuildDependencies" DependsOnTargets="_StrideListDepsFiles">
+    <_StrideReadDepsFiles Files="@(_StrideDepsFile)" Condition="'@(_StrideDepsFile)' != ''">
+      <Output TaskParameter="Items" ItemName="_StrideDependencyFromFile" />
+    </_StrideReadDepsFiles>
+    <ItemGroup>
+      <_StrideDependencyNativeLib Include="@(_StrideDependencyFromFile)" Condition="'%(_StrideDependencyFromFile.Type)' == 'NativeLib'">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </_StrideDependencyNativeLib>
+    </ItemGroup>
+  </Target>
+
+  <!-- iOS: static native libs (.a) must be declared via NativeReference; the iOS linker
+       doesn't auto-load arbitrary archives. ForceLoad=True is required because our P/Invoke
+       entry points are referenced only through DllImport("__Internal") and would otherwise
+       be dead-stripped. Filter on RID so a device build doesn't link the simulator slice
+       and vice versa, then dedupe by filename.
+
+       Two sources, populated by the two consumer paths:
+         - @(NativeCopyLocalItems): NuGet's standard RID resolution for PackageReference
+           consumers — absolute, RID-filtered paths into the NuGet cache. ResolvePackageAssets
+           splits managed runtime DLLs into RuntimeCopyLocalItems and native libs into
+           NativeCopyLocalItems; .a files for iOS live in the latter.
+         - @(_StrideDependencyNativeLib): engine self-build (.ssdeps), which carries natives
+           through transitive ProjectReference chains that stock MSBuild doesn't propagate.
+       Either source can be empty for the relevant context; the dedupe step collapses overlap. -->
+  <Target Name="_StrideSetupNativeLibrariesiOS"
+          DependsOnTargets="_StrideBuildDependencies"
+          AfterTargets="ResolveAssemblyReferences"
+          Condition=" '$(TargetPlatformIdentifier)' == 'ios' ">
+    <ItemGroup>
+      <_StrideIOSNativeRef Include="@(NativeCopyLocalItems)"
+          Condition="'%(Extension)' == '.a' And ('$(RuntimeIdentifier)' == '' Or $([System.String]::Copy('%(Identity)').Contains('/runtimes/$(RuntimeIdentifier)/native/')))" />
+      <_StrideIOSNativeRef Include="@(_StrideDependencyNativeLib)"
+          Condition="'%(_StrideDependencyNativeLib.Extension)' == '.a' And ('$(RuntimeIdentifier)' == '' Or $([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Contains('/$(RuntimeIdentifier)/')))" />
+    </ItemGroup>
+    <_StrideDistinctByFilename Items="@(_StrideIOSNativeRef)" Condition="'@(_StrideIOSNativeRef)' != ''">
+      <Output TaskParameter="Distinct" ItemName="_StrideIOSNativeRefUnique" />
+    </_StrideDistinctByFilename>
+    <ItemGroup>
+      <NativeReference Include="@(_StrideIOSNativeRefUnique)">
+        <Kind>Static</Kind>
+        <ForceLoad>True</ForceLoad>
+        <SmartLink>False</SmartLink>
+      </NativeReference>
+      <!-- libMoltenVK.a: re-export vkGetInstanceProcAddr from the final binary's dynamic
+           symbol table. Vortice.Vulkan bootstraps with NativeLibrary.Load("__Internal") +
+           NativeLibrary.GetExport(handle, "vkGetInstanceProcAddr") → dlsym, which only sees
+           dynamically-exported symbols. Static-linked .a symbols are local by default ("t" in
+           nm), so without this flag Vortice's vkInitialize returns ErrorInitializationFailed.
+           NativeAOT publish overrides this via mtouch-symbols.list (see _StrideAddVulkanExport
+           below); LinkerFlags here still apply to the Mono/interpreter path. -->
+      <!-- MoltenVK's MVKImage::useIOSurface references _IOSurfaceGetHeight et al. from
+           IOSurface.framework. Apps not exercising that path link fine via DCE; broader code
+           paths (TopDownRPG etc.) pull MVKImage in and need the framework explicit. -->
+      <NativeReference Update="@(NativeReference)"
+          Condition="$([System.String]::new('%(Identity)').EndsWith('libMoltenVK.a'))"
+          LinkerFlags="-Wl,-exported_symbol,_vkGetInstanceProcAddr"
+          Frameworks="IOSurface" />
+    </ItemGroup>
+  </Target>
+
+  <!-- macios passes -exported_symbols_list mtouch-symbols.list when _ExportSymbolsExplicitly is
+       true (default). That makes the file the COMPLETE export universe and the NativeReference's
+       -Wl,-exported_symbol flag a no-op. Add _vkGetInstanceProcAddr to the list before macios
+       writes it, so dlsym(__Internal, "vkGetInstanceProcAddr") works in NativeAOT publishes. -->
+  <Target Name="_StrideAddVulkanExportToSymbolsList"
+          BeforeTargets="_ComputeLinkNativeExecutableInputs"
+          DependsOnTargets="_LoadLinkerOutput"
+          Condition=" '$(TargetPlatformIdentifier)' == 'ios' ">
+    <ItemGroup>
+      <_ProcessedReferenceNativeSymbol Include="_vkGetInstanceProcAddr" />
+    </ItemGroup>
+  </Target>
+
+</Project>

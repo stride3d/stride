@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CSharpBeginner.Linux</RootNamespace>
+    <OutputPath>..\Bin\Linux\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSharpBeginner.Game\CSharpBeginner.Game.csproj" />
+  </ItemGroup>
+</Project>

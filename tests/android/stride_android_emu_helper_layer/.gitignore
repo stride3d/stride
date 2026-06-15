@@ -1,0 +1,6 @@
+libVkLayer_stride_android_emu_helper.so
+VkLayer_stride_android_emu_helper.dll
+VkLayer_stride_android_emu_helper.lib
+VkLayer_stride_android_emu_helper.exp
+VkLayer_stride_android_emu_helper.json
+layer.obj

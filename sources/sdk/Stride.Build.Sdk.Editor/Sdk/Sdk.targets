@@ -3,6 +3,13 @@
   <!-- Import base Stride.Build.Sdk targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk\Sdk\Sdk.targets" />
 
+  <!-- Editor / asset-pipeline projects need Stride.Assets's extra native-package
+       rules (notably, DXC is kept for Vulkan because the asset pipeline
+       cross-compiles HLSL to SPIR-V).  We import the filter-specific sub-file
+       directly rather than Stride.Assets.targets so any future unrelated
+       Stride.Assets consumer targets don't leak into internal editor builds. -->
+  <Import Project="$(StrideRoot)sources/engine/Stride.Assets/build/Stride.Assets.GraphicsApiSpecificPackages.targets" />
+
   <!--
     Future editor-specific targets can go here:
     - WPF/Avalonia resource compilation

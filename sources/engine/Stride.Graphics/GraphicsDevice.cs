@@ -262,6 +262,9 @@ namespace Stride.Graphics
         /// </summary>
         partial void WaitForGPUIdle();
 
+        /// <summary>Blocks until all in-flight GPU work completes. Used by mobile platforms before OS suspend.</summary>
+        public void WaitForGpuIdle() => WaitForGPUIdle();
+
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
@@ -483,5 +486,8 @@ namespace Stride.Graphics
         ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
         /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink);
+
+        /// <summary>Maximum frames the CPU is allowed to be ahead of the GPU (bounds deferred-release queues).</summary>
+        internal const int MaxFramesInFlight = 3;
     }
 }

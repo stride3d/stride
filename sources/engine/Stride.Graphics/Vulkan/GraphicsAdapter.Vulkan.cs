@@ -32,6 +32,7 @@ namespace Stride.Graphics
         {
             [0x1002] = "AMD",
             [0x1010] = "ImgTec",
+            [0x10005] = "Mesa",
             [0x10DE] = "NVIDIA",
             [0x13B5] = "ARM",
             [0x5143] = "Qualcomm",
@@ -46,6 +47,7 @@ namespace Stride.Graphics
         internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice,
             List<DisplayInfo> displayInfos,
             VkPhysicalDeviceProperties deviceProperties,
+            VkPhysicalDeviceDriverProperties driverProperties,
             int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
@@ -53,6 +55,21 @@ namespace Stride.Graphics
             this.defaultPhysicalDevice = defaultPhysicalDevice;
             this.deviceProperties = deviceProperties;
 
+            DriverInfo = new AdapterDriverInfo
+            {
+                GpuName = Description,
+                VendorId = deviceProperties.vendorID,
+                DeviceId = deviceProperties.deviceID,
+                VendorName = VendorNames.TryGetValue((int)deviceProperties.vendorID, out var v) ? v : null,
+                DriverId = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? driverProperties.driverID.ToString() : null,
+                DriverName = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? Marshal.PtrToStringAnsi((IntPtr)driverProperties.driverName) : null,
+                DriverInfo = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? Marshal.PtrToStringAnsi((IntPtr)driverProperties.driverInfo) : null,
+                DriverVersion = FormatDriverVersion(deviceProperties.vendorID, deviceProperties.driverVersion),
+                ApiName = GraphicsDevice.Platform.ToString(),
+                ApiVersion = FormatApiVersion(deviceProperties.apiVersion),
+            };
+
+            graphicsOutputs = [ new GraphicsOutput() ];
             description = Marshal.PtrToStringAnsi((IntPtr)deviceProperties.deviceName);
             if (VendorNames.TryGetValue(VendorId, out var vendorName))
                 description = $"{vendorName} {description}";
@@ -62,6 +79,17 @@ namespace Stride.Graphics
             for (var index = 0; index < graphicsOutputs.Length; index++)
                 graphicsOutputs[index] = new GraphicsOutput(this, displayInfos[index], index).DisposeBy(this);
         }
+
+        // NVIDIA packs 10/8/8/6 bits; Intel-on-Windows packs 18/14; everyone else uses the
+        // standard VK_MAKE_API_VERSION layout (major<<22 | minor<<12 | patch).
+        private static string FormatDriverVersion(uint vendorId, uint v) => vendorId switch
+        {
+            0x10DE => $"{v >> 22}.{(v >> 14) & 0xFF}.{(v >> 6) & 0xFF}.{v & 0x3F}",
+            0x8086 when OperatingSystem.IsWindows() => $"{v >> 14}.{v & 0x3FFF}",
+            _ => $"{v >> 22}.{(v >> 12) & 0x3FF}.{v & 0xFFF}",
+        };
+
+        private static string FormatApiVersion(uint v) => $"{v >> 22}.{(v >> 12) & 0x3FF}.{v & 0xFFF}";
 
         /// <summary>
         /// Gets the description of this adapter.

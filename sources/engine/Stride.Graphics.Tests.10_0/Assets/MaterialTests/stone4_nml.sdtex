@@ -4,5 +4,4 @@ SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/stone4_nml.jpeg
 IsCompressed: false
-Type: !NormalMapTextureType
-    InvertY: false
+Type: !NormalMapTextureType {}

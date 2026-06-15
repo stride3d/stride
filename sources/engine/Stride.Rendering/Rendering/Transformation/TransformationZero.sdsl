@@ -3,11 +3,11 @@
 /// <summary>
 /// Resets the position to the origin.
 /// </summary>
-shader TransformationZero : TransformationBase
+shader TransformationZero : TransformationBase, PositionStream4
 {
     stage override void BaseTransformVS()
     {
-        streams.PositionStream4.Position = float4(0.0f, 0.0f, 0.0f, 1.0f);
+        streams.Position = float4(0.0f, 0.0f, 0.0f, 1.0f);
         base.BaseTransformVS();
     }
 };

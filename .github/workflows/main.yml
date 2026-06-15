@@ -9,22 +9,15 @@ on:
       - 'build/**'
       - 'deps/**'
       - 'sources/**'
+      - 'tests/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
       - '!**/*.md'
       - '!crowdin.yml'
+  # No paths filter here: the Gate job is a required check, so CI must report on every PR.
+  # The changes job's filters skip the actual work for out-of-scope PRs.
   pull_request:
-    paths:
-      - '.github/workflows/**'
-      - 'build/**'
-      - 'deps/**'
-      - 'sources/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
@@ -33,93 +26,379 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  ### Misc. ###
+  # Per-area path-filter outputs drive the per-job `if:` conditions below.
+  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master)
+  # so those run everything regardless of which files changed.
+  #
+  # Fork-friendly: upstream stride3d/stride always runs (the repository-name clause covers
+  # both direct pushes and fork→upstream PRs, where base-repo `vars` aren't readable from a
+  # fork PR's context). On forks, push/PR only run when STRIDE_ENABLE_PUSH_CI is set on the
+  # fork. workflow_dispatch always punches through so manual runs work anywhere. Downstream
+  # jobs `needs: changes`, so this single guard cascades — no per-job edits needed.
+  changes:
+    if: >
+      (github.event_name != 'push' && github.event_name != 'pull_request')
+      || github.repository == 'stride3d/stride'
+      || vars.STRIDE_ENABLE_PUSH_CI == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      runtime: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.runtime || 'true' }}
+      ios: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios || 'true' }}
+      ios-tests: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios-tests || 'true' }}
+      android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
+      full: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.full || 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+      # Comment-only PRs skip everything (Gate stays green via skipped jobs). Conservative:
+      # only whole-line comments/blanks in known file types count; anything else (inline
+      # comment edits, unknown extensions, huge/binary patches) runs CI normally. Known
+      # hole: comment-looking lines inside multi-line string literals.
+      - name: Detect comment-only changes
+        id: comments
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate --slurp > /tmp/pr-files.json
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, os
+          markers = {'.cs': '//', '.yml': '#', '.yaml': '#'}
+          files = [f for page in json.load(open('/tmp/pr-files.json')) for f in page]
+          def comment_only():
+              if len(files) >= 3000:  # API truncates the file list there
+                  return False
+              for f in files:
+                  marker = markers.get(os.path.splitext(f['filename'])[1].lower())
+                  patch = f.get('patch')  # absent for binary/oversized diffs
+                  if marker is None or patch is None:
+                      return False
+                  for line in patch.split('\n'):
+                      if line[:1] in ('+', '-'):
+                          body = line[1:].strip()
+                          # U+2028/29: line terminators to the C# compiler but not to diff;
+                          # code could hide behind a comment marker on the same diff line.
+                          if '\u2028' in body or '\u2029' in body:
+                              return False
+                          if body and not body.startswith(marker):
+                              return False
+              return bool(files)
+          print('comment_only=' + str(comment_only()).lower())
+          EOF
+      - uses: dorny/paths-filter@v3
+        if: github.event_name == 'pull_request'
+        id: filter
+        with:
+          filters: |
+            runtime:
+              - 'sources/engine/**'
+              - 'sources/core/**'
+              - 'sources/shaders/**'
+              - 'sources/native/**'
+              - 'sources/shared/**'
+              - 'sources/sdk/**'
+              - 'sources/assets/**'
+              - 'deps/**'
+              - 'tests/**'
+              - 'build/Stride.Runtime.slnf'
+            ios:
+              - 'sources/engine/**'
+              - 'sources/core/**'
+              - 'sources/native/**'
+              - 'sources/shared/**'
+              - 'sources/sdk/**'
+              - 'deps/**'
+              - 'build/Stride.iOS.slnf'
+            # Strictly iOS-specific paths: shared engine / MoltenVK / AVFoundation code is
+            # already covered per-PR by macOS-Tests-Game on the cheaper macOS-vs-iOS surface.
+            ios-tests:
+              - 'sources/engine/Stride.Games/**'
+              - 'sources/**/*.iOS.*'
+              - 'sources/**/Platforms/iOS/**'
+              - 'sources/native/**'
+              - 'sources/sdk/**'
+              - 'tests/ios/**'
+              - 'tests/**/iOS.Vulkan/**'
+              - 'build/Stride.iOS.slnf'
+              - '.github/workflows/test-ios-game.yml'
+            android:
+              - 'sources/engine/Stride.Games/**'
+              - 'sources/**/*.Android.*'
+              - 'sources/**/Platforms/Android/**'
+              - 'sources/native/**'
+              - 'sources/sdk/**'
+              - 'tests/android/**'
+              - 'tests/**/Android.Vulkan/**'
+              - 'build/Stride.Tests.Game.Android.slnf'
+              - '.github/workflows/test-android-game.yml'
+            full:
+              - 'sources/**'
+              - 'deps/**'
+              - 'build/Stride.sln'
+
+  # Draft PRs skip all automatic CI to save runner minutes; use the /ci chatops command
+  # to opt into specific suites while iterating. ready_for_review re-runs everything.
+  ### Misc ###
   Assembly-Processor:
-    strategy:
-      matrix:
-        build-type: [Release]
+    needs: changes
+    if: github.event.pull_request.draft != true && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.full == 'true')
     uses: ./.github/workflows/build-assembly-processor.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
+      build-type: Release
 
   VS-Package:
-    strategy:
-      matrix:
-        build-type: [Debug] # Release has a bug and cannot build
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.full == 'true'
     uses: ./.github/workflows/build-vs-package.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
+      build-type: Debug   # Release has a bug and cannot build
 
   ### Runtimes ###
-  # Android-Runtime:
-  #   strategy:
-  #     matrix:
-  #       build-type: [Release]
-  #   uses: ./.github/workflows/build-android.yml
-  #   secrets: inherit
-  #   with:
-  #     build-type: ${{ matrix.build-type }}
-
   iOS-Runtime:
-    strategy:
-      matrix:
-        build-type: [Release]
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.ios == 'true'
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
+      build-type: Release
+
+  Android-Runtime:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      build-type: Release
 
   Linux-Runtime:
-    strategy:
-      matrix:
-        build-type: [Release]
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-linux-runtime.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
+      build-type: Release
 
-  Windows-Runtime:
-    strategy:
-      matrix:
-        build-type: [Release]
-        graphics-api: [Direct3D11, Direct3D12, Vulkan]
+  Windows-Runtime-D3D11:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
-      build-type: ${{ matrix.build-type }}
-      graphics-api: ${{ matrix.graphics-api }}
+      build-type: Release
+      graphics-api: Direct3D11
+
+  Windows-Runtime-D3D12:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    uses: ./.github/workflows/build-windows-runtime.yml
+    secrets: inherit
+    with:
+      build-type: Release
+      graphics-api: Direct3D12
+
+  Windows-Runtime-Vulkan:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    uses: ./.github/workflows/build-windows-runtime.yml
+    secrets: inherit
+    with:
+      build-type: Release
+      graphics-api: Vulkan
+
+  ### Full Windows build (engine + editor + assets + samples) ###
+  Windows-Full:
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.full == 'true'
+    uses: ./.github/workflows/build-windows-full.yml
+    secrets: inherit
+    with:
+      build-type: Debug
 
   ### Tests ###
+  # Game tests where the picked graphics API doesn't materially affect outcomes
+  # (physics, audio, asset, engine logic). One run with D3D11 is sufficient.
+  Windows-Tests-Game-ApiNeutral:
+    needs: [changes, Windows-Runtime-D3D11]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Windows-Runtime-D3D11'].result != 'failure'
+      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
+    uses: ./.github/workflows/test-windows-game-api-neutral.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # Tests-Simple smoke-tests non-graphics paths; pinned to D3D11 build as the gate.
   Windows-Tests-Simple:
-    needs: Windows-Runtime
+    needs: [changes, Windows-Runtime-D3D11]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Windows-Runtime-D3D11'].result != 'failure'
+      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-simple.yml
     secrets: inherit
     with:
       build-type: Debug
 
-  Windows-Tests-Game:
-    needs: Windows-Runtime
+  Windows-Tests-Game-D3D11:
+    needs: [changes, Windows-Runtime-D3D11]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Windows-Runtime-D3D11'].result != 'failure'
+      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
     secrets: inherit
     with:
       build-type: Debug
+      graphics-api: Direct3D11
+
+  Windows-Tests-Game-D3D12:
+    needs: [changes, Windows-Runtime-D3D12]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Windows-Runtime-D3D12'].result != 'failure'
+      && needs['Windows-Runtime-D3D12'].result != 'cancelled'
+    uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+      graphics-api: Direct3D12
+
+  Windows-Tests-Game-Vulkan:
+    needs: [changes, Windows-Runtime-Vulkan]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Windows-Runtime-Vulkan'].result != 'failure'
+      && needs['Windows-Runtime-Vulkan'].result != 'cancelled'
+    uses: ./.github/workflows/test-windows-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+      graphics-api: Vulkan
 
   Linux-Tests-Simple:
-    needs: Linux-Runtime
+    needs: [changes, Linux-Runtime]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-simple.yml
     secrets: inherit
     with:
       build-type: Debug
 
   Linux-Tests-Game:
-    needs: Linux-Runtime
+    needs: [changes, Linux-Runtime]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-game.yml
     secrets: inherit
     with:
       build-type: Debug
+
+  # macOS runners bill ~10× Linux on GitHub-hosted; gate on Linux-Runtime so a broken build
+  # doesn't burn macOS minutes. MoltenVK/Vulkan path is unique to macOS so per-commit coverage
+  # catches regressions per-PR rather than via a stale cron snapshot.
+  macOS-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.runtime == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-macos-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # iOS Simulator tests run on macOS runners and take ~24 min, so PRs only trigger them on
+  # strictly iOS-specific paths (ios-tests filter); master pushes still run them per-commit.
+  iOS-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.ios-tests == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-ios-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # Android tests run on Linux + KVM-accelerated x86_64 emulator. Build APKs on the host,
+  # boot the emulator inside reactivecircus/android-emulator-runner, run each suite serially.
+  Android-Tests-Game:
+    needs: [changes, Linux-Runtime]
+    if: |
+      !cancelled()
+      && github.event.pull_request.draft != true
+      && needs.changes.outputs.android == 'true'
+      && needs['Linux-Runtime'].result != 'failure'
+      && needs['Linux-Runtime'].result != 'cancelled'
+    uses: ./.github/workflows/test-android-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # Aggregate result for branch protection: mark only "Gate" as required.
+  # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
+  # always() on purpose (unlike the !cancelled() test jobs): a cancelled run must
+  # report a red Gate, not a skipped (= passing) one.
+  Gate:
+    needs:
+      - changes
+      - Assembly-Processor
+      - VS-Package
+      - iOS-Runtime
+      - Android-Runtime
+      - Linux-Runtime
+      - Windows-Runtime-D3D11
+      - Windows-Runtime-D3D12
+      - Windows-Runtime-Vulkan
+      - Windows-Full
+      - Windows-Tests-Game-ApiNeutral
+      - Windows-Tests-Simple
+      - Windows-Tests-Game-D3D11
+      - Windows-Tests-Game-D3D12
+      - Windows-Tests-Game-Vulkan
+      - Linux-Tests-Simple
+      - Linux-Tests-Game
+      - macOS-Tests-Game
+      - iOS-Tests-Game
+      - Android-Tests-Game
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any needed job failed or was cancelled
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
+          test "$(echo "$NEEDS" | jq '[.[] | select(.result=="failure" or .result=="cancelled")] | length')" -eq 0

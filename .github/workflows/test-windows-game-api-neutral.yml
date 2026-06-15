@@ -1,0 +1,105 @@
+name: Test Windows (Game ApiNeutral)
+
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test Windows (Game ApiNeutral) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Test Windows (Game ApiNeutral) @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      upload-binlog:
+        default: false
+        type: boolean
+  repository_dispatch:
+    types: [test-windows-game-api-neutral]
+
+concurrency:
+  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  Game-ApiNeutral:
+    name: Test Game ApiNeutral (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 20
+    env:
+      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      STRIDE_TESTS_RENDERDOC: "error"
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      # Full checkout: TestSceneUpgrader validates asset migration of the scenes under samples/.
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+      - name: Disable WER dialogs
+        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.Game.slnf `
+            -p:StrideTestRuntimeIdentifier=win-x64 `
+            -p:StrideNativeBuildMode=Clang `
+            -p:StrideSkipAutoPack=true `
+            -nr:false `
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-api-neutral
+          path: build.binlog
+          if-no-files-found: ignore
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.Game.slnf `
+            --no-build `
+            --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Test Report: Windows Game ApiNeutral'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-game-api-neutral
+          path: TestResults/
+          if-no-files-found: ignore
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-game-api-neutral
+          path: tests/local/
+          if-no-files-found: ignore

@@ -6,6 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Android.App;
+using Android.Content;
+using Android.Content.Res;
+using Android.OS;
+using Android.Runtime;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -28,9 +33,64 @@ namespace Stride.Games
             FullName = $"{manufacturer} - {model}";
         }
 
+        // Lifecycle/memory observers; kept so Destroy() can unregister.
+        private LifecycleCallbacks lifecycleCallbacks;
+        private MemoryCallbacks memoryCallbacks;
+
         public GamePlatformAndroid(GameBase game) : base(game)
         {
             PopulateFullName();
+            SubscribeAppLifecycle();
+        }
+
+        // Application-level callbacks rather than subclassing Activity, so we don't depend on
+        // which launcher class the host app uses (Avalonia.Android, custom, etc.).
+        private void SubscribeAppLifecycle()
+        {
+            var app = Application.Context as Application;
+            if (app == null) return;
+            lifecycleCallbacks = new LifecycleCallbacks(this);
+            memoryCallbacks = new MemoryCallbacks(this);
+            app.RegisterActivityLifecycleCallbacks(lifecycleCallbacks);
+            app.RegisterComponentCallbacks(memoryCallbacks);
+        }
+
+        // Map the Android Activity lifecycle onto the shared GamePlatform entry points, which
+        // marshal the work onto the game thread. onStart/onStop bracket foreground visibility;
+        // onResume/onPause bracket input focus. Callbacks fire for every Activity in the process,
+        // so the started/resumed counts gate the app-wide transition to the 0<->1 edge — otherwise
+        // intra-app navigation (game -> settings, transient activities) would spuriously drain the
+        // GPU or pause audio. All callbacks run on the UI thread, so plain counters are sufficient.
+        private class LifecycleCallbacks : Java.Lang.Object, Application.IActivityLifecycleCallbacks
+        {
+            private readonly GamePlatformAndroid platform;
+            private int startedCount;
+            private int resumedCount;
+            public LifecycleCallbacks(GamePlatformAndroid p) { platform = p; }
+
+            public void OnActivityCreated(Activity activity, Bundle savedInstanceState) { }
+            public void OnActivityDestroyed(Activity activity) { }
+            public void OnActivitySaveInstanceState(Activity activity, Bundle outState) { }
+
+            public void OnActivityStarted(Activity activity) { if (++startedCount == 1) platform.NotifyAppForeground(); }
+            public void OnActivityStopped(Activity activity) { if (--startedCount == 0) platform.NotifyAppBackground(); }
+            public void OnActivityResumed(Activity activity) { if (++resumedCount == 1) platform.NotifyAppActivated(); }
+            public void OnActivityPaused(Activity activity) { if (--resumedCount == 0) platform.NotifyAppDeactivated(); }
+        }
+
+        private class MemoryCallbacks : Java.Lang.Object, IComponentCallbacks2
+        {
+            private readonly GamePlatformAndroid platform;
+            public MemoryCallbacks(GamePlatformAndroid p) { platform = p; }
+
+            public void OnConfigurationChanged(Configuration newConfig) { }
+            public void OnLowMemory() => platform.NotifyAppMemoryWarning();
+            public void OnTrimMemory([GeneratedEnum] TrimMemory level)
+            {
+                // Only foreground (Running*) levels; background levels fire after NotifyAppBackground has already GCed.
+                if (level >= TrimMemory.RunningModerate)
+                    platform.NotifyAppMemoryWarning();
+            }
         }
 
         public override string DefaultAppDirectory
@@ -44,14 +104,12 @@ namespace Stride.Games
 
         internal override GameWindow GetSupportedGameWindow(AppContextType type)
         {
-            if (type == AppContextType.Android)
+            return type switch
             {
-                return new GameWindowSDL();
-            }
-            else
-            {
-                return null;
-            }
+                AppContextType.Android => new GameWindowSDL(),
+                AppContextType.Headless => new GameWindowHeadless(),
+                _ => null,
+            };
         }
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
@@ -67,15 +125,15 @@ namespace Stride.Games
                     // Check if this profile is supported.
                     if (graphicsAdapter.IsProfileSupported(featureLevel))
                     {
-                        // Everything is already created at this point, just transmit what has been done
+                        // Report the SDL window's actual size; formats stay caller-preferred (negotiated at swapchain creation).
+                        var clientBounds = gameWindowAndroid.ClientBounds;
                         var deviceInfo = new GraphicsDeviceInformation
                         {
                             Adapter = GraphicsAdapterFactory.DefaultAdapter,
                             GraphicsProfile = featureLevel,
-                            PresentationParameters = new PresentationParameters(preferredParameters.PreferredBackBufferWidth, preferredParameters.PreferredBackBufferHeight,
+                            PresentationParameters = new PresentationParameters(clientBounds.Width, clientBounds.Height,
                                 gameWindowAndroid.NativeWindow)
                             {
-                                // TODO: PDX-364: Transmit what was actually created
                                 BackBufferFormat = preferredParameters.PreferredBackBufferFormat,
                                 DepthStencilFormat = preferredParameters.PreferredDepthStencilFormat,
                             }
@@ -95,9 +153,21 @@ namespace Stride.Games
 
         public override void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            // TODO: Check when it needs to be disabled on Android?
-            // Force to resize the gameWindow
-            //gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
+            // No-op: the OS owns the surface size on Android. Format changes are handled by the swapchain.
+        }
+
+        protected override void Destroy()
+        {
+            UnsubscribeAppLifecycle();
+            base.Destroy();
+        }
+
+        private void UnsubscribeAppLifecycle()
+        {
+            var app = Application.Context as Application;
+            if (app == null) return;
+            if (lifecycleCallbacks != null) { app.UnregisterActivityLifecycleCallbacks(lifecycleCallbacks); lifecycleCallbacks = null; }
+            if (memoryCallbacks != null)    { app.UnregisterComponentCallbacks(memoryCallbacks);          memoryCallbacks = null; }
         }
     }
 }

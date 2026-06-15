@@ -1,0 +1,41 @@
+// PSMain(ExpectedResult=#00FF0000, cbuffer.Test=(Test1=0))
+// PSMain(ExpectedResult=#0000FF00, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#FF00FF00, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#FF000000, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#FFFFFF00, cbuffer.Test=(Test1=4))
+// PSMain(ExpectedResult=#090A0B0C, cbuffer.Test=(Test1=6))
+
+namespace Stride.Shaders.Tests;
+
+shader Literals
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0.0, 0.0, 0.0, 0.0);
+        if (Test1 >= 0 && Test1 <= 4)
+        {
+            static const float4 colors[5] = { float4(0,1,0,0), float4(0,0,1,0), float4(1,0,1,0), float4(1,0,0,0), float4(1,1,1,0)};
+            streams.ColorTarget = colors[Test1];
+        }
+        // TODO
+        //else if (Test1 == 5)
+        //{
+        //    // we will need to forward expected type in AST child to do this one well
+        //    //float4x4 m = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+        //    float4x4 m = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 };
+        //    streams.ColorTarget = m[2] / 255.0;
+        //}
+        else if (Test1 == 6)
+        {
+            float4x4 m = float4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+            streams.ColorTarget = m[2] / 255.0;
+        }
+    }
+}

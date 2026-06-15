@@ -53,7 +53,7 @@ namespace Stride.Graphics.Tests
             GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
 
             effectInstance.Parameters.Set(MyCustomShaderKeys.ColorFactor2, (Vector4)Color.Red);
-            effectInstance.Parameters.Set(CustomShaderKeys.SwitchEffectLevel, switchEffectLevel);
+            effectInstance.Parameters.Set(CustomEffectParameters.SwitchEffectLevel, switchEffectLevel);
             effectInstance.Parameters.Set(TexturingKeys.Texture0, UVTexture);
             switchEffectLevel++; // TODO: Add switch Effect to test and capture frames
 

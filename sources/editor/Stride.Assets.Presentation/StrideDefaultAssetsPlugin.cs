@@ -21,6 +21,7 @@ using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Assets.Templates;
 using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
@@ -90,23 +91,7 @@ namespace Stride.Assets.Presentation
             LoadDefaultTemplates();
         }
 
-        public static void LoadDefaultTemplates()
-        {
-            // Load templates
-            // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.Samples.Templates", Version = Stride.Samples.Templates.ThisPackageVersion.Current } })
-            {
-                var logger = new LoggerResult();
-                var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
-                if (packageFile is null)
-                    throw new InvalidOperationException($"Could not find package {packageInfo.Name} {packageInfo.Version}. Ensure packages have been resolved.");
-                var package = Package.Load(logger, packageFile.ToOSPath());
-                if (logger.HasErrors)
-                    throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
-
-                TemplateManager.RegisterPackage(package);
-            }
-        }
+        public static void LoadDefaultTemplates() => StrideDefaultTemplates.Load();
 
         /// <inheritdoc />
         protected override void Initialize(ILogger logger)

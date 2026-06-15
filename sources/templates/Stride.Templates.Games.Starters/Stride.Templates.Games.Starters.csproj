@@ -1,0 +1,40 @@
+<!-- TreatAsLocalProperty="StrideSkipAutoPack": see Stride.Templates.Games.csproj. -->
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
+  <PropertyGroup>
+    <PackageId>Stride.Templates.Games.Starters</PackageId>
+    <Title>Stride Game Starters</Title>
+    <Description>dotnet new game-genre starters for Stride (FPS, Platformer, RPG, third-person, VR).</Description>
+    <PackageTags>dotnet-new;templates;stride;stride-template;stride-game-starter;gamedev</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\Stride.Templates.Common.targets" />
+
+  <!-- Build-order chain (Games → Starters → Samples): the preprocessor Exec tasks can collide
+       on shared files when MSBuild builds these three packages in parallel. ProjectReference
+       creates a build-order constraint without producing an actual assembly reference. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Templates.Games\Stride.Templates.Games.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <StrideSampleTemplate Include="stride-fps">
+      <SamplePath>$(StrideRoot)samples/Templates/FirstPersonShooter/FirstPersonShooter</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-platformer2d">
+      <SamplePath>$(StrideRoot)samples/Templates/Platformer2D/Platformer2D</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-topdownrpg">
+      <SamplePath>$(StrideRoot)samples/Templates/TopDownRPG/TopDownRPG</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-thirdpersonplatformer">
+      <SamplePath>$(StrideRoot)samples/Templates/ThirdPersonPlatformer/ThirdPersonPlatformer</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-vrsandbox">
+      <SamplePath>$(StrideRoot)samples/Templates/VRSandbox/VRSandbox</SamplePath>
+    </StrideSampleTemplate>
+  </ItemGroup>
+</Project>

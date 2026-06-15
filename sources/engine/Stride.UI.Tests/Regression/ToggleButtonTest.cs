@@ -30,7 +30,7 @@ namespace Stride.UI.Tests.Regression
             toggle = new ToggleButton 
             {
                 IsThreeState = true,
-                Content = new TextBlock { TextColor = Color.Black, Text = "Toggle button test", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), VerticalAlignment = VerticalAlignment.Center },
+                Content = new TextBlock { TextColor = Color.Black, Text = "Toggle button test", Font = Content.Load<SpriteFont>("NotoSans15"), VerticalAlignment = VerticalAlignment.Center },
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
             };

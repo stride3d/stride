@@ -40,16 +40,22 @@ jobs:
   # Build Stride Runtime for Windows
   #
   Launcher:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    # Fork-friendly: PR runs only when STRIDE_ENABLE_PUSH_CI is set on the repo.
+    # workflow_dispatch and workflow_call (chained from main.yml) always run.
+    if: >
+      github.event_name == 'workflow_dispatch'
+      || github.event_name == 'workflow_call'
+      || (github.event.pull_request.draft == false && vars.STRIDE_ENABLE_PUSH_CI == 'true')
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          exclude: samples
       - name: Build
         run: |
           dotnet build build\Stride.Launcher.sln `

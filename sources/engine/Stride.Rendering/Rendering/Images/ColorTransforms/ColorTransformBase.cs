@@ -3,9 +3,11 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 using Stride.Core;
+using Stride.Shaders;
 
 namespace Stride.Rendering.Images
 {
@@ -30,7 +32,7 @@ namespace Stride.Rendering.Images
             // Initialize all Parameters with values coming from each ParameterKey
             InitializeProperties();
 
-            Shader = colorTransformShader;
+            Shader = new ShaderMixinGeneratorSource(colorTransformShader);
         }
 
         /// <summary>
@@ -40,11 +42,10 @@ namespace Stride.Rendering.Images
         public ColorTransformGroup Group { get; internal set; }
 
         /// <summary>
-        /// Gets or sets the name of the shader.
+        /// Gets or sets the shader source for this color transform.
         /// </summary>
-        /// <value>The name of the shader.</value>
         [DataMemberIgnore]
-        public string Shader
+        public ShaderSource Shader
         {
             get
             {
@@ -58,24 +59,6 @@ namespace Stride.Rendering.Images
                 }
 
                 Parameters.Set(ColorTransformKeys.Shader, value);
-                Group?.NotifyPermutationChange();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the generic arguments used by the shader. Default is null.
-        /// </summary>
-        /// <value>The generic arguments used by the shader. Default is null</value>
-        [DataMemberIgnore]
-        public object[] GenericArguments
-        {
-            get
-            {
-                return Parameters.Get(ColorTransformKeys.GenericArguments);
-            }
-            set
-            {
-                Parameters.Set(ColorTransformKeys.GenericArguments, value);
                 Group?.NotifyPermutationChange();
             }
         }
@@ -128,6 +111,7 @@ namespace Stride.Rendering.Images
             parameterCompositionCopier.Copy(Parameters);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Properties kept via [DataContract]; trimmed ones are just skipped here.")]
         private void InitializeProperties()
         {
             foreach (var property in GetType().GetRuntimeProperties())

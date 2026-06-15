@@ -1,0 +1,43 @@
+<Project>
+  <Import Project="..\..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.props" />
+  <PropertyGroup>
+    <!-- Match Stride.GameStudio.AutoTesting's TFM so the project ref is direct-compatible (no
+         TFM-warning suppression needed). 22621 is the Win11 22H2 SDK that exposes
+         GraphicsCaptureSession.IsBorderRequired — relevant only via the ProjectReference. -->
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Stride.Editor.Tests</RootNamespace>
+    <AssemblyName>Stride.Editor.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <StrideGraphicsApis>Direct3D11</StrideGraphicsApis>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj" />
+    <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
+    <!-- Build-time triggers so bin/packages has all three Stride.Templates.* nupkgs available
+         for the GameStudio bridge to find via PackageStore. Without these, the screenshot tests
+         that instantiate genre-starter templates (TopDownRPG, etc.) fail at template-lookup time. -->
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\sources\sdk\Stride.Build.Sdk.Editor\Sdk\Sdk.targets" />
+</Project>

@@ -12,6 +12,7 @@ using NuGet.LibraryModel;
 using NuGet.PackageManagement;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
 using NuGet.ProjectManagement;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
@@ -38,6 +39,11 @@ public partial class NugetStore : INugetDownloadProgress
     private readonly string? oldRootDirectory;
 
     private static readonly Regex powerShellProgressRegex = GetPowerShellProgressRegex();
+
+    private readonly Lock localFolderSyncLock = new();
+    private readonly HashSet<string> syncedPackageIds = new(StringComparer.OrdinalIgnoreCase);
+    private List<(string Source, FindPackageByIdResource Resource)>? localFolderResources;
+    private SourceCacheContext? localFolderCacheContext;
 
     /// <summary>
     /// Initialize a new instance of <see cref="NugetStore"/>.
@@ -251,6 +257,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// <returns>A list of packages.</returns>
     public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId)
     {
+        SyncLocalFolderSources(packageId);
+
         var res = new List<NugetLocalPackage>();
 
         // We also scan rootDirectory for 1.x/2.x
@@ -269,6 +277,109 @@ public partial class NugetStore : INugetDownloadProgress
         }
 
         return res;
+    }
+
+    /// <summary>
+    /// Mirrors any .nupkg of <paramref name="packageId"/> from configured local-folder NuGet sources
+    /// (e.g. a worktree's <c>bin/packages</c>) into the global packages folder when the source nupkg
+    /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>
+    /// without a separate restore step.
+    /// </summary>
+    private void SyncLocalFolderSources(string packageId)
+    {
+        if (InstallPath == null)
+            return;
+
+        lock (localFolderSyncLock)
+        {
+            // Each id is synced at most once per process
+            if (!syncedPackageIds.Add(packageId))
+                return;
+
+            if (localFolderResources == null)
+            {
+                localFolderResources = [];
+                localFolderCacheContext = new SourceCacheContext();
+                foreach (var source in PackageSources)
+                {
+                    if (!source.IsLocal)
+                        continue;
+
+                    try
+                    {
+                        var repository = Repository.Factory.GetCoreV3(source.Source);
+                        localFolderResources.Add((source.Source, repository.GetResourceAsync<FindPackageByIdResource>().GetAwaiter().GetResult()));
+                    }
+                    catch
+                    {
+                        // Source folder might not exist or be inaccessible
+                    }
+                }
+            }
+
+            Task.Run(async () =>
+            {
+                var resolver = new VersionFolderPathResolver(InstallPath);
+
+                foreach (var (source, findPackageById) in localFolderResources)
+                {
+                    List<NuGetVersion> versions;
+                    try
+                    {
+                        // Versions come from file names; no nupkg is opened at this point
+                        versions = (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    foreach (var version in versions)
+                    {
+                        var identity = new PackageIdentity(packageId, version);
+
+                        // Try the conventional file name first to avoid opening the package
+                        var nupkgPath = Path.Combine(source, $"{packageId}.{version}.nupkg");
+                        if (!File.Exists(nupkgPath))
+                            nupkgPath = LocalFolderUtility.GetPackageV2(source, identity, NativeLogger)?.Path;
+                        if (string.IsNullOrEmpty(nupkgPath) || !File.Exists(nupkgPath))
+                            continue;
+
+                        var hashPath = resolver.GetHashPath(identity.Id, identity.Version);
+                        var nupkgWriteTime = File.GetLastWriteTimeUtc(nupkgPath);
+
+                        if (File.Exists(hashPath) && File.GetLastWriteTimeUtc(hashPath) >= nupkgWriteTime)
+                            continue;
+
+                        var extractedDir = resolver.GetInstallPath(identity.Id, identity.Version);
+                        if (Directory.Exists(extractedDir))
+                        {
+                            try { Directory.Delete(extractedDir, recursive: true); }
+                            catch { continue; }
+                        }
+
+                        try
+                        {
+                            using var stream = File.OpenRead(nupkgPath);
+                            await GlobalPackagesFolderUtility.AddPackageAsync(
+                                source: source,
+                                packageIdentity: identity,
+                                packageStream: stream,
+                                globalPackagesFolder: InstallPath,
+                                parentId: Guid.Empty,
+                                clientPolicyContext: ClientPolicyContext.GetClientPolicy(settings, NativeLogger),
+                                logger: NativeLogger,
+                                token: CancellationToken.None).ConfigureAwait(false);
+                        }
+                        catch
+                        {
+                            // Best-effort: if extraction fails (race with a concurrent build, locked file, etc.)
+                            // fall through to whatever was already in the global cache.
+                        }
+                    }
+                }
+            }).GetAwaiter().GetResult();
+        }
     }
 
     /// <summary>
@@ -737,15 +848,53 @@ public partial class NugetStore : INugetDownloadProgress
 
     public string GetRealPath(NugetLocalPackage package)
     {
-        if (IsDevRedirectPackage(package) && package.Version < new PackageVersion(3, 1, 0, 0))
+        if (IsDevRedirectPackage(package))
         {
-            var realPath = File.ReadAllText(GetRedirectFile(package));
-            if (!Directory.Exists(realPath))
-                throw new DirectoryNotFoundException();
-            return realPath;
+            // Legacy dev-redirect (<3.1): a "<Id>.redirect" file holds the source directory directly.
+            if (package.Version < new PackageVersion(3, 1, 0, 0))
+            {
+                var realPath = File.ReadAllText(GetRedirectFile(package));
+                if (!Directory.Exists(realPath))
+                    throw new DirectoryNotFoundException();
+                return realPath;
+            }
+
+            // Modern dev-redirect stub: resolve the in-tree source project directory from the
+            // build/<Id>.props the stub generator emitted, so the asset compiler reads assets and
+            // shader source straight from the checkout instead of the (asset-less) stub.
+            var sourceDir = TryGetDevRedirectProjectDirectory(package);
+            if (sourceDir != null)
+                return sourceDir;
         }
 
         return package.Path;
+    }
+
+    /// <summary>
+    /// Reads <c>StrideDevProjectDirectory</c> (with <c>$(StrideDevRoot)</c> resolved) from a modern
+    /// dev-redirect stub's <c>build/&lt;Id&gt;.props</c>. Returns null if it isn't a resolvable stub.
+    /// </summary>
+    private static string? TryGetDevRedirectProjectDirectory(NugetLocalPackage package)
+    {
+        var propsPath = Path.Combine(package.Path, "build", $"{package.Id}.props");
+        if (!File.Exists(propsPath))
+            return null;
+
+        var text = File.ReadAllText(propsPath);
+        var dir = Regex.Match(text, "<StrideDevProjectDirectory>(.*?)</StrideDevProjectDirectory>").Groups[1].Value;
+        if (string.IsNullOrEmpty(dir))
+            return null;
+
+        if (dir.Contains("$(StrideDevRoot)"))
+        {
+            var root = Regex.Match(text, "<StrideDevRoot[^>]*>(.*?)</StrideDevRoot>").Groups[1].Value;
+            if (string.IsNullOrEmpty(root))
+                return null;
+            dir = dir.Replace("$(StrideDevRoot)", root);
+        }
+
+        dir = dir.Replace('/', Path.DirectorySeparatorChar);
+        return Directory.Exists(dir) ? dir : null;
     }
 
     public string GetRedirectFile(NugetLocalPackage package)

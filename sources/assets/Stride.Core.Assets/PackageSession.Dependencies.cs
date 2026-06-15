@@ -255,6 +255,15 @@ partial class PackageSession
                         var loadedProject = LoadProject(log, file, loadParameters);
                         loadedProject.Package.Meta.Name = projectDependency.Name;
                         loadedProject.Package.Meta.Version = projectDependency.Version;
+
+                        // A Package-type dependency that resolved to a full project (.csproj) is a
+                        // dev-redirect stub pointing at the in-tree source (a real nupkg has no sibling
+                        // .csproj). Enumerate its assets from the csproj like packing does, but don't
+                        // recurse into ITS dependencies — the consumer's flattened graph already covers
+                        // them, and recursing would pull the whole engine project tree into the session.
+                        if (projectDependency.Type == DependencyType.Package && loadedProject is SolutionProject)
+                            loadedProject.Package.State = PackageState.DependenciesReady;
+
                         Projects.Add(loadedProject);
 
                         if (loadedProject is StandalonePackage standalonePackage)

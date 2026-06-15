@@ -17,6 +17,7 @@ namespace Stride.Rendering
     /// </summary>
     [DataSerializer(typeof(ParameterCollection.Serializer))]
     [DataSerializerGlobal(null, typeof(List<ParameterKeyInfo>))]
+    [DataSerializerGlobal(null, typeof(object[]))]
     [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
     public class ParameterCollection
     {

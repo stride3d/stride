@@ -43,10 +43,10 @@ namespace Sockets.Plugin
         public EventHandler<TcpSocketListenerConnectEventArgs> ConnectionReceived { get; set; }
 
         /// <summary>
-        ///     Binds the <code>TcpSocketListener</code> to the specified port on all endpoints and listens for TCP connections.
+        ///     Binds the <code>TcpSocketListener</code> to the specified port and listens for TCP connections.
         /// </summary>
         /// <param name="port">The port to listen on.</param>
-        /// <param name="listenOn">The <code>CommsInterface</code> to listen on. If unspecified, all interfaces will be bound.</param>
+        /// <param name="listenOn">The <code>CommsInterface</code> to listen on. If unspecified, binds to the loopback interface.</param>
         /// <param name="inheritHandle">Allows handle inheritance. Might be ignored depending on platform.</param>
         /// <returns></returns>
         public Task StartListeningAsync(int port, ICommsInterface listenOn = null, bool inheritHandle = false)
@@ -56,7 +56,7 @@ namespace Sockets.Plugin
                 if (listenOn != null && !listenOn.IsUsable)
                     throw new InvalidOperationException("Cannot listen on an unusable interface. Check the IsUsable property before attemping to bind.");
 
-                var ipAddress = listenOn != null ? ((CommsInterface)listenOn).NativeIpAddress : IPAddress.Any;
+                var ipAddress = listenOn != null ? ((CommsInterface)listenOn).NativeIpAddress : IPAddress.Loopback;
 
                 _listenCanceller = new CancellationTokenSource();
 

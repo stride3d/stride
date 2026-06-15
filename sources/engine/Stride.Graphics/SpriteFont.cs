@@ -592,9 +592,12 @@ namespace Stride.Graphics
                     if (character == '\r')
                         continue;
 
-                    var currentKey = key;
-                    key |= character;
-                    key = (key << 16);
+                    // The kerning key packs the previous character in the high 16 bits and the
+                    // current one in the low 16 bits, matching how KerningMap is built
+                    // ((First << 16) | Second). The lookup must therefore include the current
+                    // character, before shifting it up for the next iteration.
+                    var currentKey = key | character;
+                    key = (currentKey << 16);
 
                     switch (character)
                     {

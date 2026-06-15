@@ -6,7 +6,7 @@
 /// <remarks>
 /// TRANSFORMATION_MATRIX: generic float4x4 - The transformation matrix.
 /// </remarks>
-shader TransformationMatrix<float4x4 TRANSFORMATION_MATRIX> : TransformationBase, PositionStream4, PositionHStream4
+shader TransformationMatrix<MemberName TRANSFORMATION_MATRIX> : TransformationBase, PositionStream4, PositionHStream4
 {
     stage override void PostTransformPosition()
     {

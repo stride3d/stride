@@ -1,0 +1,19 @@
+// PSMain(ExpectedResult=#04000010)
+
+namespace Stride.Shaders.Tests;
+
+shader ConstantTypeConversion
+{
+    stream float4 ColorTarget : SV_Target0;
+    
+    static const float T1 = 1.0;
+    // Note: we multiply with an integer on purpose (const can't convert type so proper type inference needs to happen)
+    static const float T2 = T1 * 4;
+    
+    static const float4 T3 = float4(T2, 0, 0, T2 * 4);
+
+    void PSMain()
+    {
+        streams.ColorTarget = T3 / 255.0;
+    }
+}

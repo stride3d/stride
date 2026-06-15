@@ -43,7 +43,7 @@ namespace Stride.Graphics
         /// <param name="_">Vulkan does not rely on GraphicsProfile when finding the closest matching display mode.</param>
         /// <param name="mode">The mode.</param>
         /// <returns>Returns the closes display mode.</returns>
-        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] _, DisplayMode mode)
+        public DisplayMode FindClosestMatchingDisplayMode(ReadOnlySpan<GraphicsProfile> _, DisplayMode mode)
         {
             if (supportedDisplayModes == null || supportedDisplayModes.Length == 0)
                 throw new Exception("Couldn't find any supported display modes for selected display.");

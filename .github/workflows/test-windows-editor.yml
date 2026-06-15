@@ -1,0 +1,204 @@
+name: Test GameStudio (Screenshots)
+
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test GameStudio (Screenshots) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [test-editor-screenshots]
+  schedule:
+    # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # gap from test-samples-screenshots (04:37) so they don't compete for runners.
+    - cron: '17 5 * * *'
+
+concurrency:
+  group: test-windows-editor-${{ github.event.client_payload.pr_number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision
+  # as a fallback for borderline cases. Without ANTHROPIC_API_KEY (typical on forks), most flaky
+  # runs would report drift. Skip the suite cleanly so forks don't see misleading failures.
+  #
+  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
+  # workflow_dispatch / repository_dispatch always run.
+  preflight:
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      has-api-key: ${{ steps.check.outputs.has-api-key }}
+    steps:
+      - id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has-api-key=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-api-key=false" >> $GITHUB_OUTPUT
+            echo "::notice::ANTHROPIC_API_KEY not set; skipping editor screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
+          fi
+
+  Run:
+    needs: preflight
+    if: needs.preflight.outputs.has-api-key == 'true'
+    name: Editor screenshots (${{ github.event.inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      DOTNET_DbgEnableMiniDump: "1"
+      DOTNET_DbgMiniDumpType: "1"
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+    steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          exclude: samples
+
+      - name: Configure crash dumps
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
+
+      # PackageStore.LoadDefaultSettings(null) only reads the user + machine NuGet configs,
+      # not the workspace nuget.config — register bin/packages in the user config.
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # GH runners default to a 0x0 fallback display; WPF clamps the editor to that. The
+      # composite action installs an IDD virtual display so we get a real desktop surface.
+      - name: Set display resolution
+        uses: ./.github/actions/set-display-resolution-vdd
+        with:
+          width: '3840'
+          height: '2160'
+
+      - name: Build Stride.GameStudio.AutoTesting
+        run: |
+          dotnet build sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
+      - name: Build Stride.Editor.Tests
+        run: |
+          dotnet build tests\editor\Stride.Editor.Tests.csproj `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
+      # Pre-test snapshot of NuGet state: bin/packages timestamps+sizes (catches partial writes
+      # or out-of-order packing), NuGet global cache extractions for Stride.*, and the user
+      # nuget config (which sources/mapping the sample restore will see).
+      - name: Diagnostic — NuGet state pre-test
+        shell: pwsh
+        run: |
+          Write-Host "=== bin/packages Stride.* (name, size, mtime) ==="
+          Get-ChildItem bin\packages\Stride.*.nupkg -ErrorAction SilentlyContinue |
+            Format-Table Name, Length, LastWriteTimeUtc -AutoSize
+          Write-Host "=== NuGet global cache: stride.* extractions ==="
+          $cache = "$env:UserProfile\.nuget\packages"
+          if (Test-Path $cache) {
+            Get-ChildItem "$cache\stride.*" -Directory -ErrorAction SilentlyContinue |
+              Get-ChildItem -Directory -ErrorAction SilentlyContinue |
+              Format-Table FullName, LastWriteTimeUtc -AutoSize
+          } else { "No global packages cache at $cache" }
+          Write-Host "=== NuGet sources (user config) ==="
+          dotnet nuget list source --configfile "$env:APPDATA\NuGet\NuGet.Config"
+          Write-Host "=== User NuGet.Config ==="
+          if (Test-Path "$env:APPDATA\NuGet\NuGet.Config") { Get-Content "$env:APPDATA\NuGet\NuGet.Config" }
+
+      # EditorScreenshotTests.Capture is an xunit [Theory] over Fixtures(); each entry spawns
+      # the AutoTesting CLI as a subprocess (per-fixture WPF singleton-state isolation),
+      # snapshots the runner output into <worktree>/ui-test-out-dpi<N>/<fixture>/, then runs
+      # ScreenshotComparator.Compare against tests/editor/baselines/dpi<N>/. ANTHROPIC_API_KEY
+      # opts the comparator into Claude vision second-opinions on frames that exceed LPIPS —
+      # cost is bounded because Claude only fires on already-failing frames.
+      - name: Run editor screenshot tests
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          dotnet test tests\editor\Stride.Editor.Tests.csproj `
+            --no-build `
+            --filter "FullyQualifiedName~Stride.Editor.Tests.EditorScreenshotTests" `
+            --logger "trx;LogFileName=editor-screenshots.trx" `
+            --results-directory TestResults `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
+      # Builds a generated sample via `dotnet build` as a subprocess against the packed
+      # bin/packages feed — the real NuGet-consumer path that in-tree ProjectReference
+      # builds never exercise (sparse NuGet layout, dynamic assembly load, native probing).
+      - name: Run NuGet consumer test
+        if: always()
+        run: |
+          dotnet test tests\editor\Stride.Editor.Tests.csproj `
+            --no-build `
+            --filter "FullyQualifiedName~Stride.Editor.Tests.NuGetConsumerTests" `
+            --logger "trx;LogFileName=nuget-consumer.trx" `
+            --results-directory TestResults `
+            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+
+      - name: Publish test report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Editor screenshot regression'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-screenshots
+          path: ui-test-out-dpi*/
+          if-no-files-found: warn
+
+      - name: Upload crash dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-crash-dumps
+          path: crash-dumps/
+          if-no-files-found: ignore
+
+      # Sample's project.assets.json (NuGet resolution record) + csproj/sln, plus the actual
+      # Stride.Engine/Core.Serialization DLLs that ended up in the sample's bin (their content
+      # reveals which version was materialized, independent of what assets.json claims).
+      - name: Upload generated sample obj/ + materialized engine DLLs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-sample-obj
+          path: |
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\obj\project.assets.json
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\*.csproj
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\*.sln
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\bin\**\Stride.Engine.dll
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\bin\**\Stride.Core.Serialization.dll
+          if-no-files-found: warn
+          retention-days: 7

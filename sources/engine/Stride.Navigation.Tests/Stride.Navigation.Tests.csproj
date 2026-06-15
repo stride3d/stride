@@ -1,0 +1,26 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <AssemblyName>Stride.Navigation.Tests</AssemblyName>
+    <RootNamespace>Stride.Navigation.Tests</RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+    <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="PlayerController.cs" />
+    <Compile Include="DynamicBarrierTest.cs" />
+    <Compile Include="StaticTest.cs" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
+</Project>

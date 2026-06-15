@@ -22,8 +22,9 @@ namespace Stride.Input
             {
 #if STRIDE_UI_SDL
                 case AppContextType.DesktopSDL:
-                    var sdlContext = (GameContextSDL)context;
-                    return new InputSourceSDL(sdlContext.Control);
+                    if (GameContextFactory.SDLBackendEnabled)
+                        return new InputSourceSDL(((GameContextSDL)context).Control);
+                    goto default;
 #endif
 #if STRIDE_PLATFORM_ANDROID
                 case AppContextType.Android:
@@ -45,8 +46,9 @@ namespace Stride.Input
 #endif
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                 case AppContextType.DesktopWinForms:
-                    var winformsContext = (GameContextWinforms)context;
-                    return new InputSourceWinforms(winformsContext.Control);
+                    if (GameContextFactory.WinFormsBackendEnabled)
+                        return new InputSourceWinforms(((GameContextWinforms)context).Control);
+                    goto default;
 #endif
                 case AppContextType.Headless:
                     return null; // No input source in headless mode

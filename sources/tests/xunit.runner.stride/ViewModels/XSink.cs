@@ -20,10 +20,10 @@ public sealed class XSink : IExecutionSink
 
     public bool OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
     {
-        Console.WriteLine($"{message.GetType().Name} ... {message}");
-
         return message.Dispatch<ITestCaseFinished>(messageTypes, HandleTestCaseFinished)
             && message.Dispatch<ITestCaseStarting>(messageTypes, HandleTestCaseStarting)
+            && message.Dispatch<ITestFailed>(messageTypes, HandleTestFailed)
+            && message.Dispatch<ITestSkipped>(messageTypes, HandleTestSkipped)
             && message.Dispatch<IErrorMessage>(messageTypes, _ => Interlocked.Increment(ref errors))
             && message.Dispatch<ITestAssemblyCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
             && message.Dispatch<ITestAssemblyFinished>(messageTypes, HandleTestAssemblyFinished)
@@ -36,6 +36,8 @@ public sealed class XSink : IExecutionSink
 
     public MessageHandler<ITestCaseFinished>? HandleTestCaseFinished;
     public MessageHandler<ITestCaseStarting>? HandleTestCaseStarting;
+    public MessageHandler<ITestFailed>? HandleTestFailed;
+    public MessageHandler<ITestSkipped>? HandleTestSkipped;
 
     void HandleTestAssemblyFinished(MessageHandlerArgs<ITestAssemblyFinished> args)
     {

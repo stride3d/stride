@@ -263,6 +263,24 @@ namespace Stride.Graphics
         public bool IsUnorderedAccess => ViewFlags.HasFlag(TextureFlags.UnorderedAccess);
 
         /// <summary>
+        ///   Computes the initial <see cref="BarrierLayout"/> a texture should be created in
+        ///   based on its <see cref="Texture.Usage"/> and <see cref="TextureFlags"/>. Used by
+        ///   platform backends to seed <c>LayoutTracker</c> at resource creation.
+        /// </summary>
+        internal BarrierLayout GetInitialBarrierLayout()
+        {
+            if (Usage == GraphicsResourceUsage.Staging)
+                return BarrierLayout.CopyDest;
+            if (IsDepthStencil)
+                return BarrierLayout.DepthStencilWrite;
+            if (IsRenderTarget)
+                return BarrierLayout.RenderTarget;
+            if (IsShaderResource)
+                return BarrierLayout.ShaderResource;
+            return BarrierLayout.Common;
+        }
+
+        /// <summary>
         ///   Gets a value indicating if the Texture is a multi-sampled Texture.
         /// </summary>
         /// <value>
@@ -1571,9 +1589,9 @@ namespace Stride.Graphics
         ///   <see langword="false"/> to load it in its default format.
         /// </param>
         /// <returns>The loaded Texture.</returns>
-        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false)
+        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
-            using var image = Image.Load(stream, loadAsSrgb);
+            using var image = Image.Load(stream, loadAsSrgb, alphaLoadMode);
 
             return New(device, image, textureFlags, usage);
         }

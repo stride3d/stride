@@ -1,0 +1,8 @@
+!Texture
+Id: 021570bd-56a4-4248-819f-a25ce3405fda
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/stone4_gls.jpeg
+GenerateMipmaps: false
+IsStreamable: false
+Type: !GrayscaleTextureType {}

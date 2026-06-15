@@ -63,6 +63,8 @@ namespace Stride.Graphics
                     return VkPrimitiveTopology.TriangleListWithAdjacency;
                 case PrimitiveType.TriangleStripWithAdjacency:
                     return VkPrimitiveTopology.TriangleStripWithAdjacency;
+                case >= PrimitiveType.PatchList and < PrimitiveType.PatchList + 32:
+                    return VkPrimitiveTopology.PatchList;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(primitiveType));
             }
@@ -77,7 +79,7 @@ namespace Stride.Graphics
                 case PrimitiveType.TriangleList:
                 case PrimitiveType.LineListWithAdjacency:
                 case PrimitiveType.TriangleListWithAdjacency:
-                case PrimitiveType.PatchList:
+                case >= PrimitiveType.PatchList and < PrimitiveType.PatchList + 32:
                     return false;
                 default:
                     return true;
@@ -148,6 +150,8 @@ namespace Stride.Graphics
                     return VkStencilOp.Keep;
                 case StencilOperation.Replace:
                     return VkStencilOp.Replace;
+                case StencilOperation.Zero:
+                    return VkStencilOp.Zero;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -222,9 +226,16 @@ namespace Stride.Graphics
             VkFormat.R8Snorm => PixelFormat.R8_SNorm,
             VkFormat.R8Uint => PixelFormat.R8_UInt,
             VkFormat.R8Sint => PixelFormat.R8_SInt,
+            VkFormat.R8G8Unorm => PixelFormat.R8G8_UNorm,
+            VkFormat.R8G8Snorm => PixelFormat.R8G8_SNorm,
+            VkFormat.R8G8Uint => PixelFormat.R8G8_UInt,
+            VkFormat.R8G8Sint => PixelFormat.R8G8_SInt,
             VkFormat.R8G8B8A8Unorm => PixelFormat.R8G8B8A8_UNorm,
+            VkFormat.R8G8B8A8Snorm => PixelFormat.R8G8B8A8_SNorm,
             VkFormat.R8G8B8A8Uint => PixelFormat.R8G8B8A8_UInt,
             VkFormat.R8G8B8A8Sint => PixelFormat.R8G8B8A8_SInt,
+            VkFormat.R5G6B5UnormPack16 => PixelFormat.B5G6R5_UNorm,
+            VkFormat.A1R5G5B5UnormPack16 => PixelFormat.B5G5R5A1_UNorm,
             VkFormat.B8G8R8A8Unorm => PixelFormat.B8G8R8A8_UNorm,
             VkFormat.R8G8B8A8Srgb => PixelFormat.R8G8B8A8_UNorm_SRgb,
             VkFormat.B8G8R8A8Srgb => PixelFormat.B8G8R8A8_UNorm_SRgb,
@@ -232,18 +243,22 @@ namespace Stride.Graphics
             VkFormat.A2R10G10B10UnormPack32 => PixelFormat.R10G10B10A2_UNorm,
             VkFormat.R16Sfloat => PixelFormat.R16_Float,
             VkFormat.R16Unorm => PixelFormat.R16_UNorm,
+            VkFormat.R16Snorm => PixelFormat.R16_SNorm,
             VkFormat.R16Uint => PixelFormat.R16_UInt,
             VkFormat.R16Sint => PixelFormat.R16_SInt,
             VkFormat.R16G16Sfloat => PixelFormat.R16G16_Float,
             VkFormat.R16G16Snorm => PixelFormat.R16G16_SNorm,
             VkFormat.R16G16Unorm => PixelFormat.R16G16_UNorm,
+            VkFormat.B10G11R11UfloatPack32 => PixelFormat.R11G11B10_Float,
             VkFormat.R16G16B16A16Sfloat => PixelFormat.R16G16B16A16_Float,
             VkFormat.R16G16B16A16Unorm => PixelFormat.R16G16B16A16_UNorm,
             VkFormat.R16G16B16A16Snorm => PixelFormat.R16G16B16A16_SNorm,
             VkFormat.R16G16B16A16Uint => PixelFormat.R16G16B16A16_UInt,
             VkFormat.R16G16B16A16Sint => PixelFormat.R16G16B16A16_SInt,
             VkFormat.R32Uint => PixelFormat.R32_UInt,
+            VkFormat.R32Sint => PixelFormat.R32_SInt,
             VkFormat.R32Sfloat => PixelFormat.R32_Float,
+            VkFormat.E5B9G9R9UfloatPack32 => PixelFormat.R9G9B9E5_Sharedexp,
             VkFormat.R32G32Sfloat => PixelFormat.R32G32_Float,
             VkFormat.R32G32Uint => PixelFormat.R32G32_UInt,
             VkFormat.R32G32Sint => PixelFormat.R32G32_SInt,
@@ -260,7 +275,7 @@ namespace Stride.Graphics
             _ => throw new NotSupportedException($"VkFormat '{inputFormat}' has no equivalent PixelFormat"),
         };
 
-        public static VkFormat ConvertPixelFormat(PixelFormat inputFormat)
+        public static VkFormat ConvertPixelFormat(this PixelFormat inputFormat)
         {
             ConvertPixelFormat(inputFormat, out var format, out _, out _);
             return format;
@@ -273,10 +288,10 @@ namespace Stride.Graphics
             // TODO VULKAN: Complete supported formats
             switch (inputFormat)
             {
-                //case PixelFormat.A8_UNorm:
-                //    format = VkFormat.;
-                //    pixelSize = 1;
-                //    break;
+                // case PixelFormat.A8_UNorm:
+                //     format = VkFormat.;
+                //     pixelSize = 1;
+                //     break;
                 case PixelFormat.R8_UNorm:
                     format = VkFormat.R8Unorm;
                     pixelSize = 1;
@@ -294,8 +309,29 @@ namespace Stride.Graphics
                     pixelSize = 1;
                     break;
 
+                case PixelFormat.R8G8_UNorm:
+                    format = VkFormat.R8G8Unorm;
+                    pixelSize = 2;
+                    break;
+                case PixelFormat.R8G8_SNorm:
+                    format = VkFormat.R8G8Snorm;
+                    pixelSize = 2;
+                    break;
+                case PixelFormat.R8G8_UInt:
+                    format = VkFormat.R8G8Uint;
+                    pixelSize = 2;
+                    break;
+                case PixelFormat.R8G8_SInt:
+                    format = VkFormat.R8G8Sint;
+                    pixelSize = 2;
+                    break;
+
                 case PixelFormat.R8G8B8A8_UNorm:
                     format = VkFormat.R8G8B8A8Unorm;
+                    pixelSize = 4;
+                    break;
+                case PixelFormat.R8G8B8A8_SNorm:
+                    format = VkFormat.R8G8B8A8Snorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_UInt:
@@ -307,6 +343,8 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm:
+                case PixelFormat.B8G8R8X8_UNorm:
+                    // X8 is treated as an unused alpha channel.
                     format = VkFormat.B8G8R8A8Unorm;
                     pixelSize = 4;
                     break;
@@ -315,8 +353,19 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                case PixelFormat.B8G8R8X8_UNorm_SRgb:
                     format = VkFormat.B8G8R8A8Srgb;
                     pixelSize = 4;
+                    break;
+
+                // Bit layouts match between DXGI and Vulkan despite reversed channel-order naming.
+                case PixelFormat.B5G6R5_UNorm:
+                    format = VkFormat.R5G6B5UnormPack16;
+                    pixelSize = 2;
+                    break;
+                case PixelFormat.B5G5R5A1_UNorm:
+                    format = VkFormat.A1R5G5B5UnormPack16;
+                    pixelSize = 2;
                     break;
 
                 case PixelFormat.R10G10B10A2_UInt:
@@ -340,6 +389,10 @@ namespace Stride.Graphics
                     format = VkFormat.R16Uint;
                     pixelSize = 2;
                     break;
+                case PixelFormat.R16_SNorm:
+                    format = VkFormat.R16Snorm;
+                    pixelSize = 2;
+                    break;
                 case PixelFormat.R16_SInt:
                     format = VkFormat.R16Sint;
                     pixelSize = 2;
@@ -358,11 +411,17 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_SInt:
-                    format = VkFormat.R16G16Snorm;
+                    format = VkFormat.R16G16Sint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_UInt:
-                    format = VkFormat.R16G16Unorm;
+                    format = VkFormat.R16G16Uint;
+                    pixelSize = 4;
+                    break;
+
+                case PixelFormat.R11G11B10_Float:
+                    // Bit-compatible with DXGI R11G11B10_FLOAT (Vulkan names channels MSB→LSB).
+                    format = VkFormat.B10G11R11UfloatPack32;
                     pixelSize = 4;
                     break;
 
@@ -391,8 +450,17 @@ namespace Stride.Graphics
                     format = VkFormat.R32Uint;
                     pixelSize = 4;
                     break;
+                case PixelFormat.R32_SInt:
+                    format = VkFormat.R32Sint;
+                    pixelSize = 4;
+                    break;
                 case PixelFormat.R32_Float:
                     format = VkFormat.R32Sfloat;
+                    pixelSize = 4;
+                    break;
+
+                case PixelFormat.R9G9B9E5_Sharedexp:
+                    format = VkFormat.E5B9G9R9UfloatPack32;
                     pixelSize = 4;
                     break;
 
@@ -500,15 +568,157 @@ namespace Stride.Graphics
                     pixelSize = 2; // 8bpp
                     break;
 
+                // ASTC LDR: every block is 128-bit (16 bytes); pixelSize is informational
+                case PixelFormat.ASTC_4x4_UNorm:
+                    format = VkFormat.Astc4x4UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_4x4_UNorm_SRgb:
+                    format = VkFormat.Astc4x4SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_5x4_UNorm:
+                    format = VkFormat.Astc5x4UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_5x4_UNorm_SRgb:
+                    format = VkFormat.Astc5x4SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_5x5_UNorm:
+                    format = VkFormat.Astc5x5UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_5x5_UNorm_SRgb:
+                    format = VkFormat.Astc5x5SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_6x5_UNorm:
+                    format = VkFormat.Astc6x5UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_6x5_UNorm_SRgb:
+                    format = VkFormat.Astc6x5SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_6x6_UNorm:
+                    format = VkFormat.Astc6x6UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_6x6_UNorm_SRgb:
+                    format = VkFormat.Astc6x6SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x5_UNorm:
+                    format = VkFormat.Astc8x5UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x5_UNorm_SRgb:
+                    format = VkFormat.Astc8x5SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x6_UNorm:
+                    format = VkFormat.Astc8x6UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x6_UNorm_SRgb:
+                    format = VkFormat.Astc8x6SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x8_UNorm:
+                    format = VkFormat.Astc8x8UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_8x8_UNorm_SRgb:
+                    format = VkFormat.Astc8x8SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x5_UNorm:
+                    format = VkFormat.Astc10x5UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x5_UNorm_SRgb:
+                    format = VkFormat.Astc10x5SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x6_UNorm:
+                    format = VkFormat.Astc10x6UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x6_UNorm_SRgb:
+                    format = VkFormat.Astc10x6SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x8_UNorm:
+                    format = VkFormat.Astc10x8UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x8_UNorm_SRgb:
+                    format = VkFormat.Astc10x8SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x10_UNorm:
+                    format = VkFormat.Astc10x10UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_10x10_UNorm_SRgb:
+                    format = VkFormat.Astc10x10SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_12x10_UNorm:
+                    format = VkFormat.Astc12x10UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_12x10_UNorm_SRgb:
+                    format = VkFormat.Astc12x10SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_12x12_UNorm:
+                    format = VkFormat.Astc12x12UnormBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+                case PixelFormat.ASTC_12x12_UNorm_SRgb:
+                    format = VkFormat.Astc12x12SrgbBlock;
+                    compressed = true;
+                    pixelSize = 1;
+                    break;
+
                 case PixelFormat.BC1_UNorm:
                     format = VkFormat.Bc1RgbaUnormBlock;
-                    //format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA;
+                    // format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC1_UNorm_SRgb:
                     format = VkFormat.Bc1RgbaSrgbBlock;
-                    //format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA_SRgb;
+                    // format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA_SRgb;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
@@ -572,6 +782,7 @@ namespace Stride.Graphics
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
+
                 default:
                     throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
             }
@@ -833,6 +1044,7 @@ namespace Stride.Graphics
                         case EffectParameterType.Buffer:
                             return VkDescriptorType.UniformTexelBuffer;
                         case EffectParameterType.StructuredBuffer:
+                        case EffectParameterType.ByteAddressBuffer:
                             return VkDescriptorType.StorageBuffer;
 
                         default:
@@ -859,6 +1071,10 @@ namespace Stride.Graphics
 
                         case EffectParameterType.Buffer:
                         case EffectParameterType.StructuredBuffer:
+                        case EffectParameterType.RWStructuredBuffer:
+                        case EffectParameterType.AppendStructuredBuffer:
+                        case EffectParameterType.ConsumeStructuredBuffer:
+                        case EffectParameterType.RWByteAddressBuffer:
                             return VkDescriptorType.StorageBuffer;
 
                         default:

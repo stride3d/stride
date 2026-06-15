@@ -45,7 +45,7 @@ namespace Stride.UI.Tests.Regression
             var text = new TextBlock
             {
                 Text = "Test Uniform Grid", 
-                Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), 
+                Font = Content.Load<SpriteFont>("NotoSans15"), 
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };

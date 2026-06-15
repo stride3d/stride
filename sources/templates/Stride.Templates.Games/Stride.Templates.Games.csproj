@@ -1,0 +1,29 @@
+<!-- TreatAsLocalProperty="StrideSkipAutoPack": Pack must always run here (this is a templates
+     package, not a regular library), so an outer build context's StrideSkipAutoPack=true shouldn't
+     suppress it. Removing it from the project's global-property context also keeps MSBuild from
+     deduplicating into two distinct project instances when the property differs across the paths
+     that reach this project. -->
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
+  <PropertyGroup>
+    <PackageId>Stride.Templates.Games</PackageId>
+    <Title>Stride Game Templates</Title>
+    <Description>dotnet new starter for creating a new Stride game.</Description>
+    <PackageTags>dotnet-new;templates;stride;stride-template;stride-game-starter;gamedev</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\Stride.Templates.Common.targets" />
+
+  <ItemGroup>
+    <!-- Blank game starter (pre-authored HDR+LDR variants of materials/scene/skybox; csprojs
+         use $EngineVersion$ placeholder that the preprocessor substitutes at pack time). -->
+    <StrideSampleTemplate Include="stride-game">
+      <SamplePath>$(StrideRoot)samples/NewGame/NewGame</SamplePath>
+    </StrideSampleTemplate>
+    <!-- Code library: bare csproj with Stride engine references. Used by GameStudio's
+         "Add Library" flow to scaffold a new shared-platform library into an existing solution. -->
+    <StrideSampleTemplate Include="stride-library">
+      <SamplePath>$(StrideRoot)samples/Library/Library</SamplePath>
+    </StrideSampleTemplate>
+  </ItemGroup>
+  <!-- Update Platforms drives stride-game with updateOnly=true (see UpdatePlatformsGenerator) — no dedicated template. -->
+</Project>

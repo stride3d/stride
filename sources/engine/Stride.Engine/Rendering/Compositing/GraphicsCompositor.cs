@@ -52,6 +52,9 @@ namespace Stride.Rendering.Compositing
         /// </summary>
         public static readonly PropertyKey<GraphicsCompositor> Current = new PropertyKey<GraphicsCompositor>("GraphicsCompositor.Current", typeof(GraphicsCompositor));
 
+        // Top-level present-pass scope. SceneCameraRenderer folds presenter rotation here only.
+        internal static readonly PropertyKey<bool> IsPresenterPass = new PropertyKey<bool>("GraphicsCompositor.IsPresenterPass", typeof(GraphicsCompositor));
+
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
         private static readonly ProfilingKey RenderSystemCollectKey = new ProfilingKey("RenderSystem.Collect");
         private static readonly ProfilingKey GameCollectKey = new ProfilingKey("Game.Collect");
@@ -179,6 +182,7 @@ namespace Stride.Rendering.Compositing
                 using (context.RenderContext.PushTagAndRestore(SceneInstance.CurrentRenderSystem, RenderSystem))
                 using (context.RenderContext.PushTagAndRestore(SceneCameraSlotCollection.Current, Cameras))
                 using (context.RenderContext.PushTagAndRestore(Current, this))
+                using (context.RenderContext.PushTagAndRestore(IsPresenterPass, true))
                 {
                     // Set render system
                     context.RenderContext.RenderSystem = RenderSystem;

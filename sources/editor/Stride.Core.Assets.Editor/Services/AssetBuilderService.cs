@@ -44,6 +44,15 @@ namespace Stride.Core.Assets.Editor.Services
 
         public event EventHandler<AssetBuiltEventArgs> AssetBuilt;
 
+        /// <summary>
+        ///   The number of build units waiting in the queue to be picked up. Test harnesses use this
+        ///   to detect a quiescent state; production code should treat it as informational only.
+        /// </summary>
+        public int QueuedBuildUnitCount
+        {
+            get { lock (queueLock) { return queue.Count; } }
+        }
+
         public virtual void Dispose()
         {
             builder.Dispose();

@@ -12,15 +12,15 @@ namespace Stride.Graphics.Tests
 {
     public class TestSpriteFont(string assetPrefix, string saveImageSuffix) : GraphicTestGameBase
     {
-        private SpriteBatch spriteBatch;
+        protected SpriteBatch spriteBatch;
 
-        private SpriteFont arial18;
-        private SpriteFont msSansSerif13;
-        private SpriteFont arial20;
-        private SpriteFont arial20ClearType;
-        private SpriteFont arial20Bold;
-        private SpriteFont courierNew13;
-        private SpriteFont calibri85;
+        private SpriteFont notoSans18;
+        private SpriteFont notoSans13;
+        private SpriteFont notoSans20;
+        private SpriteFont notoSans20ClearType;
+        private SpriteFont notoSansBold20;
+        private SpriteFont liberationMono13;
+        private SpriteFont notoSans65;
 
         private Texture whiteTexture;
 
@@ -42,13 +42,13 @@ namespace Stride.Graphics.Tests
         {
             await base.LoadContent();
 
-            arial18 = Content.Load<SpriteFont>(assetPrefix + "Arial18");
-            msSansSerif13 = Content.Load<SpriteFont>(assetPrefix + "MicrosoftSansSerif13");
-            arial20 = Content.Load<SpriteFont>(assetPrefix + "Arial20");
-            arial20ClearType = Content.Load<SpriteFont>(assetPrefix + "Arial20ClearType");
-            arial20Bold = Content.Load<SpriteFont>(assetPrefix + "Arial20Bold");
-            calibri85 = Content.Load<SpriteFont>(assetPrefix + "Calibri85");
-            courierNew13 = Content.Load<SpriteFont>(assetPrefix + "CourierNew13");
+            notoSans18 = Content.Load<SpriteFont>(assetPrefix + "NotoSans18");
+            notoSans13 = Content.Load<SpriteFont>(assetPrefix + "NotoSans13");
+            notoSans20 = Content.Load<SpriteFont>(assetPrefix + "NotoSans20");
+            notoSans20ClearType = Content.Load<SpriteFont>(assetPrefix + "NotoSans20ClearType");
+            notoSansBold20 = Content.Load<SpriteFont>(assetPrefix + "NotoSansBold20");
+            notoSans65 = Content.Load<SpriteFont>(assetPrefix + "NotoSans65");
+            liberationMono13 = Content.Load<SpriteFont>(assetPrefix + "LiberationMono13");
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
             whiteTexture = GraphicsDevice.GetSharedWhiteTexture();
@@ -83,69 +83,69 @@ namespace Stride.Graphics.Tests
             // Render the text
             spriteBatch.Begin(GraphicsContext);
 
-            var text = "This text is in Arial 20 with anti-alias\nand multiline...";
-            var dim = arial20.MeasureString(text);
+            var text = "This text is in Noto Sans 20 with anti-alias\nand multiline...";
+            var dim = notoSans20.MeasureString(text);
 
             int x = 20, y = 20;
             spriteBatch.Draw(whiteTexture, new Rectangle(x, y, (int) dim.X, (int) dim.Y), Color.Green);
 
-            arial20.PreGenerateGlyphs(text, arial20.Size * Vector2.One);
-            spriteBatch.DrawString(arial20, text, new Vector2(x, y), Color.White);
+            notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(x, y), Color.White);
 
             text = FormattableString.Invariant($"Measured: {dim:F3}");
-            courierNew13.PreGenerateGlyphs(text, courierNew13.Size * Vector2.One);
-            spriteBatch.DrawString(courierNew13, text, new Vector2(x, y + dim.Y + 5), Color.GreenYellow);
+            liberationMono13.PreGenerateGlyphs(text, liberationMono13.Size * Vector2.One);
+            spriteBatch.DrawString(liberationMono13, text, new Vector2(x, y + dim.Y + 5), Color.GreenYellow);
 
             text = @"
 -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-Text using Courier New 13 fixed font
+Text using Liberation Mono 13 fixed font
 0123456789 - 0123456789 - 0123456789
 ABCDEFGHIJ - ABCDEFGHIJ - A1C3E5G7I9
 -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_";
 
-            courierNew13.PreGenerateGlyphs(text, courierNew13.Size * Vector2.One);
-            spriteBatch.DrawString(courierNew13, text, new Vector2(x, y + dim.Y + 8), Color.White);
+            liberationMono13.PreGenerateGlyphs(text, liberationMono13.Size * Vector2.One);
+            spriteBatch.DrawString(liberationMono13, text, new Vector2(x, y + dim.Y + 8), Color.White);
 
-            text = "Arial 13, font with with antialias.";
-            arial18.PreGenerateGlyphs(text, arial18.Size * Vector2.One);
-            spriteBatch.DrawString(arial18, text, new Vector2(x, y + 150), Color.White);
+            text = "Noto Sans 18, font with antialias.";
+            notoSans18.PreGenerateGlyphs(text, notoSans18.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans18, text, new Vector2(x, y + 150), Color.White);
 
-            text = "Microsoft Sans Serif 13, font with cleartype antialias.";
-            msSansSerif13.PreGenerateGlyphs(text, msSansSerif13.Size * Vector2.One);
-            spriteBatch.DrawString(msSansSerif13, text, new Vector2(x, y + 175), Color.White);
+            text = "Noto Sans 13, font with cleartype antialias.";
+            notoSans13.PreGenerateGlyphs(text, notoSans13.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans13, text, new Vector2(x, y + 175), Color.White);
 
-            text = "Font is in bold - Arial 20";
-            arial20Bold.PreGenerateGlyphs(text, arial20Bold.Size * Vector2.One);
-            spriteBatch.DrawString(arial20Bold, text, new Vector2(x, y + 190), Color.White);
+            text = "Font is in bold - Noto Sans Bold 20";
+            notoSansBold20.PreGenerateGlyphs(text, notoSansBold20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSansBold20, text, new Vector2(x, y + 190), Color.White);
 
-            text = "Bigger font\nCalibri 85";
+            text = "Bigger font\nNoto Sans 65";
             y = 240;
-            dim = calibri85.MeasureString(text);
+            dim = notoSans65.MeasureString(text);
             spriteBatch.Draw(whiteTexture, new Rectangle(x, y, (int) dim.X, (int) dim.Y), Color.Red);
-            calibri85.PreGenerateGlyphs(text, calibri85.Size * Vector2.One);
-            spriteBatch.DrawString(calibri85, text, new Vector2(x, y), Color.White);
+            notoSans65.PreGenerateGlyphs(text, notoSans65.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans65, text, new Vector2(x, y), Color.White);
 
             text = "Rendering test\nRotated On Center";
-            dim = arial20.MeasureString(text);
-            arial20.PreGenerateGlyphs(text, arial20.Size * Vector2.One);
-            spriteBatch.DrawString(arial20, text, new Vector2(600, 120), Color.White, -rotationAngle, new Vector2(dim.X / 2.0f, dim.Y / 2.0f), Vector2.One, SpriteEffects.None, 0.0f, TextAlignment.Left);
+            dim = notoSans20.MeasureString(text);
+            notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(600, 120), Color.White, -rotationAngle, new Vector2(dim.X / 2.0f, dim.Y / 2.0f), Vector2.One, SpriteEffects.None, 0.0f, TextAlignment.Left);
 
-            text = "Arial20 - ClearType\nAbc /\\Z Ghi SWy {}:;=&%@";
-            arial20ClearType.PreGenerateGlyphs(text, arial20ClearType.Size * Vector2.One);
-            spriteBatch.DrawString(arial20ClearType, text, new Vector2(470, 250), Color.White);
+            text = "NotoSans 20 - ClearType\nAbc /\\Z Ghi SWy {}:;=&%@";
+            notoSans20ClearType.PreGenerateGlyphs(text, notoSans20ClearType.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20ClearType, text, new Vector2(470, 250), Color.White);
 
-            text = "Abc /\\Z Ghi SWy {}:;=&%@\nArial20 - Standard";
-            arial20.PreGenerateGlyphs(text, arial20.Size * Vector2.One);
-            spriteBatch.DrawString(arial20, text, new Vector2(470, 300), Color.White);
+            text = "Abc /\\Z Ghi SWy {}:;=&%@\nNotoSans 20 - Standard";
+            notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(470, 300), Color.White);
 
-            text = "Arial20 simulate shadow";
-            arial20.PreGenerateGlyphs(text, arial20.Size * Vector2.One);
-            spriteBatch.DrawString(arial20, text, new Vector2(471, 391), Color.Red);
-            spriteBatch.DrawString(arial20, text, new Vector2(470, 390), Color.White);
+            text = "NotoSans 20 simulate shadow";
+            notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(471, 391), Color.Red);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(470, 390), Color.White);
 
-            text = "Arial20 scaled x1.5";
-            arial20.PreGenerateGlyphs(text, arial20.Size * Vector2.One);
-            spriteBatch.DrawString(arial20, text, new Vector2(470, 420), Color.White, 0.0f, Vector2.Zero, 1.5f * Vector2.One, SpriteEffects.None, 0.0f, TextAlignment.Left);
+            text = "NotoSans 20 scaled x1.5";
+            notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
+            spriteBatch.DrawString(notoSans20, text, new Vector2(470, 420), Color.White, 0.0f, Vector2.Zero, 1.5f * Vector2.One, SpriteEffects.None, 0.0f, TextAlignment.Left);
 
             spriteBatch.End();
         }

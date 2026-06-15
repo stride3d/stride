@@ -1,0 +1,240 @@
+name: Test macOS Game (Vulkan)
+
+run-name: >-
+  ${{ (github.event.inputs.commit-sha != '' && format('Test macOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
+      || (github.event.inputs.test-filter != '' && 'Test macOS Game (Vulkan)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj path to build/test (blank = whole GPU + Runtime solutions)'
+        type: string
+        default: ''
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
+      commit-sha:
+        default: ''
+        type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
+      upload-binlog:
+        default: false
+        type: boolean
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [test-macos-game]
+
+
+concurrency:
+  group: test-macos-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  macOS-Tests-Game:
+    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    # macos-26 ships Xcode 26.x; we select 26.5 below to match the .NET macOS 26.5 SDK pack's
+    # strict version check (same situation as test-ios-game.yml).
+    runs-on: macos-26
+    # macOS minutes bill 10× Linux on GitHub-hosted runners; keep timeouts tight.
+    timeout-minutes: 20
+    env:
+      STRIDE_MAX_PARALLELISM: "8"
+    steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          exclude: samples
+      - name: Install macOS Workload
+        # Single-project builds (gold-gen) dispatch all TFMs of referenced engine projects,
+        # including net10.0-macos; the slnf path never does, so this only bites project mode.
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: macos
+      - name: Select Xcode 26.5
+        # Default on macos-26 is 26.4.1; the .NET macOS 26.5 SDK pack needs exactly 26.5.
+        run: sudo xcode-select -s /Applications/Xcode_26.5.app
+      - name: Install Vulkan validation layer
+        # Stride loads the LunarG loader on macOS when present so the validation layer chain works;
+        # its DebugReport callback routes errors+warnings to GraphicsDevice.DebugLog, which
+        # GameTestBase turns into Assert.Fail. The layer's JSON ships a bare library_path, so the
+        # loader's dlopen needs DYLD_FALLBACK_LIBRARY_PATH to find the dylib in /opt/homebrew/lib.
+        # The MoltenVK ICD is pinned via VK_DRIVER_FILES set at module init from the bundled copy
+        # under runtimes/osx-arm64/native/, so we don't need brew's molten-vk.
+        run: |
+          brew install vulkan-validationlayers
+          echo "VK_LAYER_PATH=$(brew --prefix vulkan-validationlayers)/share/vulkan/explicit_layer.d" >> $GITHUB_ENV
+          echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib" >> $GITHUB_ENV
+          echo "MVK_CONFIG_LOG_LEVEL=3" >> $GITHUB_ENV
+      - name: Resolve build/test target
+        run: |
+          # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU + Runtime solutions.
+          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          echo "STRIDE_TEST_TARGET=${PROJ:-build/Stride.Tests.Game.GPU.slnf}" >> "$GITHUB_ENV"
+          echo "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}" >> "$GITHUB_ENV"
+      - name: Build GPU tests
+        run: |
+          dotnet build "$STRIDE_TEST_TARGET" \
+            -p:StrideTestRuntimeIdentifier=osx-arm64 \
+            -p:StrideSkipAutoPack=true \
+            -nr:false \
+            ${{ inputs.upload-binlog && '-bl:build-gpu.binlog' || '' }} \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=macOS \
+            -p:StrideGraphicsApis=Vulkan
+      - name: Build non-GPU game tests
+        if: ${{ (github.event.inputs.project || inputs.project) == '' }}
+        run: |
+          dotnet build build/Stride.Tests.Game.Runtime.slnf \
+            -p:StrideTestRuntimeIdentifier=osx-arm64 \
+            -p:StrideSkipAutoPack=true \
+            -nr:false \
+            ${{ inputs.upload-binlog && '-bl:build-runtime.binlog' || '' }} \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=macOS \
+            -p:StrideGraphicsApis=Vulkan
+      - name: Upload build binlogs
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-macos-game
+          path: build-*.binlog
+          if-no-files-found: ignore
+      - name: Test GPU
+        if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          # net10.0-macos suites build a .app and need its host (the Microsoft.macOS ObjC
+          # bridge is only initialized there); the next step runs them. Exclude from vstest.
+          EXCLUDE=""
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            EXCLUDE="$EXCLUDE${EXCLUDE:+ & }FullyQualifiedName!~$(basename "$app" .app)"
+          done
+          FILTER=""
+          if [ -n "$STRIDE_TEST_FILTER" ] && [ -n "$EXCLUDE" ]; then FILTER="($STRIDE_TEST_FILTER) & $EXCLUDE"
+          elif [ -n "$STRIDE_TEST_FILTER" ]; then FILTER="$STRIDE_TEST_FILTER"
+          else FILTER="$EXCLUDE"; fi
+          FILTER_ARG=()
+          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          dotnet test "$STRIDE_TEST_TARGET" \
+            --no-build \
+            --logger:trx --results-directory TestResults \
+            --blame-hang-timeout 5m --blame-hang-dump-type full \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StrideGraphicsApis=Vulkan \
+            "${FILTER_ARG[@]}" \
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Test .app-hosted suites
+        if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          worst=0
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            suite=$(basename "$app" .app)
+            echo "::group::Run $suite (.app)"
+            args=(--xunit-command run --xunit-exit-on-complete true)
+            if [ -n "$STRIDE_TEST_FILTER" ]; then args+=(--xunit-filter "$STRIDE_TEST_FILTER"); fi
+            "$app/Contents/MacOS/$suite" "${args[@]}" || worst=$?
+            # The binary's exit code doesn't reflect test failures; parse the TRX like the
+            # Android/iOS drivers do.
+            trx="$app/Contents/MonoBundle/TestResults/$suite.trx"
+            if [ -f "$trx" ]; then
+              cp "$trx" TestResults/
+              failed=$(grep -o 'outcome="Failed"' "$trx" | wc -l)
+              if [ "$failed" -gt 0 ]; then echo "::error::$suite: $failed failed test(s)"; worst=1; fi
+            else
+              echo "::error::$suite: no TRX produced"; worst=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $worst
+      - name: Test non-GPU
+        if: ${{ !cancelled() && (github.event.inputs.project || inputs.project) == '' }}
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        run: |
+          CONFIG="${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          # Same .app-hosted exclusion as Test GPU (Audio.Tests is in both slnfs).
+          EXCLUDE=""
+          for app in bin/Tests/*/macOS-Vulkan/$CONFIG/*.app; do
+            [ -e "$app" ] || continue
+            EXCLUDE="$EXCLUDE${EXCLUDE:+ & }FullyQualifiedName!~$(basename "$app" .app)"
+          done
+          FILTER_ARG=()
+          if [ -n "$EXCLUDE" ]; then FILTER_ARG=(--filter "$EXCLUDE"); fi
+          dotnet test build/Stride.Tests.Game.Runtime.slnf \
+            --no-build \
+            --logger:trx --results-directory TestResults \
+            --blame-hang-timeout 5m --blame-hang-dump-type full \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StrideGraphicsApis=Vulkan \
+            "${FILTER_ARG[@]}" \
+            -- RunConfiguration.MaxCpuCount=1
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Test Report: macOS Game (Vulkan)'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+          # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
+          # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-macos-vulkan
+          path: TestResults/
+          if-no-files-found: ignore
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-macos-vulkan
+          path: tests/local/
+          if-no-files-found: ignore

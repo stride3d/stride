@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Stride.Core.Diagnostics;
 
@@ -25,10 +26,11 @@ namespace Stride.Media
         private TimeSpan syncUpWaitingTime = TimeSpan.Zero;
         private readonly TimeSpan defaultSyncUpWaitingTime = TimeSpan.FromSeconds(2);  //Max time we wait while the media extractors gets ready to play
 
-        private TimeSpan userStateSeekTimeRequest;
         private TimeSpan timeToWaitBeforeCheckingForTerminationConditions;
 
-        private CommandRequestStateEnum commandStateRequest = CommandRequestStateEnum.Undefined;
+        // Queued rather than last-write-wins: several commands can be issued within a single
+        // frame (e.g. Seek immediately followed by Pause) and none of them may be dropped.
+        private readonly ConcurrentQueue<(CommandRequestStateEnum Command, TimeSpan SeekTarget)> commandRequests = new();
 
         private List<IMediaExtractor> mediaExtractors = new List<IMediaExtractor>();
         private List<IMediaPlayer> mediaPlayers = new List<IMediaPlayer>();
@@ -50,7 +52,6 @@ namespace Stride.Media
             Pause,
             Stop,
             Seek,
-            Undefined,
         }
 
         public float SpeedFactor
@@ -95,12 +96,12 @@ namespace Stride.Media
         public void Play()
         {
             ReachedEndOfStream = false;
-            commandStateRequest = CommandRequestStateEnum.Play;
+            commandRequests.Enqueue((CommandRequestStateEnum.Play, TimeSpan.Zero));
         }
 
         public void Pause()
         {
-            commandStateRequest = CommandRequestStateEnum.Pause;
+            commandRequests.Enqueue((CommandRequestStateEnum.Pause, TimeSpan.Zero));
         }
 
         //seek value between [0, 1]
@@ -111,13 +112,12 @@ namespace Stride.Media
 
         public void Seek(TimeSpan seekTime)
         {
-            commandStateRequest = CommandRequestStateEnum.Seek;
-            userStateSeekTimeRequest = seekTime;
+            commandRequests.Enqueue((CommandRequestStateEnum.Seek, seekTime));
         }
 
         public void Stop()
         {
-            commandStateRequest = CommandRequestStateEnum.Stop;
+            commandRequests.Enqueue((CommandRequestStateEnum.Stop, TimeSpan.Zero));
         }
 
         public void RegisterExtractor(IMediaExtractor extractor)
@@ -285,31 +285,30 @@ namespace Stride.Media
                 }
             }
 
-            //Process the user request
-            switch (commandStateRequest)
+            //Process the user requests
+            while (commandRequests.TryDequeue(out var request))
             {
-                case CommandRequestStateEnum.Play:
-                    State = PlayState.Playing;
-                    ForEachSafe(mediaPlayers, player => player.Play());
-                    break;
+                switch (request.Command)
+                {
+                    case CommandRequestStateEnum.Play:
+                        State = PlayState.Playing;
+                        ForEachSafe(mediaPlayers, player => player.Play());
+                        break;
 
-                case CommandRequestStateEnum.Pause:
-                    State = PlayState.Paused;
-                    ForEachSafe(mediaPlayers, p => p.Pause());
-                    break;
+                    case CommandRequestStateEnum.Pause:
+                        State = PlayState.Paused;
+                        ForEachSafe(mediaPlayers, p => p.Pause());
+                        break;
 
-                case CommandRequestStateEnum.Stop:
-                    StopInternal();
-                    break;
+                    case CommandRequestStateEnum.Stop:
+                        StopInternal();
+                        break;
 
-                case CommandRequestStateEnum.Seek:
-                    SeekInternal(userStateSeekTimeRequest);
-                    break;
-
-                case CommandRequestStateEnum.Undefined:
-                    break;
+                    case CommandRequestStateEnum.Seek:
+                        SeekInternal(request.SeekTarget);
+                        break;
+                }
             }
-            commandStateRequest = CommandRequestStateEnum.Undefined;
 
             //Check if the medias have reached their EOF
             if (timeToWaitBeforeCheckingForTerminationConditions > TimeSpan.Zero)

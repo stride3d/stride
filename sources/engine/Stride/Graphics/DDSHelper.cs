@@ -984,7 +984,7 @@ namespace Stride.Graphics
         /// <param name="size"></param>
         /// <param name="handle"></param>
         /// <returns></returns>
-        public static unsafe Image LoadFromDDSMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static unsafe Image LoadFromDDSMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle, AlphaLoadMode alphaLoadMode)
         {
             var flags = makeACopy ? DDSFlags.CopyMemory : DDSFlags.None;
 
@@ -993,6 +993,11 @@ namespace Stride.Graphics
             // If the memory pointed is not a DDS memory, return null.
             if (!DecodeDDSHeader(pSource, size, flags, out mdata, out convFlags))
                 return null;
+
+            // DDS has no portable premul-state flag for plain BGRA/RGBA payloads (DX10 AlphaLoadMode is
+            // only present in the HeaderDXT10 extension), so we can't safely convert blindly.
+            if (alphaLoadMode != AlphaLoadMode.Preserve)
+                throw new NotSupportedException($"AlphaLoadMode.{alphaLoadMode} not supported for DDS (source premultiplied-state cannot be reliably determined).");
 
             int offset = sizeof (uint) + Unsafe.SizeOf<DDS.Header>();
             if ((convFlags & ConversionFlags.DX10) != 0)

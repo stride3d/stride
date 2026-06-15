@@ -1,23 +1,12 @@
 name: Build iOS Runtime
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Build iOS Runtime — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Build iOS Runtime @ {0}', github.event.inputs.commit-sha))
+      || '' }}
+
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-ios.yml'
-      - 'build/Stride.iOS.slnf'
-      - 'deps/**'
-      - 'sources/core/**'
-      - 'sources/engine/**'
-      - 'sources/native/**'
-      - 'sources/shaders/**'
-      - 'sources/shared/**'
-      - 'sources/sdk/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -32,9 +21,12 @@ on:
       build-type:
         default: Debug
         type: string
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
+    types: [build-ios]
 
 concurrency:
-  group: build-ios-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: build-ios-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -42,23 +34,25 @@ jobs:
   # Build Stride Runtime for iOS
   #
   iOS-Runtime:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          exclude: samples
       - name: Install .NET iOS Workload
-        run: dotnet workload install ios
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios
       - name: Build
         run: |
           dotnet build build\Stride.iOS.slnf `
-            -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
+            -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=iOS `

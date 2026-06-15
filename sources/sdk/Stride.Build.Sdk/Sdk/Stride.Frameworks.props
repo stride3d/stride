@@ -11,4 +11,16 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
+  <!-- StrideTargetFramework collapses any platform-version suffix on TargetFramework down to
+       the family constant: net10.0-windows10.0.19041.0 → net10.0-windows. SDK conditions
+       compare against this so a project can opt into a versioned OS moniker (e.g. for
+       WinRT projection access) without breaking platform/dependency setup. -->
+  <PropertyGroup>
+    <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+  </PropertyGroup>
+
 </Project>

@@ -8,7 +8,7 @@ using Sdl = SDL3.SDL;
 
 namespace Stride.Graphics
 {
-    public static unsafe class VulkanDisplayHelper
+    public static class VulkanDisplayHelper
     {
         private readonly ref struct EnumerationContext
         {

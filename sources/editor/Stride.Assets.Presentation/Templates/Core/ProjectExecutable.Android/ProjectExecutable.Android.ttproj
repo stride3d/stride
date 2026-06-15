@@ -1,8 +1,0 @@
-!ProjectTemplate
-Files:
-  - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
-  - {Source: $PackageGameNameShort$Activity.cs.t4, Target: $PackageGameNameShort$Activity.cs, IsTemplate: true}
-  - {Source: AndroidManifest.xml.t4, Target: AndroidManifest.xml, IsTemplate: true}
-  - {Source: Resources\mipmap-mdpi\gameicon.png, Target: Resources\mipmap-mdpi\gameicon.png }
-  - {Source: Resources\layout\activity_main.xml, Target: Resources\layout\activity_main.xml }
-  - {Source: Resources\values\strings.xml.t4, Target: Resources\values\strings.xml, IsTemplate: true }

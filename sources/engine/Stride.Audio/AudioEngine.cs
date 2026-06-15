@@ -221,6 +221,11 @@ namespace Stride.Audio
             foreach (var soundBase in notDisposedSoundsArray)
                 soundBase.Dispose();
 
+            // Drain the DynamicSoundSource worker before tearing down the native device:
+            // it's a static, long-running task that keeps calling AudioLayer.Source* on any
+            // source it still holds and would dereference freed native memory otherwise.
+            DynamicSoundSource.ShutdownWorker();
+
             DestroyAudioEngine();
 
             State = AudioEngineState.Disposed;

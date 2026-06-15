@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Assets.Compiler;
@@ -14,7 +15,7 @@ public class AssetCompilerAttribute : DynamicTypeAttributeBase
 {
     public Type CompilationContext { get; private set; }
 
-    public AssetCompilerAttribute(Type type, Type compilationContextType)
+    public AssetCompilerAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, Type compilationContextType)
         : base(type)
     {
         CompilationContext = compilationContextType;

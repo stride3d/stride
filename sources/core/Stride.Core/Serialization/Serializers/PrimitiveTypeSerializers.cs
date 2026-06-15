@@ -263,8 +263,9 @@ public unsafe class EnumSerializer<T> : DataSerializer<T> where T : struct
 
     public override void Initialize(SerializerSelector serializerSelector)
     {
-        // Use Marshal SizeOf to avoid AOT issues on iOS
-        enumSize = Marshal.SizeOf(Enum.GetUnderlyingType(typeof(T)));
+        // Unsafe.SizeOf<T> is a compile-time intrinsic, so it needs no reflection or interop
+        // marshalling metadata and works under NativeAOT.
+        enumSize = Unsafe.SizeOf<T>();
     }
 
     /// <inheritdoc/>

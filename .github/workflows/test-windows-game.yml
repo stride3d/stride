@@ -1,5 +1,12 @@
 name: Test Windows (Game)
 
+run-name: >-
+  ${{ github.event.client_payload.pr_number
+      && format('Test Windows (Game) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
+      || (github.event.inputs.commit-sha != '' && format('Test Windows (Game) @ {0}', github.event.inputs.commit-sha))
+      || (github.event.inputs.test-filter != '' && 'Test Windows (Game)')
+      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,110 +26,102 @@ on:
           - Direct3D11
           - Direct3D12
           - Vulkan
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj path to build/test (blank = whole GPU solution filter)'
+        type: string
+        default: ''
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
-
-permissions:
-  checks: write
-  contents: read
+      graphics-api:
+        default: ''
+        type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
+      commit-sha:
+        default: ''
+        type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
+      upload-binlog:
+        default: false
+        type: boolean
+  repository_dispatch:
+    # Fired by chatops bot. Payload: { pr_number, graphics-api, dispatched_by }.
+    types: [test-windows-game]
 
 
 concurrency:
-  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-windows-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
   cancel-in-progress: true
 
 jobs:
   #
-  # Game tests - API-independent projects (run once)
-  #
-  Game-Common:
-    name: Test Game Common (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: windows-2025-vs2026
-    env:
-      STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
-      STRIDE_TESTS_RENDERDOC: "error"
-      STRIDE_MAX_PARALLELISM: "8"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-      - name: Disable WER dialogs
-        run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
-      - name: Build
-        run: |
-          dotnet build build\Stride.Tests.Game.slnf `
-            -p:StrideTestRuntimeIdentifier=win-x64 `
-            -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
-            -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
-      - name: Test
-        run: |
-          dotnet test build\Stride.Tests.Game.slnf `
-            --no-build `
-            --logger:trx --results-directory TestResults `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
-      - name: Publish Test Report
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: 'Test Report: Windows Game Common'
-          path: TestResults/*.trx
-          reporter: dotnet-trx
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload test artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts-game-common
-          path: tests/local/
-          if-no-files-found: ignore
-
-  #
-  # Game tests - Graphics API-dependent projects (run per API)
+  # Game tests - Graphics API-dependent projects (run per API).
+  # API-independent tests live in test-windows-game-api-neutral.yml so they run once.
   #
   Game-GraphicsApi:
     name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: ${{ github.event.inputs.graphics-api != '' && fromJson(format('["{0}"]', github.event.inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
+        graphics-api: ${{ (github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api) != '' && fromJson(format('["{0}"]', github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
-      # Crash dump collection (covers 3 crash types):
+      # Crash dump collection (covers 3 crash types) — all dumps land under TestResults/
+      # alongside the .trx logs and the blame-hang dumps from `dotnet test`.
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
-      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\crash-dumps"            # Shared dump directory for all crash types
+      STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\TestResults"            # Shared dump directory for all crash types
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
-      DOTNET_DbgMiniDumpType: "1"                                                    # MiniDumpNormal
-      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"  # Type 2: dump path
+      DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
     steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
         with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
         with:
-          dotnet-version: '10.0.x'
+          # commit-sha (workflow_dispatch/_call input) wins for explicit bisecting. Otherwise
+          # chatops dispatch passes a PR number; check out its merge ref so we test the
+          # post-merge state (works uniformly for same-repo and fork PRs).
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          exclude: samples
       - name: Configure crash dumps
         shell: pwsh
         run: |
           # WER DontShowUI: suppress dialogs without disabling dump generation
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
           # WER LocalDumps: capture native crashes (type 3)
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          $dumpDir = "${{ github.workspace }}\TestResults"
           New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
       - name: Install Vulkan SDK
         if: matrix.graphics-api == 'Vulkan'
@@ -132,60 +131,86 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: true
-      - name: Register SwiftShader ICD
+      - name: Register Lavapipe ICD
         if: matrix.graphics-api == 'Vulkan'
         shell: pwsh
         run: |
-          # Restore with StrideGraphicsApi=Vulkan so the conditional SwiftShader PackageReference is evaluated
-          # (Stride's custom multi-build targets don't run during restore)
+          # CompilerApp needs a Vulkan device at build time (Skybox asset compilation).
+          # Runtime tests are served by the Lavapipe module initializer; this step is
+          # only for the pre-runtime CompilerApp invocation, so we register an ICD here.
+          # Restore first so the package is in the NuGet cache.
           dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
-          # Find SwiftShader DLL in NuGet cache and register an ICD before build
-          # (CompilerApp needs SwiftShader at build time for Skybox asset compilation)
-          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.swiftshader" -Filter vk_swiftshader.dll -ErrorAction SilentlyContinue | Select-Object -First 1
+          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter vulkan_lvp.dll -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
           if ($dll) {
-            $icdPath = Join-Path $dll.DirectoryName "vk_swiftshader_icd.json"
+            $icdPath = Join-Path $dll.DirectoryName "lvp_icd.json"
             $dllPath = $dll.FullName -replace '\\', '\\\\'
-            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.0.5`"}}"
+            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.3.0`"}}"
             New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
             New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered SwiftShader ICD: $icdPath"
+            Write-Host "Registered Lavapipe ICD: $icdPath"
           } else {
-            Write-Warning "SwiftShader DLL not found in NuGet cache"
+            Write-Warning "Lavapipe DLL not found in NuGet cache"
           }
+      - name: Resolve build/test target
+        shell: pwsh
+        run: |
+          # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU solution filter.
+          $proj = "${{ github.event.inputs.project || inputs.project }}"
+          $target = if ($proj) { $proj } else { 'build\Stride.Tests.Game.GPU.slnf' }
+          Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
+          Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
       - name: Build
         run: |
-          dotnet build build\Stride.Tests.Game.GPU.slnf `
+          dotnet build $env:STRIDE_TEST_TARGET `
             -p:StrideTestRuntimeIdentifier=win-x64 `
-            -p:StrideNativeBuildMode=Clang `
-            -m:1 -nr:false `
+            -p:StrideSkipAutoPack=true `
+            -nr:false `
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-game-${{ matrix.graphics-api }}
+          path: build.binlog
+          if-no-files-found: ignore
       - name: Test
+        if: success() || failure()
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
-          dotnet test build\Stride.Tests.Game.GPU.slnf `
+          $filterArgs = if ($env:STRIDE_TEST_FILTER) { @('--filter', $env:STRIDE_TEST_FILTER) } else { @() }
+          dotnet test $env:STRIDE_TEST_TARGET `
             --no-build `
             --logger:trx --results-directory TestResults `
+            --blame-hang-timeout 5m --blame-hang-dump-type full `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+            @filterArgs `
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: phoenix-actions/test-reporting@v15
         with:
           name: 'Test Report: Windows Game ${{ matrix.graphics-api }}'
           path: TestResults/*.trx
           reporter: dotnet-trx
-          token: ${{ secrets.GITHUB_TOKEN }}
+          output-to: step-summary
+          list-tests: 'failed'
+          # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
+          # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh
         run: |
-          $dumpDir = "${{ github.workspace }}\crash-dumps"
-          if (Get-ChildItem $dumpDir -Filter *.dmp -ErrorAction SilentlyContinue) {
+          $dumpDir = "${{ github.workspace }}\TestResults"
+          if (Get-ChildItem $dumpDir -Recurse -Filter *.dmp -ErrorAction SilentlyContinue) {
             $symDir = Join-Path $dumpDir "symbols"
             New-Item -Path $symDir -ItemType Directory -Force | Out-Null
             Get-ChildItem bin -Recurse -Include *.pdb,*.dll,*.exe | Copy-Item -Destination $symDir
@@ -198,10 +223,10 @@ jobs:
           name: test-artifacts-game-${{ matrix.graphics-api }}
           path: tests/local/
           if-no-files-found: ignore
-      - name: Upload crash dumps
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crash-dumps-game-${{ matrix.graphics-api }}
-          path: crash-dumps/
+          name: test-results-game-${{ matrix.graphics-api }}
+          path: TestResults/
           if-no-files-found: ignore

@@ -79,6 +79,7 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
             return false;
         }
 
+        Simulation.Characters.TryReportContacts(pair, ref manifold, workerIndex, ref pairMaterial);
         return true;
     }
 

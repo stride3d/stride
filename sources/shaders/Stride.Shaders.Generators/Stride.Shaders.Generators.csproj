@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<RootNamespace>Stride.Shaders.Generators</RootNamespace>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Forward referenced runtime deps to consumers as analyzer-set DLLs. -->
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackGeneratorAnalyzerFiles</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
+	</ItemGroup>
+
+	<Target Name="GetDependencyTargetPaths" DependsOnTargets="ResolveReferences">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
+			                                     Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native'"
+			                                     IncludeRuntimeDependency="false" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="_PackGeneratorAnalyzerFiles">
+		<ItemGroup>
+			<TfmSpecificPackageFile Include="$(OutputPath)*.dll"
+			                        Exclude="$(OutputPath)Microsoft.CodeAnalysis*.dll"
+			                        PackagePath="analyzers/dotnet/cs" />
+		</ItemGroup>
+	</Target>
+
+</Project>

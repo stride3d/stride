@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Serialization.Contents;
 
 /// <summary>
@@ -13,7 +15,7 @@ public class ContentSerializerAttribute : Attribute
     /// Initializes a new instance of the <see cref="ContentSerializerAttribute"/> class.
     /// </summary>
     /// <param name="contentSerializerType">Type of the content serializer.</param>
-    public ContentSerializerAttribute(Type contentSerializerType)
+    public ContentSerializerAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type contentSerializerType)
     {
         ContentSerializerType = contentSerializerType;
     }
@@ -31,5 +33,6 @@ public class ContentSerializerAttribute : Attribute
     /// <value>
     /// The type of the content serializer.
     /// </value>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
     public Type? ContentSerializerType { get; }
 }

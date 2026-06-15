@@ -34,6 +34,7 @@
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="SSH.NET" />
     <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net10'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
@@ -72,6 +73,25 @@
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
+    <!-- Build-time triggers so the three Stride.Templates.* nupkgs are kept up-to-date alongside
+         GameStudio. DotNetNewTemplateBridge resolves them at startup via PackageStore; without
+         these refs the packages can drift to a different version suffix and the bridge silently
+         drops their templates from the New-Project dialog. -->
+    <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">

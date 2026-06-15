@@ -64,17 +64,78 @@
              AssemblyFile="$(StrideAssemblyProcessorTempPath)"
              Condition="'$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true'" />
 
+  <!-- Parallel-safe copy: serializes concurrent MSBuild workers populating the same content-hash
+       temp dir. A FileShare.None lock file gates the writer; a sentinel marker lets latecomers
+       skip without taking the lock. Avoids races where one worker overwrites a DLL another
+       worker has already loaded via UsingTask. -->
+  <UsingTask TaskName="StrideEnsureFilesCopied"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourceFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <DestinationFolder Required="true" />
+      <MarkerFile Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (System.IO.File.Exists(MarkerFile)) return true;
+        System.IO.Directory.CreateDirectory(DestinationFolder);
+        var lockFile = MarkerFile + ".lock";
+        var deadline = System.DateTime.UtcNow.AddMinutes(2);
+        while (!System.IO.File.Exists(MarkerFile))
+        {
+            try
+            {
+                using (new System.IO.FileStream(lockFile, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.Write, System.IO.FileShare.None))
+                {
+                    if (!System.IO.File.Exists(MarkerFile))
+                    {
+                        foreach (var item in SourceFiles)
+                        {
+                            var src = item.ItemSpec;
+                            var dest = System.IO.Path.Combine(DestinationFolder, System.IO.Path.GetFileName(src));
+                            if (!System.IO.File.Exists(dest))
+                                System.IO.File.Copy(src, dest, overwrite: false);
+                        }
+                        System.IO.File.WriteAllText(MarkerFile, "");
+                    }
+                }
+                break;
+            }
+            catch (System.IO.IOException)
+            {
+                if (System.DateTime.UtcNow > deadline)
+                    throw;
+                System.Threading.Thread.Sleep(50);
+            }
+        }
+        return true;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
   <!-- ================================================================ -->
   <!-- Main Assembly Processor Target -->
   <!-- ================================================================ -->
   <!-- Uses BeforeTargets="CopyFilesToOutputDirectory" to run after compilation
        but before output copy. This matches the old build system and avoids
        import-order issues with PrepareForRunDependsOn (which gets overwritten
-       by Microsoft.NET.Sdk Sdk.targets when imported after this file). -->
+       by Microsoft.NET.Sdk Sdk.targets when imported after this file).
+
+       Skipped in the Android SDK's per-RID inner builds (Microsoft.Android.Sdk dispatches
+       one of these per Android RID when RuntimeIdentifiers isn't pinned), which run with
+       SkipCompilerExecution=true so CoreCompile is a no-op. The AP then races against the
+       outer build that actually produced obj\<TFM>\<Assembly>.dll, with the AP often hitting
+       FileNotFoundException because the outer build's writeback hasn't landed yet — and the
+       error is swallowed (build returns success), silently breaking downstream Java-stub /
+       activation-ctor injection for the test APK. Stride.Core.Assets.CompilerApp.targets
+       uses the same gate via StrideCompilerSkipAndroidInnerBuild. -->
   <Target Name="StrideRunAssemblyProcessor"
           BeforeTargets="CopyFilesToOutputDirectory"
           DependsOnTargets="ResolveAssemblyReferences"
-          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != ''">
+          Inputs="$(IntermediateOutputPath)$(TargetName)$(TargetExt);@(ReferencePath);$(StrideAssemblyProcessorPath)"
+          Outputs="$(IntermediateOutputPath)$(TargetName).asmproc.marker"
+          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
 
     <!-- Step 1: Write references to cache file -->
     <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache"
@@ -109,8 +170,13 @@
       <!-- References file (all references) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
 
-      <!-- Platform -->
-      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform)</StrideAssemblyProcessorOptions>
+      <!-- Platform — Game is a test-SDK build-time TFM identity (host-loadable library shadow
+           for the asset compiler), not a runtime platform; AssemblyProcessor's PlatformType enum
+           doesn't know it. Map to Shared, which is the right answer for an asset-compiler-only
+           library that runs no platform-specific code paths. -->
+      <_StrideAssemblyProcessorPlatform>$(StridePlatform)</_StrideAssemblyProcessorPlatform>
+      <_StrideAssemblyProcessorPlatform Condition="'$(StridePlatform)' == 'Game'">Shared</_StrideAssemblyProcessorPlatform>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(_StrideAssemblyProcessorPlatform)</StrideAssemblyProcessorOptions>
 
       <!-- Target assembly (last positional argument) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
@@ -119,13 +185,14 @@
       <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
-    <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking) -->
+    <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking).
+         Parallel-safe via cross-process file lock + sentinel marker. -->
     <ItemGroup>
-      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
+      <_StrideAssemblyProcessorFiles Include="$(StrideAssemblyProcessorBasePath)*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)"
-          DestinationFolder="$(StrideAssemblyProcessorTempBasePath)"
-          Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
+    <StrideEnsureFilesCopied SourceFiles="@(_StrideAssemblyProcessorFiles)"
+                             DestinationFolder="$(StrideAssemblyProcessorTempBasePath)"
+                             MarkerFile="$(StrideAssemblyProcessorTempBasePath).copy-complete" />
 
     <!-- Step 5: Execute processor -->
     <Message Condition="'$(StrideAssemblyProcessorDev)' != 'true'"
@@ -144,6 +211,9 @@
     <ItemGroup>
       <StrideAddReference Remove="@(StrideAddReference)" />
     </ItemGroup>
+
+    <!-- Touch marker so MSBuild's incremental check skips on next build when nothing changed. -->
+    <Touch Files="$(IntermediateOutputPath)$(TargetName).asmproc.marker" AlwaysCreate="true" />
   </Target>
 
   <!-- ================================================================ -->

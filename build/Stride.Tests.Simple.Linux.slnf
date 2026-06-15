@@ -11,7 +11,8 @@
       "..\\sources\\core\\Stride.Core.Tests\\Stride.Core.Tests.csproj",
       "..\\sources\\core\\Stride.Core.Yaml.Tests\\Stride.Core.Yaml.Tests.csproj",
       "..\\sources\\presentation\\Stride.Core.Presentation.Quantum.Tests\\Stride.Core.Presentation.Quantum.Tests.csproj",
-      "..\\sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj"
+      "..\\sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj",
+      "..\\sources\\tools\\Stride.Templates.Tests\\Stride.Templates.Tests.csproj"
     ]
   }
 }

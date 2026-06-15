@@ -43,8 +43,9 @@
     <None Include="OculusOVR\OculusOVR.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenXR" />
-    <PackageReference Include="Silk.NET.OpenXR.Extensions.FB" />
+    <PackageReference Include="Silk.NET.OpenXR" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.OpenXR.Extensions.FB" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

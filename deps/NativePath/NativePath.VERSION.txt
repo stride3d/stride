@@ -1,0 +1,7 @@
+NativePath master
+Repository: https://github.com/stride3d/NativePath
+Commit: 78b3809bc537290659bf1f631ab66f436ab0c429
+
+Stride: https://github.com/xen2/stride @ 4185454c91b5ea920d39c38b281be19888010cca
+Built: 2026-05-26
+Workflow: https://github.com/xen2/stride/actions/runs/26428312107

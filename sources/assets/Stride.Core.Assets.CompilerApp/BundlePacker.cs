@@ -140,8 +140,7 @@ namespace Stride.Core.Assets.CompilerApp
                         // IndexMap
                         foreach (var asset in dep.DependencyIndexMap.Concat(dep.IndexMap))
                         {
-                            if (!bundle.DependencyIndexMap.ContainsKey(asset.Key))
-                                bundle.DependencyIndexMap.Add(asset.Key, asset.Value);
+                            bundle.DependencyIndexMap.TryAdd(asset.Key, asset.Value);
                         }
                     }
 

@@ -12,7 +12,7 @@ namespace Stride.Graphics.Tests
 {
     public class TestSpriteFontAlignment : GraphicTestGameBase
     {
-        private SpriteFont arial;
+        private SpriteFont notoSans;
 
         private SpriteBatch spriteBatch;
         private Texture colorTexture;
@@ -48,7 +48,7 @@ One blank line below
         {
             await base.LoadContent();
 
-            arial = Content.Load<SpriteFont>(AssetPrefix + "Arial18");
+            notoSans = Content.Load<SpriteFont>(AssetPrefix + "NotoSans18");
 
             colorTexture = Texture.New2D(GraphicsDevice, 1, 1, PixelFormat.R8G8B8A8_UNorm, new[] { Color.White });
 
@@ -73,34 +73,34 @@ One blank line below
             // Render the text
             spriteBatch.Begin(GraphicsContext);
 
-            var dim1 = arial.MeasureString(Text1);
-            var dim2 = arial.MeasureString(Text2);
+            var dim1 = notoSans.MeasureString(Text1);
+            var dim2 = notoSans.MeasureString(Text2);
 
             var x = 20;
             var y = 10;
-            var title = "Arial Left aligned";
-            spriteBatch.DrawString(arial, title, new Vector2(x, y), Color.Red);
+            var title = "NotoSans Left aligned";
+            spriteBatch.DrawString(notoSans, title, new Vector2(x, y), Color.Red);
             spriteBatch.Draw(colorTexture, new Rectangle(x, y + 20, (int)dim1.X, (int)dim1.Y), Color.LightGreen);
-            spriteBatch.DrawString(arial, Text1, new Vector2(x, y + 20), Color.Black);
+            spriteBatch.DrawString(notoSans, Text1, new Vector2(x, y + 20), Color.Black);
 
             x = 270;
-            title = "Arial center aligned";
-            spriteBatch.DrawString(arial, title, new Vector2(x, y), Color.Red);
+            title = "NotoSans center aligned";
+            spriteBatch.DrawString(notoSans, title, new Vector2(x, y), Color.Red);
             spriteBatch.Draw(colorTexture, new Rectangle(x, y + 20, (int)dim1.X, (int)dim1.Y), Color.LightGreen);
-            spriteBatch.DrawString(arial, Text1, new Vector2(x, y + 20), Color.Black, TextAlignment.Center);
+            spriteBatch.DrawString(notoSans, Text1, new Vector2(x, y + 20), Color.Black, TextAlignment.Center);
 
             x = 520;
-            title = "Arial right aligned";
-            spriteBatch.DrawString(arial, title, new Vector2(x, y), Color.Red);
+            title = "NotoSans right aligned";
+            spriteBatch.DrawString(notoSans, title, new Vector2(x, y), Color.Red);
             spriteBatch.Draw(colorTexture, new Rectangle(x, y + 20, (int)dim1.X, (int)dim1.Y), Color.LightGreen);
-            spriteBatch.DrawString(arial, Text1, new Vector2(x, y + 20), Color.Black, TextAlignment.Right);
+            spriteBatch.DrawString(notoSans, Text1, new Vector2(x, y + 20), Color.Black, TextAlignment.Right);
 
             x = 20;
             y = 250;
             title = "Test on blank lines";
-            spriteBatch.DrawString(arial, title, new Vector2(x, y), Color.Red);
+            spriteBatch.DrawString(notoSans, title, new Vector2(x, y), Color.Red);
             spriteBatch.Draw(colorTexture, new Rectangle(x, y + 20, (int)dim2.X, (int)dim2.Y), Color.LightGreen);
-            spriteBatch.DrawString(arial, Text2, new Vector2(x, y + 20), Color.Black, TextAlignment.Center);
+            spriteBatch.DrawString(notoSans, Text2, new Vector2(x, y + 20), Color.Black, TextAlignment.Center);
 
             spriteBatch.End();
         }

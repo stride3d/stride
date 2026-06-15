@@ -1,0 +1,17 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StrideBuildTags>*</StrideBuildTags>
+  </PropertyGroup>
+  <!-- Generated/ is checked in. Regenerate via Stride.Shaders.Spirv.Generators (F5 / dotnet run)
+       after bumping SpirvHeadersRef / SpirvRegistryRef in that project's Program.cs. -->
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.HighPerformance" PrivateAssets="compile" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

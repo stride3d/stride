@@ -102,25 +102,32 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Start the generation of the specified character's bitmap.
         /// </summary>
-        /// <remarks>Does nothing if the bitmap already exist or if the generation is currently running.</remarks>
+        /// <remarks>Does nothing if the bitmap already exists or its generation is already pending.</remarks>
         /// <param name="characterSpecification">The character we want the bitmap of</param>
         /// <param name="synchronously">Indicate if the generation of the bitmap must by done synchronously or asynchronously</param>
         public void GenerateBitmap(CharacterSpecification characterSpecification, bool synchronously)
         {
-            // generate the glyph info (and the bitmap if required) synchronously
-            GenerateCharacterGlyph(characterSpecification, synchronously);
-
-            // add the bitmap rendering job to a request queue if rendering is asynchronous
-            if (!synchronously)
+            // Synchronous: render glyph info and bitmap immediately on the calling thread.
+            if (synchronously)
             {
-                lock (dataStructuresLock)
-                {
-                    if (characterSpecification.Bitmap == null && !bitmapsToGenerate.Contains(characterSpecification))
-                    {
-                        bitmapsToGenerate.Enqueue(characterSpecification);
-                        bitmapBuildSignal.Set();
-                    }
-                }
+                GenerateCharacterGlyph(characterSpecification, true);
+                return;
+            }
+
+            // Asynchronous: queue the glyph for the builder thread exactly once. GenerateCharacterGlyph
+            // (which calls ResetGlyph) must run only on the first request and before the enqueue: a
+            // re-request would otherwise zero Glyph.Offset concurrently with the builder thread writing
+            // it, leaving the glyph stuck at Offset.Y = 0 (rendered below the baseline).
+            lock (dataStructuresLock)
+            {
+                if (characterSpecification.Bitmap != null || bitmapsToGenerate.Contains(characterSpecification))
+                    return;
+
+                // Compute glyph metrics now so text measurement works before the bitmap is ready.
+                GenerateCharacterGlyph(characterSpecification, false);
+
+                bitmapsToGenerate.Enqueue(characterSpecification);
+                bitmapBuildSignal.Set();
             }
         }
 
@@ -201,15 +208,14 @@ namespace Stride.Graphics.Font
             if (err != 0)
                 return;
 
-            // create the bitmap
-            ref FT_Bitmap bitmap = ref fontFace->glyph->bitmap;
-            if (bitmap.width != 0 && bitmap.rows != 0)
-                character.Bitmap = new CharacterBitmap((nint)bitmap.buffer, ref borderSize, (int)bitmap.width, (int)bitmap.rows, bitmap.pitch, bitmap.num_grays, (FreeTypePixelMode)bitmap.pixel_mode);
-            else
-                character.Bitmap = new CharacterBitmap();
-
-            // set the glyph offsets
+            // Set Offset before publishing Bitmap; main thread treats non-null Bitmap as "ready".
             character.Glyph.Offset = new Vector2(fontFace->glyph->bitmap_left - borderSize.X, -fontFace->glyph->bitmap_top - borderSize.Y);
+
+            ref FT_Bitmap bitmap = ref fontFace->glyph->bitmap;
+            var newBitmap = bitmap.width != 0 && bitmap.rows != 0
+                ? new CharacterBitmap((nint)bitmap.buffer, ref borderSize, (int)bitmap.width, (int)bitmap.rows, bitmap.pitch, bitmap.num_grays, (FreeTypePixelMode)bitmap.pixel_mode)
+                : new CharacterBitmap();
+            Volatile.Write(ref character.Bitmap, newBitmap);
         }
 
         private static void ResetGlyph(CharacterSpecification character)

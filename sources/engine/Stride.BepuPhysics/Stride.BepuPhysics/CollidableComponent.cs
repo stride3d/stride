@@ -34,7 +34,6 @@ public abstract class CollidableComponent : EntityComponent
     public const string CategoryContacts = "Contacts";
     public const string CategoryActivity = "Activity";
 
-    private static uint IdCounter;
     private static uint VersioningCounter;
 
     private float _springFrequency = 30;
@@ -59,8 +58,6 @@ public abstract class CollidableComponent : EntityComponent
 
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
-
-    internal uint InstanceIndex { get; } = Interlocked.Increment(ref IdCounter);
 
     /// <summary>
     /// The simulation this object belongs to, null when it is not part of a simulation.
@@ -104,6 +101,7 @@ public abstract class CollidableComponent : EntityComponent
     /// If the contact is trying to make a bounce happen at 240hz,
     /// but the integrator timestep is only 60hz,
     /// the unrepresentable motion will get damped out and the body won't bounce as much.
+    /// <para>Defaults to <c>30</c>.</para>
     /// </remarks>
     [Display(category: CategoryForces)]
     public float SpringFrequency
@@ -122,6 +120,9 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The amount of energy/velocity lost when this collidable bounces off
     /// </summary>
+    /// <remarks>
+    /// Defaults to <c>3</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float SpringDampingRatio
     {
@@ -136,6 +137,12 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// The friction coefficient applied when this collidable slides against another surface.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to <c>1</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float FrictionCoefficient
     {
@@ -150,6 +157,9 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The maximum speed this object will exit out of the collision when overlapping another collidable
     /// </summary>
+    /// <remarks>
+    /// Defaults to <c>1000</c>.
+    /// </remarks>
     [Display(category: CategoryForces)]
     public float MaximumRecoveryVelocity
     {

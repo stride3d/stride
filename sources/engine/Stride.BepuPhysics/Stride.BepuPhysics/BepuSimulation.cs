@@ -25,6 +25,7 @@ using NVector3 = System.Numerics.Vector3;
 using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
+using Stride.BepuPhysics.Systems.Characters;
 
 namespace Stride.BepuPhysics;
 
@@ -47,6 +48,8 @@ public sealed class BepuSimulation : IDisposable
     private Scheduler? _scheduler;
     private AwaitRunner _preTickRunner = new();
     private AwaitRunner _postTickRunner = new();
+
+    internal CharacterControllers Characters { get; }
 
     internal BufferPool BufferPool { get; }
 
@@ -295,19 +298,21 @@ public sealed class BepuSimulation : IDisposable
 
         var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(this, ContactEvents, CollidableMaterials);
         var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(CollidableMaterials);
-        var solveDescription = new SolveDescription(1, 1);
+        var solveDescription = new SolveDescription(8, 1);
 
         Simulation = Simulation.Create(BufferPool, strideNarrowPhaseCallbacks, stridePoseIntegratorCallbacks, solveDescription);
-        Simulation.Solver.VelocityIterationCount = 8;
-        Simulation.Solver.SubstepCount = 1;
 
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize();
+
+        Characters = new CharacterControllers(BufferPool);
+        Characters.Initialize(Simulation);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
 
     public void Dispose()
     {
+        Characters.Dispose();
         _threadDispatcher.Dispose();
         BufferPool.Clear();
     }

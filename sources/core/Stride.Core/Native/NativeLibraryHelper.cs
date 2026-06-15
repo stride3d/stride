@@ -37,12 +37,16 @@ public static partial class NativeLibraryHelper
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
 
-    // The expected library extension for the current platform
+    // The expected library extension for the current platform.
+    // iOS statically links everything via [DllImport("__Internal")] so the
+    // PreloadLibrary code path is #if'd out; ".a" / "ios" just keep the
+    // field initializers from throwing at type load.
     private static readonly string libExtension = Platform.Type switch
     {
         PlatformType.Windows => ".dll",
-        PlatformType.Linux => ".so",
+        PlatformType.Linux or PlatformType.Android => ".so",
         PlatformType.macOS => ".dylib",
+        PlatformType.iOS => ".a",
 
         _ => throw new PlatformNotSupportedException()
     };
@@ -53,6 +57,8 @@ public static partial class NativeLibraryHelper
         PlatformType.Windows => "win",
         PlatformType.Linux => "linux",
         PlatformType.macOS => "osx",
+        PlatformType.Android => "android",
+        PlatformType.iOS => "ios",
 
         _ => throw new PlatformNotSupportedException()
     };
@@ -62,7 +68,7 @@ public static partial class NativeLibraryHelper
     {
         Architecture.X86 => "x86",
         Architecture.X64 => "x64",
-        Architecture.Arm => "ARM",
+        Architecture.Arm => "arm",
         Architecture.Arm64 => "arm64",
 
         _ => throw new PlatformNotSupportedException()
@@ -132,14 +138,7 @@ public static partial class NativeLibraryHelper
 #if STRIDE_PLATFORM_DESKTOP
         lock (loadedLibrariesLock)
         {
-            // Register a global resolver once so [DllImport] from any assembly
-            // can find libraries preloaded by full path (needed on Linux where
-            // dlopen("/full/path/lib.so") doesn't make dlopen("lib") find it).
-            if (!globalResolverRegistered)
-            {
-                globalResolverRegistered = true;
-                System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
-            }
+            EnsureGlobalResolverRegistered();
 
             // If already loaded, just exit as we want to load it just once
             if (loadedLibraries.ContainsKey(libraryName))
@@ -265,6 +264,7 @@ public static partial class NativeLibraryHelper
     ///   <see langword="true"/> if the library file is found and its path is assigned to <paramref name="result"/>;
     ///   otherwise, <see langword="false"/>.
     /// </returns>
+    [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "Falls back to the Environment.ProcessPath directory when Location is empty.")]
     private static bool TryFindLibraryPath(Type ownerType, string libraryNameWithExtension,
                                            [NotNullWhen(true)] out string? result)
     {
@@ -274,9 +274,15 @@ public static partial class NativeLibraryHelper
         result = ProbePath(Path.Combine(ownerAssemblyDir, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(currentExeDir, platformNativeLibsDir)) ??
+                 // .NET flattens runtimes/<rid>/native/ to the publish root when RuntimeIdentifier
+                 // is set, so probe the bare directories too.
+                 ProbePath(ownerAssemblyDir) ??
+                 ProbePath(Environment.CurrentDirectory) ??
+                 ProbePath(currentExeDir) ??
                  // Also try without platform for Windows-only packages (backwards compatible for editor packages)
                  ProbePath(Path.Combine(ownerAssemblyDir, cpu)) ??
-                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu));
+                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu)) ??
+                 ProbePath(Path.Combine(currentExeDir, cpu));
 
         return result is not null;
 
@@ -286,7 +292,40 @@ public static partial class NativeLibraryHelper
         string? ProbePath(string path)
         {
             var libraryFilePath = Path.Combine(path, libraryNameWithExtension);
-            return File.Exists(libraryFilePath) ? libraryFilePath : null;
+            if (File.Exists(libraryFilePath))
+                return libraryFilePath;
+
+            if (!Directory.Exists(path))
+                return null;
+
+            // NuGet packages often ship only the SONAME-versioned variant (libfoo.so.5,
+            // libfoo.5.dylib). Glob for it; pick the highest version on multiple matches.
+            // Windows/Android/iOS/UWP require unversioned names, so they don't glob.
+            var (pattern, versionPrefix) = Platform.Type switch
+            {
+                PlatformType.Linux => (libraryNameWithExtension + ".*", libraryNameWithExtension),
+                PlatformType.macOS => (Path.GetFileNameWithoutExtension(libraryNameWithExtension) + ".*" + libExtension,
+                                       Path.GetFileNameWithoutExtension(libraryNameWithExtension)),
+                _ => (null, null),
+            };
+            if (pattern is null)
+                return null;
+
+            return Directory.EnumerateFiles(path, pattern)
+                .OrderByDescending(f => ParseVersion(f, versionPrefix!))
+                .FirstOrDefault();
+        }
+
+        static Version ParseVersion(string file, string prefix)
+        {
+            var name = Path.GetFileName(file);
+            if (name.StartsWith(prefix)) name = name[prefix.Length..];
+            if (Platform.Type == PlatformType.macOS && name.EndsWith(libExtension))
+                name = name[..^libExtension.Length];
+            var s = name.TrimStart('.');
+            // System.Version.TryParse requires at least 2 numeric components.
+            if (!s.Contains('.')) s += ".0";
+            return Version.TryParse(s, out var v) ? v : new Version();
         }
     }
 
@@ -336,15 +375,106 @@ public static partial class NativeLibraryHelper
 
         lock (loadedLibrariesLock)
         {
-            var libraryNameWithoutExtension = Path.GetFileNameWithoutExtension(libraryPath);
             var libraryNameWithExtension = Path.GetFileName(libraryPath);
+            // Strip the full platform extension (.so[.N] / [.N].dylib / .dll) so the key matches
+            // what PreloadLibrary looks up regardless of SONAME-versioned filenames.
+            var libraryNameWithoutExtension = StripPlatformNativeExtension(libraryNameWithExtension);
             nativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
             nativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
+
+            // Native libs on Linux/macOS are conventionally named "lib<X>.so/.dylib" but
+            // [DllImport] strings typically drop the prefix ("X"). Register the stripped
+            // form too so the resolver finds it under either spelling.
+            if (Platform.Type != PlatformType.Windows
+                && libraryNameWithoutExtension.StartsWith("lib", StringComparison.Ordinal))
+            {
+                nativeDependenciesWithoutExtensions[libraryNameWithoutExtension[3..]] = libraryPath;
+            }
+#if STRIDE_PLATFORM_DESKTOP
+            EnsureGlobalResolverRegistered();
+#endif
         }
     }
 
     /// <summary>
-    /// Global resolver for [DllImport] calls — returns preloaded library handles.
+    /// Strips the native-library extension from <paramref name="fileName"/>, returning the bare
+    /// library name. Handles all four conventions: Windows <c>foo.dll</c>, Linux <c>libfoo.so</c>
+    /// and SONAME-versioned <c>libfoo.so.5</c>, macOS <c>libfoo.dylib</c> and versioned
+    /// <c>libfoo.5.dylib</c>.
+    /// </summary>
+    private static string StripPlatformNativeExtension(string fileName)
+    {
+        switch (Platform.Type)
+        {
+            case PlatformType.Linux:
+                var soIdx = fileName.IndexOf(".so", StringComparison.Ordinal);
+                return soIdx >= 0 ? fileName[..soIdx] : fileName;
+            case PlatformType.macOS:
+                // .dylib at end: trim it; then trim a trailing ".N" version component if present.
+                if (fileName.EndsWith(".dylib", StringComparison.Ordinal))
+                {
+                    var trimmed = fileName[..^".dylib".Length];
+                    var lastDot = trimmed.LastIndexOf('.');
+                    if (lastDot > 0)
+                    {
+                        var allDigits = true;
+                        for (int i = lastDot + 1; i < trimmed.Length; i++)
+                            if (!char.IsDigit(trimmed[i])) { allDigits = false; break; }
+                        if (allDigits) trimmed = trimmed[..lastDot];
+                    }
+                    return trimmed;
+                }
+                return fileName;
+            default: // Windows + everything else: standard single-extension semantics.
+                return Path.GetFileNameWithoutExtension(fileName);
+        }
+    }
+
+#if STRIDE_PLATFORM_DESKTOP
+    // Register a global resolver once so [DllImport] from any assembly can find libraries
+    // by name even when only the full path is known (NuGet runtimes/<RID>/native lookup).
+    // Must be called inside loadedLibrariesLock.
+    private static void EnsureGlobalResolverRegistered()
+    {
+        if (!globalResolverRegistered)
+        {
+            globalResolverRegistered = true;
+            System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
+        }
+    }
+#endif
+
+#if STRIDE_PLATFORM_IOS
+    // iOS-only: a single main-binary handle, populated lazily by ResolveIOSMainBinary.
+    private static nint iosMainBinaryHandle;
+
+    // [DllImport("X")] resolver for third-party wrappers (Silk.NET.SDL, Vortice.*) we can't switch
+    // to "__Internal": on iOS all native code is statically linked, so any DLL name resolves to the
+    // main executable and dlsym finds symbols exported via NativeReference LinkerFlags.
+    [System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void RegisterIOSResolver()
+    {
+        System.Runtime.Loader.AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolveIOSMainBinary;
+    }
+
+    private static nint ResolveIOSMainBinary(Assembly assembly, string name)
+    {
+        // Cache the main-binary handle on first call. Returning a non-zero handle tells the
+        // runtime to retry dlsym on it; if the symbol isn't exported the runtime falls through
+        // to other handlers / the original DllNotFoundException.
+        if (iosMainBinaryHandle == 0)
+        {
+            var path = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(path))
+                NativeLibrary.TryLoad(path, out iosMainBinaryHandle);
+        }
+        return iosMainBinaryHandle;
+    }
+#endif
+
+    /// <summary>
+    /// Global resolver for [DllImport] calls — returns preloaded library handles, and lazily
+    /// loads from a registered dependency path on first use otherwise.
     /// On Linux, dlopen with a full path doesn't make the library findable by bare name,
     /// so DllImport("freetype") won't find a preloaded "/path/to/libfreetype.so" without this.
     /// </summary>
@@ -352,7 +482,18 @@ public static partial class NativeLibraryHelper
     {
         lock (loadedLibrariesLock)
         {
-            return loadedLibraries.TryGetValue(name, out var handle) ? handle : IntPtr.Zero;
+            if (loadedLibraries.TryGetValue(name, out var handle))
+                return handle;
+
+            if (nativeDependenciesWithoutExtensions.TryGetValue(name, out var path) &&
+                NativeLibrary.TryLoad(path, out var loadedHandle))
+            {
+                loadedLibraries.Add(name, loadedHandle);
+                LogLibraryLoaded(name, loadedHandle);
+                return loadedHandle;
+            }
+
+            return IntPtr.Zero;
         }
     }
 

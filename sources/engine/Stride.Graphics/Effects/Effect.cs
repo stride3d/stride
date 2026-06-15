@@ -70,7 +70,25 @@ namespace Stride.Graphics
 
         public bool HasParameter(ParameterKey parameterKey)
         {
-            // Check resources
+            // Check resources and cbuffer members via ResourceGroups
+            foreach (var group in reflection.ResourceGroups)
+            {
+                foreach (var entry in group.Entries)
+                {
+                    if (entry.KeyInfo.Key == parameterKey)
+                        return true;
+                }
+                if (group.ConstantBuffer != null)
+                {
+                    foreach (var member in group.ConstantBuffer.Members)
+                    {
+                        if (member.KeyInfo.Key == parameterKey)
+                            return true;
+                    }
+                }
+            }
+
+            // Fallback: Check old lists
             for (int i = 0; i < reflection.ResourceBindings.Count; i++)
             {
                 var key = reflection.ResourceBindings[i].KeyInfo.Key;
@@ -113,6 +131,24 @@ namespace Stride.Graphics
                 // we use ref to avoid reassigning to the list (which cause a Collection modified during enumeration exception)
                 UpdateResourceBindingKey(ref resourceBindingsSpan[i]);
             }
+
+            // Resolve runtime ParameterKey references on ResourceGroups entries and cbuffer members.
+            // These are [DataMemberIgnore] so they don't affect EffectBytecode serialization/hashing.
+            foreach (var group in reflection.ResourceGroups)
+            {
+                var entriesSpan = CollectionsMarshal.AsSpan(group.Entries);
+                for (int i = 0; i < entriesSpan.Length; i++)
+                    UpdateResourceEntryKey(ref entriesSpan[i]);
+
+                // Resolve keys on cbuffer members
+                if (group.ConstantBuffer != null)
+                {
+                    var members = group.ConstantBuffer.Members;
+                    for (int i = 0; i < members.Length; i++)
+                        UpdateValueBindingKey(ref members[i]);
+                }
+            }
+
             foreach (var constantBuffer in reflection.ConstantBuffers)
             {
                 var constantBufferMembers = constantBuffer.Members;
@@ -169,18 +205,28 @@ namespace Stride.Graphics
 
         private static void UpdateResourceBindingKey(ref EffectResourceBindingDescription binding)
         {
-            var keyName = binding.KeyInfo.KeyName;
+            ResolveResourceKey(ref binding.KeyInfo, binding.Class, binding.Type);
+        }
 
-            switch (binding.Class)
+        private static void UpdateResourceEntryKey(ref EffectResourceEntry entry)
+        {
+            ResolveResourceKey(ref entry.KeyInfo, entry.Class, entry.Type);
+        }
+
+        private static void ResolveResourceKey(ref EffectParameterKeyInfo keyInfo, EffectParameterClass @class, EffectParameterType type)
+        {
+            var keyName = keyInfo.KeyName;
+
+            switch (@class)
             {
                 case EffectParameterClass.Sampler:
-                    binding.KeyInfo.Key = FindOrCreateResourceKey<SamplerState>(keyName);
+                    keyInfo.Key = FindOrCreateResourceKey<SamplerState>(keyName);
                     break;
                 case EffectParameterClass.ConstantBuffer:
                 case EffectParameterClass.TextureBuffer:
                 case EffectParameterClass.ShaderResourceView:
                 case EffectParameterClass.UnorderedAccessView:
-                    switch (binding.Type)
+                    switch (type)
                     {
                         case EffectParameterType.Buffer:
                         case EffectParameterType.ConstantBuffer:
@@ -192,7 +238,7 @@ namespace Stride.Graphics
                         case EffectParameterType.RWBuffer:
                         case EffectParameterType.RWStructuredBuffer:
                         case EffectParameterType.RWByteAddressBuffer:
-                            binding.KeyInfo.Key = FindOrCreateResourceKey<Buffer>(keyName);
+                            keyInfo.Key = FindOrCreateResourceKey<Buffer>(keyName);
                             break;
                         case EffectParameterType.Texture:
                         case EffectParameterType.Texture1D:
@@ -209,15 +255,15 @@ namespace Stride.Graphics
                         case EffectParameterType.TextureCubeArray:
                         case EffectParameterType.RWTexture3D:
                         case EffectParameterType.Texture3D:
-                            binding.KeyInfo.Key = FindOrCreateResourceKey<Texture>(keyName);
+                            keyInfo.Key = FindOrCreateResourceKey<Texture>(keyName);
                             break;
                     }
                     break;
             }
 
-            if (binding.KeyInfo.Key == null)
+            if (keyInfo.Key == null)
             {
-                throw new InvalidOperationException(string.Format("Unable to find/generate key [{0}] with unsupported type [{1}/{2}]", binding.KeyInfo.KeyName, binding.Class, binding.Type));
+                throw new InvalidOperationException(string.Format("Unable to find/generate key [{0}] with unsupported type [{1}/{2}]", keyInfo.KeyName, @class, type));
             }
         }
 
@@ -324,8 +370,6 @@ namespace Stride.Graphics
             // Update Constant buffers description
             foreach (var constantBuffer in reflection.ConstantBuffers)
             {
-                // We will generate a unique hash that depends on cbuffer layout (to easily detect if they differ when binding a new effect)
-                // TODO: currently done at runtime, but it should better be done at compile time
                 var hashBuilder = new ObjectIdBuilder();
                 hashBuilder.Write(constantBuffer.Name);
                 hashBuilder.Write(constantBuffer.Size);
@@ -336,7 +380,6 @@ namespace Stride.Graphics
                     HashConstantBufferMember(ref hashBuilder, ref member);
                 }
 
-                // Update the hash
                 constantBuffer.Hash = hashBuilder.ComputeHash();
             }
         }

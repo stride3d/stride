@@ -29,6 +29,16 @@ public partial class FileSystemProvider : VirtualFileProviderBase
 
     public void ChangeBasePath(string? basePath)
     {
+        // Empty resolves to OS filesystem root, relative resolves to CWD — both surprising.
+        // null stays allowed (constructor passthrough mode).
+        if (basePath is not null)
+        {
+            if (string.IsNullOrWhiteSpace(basePath))
+                throw new ArgumentException("Base path must be non-empty (use null for passthrough).", nameof(basePath));
+            if (!Path.IsPathRooted(basePath))
+                throw new ArgumentException($"Base path must be absolute, got '{basePath}'.", nameof(basePath));
+        }
+
         localBasePath = basePath?.Replace(AltDirectorySeparatorChar, DirectorySeparatorChar);
 
         // Ensure localBasePath ends with a \
