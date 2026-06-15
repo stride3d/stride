@@ -25,9 +25,9 @@ public sealed class AssetBuildManifest
     public UFile? ProjectFile { get; set; }
 
     /// <summary>
-    /// The authored package file; loaded when it exists, otherwise implicit defaults apply.
+    /// The authored package file (.sdpkg); loaded when it exists, otherwise implicit defaults apply.
     /// </summary>
-    public UFile? Package { get; set; }
+    public UFile? PackageFile { get; set; }
 
     /// <summary>
     /// Package identity (PackageId or AssemblyName) and version, used to name the package and its bundle.
@@ -39,9 +39,9 @@ public sealed class AssetBuildManifest
     public string? TargetFramework { get; set; }
 
     /// <summary>
-    /// The NuGet lock file; source of the package dependency closure for this TargetFramework.
+    /// The NuGet lock file (project.assets.json); source of the package dependency closure for this TargetFramework.
     /// </summary>
-    public UFile? ProjectAssetsFile { get; set; }
+    public UFile? NuGetLockFile { get; set; }
 
     public string? RootNamespace { get; set; }
 

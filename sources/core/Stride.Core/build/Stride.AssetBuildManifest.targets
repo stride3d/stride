@@ -81,7 +81,7 @@
         if (!string.IsNullOrEmpty(ProjectFile))
             sb.AppendLine("ProjectFile: " + q(rel(ProjectFile)));
         if (!string.IsNullOrEmpty(PackagePath))
-            sb.AppendLine("Package: " + q(rel(PackagePath)));
+            sb.AppendLine("PackageFile: " + q(rel(PackagePath)));
         if (!string.IsNullOrEmpty(PackageName))
             sb.AppendLine("PackageName: " + q(PackageName));
         if (!string.IsNullOrEmpty(PackageVersion))
@@ -89,7 +89,7 @@
         if (!string.IsNullOrEmpty(TargetFramework))
             sb.AppendLine("TargetFramework: " + q(TargetFramework));
         if (!string.IsNullOrEmpty(ProjectAssetsFile))
-            sb.AppendLine("ProjectAssetsFile: " + q(rel(ProjectAssetsFile)));
+            sb.AppendLine("NuGetLockFile: " + q(rel(ProjectAssetsFile)));
         if (!string.IsNullOrEmpty(RootNamespace))
             sb.AppendLine("RootNamespace: " + q(RootNamespace));
 
