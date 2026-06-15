@@ -95,8 +95,8 @@ namespace Stride.Core.Assets.CompilerApp
                 projectSession = projectSessionResult.Session;
                 // Root package = the manifest's authored package (may not exist on disk; FullPath is still set)
                 var rootManifest = YamlSerializer.Load<AssetBuildManifest>(builderOptions.PackageManifestFile);
-                var packageFile = rootManifest.Package is not null
-                    ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.Package.ToOSPath()))
+                var packageFile = rootManifest.PackageFile is not null
+                    ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.PackageFile.ToOSPath()))
                     : null;
 
                 // Find loaded package -- otherwise fallback to first one

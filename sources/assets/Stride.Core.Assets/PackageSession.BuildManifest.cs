@@ -80,9 +80,9 @@ partial class PackageSession
             // NuGet package dependencies that ship a stride/<Id>.sdpkg (engine/plugin packages):
             // read the root's lock file directly — cheap JSON, no MSBuild. Project references are
             // already covered by the manifest chain above.
-            if (rootManifest.ProjectAssetsFile is not null)
+            if (rootManifest.NuGetLockFile is not null)
             {
-                var lockFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootManifestFile)!, rootManifest.ProjectAssetsFile.ToOSPath()));
+                var lockFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootManifestFile)!, rootManifest.NuGetLockFile.ToOSPath()));
                 if (File.Exists(lockFile) && rootManifest.TargetFramework is not null)
                     session.LoadPackageDependenciesFromLockFile(lockFile, NuGetFramework.Parse(rootManifest.TargetFramework), sessionResult, loadParameters);
             }
@@ -127,7 +127,7 @@ partial class PackageSession
         var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
         string Resolve(UFile path) => Path.GetFullPath(Path.Combine(manifestDirectory, path.ToOSPath()));
 
-        var packagePath = manifest.Package is not null ? Resolve(manifest.Package) : Path.ChangeExtension(Resolve(manifest.ProjectFile!), Package.PackageFileExtension);
+        var packagePath = manifest.PackageFile is not null ? Resolve(manifest.PackageFile) : Path.ChangeExtension(Resolve(manifest.ProjectFile!), Package.PackageFileExtension);
         var projectDirectory = manifest.ProjectFile is not null ? new UDirectory(new UFile(Resolve(manifest.ProjectFile)).GetFullDirectory()) : null;
 
         if (!packagesByPath.TryGetValue(packagePath, out var container))
