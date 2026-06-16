@@ -226,7 +226,7 @@ namespace Stride.Rendering.Materials
 
                     // If any pipeline state changed, rebuild it for all effect slots
                     if (resetPipelineState)
-                        renderEffect.PipelineState = null;
+                        renderEffect.InvalidatePipelineState();
 
                     // Skip effects not used during this frame
                     if (!renderEffect.IsUsedDuringThisFrame(RenderSystem))
