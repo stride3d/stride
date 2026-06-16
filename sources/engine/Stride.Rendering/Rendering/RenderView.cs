@@ -6,6 +6,7 @@ using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
+using Stride.Graphics;
 using Stride.Rendering.Compositing;
 
 namespace Stride.Rendering
@@ -29,6 +30,21 @@ namespace Stride.Rendering
         /// List of visible render objects.
         /// </summary>
         public readonly ConcurrentCollector<RenderObject> RenderObjects = new ConcurrentCollector<RenderObject>();
+
+        /// <summary>
+        /// Gets the output captured for <paramref name="renderStage"/> in this view (see
+        /// <see cref="RenderViewStage.Output"/>), or <see cref="RenderStage.Output"/> if the stage isn't
+        /// registered with this view.
+        /// </summary>
+        public RenderOutputDescription GetRenderStageOutput(RenderStage renderStage)
+        {
+            foreach (var renderViewStage in RenderStages)
+            {
+                if (renderViewStage.Index == renderStage.Index)
+                    return renderViewStage.Output;
+            }
+            return renderStage.Output;
+        }
 
         /// <summary>
         /// Index in <see cref="RenderSystem.Views"/>.
