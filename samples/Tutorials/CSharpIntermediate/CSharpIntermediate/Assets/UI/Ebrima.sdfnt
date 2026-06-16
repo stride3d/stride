@@ -3,7 +3,7 @@ Id: c2da4379-f33e-40b3-aae2-1404bf5e6cb6
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !SystemFontProvider
-    FontName: Ebrima
+    FontName: Arial
     Style: Regular
 FontType: !OfflineRasterizedSpriteFontType
     CharacterSet: null
