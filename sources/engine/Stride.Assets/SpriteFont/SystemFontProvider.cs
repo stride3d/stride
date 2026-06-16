@@ -6,6 +6,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Diagnostics;
 using Stride.Graphics.Font;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -62,42 +63,73 @@ namespace Stride.Assets.SpriteFont
             else
                 searchDirs = [];
 
-            // Run an exact-match pass across every directory before falling back to partial matches,
-            // so a partial hit in an earlier directory doesn't shadow an exact hit in a later one.
-            string fontPath = null;
-            foreach (var dir in searchDirs)
+            // Try the requested font, then its metric-compatible equivalents. The Liberation family
+            // ships metric-identical to the Microsoft core fonts (Arial/Times New Roman/Courier New),
+            // so substituting whichever member a platform actually has keeps text layout — and the
+            // screenshot goldens that depend on it — consistent across Windows/Linux/macOS.
+            foreach (var candidate in GetFontNameCandidates(FontName))
             {
-                fontPath = FindFontInDirectory(dir, exactMatch: true);
-                if (fontPath != null)
-                    break;
-            }
-            if (fontPath == null)
-            {
-                foreach (var dir in searchDirs)
+                var fontPath = ResolveFont(candidate, searchDirs);
+                if (fontPath == null)
+                    continue;
+                if (!string.Equals(candidate, FontName, StringComparison.OrdinalIgnoreCase))
                 {
-                    fontPath = FindFontInDirectory(dir, exactMatch: false);
-                    if (fontPath != null)
-                        break;
+                    result?.Warning($"Cannot find font family '{FontName}'. Using metric-compatible fallback '{candidate}' instead.");
+                    FontName = candidate;
                 }
-            }
-
-            if (fontPath != null)
                 return fontPath;
-
-            // Fallback to default font
-            var defaultFont = GetDefaultFontName();
-            if (FontName != defaultFont)
-            {
-                result?.Warning($"Cannot find font family '{FontName}'. Loading default font '{defaultFont}' instead");
-                FontName = defaultFont;
-                return GetFontPath(result);
             }
 
-            result?.Error($"Cannot find system font '{FontName}'. Make sure it is installed on this machine.");
+            result?.Error($"Cannot find system font '{FontName}' or a metric-compatible fallback. Make sure it is installed on this machine.");
             return null;
         }
 
-        private unsafe string FindFontInDirectory(string directory, bool exactMatch)
+        // Exact-match pass across every directory before partial matches, so a partial hit in an
+        // earlier directory doesn't shadow an exact hit in a later one.
+        private string ResolveFont(string fontName, string[] searchDirs)
+        {
+            foreach (var dir in searchDirs)
+            {
+                var path = FindFontInDirectory(dir, fontName, exactMatch: true);
+                if (path != null)
+                    return path;
+            }
+            foreach (var dir in searchDirs)
+            {
+                var path = FindFontInDirectory(dir, fontName, exactMatch: false);
+                if (path != null)
+                    return path;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// The requested font name followed by its metric-compatible equivalents. The three groups
+        /// (sans / serif / mono) are mutually metric-identical — Liberation is built to match the MS
+        /// core fonts — so the lookup is bidirectional: an asset naming <c>Arial</c> resolves to
+        /// Liberation Sans on Linux, and one naming <c>Liberation Sans</c> resolves to Arial on Windows.
+        /// </summary>
+        internal static IEnumerable<string> GetFontNameCandidates(string requested)
+        {
+            yield return requested;
+
+            var key = requested?.Trim().ToLowerInvariant();
+            string[] group = key switch
+            {
+                "times new roman" or "times" or "liberation serif" or "tinos" or "georgia" or "dejavu serif"
+                    => ["Times New Roman", "Liberation Serif", "DejaVu Serif"],
+                "courier new" or "courier" or "liberation mono" or "cousine" or "consolas" or "dejavu sans mono"
+                    => ["Courier New", "Liberation Mono", "DejaVu Sans Mono"],
+                // sans-serif: Arial, Helvetica, Liberation Sans, Segoe UI, Tahoma, Verdana, ...
+                _ => ["Arial", "Liberation Sans", "DejaVu Sans"],
+            };
+
+            foreach (var candidate in group)
+                if (!string.Equals(candidate, requested, StringComparison.OrdinalIgnoreCase))
+                    yield return candidate;
+        }
+
+        private unsafe string FindFontInDirectory(string directory, string fontName, bool exactMatch)
         {
             if (!Directory.Exists(directory))
                 return null;
@@ -135,8 +167,8 @@ namespace Stride.Assets.SpriteFont
 
                         // Partial match (e.g. "Liberation" matches "Liberation Sans") is the looser fallback.
                         bool nameMatches = exactMatch
-                            ? string.Equals(familyName, FontName, StringComparison.OrdinalIgnoreCase)
-                            : familyName.Contains(FontName, StringComparison.OrdinalIgnoreCase);
+                            ? string.Equals(familyName, fontName, StringComparison.OrdinalIgnoreCase)
+                            : familyName.Contains(fontName, StringComparison.OrdinalIgnoreCase);
                         if (nameMatches && isBold == wantBold && isItalic == wantItalic)
                             return file;
                     }
