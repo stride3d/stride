@@ -20,6 +20,11 @@ on:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
         default: ''
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
   repository_dispatch:
     types: [test-enduser]
   schedule:
@@ -58,7 +63,7 @@ jobs:
   Run:
     needs: preflight
     if: needs.preflight.outputs.has-api-key == 'true'
-    name: ${{ matrix.platform }} / ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || 'Debug' }})
+    name: ${{ matrix.platform }} / ${{ matrix.graphics-api }} (${{ inputs.build-type || 'Debug' }})
     # Single job per (OS, graphics API): the harness + orchestrator + comparator are sample-agnostic,
     # so a matrix-per-sample would build the engine N× for the same artifacts. Sequential capture
     # via xunit's DisableParallelization keeps total compute low at comparable wall-clock to a
@@ -171,7 +176,7 @@ jobs:
         run: |
           dotnet build sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj \
             -nr:false -v:m -p:WarningLevel=0 \
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} \
+            -p:Configuration=${{ inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=${{ matrix.platform }} \
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
@@ -225,7 +230,7 @@ jobs:
         run: |
           dotnet build tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
             -nr:false -v:m -p:WarningLevel=0 \
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} \
+            -p:Configuration=${{ inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=${{ matrix.platform }} \
             -p:StrideTestRuntimeIdentifier=${{ matrix.rid }} \
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
@@ -244,7 +249,7 @@ jobs:
             --filter "FullyQualifiedName~Stride.Samples.Tests.SampleScreenshotTests" \
             --logger "trx;LogFileName=screenshots.trx" \
             --results-directory TestResults \
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} \
+            -p:Configuration=${{ inputs.build-type || 'Debug' }} \
             -p:StrideGraphicsApi=${{ matrix.graphics-api }}
 
       - name: Publish test report
@@ -348,7 +353,7 @@ jobs:
             -p:StridePlatforms=${{ matrix.platform }} \
             --logger "trx;LogFileName=packaging.trx" \
             --results-directory TestResults \
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
       - name: Publish test report
         if: always()

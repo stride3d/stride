@@ -1,0 +1,65 @@
+name: PR Label Suites
+
+# Opt-in CI suites a collaborator arms by adding a `ci-force-<suite>` label to a PR.
+#
+# - `labeled` arms it (runs now); `synchronize` reruns armed suites on each push; `unlabeled`
+#   clears a previously-red gate (re-runs with the suite skipped → green).
+# - Runs through pull_request, so it uses the PR's own workflow YAML (unlike /ci, which dispatches
+#   master's). Adding a label requires write access, so the label itself is the authorization.
+# - Each suite is a separate, non-required check; this workflow's own `label-gate` aggregates them.
+#   It never recomputes main.yml's Gate, so a forced run can't override main's required result.
+#
+# Only list suites here that main.yml does NOT already run on a path filter, OR gate them on the
+# shared `changes` filter (see `ios`) so a forced run yields to main's gated run when the paths
+# also match — avoiding a double-run.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-label-suites-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Shared path-filter, consulted by suites that overlap main.yml's auto-run set (e.g. ios).
+  changes:
+    uses: ./.github/workflows/changes.yml
+
+  # End-user packaging/screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
+  enduser:
+    needs: changes
+    if: contains(github.event.pull_request.labels.*.name, 'ci-force-enduser')
+    uses: ./.github/workflows/test-enduser.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # iOS is in main.yml's auto set (ios-tests filter). Force it only when that filter is OFF, so
+  # main's gated run handles the case where iOS paths actually changed (no double-run).
+  ios:
+    needs: changes
+    if: contains(github.event.pull_request.labels.*.name, 'ci-force-ios') && needs.changes.outputs.ios-tests != 'true'
+    uses: ./.github/workflows/test-ios-game.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  # Aggregate result for the forced suites. always() so a cancellation reports red, not skipped.
+  # Skipped suites (label absent) are fine; only failure/cancellation fails the gate. Mark this
+  # "Label Suites Gate" check required in branch protection to make forced suites blocking.
+  label-gate:
+    needs: [changes, enduser, ios]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any forced suite failed or was cancelled
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
+          test "$(echo "$NEEDS" | jq '[.[] | select(.result=="failure" or .result=="cancelled")] | length')" -eq 0
