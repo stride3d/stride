@@ -39,7 +39,7 @@ public static class ScreenshotComparator
     /// the executing assembly's <c>models/</c> sibling — works when the file is CopyToOutputDirectory'd
     /// into the consumer's bin).
     /// </summary>
-    public static List<ComparisonResult> Compare(string newDir, string baselineDir, string? sampleFilter = null, float defaultThreshold = DefaultThreshold, string? modelPath = null, ComparisonPrompt? defaultPrompt = null)
+    public static List<ComparisonResult> Compare(string newDir, string baselineDir, string? sampleFilter = null, float defaultThreshold = DefaultThreshold, string? modelPath = null, ComparisonPrompt? defaultPrompt = null, bool deferWhenVisionUnavailable = false)
     {
         defaultPrompt ??= GameplayComparisonPrompt.Default;
         modelPath ??= Path.Combine(AppContext.BaseDirectory, "models", "lpips_alex.onnx");
@@ -99,6 +99,15 @@ public static class ScreenshotComparator
 
                 if (meta.ClaudeFallbackEnabled)
                 {
+                    // No key in this run (typical on fork PRs, where secrets aren't exposed). Defer
+                    // instead of failing closed: a trusted gate re-runs the comparison with the key.
+                    if (deferWhenVisionUnavailable && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")))
+                    {
+                        results.Add(new ComparisonResult(sample, frame, distance, frameThreshold, "deferred",
+                            $"lpips drift (vs {baselines.Count} baseline(s)); vision verdict deferred — no ANTHROPIC_API_KEY in this run"));
+                        continue;
+                    }
+
                     var prompt = defaultPrompt with { ExtraHint = meta.ClaudeFallbackHint };
                     var verdict = ClaudeVisionFallback.Compare(baselines, newPng, prompt);
                     var detail = $"lpips drift (vs {baselines.Count} baseline(s)); claude: {verdict.Reason}";
