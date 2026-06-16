@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
+using Stride.Graphics;
 
 namespace Stride.Rendering
 {
@@ -15,6 +16,12 @@ namespace Stride.Rendering
         public readonly int Index;
 
         /// <summary>
+        /// The stage's output for this view, captured when the stage is added to the view, so the pipeline
+        /// state for each view uses its own render target format.
+        /// </summary>
+        public readonly RenderOutputDescription Output;
+
+        /// <summary>
         /// Invalid slot.
         /// </summary>
         public static readonly RenderViewStage Invalid = new RenderViewStage(-1);
@@ -22,6 +29,7 @@ namespace Stride.Rendering
         public RenderViewStage(int index)
         {
             Index = index;
+            Output = default;
             RenderNodes = null;
             SortedRenderNodes = null;
         }
@@ -29,6 +37,7 @@ namespace Stride.Rendering
         public RenderViewStage(RenderStage renderStage)
         {
             Index = renderStage.Index;
+            Output = renderStage.Output;
             RenderNodes = null;
             SortedRenderNodes = null;
         }

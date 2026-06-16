@@ -223,9 +223,9 @@ namespace Stride.Rendering
                         descriptorSetsLocal[i] = resourceGroup.DescriptorSet;
                 }
 
-                commandList.SetPipelineState(renderEffect.PipelineState);
+                commandList.SetPipelineState(renderNode.PipelineState);
                 commandList.SetDescriptorSets(0, descriptorSetsLocal);
-                
+
                 // Draw
                 if (drawData.IndexBuffer == null)
                 {
