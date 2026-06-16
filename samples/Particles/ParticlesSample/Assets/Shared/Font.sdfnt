@@ -3,7 +3,7 @@ Id: abe2b723-cac1-4cdc-9cbf-109a030873d3
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !SystemFontProvider
-    FontName: Segoe UI
+    FontName: Arial
     Style: Regular
 FontType: !RuntimeRasterizedSpriteFontType
     Size: 24.0
