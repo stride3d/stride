@@ -67,10 +67,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github
+      # Full checkout (no samples exclude): the editor build preprocesses the template source
+      # under samples/NewGame via Stride.Templates.Games.
       - uses: ./.github/actions/stride-checkout
         with:
           ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
-          exclude: samples
 
       - name: Configure crash dumps
         shell: pwsh
