@@ -1,0 +1,91 @@
+name: Screenshot Vision Gate
+
+# Trusted re-judge of frames a keyless screenshot run deferred. Fork PRs get no ANTHROPIC_API_KEY, so
+# the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
+# failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator +
+# gold), over the PR's uploaded image artifacts only — so no PR-built code ever runs with the key.
+# It posts a "Screenshot Vision Gate" check on the PR head; mark it required to make deferrals blocking.
+
+on:
+  workflow_run:
+    workflows: ["PR Label Suites", "Test End-User"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read       # download artifacts from the triggering run
+  checks: write       # post the gate check on the PR head
+
+jobs:
+  vision-gate:
+    # Only PR-triggered runs carry a PR head to post a check on. Dispatch/schedule runs of Test End-User
+    # are trusted and keyed (nothing gets deferred), so they need no gate.
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      # Base checkout: trusted comparator source + gold baselines to judge against — pinned EXPLICITLY to
+      # the repo default branch, never the PR. This is the key-exfiltration boundary: the gate runs with
+      # ANTHROPIC_API_KEY in scope, so it must execute only trusted (base) code over the PR's uploaded
+      # image artifacts (data). Do NOT change this ref to github.event.workflow_run.head_sha/head_branch —
+      # that would run fork-controlled code with the secret, and a fork mustn't be able to swap the gold
+      # or comparator to pass a regression either.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Download screenshot artifacts from the triggering run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: screenshots-*
+          path: artifacts
+
+      - name: Re-judge deferred frames (vision tiebreak)
+        id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+        run: |
+          baseline="tests/enduser/Stride.Samples.Tests/Fixtures"
+          rc=0
+          shopt -s nullglob
+          captured=false
+          for d in artifacts/*/screenshot-out artifacts/*/screenshot-out-aot; do
+            [ -d "$d" ] || continue
+            captured=true
+            echo "::group::vision gate over $d"
+            dotnet run --project sources/tests/Stride.ScreenshotComparator.Cli/Stride.ScreenshotComparator.Cli.csproj \
+              -nr:false -v:m -p:WarningLevel=0 -- --new "$d" --baseline "$baseline" || rc=1
+            echo "::endgroup::"
+          done
+          if [ "$captured" = false ]; then
+            # No screenshots-* artifacts → no screenshot suite ran (or it ran with nothing deferred):
+            # nothing to re-judge, so pass. This keeps the gate green on ordinary PRs so it's safe to
+            # mark required. It can't hide a regression: deferred frames always ship an uploaded
+            # vision-deferred.json, and a capture failure fails the suite itself.
+            echo "::notice::no screenshot artifacts from the triggering run — nothing to gate (pass)"
+          fi
+          echo "result=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: Post gate check on PR head
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const ok = '${{ steps.gate.outputs.result }}' === '0';
+            await github.rest.checks.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              name: 'Screenshot Vision Gate',
+              head_sha: context.payload.workflow_run.head_sha,
+              status: 'completed',
+              conclusion: ok ? 'success' : 'failure',
+              details_url: context.payload.workflow_run.html_url,
+              output: {
+                title: ok ? 'Deferred frames resolved' : 'Deferred frame(s) failed the vision re-judge',
+                summary: ok
+                  ? 'Frames the keyless run deferred were re-judged with the vision tiebreak and passed (or nothing was deferred).'
+                  : 'One or more deferred frames could not be conclusively resolved to a pass. See the gate run logs.',
+              },
+            });
+            if (!ok) core.setFailed('Screenshot Vision Gate failed');

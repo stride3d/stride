@@ -36,33 +36,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # LPIPS comparator falls back to Claude vision for borderline drift; without ANTHROPIC_API_KEY
-  # (typical on forks) flaky frames would surface as false drift. Skip cleanly when missing.
+  # Runs with or without ANTHROPIC_API_KEY. With the key, the LPIPS comparator resolves borderline
+  # drift inline via the Claude vision tiebreak. Without it (typical on fork PRs, where secrets aren't
+  # exposed), borderline frames are captured and marked "deferred" in <sample>/vision-deferred.json;
+  # the pr-screenshot-vision-gate workflow then re-judges them with the key on the uploaded artifacts.
+  # Hard LPIPS drift (no vision tiebreak) still fails here regardless of the key.
   #
   # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
   # workflow_dispatch / repository_dispatch always run.
-  preflight:
+  Run:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      has-api-key: ${{ steps.check.outputs.has-api-key }}
-    steps:
-      - id: check
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -n "$ANTHROPIC_API_KEY" ]; then
-            echo "has-api-key=true" >> $GITHUB_OUTPUT
-          else
-            echo "has-api-key=false" >> $GITHUB_OUTPUT
-            echo "::notice::ANTHROPIC_API_KEY not set; skipping samples screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
-          fi
-
-  Run:
-    needs: preflight
-    if: needs.preflight.outputs.has-api-key == 'true'
     name: ${{ matrix.platform }} / ${{ matrix.graphics-api }} (${{ inputs.build-type || 'Debug' }})
     # Single job per (OS, graphics API): the harness + orchestrator + comparator are sample-agnostic,
     # so a matrix-per-sample would build the engine N× for the same artifacts. Sequential capture
