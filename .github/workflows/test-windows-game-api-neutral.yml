@@ -1,11 +1,5 @@
 name: Test Windows (Game ApiNeutral)
 
-run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test Windows (Game ApiNeutral) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test Windows (Game ApiNeutral) @ {0}', github.event.inputs.commit-sha))
-      || '' }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -28,16 +22,14 @@ on:
       upload-binlog:
         default: false
         type: boolean
-  repository_dispatch:
-    types: [test-windows-game-api-neutral]
 
 concurrency:
-  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
   Game-ApiNeutral:
-    name: Test Game ApiNeutral (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Windows (ApiNeutral, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     env:
@@ -50,7 +42,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build

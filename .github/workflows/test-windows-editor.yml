@@ -1,10 +1,5 @@
 name: Test GameStudio (Screenshots)
 
-run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test GameStudio (Screenshots) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || '' }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -15,48 +10,34 @@ on:
         options:
           - Debug
           - Release
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
-    types: [test-editor-screenshots]
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
   schedule:
     # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
     # gap from test-enduser (04:37) so they don't compete for runners.
     - cron: '17 5 * * *'
 
 concurrency:
-  group: test-windows-editor-${{ github.event.client_payload.pr_number || github.ref }}
+  group: test-windows-editor-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision
-  # as a fallback for borderline cases. Without ANTHROPIC_API_KEY (typical on forks), most flaky
-  # runs would report drift. Skip the suite cleanly so forks don't see misleading failures.
+  # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision as a
+  # tiebreak on borderline frames. With ANTHROPIC_API_KEY the comparator resolves those inline; without
+  # it (typical on fork PRs, where secrets aren't exposed) the borderline frames are captured and marked
+  # "deferred" in <fixture>/vision-deferred.json, and pr-screenshot-vision-gate re-judges them with the
+  # key on the uploaded artifacts. Hard LPIPS drift (no vision tiebreak) still fails here regardless.
   #
   # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
-  # workflow_dispatch / repository_dispatch always run.
-  preflight:
+  # workflow_dispatch / workflow_call always run.
+  Run:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      has-api-key: ${{ steps.check.outputs.has-api-key }}
-    steps:
-      - id: check
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -n "$ANTHROPIC_API_KEY" ]; then
-            echo "has-api-key=true" >> $GITHUB_OUTPUT
-          else
-            echo "has-api-key=false" >> $GITHUB_OUTPUT
-            echo "::notice::ANTHROPIC_API_KEY not set; skipping editor screenshot suite. Set it under repo Settings → Secrets → Actions to enable."
-          fi
-
-  Run:
-    needs: preflight
-    if: needs.preflight.outputs.has-api-key == 'true'
-    name: Editor screenshots (${{ github.event.inputs.build-type || 'Debug' }})
+    name: Windows (Editor, ${{ inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
       DOTNET_DbgEnableMiniDump: "1"
@@ -71,7 +52,7 @@ jobs:
       # under samples/NewGame via Stride.Templates.Games.
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
 
       - name: Configure crash dumps
         shell: pwsh
@@ -103,13 +84,13 @@ jobs:
         run: |
           dotnet build sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj `
             -nr:false -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
       - name: Build Stride.Editor.Tests
         run: |
           dotnet build tests\editor\Stride.Editor.Tests.csproj `
             -nr:false -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
       # Pre-test snapshot of NuGet state: bin/packages timestamps+sizes (catches partial writes
       # or out-of-order packing), NuGet global cache extractions for Stride.*, and the user
@@ -147,7 +128,7 @@ jobs:
             --filter "FullyQualifiedName~Stride.Editor.Tests.EditorScreenshotTests" `
             --logger "trx;LogFileName=editor-screenshots.trx" `
             --results-directory TestResults `
-            -p:Configuration=${{ github.event.inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
       - name: Publish test report
         if: always()
@@ -158,11 +139,13 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
 
+      # Named screenshots-* so the trusted vision gate's download pattern (screenshots-*) picks it up
+      # alongside the enduser captures and re-judges any deferred frames.
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: editor-screenshots
+          name: screenshots-editor
           path: ui-test-out-dpi*/
           if-no-files-found: warn
 

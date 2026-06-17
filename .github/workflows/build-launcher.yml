@@ -46,7 +46,7 @@ jobs:
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'workflow_call'
       || (github.event.pull_request.draft == false && vars.STRIDE_ENABLE_PUSH_CI == 'true')
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Launcher (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Stride.Graphics;
 using Stride.SampleScreenshotRunner;
 using Stride.Tests.ScreenshotComparator;
@@ -134,15 +135,35 @@ namespace Stride.Samples.Tests
             // ScreenshotComparator defaults to <bin>/models/lpips_alex.onnx, which the shared
             // Stride.ScreenshotComparator project copies into our output via ProjectReference.
             var baselineDir = Path.Combine(worktree, "tests", "enduser", "Stride.Samples.Tests", "Fixtures");
-            var results = ScreenshotComparator.Compare(captureRoot, baselineDir, sampleFilter: name);
+            var results = ScreenshotComparator.Compare(captureRoot, baselineDir, sampleFilter: name, deferWhenVisionUnavailable: true);
 
             foreach (var r in results)
             {
                 var d = r.Lpips.HasValue ? $"lpips={r.Lpips.Value:F4} thr={r.Threshold:F2}" : "";
-                output.WriteLine($"[compare] {r.Status,-7} {r.Frame,-20} {d}{(r.Detail is null ? "" : "  " + r.Detail)}");
+                output.WriteLine($"[compare] {r.Status,-11} {r.Frame,-20} {d}{(r.Detail is null ? "" : "  " + r.Detail)}");
             }
+
+            // Frames over the LPIPS threshold that opted into the Claude vision tiebreak but ran without a
+            // key (fork PRs get no secrets). Record them so the trusted vision gate (workflow_run, which
+            // has the key) can rule on them, and Skip rather than fail — the gate is the source of truth.
+            var deferred = results.Where(r => r.Status is "deferred").ToList();
+            if (deferred.Count > 0)
+                WriteDeferredManifest(sampleOut, name, deferred);
+
+            // Hard regressions (LPIPS drift with no vision tiebreak, capture/compare errors, missing
+            // baseline) fail regardless of any deferral.
             var failures = results.Where(r => r.Status is "drift" or "error" or "new").ToList();
             Assert.Empty(failures);
+
+            // Deferred-only (no hard failures): the verdict belongs to the trusted vision gate. xunit's
+            // dynamic Assert.Skip isn't available under this project's custom runner, so follow the
+            // repo idiom (log + return); the manifest above + the required, fail-closed gate keep it honest.
+            if (deferred.Count > 0)
+            {
+                output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
+                                 $"(no ANTHROPIC_API_KEY in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
+                return; // leave the regenerated sample dir in place for post-mortem / the gate
+            }
 
             // Test passed — wipe the regenerated sample dir to keep working trees small. Skip on
             // failure so the post-mortem still has the regenerated project for local debugging.
@@ -156,6 +177,24 @@ namespace Stride.Samples.Tests
                     catch (Exception ex) { output.WriteLine($"[cleanup] failed to delete '{sampleDir}': {ex.Message}"); }
                 }
             }
+        }
+
+        /// <summary>
+        /// Write <c>&lt;sampleOut&gt;/vision-deferred.json</c> listing the frames this keyless run couldn't
+        /// rule on. The trusted vision gate globs these across samples, re-judges each with the key, and
+        /// fails closed if a listed frame can't be resolved. One file per sample → no cross-test races.
+        /// </summary>
+        private static void WriteDeferredManifest(string sampleOut, string sample, IReadOnlyList<ComparisonResult> deferred)
+        {
+            Directory.CreateDirectory(sampleOut);
+            var payload = new
+            {
+                sample,
+                frames = deferred.Select(r => new { frame = r.Frame, lpips = r.Lpips, threshold = r.Threshold, detail = r.Detail }).ToArray(),
+            };
+            File.WriteAllText(
+                Path.Combine(sampleOut, "vision-deferred.json"),
+                JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
         }
 
         private void DumpLog(string path, string label)
