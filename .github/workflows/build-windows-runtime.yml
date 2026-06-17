@@ -1,11 +1,5 @@
 name: Build Windows Runtime
 
-run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Build Windows Runtime — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Build Windows Runtime @ {0}', github.event.inputs.commit-sha))
-      || '' }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -32,12 +26,9 @@ on:
       graphics-api:
         default: Direct3D11
         type: string
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, graphics-api, dispatched_by }.
-    types: [build-windows-runtime]
 
 concurrency:
-  group: build-windows-runtime-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }}
+  group: build-windows-runtime-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }}
   cancel-in-progress: true
 
 jobs:
@@ -45,7 +36,7 @@ jobs:
   # Build Stride Runtime for Windows
   #
   Windows-Runtime:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }})
     runs-on: windows-2025-vs2026
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
@@ -54,7 +45,7 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
           exclude: samples
       - name: Build
         run: |
@@ -63,6 +54,6 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }} `
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

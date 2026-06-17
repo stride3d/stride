@@ -10,17 +10,16 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 
 ## Triggering CI tests on a PR
 
-Most CI runs automatically on PR commits. Two suites — editor screenshots and end-user
-screenshots — only run on demand because they're slow and drift-prone. A bot listens for
-`/test` comments to dispatch them. Comment `/test help` on any PR for the full command list.
+Most CI runs automatically on PR commits. A few suites — editor screenshots and end-user
+screenshots — are slow and drift-prone, so they run only on demand. Arm them by adding a
+`ci-force-<suite>` label to the PR (collaborator access required):
 
-Quick examples:
-- `/test editor enduser` — run both screenshot suites
-- `/test linux-game` — re-run a specific main-CI suite (useful for transient failures)
-- `/test windows-game-vulkan` — re-run a specific graphics-API variant
+- `ci-force-enduser` — end-user sample screenshot + packaging suite
+- `ci-force-editor` — GameStudio editor screenshot suite
+- `ci-force-ios` — iOS game suite (when the path filter didn't already trigger it)
 
-Bot definition: [`.github/workflows/pr-test-chatops.yml`](workflows/pr-test-chatops.yml).
-Only repo collaborators can trigger.
+The labels run through the PR's own workflow ([`.github/workflows/pr-label-suites.yml`](workflows/pr-label-suites.yml)),
+so they use the PR head's YAML. Removing a label re-runs with that suite skipped.
 
 ## Earn Money by Contributing
 

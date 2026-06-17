@@ -1,11 +1,7 @@
 name: Test Android Game (Vulkan)
 
 run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test Android Game (Vulkan) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test Android Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
-      || (github.event.inputs.test-filter != '' && 'Test Android Game (Vulkan)')
-      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
+  ${{ github.event.inputs.commit-sha != '' && format('Test Android Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
 
 on:
   workflow_dispatch:
@@ -69,14 +65,12 @@ on:
       repeat:
         type: number
         default: 1
-  repository_dispatch:
-    types: [test-android-game]
   schedule:
     - cron: '37 3 * * *'
 
 
 concurrency:
-  group: test-android-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-android-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -107,7 +101,7 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
 
       - name: Install Android Workload

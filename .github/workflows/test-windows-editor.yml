@@ -1,10 +1,5 @@
 name: Test GameStudio (Screenshots)
 
-run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test GameStudio (Screenshots) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || '' }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -20,16 +15,13 @@ on:
       build-type:
         default: Debug
         type: string
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
-    types: [test-editor-screenshots]
   schedule:
     # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
     # gap from test-enduser (04:37) so they don't compete for runners.
     - cron: '17 5 * * *'
 
 concurrency:
-  group: test-windows-editor-${{ github.event.client_payload.pr_number || github.ref }}
+  group: test-windows-editor-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -40,7 +32,7 @@ jobs:
   # key on the uploaded artifacts. Hard LPIPS drift (no vision tiebreak) still fails here regardless.
   #
   # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
-  # workflow_dispatch / workflow_call / repository_dispatch always run.
+  # workflow_dispatch / workflow_call always run.
   Run:
     if: >
       github.event_name != 'schedule'
@@ -60,7 +52,7 @@ jobs:
       # under samples/NewGame via Stride.Templates.Games.
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
 
       - name: Configure crash dumps
         shell: pwsh

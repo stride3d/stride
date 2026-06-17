@@ -27,7 +27,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
       || vars.STRIDE_ENABLE_PUSH_CI == 'true'
     uses: ./.github/workflows/changes.yml
 
-  # Draft PRs skip all automatic CI to save runner minutes; use the /ci chatops command
+  # Draft PRs skip all automatic CI to save runner minutes; add a ci-force-<suite> label
   # to opt into specific suites while iterating. ready_for_review re-runs everything.
   ### Misc ###
   Assembly-Processor:
