@@ -58,7 +58,7 @@ concurrency:
 
 jobs:
   macOS-Tests-Game:
-    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: macOS (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     # macos-26 ships Xcode 26.x; we select 26.5 below to match the .NET macOS 26.5 SDK pack's
     # strict version check (same situation as test-ios-game.yml).
     runs-on: macos-26

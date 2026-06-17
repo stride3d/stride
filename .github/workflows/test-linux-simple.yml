@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   Linux-Tests:
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, Simple)
+    name: Linux (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

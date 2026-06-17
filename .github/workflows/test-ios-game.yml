@@ -81,7 +81,7 @@ jobs:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: iOS (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
     # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
     # is 26.3, which the 26.5 pack rejects.
