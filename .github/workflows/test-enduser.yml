@@ -1,10 +1,7 @@
 name: Test End-User
 
 run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test End-User — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test End-User @ {0}', github.event.inputs.commit-sha))
-      || '' }}
+  ${{ github.event.inputs.commit-sha != '' && format('Test End-User @ {0}', github.event.inputs.commit-sha) || '' }}
 
 on:
   workflow_dispatch:
@@ -25,14 +22,12 @@ on:
       build-type:
         default: Debug
         type: string
-  repository_dispatch:
-    types: [test-enduser]
   schedule:
     # Daily at 04:37 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes.
     - cron: '37 4 * * *'
 
 concurrency:
-  group: test-enduser-${{ github.event.client_payload.pr_number || github.ref }}
+  group: test-enduser-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,7 +38,7 @@ jobs:
   # Hard LPIPS drift (no vision tiebreak) still fails here regardless of the key.
   #
   # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
-  # workflow_dispatch / repository_dispatch always run.
+  # workflow_dispatch / workflow_call always run.
   Run:
     if: >
       github.event_name != 'schedule'
@@ -92,7 +87,7 @@ jobs:
           # (otherwise a shallow base version < a sample's version silently skips PackageUpgrader).
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
 
       - name: Configure crash dumps (Windows)
         if: runner.os == 'Windows'
@@ -294,7 +289,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'
