@@ -65,6 +65,10 @@ on:
       repeat:
         type: number
         default: 1
+  schedule:
+    # Daily at 02:43 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # spaced from the other nightlies (03:37–05:17) so they don't compete for the scheduler.
+    - cron: '43 2 * * *'
 
 concurrency:
   group: test-ios-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -72,6 +76,11 @@ concurrency:
 
 jobs:
   iOS-Tests-Game:
+    # Scheduled (nightly) runs only fire on repos that opt in via STRIDE_ENABLE_SCHEDULED_CI;
+    # workflow_call (main.yml path filter / ci-ios label) and dispatch always run.
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
     # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
