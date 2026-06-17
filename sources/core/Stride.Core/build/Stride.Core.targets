@@ -164,6 +164,10 @@
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.NativeLibraries.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Stride.AssetBuildManifest.targets" Condition="'$(StrideAssetBuildManifestImported)' == ''" />
+  <PropertyGroup>
+    <StrideAssetBuildManifestImported>true</StrideAssetBuildManifestImported>
+  </PropertyGroup>
 
   <!-- Strip publish globals from ProjectReferences on iOS exes: PublishAot in the iOS .csproj
        must not propagate to cross-platform library refs or they fail NETSDK1203. Set as static

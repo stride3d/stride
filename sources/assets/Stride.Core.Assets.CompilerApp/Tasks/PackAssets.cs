@@ -19,7 +19,7 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
 {
     public static class PackAssetsHelper
     {
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems)
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -226,8 +226,30 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
             foreach (var rootAsset in package.RootAssets)
                 newPackage.RootAssets.Add(rootAsset);
 
-            // Save package only if there is any resources and/or assets
-            if (generatedItems.Count > 0)
+            // Host-loadable asset assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg).
+            // Each path is lib/<tfm>/<name>.dll (built by the pack target); tag the entry with its TFM
+            // so a multi-targeted package lets the consumer load the build matching its compiler runtime.
+            if (assetAssemblies != null)
+            {
+                // The TFM is the path segment right after "lib".
+                static string TargetFrameworkFromPath(string libRelativePath)
+                {
+                    var parts = libRelativePath.Split('/');
+                    for (var i = 0; i < parts.Length - 1; i++)
+                        if (string.Equals(parts[i], "lib", StringComparison.OrdinalIgnoreCase))
+                            return parts[i + 1];
+                    return null;
+                }
+
+                foreach (var assetAssembly in assetAssemblies)
+                {
+                    var normalized = assetAssembly.Replace('\\', '/');
+                    newPackage.AssetAssemblies.Add(new AssetAssembly(TargetFrameworkFromPath(normalized), (UFile)("../" + normalized)));
+                }
+            }
+
+            // Save package if there are resources, assets, or declared asset assemblies
+            if (generatedItems.Count > 0 || newPackage.AssetAssemblies.Count > 0)
             {
                 // Make sure we have a standalone package
                 var standalonePackage = new StandalonePackage(newPackage);

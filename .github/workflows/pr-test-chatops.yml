@@ -25,7 +25,7 @@ name: PR test chatops
 #   /ci windows / linux / ios          — per-platform build + tests
 #   /ci windows-build / linux-build    — per-platform build only
 #   /ci windows-test / linux-test      — per-platform tests only
-#   /ci e2e                            — editor + samples screenshot regression
+#   /ci e2e                            — editor + end-user screenshot regression
 #   Or any specific leaf, e.g. /ci windows-game-d3d11, /ci windows-full, /ci vs-package
 #
 # Multiple suites in one command: `/ci windows-simple linux-game e2e`.
@@ -74,7 +74,7 @@ jobs:
             const SUITES = {
               // Tests
               'editor':                  { kind: 'test',  event: 'test-editor-screenshots',      workflow: 'test-windows-editor.yml' },
-              'samples':                 { kind: 'test',  event: 'test-samples-screenshots',     workflow: 'test-samples-screenshots.yml' },
+              'enduser':                 { kind: 'test',  event: 'test-enduser',                 workflow: 'test-enduser.yml' },
               'windows-game-d3d11':      { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D11' } },
               'windows-game-d3d12':      { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Direct3D12' } },
               'windows-game-vulkan':     { kind: 'test',  event: 'test-windows-game',            workflow: 'test-windows-game.yml',            payload: { 'graphics-api': 'Vulkan' } },
@@ -118,7 +118,7 @@ jobs:
               'android-test':    ['android-game'],
               'android':         ['android-build', 'android-test'],
               // Cross-platform
-              'e2e':             ['editor', 'samples'],
+              'e2e':             ['editor', 'enduser'],
               // Top-level macros
               'main':            ['windows', 'linux', 'macos', 'android', 'ios', 'assembly-processor', 'vs-package'],
               'all':             ['main', 'e2e'],
@@ -145,7 +145,7 @@ jobs:
                 '- `/ci main` — what main.yml auto-runs on non-draft PRs',
                 '- `/ci windows` / `linux` / `ios` — per-platform (build + test)',
                 '- `/ci windows-build` / `windows-test` — half the platform (same for `linux-`)',
-                '- `/ci e2e` — screenshot regression (editor + samples)',
+                '- `/ci e2e` — screenshot regression (editor + end-user)',
                 '',
                 '**Tests:**',
                 ...suitesByKind('test').map(k => `- \`/ci ${k}\``),

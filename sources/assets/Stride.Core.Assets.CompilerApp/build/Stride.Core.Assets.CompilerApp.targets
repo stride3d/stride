@@ -169,18 +169,24 @@
     <Message Importance="Normal" Text="Android inner MSBuild execution detected - skipping compilation" Condition="'$(StrideCompilerSkipAndroidInnerBuild)' == 'true'" />
   </Target>
 
-  <!-- Compile assets for all StridePackage items. BeforeTargets="CopyFilesToOutputDirectory"
-       so the bundle lands in OutputPath before the standard copy step picks it up, and so the
-       hook works even on OutputType=Library (PrepareForRunDependsOn injection is unreliable
-       per the comment above). -->
-  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+  <!-- Compile assets for all StridePackage items. AfterTargets="CopyFilesToOutputDirectory" so the
+       project's own assembly and its copy-local dependencies are already in OutputPath when the asset
+       compiler loads them (a test/game whose own assembly is an asset assembly needs the dll present).
+       The hook works even on OutputType=Library (PrepareForRunDependsOn injection is unreliable per the
+       comment above). The bundle is written straight to OutputPath, so it doesn't need the copy step. -->
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
       <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
+      <!-- Load the session from the .sdbuild manifest chain. -->
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) --package-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
+
+    <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
+           Text="Asset build manifest not found: $(StrideAssetBuildManifestPath). Manifest generation (StrideAssetBuildManifest) must run before asset compilation." />
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
@@ -299,7 +305,24 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+    <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
+         loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
+         $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset
+         compiler can load — a base netX.0 (no platform suffix) or a net*-windows* — emitting one entry
+         per match (';'-separated; the consumer picks the one matching its runtime). -->
+    <ItemGroup Condition="'$(StrideAssetAssembly)' == 'true'">
+      <_StrideAssetAssemblyTfm Include="$(TargetFrameworks)" Condition="'$(TargetFrameworks)' != ''" />
+      <_StrideAssetAssemblyTfm Include="$(TargetFramework)" Condition="'$(TargetFrameworks)' == ''" />
+      <_StrideHostAssetAssemblyTfm Include="@(_StrideAssetAssemblyTfm)"
+                                   Condition="!$([System.String]::Copy('%(Identity)').Contains('-')) Or $([System.String]::Copy('%(Identity)').Contains('-windows'))" />
+      <_StrideHostAssetAssembly Include="lib/%(_StrideHostAssetAssemblyTfm.Identity)/$(AssemblyName).dll" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(StrideAssetAssembly)' == 'true'">
+      <_StridePackAssetAssembliesArg>@(_StrideHostAssetAssembly->' --pack-asset-assembly=&quot;%(Identity)&quot;', '')</_StridePackAssetAssembliesArg>
+    </PropertyGroup>
+    <Error Condition="'$(StrideAssetAssembly)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
+           Text="StrideAssetAssembly=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

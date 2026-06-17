@@ -475,7 +475,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Gets the user packages (excluding system packages).
     /// </summary>
     /// <value>The user packages.</value>
-    public IEnumerable<Package> LocalPackages => Packages.Where(package => !package.IsSystem);
+    public IEnumerable<Package> LocalPackages => Packages.Where(package => !package.IsReadOnly);
 
     /// <summary>
     /// Gets a task that completes when the session is finished saving.
@@ -1290,7 +1290,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
     private void RegisterPackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
         package.AssetDirtyChanged += OnAssetDirtyChanged;
 
@@ -1309,7 +1309,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// <param name="package">The package to freeze.</param>
     private void FreezePackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
 
         // Freeze only when assets are loaded
@@ -1323,7 +1323,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
     private void UnRegisterPackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
         package.AssetDirtyChanged -= OnAssetDirtyChanged;
 
@@ -1536,7 +1536,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
         // Don't do anything if source is a system (read-only) package for now
         // We only want to process local packages
-        if (dependentPackage.IsSystem)
+        if (dependentPackage.IsReadOnly)
             return null;
 
         // Check if package might need upgrading

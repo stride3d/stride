@@ -15,7 +15,7 @@ namespace Stride.Samples.Tests
 {
     /// <summary>
     /// xunit wrapper around the embed-and-run screenshot regression pipeline. One <see cref="Sample"/>
-    /// theory entry per file in <c>tests/Stride.Samples.Tests/*.cs</c>, so a developer can run a single sample's
+    /// theory entry per file in <c>tests/enduser/Stride.Samples.Tests/Fixtures/*.cs</c>, so a developer can run a single sample's
     /// regression test from VS / Rider / `dotnet test --filter` without going through GH Actions.
     /// CI uses the same path — the workflow just runs `dotnet test` and lets xunit drive every sample.
     ///
@@ -35,7 +35,7 @@ namespace Stride.Samples.Tests
 
         public static IEnumerable<object[]> Samples()
         {
-            var fixturesDir = Path.Combine(WorktreeRoot(), "tests", "Stride.Samples.Tests");
+            var fixturesDir = Path.Combine(WorktreeRoot(), "tests", "enduser", "Stride.Samples.Tests", "Fixtures");
             if (!Directory.Exists(fixturesDir))
                 yield break;
             foreach (var file in Directory.EnumerateFiles(fixturesDir, "*.cs"))
@@ -133,7 +133,7 @@ namespace Stride.Samples.Tests
             // earlier theory entries that may have left captures in the same captureRoot.
             // ScreenshotComparator defaults to <bin>/models/lpips_alex.onnx, which the shared
             // Stride.ScreenshotComparator project copies into our output via ProjectReference.
-            var baselineDir = Path.Combine(worktree, "tests", "Stride.Samples.Tests");
+            var baselineDir = Path.Combine(worktree, "tests", "enduser", "Stride.Samples.Tests", "Fixtures");
             var results = ScreenshotComparator.Compare(captureRoot, baselineDir, sampleFilter: name);
 
             foreach (var r in results)
