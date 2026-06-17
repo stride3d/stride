@@ -346,7 +346,7 @@ public sealed class AssetDependencyManager : IAssetDependencyManager, IDisposabl
             // TODO: This is not handling shadow registry
 
             // No need to clone assets from readonly package 
-            var assetItemCloned = assetItem.Package?.IsSystem ?? false
+            var assetItemCloned = assetItem.Package?.IsReadOnly ?? false
                 ? assetItem
                 : new AssetItem(assetItem.Location, AssetCloner.Clone(assetItem.Asset), assetItem.Package)
                 {

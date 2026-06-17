@@ -104,11 +104,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public Dictionary<string, PackageVersion>? SerializedVersion { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this package is a system package.
+    /// Gets a value indicating whether this package is read-only: a restored dependency (or otherwise
+    /// not backed by an editable in-solution <see cref="SolutionProject"/>), so it is never edited or saved.
     /// </summary>
-    /// <value><c>true</c> if this package is a system package; otherwise, <c>false</c>.</value>
     [DataMemberIgnore]
-    public bool IsSystem => Container is not SolutionProject;
+    public bool IsReadOnly => Container is not SolutionProject;
 
     /// <summary>
     /// Gets or sets the metadata associated with this package.
@@ -163,6 +163,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// </summary>
     [DataMember(100)]
     public RootAssetCollection RootAssets { get; private set; } = [];
+
+    /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// </summary>
+    [DataMember(105)]
+    public List<AssetAssembly> AssetAssemblies { get; } = [];
 
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
@@ -261,8 +267,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMemberIgnore]
     public List<PackageLoadedAssembly> LoadedAssemblies { get; } = [];
 
+    /// <summary>
+    /// Build-time-resolved project asset files (from a .sdbuild manifest). When set, project
+    /// asset discovery uses this list directly.
+    /// </summary>
     [DataMemberIgnore]
-    public string? RootNamespace { get; private set; }
+    internal List<PackageLoadingAssetFile>? PrecomputedProjectAssets { get; set; }
+
+    [DataMemberIgnore]
+    public string? RootNamespace { get; internal set; }
 
     [DataMemberIgnore]
     public bool IsImplicitProject
@@ -789,7 +802,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 .Join(TemporaryAssets, o => o.Id, t => t.Id, (_, t) => t)
                 .ToList();
             // Dirty assets (except in system package) should be mark as deleted so that are properly saved again later.
-            if (!IsSystem && dirtyAssets.Count > 0)
+            if (!IsReadOnly && dirtyAssets.Count > 0)
             {
                 IsDirty = true;
 
@@ -1205,7 +1218,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     ext = ext?.Replace(".xk", ".sd");
 
                     //make sure to add default shaders in this case, since we don't have a csproj for them
-                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && (package.Container is not SolutionProject || package.IsSystem))
+                    //(skipped in manifest mode: project assets come from PrecomputedProjectAssets instead)
+                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && package.PrecomputedProjectAssets is null && package.IsReadOnly)
                     {
                         listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                         continue;
@@ -1278,8 +1292,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
     {
-        if (package.IsSystem) return;
+        // Manifest mode: project assets were resolved at build time, no MSBuild evaluation.
+        if (package.PrecomputedProjectAssets is not null)
+        {
+            foreach (var assetFile in package.PrecomputedProjectAssets)
+                list.Add(assetFile);
+            return;
+        }
 
+        // Legacy: walk the csproj (only SolutionProject packages have one).
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;
 

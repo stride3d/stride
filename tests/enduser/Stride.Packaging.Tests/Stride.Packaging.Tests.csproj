@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <StrideRoot>$(MSBuildThisFileDirectory)..\..\</StrideRoot>
+    <StrideRoot>$(MSBuildThisFileDirectory)..\..\..\</StrideRoot>
   </PropertyGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
@@ -8,15 +8,19 @@
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <StrideSkipAutoPack>false</StrideSkipAutoPack>
-    <IsPackable>true</IsPackable>
-    <!-- Skip SDK test references — we manage versions directly since ManagePackageVersionsCentrally=false -->
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <SkipXunitReference>true</SkipXunitReference>
     <SkipTestSdkReference>true</SkipTestSdkReference>
     <SkipSourceLink>true</SkipSourceLink>
     <!-- Override SDK test output path since this project is outside sources/ -->
-    <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory)..\..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Committed plugin/consumer fixtures are packed/built as subprocesses, never compiled here. -->
+    <Compile Remove="Fixtures\**\*.cs" />
+  </ItemGroup>
   <ItemGroup>
     <!-- ExcludeAssets="runtime": compile-time refs only; at runtime PackageSessionPublicHelper
          redirects MSBuild loads to whatever the user's .NET SDK ships. -->
@@ -31,54 +35,49 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
-    <ProjectReference Include="..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
-    <!-- Build-time trigger: regenerated samples PackageReference Stride.Games.AutoTesting
-         (via samplesGenerated/Directory.Build.targets) when StrideAutoTesting=true. -->
-    <ProjectReference Include="..\..\sources\engine\Stride.Games.AutoTesting\Stride.Games.AutoTesting.csproj">
+    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <!-- Stride.Assets carries the templating types (DotNetNewTemplateBridge, TemplateManager) and
+         PackageSessionPublicHelper used to generate the consumer sample headlessly. -->
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
+    <!-- Build-time triggers: ensure the engine + template nupkgs the generated consumer and the
+         packed plugin PackageReference all land in bin/packages (resolved as a real external feed
+         by the subprocess builds). Mirrors Stride.Samples.Tests' set. -->
+    <ProjectReference Include="..\..\..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <!-- Build-time triggers: ensure engine nupkgs that samples PackageReference end up in
-         bin/packages. Stride.Assets pulls Engine/Physics/UI/Video; these three are not in
-         that graph but are referenced by regenerated samples (asset compiler + particles +
-         sprite-studio). -->
-    <ProjectReference Include="..\..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
+    <ProjectReference Include="..\..\..\sources\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <!-- Build-time triggers: ensure each Stride template nupkg lands in bin/packages
-         (DotNetNewTemplateBridge resolves them via PackageStore). -->
-    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
+    <ProjectReference Include="..\..\..\sources\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>false</Private>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-    </ProjectReference>
-    <ProjectReference Include="..\..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+    <ProjectReference Include="..\..\..\sources\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
-  <!-- NuGet resolved needed for StrideDefaultTemplates.Load() -->
-  <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
+  <!-- Shared headless sample generator (also used by Stride.Samples.Tests). -->
+  <ItemGroup>
+    <Compile Include="..\Stride.Samples.Tests\Generator\SampleGenerator.cs" Link="Generator\SampleGenerator.cs" />
+  </ItemGroup>
+  <!-- NuGet resolver needed for StrideDefaultTemplates.Load() -->
+  <Import Project="..\..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

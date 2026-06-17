@@ -24,6 +24,8 @@ namespace Stride.Core.Assets.CompilerApp
         public Guid PackageId { get; set; }
         public PlatformType Platform { get; set; }
         public string PackageFile { get; set; }
+        public string PackageManifestFile { get; set; }
+        public List<string> PackAssetAssemblies = new List<string>();
         public string MSBuildUpToDateCheckFileBase { get; set; }
         public List<string> MonitorPipeNames = new List<string>();
         public bool EnableFileLogging;
@@ -82,11 +84,16 @@ namespace Stride.Core.Assets.CompilerApp
 
             if (SlavePipe == null)
             {
-                if (string.IsNullOrWhiteSpace(PackageFile))
+                if (!string.IsNullOrWhiteSpace(PackageManifestFile))
+                {
+                    if (!File.Exists(PackageManifestFile))
+                        throw new ArgumentException("Build manifest [{0}] doesn't exist".ToFormat(PackageManifestFile), "packageManifestFile");
+                }
+                else if (string.IsNullOrWhiteSpace(PackageFile))
                 {
                     if (string.IsNullOrWhiteSpace(SolutionFile) || PackageId == Guid.Empty)
                     {
-                        throw new ArgumentException("This tool requires either a --package-file, or a --solution-file and --package-id.", "inputPackageFile");
+                        throw new ArgumentException("This tool requires either a --package-file, a --package-manifest, or a --solution-file and --package-id.", "inputPackageFile");
                     }
                 }
                 else if (!File.Exists(PackageFile))

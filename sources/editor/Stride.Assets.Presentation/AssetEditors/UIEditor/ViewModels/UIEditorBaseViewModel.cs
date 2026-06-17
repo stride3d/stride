@@ -634,7 +634,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 
             // FIXME: only retrieve from current package and its dependencies
             var allLibraries = Session.AllPackages
-                .GroupBy(p => p.Package.IsSystem)
+                .GroupBy(p => p.Package.IsReadOnly)
                 .ToDictionary(p => p.Key, p => p.SelectMany(x => x.Assets).OfType<UILibraryViewModel>());
 
             // system libraries
