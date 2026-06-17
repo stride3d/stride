@@ -18,7 +18,9 @@ on:
   # No paths filter here: the Gate job is a required check, so CI must report on every PR.
   # The changes job's filters skip the actual work for out-of-scope PRs.
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # labeled/unlabeled so a `ci-run-on-draft` label takes effect immediately on a draft —
+    # without them main.yml wouldn't re-evaluate its draft gate until the next push.
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   workflow_dispatch:
 
 permissions:
@@ -47,12 +49,13 @@ jobs:
       || vars.STRIDE_ENABLE_PUSH_CI == 'true'
     uses: ./.github/workflows/changes.yml
 
-  # Draft PRs skip all automatic CI to save runner minutes; add a ci-force-<suite> label
-  # to opt into specific suites while iterating. ready_for_review re-runs everything.
+  # Draft PRs skip all automatic CI to save runner minutes. Add a `ci-run-on-draft` label to
+  # run the normal path-gated suites while iterating, or a `ci-<suite>` label (see
+  # pr-label-suites.yml) for a specific opt-in suite. ready_for_review re-runs everything.
   ### Misc ###
   Assembly-Processor:
     needs: changes
-    if: github.event.pull_request.draft != true && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.full == 'true')
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.full == 'true')
     uses: ./.github/workflows/build-assembly-processor.yml
     secrets: inherit
     with:
@@ -60,7 +63,7 @@ jobs:
 
   VS-Package:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.full == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.full == 'true'
     uses: ./.github/workflows/build-vs-package.yml
     secrets: inherit
     with:
@@ -69,7 +72,7 @@ jobs:
   ### Runtimes ###
   iOS-Runtime:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.ios == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.ios == 'true'
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     with:
@@ -77,7 +80,7 @@ jobs:
 
   Android-Runtime:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
@@ -85,7 +88,7 @@ jobs:
 
   Linux-Runtime:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-linux-runtime.yml
     secrets: inherit
     with:
@@ -93,7 +96,7 @@ jobs:
 
   Windows-Runtime-D3D11:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
@@ -102,7 +105,7 @@ jobs:
 
   Windows-Runtime-D3D12:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
@@ -111,7 +114,7 @@ jobs:
 
   Windows-Runtime-Vulkan:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
@@ -121,7 +124,7 @@ jobs:
   ### Full Windows build (engine + editor + assets + samples) ###
   Windows-Full:
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.full == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.full == 'true'
     uses: ./.github/workflows/build-windows-full.yml
     secrets: inherit
     with:
@@ -134,7 +137,7 @@ jobs:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
@@ -148,7 +151,7 @@ jobs:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
@@ -161,7 +164,7 @@ jobs:
     needs: [changes, Windows-Runtime-D3D11]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
@@ -175,7 +178,7 @@ jobs:
     needs: [changes, Windows-Runtime-D3D12]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-D3D12'].result != 'failure'
       && needs['Windows-Runtime-D3D12'].result != 'cancelled'
@@ -189,7 +192,7 @@ jobs:
     needs: [changes, Windows-Runtime-Vulkan]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Windows-Runtime-Vulkan'].result != 'failure'
       && needs['Windows-Runtime-Vulkan'].result != 'cancelled'
@@ -203,7 +206,7 @@ jobs:
     needs: [changes, Linux-Runtime]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
@@ -216,7 +219,7 @@ jobs:
     needs: [changes, Linux-Runtime]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
@@ -232,7 +235,7 @@ jobs:
     needs: [changes, Linux-Runtime]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
@@ -247,7 +250,7 @@ jobs:
     needs: [changes, Linux-Runtime]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.ios-tests == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
@@ -262,7 +265,7 @@ jobs:
     needs: [changes, Linux-Runtime]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.android == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'

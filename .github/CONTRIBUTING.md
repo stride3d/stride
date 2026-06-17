@@ -10,16 +10,18 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 
 ## Triggering CI tests on a PR
 
-Most CI runs automatically on PR commits. A few suites — editor screenshots and end-user
-screenshots — are slow and drift-prone, so they run only on demand. Arm them by adding a
-`ci-force-<suite>` label to the PR (collaborator access required):
+Most CI runs automatically on PR commits, gated by path filters. A few things run only on demand;
+opt in by adding a label to the PR (collaborator access required):
 
-- `ci-force-enduser` — end-user sample screenshot + packaging suite
-- `ci-force-editor` — GameStudio editor screenshot suite
-- `ci-force-ios` — iOS game suite (when the path filter didn't already trigger it)
+- `ci-enduser` — end-user sample screenshot + packaging suite (never auto-runs)
+- `ci-editor` — GameStudio editor screenshot suite (never auto-runs)
+- `ci-ios` — iOS game suite, when its narrow path filter didn't already trigger it
+- `ci-android` — Android game suite, when its narrow path filter didn't already trigger it
+- `ci-run-on-draft` — run the normal path-gated CI on a **draft** PR (which otherwise skips CI)
 
-The labels run through the PR's own workflow ([`.github/workflows/pr-label-suites.yml`](workflows/pr-label-suites.yml)),
-so they use the PR head's YAML. Removing a label re-runs with that suite skipped.
+Labels run through the PR's own workflow ([`pr-label-suites.yml`](workflows/pr-label-suites.yml) /
+[`main.yml`](workflows/main.yml)), so they use the PR head's YAML and re-run on every push while
+applied. Removing a label re-runs with that suite skipped.
 
 ## Earn Money by Contributing
 

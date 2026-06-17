@@ -1,7 +1,7 @@
 name: PR draft welcome
 
 # Posts a one-time hint comment on draft PRs explaining that automatic CI is skipped
-# and how to opt into CI suites via ci-force-<suite> labels. Triggered on PR open (if
+# and how to opt into CI suites via ci-* labels. Triggered on PR open (if
 # draft) and on transitions to draft. Idempotent via a hidden marker — same PR
 # transitioning open ↔ draft won't get duplicate hints.
 #
@@ -38,8 +38,8 @@ jobs:
             const body = [
               '🤖 Draft PR — automatic CI is skipped to save runner minutes.',
               '',
-              '- Mark the PR **ready for review** to run the full automatic CI.',
-              '- To run an opt-in suite without leaving draft, a maintainer can add a `ci-force-<suite>` label — e.g. `ci-force-enduser`, `ci-force-editor`, `ci-force-ios`.',
+              '- Mark the PR **ready for review** to run the full automatic CI — or add a `ci-run-on-draft` label to run it now without leaving draft.',
+              '- Or arm a specific opt-in suite: `ci-enduser`, `ci-editor`, `ci-ios`, `ci-android`.',
               '',
               MARKER,
             ].join('\n');
