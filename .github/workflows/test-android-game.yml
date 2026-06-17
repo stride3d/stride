@@ -75,7 +75,7 @@ concurrency:
 
 jobs:
   Android-Tests-Game:
-    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Android (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     # Linux host: KVM-accelerated x86_64 Android emulator is the only path that runs in a
     # reasonable amount of time on a hosted runner. macOS-14+ Apple Silicon runners don't
     # support nested virt for AOSP emulator; older macOS-13 Intel HAXM is being retired.

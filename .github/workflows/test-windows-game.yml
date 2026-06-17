@@ -74,7 +74,7 @@ jobs:
   # API-independent tests live in test-windows-game-api-neutral.yml so they run once.
   #
   Game-GraphicsApi:
-    name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Windows (${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     strategy:

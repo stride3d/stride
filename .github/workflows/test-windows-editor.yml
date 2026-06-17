@@ -37,7 +37,7 @@ jobs:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    name: Editor screenshots (${{ inputs.build-type || 'Debug' }})
+    name: Windows (Editor, ${{ inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     env:
       DOTNET_DbgEnableMiniDump: "1"
