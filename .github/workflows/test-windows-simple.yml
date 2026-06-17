@@ -1,11 +1,5 @@
 name: Test Windows (Simple)
 
-run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test Windows (Simple) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test Windows (Simple) @ {0}', github.event.inputs.commit-sha))
-      || '' }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -21,18 +15,14 @@ on:
       build-type:
         default: Debug
         type: string
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
-    types: [test-windows-simple]
-
 
 concurrency:
-  group: test-windows-simple-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-windows-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
   Windows-Tests:
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, Simple)
+    name: Windows (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     steps:
@@ -42,7 +32,7 @@ jobs:
         with:
           lfs: true
           submodules: true
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Simple.slnf `

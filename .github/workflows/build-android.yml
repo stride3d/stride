@@ -15,9 +15,6 @@ on:
       build-type:
         default: Debug
         type: string
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, dispatched_by }.
-    types: [build-android]
 
 concurrency:
   group: build-android-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -28,7 +25,7 @@ jobs:
   # Build Stride Runtime for Android
   #
   Android-Runtime:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Android Runtime (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
@@ -37,7 +34,7 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number) || github.ref }}
+          ref: ${{ github.ref }}
           exclude: samples
       - name: Install Android Workload
         uses: ./.github/actions/stride-workload

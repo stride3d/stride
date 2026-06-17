@@ -10,17 +10,18 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 
 ## Triggering CI tests on a PR
 
-Most CI runs automatically on PR commits. Two suites — editor screenshots and end-user
-screenshots — only run on demand because they're slow and drift-prone. A bot listens for
-`/test` comments to dispatch them. Comment `/test help` on any PR for the full command list.
+Most CI runs automatically on PR commits, gated by path filters. A few things run only on demand;
+opt in by adding a label to the PR (collaborator access required):
 
-Quick examples:
-- `/test editor enduser` — run both screenshot suites
-- `/test linux-game` — re-run a specific main-CI suite (useful for transient failures)
-- `/test windows-game-vulkan` — re-run a specific graphics-API variant
+- `ci-enduser` — end-user sample screenshot + packaging suite (never auto-runs)
+- `ci-editor` — GameStudio editor screenshot suite (never auto-runs)
+- `ci-ios` — iOS game suite, when its narrow path filter didn't already trigger it
+- `ci-android` — Android game suite, when its narrow path filter didn't already trigger it
+- `ci-run-on-draft` — run the normal path-gated CI on a **draft** PR (which otherwise skips CI)
 
-Bot definition: [`.github/workflows/pr-test-chatops.yml`](workflows/pr-test-chatops.yml).
-Only repo collaborators can trigger.
+Labels run through the PR's own workflow ([`pr-label-suites.yml`](workflows/pr-label-suites.yml) /
+[`main.yml`](workflows/main.yml)), so they use the PR head's YAML and re-run on every push while
+applied. Removing a label re-runs with that suite skipped.
 
 ## Earn Money by Contributing
 

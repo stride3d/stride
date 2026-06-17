@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   Windows-MSBuild:
-    name: Build (${{ github.event.inputs.build-type || 'Debug' }}, VS MSBuild)
+    name: Windows Full (VS MSBuild, ${{ github.event.inputs.build-type || 'Debug' }})
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     runs-on: windows-2025-vs2026
     timeout-minutes: 60

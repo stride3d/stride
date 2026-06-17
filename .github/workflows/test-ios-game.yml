@@ -1,11 +1,7 @@
 name: Test iOS Game (Vulkan)
 
 run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test iOS Game (Vulkan) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test iOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha))
-      || (github.event.inputs.test-filter != '' && 'Test iOS Game (Vulkan)')
-      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
+  ${{ github.event.inputs.commit-sha != '' && format('Test iOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
 
 on:
   workflow_dispatch:
@@ -69,17 +65,23 @@ on:
       repeat:
         type: number
         default: 1
-  repository_dispatch:
-    types: [test-ios-game]
-
+  schedule:
+    # Daily at 02:43 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # spaced from the other nightlies (03:37–05:17) so they don't compete for the scheduler.
+    - cron: '43 2 * * *'
 
 concurrency:
-  group: test-ios-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-ios-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
   iOS-Tests-Game:
-    name: Test Game Vulkan (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    # Scheduled (nightly) runs only fire on repos that opt in via STRIDE_ENABLE_SCHEDULED_CI;
+    # workflow_call (main.yml path filter / ci-ios label) and dispatch always run.
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    name: iOS (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
     # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
     # is 26.3, which the 26.5 pack rejects.
@@ -100,7 +102,7 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
 
       - name: Install iOS + macOS Workloads

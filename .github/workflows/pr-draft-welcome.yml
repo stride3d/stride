@@ -1,9 +1,9 @@
-name: PR draft chatops welcome
+name: PR draft welcome
 
 # Posts a one-time hint comment on draft PRs explaining that automatic CI is skipped
-# and pointing to the /ci chatops bot. Triggered on PR open (if draft) and on
-# transitions to draft. Idempotent via a hidden marker — same PR transitioning
-# open ↔ draft won't get duplicate hints.
+# and how to opt into CI suites via ci-* labels. Triggered on PR open (if
+# draft) and on transitions to draft. Idempotent via a hidden marker — same PR
+# transitioning open ↔ draft won't get duplicate hints.
 #
 # Uses pull_request_target so the default GITHUB_TOKEN has write perms for fork PRs
 # too (the standard pull_request event ships a read-only token from fork heads).
@@ -38,11 +38,8 @@ jobs:
             const body = [
               '🤖 Draft PR — automatic CI is skipped to save runner minutes.',
               '',
-              '- `/ci main` — what would auto-run if this PR weren\'t draft',
-              '- `/ci all` — `main` + screenshot regression (`/ci e2e`)',
-              '- `/ci help` — full list, per-platform and per-suite',
-              '',
-              'Marking ready-for-review re-enables full CI automatically.',
+              '- Mark the PR **ready for review** to run the full automatic CI — or add a `ci-run-on-draft` label to run it now without leaving draft.',
+              '- Or arm a specific opt-in suite: `ci-enduser`, `ci-editor`, `ci-ios`, `ci-android`.',
               '',
               MARKER,
             ].join('\n');

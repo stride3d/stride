@@ -1,11 +1,7 @@
 name: Test Windows (Game)
 
 run-name: >-
-  ${{ github.event.client_payload.pr_number
-      && format('Test Windows (Game) — PR #{0} @ {1}', github.event.client_payload.pr_number, github.event.client_payload.pr_head_sha)
-      || (github.event.inputs.commit-sha != '' && format('Test Windows (Game) @ {0}', github.event.inputs.commit-sha))
-      || (github.event.inputs.test-filter != '' && 'Test Windows (Game)')
-      || '' }}${{ github.event.inputs.test-filter != '' && format(' [filter: {0}]', github.event.inputs.test-filter) || '' }}
+  ${{ github.event.inputs.commit-sha != '' && format('Test Windows (Game) @ {0}', github.event.inputs.commit-sha) || '' }}
 
 on:
   workflow_dispatch:
@@ -67,13 +63,9 @@ on:
       upload-binlog:
         default: false
         type: boolean
-  repository_dispatch:
-    # Fired by chatops bot. Payload: { pr_number, graphics-api, dispatched_by }.
-    types: [test-windows-game]
-
 
 concurrency:
-  group: test-windows-game-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
+  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
   cancel-in-progress: true
 
 jobs:
@@ -82,13 +74,13 @@ jobs:
   # API-independent tests live in test-windows-game-api-neutral.yml so they run once.
   #
   Game-GraphicsApi:
-    name: Test Game ${{ matrix.graphics-api }} (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Windows (${{ matrix.graphics-api }}, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        graphics-api: ${{ (github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api) != '' && fromJson(format('["{0}"]', github.event.client_payload['graphics-api'] || github.event.inputs.graphics-api || inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
+        graphics-api: ${{ (github.event.inputs.graphics-api || inputs.graphics-api) != '' && fromJson(format('["{0}"]', github.event.inputs.graphics-api || inputs.graphics-api)) || fromJson('["Direct3D11","Direct3D12","Vulkan"]') }}
     env:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
@@ -107,10 +99,10 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
         with:
-          # commit-sha (workflow_dispatch/_call input) wins for explicit bisecting. Otherwise
-          # chatops dispatch passes a PR number; check out its merge ref so we test the
-          # post-merge state (works uniformly for same-repo and fork PRs).
-          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || (github.event.client_payload.pr_number && format('refs/pull/{0}/merge', github.event.client_payload.pr_number)) || github.ref }}
+          # commit-sha (workflow_dispatch/_call input) wins for explicit bisecting; otherwise
+          # github.ref is the PR merge ref under pull_request, so we test the post-merge state
+          # (works uniformly for same-repo and fork PRs).
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
       - name: Configure crash dumps
         shell: pwsh
