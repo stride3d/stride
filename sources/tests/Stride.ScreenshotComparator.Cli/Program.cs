@@ -10,19 +10,26 @@ using Stride.Tests.ScreenshotComparator;
 // deferred frame can't be conclusively resolved. It reads only the PR's image artifacts (data), so no
 // PR-built code runs with the key.
 //
-// Usage: --new <captures-dir> --baseline <fixtures-dir>
+// Usage: --new <captures-dir> --baseline <fixtures-dir> [--prompt gameplay|editor]
 
-string? newDir = null, baselineDir = null;
+string? newDir = null, baselineDir = null, promptKind = null;
 for (var i = 0; i < args.Length - 1; i++)
 {
     if (args[i] == "--new") newDir = args[i + 1];
     else if (args[i] == "--baseline") baselineDir = args[i + 1];
+    else if (args[i] == "--prompt") promptKind = args[i + 1];
 }
 if (newDir is null || baselineDir is null)
 {
-    Console.Error.WriteLine("usage: --new <captures-dir> --baseline <fixtures-dir>");
+    Console.Error.WriteLine("usage: --new <captures-dir> --baseline <fixtures-dir> [--prompt gameplay|editor]");
     return 2;
 }
+
+// Match the vision prompt to the capture domain so the re-judge applies the same guidance the
+// capturing suite used. Null → Compare defaults to the gameplay prompt.
+ComparisonPrompt? defaultPrompt = string.Equals(promptKind, "editor", StringComparison.OrdinalIgnoreCase)
+    ? EditorComparisonPrompt.Default
+    : null;
 
 // Collect the frames the keyless run deferred. These MUST be resolved to a passing status here.
 var expectedDeferred = new HashSet<(string Sample, string Frame)>();
@@ -61,7 +68,7 @@ try
 {
     // Key present here → ClaudeVisionFallback runs inline; deferWhenVisionUnavailable left false so a
     // missing key (shouldn't happen in the gate) fails closed to "drift" rather than re-deferring.
-    results = ScreenshotComparator.Compare(newDir, baselineDir);
+    results = ScreenshotComparator.Compare(newDir, baselineDir, defaultPrompt: defaultPrompt);
 }
 catch (Exception ex)
 {
