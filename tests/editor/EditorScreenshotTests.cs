@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.Templates;
 using Stride.Assets.Templates;
@@ -119,15 +120,51 @@ public class EditorScreenshotTests
         // multiple fixtures' captures across test invocations.
         var baselineDir = Path.Combine(worktree, "tests", "editor", "baselines", Dpi);
         var results = ScreenshotComparator.Compare(captureRoot, baselineDir,
-            sampleFilter: fixtureName, defaultPrompt: EditorComparisonPrompt.Default);
+            sampleFilter: fixtureName, defaultPrompt: EditorComparisonPrompt.Default,
+            deferWhenVisionUnavailable: true);
 
         foreach (var r in results)
         {
             var lpips = r.Lpips.HasValue ? $"lpips={r.Lpips.Value:F4}" : "";
             output.WriteLine($"[compare] {r.Status,-12} {r.Frame,-25} thr={r.Threshold:F2} {lpips}{(r.Detail is null ? "" : "  " + r.Detail)}");
         }
+
+        // Frames over the LPIPS threshold that opted into the Claude vision tiebreak but ran without a
+        // key (fork PRs get no secrets). Record them so the trusted vision gate (workflow_run, which
+        // has the key) can rule on them. One manifest per fixture → no cross-test races.
+        var deferred = results.Where(r => r.Status is "deferred").ToList();
+        if (deferred.Count > 0)
+            WriteDeferredManifest(fixtureCapture, fixtureName, deferred);
+
+        // Hard regressions (LPIPS drift with no vision tiebreak, capture/compare errors, missing
+        // baseline) fail regardless of any deferral.
         var failures = results.Where(r => r.Status is "drift" or "error" or "new").ToList();
         Assert.Empty(failures);
+
+        // Deferred-only (no hard failures): the verdict belongs to the trusted vision gate. xunit's
+        // Assert.Skip isn't available under this project's custom runner, so the test just passes here
+        // and logs; the manifest above plus the required, fail-closed gate keep it honest.
+        if (deferred.Count > 0)
+            output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
+                             $"(no ANTHROPIC_API_KEY in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
+    }
+
+    /// <summary>
+    /// Write <c>&lt;fixtureCapture&gt;/vision-deferred.json</c> listing the frames this keyless run couldn't
+    /// rule on. The trusted vision gate globs these across fixtures, re-judges each with the key, and
+    /// fails closed if a listed frame can't be resolved.
+    /// </summary>
+    private static void WriteDeferredManifest(string fixtureCapture, string fixture, IReadOnlyList<ComparisonResult> deferred)
+    {
+        Directory.CreateDirectory(fixtureCapture);
+        var payload = new
+        {
+            sample = fixture,
+            frames = deferred.Select(r => new { frame = r.Frame, lpips = r.Lpips, threshold = r.Threshold, detail = r.Detail }).ToArray(),
+        };
+        File.WriteAllText(
+            Path.Combine(fixtureCapture, "vision-deferred.json"),
+            JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
     }
 
     /// <summary>
