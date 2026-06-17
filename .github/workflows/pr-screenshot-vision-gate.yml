@@ -8,7 +8,7 @@ name: Screenshot Vision Gate
 
 on:
   workflow_run:
-    workflows: ["PR Label Suites", "Test End-User"]
+    workflows: ["PR Label Suites", "Test End-User", "Test GameStudio (Screenshots)"]
     types: [completed]
 
 permissions:
@@ -47,18 +47,34 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
         run: |
-          baseline="tests/enduser/Stride.Samples.Tests/Fixtures"
+          cli="sources/tests/Stride.ScreenshotComparator.Cli/Stride.ScreenshotComparator.Cli.csproj"
           rc=0
           shopt -s nullglob
           captured=false
+
+          # Enduser sample captures → committed sample fixtures as gold (gameplay vision prompt).
+          enduser_baseline="tests/enduser/Stride.Samples.Tests/Fixtures"
           for d in artifacts/*/screenshot-out artifacts/*/screenshot-out-aot; do
             [ -d "$d" ] || continue
             captured=true
             echo "::group::vision gate over $d"
-            dotnet run --project sources/tests/Stride.ScreenshotComparator.Cli/Stride.ScreenshotComparator.Cli.csproj \
-              -nr:false -v:m -p:WarningLevel=0 -- --new "$d" --baseline "$baseline" || rc=1
+            dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
+              --new "$d" --baseline "$enduser_baseline" || rc=1
             echo "::endgroup::"
           done
+
+          # Editor captures → per-DPI editor baselines (the capture dir name encodes the DPI bucket,
+          # e.g. ui-test-out-dpi100 → tests/editor/baselines/dpi100). Uses the editor vision prompt.
+          for d in artifacts/*/ui-test-out-dpi*; do
+            [ -d "$d" ] || continue
+            captured=true
+            dpi="${d##*ui-test-out-}"   # ui-test-out-dpi100 → dpi100
+            echo "::group::vision gate over $d (baseline dpi=$dpi)"
+            dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
+              --new "$d" --baseline "tests/editor/baselines/$dpi" --prompt editor || rc=1
+            echo "::endgroup::"
+          done
+
           if [ "$captured" = false ]; then
             # No screenshots-* artifacts → no screenshot suite ran (or it ran with nothing deferred):
             # nothing to re-judge, so pass. This keeps the gate green on ordinary PRs so it's safe to

@@ -39,6 +39,17 @@ jobs:
     with:
       build-type: Debug
 
+  # GameStudio editor screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
+  # Keyless on forks: it captures + defers borderline frames, which pr-screenshot-vision-gate
+  # re-judges with the key.
+  editor:
+    needs: changes
+    if: contains(github.event.pull_request.labels.*.name, 'ci-force-editor')
+    uses: ./.github/workflows/test-windows-editor.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
   # iOS is in main.yml's auto set (ios-tests filter). Force it only when that filter is OFF, so
   # main's gated run handles the case where iOS paths actually changed (no double-run).
   ios:
@@ -53,7 +64,7 @@ jobs:
   # Skipped suites (label absent) are fine; only failure/cancellation fails the gate. Mark this
   # "Label Suites Gate" check required in branch protection to make forced suites blocking.
   label-gate:
-    needs: [changes, enduser, ios]
+    needs: [changes, enduser, editor, ios]
     if: always()
     runs-on: ubuntu-latest
     steps:
