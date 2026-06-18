@@ -2,12 +2,11 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworksMacOS)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
     <StrideAssetAssembly>true</StrideAssetAssembly>
-    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">

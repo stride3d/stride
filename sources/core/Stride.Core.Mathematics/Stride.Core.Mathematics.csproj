@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StridePublicApi>true</StridePublicApi>
   </PropertyGroup>
 

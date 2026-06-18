@@ -5,7 +5,7 @@
     <!-- This is a test helper library, not a test project. xunit.runner.visualstudio sets
          IsTestProject=true which breaks StrideGraphicsApiDependent output paths. -->
     <IsTestProject>false</IsTestProject>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>

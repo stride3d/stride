@@ -69,7 +69,7 @@
     <StrideCommonPreSettingsName Condition="'$(StrideCommonPreSettingsName)' == ''">Stride</StrideCommonPreSettingsName>
 
     <!-- Set default StridePlatforms based on OS (if not already set by user/build system) -->
-    <!-- Note: This MUST be set to enable multi-targeting with StrideRuntime=true -->
+    <!-- Note: drives the StrideRuntimeTargetFrameworks sets below (runtime multi-targeting) -->
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Windows))'">Windows</StridePlatforms>
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(OSX))'">macOS</StridePlatforms>
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
@@ -88,6 +88,32 @@
     <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(Windows)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';Windows;'))">;Windows$(_StridePlatforms)</_StridePlatforms>
     <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(Linux)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';Linux;'))">;Linux$(_StridePlatforms)</_StridePlatforms>
     <_StridePlatforms Condition="'$(StridePlatformAutoAddHost)' != 'false' And $([MSBuild]::IsOSPlatform(OSX)) And ($(_StridePlatforms.Contains(';Android;')) Or $(_StridePlatforms.Contains(';iOS;'))) And !$(_StridePlatforms.Contains(';macOS;'))">;macOS$(_StridePlatforms)</_StridePlatforms>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Runtime Target-Framework Sets -->
+  <!-- ================================================================ -->
+  <!-- Precomputed framework lists a runtime assembly opts into directly in its csproj, e.g.
+       <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>. Computed here (props)
+       so the value is known when the csproj body evaluates and the literal <TargetFrameworks>
+       element lives in the csproj (keeps SDK-style project-system detection working).
+       Ordered base; desktop-native; mobile/UWP — gated on the active $(_StridePlatforms). -->
+  <PropertyGroup>
+    <!-- mobile/UWP tail shared by every variant -->
+    <_StrideRuntimeMobileFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(_StrideRuntimeMobileFrameworks);$(StrideFrameworkAndroid)</_StrideRuntimeMobileFrameworks>
+    <_StrideRuntimeMobileFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(_StrideRuntimeMobileFrameworks);$(StrideFrameworkUWP)</_StrideRuntimeMobileFrameworks>
+    <_StrideRuntimeMobileFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(_StrideRuntimeMobileFrameworks);$(StrideFrameworkiOS)</_StrideRuntimeMobileFrameworks>
+
+    <!-- desktop-native variants, included only when that platform is active -->
+    <_StrideRuntimeWindowsFramework Condition="$(_StridePlatforms.Contains(';Windows;'))">;$(StrideFrameworkWindows)</_StrideRuntimeWindowsFramework>
+    <_StrideRuntimeMacOSFramework Condition="$(_StridePlatforms.Contains(';macOS;'))">;$(StrideFrameworkmacOS)</_StrideRuntimeMacOSFramework>
+
+    <!-- base only: most runtime assemblies -->
+    <StrideRuntimeTargetFrameworks>$(StrideFramework)$(_StrideRuntimeMobileFrameworks)</StrideRuntimeTargetFrameworks>
+    <!-- + Windows desktop (e.g. raw input) -->
+    <StrideRuntimeTargetFrameworksWindows>$(StrideFramework)$(_StrideRuntimeWindowsFramework)$(_StrideRuntimeMobileFrameworks)</StrideRuntimeTargetFrameworksWindows>
+    <!-- + macOS desktop (e.g. AVFoundation / Metal) -->
+    <StrideRuntimeTargetFrameworksMacOS>$(StrideFramework)$(_StrideRuntimeMacOSFramework)$(_StrideRuntimeMobileFrameworks)</StrideRuntimeTargetFrameworksMacOS>
   </PropertyGroup>
 
   <!-- ================================================================ -->
