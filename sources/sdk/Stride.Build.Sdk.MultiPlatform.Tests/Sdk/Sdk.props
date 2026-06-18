@@ -6,8 +6,8 @@
     Sets StrideMultiPlatformTest=true before delegating to the base Tests SDK so the
     consumer csproj doesn't need a pre-import PropertyGroup. The flag (read at props time
     in the base SDK) defaults StrideTestPlatforms from StridePlatforms (Stride.Local.props)
-    and suppresses the single-TFM fallback, letting the targets-time expansion produce
-    multi-TFM TargetFrameworks. Same shape as StrideRuntime in Stride.Frameworks.targets.
+    and suppresses the single-TFM fallback, so the base SDK's props-time StrideTestTargetFrameworks
+    sets drive the csproj's multi-TFM <TargetFrameworks>.
 
     Single-platform tests should keep importing Stride.Build.Sdk.Tests directly.
   -->
