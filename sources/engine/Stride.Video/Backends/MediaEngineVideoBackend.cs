@@ -42,6 +42,15 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
     // tick doesn't count as a real frame.
     private volatile bool firstFrameDecoded;
 
+    // A paused MediaFoundation seek can leave its frame decoded-but-unpresented under load
+    // (OnVideoStreamTick keeps returning S_FALSE even though the engine reaches HAVE_ENOUGH_DATA).
+    // FrameStep forces that ready frame to present at the exact seek position; these track when to
+    // apply it: only while paused, after the present had time to arrive on its own.
+    private IMFMediaEngineEx* mediaEngineEx;
+    private bool awaitingSeekFrame;
+    private TimeSpan elapsedSinceSeek;
+    private static readonly TimeSpan SeekFramePresentTimeout = TimeSpan.FromMilliseconds(500);
+
     public MediaEngineVideoBackend(VideoInstance instance, MediaEngineVideoBackendFactory factory) : base(instance)
     {
         this.factory = factory;
@@ -70,8 +79,8 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
             classFactory->CreateInstance(default, attr, &engine);
             mediaEngine = engine;
 
-            mediaEngine->QueryInterface<IMFMediaEngineEx>(out var mediaEngineEx).ThrowOnFailure();
-            using var _3 = ComHelpers.AsPtr(mediaEngineEx);
+            mediaEngine->QueryInterface<IMFMediaEngineEx>(out var ext).ThrowOnFailure();
+            mediaEngineEx = ext;   // kept alive for FrameStep; released in ReleaseMedia
 
             videoFileStream = new VirtualFileStream(File.OpenRead(url), startPosition, startPosition + length);
             using var videoDataStream = ComHelpers.CreateCCW<IStream>(new ComStreamWrapper(videoFileStream));
@@ -94,6 +103,10 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
 
     public override void ReleaseMedia()
     {
+        if (mediaEngineEx != null)
+            mediaEngineEx->Release();
+        mediaEngineEx = null;
+
         if (mediaEngine != null)
         {
             mediaEngine->Shutdown();
@@ -131,6 +144,8 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
     {
         mediaEngine->SetCurrentTime(time.TotalSeconds);
         reachedEOF = false;
+        awaitingSeekFrame = true;
+        elapsedSinceSeek = TimeSpan.Zero;
     }
 
     public override void SetPlaybackSpeed(float speed) => mediaEngine->SetPlaybackRate(speed);
@@ -154,10 +169,26 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
 
         // S_OK (0) means a new frame is ready; S_FALSE (1) means none this tick (nothing to present).
         if (mediaEngine->OnVideoStreamTick(out var presentationTimeTicks).Value != 0)
+        {
+            // The seek's frame never made it to the present path while paused under load. The frame
+            // is decoded and ready, so FrameStep forces it to present at the exact seek position.
+            // Gated to the paused state since FrameStep pauses the engine.
+            if (awaitingSeekFrame && firstFrameDecoded && mediaEngine->IsPaused())
+            {
+                elapsedSinceSeek += elapsed;
+                if (elapsedSinceSeek >= SeekFramePresentTimeout)
+                {
+                    awaitingSeekFrame = false;
+                    mediaEngineEx->FrameStep(true);
+                }
+            }
             return;
+        }
 
         if (!firstFrameDecoded)
             return;
+
+        awaitingSeekFrame = false;
 
         Instance.SetCurrentTime(TimeSpan.FromTicks(presentationTimeTicks));
 
