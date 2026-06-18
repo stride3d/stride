@@ -1,6 +1,9 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
+    <TargetFrameworks>$(StrideTestTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
     <AssemblyName>Stride.Tests.Combined</AssemblyName>
     <RootNamespace>Stride.Tests.Combined</RootNamespace>
     <!-- StrideTestPlatforms defaults from StridePlatforms via the MultiPlatform Tests SDK; pass
