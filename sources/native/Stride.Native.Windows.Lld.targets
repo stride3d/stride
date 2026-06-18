@@ -49,8 +49,9 @@
     <Message Text="[Stride] Linking libraries: libNativePath.lib $(StrideNativePathLibsWindows)" Importance="high" />
     <Message Text="[Stride] Object files: @(StrideNativeCFile->'$(OutputObjectPath)\win-x64\%(Filename).obj')" Importance="high" />
 
-    <!-- Link DLL using Clang driver with LLD -->
-    <Exec Command="&quot;$(StrideNativeClangCommand)&quot; -shared -fuse-ld=lld -target x86_64-pc-windows-msvc -o &quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; -Wl,-subsystem:windows -Wl,-nxcompat -L&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindows_x64)&quot; -lkernel32 -luser32 -lole32 -loleaut32 -luuid -ladvapi32 -lshell32" 
+    <!-- Link DLL by invoking LLD directly in COFF mode (-flavor link). lld-link self-discovers the
+         Windows SDK and MSVC CRT (libcmt/oldnames), so no lld-link.exe alias and no libpaths needed. -->
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -nologo -dll -machine:x64 -subsystem:windows -nxcompat -defaultlib:libcmt -defaultlib:oldnames -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; -libpath:&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindows_x64)&quot; kernel32.lib user32.lib ole32.lib oleaut32.lib uuid.lib advapi32.lib shell32.lib"
           ContinueOnError="false" />
 
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x64" Importance="normal" />
@@ -96,8 +97,8 @@
     <Message Text="[Stride] Linking libraries: libNativePath.lib $(StrideNativePathLibsWindows)" Importance="high" />
     <Message Text="[Stride] Object files: @(StrideNativeCFile->'$(OutputObjectPath)\win-arm64\%(Filename).obj')" Importance="high" />
     
-    <!-- Link DLL using Clang driver with LLD (MinGW target to avoid CRT conflicts) -->
-    <Exec Command="&quot;$(StrideNativeClangCommand)&quot; -shared -fuse-ld=lld -target aarch64-pc-windows-msvc -o &quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; -Wl,-subsystem:windows -Wl,-nxcompat -L&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindowsArm64)&quot; -lkernel32 -luser32 -lole32 -loleaut32 -luuid -ladvapi32 -lshell32" 
+    <!-- Link DLL by invoking LLD directly in COFF mode (-flavor link); see x64 target for rationale. -->
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -nologo -dll -machine:arm64 -subsystem:windows -nxcompat -defaultlib:libcmt -defaultlib:oldnames -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; -libpath:&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindowsArm64)&quot; kernel32.lib user32.lib ole32.lib oleaut32.lib uuid.lib advapi32.lib shell32.lib"
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows ARM64" Importance="normal" />
