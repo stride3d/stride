@@ -9,7 +9,6 @@ namespace Stride.LauncherApp
         [STAThread]
         private static void Main(string[] args)
         {
-            PrerequisitesValidator.Validate(args);
             Launcher.Main(args);
         }
     }
