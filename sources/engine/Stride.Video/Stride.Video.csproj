@@ -2,10 +2,9 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
-    <!-- Opt into a net10.0-macos build so AVFoundation / CoreVideo / Metal bindings are available
-         for AVFoundationVideoBackend on macOS desktop. iOS already has net10.0-ios via StrideRuntime. -->
-    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
+    <!-- Includes net10.0-macos so AVFoundation / CoreVideo / Metal bindings are available
+         for AVFoundationVideoBackend on macOS desktop. iOS already comes via the mobile set. -->
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworksMacOS)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>

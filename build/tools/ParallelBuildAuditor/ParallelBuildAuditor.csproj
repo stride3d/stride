@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Stride.Tools.ParallelBuildAuditor</RootNamespace>
     <AssemblyName>ParallelBuildAuditor</AssemblyName>
-    <StrideRuntime>false</StrideRuntime>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideCodeAnalysis>false</StrideCodeAnalysis>
   </PropertyGroup>
