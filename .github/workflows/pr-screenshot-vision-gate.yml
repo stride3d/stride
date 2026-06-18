@@ -67,8 +67,14 @@ jobs:
           # e.g. ui-test-out-dpi100 → tests/editor/baselines/dpi100). Uses the editor vision prompt.
           for d in artifacts/*/ui-test-out-dpi*; do
             [ -d "$d" ] || continue
-            captured=true
             dpi="${d##*ui-test-out-}"   # ui-test-out-dpi100 → dpi100
+            # $dpi comes from a fork-controlled artifact dir name and feeds the baseline path below,
+            # so constrain it — a crafted name must not traverse out of tests/editor/baselines.
+            if [[ ! "$dpi" =~ ^dpi[0-9]+$ ]]; then
+              echo "::warning::skipping artifact dir with unexpected DPI token: $d"
+              continue
+            fi
+            captured=true
             echo "::group::vision gate over $d (baseline dpi=$dpi)"
             dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
               --new "$d" --baseline "tests/editor/baselines/$dpi" --prompt editor || rc=1

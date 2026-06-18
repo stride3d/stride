@@ -35,7 +35,8 @@ jobs:
     needs: changes
     if: contains(github.event.pull_request.labels.*.name, 'ci-enduser')
     uses: ./.github/workflows/test-enduser.yml
-    secrets: inherit
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       build-type: Debug
 
@@ -46,7 +47,8 @@ jobs:
     needs: changes
     if: contains(github.event.pull_request.labels.*.name, 'ci-editor')
     uses: ./.github/workflows/test-windows-editor.yml
-    secrets: inherit
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       build-type: Debug
 
@@ -60,7 +62,6 @@ jobs:
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.ios-tests != 'true')
     uses: ./.github/workflows/test-ios-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -72,7 +73,6 @@ jobs:
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.android != 'true')
     uses: ./.github/workflows/test-android-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 

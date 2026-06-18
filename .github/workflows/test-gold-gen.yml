@@ -270,6 +270,10 @@ jobs:
       - name: Commit and land
         env:
           GH_TOKEN: ${{ github.token }}
+          MODE: ${{ inputs.update-gold }}
+          BRANCH: ${{ github.ref_name }}
+          DETACHED: ${{ inputs.commit-sha }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -278,11 +282,6 @@ jobs:
             echo "No gold changes to land."
             exit 0
           fi
-
-          MODE='${{ inputs.update-gold }}'
-          BRANCH='${{ github.ref_name }}'
-          DETACHED='${{ inputs.commit-sha }}'
-          DEFAULT='${{ github.event.repository.default_branch }}'
 
           # `auto` commits genuinely-new gold, but routes a PR when review is warranted: any CHANGED
           # existing gold (a changed reference may be a regression), or no pushable branch tip
