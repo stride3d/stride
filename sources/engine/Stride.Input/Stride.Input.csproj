@@ -2,8 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
-    <StrideExplicitWindowsRuntime>true</StrideExplicitWindowsRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworksWindows)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>

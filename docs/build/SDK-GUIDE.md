@@ -47,7 +47,7 @@ All Stride projects import the SDK files directly from source:
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
 
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
@@ -172,7 +172,7 @@ dotnet build sources/sdk/Stride.Build.Sdk.slnx
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <ItemGroup>
@@ -199,12 +199,17 @@ dotnet build sources/sdk/Stride.Build.Sdk.slnx
 ```xml
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>
 ```
+
+A test that must run on multiple platforms imports `Stride.Build.Sdk.MultiPlatform.Tests` instead and declares `<TargetFrameworks>$(StrideTestTargetFrameworks)</TargetFrameworks>` (the `…MacOS` variant to also build `net10.0-macos`). That set is computed from `$(StrideTestPlatforms)` — see [Property Evaluation Order](#property-evaluation-order).
 
 ---
 
@@ -218,8 +223,8 @@ sources/sdk/
 |       +-- Sdk.props                          # Entry point (before project file)
 |       +-- Sdk.targets                        # Entry point (after project file)
 |       +-- Stride.Frameworks.props            # Framework constants (net10.0, net10.0-android, ...)
-|       +-- Stride.Frameworks.targets          # StrideRuntime -> TargetFrameworks expansion
-|       +-- Stride.Platform.props              # Platform detection, output paths
+|       +-- Stride.Frameworks.targets          # Per-TFM StrideTargetFramework/StridePlatform re-derivation
+|       +-- Stride.Platform.props              # Platform detection, output paths, runtime TargetFrameworks sets
 |       +-- Stride.Platform.targets            # Platform-specific compiler defines
 |       +-- Stride.Graphics.props              # Default graphics APIs per platform
 |       +-- Stride.Graphics.targets            # Graphics API defines and UI framework
@@ -278,16 +283,18 @@ Phase 3: Stride.Build.Sdk/Sdk/Sdk.targets     <-- AFTER project file
 
 ```xml
 <!-- Sdk.props: Set defaults (user hasn't defined anything yet) -->
-<StrideRuntime Condition="'$(StrideRuntime)' == ''">false</StrideRuntime>
+<StrideCodeAnalysis Condition="'$(StrideCodeAnalysis)' == ''">false</StrideCodeAnalysis>
 
 <!-- .csproj: Override defaults -->
-<StrideRuntime>true</StrideRuntime>
+<StrideCodeAnalysis>true</StrideCodeAnalysis>
 
 <!-- Sdk.targets: Act on final value (user's value is visible) -->
-<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
-  <TargetFrameworks>net10.0;net10.0-android;net10.0-ios</TargetFrameworks>
+<PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
+  <EnableNETAnalyzers>true</EnableNETAnalyzers>
 </PropertyGroup>
 ```
+
+> Framework selection is the exception that proves the rule: because consuming a user flag in `.targets` is awkward, runtime/test projects instead **declare `<TargetFrameworks>` explicitly** from a set the SDK precomputes at props time (`StrideRuntimeTargetFrameworks` / `StrideTestTargetFrameworks`), so there is no user flag to consume late.
 
 ### Rules of thumb
 
@@ -299,7 +306,7 @@ Phase 3: Stride.Build.Sdk/Sdk/Sdk.targets     <-- AFTER project file
 
 The old build system used `<Import Project="..\..\targets\Stride.Core.props" />` placed *after* setting properties in the .csproj. This allowed properties to be visible during the import, but required users to carefully order their property definitions before the import — a fragile pattern. The SDK approach standardizes the evaluation order, eliminating this class of bugs.
 
-The old system had a critical bug where `StrideRuntime` was checked in the `.props` phase (before the user's .csproj defined it), causing multi-targeting to silently fail unless the property was set before the import or passed on the command line. The SDK fixes this by checking `StrideRuntime` in `.targets`.
+The old system had a critical bug where a user flag (the former `StrideRuntime`) was checked in the `.props` phase before the user's .csproj defined it, causing multi-targeting to silently fail unless the property was set before the import or passed on the command line. The SDK avoids this entirely: the runtime/test framework sets are precomputed in `.props` from `$(StridePlatforms)`, and each project declares `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>` directly — so there is no late-consumed user flag at all.
 
 ### Full import order
 
@@ -317,7 +324,7 @@ YourProject.csproj
 Stride.Build.Sdk/Sdk/Sdk.targets (top)
   +-- Microsoft.NET.Sdk/Sdk.targets (base .NET SDK)
   +-- Stride.Platform.targets       (platform defines, mobile properties)
-  +-- Stride.Frameworks.targets     (StrideRuntime -> TargetFrameworks)
+  +-- Stride.Frameworks.targets     (per-TFM StrideTargetFramework/StridePlatform)
   +-- Stride.Graphics.targets       (API defines, UI framework)
   +-- Stride.GraphicsApi.InnerBuild.targets (multi-API dispatch)
   +-- Stride.Dependencies.targets   (native .ssdeps system)
@@ -382,7 +389,7 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 
 | Property | Purpose | Set by |
 |----------|---------|--------|
-| `StrideRuntime` | Enable multi-platform targeting (generates `TargetFrameworks`) | Project (.csproj) |
+| `StrideRuntimeTargetFrameworks` | SDK-computed runtime TFM set; a runtime project sets `<TargetFrameworks>` to this (or the `…Windows`/`…MacOS` variant) | SDK (Stride.Platform.props) |
 | `StrideAssemblyProcessor` | Enable IL post-processing (serialization, module init) | Project (.csproj) |
 | `StrideAssemblyProcessorOptions` | Processor flags (e.g., `--serialization --auto-module-initializer`) | Project (.csproj) |
 | `StrideCodeAnalysis` | Enable code analysis rules | Project (.csproj) |
@@ -576,11 +583,11 @@ Separating `Stride.Build.Sdk.Editor` prevents engine runtime projects from accid
 
 ### No `Stride.Build.Sdk.Runtime` package
 
-Initially considered, but unnecessary. Runtime projects use `Stride.Build.Sdk` directly with `StrideRuntime=true` in their .csproj. The SDK expands this into the correct `TargetFrameworks` in the targets phase.
+Initially considered, but unnecessary. Runtime projects use `Stride.Build.Sdk` directly and declare `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>` — a set the SDK precomputes in `Stride.Platform.props` from the active platforms.
 
 ### Evaluation timing: defaults in props, logic in targets
 
-All user-configurable properties (`StrideRuntime`, `StrideAssemblyProcessor`, etc.) get default values in `Sdk.props` and are checked in `Sdk.targets`. This is the standard MSBuild SDK pattern and avoids the evaluation-order bugs present in the old system.
+All user-configurable flags (`StrideAssemblyProcessor`, `StrideCodeAnalysis`, etc.) get default values in `Sdk.props` and are checked in `Sdk.targets`. This is the standard MSBuild SDK pattern and avoids the evaluation-order bugs present in the old system. (Framework selection sidesteps it differently — see the note under [Correct patterns](#correct-patterns).)
 
 ### No `build/` convention files
 
@@ -620,7 +627,7 @@ The property is likely being read in `Sdk.props` (too early). Move the logic to 
 
 ### Multi-targeting not working
 
-Ensure `StrideRuntime=true` is set in the .csproj. The SDK expands this in `Sdk.targets` (not `Sdk.props`) because it needs to see the user's value.
+Ensure the .csproj declares `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>` (or the `…Windows`/`…MacOS` variant; tests use `$(StrideTestTargetFrameworks)`). The set is computed in `Stride.Platform.props` from `$(StridePlatforms)`, so pass `-p:StridePlatforms=Windows;Android` (etc.) to target other platforms.
 
 ### Assembly processor not running
 

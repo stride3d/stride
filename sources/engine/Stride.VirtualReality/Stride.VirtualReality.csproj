@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideNativeOutputName>libstridevr</StrideNativeOutputName>
     <StrideNativeWindowsArm64Enabled>false</StrideNativeWindowsArm64Enabled>

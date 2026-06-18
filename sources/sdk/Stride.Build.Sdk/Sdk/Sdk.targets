@@ -16,7 +16,6 @@
     What you should do here:
     - All conditional logic that depends on .csproj properties
     - Property computation based on user choices
-    - Target framework expansion (StrideRuntime → TargetFrameworks)
     - Build customization based on user configuration
 
     Rule: User properties from .csproj ARE visible here.

@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <!-- Opt out of Stride SDK -->
-    <StrideRuntime>false</StrideRuntime>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideCodeAnalysis>false</StrideCodeAnalysis>
     <ApplicationIcon>wwwroot\favicon.ico</ApplicationIcon>
