@@ -10,11 +10,25 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
 
 concurrency:
   group: test-windows-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -44,11 +58,22 @@ jobs:
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
         run: |
-          dotnet test build\Stride.Tests.Simple.slnf `
-            --no-build `
-            --logger:trx --results-directory TestResults `
-            --blame-hang-timeout 5m --blame-hang-dump-type full `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
+          $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
+          for ($i = 1; $i -le $repeat; $i++) {
+            Write-Host "=== Test run $i / $repeat ==="
+            dotnet test build\Stride.Tests.Simple.slnf `
+              --no-build `
+              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults `
+              --blame-hang-timeout 5m --blame-hang-dump-type full `
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+              @filterArgs
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
+              exit $LASTEXITCODE
+            }
+          }
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15
