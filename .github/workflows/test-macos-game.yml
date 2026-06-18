@@ -17,6 +17,10 @@ on:
         description: 'dotnet test --filter expression (blank = all tests)'
         type: string
         default: ''
+      repeat:
+        description: 'Rerun the filtered GPU test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
       project:
         description: 'Single test .csproj path to build/test (blank = whole GPU + Runtime solutions)'
         type: string
@@ -37,6 +41,9 @@ on:
       test-filter:
         default: ''
         type: string
+      repeat:
+        default: 1
+        type: number
       project:
         default: ''
         type: string
@@ -151,14 +158,18 @@ jobs:
           else FILTER="$EXCLUDE"; fi
           FILTER_ARG=()
           if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
-          dotnet test "$STRIDE_TEST_TARGET" \
-            --no-build \
-            --logger:trx --results-directory TestResults \
-            --blame-hang-timeout 5m --blame-hang-dump-type full \
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
-            -p:StrideGraphicsApis=Vulkan \
-            "${FILTER_ARG[@]}" \
-            -- RunConfiguration.MaxCpuCount=1
+          REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+          for i in $(seq 1 "$REPEAT"); do
+            echo "=== Test run $i / $REPEAT ==="
+            dotnet test "$STRIDE_TEST_TARGET" \
+              --no-build \
+              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults \
+              --blame-hang-timeout 5m --blame-hang-dump-type full \
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+              -p:StrideGraphicsApis=Vulkan \
+              "${FILTER_ARG[@]}" \
+              -- RunConfiguration.MaxCpuCount=1 || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+          done
       - name: Test .app-hosted suites
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}

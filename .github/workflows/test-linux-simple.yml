@@ -10,11 +10,25 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
 
 concurrency:
   group: test-linux-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -51,11 +65,19 @@ jobs:
             -p:StrideGraphicsApis=Vulkan
       - name: Test
         run: |
-          dotnet test build/Stride.Tests.Simple.Linux.slnf \
-            --no-build \
-            --logger:trx --results-directory TestResults \
-            --blame-hang-timeout 5m --blame-hang-dump-type full \
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+          FILTER_ARG=()
+          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          for i in $(seq 1 "$REPEAT"); do
+            echo "=== Test run $i / $REPEAT ==="
+            dotnet test build/Stride.Tests.Simple.Linux.slnf \
+              --no-build \
+              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults \
+              --blame-hang-timeout 5m --blame-hang-dump-type full \
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+              "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+          done
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15

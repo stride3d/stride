@@ -26,6 +26,10 @@ on:
         description: 'dotnet test --filter expression (blank = all tests)'
         type: string
         default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
       project:
         description: 'Single test .csproj path to build/test (blank = whole GPU solution filter)'
         type: string
@@ -49,6 +53,9 @@ on:
       test-filter:
         default: ''
         type: string
+      repeat:
+        default: 1
+        type: number
       project:
         default: ''
         type: string
@@ -175,16 +182,24 @@ jobs:
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
+          $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
           $filterArgs = if ($env:STRIDE_TEST_FILTER) { @('--filter', $env:STRIDE_TEST_FILTER) } else { @() }
-          dotnet test $env:STRIDE_TEST_TARGET `
-            --no-build `
-            --logger:trx --results-directory TestResults `
-            --blame-hang-timeout 5m --blame-hang-dump-type full `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
-            -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
-            @filterArgs `
-            -- RunConfiguration.MaxCpuCount=1
+          for ($i = 1; $i -le $repeat; $i++) {
+            Write-Host "=== Test run $i / $repeat ==="
+            dotnet test $env:STRIDE_TEST_TARGET `
+              --no-build `
+              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults `
+              --blame-hang-timeout 5m --blame-hang-dump-type full `
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+              -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
+              -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+              @filterArgs `
+              -- RunConfiguration.MaxCpuCount=1
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
+              exit $LASTEXITCODE
+            }
+          }
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15
