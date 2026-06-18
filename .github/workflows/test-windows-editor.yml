@@ -15,6 +15,9 @@ on:
       build-type:
         default: Debug
         type: string
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: false
   schedule:
     # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
     # gap from test-enduser (04:37) so they don't compete for runners.

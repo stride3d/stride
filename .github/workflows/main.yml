@@ -57,7 +57,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.full == 'true')
     uses: ./.github/workflows/build-assembly-processor.yml
-    secrets: inherit
     with:
       build-type: Release
 
@@ -65,7 +64,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.full == 'true'
     uses: ./.github/workflows/build-vs-package.yml
-    secrets: inherit
     with:
       build-type: Debug   # Release has a bug and cannot build
 
@@ -74,7 +72,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.ios == 'true'
     uses: ./.github/workflows/build-ios.yml
-    secrets: inherit
     with:
       build-type: Release
 
@@ -82,7 +79,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-android.yml
-    secrets: inherit
     with:
       build-type: Release
 
@@ -90,7 +86,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-linux-runtime.yml
-    secrets: inherit
     with:
       build-type: Release
 
@@ -98,7 +93,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
-    secrets: inherit
     with:
       build-type: Release
       graphics-api: Direct3D11
@@ -107,7 +101,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
-    secrets: inherit
     with:
       build-type: Release
       graphics-api: Direct3D12
@@ -116,7 +109,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/build-windows-runtime.yml
-    secrets: inherit
     with:
       build-type: Release
       graphics-api: Vulkan
@@ -126,7 +118,6 @@ jobs:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.full == 'true'
     uses: ./.github/workflows/build-windows-full.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -142,7 +133,6 @@ jobs:
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game-api-neutral.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -156,7 +146,6 @@ jobs:
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-simple.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -169,7 +158,6 @@ jobs:
       && needs['Windows-Runtime-D3D11'].result != 'failure'
       && needs['Windows-Runtime-D3D11'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
-    secrets: inherit
     with:
       build-type: Debug
       graphics-api: Direct3D11
@@ -183,7 +171,6 @@ jobs:
       && needs['Windows-Runtime-D3D12'].result != 'failure'
       && needs['Windows-Runtime-D3D12'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
-    secrets: inherit
     with:
       build-type: Debug
       graphics-api: Direct3D12
@@ -197,7 +184,6 @@ jobs:
       && needs['Windows-Runtime-Vulkan'].result != 'failure'
       && needs['Windows-Runtime-Vulkan'].result != 'cancelled'
     uses: ./.github/workflows/test-windows-game.yml
-    secrets: inherit
     with:
       build-type: Debug
       graphics-api: Vulkan
@@ -211,7 +197,6 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-simple.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -224,7 +209,6 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-linux-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -240,7 +224,6 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-macos-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -255,7 +238,6 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-ios-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 
@@ -270,7 +252,6 @@ jobs:
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
     uses: ./.github/workflows/test-android-game.yml
-    secrets: inherit
     with:
       build-type: Debug
 
