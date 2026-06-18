@@ -1,36 +1,31 @@
-<Project InitialTargets="_StrideCheckVisualCRuntime2019" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Check if Visual C++ Runtime 2019 is properly installed -->
-  <Target Name="_StrideCheckVisualCRuntime2019" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+<Project InitialTargets="_StrideCheckVisualCRuntime" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Check the Visual C++ Runtime needed by Stride's native libraries is installed -->
+  <Target Name="_StrideCheckVisualCRuntime" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <PropertyGroup>
       <IsWindowsARM64 Condition="$([MSBuild]::IsOsPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == ARM64">true</IsWindowsARM64>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(IsWindowsARM64)' == 'false'">
-      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x86">
-        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
-        <ExpectedVersion>14.22.27821</ExpectedVersion>
-        <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/0c1cfec3-e028-4996-8bb7-0c751ba41e32/1abed1573f36075bfdfc538a2af00d37/vc_redist.x86.exe</DownloadUrl>
-      </_StrideVisualCRuntime2019>
-      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x64">
+    <ItemGroup Condition="'$(IsWindowsARM64)' != 'true'">
+      <_StrideVisualCRuntime Include="Visual C++ Redistributable (x64)">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
         <ExpectedVersion>14.22.27821</ExpectedVersion>
-        <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/cc0046d4-e7b4-45a1-bd46-b1c079191224/9c4042a4c2e6d1f661f4c58cf4d129e9/vc_redist.x64.exe</DownloadUrl>
-      </_StrideVisualCRuntime2019>
+        <DownloadUrl>https://aka.ms/vs/17/release/vc_redist.x64.exe</DownloadUrl>
+      </_StrideVisualCRuntime>
     </ItemGroup>
 
     <ItemGroup Condition="'$(IsWindowsARM64)' == 'true'">
-      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 ARM64">
+      <_StrideVisualCRuntime Include="Visual C++ Redistributable (ARM64)">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\Runtime_arm64', 'Version', null, RegistryView.Registry64))</Version>
         <ExpectedVersion>14.42.34433</ExpectedVersion>
-        <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/285b28c7-3cf9-47fb-9be8-01cf5323a8df/8A81A52B7FF6B194CB88E1BB48D597B6588D2B840552909359F286FB1699235C/VC_redist.arm64.exe</DownloadUrl>
-      </_StrideVisualCRuntime2019>      
+        <DownloadUrl>https://aka.ms/vs/17/release/vc_redist.arm64.exe</DownloadUrl>
+      </_StrideVisualCRuntime>
     </ItemGroup>
 
     <ItemGroup>
-      <_StrideVisualCRuntime2019NotInstalled Include="@(_StrideVisualCRuntime2019)" Condition="'%(_StrideVisualCRuntime2019.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2019.ExpectedVersion)')))) &lt; 0" />
+      <_StrideVisualCRuntimeNotInstalled Include="@(_StrideVisualCRuntime)" Condition="'%(_StrideVisualCRuntime.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime.ExpectedVersion)')))) &lt; 0" />
     </ItemGroup>
 
-    <Error Condition="'@(_StrideVisualCRuntime2019NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2019NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+    <Error Condition="'@(_StrideVisualCRuntimeNotInstalled)' != ''" Text="@(_StrideVisualCRuntimeNotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
   </Target>
   
   <!-- 

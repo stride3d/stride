@@ -36,7 +36,7 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <!-- Build an AdvancedInstaller .aip ($(StrideInstallerAip)), signing inline when StrideSign.
-       Was duplicated across PrerequisitesInstaller / PackageInstaller / LauncherPrerequisitesInstaller.
+       Shared by PrerequisitesInstaller and PackageInstaller.
        The secret goes via EnvironmentVariables (not the command line) — AdvancedInstaller reads it. -->
   <Target Name="_BuildAdvancedInstaller" DependsOnTargets="SignCredentialsCheck">
     <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideInstallerAip)" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing ' />
@@ -223,7 +223,7 @@ Example: dotnet build build/Stride.build -t:Package
   <!--
   Package Launcher
   -->
-  <Target Name="PackageLauncher" DependsOnTargets="LauncherPrerequisitesInstaller">
+  <Target Name="PackageLauncher">
     <ItemGroup>
       <FilesToDeleteLauncher Include="$(StrideRoot)bin\launcher\*.nupkg"/>
     </ItemGroup>
@@ -248,13 +248,6 @@ Example: dotnet build build/Stride.build -t:Package
     <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
   </Target>
   
-  <!--
-  Package Installer: launcher-prerequisites.exe
-  -->
-  <Target Name="LauncherPrerequisitesInstaller">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" />
-  </Target>
-
   <!--
   Perform a full build: Build, Package and PackageInstaller
   -->
