@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -1,9 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!--
-    StrideRuntime is checked here in .targets (not .props) because
-    it's defined in the user's .csproj which loads AFTER Sdk.props
-    but BEFORE Sdk.targets.
+    Runs in .targets (not .props) because the re-derivations below depend on the inner-build
+    TargetFramework, which is only known after the base SDK targets resolve it.
   -->
 
   <!-- Re-evaluate StrideTargetFramework now that TargetFramework is known. The same logic
@@ -28,27 +27,6 @@
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">macOS</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
-  </PropertyGroup>
-
-  <!-- Define target frameworks for runtime -->
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
-    <!-- Add default framework no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
-
-    <!-- Desktop platforms: Add net10.0-windows / net10.0-macos only if explicitly requested -->
-    <!-- Most projects only need net10.0; the OS-specific variants are for projects that bind
-         to native OS frameworks (Microsoft.Windows.* / Microsoft.macOS / AVFoundation / Metal). -->
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkmacOS)</StrideRuntimeTargetFrameworks>
-
-    <!-- Mobile/UWP platforms -->
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkUWP)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkiOS)</StrideRuntimeTargetFrameworks>
-
-    <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
-
-    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
 </Project>

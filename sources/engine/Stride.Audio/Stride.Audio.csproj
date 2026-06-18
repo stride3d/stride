@@ -3,9 +3,8 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
-    <StrideRuntime>true</StrideRuntime>
-    <!-- net10.0-macos for AVFoundation audio extraction (gated by STRIDE_VIDEO_AVFOUNDATION). -->
-    <StrideExplicitMacOSRuntime>true</StrideExplicitMacOSRuntime>
+    <!-- Includes net10.0-macos for AVFoundation audio extraction (gated by STRIDE_VIDEO_AVFOUNDATION). -->
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworksMacOS)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>

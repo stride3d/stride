@@ -1,43 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- ================================================================ -->
-  <!-- TFM resolution from StrideTestPlatforms                          -->
-  <!-- ================================================================ -->
-  <!-- Mirrors StrideRuntime in Stride.Frameworks.targets — gated only on the opt-in property,
-       not on TargetFramework/TargetFrameworks being empty. MSBuild dispatches inner builds with
-       TargetFramework set as a global, so a TargetFramework='' gate would skip inner builds and
-       leave TargetFrameworks="" — which CPS reads as "single-TFM project with no TFM" and aborts
-       with InvalidProjectDataException ('TargetPath' is empty). Setting TargetFrameworks in both
-       outer and inner builds matches StrideRuntime's behavior and keeps CPS happy. The csproj
-       body sets <StrideTestPlatforms>$(StridePlatforms)</StrideTestPlatforms> (or
-       StrideMultiPlatformTest=true triggers the same default in Sdk.props before the body).
-       CLI -p:StrideTestPlatforms=… is a global property and still wins.
-       Windows / Linux / macOS all collapse to the cross-platform desktop $(StrideFramework). -->
-  <PropertyGroup Condition="'$(StrideTestPlatforms)' != ''">
-    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == ''">true</StrideAssetAssembly>
-    <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
-    <!-- Game = host-loadable library TFM (test analog of MyGame.Game.dll); the asset compiler loads
-         the suite and its refs at the host TFM, so auto-add it for mobile-only platform lists (a desktop
-         platform fills that role when present). Opt out with StrideAssetAssembly=false. -->
-    <_StrideTestPlatforms Condition="'$(StrideAssetAssembly)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
-    <_StrideTestTargetFrameworks></_StrideTestTargetFrameworks>
-    <!-- net10.0 desktop TFM: runnable on Linux/macOS, runnable on Windows without mobile,
-         or the Game library shadow (asset-compiler-only, no launcher). -->
-    <_StrideTestTargetFrameworks Condition="
-        $(_StrideTestPlatforms.Contains(';Linux;'))
-        Or ($(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' != 'true')
-        Or ($(_StrideTestPlatforms.Contains(';Windows;')) And !($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))))
-        Or $(_StrideTestPlatforms.Contains(';Game;'))
-    ">$(_StrideTestTargetFrameworks)$(StrideFramework);</_StrideTestTargetFrameworks>
-    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Windows;')) And '$([MSBuild]::IsOSPlatform(Windows))' == 'true' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))">$(_StrideTestTargetFrameworks)$(StrideFrameworkWindows);</_StrideTestTargetFrameworks>
-    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';Android;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkAndroid);</_StrideTestTargetFrameworks>
-    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';iOS;'))">$(_StrideTestTargetFrameworks)$(StrideFrameworkiOS);</_StrideTestTargetFrameworks>
-    <!-- macOS net10.0-macos when opted in (mirrors StrideExplicitMacOSRuntime in Stride.Frameworks.targets).
-         Needed for tests that consume Stride.Runtime libraries bound to Microsoft.macOS APIs
-         (AVFoundation, Metal, etc.) — without it the test only sees the shared $(StrideFramework). -->
-    <_StrideTestTargetFrameworks Condition="$(_StrideTestPlatforms.Contains(';macOS;')) And '$(StrideExplicitMacOSRuntime)' == 'true'">$(_StrideTestTargetFrameworks)$(StrideFrameworkmacOS);</_StrideTestTargetFrameworks>
-    <TargetFrameworks>$([MSBuild]::Unescape($(_StrideTestTargetFrameworks.TrimEnd(';'))))</TargetFrameworks>
-  </PropertyGroup>
+  <!-- TFM sets are computed in Sdk.props (StrideTestTargetFrameworks / ...MacOS) so a multi-platform
+       test declares <TargetFrameworks> in its csproj and Roslyn SDK-style detection works.
+       _StrideTestPlatforms (incl. the Game host-shadow) is derived there too and consumed below. -->
 
   <!-- Game TFM is asset-compiler-load-only: skip asset compile + APK packaging on it. -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And $(_StrideTestPlatforms.Contains(';Game;'))">
@@ -75,8 +40,8 @@
   <!-- ================================================================ -->
   <!-- Stride.Frameworks.targets does this too, but it imports later (via base SDK), and the
        OutputPath below needs the correct $(StridePlatform) before that. Mirror the per-TFM
-       derivation here so non-StrideRuntime projects (which set TargetFramework in the csproj
-       body) get the right platform for output path / launcher gating. -->
+       derivation here so projects that set TargetFramework in the csproj body get the right
+       platform for output path / launcher gating. -->
   <PropertyGroup>
     <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
     <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
