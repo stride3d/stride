@@ -46,7 +46,7 @@ jobs:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    name: ${{ matrix.platform }} / ${{ matrix.graphics-api }} (${{ inputs.build-type || 'Debug' }})
+    name: Samples (${{ matrix.platform }}, ${{ matrix.graphics-api }})
     # Single job per (OS, graphics API): the harness + orchestrator + comparator are sample-agnostic,
     # so a matrix-per-sample would build the engine N× for the same artifacts. Sequential capture
     # via xunit's DisableParallelization keeps total compute low at comparable wall-clock to a
