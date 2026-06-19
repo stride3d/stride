@@ -41,8 +41,9 @@ stride_doc_output
 doc/doxygen/html
 Tools/bin
 Temp/
-bin/*
-Bin/*
+/logs/
+bin/
+Bin/
 !bin/packages/
 bin/packages/*
 !bin/packages/.gitkeep
