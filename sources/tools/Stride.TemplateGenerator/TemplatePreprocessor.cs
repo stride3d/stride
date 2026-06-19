@@ -968,6 +968,14 @@ internal class TemplatePreprocessor
     /// </summary>
     private void InjectCameraScript(ILogger logger)
     {
+        // Skip when BasicCameraController.cs isn't staged (samples, not the NewGame starter): the
+        // injected component would reference a missing type and load as unloadable.
+        if (!Directory.EnumerateFiles(OutputDirectory!, "BasicCameraController.cs", SearchOption.AllDirectories).Any())
+        {
+            logger.Info("No BasicCameraController.cs in staged output; skipping camera-script injection");
+            return;
+        }
+
         // Inject into every MainScene variant — the dual-pass HDR/LDR orchestrator emits both
         // MainScene.sdscene (HDR) and MainScene.LDR.sdscene (LDR). Each variant has its own
         // Camera entity that needs the script wired up; template.json sources/modifiers picks
@@ -1004,7 +1012,7 @@ internal class TemplatePreprocessor
 
         // Components-dict entries are at indent 20, sub-fields at indent 24.
         var injection =
-            $"\n                    {CameraScriptKeyHex}: !MyTemplate.BasicCameraController,MyTemplate"
+            $"\n                    {CameraScriptKeyHex}: !MyTemplate.BasicCameraController,MyTemplate.Game"
             + $"\n                        Id: {CameraScriptIdDashed}";
 
         var rewritten = content.Substring(0, insertPoint) + injection + content.Substring(insertPoint);
