@@ -62,6 +62,14 @@ public interface IUITestContext
     Task<bool> WaitForWindow(string windowTypeName, double timeoutSeconds = 120);
 
     /// <summary>
+    /// Polls until any one of <paramref name="windowTypeNames"/> is visible and loaded, returning the
+    /// class name of the first to appear (or <c>null</c> on timeout). Use to fast-fail when an
+    /// alternative outcome window (e.g. the modal project picker after a failed open) shows instead of
+    /// the expected one, rather than waiting out a single-window timeout.
+    /// </summary>
+    Task<string?> WaitForAnyWindow(string[] windowTypeNames, double timeoutSeconds = 180);
+
+    /// <summary>
     /// Selects a template in the ProjectSelectionWindow by template id and returns true if found.
     /// The dialog stays open; close it via <see cref="CloseModalWithOk"/>.
     /// </summary>
@@ -122,6 +130,14 @@ public interface IUITestContext
     /// <c>CreateEntityInRootCommand</c> with a custom <c>IEntityFactory</c>.
     /// </summary>
     Task<bool> AddEntityToScene(string entityName, Guid modelAssetId, Stride.Core.Mathematics.Vector3 position);
+
+    /// <summary>
+    /// Walks the loaded session's assets and returns how many objects failed to deserialize (were
+    /// replaced with <c>IUnloadable</c> placeholders) — e.g. a script component whose type/assembly
+    /// couldn't be resolved. Returns 0 when no project/session is loaded. Call after the project's
+    /// assemblies/assets have built so a correct reference resolves and only a genuine break counts.
+    /// </summary>
+    Task<int> CountUnloadable();
 
     /// <summary>Sets the process exit code and shuts the editor down.</summary>
     void Exit(int exitCode = 0);
