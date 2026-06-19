@@ -13,6 +13,24 @@ namespace Stride.Core.Assets.Tests
   
     public class TestPackage : TestBase
     {
+        [Fact]
+        public void TestDirectLoadDerivesPackageName()
+        {
+            var dirPath = DirectoryTestBase + @"TestDirectLoadDerivesPackageName";
+            Directory.CreateDirectory(dirPath);
+            var packagePath = Path.Combine(dirPath, "MyPkgName.sdpkg");
+
+            // .sdpkg never stores a name, so write a nameless package then load it without a session.
+            AssetFileSerializer.Save(packagePath, new Package(), null);
+
+            // A direct Package.Load must still derive Meta.Name from the file name (was null before).
+            var loadResult = new LoggerResult();
+            var package = Package.Load(loadResult, packagePath);
+            Assert.False(loadResult.HasErrors);
+            Assert.NotNull(package);
+            Assert.Equal("MyPkgName", package.Meta.Name);
+        }
+
         [Fact(Skip = "Need check: we don't work with package directly anymore, they are considered external")]
         public void TestBasicPackageCreateSaveLoad()
         {
