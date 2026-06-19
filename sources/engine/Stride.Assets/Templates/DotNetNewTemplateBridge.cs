@@ -164,15 +164,23 @@ public static class DotNetNewTemplateBridge
     /// </summary>
     private static void InstallBundledPackage(string packageId, Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, Logger logger)
     {
-        var packageDir = PackageStore.Instance.GetPackageDirectory(
-            packageId,
-            new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)));
+        // Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion and
+        // can lag the engine, so resolve the highest available at-or-below the engine version (suffix
+        // included, so a local dev build wins over a release). Games (NewGame + Library) is
+        // engine-versioned, resolved exactly.
+        var engineVersion = new PackageVersion(StrideVersion.NuGetVersion);
+        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters";
+        var versionRange = contentVersioned
+            ? new PackageVersionRange(null, false, engineVersion, true)
+            : new PackageVersionRange(engineVersion);
+        var packageDir = PackageStore.Instance.GetPackageDirectory(packageId, versionRange);
         if (packageDir is null)
         {
             // Not installed yet (e.g. fresh checkout before first build of that templates
             // project). Not fatal — the editor still opens; this package's templates just
             // won't appear in the New-Project dialog until built at least once.
-            logger.Warning($"{packageId} {StrideVersion.NuGetVersion} not found via PackageStore; its templates will be unavailable.");
+            var wanted = contentVersioned ? $"<= {StrideVersion.NuGetVersion}" : StrideVersion.NuGetVersion;
+            logger.Warning($"{packageId} {wanted} not found via PackageStore; its templates will be unavailable.");
             return;
         }
         // Install from the extracted package directory rather than the .nupkg file inside it.
