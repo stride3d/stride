@@ -586,6 +586,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 : AssetFileSerializer.Load<Package>(filePath, log);
             var package = loadResult.Asset;
             package.FullPath = packageFile.FilePath;
+            // .sdpkg has no serialized name (identity = file name). PackageSession derives this on
+            // session load; do it here too so a direct Package.Load doesn't leave Meta.Name null.
+            if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath is not null)
+                package.Meta.Name = package.FullPath.GetFileNameWithoutExtension();
             package.PreviousPackagePath = packageFile.OriginalFilePath;
             package.IsDirty = packageFile.AssetContent is not null || loadResult.AliasOccurred;
 
@@ -1040,6 +1044,18 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             if (projectReference is not null)
             {
                 var fullProjectLocation = projectReference.Location.ToOSPath();
+
+                // If the project's output assembly is already loaded in the AppDomain (e.g. GameStudio
+                // loading its own Stride.Assets.Presentation), reuse it. Building it via MSBuild here
+                // would be wasted: the freshly built DLL is discarded below in favor of the already-
+                // loaded one anyway, and the build can be slow.
+                var loadedProjectAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(fullProjectLocation), StringComparison.InvariantCultureIgnoreCase));
+                if (loadedProjectAssembly is not null)
+                {
+                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, loadedProjectAssembly.Location) { Assembly = loadedProjectAssembly });
+                    return;
+                }
+
                 if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                 {
                     assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);

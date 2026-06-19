@@ -25,7 +25,9 @@ public static class StrideDefaultTemplates
     /// </summary>
     public static void Load(bool loadAssemblyReferences = true)
     {
-        var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences };
+        // Only TemplateFolders are needed here (loaded regardless of this flag); skip the package's
+        // assets — they're unused for template registration and slow to load.
+        var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences, AutoLoadTemporaryAssets = false };
         foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
         {
             var logger = new LoggerResult();
