@@ -26,6 +26,7 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Mathematics;
@@ -60,8 +61,8 @@ internal sealed class UITestHost
     // WorkProgressWindow are intentionally excluded.
     private static readonly HashSet<string> ReadyWindowTypeNames = new(StringComparer.Ordinal)
     {
-        "GameStudioWindow",
-        "ProjectSelectionWindow",
+        GameStudioWindowNames.GameStudio,
+        GameStudioWindowNames.ProjectSelection,
     };
 
     private readonly Dispatcher dispatcher;
@@ -443,6 +444,36 @@ internal sealed class UITestHost
             return false;
         }
 
+        public async Task<string?> WaitForAnyWindow(string[] windowTypeNames, double timeoutSeconds = 180)
+        {
+            host.Log($"WaitForAnyWindow: [{string.Join(",", windowTypeNames)}] (timeout={timeoutSeconds}s)");
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (DateTime.UtcNow < deadline)
+            {
+                var found = await host.dispatcher.InvokeAsync(() =>
+                {
+                    var app = Application.Current;
+                    if (app is null) return (string?)null;
+                    foreach (var name in windowTypeNames)
+                    {
+                        if (app.Windows.OfType<Window>().Any(w =>
+                            w.GetType().Name == name && w.IsVisible && w.IsLoaded
+                            && w.ActualWidth >= 100 && w.ActualHeight >= 100))
+                            return name;
+                    }
+                    return null;
+                }).Task.ConfigureAwait(false);
+                if (found is not null)
+                {
+                    host.Log($"WaitForAnyWindow: '{found}' ready");
+                    return found;
+                }
+                await Task.Delay(200).ConfigureAwait(false);
+            }
+            host.Log($"WaitForAnyWindow: none of [{string.Join(",", windowTypeNames)}] within {timeoutSeconds}s");
+            return null;
+        }
+
         public Task<bool> SelectTemplate(Guid templateId) =>
             host.dispatcher.InvokeAsync(() =>
             {
@@ -571,7 +602,7 @@ internal sealed class UITestHost
             if (app is null) return null;
             foreach (var w in app.Windows.OfType<Window>())
             {
-                if (w.GetType().Name == "GameStudioWindow") continue;
+                if (w.GetType().Name == GameStudioWindowNames.GameStudio) continue;
                 if (SearchTree(w, contentId, returnElement: false) is not null)
                     return w;
             }
@@ -847,6 +878,22 @@ internal sealed class UITestHost
                 return Task.FromResult(entity);
             }
         }
+
+        public Task<int> CountUnloadable() =>
+            host.dispatcher.InvokeAsync(() =>
+            {
+                var session = TryGetSession();
+                if (session is null) { host.Log("CountUnloadable: no session"); return 0; }
+                var found = new List<string>();
+                foreach (var asset in session.AllAssets)
+                    foreach (var u in UnloadableObjectRemover.Discover(asset.Asset))
+                        found.Add($"  {asset.Url}: {u.MemberPath}");
+                if (found.Count > 0)
+                    host.Log($"CountUnloadable: {found.Count} unloadable object(s):\n{string.Join("\n", found)}");
+                else
+                    host.Log("CountUnloadable: none");
+                return found.Count;
+            }).Task;
 
         public void Exit(int newExitCode = 0)
         {
