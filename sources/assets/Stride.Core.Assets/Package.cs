@@ -590,6 +590,9 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // session load; do it here too so a direct Package.Load doesn't leave Meta.Name null.
             if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath is not null)
                 package.Meta.Name = package.FullPath.GetFileNameWithoutExtension();
+            // A package always carries a version. The session graph-walk overwrites this with the
+            // authored csproj PackageVersion when available; this guarantees the value is never null.
+            package.Meta.Version ??= GetFallbackVersion(Path.GetDirectoryName(filePath));
             package.PreviousPackagePath = packageFile.OriginalFilePath;
             package.IsDirty = packageFile.AssetContent is not null || loadResult.AliasOccurred;
 
@@ -600,6 +603,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             throw new InvalidOperationException($"Error while pre-loading package [{filePath}]", ex);
         }
     }
+
+    // Fallback version for a package with none authored: a dev-source package's PackageVersion is
+    // computed in a build target (empty at static eval), so use StrideVersion for packages inside
+    // this Stride checkout; anything else gets a neutral default.
+    internal static PackageVersion GetFallbackVersion(string? directory)
+        => directory is not null && DirectoryHelper.FindRootDevDirectory(directory) is not null
+            ? new PackageVersion(StrideVersion.NuGetVersion)
+            : new PackageVersion("1.0.0");
 
     public static PackageContainer LoadProject(ILogger log, string filePath)
     {
@@ -624,7 +635,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 ? LoadRaw(log, packagePath)
                 : new Package
                 {
-                    Meta = { Name = Path.GetFileNameWithoutExtension(packagePath) },
+                    Meta = { Name = Path.GetFileNameWithoutExtension(packagePath), Version = GetFallbackVersion(Path.GetDirectoryName(packagePath)) },
                     AssetFolders = { new AssetFolder("Assets") },
                     ResourceFolders = { "Resources" },
                     FullPath = packagePath,
