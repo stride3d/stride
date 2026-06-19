@@ -22,4 +22,10 @@ public class PackageSaveParameters
     }
 
     public Func<AssetItem, bool>? AssetFilter;
+
+    /// <summary>
+    /// Optional filter selecting which packages to save; packages for which it returns false are
+    /// skipped without writing (their in-memory dirty state is preserved). Null saves all.
+    /// </summary>
+    public Func<Package, bool>? PackageFilter;
 }

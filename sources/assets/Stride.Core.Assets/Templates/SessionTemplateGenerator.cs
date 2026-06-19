@@ -60,9 +60,20 @@ Cache/
     /// <summary>Bare <see cref="PackageSession.Save"/>; Quantum decorator runs <c>PrepareForSave</c> first.</summary>
     public virtual void SaveSession(SessionTemplateGeneratorParameters parameters)
     {
+        // A template generator must only write files under its output directory. Dependency packages
+        // can be dirtied as a side effect of loading (e.g. an asset migration on a dev-source engine
+        // .sdpkg); only save packages located under the output directory so those are left untouched.
+        var outputDir = parameters.OutputDirectory.ToOSPath();
+        if (outputDir.Length > 0 && outputDir[^1] != Path.DirectorySeparatorChar && outputDir[^1] != Path.AltDirectorySeparatorChar)
+            outputDir += Path.DirectorySeparatorChar;
+        var saveParameters = PackageSaveParameters.Default();
+        saveParameters.PackageFilter = package =>
+            package.FullPath is not null &&
+            package.FullPath.ToOSPath().StartsWith(outputDir, StringComparison.OrdinalIgnoreCase);
+
         parameters.Session.DependencyManager.BeginSavingSession();
         parameters.Session.SourceTracker.BeginSavingSession();
-        parameters.Session.Save(parameters.Logger);
+        parameters.Session.Save(parameters.Logger, saveParameters);
         parameters.Session.SourceTracker.EndSavingSession();
         parameters.Session.DependencyManager.EndSavingSession();
     }

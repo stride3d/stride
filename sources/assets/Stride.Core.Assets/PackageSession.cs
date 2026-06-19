@@ -1083,8 +1083,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             packagesCopy.Clear();
             foreach (var package in LocalPackages)
             {
-                // Save the package to disk and all its assets
-                package.Container.Save(loggerResult, saveParameters);
+                // Save the package to disk and all its assets (skip packages filtered out — e.g.
+                // template generation must not rewrite pre-existing dependency packages).
+                if (saveParameters.PackageFilter?.Invoke(package) != false)
+                    package.Container.Save(loggerResult, saveParameters);
 
                 // Check if everything was saved (might not be the case if things are filtered out)
                 if (package.IsDirty || package.Assets.IsDirty)
