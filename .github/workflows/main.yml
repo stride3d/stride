@@ -22,6 +22,19 @@ on:
     # without them main.yml wouldn't re-evaluate its draft gate until the next push.
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   workflow_dispatch:
+    inputs:
+      ios:
+        description: Run iOS jobs
+        type: boolean
+        default: true
+      android:
+        description: Run Android jobs
+        type: boolean
+        default: true
+      macos:
+        description: Run macOS jobs
+        type: boolean
+        default: true
 
 permissions:
   checks: write
@@ -70,14 +83,14 @@ jobs:
   ### Runtimes ###
   iOS-Runtime:
     needs: changes
-    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.ios == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.ios == 'true' && (github.event_name != 'workflow_dispatch' || inputs.ios)
     uses: ./.github/workflows/build-ios.yml
     with:
       build-type: Release
 
   Android-Runtime:
     needs: changes
-    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true' && (github.event_name != 'workflow_dispatch' || inputs.android)
     uses: ./.github/workflows/build-android.yml
     with:
       build-type: Release
@@ -223,6 +236,7 @@ jobs:
       && needs.changes.outputs.runtime == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
+      && (github.event_name != 'workflow_dispatch' || inputs.macos)
     uses: ./.github/workflows/test-macos-game.yml
     with:
       build-type: Debug
@@ -237,6 +251,7 @@ jobs:
       && needs.changes.outputs.ios-tests == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
+      && (github.event_name != 'workflow_dispatch' || inputs.ios)
     uses: ./.github/workflows/test-ios-game.yml
     with:
       build-type: Debug
@@ -251,6 +266,7 @@ jobs:
       && needs.changes.outputs.android == 'true'
       && needs['Linux-Runtime'].result != 'failure'
       && needs['Linux-Runtime'].result != 'cancelled'
+      && (github.event_name != 'workflow_dispatch' || inputs.android)
     uses: ./.github/workflows/test-android-game.yml
     with:
       build-type: Debug
