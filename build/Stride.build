@@ -151,6 +151,60 @@ Example: dotnet build build/Stride.build -t:Package
        callers run the two phases separately. -->
   <Target Name="Package" DependsOnTargets="BuildPackages;SignPackage"/>
 
+  <!-- Bump the in-repo concrete samples to a release version through the real package upgraders
+       (asset migration + Stride.* PackageReference rewrite). Run at release time from the commit
+       dispatched to release.yml. SampleVersion defaults to the clean next-release number (suffix
+       off, checkout-independent); pass -p:SampleVersion= to override (e.g. a -beta). The
+       $EngineVersion$ template sources (NewGame, Library) are excluded - they substitute at
+       template-pack time. -->
+  <Target Name="UpgradeSamplesVersion">
+    <PropertyGroup>
+      <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    </PropertyGroup>
+
+    <!-- Clean release version (suffix off); the probe file is throwaway (gitignored path). -->
+    <MakeDir Directories="$(StrideRoot)bin\obj" Condition="'$(SampleVersion)' == ''" />
+    <StrideGitVersion Condition="'$(SampleVersion)' == ''"
+        RootDirectory="$(StrideRoot)"
+        VersionFile="sources\shared\SharedAssemblyInfo.cs"
+        GeneratedVersionFile="bin\obj\SampleVersionProbe.cs">
+      <Output TaskParameter="NuGetVersion" PropertyName="SampleVersion" />
+    </StrideGitVersion>
+    <Error Condition="'$(SampleVersion)' == ''" Text="Could not resolve a sample version. Pass -p:SampleVersion=." />
+    <Message Importance="high" Text="UpgradeSamplesVersion: stamping Stride=$(SampleVersion) into in-repo samples ($(Configuration))" />
+
+    <!-- Build the source CompilerApp (with the upgrade-version option) and locate its xplat dll
+         (net*.0 selects net10.0, excluding the net10.0-windows TFM). -->
+    <MSBuild Projects="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj"
+             Targets="Build" Properties="Configuration=$(Configuration)" />
+    <ItemGroup>
+      <_StrideCompilerAppDll Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\bin\$(Configuration)\net*.0\Stride.Core.Assets.CompilerApp.dll" />
+    </ItemGroup>
+    <Error Condition="'@(_StrideCompilerAppDll)' == ''" Text="CompilerApp dll not found under bin\$(Configuration)\net*.0 - build it first." />
+
+    <!-- Concrete sample packages: every .sdpkg minus the $EngineVersion$ template sources.
+         Override -p:SamplePackages= to bump a subset (e.g. a single .sdpkg). -->
+    <PropertyGroup>
+      <SamplePackages Condition="'$(SamplePackages)' == ''">$(StrideRoot)samples\**\*.sdpkg</SamplePackages>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StrideSampleSdpkg Include="$(SamplePackages)" />
+      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\NewGame\**\*.sdpkg" />
+      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\Library\**\*.sdpkg" />
+    </ItemGroup>
+
+    <Message Importance="high" Text="UpgradeSamplesVersion: upgrading %(_StrideSampleSdpkg.Identity)" />
+    <Exec WorkingDirectory="$(StrideRoot)"
+          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; --upgrade-assets --package-file=&quot;%(_StrideSampleSdpkg.Identity)&quot; --upgrade-version Stride=$(SampleVersion)" />
+
+    <!-- Record the authority for the content-versioned template packages (Samples, Starters).
+         Single line so the deterministic write needs no escaping of ; or whitespace; the human
+         explanation lives at the StrideSamplesVersion.props import in Stride.Templates.Common.targets. -->
+    <WriteLinesToFile File="$(StrideRoot)sources\templates\StrideSamplesVersion.props" Overwrite="true" WriteOnlyWhenDifferent="true"
+                      Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;StrideSamplesVersion&gt;$(SampleVersion)&lt;/StrideSamplesVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;" />
+    <Message Importance="high" Text="UpgradeSamplesVersion: set StrideSamplesVersion=$(SampleVersion)" />
+  </Target>
+
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
   </Target>

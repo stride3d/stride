@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
   <PropertyGroup>
     <PackageId>Stride.Templates.Games.Starters</PackageId>
+    <StrideTemplateContentVersioned>true</StrideTemplateContentVersioned>
     <Title>Stride Game Starters</Title>
     <Description>dotnet new game-genre starters for Stride (FPS, Platformer, RPG, third-person, VR).</Description>
     <PackageTags>dotnet-new;templates;stride;stride-template;stride-game-starter;gamedev</PackageTags>
