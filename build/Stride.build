@@ -151,59 +151,9 @@ Example: dotnet build build/Stride.build -t:Package
        callers run the two phases separately. -->
   <Target Name="Package" DependsOnTargets="BuildPackages;SignPackage"/>
 
-  <!-- Bump the in-repo concrete samples to a release version through the real package upgraders
-       (asset migration + Stride.* PackageReference rewrite). Run at release time from the commit
-       dispatched to release.yml. SampleVersion defaults to the clean next-release number (suffix
-       off, checkout-independent); pass -p:SampleVersion= to override (e.g. a -beta). The
-       $EngineVersion$ template sources (NewGame, Library) are excluded - they substitute at
-       template-pack time. -->
-  <Target Name="UpgradeSamplesVersion">
-    <PropertyGroup>
-      <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    </PropertyGroup>
-
-    <!-- Clean release version (suffix off); the probe file is throwaway (gitignored path). -->
-    <MakeDir Directories="$(StrideRoot)bin\obj" Condition="'$(SampleVersion)' == ''" />
-    <StrideGitVersion Condition="'$(SampleVersion)' == ''"
-        RootDirectory="$(StrideRoot)"
-        VersionFile="sources\shared\SharedAssemblyInfo.cs"
-        GeneratedVersionFile="bin\obj\SampleVersionProbe.cs">
-      <Output TaskParameter="NuGetVersion" PropertyName="SampleVersion" />
-    </StrideGitVersion>
-    <Error Condition="'$(SampleVersion)' == ''" Text="Could not resolve a sample version. Pass -p:SampleVersion=." />
-    <Message Importance="high" Text="UpgradeSamplesVersion: stamping Stride=$(SampleVersion) into in-repo samples ($(Configuration))" />
-
-    <!-- Build the source CompilerApp (with the upgrade-version option) and locate its xplat dll
-         (net*.0 selects net10.0, excluding the net10.0-windows TFM). -->
-    <MSBuild Projects="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj"
-             Targets="Build" Properties="Configuration=$(Configuration)" />
-    <ItemGroup>
-      <_StrideCompilerAppDll Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\bin\$(Configuration)\net*.0\Stride.Core.Assets.CompilerApp.dll" />
-    </ItemGroup>
-    <Error Condition="'@(_StrideCompilerAppDll)' == ''" Text="CompilerApp dll not found under bin\$(Configuration)\net*.0 - build it first." />
-
-    <!-- Concrete sample packages: every .sdpkg minus the $EngineVersion$ template sources.
-         Override -p:SamplePackages= to bump a subset (e.g. a single .sdpkg). -->
-    <PropertyGroup>
-      <SamplePackages Condition="'$(SamplePackages)' == ''">$(StrideRoot)samples\**\*.sdpkg</SamplePackages>
-    </PropertyGroup>
-    <ItemGroup>
-      <_StrideSampleSdpkg Include="$(SamplePackages)" />
-      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\NewGame\**\*.sdpkg" />
-      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\Library\**\*.sdpkg" />
-    </ItemGroup>
-
-    <Message Importance="high" Text="UpgradeSamplesVersion: upgrading %(_StrideSampleSdpkg.Identity)" />
-    <Exec WorkingDirectory="$(StrideRoot)"
-          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; --upgrade-assets --package-file=&quot;%(_StrideSampleSdpkg.Identity)&quot; --upgrade-version Stride=$(SampleVersion)" />
-
-    <!-- Record the authority for the content-versioned template packages (Samples, Starters).
-         Single line so the deterministic write needs no escaping of ; or whitespace; the human
-         explanation lives at the StrideSamplesVersion.props import in Stride.Templates.Common.targets. -->
-    <WriteLinesToFile File="$(StrideRoot)sources\templates\StrideSamplesVersion.props" Overwrite="true" WriteOnlyWhenDifferent="true"
-                      Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;StrideSamplesVersion&gt;$(SampleVersion)&lt;/StrideSamplesVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;" />
-    <Message Importance="high" Text="UpgradeSamplesVersion: set StrideSamplesVersion=$(SampleVersion)" />
-  </Target>
+  <!-- In-repo sample version management (SamplesToDevVersion / SamplesToReleaseVersion /
+       UpgradeSamplesVersion) is standalone in build/Stride.Samples.build - run it directly, e.g.
+       dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion. See plans/samples-version-bump.md. -->
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
@@ -338,118 +288,8 @@ Example: dotnet build build/Stride.build -t:Package
     <CallTarget Targets="_SignFiles" />
   </Target>
 
-  <!-- Version-stamping task kept at the end so the targets above read first. -->
-  <!-- Inline so there is no task assembly to build, lock, or resolve dependencies for.
-       Patch = next release number from releases/<major.minor>.* tags reachable from HEAD. -->
-  <UsingTask TaskName="StrideGitVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-    <Task>
-      <Code Type="Class" Language="cs">
-        <![CDATA[
-        using System;
-        using System.Diagnostics;
-        using System.IO;
-        using System.Text.RegularExpressions;
-        using Microsoft.Build.Framework;
-        using Microsoft.Build.Utilities;
-
-        public class StrideGitVersion : Task
-        {
-            [Required] public string RootDirectory { get; set; }
-            [Required] public string VersionFile { get; set; }
-            [Required] public string GeneratedVersionFile { get; set; }
-            public string SuffixOverride { get; set; }
-
-            [Output] public string NuGetVersion { get; set; }
-
-            public override bool Execute()
-            {
-                try
-                {
-                    VersionFile = VersionFile.Replace('\\', '/');
-                    GeneratedVersionFile = GeneratedVersionFile.Replace('\\', '/');
-                    string data = File.ReadAllText(Path.Combine(RootDirectory, VersionFile));
-                    string publicVersion = Regex.Match(data, "PublicVersion = \"(.*)\";").Groups[1].Value;
-                    string suffix = Regex.Match(data, "NuGetVersionSuffix = \"(.*)\";").Groups[1].Value;
-                    // SuffixOverride (from -p:StrideVersionSuffix) is the bare word; add the dash here.
-                    if (!string.IsNullOrEmpty(SuffixOverride))
-                        suffix = "-" + SuffixOverride.TrimStart('-');
-
-                    string sha = Git("rev-parse HEAD").Substring(0, 8);
-
-                    var v = Version.Parse(publicVersion);
-                    string mm = v.Major + "." + v.Minor;
-                    publicVersion = mm + "." + ResolvePatch(mm);
-
-                    data = Regex.Replace(data, "PublicVersion = \"(.*)\";", "PublicVersion = \"" + publicVersion + "\";");
-                    data = Regex.Replace(data, "NuGetVersionSuffix = \"(.*)\";", "NuGetVersionSuffix = \"" + suffix + "\";");
-                    data = Regex.Replace(data, "BuildMetadata = (.*);", "BuildMetadata = \"+g" + sha + "\";");
-                    File.WriteAllText(Path.Combine(RootDirectory, GeneratedVersionFile), data);
-
-                    NuGetVersion = publicVersion + suffix;
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Log.LogError("StrideGitVersion failed: " + e.Message);
-                    return false;
-                }
-            }
-
-            private string Git(string args)
-            {
-                var psi = new ProcessStartInfo("git", args)
-                {
-                    WorkingDirectory = RootDirectory,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false
-                };
-                using (var p = Process.Start(psi))
-                {
-                    string output = p.StandardOutput.ReadToEnd().Trim();
-                    p.WaitForExit();
-                    if (p.ExitCode != 0) throw new Exception("git " + args + " exited with " + p.ExitCode);
-                    return output;
-                }
-            }
-
-            // Patch from release tags, scoped to HEAD's history so branches, older builds, and fork-only
-            // tags don't leak in: the exact releases/<mm>.<N> tag on HEAD (idempotent re-release, no +1),
-            // else the highest one reachable from HEAD + 1, else 0 with a dev-oriented warning.
-            private int ResolvePatch(string mm)
-            {
-                int patch;
-                if (TryMaxPatch(Git("tag --points-at HEAD --list releases/" + mm + ".*"), mm, out patch))
-                    return patch;
-                if (TryMaxPatch(Git("tag --list releases/" + mm + ".* --merged HEAD"), mm, out patch))
-                    return patch + 1;
-                bool shallow = Git("rev-parse --is-shallow-repository") == "true";
-                Log.LogWarning("No releases/" + mm + ".* tags reachable from HEAD - using " + mm + ".0. " +
-                    (shallow ? "This looks like a shallow clone; run `git fetch --unshallow` to get the release tags."
-                             : "Run `git fetch --tags` to fetch the release tags."));
-                return 0;
-            }
-
-            // Highest patch N among "releases/<mm>.<N>" lines (stable releases only; suffixed prerelease
-            // tags are ignored, so the suffix is the pre-release of the same N). Returns false if none.
-            private bool TryMaxPatch(string tagList, string mm, out int best)
-            {
-                best = -1;
-                var rx = new Regex("^releases/" + Regex.Escape(mm) + "\\.(\\d+)$");
-                foreach (var tag in tagList.Split('\n'))
-                {
-                    var m = rx.Match(tag.Trim());
-                    if (m.Success)
-                    {
-                        int p = int.Parse(m.Groups[1].Value);
-                        if (p > best) best = p;
-                    }
-                }
-                return best >= 0;
-            }
-        }
-        ]]>
-      </Code>
-    </Task>
-  </UsingTask>
+  <!-- StrideGitVersion task (package version from git release tags); shared with Stride.Samples.build. -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
+          Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
 
 </Project>
