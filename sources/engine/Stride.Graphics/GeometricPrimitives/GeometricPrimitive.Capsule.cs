@@ -124,7 +124,9 @@ namespace Stride.Graphics.GeometricPrimitives
                 var vertices = new VertexPositionNormalTexture[verticalSegments * (horizontalSegments + 1)];
                 var indices = new int[(verticalSegments - 1) * (horizontalSegments + 1) * 6];
 
-                var vertexCount = 0;
+                var vertexCount = 0; 
+                radius = MathF.Min(radius, length / 2);
+                length -= radius * 2;
                 // Create rings of vertices at progressively higher latitudes.
                 for (int i = 0; i < verticalSegments; i++)
                 {
@@ -161,7 +163,8 @@ namespace Stride.Graphics.GeometricPrimitives
 
                         var normal = new Vector3(dx, dy, dz);
                         var textureCoordinate = new Vector2(u * uScale, v * vScale);
-                        var position = radius * normal + new Vector3(0, deltaY, 0);
+                        var position = radius * normal;
+                        position.Y += deltaY;
 
                         vertices[vertexCount++] = new VertexPositionNormalTexture(position, normal, textureCoordinate);
                     }
