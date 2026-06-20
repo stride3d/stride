@@ -225,6 +225,13 @@ internal class TransactionStack : ITransactionStack
                 throw new TransactionException("Unable to rollback. A transaction is in progress.");
 
             var lastTransaction = transactions[--currentPosition];
+
+            while ((lastTransaction.Flags & TransactionFlags.SkipUndoRedo) > 0 && CanRollback)
+                lastTransaction = transactions[--currentPosition];
+
+            if ((lastTransaction.Flags & TransactionFlags.SkipUndoRedo) > 0)
+                return;
+
             RollInProgress = true;
             try
             {
@@ -251,6 +258,13 @@ internal class TransactionStack : ITransactionStack
                 throw new TransactionException("Unable to rollback. A transaction is in progress.");
 
             var lastTransaction = transactions[currentPosition++];
+
+            while ((lastTransaction.Flags & TransactionFlags.SkipUndoRedo) > 0 && CanRollforward)
+                lastTransaction = transactions[currentPosition++];
+
+            if ((lastTransaction.Flags & TransactionFlags.SkipUndoRedo) > 0)
+                return;
+
             RollInProgress = true;
             try
             {
