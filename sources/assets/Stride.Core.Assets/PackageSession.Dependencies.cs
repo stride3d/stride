@@ -17,6 +17,9 @@ partial class PackageSession
     private readonly Dictionary<string, Microsoft.Build.Evaluation.Project> projectLoadCache = new(StringComparer.OrdinalIgnoreCase);
     // Track projects being processed to avoid infinite recursion
     private readonly HashSet<string> processingProjects = new(StringComparer.OrdinalIgnoreCase);
+    // Set when LoadMissingDependencies restored the whole solution once up front, so the per-project
+    // restore below can be skipped (kept only as a fallback when there's no solution or after an upgrade).
+    private bool solutionDependenciesRestored;
 
     /// <summary>
     /// Locates a dev-redirect package's build manifest: the newest <c>&lt;project&gt;.sdbuild</c> under the
@@ -78,6 +81,9 @@ partial class PackageSession
         ArgumentNullException.ThrowIfNull(loadParameters);
 
         bool packageDependencyErrors = false;
+        // Tracks whether an upgrade rewrote this project's references, requiring a fresh restore even
+        // when the up-front solution restore already ran.
+        bool referencesUpgraded = false;
 
         var package = project.Package;
 
@@ -241,7 +247,10 @@ partial class PackageSession
                         }
 
                         if (isProjectDirty)
+                        {
                             msProject.Save();
+                            referencesUpgraded = true;
+                        }
                     }
                     catch (Exception e)
                     {
@@ -258,10 +267,13 @@ partial class PackageSession
                 }
             }
 
-            // Now that our references are upgraded, let's do a real nuget restore (download files)
-            log.Verbose($"Restore NuGet packages for {project.Name}...");
-            if (loadParameters.AutoCompileProjects)
+            // Now that our references are upgraded, let's do a real nuget restore (download files).
+            // Skip if the up-front solution restore already covered this project and no upgrade rewrote it.
+            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded))
+            {
+                log.Verbose($"Restore NuGet packages for {project.Name}...");
                 await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
+            }
 
             // If platform was unknown, check it again using cached project
             if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
