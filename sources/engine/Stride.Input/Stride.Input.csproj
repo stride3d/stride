@@ -14,6 +14,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GamePadLayouts\gamecontrollerdb.txt">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackageFlatten>true</PackageFlatten>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
     <PackageReference Include="Silk.NET.Sdl" PrivateAssets="compile" />
     <PackageReference Include="SharpDX.DirectInput" Condition="$(TargetFramework.Contains('-windows'))" />
