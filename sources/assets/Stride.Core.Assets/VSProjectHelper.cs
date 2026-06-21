@@ -170,8 +170,13 @@ public static class VSProjectHelper
                     DisableInProcNode = true,
                 };
 
-                // Run a MSBuild /t:Restore <projectfile>
-                var request = new BuildRequestData(projectPath, new Dictionary<string, string>(), null, ["Restore"], null, BuildRequestDataFlags.None);
+                // Run a MSBuild /t:Restore on the project or solution.
+                // RestoreUseStaticGraphEvaluation evaluates the project graph once, which cuts cold restore time noticeably.
+                var globalProperties = new Dictionary<string, string>
+                {
+                    ["RestoreUseStaticGraphEvaluation"] = "true",
+                };
+                var request = new BuildRequestData(projectPath, globalProperties, null, ["Restore"], null, BuildRequestDataFlags.None);
 
                 mainBuildManager.Build(parameters, request);
             }

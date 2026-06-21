@@ -916,6 +916,26 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         try
         {
+            // Restore the whole solution once up front (one project-graph evaluation) instead of one
+            // restore per project. The per-project restore in PreLoadPackageDependencies then only runs
+            // as a fallback (no solution, or a project whose references an upgrade rewrote). Skip when no
+            // project needs loading (this is called again after everything is already DependenciesReady).
+            solutionDependenciesRestored = false;
+            var anyProjectNeedsLoading = Projects.OfType<SolutionProject>().Any(x => x.Package.State < PackageState.DependenciesReady);
+            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && SolutionPath != null && File.Exists(SolutionPath.ToOSPath()))
+            {
+                try
+                {
+                    log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
+                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath()).Wait();
+                    solutionDependenciesRestored = true;
+                }
+                catch (Exception ex)
+                {
+                    log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
+                }
+            }
+
             // Note: list can grow as dependencies get loaded
             for (int i = 0; i < Projects.Count; ++i)
             {
@@ -935,6 +955,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         finally
         {
+            solutionDependenciesRestored = false;
             // Clean up all cached MSBuild projects
             ClearAllCachedProjects();
         }
