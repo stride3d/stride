@@ -12,6 +12,7 @@ using System.Text;
 
 using Mono.Options;
 using Stride.Core.Assets.Diagnostics;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
@@ -114,7 +115,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
                 { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
-                { "upgrade-assets", "Special mode to upgrade assets in place to the current SerializedVersion", v => mode = BuilderMode.UpgradeAssets },
+                { "upgrade-assets", "Special mode to upgrade a package in place: run package/asset upgraders (migrate to the current SerializedVersion) and re-apply changed archetype/base values (like a GameStudio open+save)", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -223,15 +224,16 @@ namespace Stride.Core.Assets.CompilerApp
                     // bumps. Also cleans up Session log noise from unresolved engine asset refs.
                     // Incremental for already-restored projects, so cheap when called from the
                     // StrideUpgradeAssets MSBuild target inside a real consumer build.
-                    var csprojForRestore = options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                    var restoreTarget = options.PackageFile.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
+                        || options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
                         ? options.PackageFile
                         : System.IO.Path.ChangeExtension(options.PackageFile, ".csproj");
-                    if (System.IO.File.Exists(csprojForRestore))
+                    if (System.IO.File.Exists(restoreTarget))
                     {
                         var psi = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = "dotnet",
-                            ArgumentList = { "restore", csprojForRestore, "--nologo", "-v", "quiet" },
+                            ArgumentList = { "restore", restoreTarget, "--nologo", "-v", "quiet" },
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
                             UseShellExecute = false,
@@ -247,17 +249,19 @@ namespace Stride.Core.Assets.CompilerApp
                             // it to fully work, and code-aware upgrade paths (Roslyn, MSBuild item
                             // enum) silently produce wrong results on partial state. Surfacing the
                             // restore error early is the right failure mode.
-                            options.Logger.Error($"dotnet restore failed for {csprojForRestore} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
+                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
                             return (int)BuildResultCode.BuildError;
                         }
                     }
 
+                    // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
+                    // does — using the defaults, which compile and load the project assemblies. Without that,
+                    // assets referencing user script types (e.g. a sample's own components) fail to
+                    // deserialize. Reconcile also pulls archetype/base values from dependency packages (e.g.
+                    // the engine's default compositor); those load read-only, so Save (LocalPackages only)
+                    // never writes back to them.
                     var loadParameters = new PackageLoadParameters
                     {
-                        AutoCompileProjects = false,
-                        LoadAssemblyReferences = false,
-                        LoadMissingDependencies = false,
-                        AutoLoadTemporaryAssets = true,
                         PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
                     };
 
@@ -265,6 +269,8 @@ namespace Stride.Core.Assets.CompilerApp
                     sessionResult.CopyTo(options.Logger);
                     if (sessionResult.HasErrors || sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
+
+                    ReconcileBases(sessionResult.Session, options.Logger);
 
                     sessionResult.Session.Save(options.Logger);
                     return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
@@ -392,6 +398,55 @@ namespace Stride.Core.Assets.CompilerApp
         private void OnConsoleOnCancelKeyPress(object _, ConsoleCancelEventArgs e)
         {
             e.Cancel = builder.Cancel();
+        }
+
+        // Re-applies changed archetype/base values to derived assets, the way GameStudio does on load.
+        // CompilerApp's --upgrade-assets only migrates the serialized format; opening + saving in the editor
+        // additionally runs Quantum's ReconcileWithBase, which is what materialises base-propagated changes
+        // (e.g. an engine default-compositor change) into the derived sample assets.
+        private static void ReconcileBases(PackageSession session, ILogger logger)
+        {
+            var nodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
+            var graphContainer = new AssetPropertyGraphContainer(nodeContainer);
+
+            // First pass: build + register every asset's graph so cross-asset archetype links resolve.
+            var graphs = new List<(AssetPropertyGraph Graph, AssetItem AssetItem)>();
+            foreach (var package in session.Packages)
+            {
+                foreach (var assetItem in package.Assets)
+                {
+                    try
+                    {
+                        var graph = graphContainer.InitializeAsset(assetItem, logger);
+                        if (graph != null)
+                            graphs.Add((graph, assetItem));
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warning($"Could not build property graph for [{assetItem.Location}]: {ex.Message}");
+                    }
+                }
+            }
+
+            // Second pass: reconcile each graph; a content change flags the asset dirty so Save persists it.
+            var changedCount = 0;
+            foreach (var (graph, assetItem) in graphs)
+            {
+                var changed = false;
+                graph.Changed += (_, _) => { assetItem.IsDirty = true; changed = true; };
+                graph.ItemChanged += (_, _) => { assetItem.IsDirty = true; changed = true; };
+                try
+                {
+                    graph.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    logger.Warning($"Could not reconcile [{assetItem.Location}] with its base: {ex.Message}");
+                }
+                if (changed)
+                    changedCount++;
+            }
+            logger.Info($"Reconciled {changedCount} asset(s) with their base out of {graphs.Count}.");
         }
 
         private static string FormatLog(ILogMessage message)
