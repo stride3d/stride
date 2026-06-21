@@ -8,7 +8,7 @@ using Stride.Assets.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.Quantum
+namespace Stride.Assets.Quantum
 {
     [AssetPropertyGraphDefinition(typeof(GraphicsCompositorAsset))]
     public class GraphicsCompositorAssetPropertyGraphDefinition : AssetPropertyGraphDefinition

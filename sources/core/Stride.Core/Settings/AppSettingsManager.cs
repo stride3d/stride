@@ -53,7 +53,7 @@ public static class AppSettingsManager
                 {
                     foreach (var type in providerTypes)
                     {
-                        if (!type.IsAbstract &&
+                        if (!type.IsAbstract && !type.IsGenericTypeDefinition &&
                             type.GetConstructor(Type.EmptyTypes) != null)
                         {
                             provider = (IAppSettingsProvider?)Activator.CreateInstance(type);

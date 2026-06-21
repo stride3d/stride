@@ -2,11 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Quantum;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 [BaseTypeRequired(typeof(AssetPropertyGraph))]
+[AssemblyScan]
 public class AssetPropertyGraphAttribute : Attribute
 {
     public AssetPropertyGraphAttribute(Type assetType)
