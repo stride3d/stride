@@ -1,10 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Editor.EditorGame.Game;
+using Stride.Engine.InputInteractions;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
@@ -15,7 +17,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
     {
         private readonly List<IEditorGameMouseService> mouseServices = new List<IEditorGameMouseService>();
 
+        public IInputInteractionService InteractionService { get; private set; }
+
         /// <inheritdoc/>
+        [Obsolete("Use !InteractionService.HasActiveInteraction")]
         public abstract bool IsControllingMouse { get; protected set; }
 
         /// <summary>
@@ -24,7 +29,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         public override bool IsActive { get; set; } = true;
 
         /// <inheritdoc/>
-        public bool IsMouseAvailable => mouseServices.All(x => x == this || !x.IsControllingMouse);
+        [Obsolete("Check with (!InteractionService.HasActiveInteraction || InteractionService.IsActiveInteractionOwner(this))")]
+        public bool IsMouseAvailable => !InteractionService.HasActiveInteraction || InteractionService.IsActiveInteractionOwner(this);
 
         internal void RegisterMouseServices([NotNull] EditorGameServiceRegistry serviceRegistry)
         {
@@ -32,6 +38,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             {
                 mouseServices.Add(service);
             }
+        }
+
+        internal void InitializeMouseService(IInputInteractionService interactionService)
+        {
+            InteractionService = interactionService;
         }
     }
 }

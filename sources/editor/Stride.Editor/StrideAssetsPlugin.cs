@@ -11,11 +11,12 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.View;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Presentation.View;
 using Stride.Editor.Annotations;
+using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 
@@ -118,6 +119,14 @@ namespace Stride.Editor
                     assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
                 }
             }
+        }
+
+        /// <remarks>
+        /// Invoked on the game thread.
+        /// </remarks>
+        public virtual void RegisterGameServices(EditorGameServiceRegistry serviceRegistry)
+        {
+            // Do nothing by default
         }
     }
 }

@@ -6,17 +6,19 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
@@ -417,6 +419,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             // Create and register services
             serviceRegistry = new EditorGameServiceRegistry();
             InitializeServices(serviceRegistry);
+            Editor.Session.ServiceProvider.Get<IAssetsPluginService>().Plugins.ForEach(x => (x as StrideAssetsPlugin)?.RegisterGameServices(serviceRegistry));
             Game.RegisterServices(serviceRegistry);
 
             // Notify game start

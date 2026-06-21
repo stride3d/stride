@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
+using Stride.Engine.InputInteractions;
+using Stride.Games;
 using Stride.Input;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
@@ -15,12 +17,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
     {
         private EntityHierarchyEditorGame game;
         private CameraOrientationGizmo gizmo;
-        private Int3? clickedElement;
 
+        [Obsolete]
         public override bool IsControllingMouse { get; protected set; }
 
         public override IEnumerable<Type> Dependencies { get { yield return typeof(EditorGameEntityCameraService); } }
-        
+
         internal EditorGameEntityCameraService Camera => Services.Get<EditorGameEntityCameraService>();
 
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
@@ -41,43 +43,68 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
                 {
                     gizmo.Update();
 
-                    if (gizmo.HasSelection && IsMouseAvailable)
+                    if (gizmo.HasSelection && !InteractionService.HasActiveInteraction)
                     {
-                        IsControllingMouse = true;
                         if (game.Input.IsMouseButtonPressed(MouseButton.Left))
                         {
-                            clickedElement = gizmo.SelectedElement;
-                        }
-                        else if (game.Input.IsMouseButtonReleased(MouseButton.Left))
-                        {
-                            if (clickedElement.HasValue && clickedElement == gizmo.SelectedElement)
+                            var clickedElement = gizmo.SelectedElement;
+                            InteractionService.Request(new InputInteractionRequest
                             {
-                                Int3 selectedElement = clickedElement.Value;
-
-                                // If looking along a coordinate axis and the corresponding element is clicked, switch projection mode
-                                if (gizmo.IsViewParallelToAxis && selectedElement.LengthSquared() == 1)
-                                {
-                                    var camera = Camera.Camera;
-                                    camera.Dispatcher.Invoke(() => camera.OrthographicProjection = !camera.OrthographicProjection);
-                                }
-                                else
-                                {
-                                    var viewDirection = new Vector3(-selectedElement.X, -selectedElement.Y, -selectedElement.Z);
-                                    Camera.ResetCamera(viewDirection);
-                                }
-                            }
-
-                            clickedElement = null;
-                            IsControllingMouse = false;
+                                Name = "CameraOrientation.Click",
+                                InteractionType = InputInteractionType.Gizmo,
+                                Factory = () => new Interaction(this, clickedElement)
+                            });
                         }
-                    }
-                    else
-                    {
-                        IsControllingMouse = false;
                     }
                 }
 
                 await game.Script.NextFrame();
+            }
+        }
+
+        private class Interaction(EditorGameCameraOrientationService EditorService, Int3 ClickedElement) : IInputInteraction
+        {
+            public object Owner => EditorService;
+
+            public void Start()
+            {
+            }
+
+            public bool Update(GameTime gameTime)
+            {
+                var game = EditorService.game;
+                if (game.Input.IsMouseButtonDown(MouseButton.Left))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public void End()
+            {
+                var gizmo = EditorService.gizmo;
+                var cameraService = EditorService.Camera;
+                if (ClickedElement == gizmo.SelectedElement)
+                {
+                    // Mouse release is still over the same element
+                    Int3 selectedElement = ClickedElement;
+
+                    // If looking along a coordinate axis and the corresponding element is clicked, switch projection mode
+                    if (gizmo.IsViewParallelToAxis && selectedElement.LengthSquared() == 1)
+                    {
+                        var camera = cameraService.Camera;
+                        camera.Dispatcher.Invoke(() => camera.OrthographicProjection = !camera.OrthographicProjection);
+                    }
+                    else
+                    {
+                        var viewDirection = new Vector3(-selectedElement.X, -selectedElement.Y, -selectedElement.Z);
+                        cameraService.ResetCamera(viewDirection);
+                    }
+                }
+            }
+
+            public void Cancel()
+            {
             }
         }
     }

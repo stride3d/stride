@@ -3,22 +3,25 @@
 
 using System;
 using System.Threading.Tasks;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
+using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.InputInteractions;
+using Stride.Games;
 using Stride.Input;
 
 namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 {
-    internal sealed class UIEditorGameCameraService : EditorGameCameraService
+    internal sealed class UIEditorGameCameraService : EditorGameCameraService, IInputInteraction
     {
         public new static readonly Vector3 DefaultPosition = new Vector3(0, 0, 500);
         public new static readonly float DefaultPitch = 0.0f;
         public new static readonly float DefaultYaw = 0.0f;
-        
+
+        private IInputInteractionService interactionService;
         private float desiredYaw;
         private float desiredPitch;
         private bool isUpdating;
@@ -83,17 +86,15 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         {
             base.UpdateCamera();
 
-            if (IsMouseAvailable && Game.Input.IsMouseButtonPressed(MouseButton.Middle))
+            interactionService ??= Game.Services.GetSafeServiceAs<IInputInteractionService>();
+            if (Game.Input.IsMouseButtonPressed(MouseButton.Middle))
             {
-                // Capture mouse when a button is pressed and the mouse is available
-                Game.Input.LockMousePosition();
-                Game.IsMouseVisible = false;
-                IsControllingMouse = true;
-            }
-            else if (Game.Input.IsMouseButtonReleased(MouseButton.Middle))
-            {
-                Game.Input.UnlockMousePosition();
-                Game.IsMouseVisible = true;
+                interactionService.Request(new InputInteractionRequest
+                {
+                    Name = "UIEditorCamera.Pan",
+                    InteractionType = InputInteractionType.Camera,
+                    Factory = () => this,
+                });
             }
 
             // Compute translation speed according to framerate and modifiers
@@ -126,7 +127,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             var right = Vector3.Cross(forward, up);
 
             // Dolly (top, bottom, left and right)
-            if (IsMouseAvailable && Game.Input.IsMouseButtonDown(MouseButton.Middle))
+            if (interactionService.IsActiveInteractionOwner(this))
             {
                 desiredYaw = yaw;
                 desiredPitch = pitch;
@@ -135,7 +136,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 position += up * Game.Input.MouseDelta.Y * MouseMoveSpeedFactor * translationSpeed;
             }
             // Dolly (forward and backward)
-            else if (IsMouseAvailable && Math.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance)
+            else if (!interactionService.HasActiveInteraction && Math.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance)
             {
                 desiredYaw = yaw;
                 desiredPitch = pitch;
@@ -154,6 +155,36 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             SetCurrentYaw(yaw);
             UpdateViewMatrix();
             isUpdating = false;
+        }
+
+        object IInputInteraction.Owner => this;
+
+        void IInputInteraction.Start()
+        {
+            Game.Input.LockMousePosition();
+            Game.IsMouseVisible = false;
+        }
+
+        bool IInputInteraction.Update(GameTime gameTime)
+        {
+            bool isStillControlling = Game.Input.IsMouseButtonDown(MouseButton.Middle);
+            return isStillControlling;
+        }
+
+        void IInputInteraction.End()
+        {
+            ReleaseInput();
+        }
+
+        void IInputInteraction.Cancel()
+        {
+            ReleaseInput();
+        }
+
+        private void ReleaseInput()
+        {
+            Game.Input.UnlockMousePosition();
+            Game.IsMouseVisible = true;
         }
     }
 }

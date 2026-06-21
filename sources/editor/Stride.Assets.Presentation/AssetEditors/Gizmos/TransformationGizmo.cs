@@ -4,12 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Engine.InputInteractions;
 using Stride.Engine.Processors;
+using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
@@ -19,7 +22,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
     /// <summary>
     /// Base class for all gizmo that applies a transformation on entity
     /// </summary>
-    public abstract class TransformationGizmo : AxialGizmo
+    public abstract class TransformationGizmo : AxialGizmo, IInputInteraction
     {
         public const float TransformationStartPixelThreshold = 8;
 
@@ -42,6 +45,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
 
+        private IInputInteractionService interactionService;
+        private bool isInteractionActive = false;
         private bool transformationInitialized;
         private bool duplicationDone;
 
@@ -390,10 +395,21 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 return;
             }
 
-            // initialize the start values at the beginning of the transformation
-            if (!transformationInitialized)
+            interactionService ??= Game.Services.GetSafeServiceAs<IInputInteractionService>();
+            if (!isInteractionActive && Game.Input.IsMouseButtonPressed(MouseButton.Left))
             {
-                InitializeTransformation();
+                interactionService.Request(new InputInteractionRequest
+                {
+                    Name = "TransformationGizmo.Drag",
+                    InteractionType = InputInteractionType.Gizmo,
+                    Factory = () => this,
+                });
+                return;
+            }
+
+            if (!isInteractionActive)
+            {
+                return;
             }
 
             // calculate the current drag translation in the screen normalized space
@@ -473,6 +489,37 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     entityTransfo.Rotation = initialTransfo.Rotation * Quaternion.RotationAxis(rotationAxisParent, transformation.Rotation.Angle);
                 }
             }
+        }
+
+        object IInputInteraction.Owner => this;
+
+        void IInputInteraction.Start()
+        {
+            isInteractionActive = true;
+
+            // initialize the start values at the beginning of the transformation
+            InitializeTransformation();
+        }
+
+        bool IInputInteraction.Update(GameTime gameTime)
+        {
+            bool isStillControlling = Game.Input.IsMouseButtonDown(MouseButton.Left);
+            return isStillControlling;
+        }
+
+        void IInputInteraction.End()
+        {
+            ReleaseInput();
+        }
+
+        void IInputInteraction.Cancel()
+        {
+            ReleaseInput();
+        }
+
+        private void ReleaseInput()
+        {
+            isInteractionActive = false;
         }
 
         public virtual async Task Update()

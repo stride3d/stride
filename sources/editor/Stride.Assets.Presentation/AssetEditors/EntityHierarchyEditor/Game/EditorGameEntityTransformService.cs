@@ -214,7 +214,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             {
                 if (IsActive)
                 {
-                    if (IsMouseAvailable)
+                    if (!InteractionService.HasActiveInteraction)
                     {
                         // Snap the current selection to the grid, on keypress
                         if (game.Input.IsKeyPressed(SceneEditorSettings.SnapSelectionToGrid.GetValue()))
@@ -257,8 +257,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     {
                         tasks = transformationGizmos.Select(x => x.Update());
                     }
-
-                    IsControllingMouse = activeTransformationGizmo != null && activeTransformationGizmo.IsUnderMouse() && IsMouseAvailable;
 
                     await Task.WhenAll(tasks);
                 }
