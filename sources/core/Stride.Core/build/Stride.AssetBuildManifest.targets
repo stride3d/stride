@@ -11,9 +11,9 @@
          layer next to where it globs the files (shaders in Stride.targets / Sdk.targets); a plugin
          appends its own in its buildTransitive .targets. -->
     <!-- Game/code projects' scripts are asset types, so the asset compiler must load their assembly;
-         default it on. The engine source tree ($(StrideRoot) set) and the test SDK set it explicitly.
-         Opt out with StrideAssetAssembly=false. -->
-    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == '' And '$(StrideRoot)' == ''">true</StrideAssetAssembly>
+         default it on for consumers (StrideRoot empty, or dev-redirect where the stub also sets
+         StrideDevRoot). The engine source tree and test SDK set it explicitly; opt out =false. -->
+    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == '' And ('$(StrideRoot)' == '' Or '$(StrideDevRoot)' != '')">true</StrideAssetAssembly>
   </PropertyGroup>
 
   <!-- Expose the extension list to the STRDIAG011 analyzer as a comma-separated copy (editorconfig
