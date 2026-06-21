@@ -11,7 +11,7 @@ using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
 
-namespace Stride.Assets.Presentation.Quantum
+namespace Stride.Assets.Quantum
 {
     [AssetPropertyGraph(typeof(UIAssetBase))]
     public class UIAssetPropertyGraph : AssetCompositeHierarchyPropertyGraph<UIElementDesign, UIElement>

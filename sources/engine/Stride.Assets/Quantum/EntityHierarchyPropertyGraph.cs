@@ -10,7 +10,7 @@ using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.Quantum
+namespace Stride.Assets.Quantum
 {
     [AssetPropertyGraph(typeof(EntityHierarchyAssetBase))]
     public class EntityHierarchyPropertyGraph : AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>

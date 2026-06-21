@@ -7,7 +7,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.UI;
 using Stride.UI;
