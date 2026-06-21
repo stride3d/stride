@@ -93,7 +93,7 @@ namespace Stride.Core.Assets.CompilerApp
                 {
                     if (string.IsNullOrWhiteSpace(SolutionFile) || PackageId == Guid.Empty)
                     {
-                        throw new ArgumentException("This tool requires either a --package-file, a --package-manifest, or a --solution-file and --package-id.", "inputPackageFile");
+                        throw new ArgumentException("This tool requires an input file (package, project, or .sdbuild manifest), or a --solution-file and --package-id.", "inputPackageFile");
                     }
                 }
                 else if (!File.Exists(PackageFile))

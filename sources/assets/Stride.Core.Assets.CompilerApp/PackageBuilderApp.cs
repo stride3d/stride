@@ -82,7 +82,9 @@ namespace Stride.Core.Assets.CompilerApp
                     typeof(Program).Assembly.GetName().Version.Major,
                     typeof(Program).Assembly.GetName().Version.Minor,
                     typeof(Program).Assembly.GetName().Version.Build) + string.Empty,
-                string.Format("Usage: {0} inputPackageFile [options]* -b buildPath", exeName),
+                string.Format("Usage: {0} <command> <input> [options]*", exeName),
+                string.Empty,
+                "Commands: build | pack | upgrade | generate-code",
                 string.Empty,
                 "=== Options ===",
                 string.Empty,
@@ -95,8 +97,6 @@ namespace Stride.Core.Assets.CompilerApp
                 { "platform=", "Platform name", v => options.Platform = Enum.Parse<PlatformType>(v) },
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
-                { "package-file=", "Input Package File Name", v => options.PackageFile = v },
-                { "package-manifest=", "Load the session from this build manifest (.sdbuild) chain", v => options.PackageManifestFile = v },
                 { "msbuild-uptodatecheck-filebase=", "BuildUpToDate File base for MSBuild; it will create one .inputs and one .outputs files", v => options.MSBuildUpToDateCheckFileBase = v },
                 { "o|output-path=", "Output path", v => options.OutputDirectory = v },
                 { "b|build-path=", "Build path", v => options.BuildDirectory = v },
@@ -112,10 +112,7 @@ namespace Stride.Core.Assets.CompilerApp
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
-                { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
-                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
-                { "upgrade-assets", "Special mode to upgrade a package in place: run package/asset upgraders (migrate to the current SerializedVersion) and re-apply changed archetype/base values (like a GameStudio open+save)", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -162,7 +159,62 @@ namespace Stride.Core.Assets.CompilerApp
 
             try
             {
-                var unexpectedArgs = p.Parse(args);
+                // First argument selects the command; the rest are options + the input file.
+                var commandArgs = args;
+                if (args.Length == 0)
+                {
+                    showHelp = true;
+                }
+                else if (!args[0].StartsWith('-'))
+                {
+                    switch (args[0])
+                    {
+                        case "build": mode = BuilderMode.Build; break;
+                        case "pack": mode = BuilderMode.Pack; break;
+                        case "upgrade": mode = BuilderMode.UpgradeAssets; break;
+                        case "generate-code": mode = BuilderMode.UpdateGeneratedFiles; break;
+                        case "help": showHelp = true; break;
+                        default:
+                            Console.Error.WriteLine($"Unknown command '{args[0]}'. Expected: build, pack, upgrade, generate-code.");
+                            return (int)BuildResultCode.CommandLineError;
+                    }
+                    commandArgs = args[1..];
+                }
+                else if (args.Contains("-h") || args.Contains("--help"))
+                {
+                    showHelp = true;
+                }
+                else
+                {
+                    Console.Error.WriteLine("A command is required: build, pack, upgrade, generate-code.");
+                    return (int)BuildResultCode.CommandLineError;
+                }
+
+                var unexpectedArgs = p.Parse(commandArgs);
+
+                if (showHelp)
+                {
+                    p.WriteOptionDescriptions(Console.Out);
+                    return (int)BuildResultCode.Successful;
+                }
+
+                // The lone positional argument is the input file, routed by extension.
+                if (options.SlavePipe == null && unexpectedArgs.Count > 0)
+                {
+                    var input = unexpectedArgs[0];
+                    unexpectedArgs.RemoveAt(0);
+                    if (input.EndsWith(AssetBuildManifest.FileExtension, StringComparison.OrdinalIgnoreCase))
+                        options.PackageManifestFile = input;
+                    else
+                        options.PackageFile = input;
+                }
+
+                // upgrade / generate-code bypass ValidateOptions but still need an input file.
+                if ((mode == BuilderMode.UpgradeAssets || mode == BuilderMode.UpdateGeneratedFiles) && string.IsNullOrEmpty(options.PackageFile))
+                {
+                    Console.Error.WriteLine("This command requires an input package/project file.");
+                    return (int)BuildResultCode.CommandLineError;
+                }
 
                 // Activate proper log level
                 buildEngineLogger.ActivateLog(options.LoggerType);
@@ -289,12 +341,7 @@ namespace Stride.Core.Assets.CompilerApp
                     throw new OptionException(ex.Message, ex.ParamName);
                 }
 
-                if (showHelp)
-                {
-                    p.WriteOptionDescriptions(Console.Out);
-                    return (int)BuildResultCode.Successful;
-                }
-                else if (mode == BuilderMode.Pack)
+                if (mode == BuilderMode.Pack)
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
@@ -401,7 +448,7 @@ namespace Stride.Core.Assets.CompilerApp
         }
 
         // Re-applies changed archetype/base values to derived assets, the way GameStudio does on load.
-        // CompilerApp's --upgrade-assets only migrates the serialized format; opening + saving in the editor
+        // Asset format migration alone only updates the serialized format; opening + saving in the editor
         // additionally runs Quantum's ReconcileWithBase, which is what materialises base-propagated changes
         // (e.g. an engine default-compositor change) into the derived sample assets.
         private static void ReconcileBases(PackageSession session, ILogger logger)

@@ -84,7 +84,7 @@ namespace Stride.Core.Assets.CompilerApp
                 // Load the root Package from the .sdbuild manifest chain.
                 if (string.IsNullOrEmpty(builderOptions.PackageManifestFile))
                 {
-                    builderOptions.Logger.Error("No build manifest provided; the asset build requires --package-manifest.");
+                    builderOptions.Logger.Error("No build manifest provided; the build command requires a .sdbuild manifest as input.");
                     return BuildResultCode.BuildError;
                 }
                 var projectSessionResult = new PackageSessionResult();
@@ -447,7 +447,7 @@ namespace Stride.Core.Assets.CompilerApp
             }
 
             var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
-            var arguments = $"--slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
+            var arguments = $"build --slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
 
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
