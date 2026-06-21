@@ -43,7 +43,7 @@
     </ParameterGroup>
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
-        var rx = new System.Text.RegularExpressions.Regex("(Include=\"Stride[^\"]*\"\\s+Version=\")([^\"]*)(\")");
+        var rx = new System.Text.RegularExpressions.Regex("(Include=\"Stride[^\"]*\"[^>]*?\\sVersion=\")([^\"]*)(\")");
         foreach (var item in Projects)
         {
             var path = item.ItemSpec;
@@ -115,20 +115,16 @@
     </ItemGroup>
     <Error Condition="'@(_StrideCompilerAppDll)' == ''" Text="CompilerApp dll not found under bin\$(Configuration)\net*.0 - build it first." />
 
-    <!-- Run the package upgrader per sample: it sees each sample's committed version (e.g. 4.3.x), migrates
-         its assets, rewrites the Stride.* references to this checkout's dev build (4.4.0-dev2) and restores
-         it from the local dev feed. -->
+    <!-- Run the package upgrader once over the whole samples solution: one process + one shared NuGet restore,
+         so the samples resolve against one coherent graph and don't each pay a fresh process + restore. It sees
+         each sample's committed version, migrates assets, rewrites the Stride.* references to this checkout's dev
+         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .sln/.csproj/.sdpkg. -->
     <PropertyGroup>
-      <SamplePackages Condition="'$(SamplePackages)' == ''">$(StrideRoot)samples\**\*.sdpkg</SamplePackages>
+      <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.sln</SampleUpgradeTarget>
     </PropertyGroup>
-    <ItemGroup>
-      <_StrideSampleSdpkg Include="$(SamplePackages)" />
-      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\NewGame\**\*.sdpkg" />
-      <_StrideSampleSdpkg Remove="$(StrideRoot)samples\Library\**\*.sdpkg" />
-    </ItemGroup>
-    <Message Importance="high" Text="UpgradeSamplesVersion: migrating %(_StrideSampleSdpkg.Identity)" />
+    <Message Importance="high" Text="UpgradeSamplesVersion: upgrading $(SampleUpgradeTarget)" />
     <Exec WorkingDirectory="$(StrideRoot)"
-          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; --upgrade-assets --package-file=&quot;%(_StrideSampleSdpkg.Identity)&quot;" />
+          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot;" />
 
     <!-- Record the authority for the content-versioned template packages (Samples, Starters). -->
     <WriteLinesToFile File="$(StrideRoot)sources\templates\StrideSamplesVersion.props" Overwrite="true" WriteOnlyWhenDifferent="true"

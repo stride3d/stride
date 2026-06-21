@@ -178,11 +178,11 @@
        comment above). The bundle is written straight to OutputPath, so it doesn't need the copy step. -->
   <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
-      <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot; build</StrideCompileAssetCommandProxy>
 
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
-      <!-- Load the session from the .sdbuild manifest chain. -->
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) --package-manifest=&quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
+      <!-- Load the session from the .sdbuild manifest chain (positional input). -->
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) &quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
@@ -324,7 +324,7 @@
     </PropertyGroup>
     <Error Condition="'$(StrideAssetAssembly)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideAssetAssembly=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
@@ -340,13 +340,13 @@
   </Target>
 
   <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
   <!-- Upgrade assets in place to the current SerializedVersion. User invokes manually:
        dotnet build -t:StrideUpgradeAssets
        No-op when assets are already current (PackageSession.Save short-circuits on unmodified packages). -->
   <Target Name="StrideUpgradeAssets" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --upgrade-assets --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 </Project>
