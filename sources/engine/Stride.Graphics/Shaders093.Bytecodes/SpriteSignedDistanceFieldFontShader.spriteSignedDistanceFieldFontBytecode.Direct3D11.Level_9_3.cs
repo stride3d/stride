@@ -3,7 +3,7 @@
 //     Stride Effect Compiler File Generated:
 //     Effect [SpriteSignedDistanceFieldFontShader]
 //
-//     Command Line: C:\dev\stride\sources\assets\Stride.Core.Assets.CompilerApp\bin\Debug\net10.0\Stride.Core.Assets.CompilerApp.dll --platform=Windows --property:StrideGraphicsApi=Direct3D11 --output-path=C:\dev\stride\sources\engine\Stride.Graphics\Shaders093.Bytecodes\obj\app_data --build-path=C:\dev\stride\sources\engine\Stride.Graphics\Shaders093.Bytecodes\obj\build_app_data --package-file=Graphics.sdpkg
+//     Command Line: C:\dev\stride\sources\assets\Stride.AssetCompiler\bin\Debug\net10.0\Stride.AssetCompiler.dll --platform=Windows --property:StrideGraphicsApi=Direct3D11 --output-path=C:\dev\stride\sources\engine\Stride.Graphics\Shaders093.Bytecodes\obj\app_data --build-path=C:\dev\stride\sources\engine\Stride.Graphics\Shaders093.Bytecodes\obj\build_app_data --package-file=Graphics.sdpkg
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 // </auto-generated>

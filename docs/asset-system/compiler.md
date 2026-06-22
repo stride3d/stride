@@ -127,4 +127,4 @@ Compiler classes live in the same assembly as the asset class. For engine assets
 The `Prepare` method and build command shown above form the complete starting template for a new compiler. Copy both blocks, replace `%%AssetName%%` with your asset's PascalCase name, and fill in the property mapping inside `DoCommandOverride`.
 
 > [!NOTE] Game projects
-> For game-project custom assets, the compiler class lives in the game project itself. Add `<PackageReference Include="Stride.Core.Assets.CompilerApp" IncludeAssets="build;buildTransitive" />` to the game project's `.csproj` — this brings in the infrastructure that discovers and invokes the compiler; it does not change where the compiler class lives.
+> For game-project custom assets, the compiler class lives in the game project itself. Add `<PackageReference Include="Stride.AssetCompiler" IncludeAssets="build;buildTransitive" />` to the game project's `.csproj` — this brings in the infrastructure that discovers and invokes the compiler; it does not change where the compiler class lives.

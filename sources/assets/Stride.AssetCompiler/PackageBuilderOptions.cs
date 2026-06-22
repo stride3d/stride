@@ -7,7 +7,7 @@ using System.IO;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     public class PackageBuilderOptions
     {

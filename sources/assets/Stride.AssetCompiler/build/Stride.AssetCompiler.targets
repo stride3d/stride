@@ -142,10 +142,10 @@
       <!-- $(StrideRoot) anchors both in-tree consumers (set by sources/Directory.Build.props)
            and dev-redirect consumers (seeded from $(StrideDevRoot) by the build/<PkgId>.props
            stub written by build/GenerateDevPackages.cs). -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\bin\$(Configuration)\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(Configuration)\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
       <!-- NuGet consumer: lib/<TFM>/ relative to this targets file's package root. -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net10.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
@@ -157,9 +157,9 @@
        globals that shouldn't leak (RID/SelfContained/OutputType/StrideIsExecutable).
        Test-suite globals are stripped by Stride.Build.Sdk.Tests on top of this.
        Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')
-                        And '$(MSBuildProjectName)' != 'Stride.Core.Assets.CompilerApp'">
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj">
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj')
+                        And '$(MSBuildProjectName)' != 'Stride.AssetCompiler'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj">
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -301,12 +301,8 @@
   </Target>
 
   <!-- Pack target -->
-  <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(StrideCompileAssetCommand)" />-->
   <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler">
-    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
-    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
-      <Output TaskParameter="GeneratedItems" ItemName="None"/>
-    </PackAssets>-->
+    <!-- Exec in a separate process so the asset compiler assembly isn't locked during rebuild. -->
     <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
          loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
          $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset

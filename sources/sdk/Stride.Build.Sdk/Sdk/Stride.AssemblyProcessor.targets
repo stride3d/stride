@@ -128,7 +128,7 @@
        outer build that actually produced obj\<TFM>\<Assembly>.dll, with the AP often hitting
        FileNotFoundException because the outer build's writeback hasn't landed yet — and the
        error is swallowed (build returns success), silently breaking downstream Java-stub /
-       activation-ctor injection for the test APK. Stride.Core.Assets.CompilerApp.targets
+       activation-ctor injection for the test APK. Stride.AssetCompiler.targets
        uses the same gate via StrideCompilerSkipAndroidInnerBuild. -->
   <Target Name="StrideRunAssemblyProcessor"
           BeforeTargets="CopyFilesToOutputDirectory"

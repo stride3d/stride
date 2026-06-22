@@ -5,7 +5,7 @@ using System;
 
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     /// <summary>
     /// A log listener redirecting logs to an action
