@@ -23,12 +23,12 @@ namespace Stride;
 internal class StrideVersion
 {
     /// <summary>
-    /// The version used by editor for display purpose. The 3rd digit is the git height, set automatically for release packages (StrideGitVersion) and for dev builds (last release tag + 1; override via StridePublicVersion in build/Stride.Local.props).
+    /// The version used by editor for display purpose. The 3rd digit (patch) is set automatically from git release tags: release packages get the next release number (StrideGitVersion), dev builds get the last release tag + 1 (override via StridePublicVersion in build/Stride.Local.props).
     /// </summary>
     public const string PublicVersion = "4.4.0";
 
     /// <summary>
-    /// The assembly binding identity: pinned per major.minor (git height must not churn it). Bump together with <see cref="PublicVersion"/>.
+    /// The assembly binding identity: pinned per major.minor (the patch digit must not churn it). Bump together with <see cref="PublicVersion"/>.
     /// </summary>
     public const string AssemblyVersion = "4.4.0.0";
 

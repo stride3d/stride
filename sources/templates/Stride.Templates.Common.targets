@@ -135,7 +135,10 @@
     <_StrideEvalRootNorm>$([System.IO.Path]::GetFullPath('$(StrideRoot)').TrimEnd('\').TrimEnd('/'))</_StrideEvalRootNorm>
     <_StrideEvalRootEscaped>$([System.Text.RegularExpressions.Regex]::Escape('$(_StrideEvalRootNorm)'))</_StrideEvalRootEscaped>
     <_StrideEvalWorktreeToken Condition="'$(_StrideEvalWorktreeLedgerContent)' != ''">$([System.Text.RegularExpressions.Regex]::Match($(_StrideEvalWorktreeLedgerContent), `(?im)^\s*([^\s#=][^=]*?)\s*=\s*$(_StrideEvalRootEscaped)\s*$`).Groups[1].Value)</_StrideEvalWorktreeToken>
-    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
+    <!-- Mirror StrideVersionTasks.cs TokenToSuffix (keep in sync): '(primary)' (legacy) -> -dev,
+         '(empty)' -> no suffix, '' -> no suffix, else -<token>. -->
+    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' == '(primary)'">-dev</_StrideEvalWorktreeSuffix>
+    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)' And '$(_StrideEvalWorktreeToken)' != '(empty)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
   </PropertyGroup>
 
   <!-- VS fast up-to-date inputs: project has no .cs files, so without these VS skips Build → no Pack → stale nupkg. -->

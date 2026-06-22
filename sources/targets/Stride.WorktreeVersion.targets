@@ -6,8 +6,10 @@
      checkout a distinct suffix so they stop colliding.
 
      A per-machine ledger at <LocalApplicationData>/Stride/worktree-ids.txt maps each checkout
-     path to a token: the first checkout to register is "(primary)" (no suffix), the rest are
-     "dev1", "dev2", ... The token feeds NuGetVersionSuffix on both
+     path to a token: the first checkout to register is "dev" (the "-dev" suffix), the rest are
+     "dev2", "dev3", ... — so no local build ever carries the clean release version (which would
+     shadow a real release in the global cache). Use the special token "(empty)" for a checkout
+     that should build the clean version with no suffix. The token feeds NuGetVersionSuffix on both
      ends — the .nupkg version (producer, via StrideAppendWorktreeVersion in
      Stride.PackageInfo.targets) and the StrideVersion.NuGetVersion const baked into
      Stride.Assets.dll (consumer, via the SharedAssemblyInfo.cs -> SharedAssemblyInfo.Worktree.cs
@@ -78,9 +80,10 @@
                     string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                         ? LedgerPath
                         : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stride", "worktree-ids.txt");
-                    // Fold the ledger mtime into the stamp so a manual worktree-ID remap invalidates the
-                    // generated overlay (the tag-state stamp alone doesn't change when only the ledger is edited).
-                    string stamp = ComputeStamp(root) + "|" + (PublicVersionOverride ?? string.Empty) + "|" + LedgerStamp(ledgerPath);
+                    // Fold the ledger mtime and the committed PublicVersion into the stamp so a manual
+                    // worktree-ID remap or a committed version bump invalidates the generated overlay (the
+                    // tag-state stamp alone doesn't change when only the ledger or SharedAssemblyInfo.cs is edited).
+                    string stamp = ComputeStamp(root) + "|" + (PublicVersionOverride ?? string.Empty) + "|" + LedgerStamp(ledgerPath) + "|" + ReadBasePublicVersion();
                     if (string.IsNullOrWhiteSpace(OverrideId) && TryFastPath(stamp))
                         return true;
                     Directory.CreateDirectory(Path.GetDirectoryName(ledgerPath));
@@ -133,14 +136,13 @@
                 }
 
                 // Not registered: drop entries whose folder is gone, then allocate the lowest free
-                // slot (treating "(primary)" as slot 0). So deleting dev1 while dev2 is taken
-                // frees dev1 for the next checkout, instead of climbing to dev3 indefinitely.
+                // slot (1 -> "dev", 2 -> "dev2", ...). So deleting dev2 while dev3 is taken
+                // frees dev2 for the next checkout, instead of climbing to dev4 indefinitely.
                 // UNC entries (\\server\share\...) are kept regardless — a transient network
                 // failure makes Directory.Exists return false, which would silently delete a
                 // perfectly valid entry.
                 var kept = new List<string>(lines.Count);
                 var liveDevNumbers = new HashSet<int>();
-                bool primaryLive = false;
                 foreach (string line in lines)
                 {
                     string token, dir;
@@ -159,8 +161,11 @@
                         continue;
                     }
                     kept.Add(line);
-                    if (token.Equals("(primary)", StringComparison.OrdinalIgnoreCase))
-                        primaryLive = true;
+                    // Slot occupancy: "dev" (and the legacy "(primary)") = slot 1, "devN" = slot N.
+                    // "(empty)" holds no slot — it's the explicit no-suffix opt-out.
+                    if (token.Equals("dev", StringComparison.OrdinalIgnoreCase)
+                        || token.Equals("(primary)", StringComparison.OrdinalIgnoreCase))
+                        liveDevNumbers.Add(1);
                     else
                     {
                         Match m = Regex.Match(token, "^dev([0-9]+)$");
@@ -169,20 +174,13 @@
                     }
                 }
 
-                string newToken;
-                if (!primaryLive)
-                {
-                    newToken = "(primary)";
-                }
-                else
-                {
-                    int n = 1;
-                    while (liveDevNumbers.Contains(n)) n++;
-                    newToken = "dev" + n;
-                }
+                // Lowest free slot: 1 -> "dev", 2 -> "dev2", ... So the first checkout is "-dev".
+                int n = 1;
+                while (liveDevNumbers.Contains(n)) n++;
+                string newToken = n == 1 ? "dev" : "dev" + n;
 
                 if (kept.Count == 0)
-                    kept.Add("# Stride checkout version-suffix ledger. The primary checkout has no suffix.");
+                    kept.Add("# Stride checkout version-suffix ledger. Tokens: dev (-dev), dev2, dev3, ...; '(empty)' = no suffix (clean build).");
                 kept.Add(newToken + " = " + root);
                 File.WriteAllLines(ledgerPath, kept);
                 Log.LogMessage(MessageImportance.High,
@@ -198,7 +196,7 @@
 
                 if (suffix.Length == 0 && devVersion == baseVersion)
                 {
-                    // Primary checkout, no release tag/override: nothing differs from the committed file.
+                    // No suffix (e.g. an empty override) and no release-tag/override delta: nothing differs.
                     if (File.Exists(GeneratedVersionFile))
                         File.Delete(GeneratedVersionFile);
                     return;
@@ -215,36 +213,64 @@
                 Generated = true;
             }
 
-            // Dev PublicVersion: explicit override, else the next release number from releases/<M.m>.* tags
-            // reachable from HEAD (exact tag on HEAD -> that tag, no +1; else highest reachable + 1), else the
-            // committed base. Ancestor-scoped so branches and fork-only tags don't leak in; all-local so it
-            // works offline / with an unpushed HEAD. Tag-based (not HEAD height) -> stable between releases,
-            // and always >= the last release so dev builds load release-made assets.
+            // Dev PublicVersion = the highest of three floors, so a committed version bump (SharedAssemblyInfo.cs)
+            // or a local override is honored immediately, but a newer release tag always wins once it passes them:
+            //   - the committed PublicVersion (the shared baseline; also the anchor for incremental upgraders on
+            //     unreleased versions),
+            //   - the version implied by release tags reachable from HEAD (exact releases/<M.m>.<N> on HEAD -> that
+            //     tag, no +1; else the highest reachable + 1),
+            //   - the optional local StridePublicVersion override (build/Stride.Local.props), a personal floor.
+            // Ancestor-scoped so branches and fork-only tags don't leak in; all-local so it works offline / with an
+            // unpushed HEAD. Tag-based (not HEAD height) -> stable between releases, and always >= the last release
+            // so dev builds load release-made assets.
             private string GetDevVersion(string baseVersion)
             {
-                if (!string.IsNullOrWhiteSpace(PublicVersionOverride))
-                    return PublicVersionOverride.Trim();
                 var mm = Regex.Match(baseVersion, "^(\\d+)\\.(\\d+)");
                 if (!mm.Success)
                     return baseVersion;
                 string majorMinor = mm.Groups[1].Value + "." + mm.Groups[2].Value;
+
+                string best = baseVersion;
+                if (!string.IsNullOrWhiteSpace(PublicVersionOverride))
+                    best = MaxVersion(best, PublicVersionOverride.Trim());
                 try
                 {
-                    int best;
-                    if (TryMaxReleasePatch(Git("tag --points-at HEAD --list releases/" + majorMinor + ".*"), majorMinor, out best))
-                        return majorMinor + "." + best;
-                    if (TryMaxReleasePatch(Git("tag --list releases/" + majorMinor + ".* --merged HEAD"), majorMinor, out best))
-                        return majorMinor + "." + (best + 1);
-                    bool shallow = Git("rev-parse --is-shallow-repository") == "true";
-                    Log.LogMessage(MessageImportance.High, "No releases/" + majorMinor + ".* tags reachable from HEAD - using " + baseVersion + ". " +
-                        (shallow ? "Shallow clone; run `git fetch --unshallow` for the real dev version."
-                                 : "Run `git fetch --tags` for the real dev version."));
+                    int patch;
+                    if (TryMaxReleasePatch(Git("tag --points-at HEAD --list releases/" + majorMinor + ".*"), majorMinor, out patch))
+                        best = MaxVersion(best, majorMinor + "." + patch);
+                    else if (TryMaxReleasePatch(Git("tag --list releases/" + majorMinor + ".* --merged HEAD"), majorMinor, out patch))
+                        best = MaxVersion(best, majorMinor + "." + (patch + 1));
+                    else
+                    {
+                        bool shallow = Git("rev-parse --is-shallow-repository") == "true";
+                        Log.LogMessage(MessageImportance.High, "No releases/" + majorMinor + ".* tags reachable from HEAD - using " + best + ". " +
+                            (shallow ? "Shallow clone; run `git fetch --unshallow` for the real dev version."
+                                     : "Run `git fetch --tags` for the real dev version."));
+                    }
                 }
                 catch (Exception e)
                 {
                     Log.LogMessage(MessageImportance.Low, "Dev version tag lookup skipped: " + e.Message);
                 }
-                return baseVersion;
+                return best;
+            }
+
+            // Higher of two dotted version strings (numeric, not lexical so "4.4.10" > "4.4.9"). A non-parseable side loses.
+            private static string MaxVersion(string a, string b)
+            {
+                bool oka = Version.TryParse(a, out var va);
+                bool okb = Version.TryParse(b, out var vb);
+                if (!oka) return okb ? b : a;
+                if (!okb) return a;
+                return va >= vb ? a : b;
+            }
+
+            // The committed PublicVersion from the source file; "" if unreadable. Part of the cache stamp so a
+            // committed bump invalidates the generated overlay.
+            private string ReadBasePublicVersion()
+            {
+                try { return Regex.Match(File.ReadAllText(SourceVersionFile), "PublicVersion = \"([^\"]*)\";").Groups[1].Value; }
+                catch { return string.Empty; }
             }
 
             // Highest patch N among "releases/<mm>.<N>" lines (stable releases only; suffixed prerelease
@@ -299,8 +325,8 @@
 
             private bool TryFastPath(string stamp)
             {
-                // Reuse the generated file when tag-state + override + ledger mtime are unchanged; the file
-                // marker is "stamp|suffix", so the stored key must start with stamp + "|".
+                // Reuse the generated file when the stamp (tag-state, override, ledger mtime, committed
+                // PublicVersion) is unchanged; the file marker is "stamp|suffix", so it must start with stamp + "|".
                 if (!File.Exists(GeneratedVersionFile))
                     return false;
                 var m = Regex.Match(File.ReadAllText(GeneratedVersionFile), "// git-stamp: (.*)");
@@ -355,8 +381,12 @@
                 if (string.IsNullOrWhiteSpace(token))
                     return string.Empty;
                 token = token.Trim();
-                if (token.Equals("(primary)", StringComparison.OrdinalIgnoreCase))
+                // Explicit opt-out: a clean build with no suffix (e.g. to reproduce a release).
+                if (token.Equals("(empty)", StringComparison.OrdinalIgnoreCase))
                     return string.Empty;
+                // Legacy alias: ledgers written before "dev" became the default first-checkout token.
+                if (token.Equals("(primary)", StringComparison.OrdinalIgnoreCase))
+                    return "-dev";
                 return token[0] == '-' ? token : "-" + token;
             }
 
@@ -411,7 +441,7 @@
        ledger (or reports its token) without a full build — handy from a worktree-setup script.
        Reuses StrideEnsureWorktreeVersion so the task is invoked from one place; a no-op on CI. -->
   <Target Name="StrideRegisterWorktree" DependsOnTargets="StrideEnsureWorktreeVersion">
-    <Message Importance="high" Text="Stride worktree version suffix for $(StrideRoot): '$(StrideWorktreeSuffix)' (empty = primary checkout, no suffix)" />
+    <Message Importance="high" Text="Stride worktree version suffix for $(StrideRoot): '$(StrideWorktreeSuffix)' (first checkout = '-dev'; empty via the '(empty)' ledger token or StrideSkipWorktreeVersion/CI)" />
   </Target>
 
 </Project>
