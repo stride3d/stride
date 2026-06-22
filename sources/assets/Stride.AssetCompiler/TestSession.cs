@@ -12,7 +12,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     public class DoNothingCommand : Command
     {
@@ -65,7 +65,7 @@ namespace Stride.Core.Assets.CompilerApp
         }
 
         //private static PluginResolver pluginManager;
-        private static void BuildStepsRecursively(BuildEngine.Builder builder, ICollection<BuildStep> steps, int stepsPerLevel, int maxLevel, BuildStep curParent = null, int curLevel = 0)
+        private static void BuildStepsRecursively(Builder builder, ICollection<BuildStep> steps, int stepsPerLevel, int maxLevel, BuildStep curParent = null, int curLevel = 0)
         {
             if (curLevel == maxLevel)
                 return;

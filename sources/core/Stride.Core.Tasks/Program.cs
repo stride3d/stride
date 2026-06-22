@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Locator;
 using Mono.Options;
-using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.AssetCompiler.Tasks;
 using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Tasks

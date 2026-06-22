@@ -10,6 +10,6 @@
     <PackageReference Include="Stride.Navigation" Version="$EngineVersion$" />
     <PackageReference Include="Stride.Particles" Version="$EngineVersion$" />
     <PackageReference Include="Stride.UI" Version="$EngineVersion$" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>

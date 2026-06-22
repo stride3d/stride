@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 using Mono.Options;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.BuildEngine;
@@ -22,10 +24,10 @@ using Stride.Particles;
 using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
-using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     class PackageBuilderApp : IPackageBuilderApp
     {
@@ -499,7 +501,7 @@ namespace Stride.Core.Assets.CompilerApp
         private static string FormatLog(ILogMessage message)
         {
             //$filename($row,$column): $error_type $error_code: $error_message
-            //C:\Code\Stride\sources\assets\Stride.Core.Assets.CompilerApp\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+            //C:\Code\Stride\sources\assets\Stride.AssetCompiler\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
             var builder = new StringBuilder();
             var assetLogMessage = message as AssetLogMessage;
             // Location

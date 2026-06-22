@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
@@ -22,7 +24,7 @@ using ServiceWire.NamedPipes;
 using System.IO;
 using System.Text;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     public class PackageBuilder
     {

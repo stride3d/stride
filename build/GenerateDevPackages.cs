@@ -466,7 +466,7 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
 // Targets content: hooks AfterTargets="ResolvePackageAssets" so the dev DLL substitution only
 // fires when NuGet's asset resolution (which respects the consumer's IncludeAssets/PrivateAssets
 // filtering) actually included the original lib/<own>.dll. If the consumer filtered the chain
-// (e.g. IncludeAssets="build;buildTransitive" on Stride.Core.Assets.CompilerApp), the
+// (e.g. IncludeAssets="build;buildTransitive" on Stride.AssetCompiler), the
 // RuntimeCopyLocalItems/ResolvedCompileFileDefinitions entries for this package aren't there,
 // the targets below find nothing to substitute, and we don't sneak runtime DLLs into the
 // consumer's bin/ behind NuGet's back.

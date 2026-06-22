@@ -108,10 +108,10 @@
     <Message Importance="high" Text="UpgradeSamplesVersion: migrate -&gt; dev=$(SampleDevVersion) ($(Configuration)); run SamplesToReleaseVersion to finalize at $(SampleVersion)" />
 
     <!-- Build the source CompilerApp and locate its xplat dll (net*.0 excludes the -windows TFM). -->
-    <MSBuild Projects="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj"
+    <MSBuild Projects="$(StrideRoot)sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj"
              Targets="Build" Properties="Configuration=$(Configuration)" />
     <ItemGroup>
-      <_StrideCompilerAppDll Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\bin\$(Configuration)\net*.0\Stride.Core.Assets.CompilerApp.dll" />
+      <_StrideCompilerAppDll Include="$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(Configuration)\net*.0\Stride.AssetCompiler.dll" />
     </ItemGroup>
     <Error Condition="'@(_StrideCompilerAppDll)' == ''" Text="CompilerApp dll not found under bin\$(Configuration)\net*.0 - build it first." />
 

@@ -348,10 +348,36 @@ namespace Stride.Assets
 
                 if (dependency.Version.MinVersion < new PackageVersion("4.4.0.0") && solutionProject != null)
                 {
-                    // .sdsl/.sdfx generated C# files used to be written next to the source by a custom
-                    // MSBuild tool. They are now produced by a Roslyn source generator into obj/. Rename
-                    // the on-disk siblings to .bak (recoverable, inert in build) and strip leftover
-                    // csproj items / Generator metadata.
+                    // Asset compiler package was renamed Stride.Core.Assets.CompilerApp -> Stride.AssetCompiler.
+                    // Also normalize its asset flow to build;buildTransitive: the reference lives on the Game
+                    // library, and the build targets only reach the executable (which actually compiles assets)
+                    // when they propagate transitively. Drop the inert PrivateAssets (the package ships no
+                    // contentfiles/analyzers).
+                    foreach (var compilerRef in project.Xml.ItemGroups
+                        .SelectMany(g => g.Items)
+                        .Where(x => x.ItemType == "PackageReference"
+                            && (x.Include == "Stride.Core.Assets.CompilerApp" || x.Include == "Stride.AssetCompiler"))
+                        .ToArray())
+                    {
+                        if (compilerRef.Include == "Stride.Core.Assets.CompilerApp")
+                            compilerRef.Include = "Stride.AssetCompiler";
+
+                        var includeAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "IncludeAssets");
+                        if (includeAssets != null)
+                            includeAssets.Value = "build;buildTransitive";
+                        else
+                            compilerRef.AddMetadata("IncludeAssets", "build;buildTransitive", true);
+
+                        var privateAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "PrivateAssets");
+                        if (privateAssets != null)
+                            compilerRef.RemoveChild(privateAssets);
+
+                        isProjectDirty = true;
+                    }
+
+                    // .sdsl/.sdfx generated C# now comes from a Roslyn source generator into obj/, so rename any
+                    // on-disk siblings to .bak (recoverable, inert in build) and strip leftover csproj items /
+                    // Generator metadata.
                     var projectDir = projectFullPath.GetFullDirectory().ToOSPath();
                     int renamedCount = 0;
                     foreach (var file in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))

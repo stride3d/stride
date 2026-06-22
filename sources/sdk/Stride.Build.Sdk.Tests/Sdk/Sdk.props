@@ -13,7 +13,7 @@
     <IsTestProject>true</IsTestProject>
 
     <!-- Test projects don't need to produce NuGet packages. Local property only — do NOT
-         let it propagate to referenced projects (e.g. Stride.Core.Assets.CompilerApp), which
+         let it propagate to referenced projects (e.g. Stride.AssetCompiler), which
          still need their own .nupkg in bin\packages\ for the test's AssetCompiler run. The
          ProjectReference metadata below adds this to GlobalPropertiesToRemove to be sure. -->
     <StrideSkipAutoPack>true</StrideSkipAutoPack>

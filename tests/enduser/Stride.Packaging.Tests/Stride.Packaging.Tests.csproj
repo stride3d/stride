@@ -42,7 +42,7 @@
     <!-- Build-time triggers: ensure the engine + template nupkgs the generated consumer and the
          packed plugin PackageReference all land in bin/packages (resolved as a real external feed
          by the subprocess builds). Mirrors Stride.Samples.Tests' set. -->
-    <ProjectReference Include="..\..\..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+    <ProjectReference Include="..\..\..\sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

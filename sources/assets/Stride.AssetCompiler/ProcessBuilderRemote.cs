@@ -10,7 +10,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     public class ProcessBuilderRemote : IProcessBuilderRemote
     {

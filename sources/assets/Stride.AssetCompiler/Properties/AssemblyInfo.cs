@@ -34,4 +34,4 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("bc6f5b23-4e4b-49e6-b9bd-c090076fd732")]
 
-[assembly: InternalsVisibleTo("Stride.Core.Assets.CompilerApp.Serializers")]
+[assembly: InternalsVisibleTo("Stride.AssetCompiler.Serializers")]
