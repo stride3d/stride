@@ -1,22 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAssetException
 {
-    [Fact]
-    public void TestDefaultConstructor()
-    {
-        var exception = new AssetException();
-
-        Assert.NotNull(exception);
-        Assert.NotNull(exception.Message);
-    }
-
     [Fact]
     public void TestConstructorWithMessage()
     {
@@ -50,42 +38,12 @@ public class TestAssetException
     }
 
     [Fact]
-    public void TestExceptionCanBeThrown()
-    {
-        var message = "Test throw";
-
-        void ThrowException() => throw new AssetException(message);
-        var ex = Record.Exception(ThrowException);
-
-        Assert.NotNull(ex);
-        Assert.IsType<AssetException>(ex);
-        Assert.Equal(message, ex.Message);
-    }
-
-    [Fact]
-    public void TestExceptionCanBeCaught()
-    {
-        var caught = false;
-
-        try
-        {
-            throw new AssetException("Test");
-        }
-        catch (AssetException)
-        {
-            caught = true;
-        }
-
-        Assert.True(caught);
-    }
-
-    [Fact]
     public void TestFormattedMessageWithNullArguments()
     {
         var format = "Error: {0}";
         object? nullArg = null;
         var exception = new AssetException(format, nullArg!);
 
-        Assert.NotNull(exception.Message);
+        Assert.Equal("Error: ", exception.Message);
     }
 }

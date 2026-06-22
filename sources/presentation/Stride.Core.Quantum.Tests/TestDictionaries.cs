@@ -24,39 +24,59 @@ public class TestDictionaries
         public override string ToString() => $"{{SimpleObject: {Name}}}";
     }
 
-    [Fact]
-    public void TestStringIntDictionary()
+    [Theory]
+    [InlineData(nameof(SimpleDictionaryContainer.StringIntDict))]
+    [InlineData(nameof(SimpleDictionaryContainer.IntStringDict))]
+    public void TestStringIntDictionary(string memberName)
     {
         var obj = new SimpleDictionaryContainer
         {
-            StringIntDict = { ["key1"] = 10, ["key2"] = 20 }
+            StringIntDict = { ["key1"] = 10, ["key2"] = 20 },
+            IntStringDict = { [1] = "value1", [2] = "value2" }
         };
+        // The two indices we expect to find, depending on the dictionary key type.
+        var expectedKeys = memberName == nameof(SimpleDictionaryContainer.StringIntDict)
+            ? new object[] { "key1", "key2" }
+            : new object[] { 1, 2 };
         var nodeContainer = new NodeContainer();
         var containerNode = nodeContainer.GetOrCreateNode(obj);
-        var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.StringIntDict)];
+        var dictMemberNode = containerNode[memberName];
 
         Assert.NotNull(dictMemberNode);
         Assert.True(dictMemberNode.IsReference);
         Assert.NotNull(dictMemberNode.Target);
         Assert.NotNull(dictMemberNode.Target.Indices);
         Assert.Equal(2, dictMemberNode.Target.Indices.Count());
+        // The actual keys must be present as indices, not merely the right count.
+        foreach (var key in expectedKeys)
+        {
+            Assert.Contains(new NodeIndex(key), dictMemberNode.Target.Indices);
+        }
     }
 
-    [Fact]
-    public void TestDictionaryUpdate()
+    [Theory]
+    // String-keyed, int-valued dictionary.
+    [InlineData(nameof(SimpleDictionaryContainer.StringIntDict), "key1", 42)]
+    // Int-keyed, string-valued dictionary (exercises a different key/value type).
+    [InlineData(nameof(SimpleDictionaryContainer.IntStringDict), 1, "updated")]
+    public void TestDictionaryUpdate(string memberName, object key, object newValue)
     {
         var obj = new SimpleDictionaryContainer
         {
-            StringIntDict = { ["key1"] = 10, ["key2"] = 20 }
+            StringIntDict = { ["key1"] = 10, ["key2"] = 20 },
+            IntStringDict = { [1] = "value1", [2] = "value2" }
         };
         var nodeContainer = new NodeContainer();
         var containerNode = nodeContainer.GetOrCreateNode(obj);
-        var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.StringIntDict)];
+        var dictMemberNode = containerNode[memberName];
 
-        dictMemberNode.Target.Update(42, new NodeIndex("key1"));
+        dictMemberNode.Target.Update(newValue, new NodeIndex(key));
 
-        Assert.Equal(42, obj.StringIntDict["key1"]);
-        Assert.Equal(42, dictMemberNode.Target.Retrieve(new NodeIndex("key1")));
+        Assert.Equal(newValue, dictMemberNode.Target.Retrieve(new NodeIndex(key)));
+        if (memberName == nameof(SimpleDictionaryContainer.StringIntDict))
+            Assert.Equal(newValue, obj.StringIntDict[(string)key]);
+        else
+            Assert.Equal(newValue, obj.IntStringDict[(int)key]);
     }
 
     [Fact]
@@ -132,39 +152,5 @@ public class TestDictionaries
 
         Assert.Equal(item3, obj.ObjectDict["obj1"]);
         Assert.Equal(item3, dictMemberNode.Target.Retrieve(new NodeIndex("obj1")));
-    }
-
-    [Fact]
-    public void TestIntStringDictionary()
-    {
-        var obj = new SimpleDictionaryContainer
-        {
-            IntStringDict = { [1] = "value1", [2] = "value2" }
-        };
-        var nodeContainer = new NodeContainer();
-        var containerNode = nodeContainer.GetOrCreateNode(obj);
-        var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.IntStringDict)];
-
-        Assert.NotNull(dictMemberNode);
-        Assert.True(dictMemberNode.IsReference);
-        Assert.NotNull(dictMemberNode.Target);
-        Assert.Equal(2, dictMemberNode.Target.Indices.Count());
-    }
-
-    [Fact]
-    public void TestIntStringDictionaryUpdate()
-    {
-        var obj = new SimpleDictionaryContainer
-        {
-            IntStringDict = { [1] = "value1", [2] = "value2" }
-        };
-        var nodeContainer = new NodeContainer();
-        var containerNode = nodeContainer.GetOrCreateNode(obj);
-        var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.IntStringDict)];
-
-        dictMemberNode.Target.Update("updated", new NodeIndex(1));
-
-        Assert.Equal("updated", obj.IntStringDict[1]);
-        Assert.Equal("updated", dictMemberNode.Target.Retrieve(new NodeIndex(1)));
     }
 }

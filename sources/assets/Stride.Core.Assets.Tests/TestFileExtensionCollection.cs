@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.IO;
-using Xunit;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -13,10 +12,11 @@ public class TestFileExtensionCollection
     {
         var collection = new FileExtensionCollection("*.txt;*.cs");
 
-        Assert.NotNull(collection);
         Assert.Null(collection.Description);
-        Assert.NotNull(collection.SingleExtensions);
-        Assert.NotNull(collection.ConcatenatedExtensions);
+        var extensions = collection.SingleExtensions.ToList();
+        Assert.Equal(2, extensions.Count);
+        Assert.Contains(".txt", extensions);
+        Assert.Contains(".cs", extensions);
     }
 
     [Fact]
@@ -47,11 +47,8 @@ public class TestFileExtensionCollection
     {
         var collection = new FileExtensionCollection("*.txt;*.cs;*.xml");
 
-        var concatenated = collection.ConcatenatedExtensions;
-        Assert.NotEmpty(concatenated);
-        Assert.Contains(".txt", concatenated);
-        Assert.Contains(".cs", concatenated);
-        Assert.Contains(".xml", concatenated);
+        // Normalized extensions joined with ';' in declaration order
+        Assert.Equal(".txt;.cs;.xml", collection.ConcatenatedExtensions);
     }
 
     [Fact]
@@ -87,6 +84,20 @@ public class TestFileExtensionCollection
         var collection = new FileExtensionCollection("All Files", "*.txt", "*.doc", "*.pdf", "*.xls");
 
         var extensions = collection.SingleExtensions.ToList();
-        Assert.True(extensions.Count >= 4);
+        Assert.Equal(4, extensions.Count);
+        Assert.Contains(".txt", extensions);
+        Assert.Contains(".doc", extensions);
+        Assert.Contains(".pdf", extensions);
+        Assert.Contains(".xls", extensions);
+    }
+
+    [Fact]
+    public void TestContainsMatchesExtension()
+    {
+        var collection = new FileExtensionCollection("*.txt;*.cs");
+
+        Assert.True(collection.Contains(".txt"));
+        Assert.True(collection.Contains("*.cs"));
+        Assert.False(collection.Contains(".xml"));
     }
 }

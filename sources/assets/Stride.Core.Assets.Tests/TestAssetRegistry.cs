@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAssetRegistry
@@ -57,14 +54,7 @@ public class TestAssetRegistry
         var platforms = AssetRegistry.SupportedPlatforms;
 
         Assert.NotNull(platforms);
-    }
-
-    [Fact]
-    public void TestRegisterImporter()
-    {
-        // Verify that RegisterImporter method exists and can be called
-        var method = typeof(AssetRegistry).GetMethod("RegisterImporter",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-        Assert.NotNull(method);
+        // SupportedPlatforms is a cached singleton collection: repeated access returns the same instance.
+        Assert.Same(platforms, AssetRegistry.SupportedPlatforms);
     }
 }

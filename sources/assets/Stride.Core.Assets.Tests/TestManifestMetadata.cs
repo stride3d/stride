@@ -102,23 +102,4 @@ public class TestManifestMetadata
         Assert.Equal("Stride.Graphics", metadata.Dependencies[1].Id);
         Assert.Equal("Stride.Physics", metadata.Dependencies[2].Id);
     }
-
-    [Fact]
-    public void TestDependenciesCanBeManuallyModified()
-    {
-        // Arrange
-        var metadata = new ManifestMetadata();
-        var dependency = new ManifestDependency
-        {
-            Id = "TestPackage",
-            Version = new PackageVersionRange(new PackageVersion("1.0.0"), true)
-        };
-
-        // Act
-        metadata.Dependencies.Add(dependency);
-
-        // Assert
-        Assert.Single(metadata.Dependencies);
-        Assert.Equal("TestPackage", metadata.Dependencies[0].Id);
-    }
 }

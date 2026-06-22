@@ -38,28 +38,6 @@ public class TestManifestDependency
     }
 
     [Fact]
-    public void TestBothPropertiesTogether()
-    {
-        // Arrange
-        var version = new PackageVersionRange(
-            new PackageVersion("1.0.0"), 
-            true, 
-            new PackageVersion("2.0.0"), 
-            false);
-
-        // Act
-        var dependency = new ManifestDependency
-        {
-            Id = "Stride.Graphics",
-            Version = version
-        };
-
-        // Assert
-        Assert.Equal("Stride.Graphics", dependency.Id);
-        Assert.Equal(version, dependency.Version);
-    }
-
-    [Fact]
     public void TestPropertiesDefaultToNull()
     {
         // Act
@@ -68,35 +46,5 @@ public class TestManifestDependency
         // Assert
         Assert.Null(dependency.Id);
         Assert.Null(dependency.Version);
-    }
-
-    [Fact]
-    public void TestMultipleDependenciesWithDifferentVersionRanges()
-    {
-        // Arrange
-        var exactVersion = new PackageVersionRange(new PackageVersion("1.0.0"), true);
-        var rangeVersion = new PackageVersionRange(
-            new PackageVersion("2.0.0"), 
-            true, 
-            new PackageVersion("3.0.0"), 
-            true);
-
-        var dependency1 = new ManifestDependency
-        {
-            Id = "Package1",
-            Version = exactVersion
-        };
-
-        var dependency2 = new ManifestDependency
-        {
-            Id = "Package2",
-            Version = rangeVersion
-        };
-
-        // Assert
-        Assert.Equal("Package1", dependency1.Id);
-        Assert.Equal(exactVersion, dependency1.Version);
-        Assert.Equal("Package2", dependency2.Id);
-        Assert.Equal(rangeVersion, dependency2.Version);
     }
 }

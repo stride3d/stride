@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestSolutionPlatform
@@ -13,7 +10,6 @@ public class TestSolutionPlatform
     {
         var platform = new SolutionPlatform();
 
-        Assert.NotNull(platform);
         Assert.NotNull(platform.PlatformsPart);
         Assert.NotNull(platform.DefineConstants);
         Assert.NotNull(platform.Templates);
@@ -92,7 +88,6 @@ public class TestSolutionPlatformPart
     {
         var part = new SolutionPlatformPart();
 
-        Assert.NotNull(part);
         Assert.True(part.UseWithExecutables);
         Assert.True(part.UseWithLibraries);
         Assert.True(part.IncludeInSolution);
@@ -276,14 +271,5 @@ public class TestSolutionConfiguration
 
         Assert.Equal(2, config.Properties.Count);
         Assert.Contains("Optimize=true", config.Properties);
-    }
-
-    [Fact]
-    public void TestNameIsInitOnly()
-    {
-        var config = new SolutionConfiguration("Test");
-
-        // Verify Name is set and cannot be changed after construction
-        Assert.Equal("Test", config.Name);
     }
 }

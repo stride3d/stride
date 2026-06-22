@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAssetCompositeHierarchyExtensions
@@ -27,6 +24,7 @@ public class TestAssetCompositeHierarchyExtensions
 
         Assert.Equal(2, designs.Count);
         Assert.All(designs, design => Assert.NotNull(design));
+        Assert.Equal(new[] { id1, id2 }, designs.Select(d => d.Part.Id).ToArray());
     }
 
     [Fact]

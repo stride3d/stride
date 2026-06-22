@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestBasePart
@@ -85,12 +82,12 @@ public class TestBasePart
         var basePartId = Guid.NewGuid();
         var instanceId = Guid.NewGuid();
 
-        var basePart = new BasePart(assetRef, basePartId, instanceId);
+        // Two equal BaseParts must produce equal hash codes.
+        var basePart1 = new BasePart(assetRef, basePartId, instanceId);
+        var basePart2 = new BasePart(assetRef, basePartId, instanceId);
 
-        // GetHashCode should not throw and should be consistent
-        var hash1 = basePart.GetHashCode();
-        var hash2 = basePart.GetHashCode();
-        Assert.Equal(hash1, hash2);
+        Assert.Equal(basePart1, basePart2);
+        Assert.Equal(basePart1.GetHashCode(), basePart2.GetHashCode());
     }
 
     [Fact]
