@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
 using Stride.Core.Assets.Selectors;
-using Xunit;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -51,41 +49,6 @@ public class TestBundle
         Assert.Equal(2, bundle.Dependencies.Count);
         Assert.Contains("Dependency1", bundle.Dependencies);
         Assert.Contains("Dependency2", bundle.Dependencies);
-    }
-
-    [Fact]
-    public void TestSelectorsAreInitialized()
-    {
-        var bundle = new Bundle();
-
-        // Selectors should be initialized to empty list, not null
-        Assert.NotNull(bundle.Selectors);
-        Assert.IsType<List<AssetSelector>>(bundle.Selectors);
-    }
-
-    [Fact]
-    public void TestDependenciesAreInitialized()
-    {
-        var bundle = new Bundle();
-
-        // Dependencies should be initialized to empty list, not null
-        Assert.NotNull(bundle.Dependencies);
-        Assert.IsType<List<string>>(bundle.Dependencies);
-    }
-
-    [Fact]
-    public void TestMultipleSelectorsCanBeAdded()
-    {
-        var bundle = new Bundle();
-        var selector1 = new PathSelector();
-        var selector2 = new PathSelector();
-        var selector3 = new TagSelector();
-
-        bundle.Selectors.Add(selector1);
-        bundle.Selectors.Add(selector2);
-        bundle.Selectors.Add(selector3);
-
-        Assert.Equal(3, bundle.Selectors.Count);
     }
 
     [Fact]

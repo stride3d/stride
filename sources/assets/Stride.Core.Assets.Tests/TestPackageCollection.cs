@@ -1,8 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
+using System.Collections.Specialized;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -13,7 +12,6 @@ public class TestPackageCollection
     {
         var collection = new PackageCollection();
 
-        Assert.NotNull(collection);
         Assert.Empty(collection);
     }
 
@@ -64,8 +62,14 @@ public class TestPackageCollection
         collection.Add(new Package { Meta = { Name = "Package1", Version = new PackageVersion("1.0.0") } });
         Assert.Single(collection);
 
-        collection.Add(new Package { Meta = { Name = "Package2", Version = new PackageVersion("1.0.0") } });
+        var package2 = new Package { Meta = { Name = "Package2", Version = new PackageVersion("1.0.0") } };
+        collection.Add(package2);
         Assert.Equal(2, collection.Count);
+
+        // Enumeration yields all added packages
+        var enumerated = collection.ToList();
+        Assert.Equal(2, enumerated.Count);
+        Assert.Contains(package2, enumerated);
     }
 
     [Fact]
@@ -81,22 +85,6 @@ public class TestPackageCollection
     }
 
     [Fact]
-    public void TestEnumeration()
-    {
-        var collection = new PackageCollection();
-        var package1 = new Package { Meta = { Name = "Package1", Version = new PackageVersion("1.0.0") } };
-        var package2 = new Package { Meta = { Name = "Package2", Version = new PackageVersion("1.0.0") } };
-
-        collection.Add(package1);
-        collection.Add(package2);
-
-        var enumerated = collection.ToList();
-        Assert.Equal(2, enumerated.Count);
-        Assert.Contains(package1, enumerated);
-        Assert.Contains(package2, enumerated);
-    }
-
-    [Fact]
     public void TestIsReadOnly()
     {
         var collection = new PackageCollection();
@@ -108,13 +96,16 @@ public class TestPackageCollection
     public void TestCollectionChangedEvent()
     {
         var collection = new PackageCollection();
-        var eventRaised = false;
+        NotifyCollectionChangedEventArgs? capturedArgs = null;
 
-        collection.CollectionChanged += (sender, args) => eventRaised = true;
+        collection.CollectionChanged += (sender, args) => capturedArgs = args;
 
-        collection.Add(new Package { Meta = { Name = "TestPackage", Version = new PackageVersion("1.0.0") } });
+        var package = new Package { Meta = { Name = "TestPackage", Version = new PackageVersion("1.0.0") } };
+        collection.Add(package);
 
-        Assert.True(eventRaised);
+        Assert.NotNull(capturedArgs);
+        Assert.Equal(NotifyCollectionChangedAction.Add, capturedArgs!.Action);
+        Assert.Contains(package, capturedArgs.NewItems!.Cast<Package>());
     }
 
     [Fact]

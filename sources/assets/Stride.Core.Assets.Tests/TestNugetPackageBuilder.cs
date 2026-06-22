@@ -12,16 +12,6 @@ namespace Stride.Core.Assets.Tests;
 public class TestNugetPackageBuilder
 {
     [Fact]
-    public void TestDefaultConstructor()
-    {
-        // Act
-        var builder = new NugetPackageBuilder();
-
-        // Assert
-        Assert.NotNull(builder);
-    }
-
-    [Fact]
     public void TestEqualsWithSameReference()
     {
         // Arrange
@@ -53,21 +43,24 @@ public class TestNugetPackageBuilder
         // Act & Assert
         Assert.False(builder1 == builder2); // Different instances
         Assert.True(builder1 != builder2);
+#pragma warning disable CS1718 // Comparison made to same variable — intentional, exercises the operators with the same instance
         Assert.True(builder1 == builder1); // Same instance
         Assert.False(builder1 != builder1);
+#pragma warning restore CS1718
     }
 
     [Fact]
     public void TestGetHashCode()
     {
-        // Arrange
+        // Arrange - equality is delegated to the inner PackageBuilder, so the only
+        // publicly-equal pair is a reference to the same instance.
         var builder = new NugetPackageBuilder();
+        var sameReference = builder;
 
-        // Act
-        var hashCode = builder.GetHashCode();
-
-        // Assert - Should not throw and return a consistent value
-        Assert.Equal(hashCode, builder.GetHashCode());
+        // Assert - equal objects must produce equal (and stable) hash codes
+        Assert.Equal(builder, sameReference);
+        Assert.Equal(builder.GetHashCode(), sameReference.GetHashCode());
+        Assert.Equal(builder.GetHashCode(), builder.GetHashCode());
     }
 
     [Fact]
@@ -114,9 +107,12 @@ public class TestNugetPackageBuilder
         // Act
         builder.Populate(metadata);
 
-        // Assert
+        // Assert - Populate maps the metadata onto the builder. NugetPackageBuilder does not
+        // expose dependency groups on its public surface, so we verify the populated state that
+        // is observable rather than re-asserting the input metadata's dependency count.
         Assert.Equal("TestPackage", builder.Id);
-        Assert.Equal(2, metadata.Dependencies.Count);
+        Assert.Equal("1.0.0.0", builder.Version.ToString());
+        Assert.Equal("Test", builder.Description);
     }
 
     [Fact]
@@ -188,11 +184,8 @@ public class TestNugetPackageBuilder
         builder.Populate(metadata);
         var tags = builder.Tags;
 
-        // Assert
-        Assert.NotNull(tags);
-        Assert.Contains("tag1", tags);
-        Assert.Contains("tag2", tags);
-        Assert.Contains("tag3", tags);
+        // Assert - getter joins each tag with a trailing space
+        Assert.Equal("tag1 tag2 tag3 ", tags);
     }
 
     [Fact]
@@ -234,26 +227,6 @@ public class TestNugetPackageBuilder
             if (Directory.Exists(tempDir))
                 Directory.Delete(tempDir, true);
         }
-    }
-
-    [Fact]
-    public void TestVersionProperty()
-    {
-        // Arrange
-        var builder = new NugetPackageBuilder();
-        var metadata = new ManifestMetadata
-        {
-            Id = "TestPackage",
-            Version = "3.2.1",
-            Description = "Test"
-        };
-
-        // Act
-        builder.Populate(metadata);
-
-        // Assert
-        Assert.NotNull(builder.Version);
-        Assert.Equal("3.2.1.0", builder.Version.ToString());
     }
 
     [Fact]

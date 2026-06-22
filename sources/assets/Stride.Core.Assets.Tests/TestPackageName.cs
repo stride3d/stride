@@ -126,21 +126,17 @@ public class TestPackageName
     }
 
     [Fact]
-    public void TestGetHashCodeDifferentForDifferentObjects()
+    public void TestDifferentObjectsAreNotEqual()
     {
         // Arrange
         var packageName1 = new PackageName("Stride.Engine", new PackageVersion("4.0.0"));
         var packageName2 = new PackageName("Stride.Graphics", new PackageVersion("4.0.0"));
         var packageName3 = new PackageName("Stride.Engine", new PackageVersion("4.1.0"));
 
-        // Act
-        var hash1 = packageName1.GetHashCode();
-        var hash2 = packageName2.GetHashCode();
-        var hash3 = packageName3.GetHashCode();
-
-        // Assert - Different objects likely have different hash codes (not guaranteed but highly probable)
-        Assert.NotEqual(hash1, hash2);
-        Assert.NotEqual(hash1, hash3);
+        // Assert - inequality is a guaranteed contract (unlike hash-code distinctness,
+        // where collisions are legal and would make a NotEqual assertion brittle).
+        Assert.NotEqual(packageName1, packageName2);
+        Assert.NotEqual(packageName1, packageName3);
     }
 
     [Fact]

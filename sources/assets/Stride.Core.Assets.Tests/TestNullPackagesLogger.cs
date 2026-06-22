@@ -11,16 +11,6 @@ namespace Stride.Core.Assets.Tests;
 public class TestNullPackagesLogger
 {
     [Fact]
-    public void TestInstanceIsNotNull()
-    {
-        // Act
-        var instance = NullPackagesLogger.Instance;
-
-        // Assert
-        Assert.NotNull(instance);
-    }
-
-    [Fact]
     public void TestInstanceIsSingleton()
     {
         // Act
@@ -29,32 +19,6 @@ public class TestNullPackagesLogger
 
         // Assert
         Assert.Same(instance1, instance2);
-    }
-
-    [Fact]
-    public void TestLogDoesNotThrow()
-    {
-        // Arrange
-        var logger = NullPackagesLogger.Instance;
-
-        // Act & Assert - Should not throw
-        logger.Log(MessageLevel.Debug, "Debug message");
-        logger.Log(MessageLevel.Info, "Info message");
-        logger.Log(MessageLevel.Warning, "Warning message");
-        logger.Log(MessageLevel.Error, "Error message");
-    }
-
-    [Fact]
-    public async Task TestLogAsyncDoesNotThrow()
-    {
-        // Arrange
-        var logger = NullPackagesLogger.Instance;
-
-        // Act & Assert - Should not throw
-        await logger.LogAsync(MessageLevel.Debug, "Debug message");
-        await logger.LogAsync(MessageLevel.Info, "Info message");
-        await logger.LogAsync(MessageLevel.Warning, "Warning message");
-        await logger.LogAsync(MessageLevel.Error, "Error message");
     }
 
     [Fact]

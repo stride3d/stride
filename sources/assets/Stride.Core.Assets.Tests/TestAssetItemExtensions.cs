@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
 using Stride.Core.IO;
-using Xunit;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -68,8 +66,7 @@ public class TestAssetItemExtensions
         var assetItem = new AssetItem("Assets/MyAsset", asset);
 
         // GetProjectInclude throws NullReferenceException when Package is null
-        var exception = Assert.Throws<NullReferenceException>(() => assetItem.GetProjectInclude());
-        Assert.NotNull(exception);
+        Assert.Throws<NullReferenceException>(() => assetItem.GetProjectInclude());
     }
 
     [Fact]
@@ -90,8 +87,7 @@ public class TestAssetItemExtensions
         var assetItem = new AssetItem("Assets/MyAsset", asset);
 
         // GetGeneratedInclude calls GetProjectInclude which throws NullReferenceException
-        var exception = Assert.Throws<NullReferenceException>(() => assetItem.GetGeneratedInclude());
-        Assert.NotNull(exception);
+        Assert.Throws<NullReferenceException>(() => assetItem.GetGeneratedInclude());
     }
 }
 

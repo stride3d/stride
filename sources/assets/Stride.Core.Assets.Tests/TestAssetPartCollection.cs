@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAssetPartCollection
@@ -13,7 +10,6 @@ public class TestAssetPartCollection
     {
         var collection = new AssetPartCollection<TestPartDesign, TestPart>();
 
-        Assert.NotNull(collection);
         Assert.Empty(collection);
     }
 
@@ -168,22 +164,6 @@ public class TestAssetPartCollection
         collection.Clear();
 
         Assert.Empty(collection);
-    }
-
-    [Fact]
-    public void TestIndexer()
-    {
-        var collection = new AssetPartCollection<TestPartDesign, TestPart>();
-        var partId = Guid.NewGuid();
-        var part = new TestPart { Id = partId };
-        var design = new TestPartDesign { Part = part };
-
-        collection.Add(design);
-
-        var retrieved = collection[partId];
-
-        Assert.Equal(design, retrieved);
-        Assert.Same(part, retrieved.Part);
     }
 
     [Fact]

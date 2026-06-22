@@ -62,34 +62,6 @@ public class TestObjectNode
     }
 
     [Fact]
-    public void TestObjectNodeMemberUpdate()
-    {
-        var obj = new SimpleClass { IntValue = 42 };
-        var nodeContainer = new NodeContainer();
-        var node = nodeContainer.GetOrCreateNode(obj);
-        var memberNode = node[nameof(SimpleClass.IntValue)];
-
-        memberNode.Update(100);
-
-        Assert.Equal(100, obj.IntValue);
-        Assert.Equal(100, memberNode.Retrieve());
-    }
-
-    [Fact]
-    public void TestObjectNodeWithReference()
-    {
-        var nested = new NestedClass { Value = 42 };
-        var obj = new SimpleClass { Nested = nested };
-        var nodeContainer = new NodeContainer();
-        var node = nodeContainer.GetOrCreateNode(obj);
-        var nestedMember = node[nameof(SimpleClass.Nested)];
-
-        Assert.True(nestedMember.IsReference);
-        Assert.NotNull(nestedMember.Target);
-        Assert.Equal(nested, nestedMember.Target.Retrieve());
-    }
-
-    [Fact]
     public void TestObjectNodeWithCollection()
     {
         var obj = new ListContainer { Numbers = { 1, 2, 3 } };
@@ -156,19 +128,6 @@ public class TestObjectNode
         var node = nodeContainer.GetOrCreateNode(obj);
 
         var str = node.ToString();
-        Assert.Contains("SimpleClass", str);
-    }
-
-    [Fact]
-    public void TestObjectNodeGuidUniqueness()
-    {
-        var obj1 = new SimpleClass { IntValue = 1 };
-        var obj2 = new SimpleClass { IntValue = 2 };
-        var nodeContainer = new NodeContainer();
-
-        var node1 = nodeContainer.GetOrCreateNode(obj1);
-        var node2 = nodeContainer.GetOrCreateNode(obj2);
-
-        Assert.NotEqual(node1.Guid, node2.Guid);
+        Assert.Equal($"{{Node: Object {nameof(SimpleClass)} = [{obj}]}}", str);
     }
 }

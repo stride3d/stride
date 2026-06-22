@@ -115,11 +115,19 @@ public class TestPackageAssetCollection
 
         Assert.Empty(package.Assets);
 
-        package.Assets.Add(new AssetItem("Assets/Test1.sdtest", new AssetObjectTest { Name = "Test1" }));
+        var item1 = new AssetItem("Assets/Test1.sdtest", new AssetObjectTest { Name = "Test1" });
+        package.Assets.Add(item1);
         Assert.Single(package.Assets);
 
-        package.Assets.Add(new AssetItem("Assets/Test2.sdtest", new AssetObjectTest { Name = "Test2" }));
+        var item2 = new AssetItem("Assets/Test2.sdtest", new AssetObjectTest { Name = "Test2" });
+        package.Assets.Add(item2);
         Assert.Equal(2, package.Assets.Count);
+
+        // Enumeration yields all added items
+        var items = package.Assets.ToList();
+        Assert.Equal(2, items.Count);
+        Assert.Contains(item1, items);
+        Assert.Contains(item2, items);
     }
 
     [Fact]
@@ -131,23 +139,5 @@ public class TestPackageAssetCollection
 
         package.Assets.IsDirty = true;
         Assert.True(package.Assets.IsDirty);
-    }
-
-    [Fact]
-    public void TestEnumeration()
-    {
-        var package = new Package();
-        var asset1 = new AssetObjectTest { Name = "Test1" };
-        var asset2 = new AssetObjectTest { Name = "Test2" };
-        var item1 = new AssetItem("Assets/Test1.sdtest", asset1);
-        var item2 = new AssetItem("Assets/Test2.sdtest", asset2);
-        package.Assets.Add(item1);
-        package.Assets.Add(item2);
-
-        var items = package.Assets.ToList();
-
-        Assert.Equal(2, items.Count);
-        Assert.Contains(item1, items);
-        Assert.Contains(item2, items);
     }
 }

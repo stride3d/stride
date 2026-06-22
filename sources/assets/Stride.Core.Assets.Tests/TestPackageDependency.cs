@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestPackageDependency
@@ -13,7 +10,6 @@ public class TestPackageDependency
     {
         var dependency = new PackageDependency();
 
-        Assert.NotNull(dependency);
         Assert.Null(dependency.Name);
         Assert.Null(dependency.Version);
     }
@@ -116,12 +112,13 @@ public class TestPackageDependency
     [Fact]
     public void TestGetHashCode()
     {
-        var dependency = new PackageDependency("TestPackage", new PackageVersionRange(new PackageVersion("1.0.0")));
+        var version = new PackageVersionRange(new PackageVersion("1.0.0"));
+        var dep1 = new PackageDependency("TestPackage", version);
+        var dep2 = new PackageDependency("TestPackage", version);
 
-        var hash1 = dependency.GetHashCode();
-        var hash2 = dependency.GetHashCode();
-
-        Assert.Equal(hash1, hash2);
+        // Equal dependencies must produce equal hash codes
+        Assert.Equal(dep1, dep2);
+        Assert.Equal(dep1.GetHashCode(), dep2.GetHashCode());
     }
 
     [Fact]
@@ -141,7 +138,6 @@ public class TestPackageDependencyCollection
     {
         var collection = new PackageDependencyCollection();
 
-        Assert.NotNull(collection);
         Assert.Empty(collection);
     }
 
@@ -149,12 +145,21 @@ public class TestPackageDependencyCollection
     public void TestAdd()
     {
         var collection = new PackageDependencyCollection();
-        var dependency = new PackageDependency("TestPackage", new PackageVersionRange(new PackageVersion("1.0.0")));
+        var dep1 = new PackageDependency("Package1", new PackageVersionRange(new PackageVersion("1.0.0")));
+        var dep2 = new PackageDependency("Package2", new PackageVersionRange(new PackageVersion("2.0.0")));
 
-        collection.Add(dependency);
+        collection.Add(dep1);
+        collection.Add(dep2);
 
-        Assert.Single(collection);
-        Assert.Contains(dependency, collection);
+        Assert.Equal(2, collection.Count);
+        Assert.Contains(dep1, collection);
+        Assert.Contains(dep2, collection);
+
+        // Enumeration yields all added dependencies
+        var list = collection.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Contains(dep1, list);
+        Assert.Contains(dep2, list);
     }
 
     [Fact]
@@ -203,21 +208,5 @@ public class TestPackageDependencyCollection
         collection.Clear();
 
         Assert.Empty(collection);
-    }
-
-    [Fact]
-    public void TestEnumeration()
-    {
-        var collection = new PackageDependencyCollection();
-        var dep1 = new PackageDependency("Package1", new PackageVersionRange(new PackageVersion("1.0.0")));
-        var dep2 = new PackageDependency("Package2", new PackageVersionRange(new PackageVersion("2.0.0")));
-
-        collection.Add(dep1);
-        collection.Add(dep2);
-
-        var list = collection.ToList();
-        Assert.Equal(2, list.Count);
-        Assert.Contains(dep1, list);
-        Assert.Contains(dep2, list);
     }
 }

@@ -11,46 +11,7 @@ namespace Stride.Core.Assets.Tests;
 public class TestManifestFile
 {
     [Fact]
-    public void TestSourceProperty()
-    {
-        // Arrange
-        var manifestFile = new ManifestFile();
-
-        // Act
-        manifestFile.Source = "src/**/*.cs";
-
-        // Assert
-        Assert.Equal("src/**/*.cs", manifestFile.Source);
-    }
-
-    [Fact]
-    public void TestTargetProperty()
-    {
-        // Arrange
-        var manifestFile = new ManifestFile();
-
-        // Act
-        manifestFile.Target = "lib/net8.0";
-
-        // Assert
-        Assert.Equal("lib/net8.0", manifestFile.Target);
-    }
-
-    [Fact]
-    public void TestExcludeProperty()
-    {
-        // Arrange
-        var manifestFile = new ManifestFile();
-
-        // Act
-        manifestFile.Exclude = "**/*.Tests.cs";
-
-        // Assert
-        Assert.Equal("**/*.Tests.cs", manifestFile.Exclude);
-    }
-
-    [Fact]
-    public void TestAllPropertiesTogether()
+    public void TestProperties()
     {
         // Arrange & Act
         var manifestFile = new ManifestFile

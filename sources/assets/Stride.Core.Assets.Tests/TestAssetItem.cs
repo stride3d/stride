@@ -36,18 +36,6 @@ public class TestAssetItem
     }
 
     [Fact]
-    public void TestSourceFolder()
-    {
-        var location = "Assets/Subfolder/MyAsset.sdtest";
-        var asset = new AssetObjectTest { Name = "Test" };
-
-        var assetItem = new AssetItem(location, asset);
-        assetItem.SourceFolder = "Assets/Subfolder";
-
-        Assert.Equal("Assets/Subfolder", assetItem.SourceFolder);
-    }
-
-    [Fact]
     public void TestSourceFolderCanBeSet()
     {
         var location = "MyAsset.sdtest";
@@ -56,8 +44,8 @@ public class TestAssetItem
         var assetItem = new AssetItem(location, asset);
         Assert.Null(assetItem.SourceFolder);
 
-        assetItem.SourceFolder = "Assets";
-        Assert.Equal("Assets", assetItem.SourceFolder);
+        assetItem.SourceFolder = "Assets/Subfolder";
+        Assert.Equal("Assets/Subfolder", assetItem.SourceFolder);
     }
 
     [Fact]
@@ -109,8 +97,15 @@ public class TestAssetItem
         // AssetItem starts as dirty
         Assert.True(assetItem.IsDirty);
 
+        // Clearing the dirty flag should be reflected.
+        assetItem.IsDirty = false;
+        Assert.False(assetItem.IsDirty);
+
+        // A false -> true transition must update ModifiedTime.
+        var beforeTransition = DateTime.Now;
         assetItem.IsDirty = true;
         Assert.True(assetItem.IsDirty);
+        Assert.True(assetItem.ModifiedTime >= beforeTransition);
     }
 
     [Fact]

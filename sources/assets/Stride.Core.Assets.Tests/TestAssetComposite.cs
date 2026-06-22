@@ -66,5 +66,11 @@ public class TestAssetComposite
 
         Assert.NotNull(derivedAsset);
         Assert.Single(derivedAsset.Parts);
+
+        // The derived part must reference the original part through its Base.
+        var derivedPart = derivedAsset.Parts[0];
+        Assert.NotNull(derivedPart.Base);
+        Assert.Equal(part.Id, derivedPart.Base.BasePartId);
+        Assert.Equal(rootAsset.Id, derivedPart.Base.BasePartAsset.Id);
     }
 }
