@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
 using Stride.Core.IO;
-using Xunit;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -14,7 +12,6 @@ public class TestProjectReference
     {
         var reference = new ProjectReference();
 
-        Assert.NotNull(reference);
         Assert.Equal(Guid.Empty, reference.Id);
         Assert.Null(reference.Location);
     }
@@ -118,12 +115,13 @@ public class TestProjectReference
     public void TestGetHashCode()
     {
         var id = Guid.NewGuid();
-        var reference = new ProjectReference(id, new UFile("Project.csproj"), ProjectType.Library);
+        var location = new UFile("Project.csproj");
+        var ref1 = new ProjectReference(id, location, ProjectType.Library);
+        var ref2 = new ProjectReference(id, location, ProjectType.Library);
 
-        var hash1 = reference.GetHashCode();
-        var hash2 = reference.GetHashCode();
-
-        Assert.Equal(hash1, hash2);
+        // Equal references must produce equal hash codes
+        Assert.Equal(ref1, ref2);
+        Assert.Equal(ref1.GetHashCode(), ref2.GetHashCode());
     }
 
     [Fact]

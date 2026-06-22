@@ -56,6 +56,7 @@ public class TestBoxedNode
         boxedMemberNode.Update(100);
         Assert.Equal(100, obj.BoxedInt);
         Assert.Equal(100, targetNode.Retrieve());
+        Assert.Equal(100, boxedMemberNode.Retrieve());
     }
 
     [Fact]
@@ -109,7 +110,6 @@ public class TestBoxedNode
 
         Assert.NotNull(targetNode);
         var str = targetNode.ToString();
-        Assert.Contains("Boxed", str);
-        Assert.Contains("Int32", str);
+        Assert.Equal("{Node: Boxed Int32 = [42]}", str);
     }
 }

@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 #pragma warning disable CS0618 // AssetPart is obsolete
@@ -132,12 +129,12 @@ public class TestAssetPart
         var basePart = new BasePart(new AssetReference(AssetId.New(), "Assets/Base.sdobj"), Guid.NewGuid(), Guid.NewGuid());
         Action<BasePart> updater = _ => { };
 
-        var assetPart = new AssetPart(partId, basePart, updater);
+        // Two equal AssetParts must produce equal hash codes.
+        var assetPart1 = new AssetPart(partId, basePart, updater);
+        var assetPart2 = new AssetPart(partId, basePart, updater);
 
-        // GetHashCode should not throw and should be consistent
-        var hash1 = assetPart.GetHashCode();
-        var hash2 = assetPart.GetHashCode();
-        Assert.Equal(hash1, hash2);
+        Assert.Equal(assetPart1, assetPart2);
+        Assert.Equal(assetPart1.GetHashCode(), assetPart2.GetHashCode());
     }
 
     [Fact]

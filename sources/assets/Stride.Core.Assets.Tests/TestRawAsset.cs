@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestRawAsset
@@ -13,7 +10,6 @@ public class TestRawAsset
     {
         var rawAsset = new RawAsset();
 
-        Assert.NotNull(rawAsset);
         Assert.True(rawAsset.Compress); // Default value is true
     }
 
@@ -23,29 +19,6 @@ public class TestRawAsset
         var rawAsset = new RawAsset { Compress = false };
 
         Assert.False(rawAsset.Compress);
-    }
-
-    [Fact]
-    public void TestCompressDefaultValue()
-    {
-        var rawAsset = new RawAsset();
-
-        // Compress should be true by default according to constructor
-        Assert.True(rawAsset.Compress);
-    }
-
-    [Fact]
-    public void TestCompressCanBeToggled()
-    {
-        var rawAsset = new RawAsset();
-
-        Assert.True(rawAsset.Compress);
-
-        rawAsset.Compress = false;
-        Assert.False(rawAsset.Compress);
-
-        rawAsset.Compress = true;
-        Assert.True(rawAsset.Compress);
     }
 
     [Fact]

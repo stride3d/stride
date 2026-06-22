@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.IO;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAsset
@@ -67,6 +65,11 @@ public class TestAsset
         Assert.NotNull(childAsset);
         Assert.NotEqual(parentAsset.Id, childAsset.Id);
         Assert.NotNull(idRemapping);
+
+        // The derived asset must inherit from the parent through its Archetype.
+        Assert.NotNull(childAsset.Archetype);
+        Assert.Equal(parentAsset.Id, childAsset.Archetype.Id);
+        Assert.Equal(baseLocation, childAsset.Archetype.Location);
     }
 
     [Fact]

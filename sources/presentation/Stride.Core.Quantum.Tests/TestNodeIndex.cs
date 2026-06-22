@@ -89,11 +89,11 @@ public class TestNodeIndex
     {
         var index1 = new NodeIndex(42);
         var index2 = new NodeIndex(42);
-        var index3 = new NodeIndex("test");
         var emptyIndex = NodeIndex.Empty;
 
+        // Equal values must produce equal hash codes.
         Assert.Equal(index1.GetHashCode(), index2.GetHashCode());
-        Assert.NotEqual(index1.GetHashCode(), index3.GetHashCode());
+        // The empty index hashes to 0 by contract.
         Assert.Equal(0, emptyIndex.GetHashCode());
     }
 

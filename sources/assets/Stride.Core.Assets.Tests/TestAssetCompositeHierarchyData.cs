@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets;
-using Xunit;
-
 namespace Stride.Core.Assets.Tests;
 
 public class TestAssetCompositeHierarchyData
@@ -13,28 +10,9 @@ public class TestAssetCompositeHierarchyData
     {
         var data = new AssetCompositeHierarchyData<TestPartDesign, TestPart>();
 
-        Assert.NotNull(data);
         Assert.NotNull(data.RootParts);
         Assert.NotNull(data.Parts);
         Assert.Empty(data.RootParts);
-        Assert.Empty(data.Parts);
-    }
-
-    [Fact]
-    public void TestRootPartsProperty()
-    {
-        var data = new AssetCompositeHierarchyData<TestPartDesign, TestPart>();
-
-        Assert.NotNull(data.RootParts);
-        Assert.Empty(data.RootParts);
-    }
-
-    [Fact]
-    public void TestPartsProperty()
-    {
-        var data = new AssetCompositeHierarchyData<TestPartDesign, TestPart>();
-
-        Assert.NotNull(data.Parts);
         Assert.Empty(data.Parts);
     }
 

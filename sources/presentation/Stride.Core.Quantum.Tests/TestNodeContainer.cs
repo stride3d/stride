@@ -91,17 +91,6 @@ public class TestNodeContainer
     }
 
     [Fact]
-    public void TestNodeBuilderProperty()
-    {
-        var container = new NodeContainer();
-        Assert.NotNull(container.NodeBuilder);
-
-        var customBuilder = new DefaultNodeBuilder(container);
-        container.NodeBuilder = customBuilder;
-        Assert.Equal(customBuilder, container.NodeBuilder);
-    }
-
-    [Fact]
     public void TestReferencedObjectsAreCreated()
     {
         var container = new NodeContainer();

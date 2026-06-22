@@ -36,32 +36,25 @@ public class TestMemberNode
         Assert.NotEqual(Guid.Empty, memberNode.Guid);
     }
 
-    [Fact]
-    public void TestMemberNodeUpdate()
+    [Theory]
+    // Value-type member.
+    [InlineData(nameof(SimpleClass.IntValue), 100)]
+    // Reference-type (string) member.
+    [InlineData(nameof(SimpleClass.StringValue), "updated")]
+    public void TestMemberNodeUpdate(string memberName, object newValue)
     {
-        var obj = new SimpleClass { IntValue = 42 };
+        var obj = new SimpleClass { IntValue = 42, StringValue = "original" };
         var nodeContainer = new NodeContainer();
         var parentNode = nodeContainer.GetOrCreateNode(obj);
-        var memberNode = parentNode[nameof(SimpleClass.IntValue)];
+        var memberNode = parentNode[memberName];
 
-        memberNode.Update(100);
+        memberNode.Update(newValue);
 
-        Assert.Equal(100, obj.IntValue);
-        Assert.Equal(100, memberNode.Retrieve());
-    }
-
-    [Fact]
-    public void TestMemberNodeStringUpdate()
-    {
-        var obj = new SimpleClass { StringValue = "original" };
-        var nodeContainer = new NodeContainer();
-        var parentNode = nodeContainer.GetOrCreateNode(obj);
-        var memberNode = parentNode[nameof(SimpleClass.StringValue)];
-
-        memberNode.Update("updated");
-
-        Assert.Equal("updated", obj.StringValue);
-        Assert.Equal("updated", memberNode.Retrieve());
+        Assert.Equal(newValue, memberNode.Retrieve());
+        if (memberName == nameof(SimpleClass.IntValue))
+            Assert.Equal(newValue, obj.IntValue);
+        else
+            Assert.Equal(newValue, obj.StringValue);
     }
 
     [Fact]
@@ -135,12 +128,16 @@ public class TestMemberNode
         var eventRaised = false;
         object oldValue = null;
         object newValue = null;
+        object valueDuringChanging = null;
 
         memberNode.ValueChanging += (sender, args) =>
         {
             eventRaised = true;
             oldValue = args.OldValue;
             newValue = args.NewValue;
+            // Capture the underlying value at the moment the event fires to prove
+            // ValueChanging is raised BEFORE the member is mutated.
+            valueDuringChanging = obj.IntValue;
         };
 
         memberNode.Update(100);
@@ -148,6 +145,9 @@ public class TestMemberNode
         Assert.True(eventRaised);
         Assert.Equal(42, oldValue);
         Assert.Equal(100, newValue);
+        // The member must still hold its original value while ValueChanging is being raised.
+        Assert.Equal(42, valueDuringChanging);
+        // After Update completes, the new value must be applied.
         Assert.Equal(100, obj.IntValue);
     }
 
@@ -160,8 +160,7 @@ public class TestMemberNode
         var memberNode = parentNode[nameof(SimpleClass.IntValue)];
 
         var str = memberNode.ToString();
-        Assert.Contains(nameof(SimpleClass.IntValue), str);
-        Assert.Contains("42", str);
+        Assert.Equal($"{{Node: Member {nameof(SimpleClass.IntValue)} = [42]}}", str);
     }
 
     [Fact]

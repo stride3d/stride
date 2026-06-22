@@ -42,8 +42,8 @@ public class TestQuantumConsistencyException
             "value 2",
             node);
 
-        Assert.Contains("value 1", exception.Expected);
-        Assert.Contains("value 2", exception.Observed);
+        Assert.Equal("Expected: value 1", exception.Expected);
+        Assert.Equal("Observed: value 2", exception.Observed);
         Assert.Equal(node, exception.Node);
         Assert.Contains("Expected", exception.Message);
         Assert.Contains("Observed", exception.Message);

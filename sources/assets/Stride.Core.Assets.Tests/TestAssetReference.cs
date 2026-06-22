@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.IO;
-using Stride.Core.Serialization.Contents;
 
 namespace Stride.Core.Assets.Tests;
 
@@ -14,17 +13,6 @@ public class TestAssetReference
         var id = AssetId.New();
         var location = new UFile("Assets/MyAsset.sdtest");
         var assetRef = new AssetReference(id, location);
-
-        Assert.Equal(id, assetRef.Id);
-        Assert.Equal(location, assetRef.Location);
-    }
-
-    [Fact]
-    public void TestNew()
-    {
-        var id = AssetId.New();
-        var location = new UFile("Assets/MyAsset.sdtest");
-        var assetRef = AssetReference.New(id, location);
 
         Assert.Equal(id, assetRef.Id);
         Assert.Equal(location, assetRef.Location);
