@@ -184,17 +184,6 @@ public class TestPackageBasics
     }
 
     [Fact]
-    public void TestIsSystemProperty()
-    {
-        var package = new Package();
-
-        // IsSystem is read-only, just verify we can read it
-        var isSystem = package.IsSystem;
-        // Just verify the property exists - value may vary
-        Assert.Equal(isSystem, isSystem); // Tautology to verify property access works
-    }
-
-    [Fact]
     public void TestContainerProperty()
     {
         var package = new Package();
