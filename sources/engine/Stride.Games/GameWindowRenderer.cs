@@ -202,19 +202,19 @@ namespace Stride.Games
         ///   otherwise, it defaults to <see cref="PixelFormat.R8G8B8A8_UNorm"/>.
         /// </param>
         /// <returns>
-        ///   An <see cref="Int2"/> structure representing the width and height of the requested Back-Buffer size.
-        ///   If the preferred Back-Buffer dimensions are not set or the window has been resized by the user,
-        ///   the current window dimensions are used.
+        ///   <see langword="true"/> when a valid requested size could be determined; otherwise, <see langword="false"/>.
         /// </returns>
-        private Int2 GetRequestedSize(out PixelFormat format)
+        private bool TryGetRequestedSize(out Int2 size, out PixelFormat format)
         {
-            var bounds = Window.ClientBounds;
+            var rawClientSize = Window.RawClientSize;
 
             format = PreferredBackBufferFormat == PixelFormat.None ? PixelFormat.R8G8B8A8_UNorm : PreferredBackBufferFormat;
 
-            return new Int2(
-                PreferredBackBufferWidth == 0 || windowUserResized ? bounds.Width : PreferredBackBufferWidth,
-                PreferredBackBufferHeight == 0 || windowUserResized ? bounds.Height : PreferredBackBufferHeight);
+            size = new Int2(
+                PreferredBackBufferWidth == 0 || windowUserResized ? rawClientSize.X : PreferredBackBufferWidth,
+                PreferredBackBufferHeight == 0 || windowUserResized ? rawClientSize.Y : PreferredBackBufferHeight);
+
+            return size.X > 0 && size.Y > 0;
         }
 
         /// <summary>
@@ -225,11 +225,15 @@ namespace Stride.Games
         ///   using the requested size and format. It configures the presentation parameters,
         ///   including Depth-Stencil format and presentation interval.
         /// </remarks>
-        protected virtual void CreateOrUpdatePresenter()
+        protected virtual bool CreateOrUpdatePresenter()
         {
             if (Presenter is null || isColorSpaceToChange)
             {
-                var size = GetRequestedSize(out PixelFormat resizeFormat);
+                if (!TryGetRequestedSize(out var size, out PixelFormat resizeFormat))
+                {
+                    return false;
+                }
+
                 var presentationParameters = new PresentationParameters(size.X, size.Y, Window.NativeWindow, resizeFormat)
                 {
                     DepthStencilFormat = PreferredDepthStencilFormat,
@@ -251,6 +255,8 @@ namespace Stride.Games
                 isBackBufferToResize = false;
                 isColorSpaceToChange = false;
             }
+
+            return true;
         }
 
         /// <inheritdoc/>
@@ -260,11 +266,20 @@ namespace Stride.Games
             {
                 savedPresenter = GraphicsDevice.Presenter;
 
-                CreateOrUpdatePresenter();
+                if (!CreateOrUpdatePresenter())
+                {
+                    beginDrawOk = false;
+                    return false;
+                }
 
                 if (isBackBufferToResize || windowUserResized)
                 {
-                    var size = GetRequestedSize(out PixelFormat resizeFormat);
+                    if (!TryGetRequestedSize(out var size, out PixelFormat resizeFormat))
+                    {
+                        beginDrawOk = false;
+                        return false;
+                    }
+
                     Presenter.Resize(size.X, size.Y, resizeFormat);
 
                     isBackBufferToResize = false;
