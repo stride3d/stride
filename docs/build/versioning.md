@@ -29,8 +29,11 @@ So between releases every build reports the **next** release number, stable unti
 
 Multiple checkouts of Stride on one machine (git worktrees *or* independent clones) all auto-pack first-party packages and would clobber each other in the shared `%LocalAppData%/Stride/NugetDev` feed and the global NuGet cache.
 
-[`sources/targets/Stride.WorktreeVersion.targets`](../../sources/targets/Stride.WorktreeVersion.targets) gives each checkout a distinct suffix. A per-machine ledger at `<LocalAppData>/Stride/worktree-ids.txt` maps each checkout path to a token: the **first** checkout to register is `(primary)` (no suffix), the rest get `dev1`, `dev2`, … The token feeds `NuGetVersionSuffix` on both ends (the produced `.nupkg` and the `StrideVersion.NuGetVersion` const baked into `Stride.Assets.dll`), via a build-time swap to `SharedAssemblyInfo.Worktree.cs`. So checkout `dev2` produces/consumes `4.4.0-dev2`, distinct from the primary's `4.4.0`.
+[`sources/targets/Stride.WorktreeVersion.targets`](../../sources/targets/Stride.WorktreeVersion.targets) gives each checkout a distinct suffix. A per-machine ledger at `<LocalAppData>/Stride/worktree-ids.txt` maps each checkout path to a token: the **first** checkout to register is `dev` (suffix `-dev`), the rest get `dev2`, `dev3`, … The token feeds `NuGetVersionSuffix` on both ends (the produced `.nupkg` and the `StrideVersion.NuGetVersion` const baked into `Stride.Assets.dll`), via a build-time swap to `SharedAssemblyInfo.Worktree.cs`. So checkout `dev2` produces/consumes `4.4.0-dev2`.
 
+**Every** local build is suffixed — including the first checkout (`-dev`). The clean version (`4.4.0`) is reserved for releases, so a local build can never share a version (and thus a global-cache slot or `NugetDev` file) with the eventual release, which would otherwise silently shadow it. This also means going from an official release to a local dev build and back is safe: `4.4.0-dev` and `4.4.0` are distinct everywhere.
+
+- **Clean build, no suffix** — give the checkout the special ledger token `(empty)` (or set `-p:StrideSkipWorktreeVersion=true` per build), e.g. to reproduce a release locally. Legacy ledgers using `(primary)` are still honored (treated as `-dev`).
 - **Disabled on CI / package builds** (`$(CI)`, `$(GITHUB_ACTIONS)`, `$(StridePackageBuild)`) — there the suffix stays empty and builds are byte-identical to a clean `4.4.0`.
 - Dev builds also stamp `PublicVersion = <mm>.<last release tag + 1>` so a local build sits just above the most recent release. Override with `StridePublicVersion` in the gitignored `build/Stride.Local.props` when you need a higher ceiling (e.g. authoring several asset upgraders).
 - `dotnet msbuild build/Stride.build -t:StrideRegisterWorktree` registers/prints this checkout's token.
@@ -55,12 +58,13 @@ dotnet msbuild build/Stride.Samples.build -t:SamplesToDevVersion       # before 
 dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseVersion   # before committing
 ```
 
-This does **not** rewrite any csproj. `SamplesToDevVersion` writes a single gitignored `samples/Stride.SamplesDevVersion.props`; [`samples/Directory.Build.targets`](../../samples/Directory.Build.targets) reads it and, at MSBuild evaluation time, exact-pins every `Stride.*` `PackageReference` to this checkout's local version (e.g. `[4.4.0-dev2]`, or `[4.4.0]` on a primary checkout) — so restore/build/GameStudio resolve the local packages with zero file churn (and there's nothing to accidentally commit). `SamplesToReleaseVersion` just deletes that props file; absent it the override is inert and samples resolve their committed clean version.
+These do **real csproj edits** via `SetStrideVersionInProjects`: `SamplesToDevVersion` rewrites every `Stride.*` `PackageReference` from the committed clean version to this checkout's dev build (e.g. `4.4.0` → `4.4.0-dev2`) so restore/build/GameStudio resolve the local packages; `SamplesToReleaseVersion` rewrites them back. So while you work, the sample's csproj shows as modified — finalize with `SamplesToReleaseVersion` before committing. There is no eval-time override or generated props: the version in the csproj is always the real, resolvable one.
 
-The release-time bump is one target — enable the dev override, migrate every sample's assets to the current format through the real package upgraders (so restore + migration run against the real `-devN` packages), drop the override, write the committed clean version, and record the authority:
+The release-time bump runs every sample through the **real package upgraders**: each upgrades from its committed version (e.g. `4.3.x`) to this checkout's dev build — migrating assets to the current format, rewriting `Stride.*` to `4.4.0-devN`, and restoring from the local dev feed. It leaves the csprojs at the dev version (so they still open in GameStudio) and records the content-version authority (`StrideSamplesVersion.props`); run `SamplesToReleaseVersion` to finalize at the clean version before committing:
 
 ```bash
 dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion     # -p:SampleVersion= to override (e.g. a -beta)
+dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseVersion   # finalize to the clean version, then commit
 ```
 
 **Template package versions** ([`Stride.Templates.Common.targets`](../../sources/templates/Stride.Templates.Common.targets)):
