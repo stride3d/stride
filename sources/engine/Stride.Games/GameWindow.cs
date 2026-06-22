@@ -93,6 +93,17 @@ namespace Stride.Games
         public abstract Rectangle ClientBounds { get; }
 
         /// <summary>
+        /// Gets the unclamped client size reported by the native window.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ClientBounds"/> can clamp its dimensions to keep rendering code away from zero-sized viewports.
+        /// Device and swap-chain resize decisions need the native size instead, otherwise minimized windows can be
+        /// mistaken for valid 1x1 render targets.
+        /// Platform implementations that can observe the native client size should override this property.
+        /// </remarks>
+        internal virtual Int2 RawClientSize => new Int2(ClientBounds.Width, ClientBounds.Height);
+
+        /// <summary>
         /// Gets the current orientation.
         /// </summary>
         /// <value>The current orientation.</value>
@@ -282,11 +293,16 @@ namespace Stride.Games
 
         protected void OnClientSizeChanged(object source, EventArgs e)
         {
+            var resizeSize = RawClientSize;
+            if (resizeSize.X <= 0 || resizeSize.Y <= 0)
+            {
+                return;
+            }
+
             if (!isFullscreen)
             {
                 // Update preferred windowed size in windowed mode 
-                var resizeSize = ClientBounds.Size;
-                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+                PreferredWindowedSize = resizeSize;
             }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
