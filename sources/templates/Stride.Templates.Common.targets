@@ -30,10 +30,13 @@
     <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' == 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.NuGet.cs</_StrideSharedAssemblyInfoFile>
     <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' != 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.cs</_StrideSharedAssemblyInfoFile>
     <_StrideSharedAssemblyInfoLines>$([System.IO.File]::ReadAllText('$(_StrideSharedAssemblyInfoFile)'))</_StrideSharedAssemblyInfoLines>
-    <StridePublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</StridePublicVersion>
+    <!-- Computed package version = MajorMinor.MinPatch (distinct from the user-facing StridePublicVersion override read by the version generators). -->
+    <_StridePackageMajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MajorMinor = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMajorMinor>
+    <_StridePackageMinPatch>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MinPatch = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMinPatch>
+    <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackageMinPatch)</_StridePackagePublicVersion>
     <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
     <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(StridePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
+    <StrideNuGetVersion>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
     <!-- Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion;
          the rest (Games = NewGame + Library) follow the engine version. CLI -p:PackageVersion= wins over both. -->
     <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>

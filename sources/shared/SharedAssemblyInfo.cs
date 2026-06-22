@@ -18,37 +18,63 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// The StrideGitVersion task (Stride.build) and Stride.WorktreeVersion.targets patch this file via regex, so be careful if you change the shape of these lines.
+/// The version generators read <see cref="MajorMinor"/> + <see cref="MinPatch"/> from this file via regex and
+/// overlay the computed version into a generated copy (Stride.WorktreeVersion.targets -> SharedAssemblyInfo.Worktree.cs
+/// for dev builds, Stride.GitVersion.targets -> SharedAssemblyInfo.NuGet.cs for release/package builds). Keep the
+/// shape of the MajorMinor/MinPatch/NuGetVersionSuffix/BuildMetadata lines (name = "value";) so the regexes match.
 /// </remarks>
 internal class StrideVersion
 {
-    /// <summary>
-    /// The version used by editor for display purpose. The 3rd digit (patch) is set automatically from git release tags: release packages get the next release number (StrideGitVersion), dev builds get the last release tag + 1 (override via StridePublicVersion in build/Stride.Local.props).
-    /// </summary>
-    public const string PublicVersion = "4.4.0";
+    // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
+    // The generators compute the build version as
+    //     max(MinVersion, latest releases/<MajorMinor>.* + 1, [local StridePublicVersion override])
+    // and overlay it back by rewriting MinPatch. Edit MajorMinor / MinPatch (the floor) — not the derived
+    // PublicVersion. (MinPatch is a string, not an int, only because a const string can't concatenate an int.)
 
     /// <summary>
-    /// The assembly binding identity: pinned per major.minor (the patch digit must not churn it). Bump together with <see cref="PublicVersion"/>.
+    /// Release line. Scopes the releases/&lt;MajorMinor&gt;.* tag search the generators use, and pins
+    /// <see cref="AssemblyVersion"/>. The single source for major.minor. Bump when starting a new major/minor cycle.
     /// </summary>
-    public const string AssemblyVersion = "4.4.0.0";
+    public const string MajorMinor = "4.4";
 
     /// <summary>
-    /// The NuGet package version without special tags.
+    /// The floor patch within <see cref="MajorMinor"/>, so the floor version is MajorMinor.MinPatch. Bump it to
+    /// anchor an unreleased version before its release tag exists (e.g. for incremental asset upgraders); a higher
+    /// reachable release tag overrides it automatically. Override locally (within MajorMinor) via StridePublicVersion
+    /// in build/Stride.Local.props. The generators overlay this with the computed patch.
     /// </summary>
-    public const string NuGetVersionSimple = PublicVersion;
+    public const string MinPatch = "0";
+
+    /// <summary>
+    /// The NuGet package suffix (i.e. -beta). The generators overlay this with -devN (dev) or the release suffix.
+    /// </summary>
+    public const string NuGetVersionSuffix = "";
+
+    // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The minimum (floor) version: MajorMinor.MinPatch.</summary>
+    public const string MinVersion = MajorMinor + "." + MinPatch;
+
+    /// <summary>
+    /// The version used by the editor for display. Equals the build version — the generators overlay
+    /// <see cref="MinPatch"/> with the computed patch; mirrors <see cref="MinVersion"/> when compiled directly
+    /// (CI / no overlay).
+    /// </summary>
+    public const string PublicVersion = MinVersion;
+
+    /// <summary>
+    /// The assembly binding identity: pinned per major.minor (the patch must not churn it), so it is derived from
+    /// <see cref="MajorMinor"/> rather than from the build version.
+    /// </summary>
+    public const string AssemblyVersion = MajorMinor + ".0.0";
 
     /// <summary>
     /// The NuGet package version.
     /// </summary>
-    public const string NuGetVersion = NuGetVersionSimple + NuGetVersionSuffix;
+    public const string NuGetVersion = PublicVersion + NuGetVersionSuffix;
 
     /// <summary>
-    /// The NuGet package suffix (i.e. -beta).
-    /// </summary>
-    public const string NuGetVersionSuffix = "";
-
-    /// <summary>
-    /// The build metadata, usually +g[git_hash] during package. Automatically set by the StrideGitVersion task and dev builds.
+    /// The build metadata, usually +g[git_hash] during package. Set by the release generator (Stride.GitVersion.targets).
     /// </summary>
     public const string BuildMetadata = "";
 

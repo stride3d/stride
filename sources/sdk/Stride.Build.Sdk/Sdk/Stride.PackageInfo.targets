@@ -9,10 +9,13 @@
   <PropertyGroup>
     <_StrideSharedAssemblyInfoLines Condition="'$(StridePackageBuild)' == 'true'">$([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.NuGet.cs'))</_StrideSharedAssemblyInfoLines>
     <_StrideSharedAssemblyInfoLines Condition="'$(StridePackageBuild)' != 'true'">$([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.cs'))</_StrideSharedAssemblyInfoLines>
-    <StridePublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</StridePublicVersion>
+    <!-- Computed package version = MajorMinor.MinPatch (distinct from the user-facing StridePublicVersion override read by the version generators). -->
+    <_StridePackageMajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MajorMinor = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMajorMinor>
+    <_StridePackageMinPatch>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MinPatch = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMinPatch>
+    <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackageMinPatch)</_StridePackagePublicVersion>
     <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
     <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(StridePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
+    <StrideNuGetVersion>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
   </PropertyGroup>
 
   <PropertyGroup>
