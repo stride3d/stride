@@ -75,12 +75,14 @@
                 try
                 {
                     string root = NormalizePath(StrideRoot);
-                    string stamp = ComputeStamp(root) + "|" + (PublicVersionOverride ?? string.Empty);
-                    if (string.IsNullOrWhiteSpace(OverrideId) && TryFastPath(stamp))
-                        return true;
                     string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                         ? LedgerPath
                         : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stride", "worktree-ids.txt");
+                    // Fold the ledger mtime into the stamp so a manual worktree-ID remap invalidates the
+                    // generated overlay (the tag-state stamp alone doesn't change when only the ledger is edited).
+                    string stamp = ComputeStamp(root) + "|" + (PublicVersionOverride ?? string.Empty) + "|" + LedgerStamp(ledgerPath);
+                    if (string.IsNullOrWhiteSpace(OverrideId) && TryFastPath(stamp))
+                        return true;
                     Directory.CreateDirectory(Path.GetDirectoryName(ledgerPath));
 
                     for (int attempt = 0; attempt < 300; attempt++)
@@ -206,7 +208,7 @@
                     m => "NuGetVersionSuffix = \"" + suffix + "\";");
                 patched = Regex.Replace(patched, "PublicVersion = \"[^\"]*\";",
                     m => "PublicVersion = \"" + devVersion + "\";");
-                // stamp = tag-state|override ; append the resolved suffix as the 3rd field.
+                // Cache key = stamp + resolved suffix; TryFastPath reuses the file while the stamp matches.
                 patched += "\n// git-stamp: " + stamp + "|" + suffix + "\n";
                 if (!File.Exists(GeneratedVersionFile) || File.ReadAllText(GeneratedVersionFile) != patched)
                     File.WriteAllText(GeneratedVersionFile, patched);
@@ -297,8 +299,8 @@
 
             private bool TryFastPath(string stamp)
             {
-                // Reuse the generated file when tag-state + override are unchanged. stamp = "tagstate|override";
-                // the file marker is "tagstate|override|suffix", so the stored key must start with stamp + "|".
+                // Reuse the generated file when tag-state + override + ledger mtime are unchanged; the file
+                // marker is "stamp|suffix", so the stored key must start with stamp + "|".
                 if (!File.Exists(GeneratedVersionFile))
                     return false;
                 var m = Regex.Match(File.ReadAllText(GeneratedVersionFile), "// git-stamp: (.*)");
@@ -310,6 +312,13 @@
                 WorktreeSuffix = key.Substring(stamp.Length + 1).Trim();
                 Generated = true;
                 return true;
+            }
+
+            // Ledger mtime as a stamp component: changes when the file is remapped, so a manual edit
+            // to this checkout's token re-triggers resolution instead of reusing a stale overlay.
+            private static string LedgerStamp(string ledgerPath)
+            {
+                return File.Exists(ledgerPath) ? File.GetLastWriteTimeUtc(ledgerPath).Ticks.ToString() : "0";
             }
 
             private string Git(string args)
