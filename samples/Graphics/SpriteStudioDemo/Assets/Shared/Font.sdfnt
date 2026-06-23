@@ -1,6 +1,6 @@
 !SpriteFont
 Id: 58cd9ec1-ff48-4b50-aa88-43e0351fcb95
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 FontSource: !SystemFontProvider
     FontName: Arial
