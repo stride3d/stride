@@ -112,6 +112,49 @@ public static partial class NativeLibraryHelper
     }
 
     /// <summary>
+    ///   Locates the full path to a native library, appending the current platform's library
+    ///   extension (<c>.dll</c>, <c>.so</c>, <c>.dylib</c>) to <paramref name="libraryName"/> before
+    ///   searching. On Linux/macOS, SONAME-versioned variants (for example, <c>libfoo.so.6</c> or
+    ///   <c>libfoo.6.dylib</c>) are matched and the highest version is returned; the <c>lib</c> prefix
+    ///   is also tried when omitted, matching the conventions <see cref="PreloadLibrary"/> uses.
+    /// </summary>
+    /// <param name="libraryName">The library name without extension (for example, <c>"libassimp"</c> or <c>"assimp"</c>).</param>
+    /// <param name="ownerType">
+    ///   The type whose assembly is used to determine runtime-specific search paths for the library.
+    /// </param>
+    /// <returns>The full path to the located native library.</returns>
+    /// <exception cref="FileNotFoundException">
+    ///   Thrown if the library cannot be found in any of the searched locations.
+    /// </exception>
+    public static string LocateLibrary(string libraryName, Type ownerType)
+    {
+        // Native libs on Linux/macOS conventionally carry a 'lib' prefix that callers often omit,
+        // so try the name as given and, on those platforms, the 'lib'-prefixed variant too.
+        string[] candidates = Platform.Type != PlatformType.Windows && !libraryName.StartsWith("lib", StringComparison.Ordinal)
+            ? [libraryName, "lib" + libraryName]
+            : [libraryName];
+
+        foreach (var name in candidates)
+        {
+            var nameWithExtension = name + libExtension;
+
+            // NuGet native libraries
+            if (nativeDependenciesWithExtensions.TryGetValue(nameWithExtension, out string? knownPath))
+                return knownPath;
+
+            // Try in current path
+            if (File.Exists(nameWithExtension))
+                return nameWithExtension;
+
+            // Try runtimes specific path (globs SONAME-versioned variants, picks highest)
+            if (TryFindLibraryPath(ownerType, nameWithExtension, out knownPath))
+                return knownPath;
+        }
+
+        throw new FileNotFoundException($"Could not locate native library {libraryName}");
+    }
+
+    /// <summary>
     ///   Try to preload a native library.
     /// </summary>
     /// <param name="libraryName">The name of the library, without the extension.</param>
