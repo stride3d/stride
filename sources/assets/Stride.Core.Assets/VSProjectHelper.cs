@@ -156,7 +156,9 @@ public static class VSProjectHelper
         return spec;
     }
 
-    public static async Task RestoreNugetPackages(ILogger logger, string projectPath)
+    /// <param name="tolerateDowngrade">Suppress NU1605 (package downgrade) for this restore — used by the in-place
+    /// upgrade flow, where the graph is transiently mixed. Off for normal loads so real downgrades fail.</param>
+    public static async Task RestoreNugetPackages(ILogger logger, string projectPath, bool tolerateDowngrade = false)
     {
         await Task.Run(() =>
         {
@@ -176,6 +178,10 @@ public static class VSProjectHelper
                 {
                     ["RestoreUseStaticGraphEvaluation"] = "true",
                 };
+                // NoWarn=NU1605 lets a transient upgrade-time downgrade resolve to the higher version instead of
+                // erroring (an empty WarningsAsErrors doesn't take effect via the MSBuild API, unlike the CLI).
+                if (tolerateDowngrade)
+                    globalProperties["NoWarn"] = "NU1605";
                 var request = new BuildRequestData(projectPath, globalProperties, null, ["Restore"], null, BuildRequestDataFlags.None);
 
                 mainBuildManager.Build(parameters, request);

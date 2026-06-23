@@ -287,7 +287,13 @@ namespace Stride.AssetCompiler
                         var psi = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = "dotnet",
-                            ArgumentList = { "restore", restoreTarget, "--nologo", "-v", "quiet" },
+                            // -p:WarningsAsErrors= demotes NU1605 (package downgrade) from error back to a visible
+                            // warning for this restore only: during an upgrade a dependency may already be on the new
+                            // version while this project isn't yet (e.g. a shared plugin, or a dependency processed
+                            // earlier in the batch), which is a transient, expected downgrade that the upgrade's
+                            // reference rewrite resolves. Scoped to this upgrade-time restore — real builds keep
+                            // NU1605 as a hard error. (NoWarn would hide it; WarningsNotAsErrors isn't honored by restore.)
+                            ArgumentList = { "restore", restoreTarget, "--nologo", "-v", "quiet", "-p:WarningsAsErrors=" },
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
                             UseShellExecute = false,
@@ -317,6 +323,8 @@ namespace Stride.AssetCompiler
                     var loadParameters = new PackageLoadParameters
                     {
                         PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
+                        // Whole-solution upgrade may start mixed (e.g. a shared pack already bumped); tolerate the transient NU1605.
+                        AllowUpgradeDowngradeRestore = true,
                     };
 
                     var sessionResult = PackageSession.Load(options.PackageFile, loadParameters);

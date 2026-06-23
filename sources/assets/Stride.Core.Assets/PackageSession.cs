@@ -927,7 +927,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 try
                 {
                     log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
-                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath()).Wait();
+                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
                     solutionDependenciesRestored = true;
                 }
                 catch (Exception ex)
