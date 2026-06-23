@@ -414,17 +414,13 @@ public class BodyComponent : CollidableComponent
     /// <exception cref="ArgumentException"><paramref name="orientation"/> must be normalized; <paramref name="position"/> must be finite</exception>
     public void Teleport(Vector3 position, Quaternion orientation)
     {
-        if (orientation.IsNormalized == false)
-            throw new ArgumentException($"{nameof(orientation)} must be normalized");
-
-        var positionNumerics = position.ToNumeric();
-        if (System.Numerics.Vector3.AllWhereAllBitsSet(System.Numerics.Vector3.IsFinite(positionNumerics)) == false)
-            throw new ArgumentException($"{nameof(position)} must be finite");
+        position.ValidateRange(nameof(Teleport), nameof(position));
+        orientation.ValidateRange(nameof(Teleport), nameof(orientation));
 
         if (BodyReference is { } bodyRef)
         {
             bodyRef.Pose.Orientation = orientation.ToNumeric();
-            bodyRef.Pose.Position = positionNumerics;
+            bodyRef.Pose.Position = position;
             bodyRef.UpdateBounds();
             PreviousPose = CurrentPose = bodyRef.Pose; // Update interpolation data as well
         }

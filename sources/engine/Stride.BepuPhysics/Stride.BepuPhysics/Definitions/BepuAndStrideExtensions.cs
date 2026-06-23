@@ -34,4 +34,25 @@ internal static class BepuAndStrideExtensions
     public static NQuaternion ToNumeric(this SQuaternion qua) => Unsafe.As<SQuaternion, NQuaternion>(ref qua);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SQuaternion ToStride(this NQuaternion qua) => Unsafe.As<NQuaternion, SQuaternion>(ref qua);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ValidateRange<T>(this SVector3 vec, T val, string field)
+    {
+        if (NVector3.AllWhereAllBitsSet(NVector3.IsFinite(vec)) == false)
+            throw new ArgumentOutOfRangeException($"{val}'s {field} must be finite");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ValidateRange<T>(this SQuaternion quat, T val, string field)
+    {
+        if (quat.IsNormalized == false)
+            throw new ArgumentOutOfRangeException($"{val}'s {field} must be normalized");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ValidateGreaterThanZeroFinite<T>(this float fp, T val, string field)
+    {
+        if (fp > 0 && float.IsFinite(fp))
+            throw new ArgumentOutOfRangeException($"{val}'s {field} must be finite and greater than zero");
+    }
 }

@@ -142,17 +142,13 @@ public class StaticComponent : CollidableComponent
     /// <inheritdoc cref="Teleport"/>
     internal void TeleportNoTransformUpdate(Vector3 position, Quaternion orientation)
     {
-        if (orientation.IsNormalized == false)
-            throw new ArgumentException($"{nameof(orientation)} must be normalized");
-
-        var positionNumerics = position.ToNumeric();
-        if (System.Numerics.Vector3.AllWhereAllBitsSet(System.Numerics.Vector3.IsFinite(positionNumerics)) == false)
-            throw new ArgumentException($"{nameof(position)} must be finite");
+        position.ValidateRange(nameof(TeleportNoTransformUpdate), nameof(position));
+        orientation.ValidateRange(nameof(TeleportNoTransformUpdate), nameof(orientation));
 
         if (StaticReference is { } staticRef)
         {
             staticRef.Pose.Orientation = orientation.ToNumeric();
-            staticRef.Pose.Position = positionNumerics + CenterOfMass;
+            staticRef.Pose.Position = position + CenterOfMass;
             staticRef.UpdateBounds();
         }
     }
