@@ -158,10 +158,10 @@ public class DictionaryDescriptor : CollectionBaseDescriptor
     /// </summary>
     /// <param name="dictionary">The dictionary.</param>
     /// <param name="key">The key.</param>
-    public override bool ContainsKey(object dictionary, object key)
+    public override bool ContainsKey(object dictionary, object? key)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
-        return containsKeyMethod.Invoke(dictionary, key);
+        return key is not null && containsKeyMethod.Invoke(dictionary, key);
     }
 
     /// <summary>
