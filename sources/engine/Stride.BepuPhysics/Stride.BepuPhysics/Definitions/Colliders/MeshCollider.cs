@@ -45,6 +45,7 @@ public sealed class MeshCollider : ICollider
         {
             if (_mass != value)
             {
+                value.ValidateGreaterThanZeroFinite(this, nameof(Mass));
                 _mass = value;
                 _component?.TryUpdateFeatures();
             }

@@ -25,6 +25,7 @@ public sealed class TriangleCollider : ColliderBase
         get => _a;
         set
         {
+            value.ValidateRange(this, nameof(A));
             _a = value;
             TryUpdateFeatures();
         }
@@ -38,6 +39,7 @@ public sealed class TriangleCollider : ColliderBase
         get => _b;
         set
         {
+            value.ValidateRange(this, nameof(B));
             _b = value;
             TryUpdateFeatures();
         }
@@ -51,6 +53,7 @@ public sealed class TriangleCollider : ColliderBase
         get => _c;
         set
         {
+            value.ValidateRange(this, nameof(C));
             _c = value;
             TryUpdateFeatures();
         }
