@@ -40,7 +40,22 @@ namespace Stride.Importer.ThreeD
 
         public Logger Logger { get; set; }
 
-        private readonly Assimp assimp = Assimp.GetApi();
+        private readonly Assimp assimp = CreateAssimpApi();
+
+        private static Assimp CreateAssimpApi()
+        {
+            // On Windows the default loader picks the single shipped Assimp64.dll (Assimp 6.0.2).
+            if (Platform.Type == PlatformType.Windows)
+                return Assimp.GetApi();
+
+            // Silk.NET's Assimp binding still requests the legacy Assimp 5 SONAME (libassimp.so.5 /
+            // libassimp.5.dylib) even though its managed types match Assimp 6. Ultz.Native.Assimp 6.x
+            // ships both the old (.so.5) and new (.so.6) binaries, so the default loader binds the
+            // stale Assimp 5 lib on Linux/macOS and corrupts animation keys. Resolve the highest-version
+            // native library ourselves and build the API from it.
+            var libraryPath = NativeLibraryHelper.LocateLibrary("libassimp", typeof(MeshConverter));
+            return new Assimp(Assimp.CreateDefaultContext([libraryPath]));
+        }
 
         private string vfsInputFilename;
         private string vfsOutputFilename;
