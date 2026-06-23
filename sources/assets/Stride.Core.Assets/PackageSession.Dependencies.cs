@@ -272,7 +272,7 @@ partial class PackageSession
             if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
-                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
+                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
             }
 
             // If platform was unknown, check it again using cached project
