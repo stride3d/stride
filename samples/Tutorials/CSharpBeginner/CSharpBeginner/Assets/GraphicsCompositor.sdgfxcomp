@@ -56,7 +56,7 @@ RenderFeatures:
                 EffectName: StrideForwardShadingEffect.ShadowMapCasterCubeMap
             106341b76db9fcda6a033dad16aa708b: !Stride.Rendering.MeshTransparentRenderStageSelector,Stride.Rendering
                 OpaqueRenderStage: ref!! 619b9ff9-c0fc-476f-a4bf-fc6742f1e379
-                EffectName: StrideForwardShadingEffect.ShadowMapCaster
+                EffectName: StrideForwardShadingEffect.ZPrepass
         PipelineProcessors:
             d70f5aee0616e4ab25081ceaf643290c: !Stride.Rendering.MeshPipelineProcessor,Stride.Rendering
                 TransparentRenderStage: ref!! 5a243378-ab43-4a6d-a7e1-50a672ab8b87
@@ -163,6 +163,17 @@ SharedRenderers:
         MSAAResolver: {}
     34ecb9b2633eacfc439ba8744fe05102: !PostProcessingEffects
         Id: e92497d4-8f9d-4dbd-980c-3fa2d34cdd4a
+        Outline:
+            Enabled: false
+            NormalWeight: 2.0
+            DepthWeight: 0.2
+            NormalNearCutoff: 0.1
+        Fog:
+            Enabled: false
+            Density: 0.1
+            Color: {R: 1.0, G: 1.0, B: 1.0}
+            FogStart: 10.0
+            SkipBackground: false
         AmbientOcclusion:
             Enabled: false
         LocalReflections:
