@@ -217,11 +217,9 @@ public class SetDescriptor : CollectionDescriptor
 
     public override IEnumerable<object> EnumerateKeys(object coll)
     {
-        var enumerable = coll as System.Collections.IEnumerable;
-        var enumerator = enumerable.GetEnumerator();
-        while (enumerator.MoveNext())
+        foreach (var obj in (System.Collections.IEnumerable)coll)
         {
-            yield return enumerator.Current;
+            yield return obj;
         }
     }
 

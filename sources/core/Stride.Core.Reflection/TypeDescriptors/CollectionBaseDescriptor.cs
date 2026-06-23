@@ -34,7 +34,7 @@ public abstract class CollectionBaseDescriptor : ObjectDescriptor
     /// Validates whether the type of this key would be valid
     /// </summary>
     /// <remarks>
-    /// For ints it also checks if its value is above 0
+    /// For ints it also checks if its value is greater than or equal to 0
     /// </remarks>
     public abstract bool IsKeyValid(object? key);
 
