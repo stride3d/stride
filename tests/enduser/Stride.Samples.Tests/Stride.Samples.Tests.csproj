@@ -49,7 +49,7 @@
          bin/packages. Stride.Assets pulls Engine/Physics/UI/Video; these three are not in
          that graph but are referenced by regenerated samples (asset compiler + particles +
          sprite-studio). -->
-    <ProjectReference Include="..\..\..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+    <ProjectReference Include="..\..\..\sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

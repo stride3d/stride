@@ -11,6 +11,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>

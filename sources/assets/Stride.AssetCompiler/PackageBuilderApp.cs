@@ -11,7 +11,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 using Mono.Options;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Diagnostics;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
@@ -21,10 +24,10 @@ using Stride.Particles;
 using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
-using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     class PackageBuilderApp : IPackageBuilderApp
     {
@@ -81,7 +84,9 @@ namespace Stride.Core.Assets.CompilerApp
                     typeof(Program).Assembly.GetName().Version.Major,
                     typeof(Program).Assembly.GetName().Version.Minor,
                     typeof(Program).Assembly.GetName().Version.Build) + string.Empty,
-                string.Format("Usage: {0} inputPackageFile [options]* -b buildPath", exeName),
+                string.Format("Usage: {0} <command> <input> [options]*", exeName),
+                string.Empty,
+                "Commands: build | pack | upgrade | generate-code",
                 string.Empty,
                 "=== Options ===",
                 string.Empty,
@@ -94,8 +99,6 @@ namespace Stride.Core.Assets.CompilerApp
                 { "platform=", "Platform name", v => options.Platform = Enum.Parse<PlatformType>(v) },
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
-                { "package-file=", "Input Package File Name", v => options.PackageFile = v },
-                { "package-manifest=", "Load the session from this build manifest (.sdbuild) chain", v => options.PackageManifestFile = v },
                 { "msbuild-uptodatecheck-filebase=", "BuildUpToDate File base for MSBuild; it will create one .inputs and one .outputs files", v => options.MSBuildUpToDateCheckFileBase = v },
                 { "o|output-path=", "Output path", v => options.OutputDirectory = v },
                 { "b|build-path=", "Build path", v => options.BuildDirectory = v },
@@ -111,10 +114,7 @@ namespace Stride.Core.Assets.CompilerApp
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
-                { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => mode = BuilderMode.Pack },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
-                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => mode = BuilderMode.UpdateGeneratedFiles },
-                { "upgrade-assets", "Special mode to upgrade assets in place to the current SerializedVersion", v => mode = BuilderMode.UpgradeAssets },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -161,7 +161,62 @@ namespace Stride.Core.Assets.CompilerApp
 
             try
             {
-                var unexpectedArgs = p.Parse(args);
+                // First argument selects the command; the rest are options + the input file.
+                var commandArgs = args;
+                if (args.Length == 0)
+                {
+                    showHelp = true;
+                }
+                else if (!args[0].StartsWith('-'))
+                {
+                    switch (args[0])
+                    {
+                        case "build": mode = BuilderMode.Build; break;
+                        case "pack": mode = BuilderMode.Pack; break;
+                        case "upgrade": mode = BuilderMode.UpgradeAssets; break;
+                        case "generate-code": mode = BuilderMode.UpdateGeneratedFiles; break;
+                        case "help": showHelp = true; break;
+                        default:
+                            Console.Error.WriteLine($"Unknown command '{args[0]}'. Expected: build, pack, upgrade, generate-code.");
+                            return (int)BuildResultCode.CommandLineError;
+                    }
+                    commandArgs = args[1..];
+                }
+                else if (args.Contains("-h") || args.Contains("--help"))
+                {
+                    showHelp = true;
+                }
+                else
+                {
+                    Console.Error.WriteLine("A command is required: build, pack, upgrade, generate-code.");
+                    return (int)BuildResultCode.CommandLineError;
+                }
+
+                var unexpectedArgs = p.Parse(commandArgs);
+
+                if (showHelp)
+                {
+                    p.WriteOptionDescriptions(Console.Out);
+                    return (int)BuildResultCode.Successful;
+                }
+
+                // The lone positional argument is the input file, routed by extension.
+                if (options.SlavePipe == null && unexpectedArgs.Count > 0)
+                {
+                    var input = unexpectedArgs[0];
+                    unexpectedArgs.RemoveAt(0);
+                    if (input.EndsWith(AssetBuildManifest.FileExtension, StringComparison.OrdinalIgnoreCase))
+                        options.PackageManifestFile = input;
+                    else
+                        options.PackageFile = input;
+                }
+
+                // upgrade / generate-code bypass ValidateOptions but still need an input file.
+                if ((mode == BuilderMode.UpgradeAssets || mode == BuilderMode.UpdateGeneratedFiles) && string.IsNullOrEmpty(options.PackageFile))
+                {
+                    Console.Error.WriteLine("This command requires an input package/project file.");
+                    return (int)BuildResultCode.CommandLineError;
+                }
 
                 // Activate proper log level
                 buildEngineLogger.ActivateLog(options.LoggerType);
@@ -223,15 +278,22 @@ namespace Stride.Core.Assets.CompilerApp
                     // bumps. Also cleans up Session log noise from unresolved engine asset refs.
                     // Incremental for already-restored projects, so cheap when called from the
                     // StrideUpgradeAssets MSBuild target inside a real consumer build.
-                    var csprojForRestore = options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                    var restoreTarget = options.PackageFile.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
+                        || options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
                         ? options.PackageFile
                         : System.IO.Path.ChangeExtension(options.PackageFile, ".csproj");
-                    if (System.IO.File.Exists(csprojForRestore))
+                    if (System.IO.File.Exists(restoreTarget))
                     {
                         var psi = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = "dotnet",
-                            ArgumentList = { "restore", csprojForRestore, "--nologo", "-v", "quiet" },
+                            // -p:WarningsAsErrors= demotes NU1605 (package downgrade) from error back to a visible
+                            // warning for this restore only: during an upgrade a dependency may already be on the new
+                            // version while this project isn't yet (e.g. a shared plugin, or a dependency processed
+                            // earlier in the batch), which is a transient, expected downgrade that the upgrade's
+                            // reference rewrite resolves. Scoped to this upgrade-time restore — real builds keep
+                            // NU1605 as a hard error. (NoWarn would hide it; WarningsNotAsErrors isn't honored by restore.)
+                            ArgumentList = { "restore", restoreTarget, "--nologo", "-v", "quiet", "-p:WarningsAsErrors=" },
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
                             UseShellExecute = false,
@@ -247,24 +309,30 @@ namespace Stride.Core.Assets.CompilerApp
                             // it to fully work, and code-aware upgrade paths (Roslyn, MSBuild item
                             // enum) silently produce wrong results on partial state. Surfacing the
                             // restore error early is the right failure mode.
-                            options.Logger.Error($"dotnet restore failed for {csprojForRestore} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
+                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
                             return (int)BuildResultCode.BuildError;
                         }
                     }
 
+                    // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
+                    // does — using the defaults, which compile and load the project assemblies. Without that,
+                    // assets referencing user script types (e.g. a sample's own components) fail to
+                    // deserialize. Reconcile also pulls archetype/base values from dependency packages (e.g.
+                    // the engine's default compositor); those load read-only, so Save (LocalPackages only)
+                    // never writes back to them.
                     var loadParameters = new PackageLoadParameters
                     {
-                        AutoCompileProjects = false,
-                        LoadAssemblyReferences = false,
-                        LoadMissingDependencies = false,
-                        AutoLoadTemporaryAssets = true,
                         PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
+                        // Whole-solution upgrade may start mixed (e.g. a shared pack already bumped); tolerate the transient NU1605.
+                        AllowUpgradeDowngradeRestore = true,
                     };
 
                     var sessionResult = PackageSession.Load(options.PackageFile, loadParameters);
                     sessionResult.CopyTo(options.Logger);
                     if (sessionResult.HasErrors || sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
+
+                    ReconcileBases(sessionResult.Session, options.Logger);
 
                     sessionResult.Session.Save(options.Logger);
                     return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
@@ -283,12 +351,7 @@ namespace Stride.Core.Assets.CompilerApp
                     throw new OptionException(ex.Message, ex.ParamName);
                 }
 
-                if (showHelp)
-                {
-                    p.WriteOptionDescriptions(Console.Out);
-                    return (int)BuildResultCode.Successful;
-                }
-                else if (mode == BuilderMode.Pack)
+                if (mode == BuilderMode.Pack)
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
@@ -394,10 +457,59 @@ namespace Stride.Core.Assets.CompilerApp
             e.Cancel = builder.Cancel();
         }
 
+        // Re-applies changed archetype/base values to derived assets, the way GameStudio does on load.
+        // Asset format migration alone only updates the serialized format; opening + saving in the editor
+        // additionally runs Quantum's ReconcileWithBase, which is what materialises base-propagated changes
+        // (e.g. an engine default-compositor change) into the derived sample assets.
+        private static void ReconcileBases(PackageSession session, ILogger logger)
+        {
+            var nodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
+            var graphContainer = new AssetPropertyGraphContainer(nodeContainer);
+
+            // First pass: build + register every asset's graph so cross-asset archetype links resolve.
+            var graphs = new List<(AssetPropertyGraph Graph, AssetItem AssetItem)>();
+            foreach (var package in session.Packages)
+            {
+                foreach (var assetItem in package.Assets)
+                {
+                    try
+                    {
+                        var graph = graphContainer.InitializeAsset(assetItem, logger);
+                        if (graph != null)
+                            graphs.Add((graph, assetItem));
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warning($"Could not build property graph for [{assetItem.Location}]: {ex.Message}");
+                    }
+                }
+            }
+
+            // Second pass: reconcile each graph; a content change flags the asset dirty so Save persists it.
+            var changedCount = 0;
+            foreach (var (graph, assetItem) in graphs)
+            {
+                var changed = false;
+                graph.Changed += (_, _) => { assetItem.IsDirty = true; changed = true; };
+                graph.ItemChanged += (_, _) => { assetItem.IsDirty = true; changed = true; };
+                try
+                {
+                    graph.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    logger.Warning($"Could not reconcile [{assetItem.Location}] with its base: {ex.Message}");
+                }
+                if (changed)
+                    changedCount++;
+            }
+            logger.Info($"Reconciled {changedCount} asset(s) with their base out of {graphs.Count}.");
+        }
+
         private static string FormatLog(ILogMessage message)
         {
             //$filename($row,$column): $error_type $error_code: $error_message
-            //C:\Code\Stride\sources\assets\Stride.Core.Assets.CompilerApp\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+            //C:\Code\Stride\sources\assets\Stride.AssetCompiler\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
             var builder = new StringBuilder();
             var assetLogMessage = message as AssetLogMessage;
             // Location

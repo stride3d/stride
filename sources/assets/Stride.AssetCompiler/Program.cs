@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     class Program
     {

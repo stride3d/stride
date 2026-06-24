@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  In-repo sample version management. Standalone entry point - run directly, e.g.
+  dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion. See plans/samples-version-bump.md.
+
+  Samples are committed at a clean release version (e.g. 4.4.0), but locally only the per-checkout dev
+  packages exist (4.4.0-devN). These targets switch the sample csprojs between the clean and dev version
+  by REAL on-disk edits (no evaluation-time flip), so GameStudio / restore read the version directly:
+
+    UpgradeSamplesVersion   - bump from the committed version through the package upgrader: migrate assets,
+                              rewrite refs to this checkout's dev build (4.4.0-devN), restore. Leaves the
+                              csprojs at the dev version so they open in GameStudio.
+    SamplesToDevVersion     - switch already-bumped samples (at the clean version) to the dev build, to
+                              re-open them on a worktree later.
+    SamplesToReleaseVersion - switch the dev version back to the clean release version. Run before committing.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- StrideRoot self-default: this file is run standalone, e.g.
+       dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion. -->
+  <PropertyGroup>
+    <StrideRoot Condition="'$(StrideRoot)' == ''">$(MSBuildThisFileDirectory)..\</StrideRoot>
+  </PropertyGroup>
+
+  <!-- StrideGitVersion task (clean release version from git release tags). -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
+          Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
+
+  <!-- Worktree-version machinery: provides StrideWorktreeSuffix so we can build the local,
+       actually-published dev version (clean + suffix, e.g. 4.4.0-dev2). -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.WorktreeVersion.targets"
+          Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
+
+  <!-- Rewrites Stride.* PackageReference Versions equal to SourceVersion -> TargetVersion (a real csproj
+       edit). The exact source-version match is the whole filter: only refs at the expected version are
+       touched, so $-placeholder versions (e.g. $EngineVersion$) and third-party Stride.*-prefixed packages
+       (which carry their own version) are left alone without needing a name skip-list. -->
+  <UsingTask TaskName="SetStrideVersionInProjects" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Projects ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <SourceVersion ParameterType="System.String" Required="true" />
+      <TargetVersion ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var rx = new System.Text.RegularExpressions.Regex("(Include=\"Stride[^\"]*\"[^>]*?\\sVersion=\")([^\"]*)(\")");
+        foreach (var item in Projects)
+        {
+            var path = item.ItemSpec;
+            if (!System.IO.File.Exists(path)) continue;
+            var text = System.IO.File.ReadAllText(path);
+            var newText = rx.Replace(text, m => m.Groups[2].Value == SourceVersion
+                ? m.Groups[1].Value + TargetVersion + m.Groups[3].Value
+                : m.Value);
+            if (newText != text)
+                System.IO.File.WriteAllText(path, newText);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Resolves SampleVersion (clean release, suffix off) + SampleDevVersion (clean + worktree
+       suffix = the locally-published dev version) + the concrete sample csproj set (all under
+       samples/ minus the $EngineVersion$ template sources NewGame/Library). -->
+  <Target Name="_ResolveSampleVersions" DependsOnTargets="StrideEnsureWorktreeVersion">
+    <PropertyGroup>
+      <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    </PropertyGroup>
+    <MakeDir Directories="$(StrideRoot)bin\obj" Condition="'$(SampleVersion)' == ''" />
+    <StrideGitVersion Condition="'$(SampleVersion)' == ''"
+        RootDirectory="$(StrideRoot)"
+        VersionFile="sources\shared\SharedAssemblyInfo.cs"
+        GeneratedVersionFile="bin\obj\SampleVersionProbe.cs">
+      <Output TaskParameter="NuGetVersion" PropertyName="SampleVersion" />
+    </StrideGitVersion>
+    <Error Condition="'$(SampleVersion)' == ''" Text="Could not resolve a sample version. Pass -p:SampleVersion=." />
+    <PropertyGroup>
+      <SampleDevVersion>$(SampleVersion)$(StrideWorktreeSuffix)</SampleDevVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StrideSampleCsproj Include="$(StrideRoot)samples\**\*.csproj" />
+      <_StrideSampleCsproj Remove="$(StrideRoot)samples\NewGame\**\*.csproj" />
+      <_StrideSampleCsproj Remove="$(StrideRoot)samples\Library\**\*.csproj" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Switch already-bumped samples (committed at the clean version) to this checkout's dev build, e.g.
+       before opening them in GameStudio on a worktree. Real csproj edits; run SamplesToReleaseVersion
+       before committing. A no-op on samples not at the clean version (run UpgradeSamplesVersion first). -->
+  <Target Name="SamplesToDevVersion" DependsOnTargets="_ResolveSampleVersions">
+    <SetStrideVersionInProjects Projects="@(_StrideSampleCsproj)" SourceVersion="$(SampleVersion)" TargetVersion="$(SampleDevVersion)" />
+    <Message Importance="high" Text="Samples set to dev version $(SampleDevVersion)." />
+  </Target>
+
+  <!-- Switch samples from the dev build back to the committed clean release version. Run before committing. -->
+  <Target Name="SamplesToReleaseVersion" DependsOnTargets="_ResolveSampleVersions">
+    <SetStrideVersionInProjects Projects="@(_StrideSampleCsproj)" SourceVersion="$(SampleDevVersion)" TargetVersion="$(SampleVersion)" />
+    <Message Importance="high" Text="Samples set to release version $(SampleVersion)." />
+  </Target>
+
+  <!-- Bump the in-repo samples through the real package upgraders: each sample upgrades from its committed
+       version to this checkout's dev build - migrate assets, rewrite references to 4.4.0-devN, restore from
+       the local dev feed. The csprojs are left at the dev version so they open in GameStudio; run
+       SamplesToReleaseVersion to finalize at the clean version before committing. SampleVersion defaults to
+       the clean next-release number; -p:SampleVersion= overrides (e.g. a -beta). -p:SamplePackages= limits
+       the migrated .sdpkg set. -->
+  <Target Name="UpgradeSamplesVersion" DependsOnTargets="_ResolveSampleVersions">
+    <Message Importance="high" Text="UpgradeSamplesVersion: migrate -&gt; dev=$(SampleDevVersion) ($(Configuration)); run SamplesToReleaseVersion to finalize at $(SampleVersion)" />
+
+    <!-- Build the source CompilerApp and locate its xplat dll (net*.0 excludes the -windows TFM). -->
+    <MSBuild Projects="$(StrideRoot)sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj"
+             Targets="Build" Properties="Configuration=$(Configuration)" />
+    <ItemGroup>
+      <_StrideCompilerAppDll Include="$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(Configuration)\net*.0\Stride.AssetCompiler.dll" />
+    </ItemGroup>
+    <Error Condition="'@(_StrideCompilerAppDll)' == ''" Text="CompilerApp dll not found under bin\$(Configuration)\net*.0 - build it first." />
+
+    <!-- Run the package upgrader once over the whole samples solution: one process + one shared NuGet restore,
+         so the samples resolve against one coherent graph and don't each pay a fresh process + restore. It sees
+         each sample's committed version, migrates assets, rewrites the Stride.* references to this checkout's dev
+         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .sln/.csproj/.sdpkg. -->
+    <PropertyGroup>
+      <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.sln</SampleUpgradeTarget>
+    </PropertyGroup>
+    <Message Importance="high" Text="UpgradeSamplesVersion: upgrading $(SampleUpgradeTarget)" />
+    <Exec WorkingDirectory="$(StrideRoot)"
+          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot;" />
+
+    <!-- Record the authority for the content-versioned template packages (Samples, Starters). -->
+    <WriteLinesToFile File="$(StrideRoot)sources\templates\StrideSamplesVersion.props" Overwrite="true" WriteOnlyWhenDifferent="true"
+                      Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;StrideSamplesVersion&gt;$(SampleVersion)&lt;/StrideSamplesVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;" />
+    <Message Importance="high" Text="UpgradeSamplesVersion: done (samples at $(SampleDevVersion)); StrideSamplesVersion=$(SampleVersion)" />
+  </Target>
+
+</Project>

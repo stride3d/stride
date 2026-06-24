@@ -1,21 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Events;
-using Task = Microsoft.Build.Utilities.Task;
 
-namespace Stride.Core.Assets.CompilerApp.Tasks
+namespace Stride.AssetCompiler.Tasks
 {
     public static class PackAssetsHelper
     {
@@ -258,66 +256,6 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
             }
 
             return !logger.HasErrors;
-        }
-    }
-    public class PackAssets : Task
-    {
-        [Required]
-        public ITaskItem ProjectFile { get; set; }
-
-        [Required]
-        public ITaskItem IntermediatePackagePath { get; set; }
-
-        [Output]
-        public ITaskItem[] GeneratedItems { get; private set; }
-
-        public override bool Execute()
-        {
-            var generatedItems = new List<(string SourcePath, string PackagePath)>();
-            var result = PackAssetsHelper.Run(new RedirectLog(Log), ProjectFile.ItemSpec, IntermediatePackagePath.ItemSpec, generatedItems);
-
-            GeneratedItems = generatedItems.Select(x =>
-            {
-                var generatedItem = new TaskItem(x.SourcePath);
-                generatedItem.SetMetadata("Pack", "true");
-                generatedItem.SetMetadata("PackagePath", x.PackagePath);
-                return generatedItem;
-            }).ToArray();
-            return result;
-        }
-
-        class RedirectLog : Core.Diagnostics.Logger
-        {
-            TaskLoggingHelper log;
-
-            public RedirectLog(TaskLoggingHelper log)
-            {
-                this.log = log;
-
-                // Report warnings and errors
-                ActivateLog(LogMessageType.Warning);
-            }
-
-            protected override void LogRaw(ILogMessage logMessage)
-            {
-                switch (logMessage.Type)
-                {
-                    case LogMessageType.Debug:
-                    case LogMessageType.Verbose:
-                    case LogMessageType.Info:
-                        log.LogMessage(logMessage.Text);
-                        break;
-                    case LogMessageType.Warning:
-                        log.LogWarning(logMessage.Text);
-                        break;
-                    case LogMessageType.Error:
-                    case LogMessageType.Fatal:
-                        log.LogError(logMessage.Text);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
         }
     }
 }

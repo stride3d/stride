@@ -236,10 +236,21 @@ jobs:
       - name: Push NuGet packages
         shell: pwsh
         run: |
+          # Content-versioned template packages (Samples, Starters) follow StrideSamplesVersion and
+          # only change when the samples are bumped (see plans/samples-version-bump.md). Skip the
+          # upload when that version is already on nuget.org - re-publishing the same version is a
+          # no-op and these packages are large, so this avoids a wasted upload every release.
+          function Test-NuGetPublished([string]$id, [string]$version) {
+            $url = "https://api.nuget.org/v3-flatcontainer/$($id.ToLowerInvariant())/index.json"
+            try { return ((Invoke-RestMethod -Uri $url -TimeoutSec 60 -ErrorAction Stop).versions -contains $version) }
+            catch { return $false }  # 404 (never published) or transient: fall through to push (--skip-duplicate stays safe)
+          }
+
           $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
-          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Samples\.Templates' }
-          $samples = $packages | Where-Object { $_.Name -match 'Samples\.Templates' }
+          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters')
+          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
           $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
 
           echo "::group::Pushing main packages ($($main.Count))"
           foreach ($pkg in $main) {
@@ -248,9 +259,15 @@ jobs:
           }
           echo "::endgroup::"
 
-          if ($samples) {
-            echo "::group::Pushing Samples.Templates"
-            foreach ($pkg in $samples) {
+          if ($contentVersioned) {
+            echo "::group::Pushing content-versioned template packages (Samples, Starters)"
+            foreach ($pkg in $contentVersioned) {
+              $id = $contentVersionedIds | Where-Object { $pkg.Name.StartsWith($_ + '.') } | Select-Object -First 1
+              if ($id -and (Test-NuGetPublished $id $pkg.BaseName.Substring($id.Length + 1))) {
+                echo "Skipping $($pkg.Name) (already published; samples unchanged since last release)."
+                continue
+              }
+              echo "Pushing $($pkg.Name)..."
               dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
             }
             echo "::endgroup::"

@@ -7,7 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels

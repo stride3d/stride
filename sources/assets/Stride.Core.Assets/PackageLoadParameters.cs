@@ -130,6 +130,12 @@ public sealed class PackageLoadParameters
     public Func<Package, IList<PackageSession.PendingPackageUpgrade>, PackageUpgradeRequestedAnswer> PackageUpgradeRequested;
 
     /// <summary>
+    /// Set by the in-place upgrade flow to tolerate transient NU1605 downgrades when restoring a solution from a
+    /// mixed state. Off for normal loads (GameStudio, build), where a downgrade is a real error.
+    /// </summary>
+    public bool AllowUpgradeDowngradeRestore { get; set; }
+
+    /// <summary>
     /// Occurs when an asset is about to be loaded, if false is returned the asset will be ignored and not loaded.
     /// </summary>
     public Func<PackageLoadingAssetFile, bool> TemporaryAssetFilter;

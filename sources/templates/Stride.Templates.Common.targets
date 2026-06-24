@@ -6,6 +6,14 @@
     preprocess+aggregate pipeline, auto-pack-deploy, CI safeguards).
   -->
 
+  <!-- StrideSamplesVersion: version authority for the content-versioned packages (set
+       StrideTemplateContentVersioned=true in the csproj to opt in). -->
+  <Import Project="$(MSBuildThisFileDirectory)StrideSamplesVersion.props" />
+
+  <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.PackageInfo.targets.
+       Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -19,17 +27,9 @@
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
-    <!-- Inherit the engine's NuGet version derivation. Mirrors Stride.PackageInfo.targets at
-         sources/sdk/Stride.Build.Sdk/Sdk/ but inlined here because we use the vanilla
-         Microsoft.NET.Sdk (not the Stride SDK chain). Override at the CLI with
-         -p:PackageVersion=X to pin explicitly (release pipeline use). -->
-    <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' == 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.NuGet.cs</_StrideSharedAssemblyInfoFile>
-    <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' != 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.cs</_StrideSharedAssemblyInfoFile>
-    <_StrideSharedAssemblyInfoLines>$([System.IO.File]::ReadAllText('$(_StrideSharedAssemblyInfoFile)'))</_StrideSharedAssemblyInfoLines>
-    <StridePublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</StridePublicVersion>
-    <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
-    <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(StridePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
+    <!-- Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion;
+         the rest (Games = NewGame + Library) follow the engine version. CLI -p:PackageVersion= wins over both. -->
+    <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -128,7 +128,10 @@
     <_StrideEvalRootNorm>$([System.IO.Path]::GetFullPath('$(StrideRoot)').TrimEnd('\').TrimEnd('/'))</_StrideEvalRootNorm>
     <_StrideEvalRootEscaped>$([System.Text.RegularExpressions.Regex]::Escape('$(_StrideEvalRootNorm)'))</_StrideEvalRootEscaped>
     <_StrideEvalWorktreeToken Condition="'$(_StrideEvalWorktreeLedgerContent)' != ''">$([System.Text.RegularExpressions.Regex]::Match($(_StrideEvalWorktreeLedgerContent), `(?im)^\s*([^\s#=][^=]*?)\s*=\s*$(_StrideEvalRootEscaped)\s*$`).Groups[1].Value)</_StrideEvalWorktreeToken>
-    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
+    <!-- Mirror StrideVersionTasks.cs TokenToSuffix (keep in sync): '(primary)' (legacy) -> -dev,
+         '(empty)' -> no suffix, '' -> no suffix, else -<token>. -->
+    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' == '(primary)'">-dev</_StrideEvalWorktreeSuffix>
+    <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)' And '$(_StrideEvalWorktreeToken)' != '(empty)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
   </PropertyGroup>
 
   <!-- VS fast up-to-date inputs: project has no .cs files, so without these VS skips Build → no Pack → stale nupkg. -->

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\assets\Stride.Core.Assets.CompilerApp\Tasks\PackAssets.cs" Link="PackAssets.cs" />
+    <Compile Include="..\..\assets\Stride.AssetCompiler\Tasks\PackAssets.cs" Link="PackAssets.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
