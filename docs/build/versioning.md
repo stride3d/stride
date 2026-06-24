@@ -50,6 +50,8 @@ Multiple checkouts of Stride on one machine (git worktrees *or* independent clon
 
 So you just dispatch `release.yml` on the branch: it publishes the committed version, tags it, and (for a stable release) advances the source to the next patch — no manual version-bump commit. You only edit the version by hand to start a new major/minor cycle or a beta. (The bump-commit push needs the checkout token — `GH_PAT` — to have push rights to the branch, i.e. bypass branch protection.)
 
+The Deploy stage is a reusable workflow ([`release-deploy.yml`](../../.github/workflows/release-deploy.yml)) that `release.yml` calls with the current run. It can also be **dispatched standalone with a `run-id`** to deploy a *prior* signed build — the "sign once (`deploy: false`), test the artifacts locally, then deploy the exact same `.nupkg`s without a rebuild" flow. It downloads that run's `packages` artifact, tags the commit the artifacts were *built* from (not the current branch tip), and otherwise behaves identically (push → tag → release → bump).
+
 ## Samples & template package versions
 
 The in-repo samples are committed referencing a **clean release version** (e.g. `4.4.0`) — which is typically still *unreleased* at commit time, since the bump rides the release that publishes it (the matching packages only appear on nuget.org once `release.yml` deploys). Locally, only the `-devN` packages exist. So to build/run/edit a sample in your checkout (including opening it in GameStudio) you switch it to the local dev version, and switch back before committing — standalone targets in [`build/Stride.Samples.build`](../../build/Stride.Samples.build):
