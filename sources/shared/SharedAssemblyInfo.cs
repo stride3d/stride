@@ -18,10 +18,11 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// The version generators read <see cref="MajorMinor"/> + <see cref="MinPatch"/> from this file via regex and
-/// overlay the computed version into a generated copy (Stride.WorktreeVersion.targets -> SharedAssemblyInfo.Worktree.cs
-/// for dev builds, Stride.GitVersion.targets -> SharedAssemblyInfo.NuGet.cs for release/package builds). Keep the
-/// shape of the MajorMinor/MinPatch/NuGetVersionSuffix/BuildMetadata lines (name = "value";) so the regexes match.
+/// The version generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="MinPatch"/> from this
+/// file via regex and overlay the computed version into a single generated copy, SharedAssemblyInfo.Generated.cs,
+/// which the Stride SDK swaps in for this file at build time. Keep the shape of the
+/// MajorMinor/MinPatch/NuGetVersionSuffix/PublicVersion/BuildMetadata lines (name = "value";) so the regexes match.
+/// This un-overlaid file is the floor source; its <see cref="PublicVersion"/> is a sentinel (see below).
 /// </remarks>
 internal class StrideVersion
 {
@@ -56,11 +57,12 @@ internal class StrideVersion
     public const string MinVersion = MajorMinor + "." + MinPatch;
 
     /// <summary>
-    /// The version used by the editor for display. Equals the build version — the generators overlay
-    /// <see cref="MinPatch"/> with the computed patch; mirrors <see cref="MinVersion"/> when compiled directly
-    /// (CI / no overlay).
+    /// The build version (used for display and as <see cref="AssemblyFileVersion"/> /
+    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the computed version. In this
+    /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="MinVersion"/> so
+    /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking floor.
     /// </summary>
-    public const string PublicVersion = MinVersion;
+    public const string PublicVersion = MajorMinor + ".65534";
 
     /// <summary>
     /// The assembly binding identity: pinned per major.minor (the patch must not churn it), so it is derived from

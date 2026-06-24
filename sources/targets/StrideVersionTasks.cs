@@ -41,18 +41,27 @@ internal static class StrideVersionUtil
     // them. Tag candidate = the exact releases/<mm>.<N> on HEAD (idempotent re-release, no +1), else the highest
     // reachable + 1; absent any tag it contributes nothing (the floor stands). Ancestor-scoped so branches and
     // fork-only tags don't leak in; all-local so it works offline.
-    public static string ResolveFloor(string workingDir, string majorMinor, string minVersion, string overrideVersion, TaskLoggingHelper log)
+    public static string ResolveFloor(string workingDir, string majorMinor, string minVersion, string overrideVersion, TaskLoggingHelper log, out bool resolvedFromTag)
     {
         string best = minVersion;
-        if (!string.IsNullOrWhiteSpace(overrideVersion))
+        // An explicit StridePublicVersion override is an intentional version pin, so it counts as resolved (the
+        // release task only hard-fails when it would otherwise fall back to the bare floor with nothing behind it).
+        resolvedFromTag = !string.IsNullOrWhiteSpace(overrideVersion);
+        if (resolvedFromTag)
             best = MaxVersion(best, overrideVersion.Trim());
         try
         {
             int patch;
             if (TryMaxReleasePatch(Git(workingDir, "tag --points-at HEAD --list releases/" + majorMinor + ".*"), majorMinor, out patch))
+            {
                 best = MaxVersion(best, majorMinor + "." + patch);
+                resolvedFromTag = true;
+            }
             else if (TryMaxReleasePatch(Git(workingDir, "tag --list releases/" + majorMinor + ".* --merged HEAD"), majorMinor, out patch))
+            {
                 best = MaxVersion(best, majorMinor + "." + (patch + 1));
+                resolvedFromTag = true;
+            }
             else
             {
                 bool shallow = Git(workingDir, "rev-parse --is-shallow-repository") == "true";
@@ -114,15 +123,17 @@ internal static class StrideVersionUtil
     }
 
     // Overlay the computed version + suffix (+ optional build metadata) into a copy of the source version file.
-    // Rewrites MinPatch (the part of the version within MajorMinor); MinVersion/PublicVersion derive from it, and
-    // the readers + compiled consts pick it up. The computed version is within MajorMinor for the floor and the
-    // release tags; a StridePublicVersion override pointing outside MajorMinor is out of contract (bump MajorMinor).
+    // Rewrites MinPatch (the floor, read back by the package producers) and PublicVersion (the sentinel in the
+    // template -> the real computed version, read by the compiled consts). The computed version is within MajorMinor
+    // for the floor and the release tags; a StridePublicVersion override pointing outside MajorMinor is out of
+    // contract (bump MajorMinor).
     public static string Overlay(string source, string majorMinor, string version, string suffix, string buildMetadata)
     {
         string minPatch = version.StartsWith(majorMinor + ".", StringComparison.Ordinal)
             ? version.Substring(majorMinor.Length + 1)
             : version;
         string patched = Regex.Replace(source, "MinPatch = \"[^\"]*\";", "MinPatch = \"" + minPatch + "\";");
+        patched = Regex.Replace(patched, "const string PublicVersion = [^;]*;", "const string PublicVersion = \"" + version + "\";");
         patched = Regex.Replace(patched, "NuGetVersionSuffix = \"[^\"]*\";", "NuGetVersionSuffix = \"" + suffix + "\";");
         if (buildMetadata != null)
             patched = Regex.Replace(patched, "BuildMetadata = \"[^\"]*\";", "BuildMetadata = \"" + buildMetadata + "\";");
@@ -130,16 +141,22 @@ internal static class StrideVersionUtil
     }
 }
 
-// Dev builds: resolve this checkout's -devN suffix from a per-machine ledger and overlay the build version into
-// SharedAssemblyInfo.Worktree.cs. Multiple checkouts on one machine each get a distinct suffix so they stop
-// clobbering each other in the shared NugetDev feed / global cache. A tag-state stamp caches the result so the
-// per-project invocations don't each shell out to git.
+// The per-project version generator: resolve this checkout's suffix and overlay the build version into
+// SharedAssemblyInfo.Generated.cs (the single file the Stride SDK swaps in). On dev builds the suffix comes from a
+// per-machine ledger (-devN) so multiple checkouts on one machine stop clobbering each other in the shared NugetDev
+// feed / global cache. On CI (and when StrideSkipWorktreeVersion is set) NoLedgerSuffix gives the clean, unsuffixed
+// version with no ledger touch. A tag-state stamp caches the result so the per-project invocations don't each shell
+// out to git.
 public class ResolveStrideWorktreeVersion : Task
 {
     [Required] public string StrideRoot { get; set; }
 
     // Explicit override (StrideWorktreeId property/env var); wins over the ledger when set.
     public string OverrideId { get; set; }
+
+    // CI / StrideSkipWorktreeVersion: emit the overlay with an empty suffix and no ledger registration (but keep the
+    // tag-state fast path, unlike an explicit OverrideId, so CI doesn't shell out to git once per project).
+    public bool NoLedgerSuffix { get; set; }
 
     // Ledger location override (StrideWorktreeLedger property); defaults to LocalApplicationData/Stride/worktree-ids.txt.
     public string LedgerPath { get; set; }
@@ -180,7 +197,9 @@ public class ResolveStrideWorktreeVersion : Task
                     {
                         string token = !string.IsNullOrWhiteSpace(OverrideId)
                             ? OverrideId.Trim()
-                            : ResolveOrRegister(ledgerPath, root);
+                            : NoLedgerSuffix
+                                ? "(empty)"
+                                : ResolveOrRegister(ledgerPath, root);
 
                         WorktreeSuffix = TokenToSuffix(token);
                         WriteGeneratedFile(WorktreeSuffix, stamp);
@@ -272,16 +291,10 @@ public class ResolveStrideWorktreeVersion : Task
     {
         string majorMinor, minVersion, baseSuffix;
         StrideVersionUtil.ReadInputs(SourceVersionFile, out majorMinor, out minVersion, out baseSuffix);
-        string devVersion = StrideVersionUtil.ResolveFloor(StrideRoot, majorMinor, minVersion, PublicVersionOverride, Log);
+        string devVersion = StrideVersionUtil.ResolveFloor(StrideRoot, majorMinor, minVersion, PublicVersionOverride, Log, out _);
 
-        if (suffix.Length == 0 && devVersion == minVersion)
-        {
-            // No suffix (e.g. the "(empty)" opt-out) and no release-tag/override delta: nothing differs.
-            if (File.Exists(GeneratedVersionFile))
-                File.Delete(GeneratedVersionFile);
-            return;
-        }
-
+        // Always emit the overlay (even when it would equal the floor): the base file's PublicVersion is an
+        // implausible sentinel, so leaving the base to compile would ship that sentinel instead of the floor.
         string patched = StrideVersionUtil.Overlay(File.ReadAllText(SourceVersionFile), majorMinor, devVersion, suffix, null);
         // Cache key = stamp + resolved suffix; TryFastPath reuses the file while the stamp matches.
         patched += "\n// git-stamp: " + stamp + "|" + suffix + "\n";
@@ -401,14 +414,19 @@ public class ResolveStrideWorktreeVersion : Task
 }
 
 // Release/package builds: overlay the tag-resolved build version + release suffix + "+g<sha>" build metadata into
-// SharedAssemblyInfo.NuGet.cs. Shares the floor logic with the dev generator (so a committed MinVersion bump is
-// honored at release too), but has no ledger/cache and adds build metadata.
+// SharedAssemblyInfo.Generated.cs. Shares the floor logic with the dev generator (so a committed MinVersion bump is
+// honored at release too), but has no ledger/cache and adds build metadata. Hard-fails when no release tag is
+// reachable (it would otherwise ship the bare floor) unless AllowFloor opts in.
 public class StrideGitVersion : Task
 {
     [Required] public string RootDirectory { get; set; }
     [Required] public string VersionFile { get; set; }
     [Required] public string GeneratedVersionFile { get; set; }
     public string SuffixOverride { get; set; }
+
+    // Allow shipping the bare floor when no release tag is reachable (first release ever, or a deliberate offline
+    // package build). Off by default so a tagless CI/release run fails loudly instead of shipping a wrong version.
+    public bool AllowFloor { get; set; }
 
     [Output] public string NuGetVersion { get; set; }
 
@@ -426,7 +444,13 @@ public class StrideGitVersion : Task
             if (!string.IsNullOrEmpty(SuffixOverride))
                 suffix = "-" + SuffixOverride.TrimStart('-');
 
-            string version = StrideVersionUtil.ResolveFloor(RootDirectory, majorMinor, minVersion, null, Log);
+            string version = StrideVersionUtil.ResolveFloor(RootDirectory, majorMinor, minVersion, null, Log, out bool resolvedFromTag);
+            if (!resolvedFromTag && !AllowFloor)
+            {
+                Log.LogError("StrideGitVersion: no releases/" + majorMinor + ".* tag reachable from HEAD, so the package would ship the bare floor " + version +
+                    ". Run `git fetch --tags` (or `--unshallow`), or set StrideAllowFloorVersion=true for a deliberate floor build.");
+                return false;
+            }
             string sha = StrideVersionUtil.Git(RootDirectory, "rev-parse HEAD").Substring(0, 8);
 
             string patched = StrideVersionUtil.Overlay(File.ReadAllText(sourcePath), majorMinor, version, suffix, "+g" + sha);

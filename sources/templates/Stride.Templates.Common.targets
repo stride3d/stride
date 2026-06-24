@@ -10,6 +10,10 @@
        StrideTemplateContentVersioned=true in the csproj to opt in). -->
   <Import Project="$(MSBuildThisFileDirectory)StrideSamplesVersion.props" />
 
+  <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.PackageInfo.targets.
+       Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -23,20 +27,6 @@
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
-    <!-- Inherit the engine's NuGet version derivation. Mirrors Stride.PackageInfo.targets at
-         sources/sdk/Stride.Build.Sdk/Sdk/ but inlined here because we use the vanilla
-         Microsoft.NET.Sdk (not the Stride SDK chain). Override at the CLI with
-         -p:PackageVersion=X to pin explicitly (release pipeline use). -->
-    <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' == 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.NuGet.cs</_StrideSharedAssemblyInfoFile>
-    <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' != 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.cs</_StrideSharedAssemblyInfoFile>
-    <_StrideSharedAssemblyInfoLines>$([System.IO.File]::ReadAllText('$(_StrideSharedAssemblyInfoFile)'))</_StrideSharedAssemblyInfoLines>
-    <!-- Computed package version = MajorMinor.MinPatch (distinct from the user-facing StridePublicVersion override read by the version generators). -->
-    <_StridePackageMajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MajorMinor = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMajorMinor>
-    <_StridePackageMinPatch>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MinPatch = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMinPatch>
-    <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackageMinPatch)</_StridePackagePublicVersion>
-    <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
-    <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
     <!-- Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion;
          the rest (Games = NewGame + Library) follow the engine version. CLI -p:PackageVersion= wins over both. -->
     <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>

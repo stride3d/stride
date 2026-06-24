@@ -332,14 +332,22 @@
   </Target>
 
   <!-- ================================================================ -->
-  <!-- SharedAssemblyInfo.NuGet.cs Replacement for Package Builds -->
+  <!-- Swap SharedAssemblyInfo.cs -> SharedAssemblyInfo.Generated.cs    -->
   <!-- ================================================================ -->
-  <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">
-    <Error Condition="!Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run successfully."/>
-    <ItemGroup>
+  <!-- The single place that swaps the version template for the generated overlay, so the StrideVersion.* consts
+       carry the real computed version. Dev/CI builds: StrideEnsureWorktreeVersion (a dependency) generates the
+       overlay first. Package builds: the overlay is generated once up front by StrideGitVersion in Stride.build, so
+       here we only require that it exists. If it is somehow missing we leave the base template, which compiles the
+       sentinel PublicVersion (4.4.65534) - loud rather than a plausible-looking wrong version. -->
+  <Target Name="StrideApplyGeneratedVersion"
+          DependsOnTargets="StrideEnsureWorktreeVersion"
+          BeforeTargets="PrepareResources">
+    <Error Condition="'$(StridePackageBuild)' == 'true' And !Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')"
+           Text="SharedAssemblyInfo.Generated.cs has not been generated. Make sure the Stride.build PackageEnvironment target (StrideGitVersion) ran successfully before the package build."/>
+    <ItemGroup Condition="Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
       <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(StrideRoot)sources\shared\SharedAssemblyInfo.cs`))'"/>
       <Compile Remove="@(StrideSharedAssemblyFile)" />
-      <Compile Include="@(StrideSharedAssemblyFile->'$(StrideRoot)sources\shared\SharedAssemblyInfo.NuGet.cs')" />
+      <Compile Include="@(StrideSharedAssemblyFile->'$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')" />
     </ItemGroup>
   </Target>
 

@@ -70,12 +70,12 @@ if (string.IsNullOrEmpty(version))
     // Package versions use the committed floor (MajorMinor.MinPatch); the release-tag-based bump lives only in the
     // generated overlay / compiled constants (see StrideVersionTasks.cs). The -devN suffix comes from the
     // generated overlay when present.
-    var worktreeFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Worktree.cs");
+    var generatedFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Generated.cs");
     var plainFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.cs");
     var plainText = File.ReadAllText(plainFile);
     var mmMatch = Regex.Match(plainText, @"MajorMinor\s*=\s*""([^""]+)""");
     var patchMatch = Regex.Match(plainText, @"MinPatch\s*=\s*""([^""]+)""");
-    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(worktreeFile) ? worktreeFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
+    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(generatedFile) ? generatedFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
     if (!mmMatch.Success || !patchMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
     version = mmMatch.Groups[1].Value + "." + patchMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }

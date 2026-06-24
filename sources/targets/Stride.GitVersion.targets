@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- StrideGitVersion task: stamps the release/package version into SharedAssemblyInfo.NuGet.cs.
+<!-- StrideGitVersion task: stamps the release/package version into SharedAssemblyInfo.Generated.cs.
      Build version = max(MinVersion, next releases/<MajorMinor>.* number reachable from HEAD) + release suffix +
      "+g<sha>" build metadata. The version floor is shared with the dev generator (Stride.WorktreeVersion.targets)
      via StrideVersionTasks.cs, so a committed MinVersion bump is honored at release too. Compiled at runtime by
