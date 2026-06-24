@@ -24,6 +24,8 @@ namespace Stride.LauncherApp.ViewModels
             this.localPackage = localPackage;
             this.isDevRedirect = isDevRedirect;
             DownloadCommand.IsEnabled = false;
+            // Populate the framework list so SelectedFramework is set and the version can be started.
+            UpdateFrameworks();
             // Update initial status (IsVisible will be set to true)
             UpdateStatus();
         }
