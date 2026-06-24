@@ -211,6 +211,8 @@ jobs:
     name: Deploy ${{ needs.Package.outputs.version }}
     if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
+    permissions:
+      contents: write
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}
