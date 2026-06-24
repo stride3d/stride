@@ -164,23 +164,21 @@ public static class DotNetNewTemplateBridge
     /// </summary>
     private static void InstallBundledPackage(string packageId, Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, Logger logger)
     {
-        // Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion and
-        // can lag the engine, so resolve the highest available at-or-below the engine version (suffix
-        // included, so a local dev build wins over a release). Games (NewGame + Library) is
-        // engine-versioned, resolved exactly.
-        var engineVersion = new PackageVersion(StrideVersion.NuGetVersion);
+        // Resolve each package at the exact version it's packed at (exact range, so release/prerelease ordering is
+        // moot). Content-versioned (Samples, Starters) = StrideSamplesVersion + engine suffix, matching the pack in
+        // Stride.Templates.Common.targets from the same source; Games is engine-versioned.
         var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters";
-        var versionRange = contentVersioned
-            ? new PackageVersionRange(null, false, engineVersion, true)
-            : new PackageVersionRange(engineVersion);
+        var version = contentVersioned
+            ? new PackageVersion(StrideVersion.SamplesVersion + StrideVersion.NuGetVersionSuffix)
+            : new PackageVersion(StrideVersion.NuGetVersion);
+        var versionRange = new PackageVersionRange(version, true, version, true);
         var packageDir = PackageStore.Instance.GetPackageDirectory(packageId, versionRange);
         if (packageDir is null)
         {
             // Not installed yet (e.g. fresh checkout before first build of that templates
             // project). Not fatal — the editor still opens; this package's templates just
             // won't appear in the New-Project dialog until built at least once.
-            var wanted = contentVersioned ? $"<= {StrideVersion.NuGetVersion}" : StrideVersion.NuGetVersion;
-            logger.Warning($"{packageId} {wanted} not found via PackageStore; its templates will be unavailable.");
+            logger.Warning($"{packageId} {version} not found via PackageStore; its templates will be unavailable.");
             return;
         }
         // Install from the extracted package directory rather than the .nupkg file inside it.

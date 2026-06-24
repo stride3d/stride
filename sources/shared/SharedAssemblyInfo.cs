@@ -51,6 +51,13 @@ internal class StrideVersion
     /// </summary>
     public const string NuGetVersionSuffix = "";
 
+    /// <summary>
+    /// Base version of the content-versioned template packages (Starters, Samples), independent of the engine
+    /// version. The bridge query and Stride.Templates.Common.targets pack both append <see cref="NuGetVersionSuffix"/>
+    /// to it (one source, so they can't drift); StrideSamplesVersion.props reads it for the build.
+    /// </summary>
+    public const string SamplesVersion = "4.4.0";
+
     // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The version: MajorMinor.Patch (the single readable value; the editable parts are above).</summary>
