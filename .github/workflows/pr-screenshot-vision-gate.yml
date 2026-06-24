@@ -4,7 +4,7 @@ name: Screenshot Vision Gate
 # the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
 # failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator +
 # gold), over the PR's uploaded image artifacts only — so no PR-built code ever runs with the key.
-# It posts a "Screenshot Vision Gate" check on the PR head; mark it required to make deferrals blocking.
+# It posts a "Screenshot Vision Gate" status on the PR head; mark it required to make deferrals blocking.
 
 on:
   workflow_run:
@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
   actions: read       # download artifacts from the triggering run
-  checks: write       # post the gate check on the PR head
+  statuses: write     # post the gate status on the PR head
 
 jobs:
   vision-gate:
@@ -32,6 +32,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+          lfs: true
 
       - name: Download screenshot artifacts from the triggering run
         uses: actions/download-artifact@v4
@@ -90,24 +91,23 @@ jobs:
           fi
           echo "result=$rc" >> "$GITHUB_OUTPUT"
 
-      - name: Post gate check on PR head
+      # Posted as a commit status (not a Checks API run) so it shows as its own entry on the PR
+      # instead of nesting under an arbitrary unrelated workflow's check suite. target_url points at
+      # this gate run — where the actual re-judge log lives.
+      - name: Post gate status on PR head
         if: always()
         uses: actions/github-script@v8
         with:
           script: |
             const ok = '${{ steps.gate.outputs.result }}' === '0';
-            await github.rest.checks.create({
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner, repo: context.repo.repo,
-              name: 'Screenshot Vision Gate',
-              head_sha: context.payload.workflow_run.head_sha,
-              status: 'completed',
-              conclusion: ok ? 'success' : 'failure',
-              details_url: context.payload.workflow_run.html_url,
-              output: {
-                title: ok ? 'Deferred frames resolved' : 'Deferred frame(s) failed the vision re-judge',
-                summary: ok
-                  ? 'Frames the keyless run deferred were re-judged with the vision tiebreak and passed (or nothing was deferred).'
-                  : 'One or more deferred frames could not be conclusively resolved to a pass. See the gate run logs.',
-              },
+              sha: context.payload.workflow_run.head_sha,
+              context: 'Screenshot Vision Gate',
+              state: ok ? 'success' : 'failure',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: ok
+                ? 'Deferred frames resolved (or nothing was deferred)'
+                : 'Deferred frame(s) failed the vision re-judge',
             });
             if (!ok) core.setFailed('Screenshot Vision Gate failed');
