@@ -1,14 +1,4 @@
-<!-- Per-checkout NuGet version suffix + local build version stamping (dev builds).
-
-     Multiple checkouts of Stride on one machine (git worktrees or independent clones) all auto-pack first-party
-     packages at the same version and clobber each other in the shared %LocalAppData%/Stride/NugetDev feed and the
-     global NuGet cache. A per-machine ledger at <LocalApplicationData>/Stride/worktree-ids.txt maps each checkout
-     to a token — the first is "dev" (the "-dev" suffix), the rest "dev2", "dev3", ... — so no local build carries
-     the clean release version (which would shadow a real release in the cache). Use the token "(empty)" for a
-     checkout that should build the clean version with no suffix. The suffix feeds NuGetVersionSuffix on both ends:
-     the .nupkg version (producer, via StrideAppendWorktreeVersion in Stride.PackageInfo.targets) and the
-     StrideVersion.NuGetVersion const baked into Stride.Assets.dll (consumer, via the SharedAssemblyInfo.cs ->
-     SharedAssemblyInfo.Worktree.cs swap below).
+<!-- Per-project version stamping (dev + CI; the release/package path uses StrideGitVersion in Stride.build).
 
      The build version is max(MinVersion, latest releases/<MajorMinor>.* + 1, [StridePublicVersion override]),
      computed in StrideVersionTasks.cs and shared with the release generator (Stride.GitVersion.targets). It is
@@ -17,54 +7,58 @@
      build/Stride.Local.props, never the tracked source) when you need a higher ceiling, e.g. while authoring
      several asset upgraders in sequence.
 
-     Disabled on CI and package builds: there the suffix stays empty (the release pipeline computes the version via
-     StrideGitVersion in Stride.build). -->
+     The computed version is overlaid into SharedAssemblyInfo.Generated.cs, which the Stride SDK swaps in for
+     SharedAssemblyInfo.cs at compile time (see StrideApplyGeneratedVersion in Sdk.targets) so the
+     StrideVersion.* consts carry the real version. The overlay is always emitted: the base file's PublicVersion is
+     an implausible sentinel, so a build that skipped this would ship that sentinel.
+
+     Suffix: multiple checkouts on one machine (worktrees/clones) would otherwise auto-pack first-party packages at
+     the same version and clobber each other in the shared %LocalAppData%/Stride/NugetDev feed and the global NuGet
+     cache. A per-machine ledger at <LocalApplicationData>/Stride/worktree-ids.txt maps each checkout to a token —
+     first is "dev" (the "-dev" suffix), the rest "dev2", "dev3", ... Use the token "(empty)" for a checkout that
+     should build the clean version. The suffix feeds NuGetVersionSuffix on both ends: the .nupkg version (producer,
+     via StrideAppendWorktreeVersion in Stride.PackageInfo.targets) and the StrideVersion.NuGetVersion const baked
+     into the assemblies (consumer, via the overlay).
+
+     On CI (and when StrideSkipWorktreeVersion is set) NoLedgerSuffix gives the clean unsuffixed version with no
+     ledger touch, while still generating the overlay and keeping the tag-state fast path. -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
     <_StrideWorktreeVersionTargetsImported>true</_StrideWorktreeVersionTargetsImported>
-    <!-- RoslynCodeTaskFactory compiles the task at UsingTask registration, not lazily on first use — so gating
-         only the target would still pay the compile on every CI build. This gate goes on the UsingTask itself. It
-         reads env vars only, so it is valid at import time (unlike StridePackageBuild, which the target condition
-         adds at run time). -->
-    <_StrideWorktreeVersionEnabled Condition="'$(_StrideWorktreeVersionEnabled)' == ''">true</_StrideWorktreeVersionEnabled>
-    <_StrideWorktreeVersionEnabled Condition="'$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true' Or '$(StrideSkipWorktreeVersion)' == 'true'">false</_StrideWorktreeVersionEnabled>
+    <!-- CI / explicit skip: empty suffix, no ledger registration (but still generate the overlay). -->
+    <_StrideNoLedgerSuffix Condition="'$(_StrideNoLedgerSuffix)' == ''">false</_StrideNoLedgerSuffix>
+    <_StrideNoLedgerSuffix Condition="'$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true' Or '$(StrideSkipWorktreeVersion)' == 'true'">true</_StrideNoLedgerSuffix>
   </PropertyGroup>
 
-  <UsingTask Condition="'$(_StrideWorktreeVersionEnabled)' == 'true'" TaskName="ResolveStrideWorktreeVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="ResolveStrideWorktreeVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <Task>
       <Code Type="Class" Source="$(MSBuildThisFileDirectory)StrideVersionTasks.cs" Language="cs" />
     </Task>
   </UsingTask>
 
-  <!-- Auto path (dev builds): resolve the suffix, then swap SharedAssemblyInfo.cs ->
-       SharedAssemblyInfo.Worktree.cs so the consumer-side StrideVersion.NuGetVersion const is
-       compiled with the suffix. Gated off on CI and package builds. The lock inside the task
-       plus this target running before CoreCompile means no project ever compiles the generated
-       file while another is still writing it. -->
+  <!-- Resolve the suffix and (re)generate SharedAssemblyInfo.Generated.cs. Skipped on package builds: there
+       StrideGitVersion (Stride.build) generates the overlay once up front. The lock inside the task plus this target
+       running before PrepareResources means no project compiles the generated file while another is still writing
+       it. The actual Compile swap lives in StrideApplyGeneratedVersion (Sdk.targets), so it happens in one place. -->
   <Target Name="StrideEnsureWorktreeVersion"
-          Condition="'$(_StrideWorktreeVersionEnabled)' == 'true' And '$(StridePackageBuild)' != 'true'"
+          Condition="'$(StridePackageBuild)' != 'true'"
           BeforeTargets="PrepareResources">
     <ResolveStrideWorktreeVersion
         StrideRoot="$(StrideRoot)"
         OverrideId="$(StrideWorktreeId)"
+        NoLedgerSuffix="$(_StrideNoLedgerSuffix)"
         PublicVersionOverride="$(StridePublicVersion)"
         LedgerPath="$(StrideWorktreeLedger)"
         SourceVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.cs"
-        GeneratedVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.Worktree.cs">
+        GeneratedVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs">
       <Output TaskParameter="WorktreeSuffix" PropertyName="StrideWorktreeSuffix" />
-      <Output TaskParameter="Generated" PropertyName="_StrideWorktreeGenerated" />
     </ResolveStrideWorktreeVersion>
-    <ItemGroup Condition="'$(_StrideWorktreeGenerated)' == 'true'">
-      <_StrideWorktreeSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(StrideRoot)sources\shared\SharedAssemblyInfo.cs`))'" />
-      <Compile Remove="@(_StrideWorktreeSharedAssemblyFile)" />
-      <Compile Include="@(_StrideWorktreeSharedAssemblyFile->'$(StrideRoot)sources\shared\SharedAssemblyInfo.Worktree.cs')" />
-    </ItemGroup>
   </Target>
 
   <!-- Explicit path: `dotnet msbuild -t:StrideRegisterWorktree` registers the checkout in the
        ledger (or reports its token) without a full build — handy from a worktree-setup script.
-       Reuses StrideEnsureWorktreeVersion so the task is invoked from one place; a no-op on CI. -->
+       Reuses StrideEnsureWorktreeVersion so the task is invoked from one place. -->
   <Target Name="StrideRegisterWorktree" DependsOnTargets="StrideEnsureWorktreeVersion">
     <Message Importance="high" Text="Stride worktree version suffix for $(StrideRoot): '$(StrideWorktreeSuffix)' (first checkout = '-dev'; empty via the '(empty)' ledger token or StrideSkipWorktreeVersion/CI)" />
   </Target>

@@ -131,8 +131,9 @@ Example: dotnet build build/Stride.build -t:Package
 
     <Delete Files="@(FilesToDeletePackages)"/>
 
-    <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SuffixOverride="$(StrideVersionSuffix)">
+    <!-- Create SharedAssemblyInfo.Generated.cs with the tag-resolved version + git metadata (the Stride SDK swaps
+         it in for SharedAssemblyInfo.cs when building the packages). -->
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs" SuffixOverride="$(StrideVersionSuffix)" AllowFloor="$(StrideAllowFloorVersion)">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </StrideGitVersion>
 

@@ -15,6 +15,8 @@ The source of truth is [`sources/shared/SharedAssemblyInfo.cs`](../../sources/sh
 
 `NuGetVersion = PublicVersion + NuGetVersionSuffix`; `StrideVersion.NuGetVersion` (the compiled const) is what the package upgrader stamps into consumer projects.
 
+Both the dev and release generators overlay the computed version into a single generated file, `SharedAssemblyInfo.Generated.cs`, which the Stride SDK swaps in for `SharedAssemblyInfo.cs` at compile time. The overlay is **always** generated and swapped; the checked-in `SharedAssemblyInfo.cs` is the floor template, and its `PublicVersion` is a deliberately implausible sentinel (`4.4.65534`) decoupled from the floor — so any build that skipped the swap ships an obvious `4.4.65534` rather than a plausible-looking floor.
+
 ### Where the patch comes from — `StrideGitVersion`
 
 [`sources/targets/Stride.GitVersion.targets`](../../sources/targets/Stride.GitVersion.targets) defines the inline `StrideGitVersion` task (imported by `build/Stride.build` for package builds, and by `build/Stride.Samples.build`). The patch is derived from `releases/<major.minor>.*` tags **reachable from HEAD** (ancestor-scoped, so branches and fork-only tags don't leak in):
@@ -29,12 +31,12 @@ So between releases every build reports the **next** release number, stable unti
 
 Multiple checkouts of Stride on one machine (git worktrees *or* independent clones) all auto-pack first-party packages and would clobber each other in the shared `%LocalAppData%/Stride/NugetDev` feed and the global NuGet cache.
 
-[`sources/targets/Stride.WorktreeVersion.targets`](../../sources/targets/Stride.WorktreeVersion.targets) gives each checkout a distinct suffix. A per-machine ledger at `<LocalAppData>/Stride/worktree-ids.txt` maps each checkout path to a token: the **first** checkout to register is `dev` (suffix `-dev`), the rest get `dev2`, `dev3`, … The token feeds `NuGetVersionSuffix` on both ends (the produced `.nupkg` and the `StrideVersion.NuGetVersion` const baked into `Stride.Assets.dll`), via a build-time swap to `SharedAssemblyInfo.Worktree.cs`. So checkout `dev2` produces/consumes `4.4.0-dev2`.
+[`sources/targets/Stride.WorktreeVersion.targets`](../../sources/targets/Stride.WorktreeVersion.targets) gives each checkout a distinct suffix. A per-machine ledger at `<LocalAppData>/Stride/worktree-ids.txt` maps each checkout path to a token: the **first** checkout to register is `dev` (suffix `-dev`), the rest get `dev2`, `dev3`, … The token feeds `NuGetVersionSuffix` on both ends (the produced `.nupkg` and the `StrideVersion.NuGetVersion` const baked into `Stride.Assets.dll`), via the build-time swap to `SharedAssemblyInfo.Generated.cs`. So checkout `dev2` produces/consumes `4.4.0-dev2`.
 
 **Every** local build is suffixed — including the first checkout (`-dev`). The clean version (`4.4.0`) is reserved for releases, so a local build can never share a version (and thus a global-cache slot or `NugetDev` file) with the eventual release, which would otherwise silently shadow it. This also means going from an official release to a local dev build and back is safe: `4.4.0-dev` and `4.4.0` are distinct everywhere.
 
 - **Clean build, no suffix** — give the checkout the special ledger token `(empty)` (or set `-p:StrideSkipWorktreeVersion=true` per build), e.g. to reproduce a release locally. Legacy ledgers using `(primary)` are still honored (treated as `-dev`).
-- **Disabled on CI / package builds** (`$(CI)`, `$(GITHUB_ACTIONS)`, `$(StridePackageBuild)`) — there the suffix stays empty and builds are byte-identical to a clean `4.4.0`.
+- **Empty suffix on CI / package builds** (`$(CI)`, `$(GITHUB_ACTIONS)`, `$(StridePackageBuild)`) — the overlay is still generated (so the version is real), but with no `-devN` suffix and no ledger touch, so builds are byte-identical to a clean `4.4.0`.
 - Dev builds also stamp `PublicVersion = <mm>.<last release tag + 1>` so a local build sits just above the most recent release. Override with `StridePublicVersion` in the gitignored `build/Stride.Local.props` when you need a higher ceiling (e.g. authoring several asset upgraders).
 - `dotnet msbuild build/Stride.build -t:StrideRegisterWorktree` registers/prints this checkout's token.
 
