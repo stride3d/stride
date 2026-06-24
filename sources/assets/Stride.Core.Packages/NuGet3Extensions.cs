@@ -33,7 +33,9 @@ public static class NuGet3Extensions
     {
         ArgumentNullException.ThrowIfNull(version);
 
-        return new PackageVersion(version.Version, version.Release);
+        // Build from the normalized string (e.g. "4.4.0-beta1") so the display keeps the 3-part form; passing
+        // version.Version would use NuGet's 4-part System.Version and render as "4.4.0.0-beta1".
+        return new PackageVersion(version.ToNormalizedString());
     }
 
     /// <summary>
