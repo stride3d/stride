@@ -27,9 +27,9 @@
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
-    <!-- Content-versioned packages (Samples, Starters) follow the committed StrideSamplesVersion;
-         the rest (Games = NewGame + Library) follow the engine version. CLI -p:PackageVersion= wins over both. -->
-    <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>
+    <!-- Content-versioned packages (Samples, Starters) = StrideSamplesVersion + engine prerelease suffix (matches
+         the bridge query); the rest (Games) follow the engine version. CLI -p:PackageVersion= wins over both. -->
+    <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)$(StrideNuGetVersionSuffix)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
