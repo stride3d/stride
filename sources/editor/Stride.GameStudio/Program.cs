@@ -165,11 +165,28 @@ public static class Program
                 GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
 
                 mainDispatcher = Dispatcher.CurrentDispatcher;
-                mainDispatcher.InvokeAsync(() => Startup(initialSessionPath));
+                mainDispatcher.InvokeAsync(() =>
+                {
+                    // Surface startup failures that escape Startup before its first await, instead of
+                    // leaving the dispatcher pumping with no window.
+                    try
+                    {
+                        Startup(initialSessionPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        HandleException(ex, 0);
+                    }
+                });
 
                 using (new WindowManager(mainDispatcher))
                 {
                     app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+                    app.DispatcherUnhandledException += (sender, eventArgs) =>
+                    {
+                        eventArgs.Handled = true;
+                        HandleException(eventArgs.Exception, 0);
+                    };
                     app.Activated += (sender, eventArgs) =>
                     {
                         StrideGameStudio.MetricsClient?.SetActiveState(true);
@@ -358,9 +375,10 @@ public static class Program
                 app.Shutdown();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            app.Shutdown();
+            // Don't shut down silently — report the failure so the user sees what went wrong.
+            HandleException(ex, 0);
         }
     }
 
