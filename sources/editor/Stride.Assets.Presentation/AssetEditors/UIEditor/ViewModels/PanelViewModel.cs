@@ -13,7 +13,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.Extensions;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.UI;
 using Stride.UI;

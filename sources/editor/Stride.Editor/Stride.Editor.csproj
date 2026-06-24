@@ -22,7 +22,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj" />
+    <ProjectReference Include="..\..\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />

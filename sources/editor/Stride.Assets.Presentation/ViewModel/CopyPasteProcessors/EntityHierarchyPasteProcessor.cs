@@ -10,7 +10,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors

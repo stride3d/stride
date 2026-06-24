@@ -67,15 +67,17 @@ if (string.IsNullOrEmpty(solution))
 
 if (string.IsNullOrEmpty(version))
 {
-    // Package versions use the committed base version (no git height — that lives only in
-    // the compiled constants; see Stride.WorktreeVersion.targets). The -devN suffix comes
-    // from the generated overlay when present.
-    var worktreeFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Worktree.cs");
+    // Package versions use the committed floor (MajorMinor.MinPatch); the release-tag-based bump lives only in the
+    // generated overlay / compiled constants (see StrideVersionTasks.cs). The -devN suffix comes from the
+    // generated overlay when present.
+    var generatedFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Generated.cs");
     var plainFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.cs");
-    var publicMatch = Regex.Match(File.ReadAllText(plainFile), @"PublicVersion\s*=\s*""([^""]+)""");
-    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(worktreeFile) ? worktreeFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
-    if (!publicMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
-    version = publicMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
+    var plainText = File.ReadAllText(plainFile);
+    var mmMatch = Regex.Match(plainText, @"MajorMinor\s*=\s*""([^""]+)""");
+    var patchMatch = Regex.Match(plainText, @"MinPatch\s*=\s*""([^""]+)""");
+    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(generatedFile) ? generatedFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
+    if (!mmMatch.Success || !patchMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
+    version = mmMatch.Groups[1].Value + "." + patchMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }
 
 Console.WriteLine($"Stride version: {version}");
@@ -466,7 +468,7 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
 // Targets content: hooks AfterTargets="ResolvePackageAssets" so the dev DLL substitution only
 // fires when NuGet's asset resolution (which respects the consumer's IncludeAssets/PrivateAssets
 // filtering) actually included the original lib/<own>.dll. If the consumer filtered the chain
-// (e.g. IncludeAssets="build;buildTransitive" on Stride.Core.Assets.CompilerApp), the
+// (e.g. IncludeAssets="build;buildTransitive" on Stride.AssetCompiler), the
 // RuntimeCopyLocalItems/ResolvedCompileFileDefinitions entries for this package aren't there,
 // the targets below find nothing to substitute, and we don't sneak runtime DLLs into the
 // consumer's bin/ behind NuGet's back.

@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
   <PropertyGroup>
     <PackageId>Stride.Templates.Samples</PackageId>
+    <StrideTemplateContentVersioned>true</StrideTemplateContentVersioned>
     <Title>Stride Samples</Title>
     <Description>dotnet new feature-demo samples for Stride (tutorials, games, graphics, UI, physics, particles, input, audio).</Description>
     <PackageTags>dotnet-new;templates;stride;stride-template;stride-sample;gamedev</PackageTags>

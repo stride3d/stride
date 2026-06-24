@@ -515,7 +515,9 @@ public static class ScreenshotRunner
     private static string GetStrideDevVersion(string worktreeRoot)
     {
         var sharedInfo = File.ReadAllText(Path.Combine(worktreeRoot, "sources", "shared", "SharedAssemblyInfo.cs"));
-        var publicVersion = Regex.Match(sharedInfo, @"PublicVersion\s*=\s*""([^""]*)""").Groups[1].Value;
+        var majorMinor = Regex.Match(sharedInfo, @"MajorMinor\s*=\s*""([^""]*)""").Groups[1].Value;
+        var minPatch = Regex.Match(sharedInfo, @"MinPatch\s*=\s*""([^""]*)""").Groups[1].Value;
+        var publicVersion = majorMinor + "." + minPatch;
 
         var packagesDir = Path.Combine(worktreeRoot, "bin", "packages");
         if (Directory.Exists(packagesDir))

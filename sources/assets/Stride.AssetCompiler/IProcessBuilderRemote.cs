@@ -7,7 +7,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.AssetCompiler
 {
     public interface IProcessBuilderRemote
     {

@@ -1,6 +1,6 @@
 !ColliderShapeAsset
 Id: 974ee62e-4d36-4005-a27f-da07b6ae36a7
-SerializedVersion: {Stride: 3.0.0.0}
+SerializedVersion: {Stride: 4.0.0.0}
 Tags: []
 ColliderShapes:
     dd1b93604c80c24fa67766d259000d5f: !ConvexHullColliderShapeDesc
@@ -10,12 +10,7 @@ ColliderShapes:
         LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
         Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
+        Margin: 0.04
         Decomposition:
-            Depth: 10
-            PosSampling: 10
-            AngleSampling: 10
-            PosRefine: 5
-            AngleRefine: 5
-            Alpha: 0.01
-            Threshold: 0.01
+            MinimumVolumePercentErrorAllowed: 0.9999999776482582
             Enabled: false

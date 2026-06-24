@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- StrideGitVersion task: stamps the release/package version into SharedAssemblyInfo.Generated.cs.
+     Build version = max(MinVersion, next releases/<MajorMinor>.* number reachable from HEAD) + release suffix +
+     "+g<sha>" build metadata. The version floor is shared with the dev generator (Stride.WorktreeVersion.targets)
+     via StrideVersionTasks.cs, so a committed MinVersion bump is honored at release too. Compiled at runtime by
+     RoslynCodeTaskFactory — no task assembly to build, lock, or resolve dependencies for. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <_StrideGitVersionTargetsImported>true</_StrideGitVersionTargetsImported>
+  </PropertyGroup>
+
+  <UsingTask TaskName="StrideGitVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <Task>
+      <Code Type="Class" Source="$(MSBuildThisFileDirectory)StrideVersionTasks.cs" Language="cs" />
+    </Task>
+  </UsingTask>
+
+</Project>

@@ -41,8 +41,9 @@ stride_doc_output
 doc/doxygen/html
 Tools/bin
 Temp/
-bin/*
-Bin/*
+/logs/
+bin/
+Bin/
 !bin/packages/
 bin/packages/*
 !bin/packages/.gitkeep
@@ -173,6 +174,6 @@ project.lock.json
 # Auto-generated local developer settings (Stride.Platform.props bootstrap)
 /build/Stride.Local.props
 
-# Auto-generated per-checkout by Stride.WorktreeVersion.targets (per-checkout NuGet version suffix)
-/sources/shared/SharedAssemblyInfo.Worktree.cs
+# Auto-generated version overlay (Stride.WorktreeVersion.targets / Stride.GitVersion.targets)
+/sources/shared/SharedAssemblyInfo.Generated.cs
 

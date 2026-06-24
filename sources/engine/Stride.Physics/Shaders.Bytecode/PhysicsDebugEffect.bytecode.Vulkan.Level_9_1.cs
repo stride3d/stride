@@ -4,7 +4,7 @@
 //     Stride Effect Compiler File Generated:
 //     Effect [PhysicsDebugEffect]
 //
-//     Command Line: C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\..\..\..\..\Bin\Windows-Direct3D11\Stride.Core.Assets.CompilerApp.exe --profile=Windows-Vulkan --output-path=C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\obj\app_data --build-path=C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\obj\build_app_data --package-file=Physics.sdpkg
+//     Command Line: C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\..\..\..\..\Bin\Windows-Direct3D11\Stride.AssetCompiler.exe --profile=Windows-Vulkan --output-path=C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\obj\app_data --build-path=C:\Dev\Vulkan\sources\engine\Stride.Physics\Shaders.Bytecode\obj\build_app_data --package-file=Physics.sdpkg
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 // </auto-generated>

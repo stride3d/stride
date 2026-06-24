@@ -9,7 +9,7 @@ using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Assets.UI;
 using Stride.UI;
 using Stride.UI.Panels;

@@ -75,7 +75,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ja", "ja", "{B4EABB0D-E495-
 		..\sources\localization\ja\Stride.GameStudio.ja.po = ..\sources\localization\ja\Stride.GameStudio.ja.po
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "72-StrideSamples", "72-StrideSamples", "{75608B5C-1C03-4B38-810E-14EED5165E59}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "72-StrideSamples.Templates", "72-StrideSamples.Templates", "{75608B5C-1C03-4B38-810E-14EED5165E59}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fr", "fr", "{62E9A8E4-79AF-4081-84D5-FEC5A0B28598}"
 	ProjectSection(SolutionItems) = preProject
@@ -155,7 +155,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor", "..\sources\editor\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj", "{5863574D-7A55-49BC-8E65-BABB74D8E66E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.CompilerApp", "..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj", "{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.AssetCompiler", "..\sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj", "{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Tests", "..\sources\engine\Stride.Assets.Tests\Stride.Assets.Tests.csproj", "{117BF9F8-D2D9-4D32-9702-251C3E038090}"
 EndProject
@@ -2307,6 +2307,12 @@ Global
 		{8D873BE7-8EF2-4478-B86A-249021D046EB} = {0B81090E-4066-4723-A658-8AEDBEADE619}
 		{E6B11A34-A1DB-41C2-B509-94DACA9D9BDE} = {0B81090E-4066-4723-A658-8AEDBEADE619}
 		{74D99A2C-7F6E-473E-8839-8229F475AA5A} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{6BEC71C7-F483-49B1-B99C-11CA4CAD8920} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{FBAEEED0-AAD9-4C90-804F-53EE66037095} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{2F8020D2-7991-44F1-8495-EA4A8A8C6ECE} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{AD0B4A2D-6515-46E9-8FC1-3929BCDE5E15} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{1BB0CF77-74E3-4E85-ACC3-9B3CFFCD50CA} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{BD5B7C55-DD46-4032-BF22-26E1789A43D6} = {75608B5C-1C03-4B38-810E-14EED5165E59}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

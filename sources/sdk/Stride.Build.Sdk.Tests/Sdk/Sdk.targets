@@ -157,7 +157,7 @@
        host ends up with Direct3D11. Correct it now that StridePlatform is resolved — otherwise
        output paths land under the host API and _StrideFilterGraphicsApiSpecificPackages strips
        Vortice.Vulkan from the device runtime. The host-side AssetCompiler is unaffected: it uses
-       StrideHostGraphicsApi (derived from the build OS in Stride.Core.Assets.CompilerApp.targets),
+       StrideHostGraphicsApi (derived from the build OS in Stride.AssetCompiler.targets),
        not this device value. -->
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS' ">
     <StrideGraphicsApi>Vulkan</StrideGraphicsApi>
@@ -319,12 +319,12 @@
        (gated on source-tree existence) so MSBuild builds it before our StrideCompileAsset
        runs. -->
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
-          Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+          Project="$(StrideRoot)sources\assets\Stride.AssetCompiler\build\Stride.AssetCompiler.targets"/>
 
   <!-- Strip test-SDK globals from the auto-attached CompilerApp ref (its own strip list
        stays generic — it ships to end users). -->
   <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
-    <ProjectReference Update="@(ProjectReference)" Condition="$([System.String]::Copy('%(Filename)').Equals('Stride.Core.Assets.CompilerApp'))">
+    <ProjectReference Update="@(ProjectReference)" Condition="$([System.String]::Copy('%(Filename)').Equals('Stride.AssetCompiler'))">
       <GlobalPropertiesToRemove>%(GlobalPropertiesToRemove);IncludeXunitLauncher;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

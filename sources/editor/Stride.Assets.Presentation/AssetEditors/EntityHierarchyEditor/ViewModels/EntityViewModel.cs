@@ -25,7 +25,7 @@ using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModel
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
 
