@@ -18,49 +18,49 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// The version generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="MinPatch"/> from this
-/// file via regex and overlay the computed version into a single generated copy, SharedAssemblyInfo.Generated.cs,
-/// which the Stride SDK swaps in for this file at build time. Keep the shape of the
-/// MajorMinor/MinPatch/NuGetVersionSuffix/PublicVersion/BuildMetadata lines (name = "value";) so the regexes match.
-/// This un-overlaid file is the floor source; its <see cref="PublicVersion"/> is a sentinel (see below).
+/// This file is the source of truth for the version: it is the committed value, bumped per release (not derived
+/// from git tags). The generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="Patch"/> +
+/// <see cref="NuGetVersionSuffix"/> and overlay them into a single generated copy, SharedAssemblyInfo.Generated.cs,
+/// which the Stride SDK swaps in at build time (adding the -devN worktree suffix on dev builds, +g&lt;sha&gt; on
+/// package builds). Keep the shape of the MajorMinor/Patch/NuGetVersionSuffix/PublicVersion/BuildMetadata lines
+/// (name = "value";) so the regexes match. Its <see cref="PublicVersion"/> is a sentinel (see below).
 /// </remarks>
 internal class StrideVersion
 {
     // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
-    // The generators compute the build version as
-    //     max(MinVersion, latest releases/<MajorMinor>.* + 1, [local StridePublicVersion override])
-    // and overlay it back by rewriting MinPatch. Edit MajorMinor / MinPatch (the floor) — not the derived
-    // PublicVersion. (MinPatch is a string, not an int, only because a const string can't concatenate an int.)
+    // The version is MajorMinor.Patch + NuGetVersionSuffix. Edit these and bump per release — usually that's
+    // release.yml bumping Patch automatically after a stable release, but you edit by hand to start a new
+    // major/minor cycle or a beta. (Patch is a string, not an int, only because a const string can't concatenate
+    // an int.) Don't edit the derived consts below.
 
     /// <summary>
-    /// Release line. Scopes the releases/&lt;MajorMinor&gt;.* tag search the generators use, and pins
-    /// <see cref="AssemblyVersion"/>. The single source for major.minor. Bump when starting a new major/minor cycle.
+    /// Release line. The single source for major.minor; pins <see cref="AssemblyVersion"/>. Bump when starting a new
+    /// major/minor cycle.
     /// </summary>
     public const string MajorMinor = "4.4";
 
     /// <summary>
-    /// The floor patch within <see cref="MajorMinor"/>, so the floor version is MajorMinor.MinPatch. Bump it to
-    /// anchor an unreleased version before its release tag exists (e.g. for incremental asset upgraders); a higher
-    /// reachable release tag overrides it automatically. Override locally (within MajorMinor) via StridePublicVersion
-    /// in build/Stride.Local.props. The generators overlay this with the computed patch.
+    /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped per stable release
+    /// (release.yml). A patch bump is also what gates asset upgraders, so bump it whenever the asset format changes.
     /// </summary>
-    public const string MinPatch = "0";
+    public const string Patch = "0";
 
     /// <summary>
-    /// The NuGet package suffix (i.e. -beta). The generators overlay this with -devN (dev) or the release suffix.
+    /// The prerelease suffix (e.g. -beta1), a cosmetic, NuGet-ordered label — asset upgraders ignore it (they gate on
+    /// the numeric version). Empty for a stable release. The generators overlay it with -devN on dev builds.
     /// </summary>
     public const string NuGetVersionSuffix = "";
 
     // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The minimum (floor) version: MajorMinor.MinPatch.</summary>
-    public const string MinVersion = MajorMinor + "." + MinPatch;
+    /// <summary>The version: MajorMinor.Patch (the single readable value; the editable parts are above).</summary>
+    public const string Version = MajorMinor + "." + Patch;
 
     /// <summary>
     /// The build version (used for display and as <see cref="AssemblyFileVersion"/> /
-    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the computed version. In this
-    /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="MinVersion"/> so
-    /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking floor.
+    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the real version. In this
+    /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="Version"/> so
+    /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking version.
     /// </summary>
     public const string PublicVersion = MajorMinor + ".65534";
 

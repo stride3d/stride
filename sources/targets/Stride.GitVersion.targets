@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- StrideGitVersion task: stamps the release/package version into SharedAssemblyInfo.Generated.cs.
-     Build version = max(MinVersion, next releases/<MajorMinor>.* number reachable from HEAD) + release suffix +
-     "+g<sha>" build metadata. The version floor is shared with the dev generator (Stride.WorktreeVersion.targets)
-     via StrideVersionTasks.cs, so a committed MinVersion bump is honored at release too. Compiled at runtime by
+     Build version = the committed MajorMinor.Patch + release suffix + "+g<sha>" build metadata (the version is
+     committed and bumped per release, not derived from tags; the only git use is HEAD's sha for the metadata).
+     Shares StrideVersionTasks.cs with the dev generator (Stride.WorktreeVersion.targets). Compiled at runtime by
      RoslynCodeTaskFactory — no task assembly to build, lock, or resolve dependencies for. -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 

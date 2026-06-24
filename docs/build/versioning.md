@@ -8,24 +8,23 @@ The source of truth is [`sources/shared/SharedAssemblyInfo.cs`](../../sources/sh
 
 | Field | Example | Meaning |
 |---|---|---|
-| `PublicVersion` | `4.4.0` | 3-part `major.minor.patch` display/package version. The patch is the git release height (see below). |
+| `PublicVersion` | `4.4.0` | 3-part `major.minor.patch` display/package version. Committed and bumped per release (see below). |
 | `AssemblyVersion` | `4.4.0.0` | Assembly binding identity, pinned per `major.minor` so the git height never churns it. Bump together with `PublicVersion`'s `major.minor`. |
 | `NuGetVersionSuffix` | `` / `-beta` / `-dev2` | Prerelease tag. Empty for a stable release; set by the worktree system (`-devN`) or a release prerelease (`-beta`). |
 | `BuildMetadata` | `+g<sha>` | Set during package builds. |
 
 `NuGetVersion = PublicVersion + NuGetVersionSuffix`; `StrideVersion.NuGetVersion` (the compiled const) is what the package upgrader stamps into consumer projects.
 
-Both the dev and release generators overlay the computed version into a single generated file, `SharedAssemblyInfo.Generated.cs`, which the Stride SDK swaps in for `SharedAssemblyInfo.cs` at compile time. The overlay is **always** generated and swapped; the checked-in `SharedAssemblyInfo.cs` is the floor template, and its `PublicVersion` is a deliberately implausible sentinel (`4.4.65534`) decoupled from the floor — so any build that skipped the swap ships an obvious `4.4.65534` rather than a plausible-looking floor.
+Both the dev and release generators overlay the version into a single generated file, `SharedAssemblyInfo.Generated.cs`, which the Stride SDK swaps in for `SharedAssemblyInfo.cs` at compile time. The overlay is **always** generated and swapped; the checked-in `SharedAssemblyInfo.cs` is the source of truth, and its `PublicVersion` is a deliberately implausible sentinel (`4.4.65534`) decoupled from `Patch` — so any build that skipped the swap ships an obvious `4.4.65534` rather than a plausible-looking version.
 
-### Where the patch comes from — `StrideGitVersion`
+### The version is committed, bumped per release
 
-[`sources/targets/Stride.GitVersion.targets`](../../sources/targets/Stride.GitVersion.targets) defines the inline `StrideGitVersion` task (imported by `build/Stride.build` for package builds, and by `build/Stride.Samples.build`). The patch is derived from `releases/<major.minor>.*` tags **reachable from HEAD** (ancestor-scoped, so branches and fork-only tags don't leak in):
+The version is the committed `MajorMinor.Patch` (+ `NuGetVersionSuffix`) — **not** derived from git tags. You bump it in `SharedAssemblyInfo.cs` as part of cutting a release. [`Stride.GitVersion.targets`](../../sources/targets/Stride.GitVersion.targets) defines the `StrideGitVersion` task (imported by `build/Stride.build` and `build/Stride.Samples.build`) which reads that committed value and adds the `+g<sha>` build metadata; the only git use is reading HEAD's sha.
 
-- exact `releases/<mm>.<N>` tag on HEAD → `N` (idempotent re-release, no `+1`)
-- else highest reachable `releases/<mm>.<N>` → `N + 1`
-- else `0`, with a "run `git fetch --tags`" warning
+Two rules:
 
-So between releases every build reports the **next** release number, stable until a new release tag is fetched. Tags must be present (`git fetch --tags`; shallow clones need `--unshallow`).
+- **Bump per release.** The release pipeline refuses to publish a version whose `releases/<version>` tag already exists on another commit (see [Release flow](#release-flow)), so a forgotten bump fails the deploy rather than silently re-publishing.
+- **A format change ⇒ a numeric (`Patch`) bump.** Asset upgraders gate on the *numeric* version and ignore the prerelease suffix (`-beta1`, `-dev3`, custom), so a format change must advance the number (e.g. `4.4.0` → `4.4.1`) for the gate to fire. Successive prereleases without a format change can stay at the same number (`4.4.0-beta1`, `4.4.0-beta2`).
 
 ## Per-checkout dev versions (`-devN`)
 
@@ -37,18 +36,19 @@ Multiple checkouts of Stride on one machine (git worktrees *or* independent clon
 
 - **Clean build, no suffix** — give the checkout the special ledger token `(empty)` (or set `-p:StrideSkipWorktreeVersion=true` per build), e.g. to reproduce a release locally. Legacy ledgers using `(primary)` are still honored (treated as `-dev`).
 - **Empty suffix on CI / package builds** (`$(CI)`, `$(GITHUB_ACTIONS)`, `$(StridePackageBuild)`) — the overlay is still generated (so the version is real), but with no `-devN` suffix and no ledger touch, so builds are byte-identical to a clean `4.4.0`.
-- Dev builds also stamp `PublicVersion = <mm>.<last release tag + 1>` so a local build sits just above the most recent release. Override with `StridePublicVersion` in the gitignored `build/Stride.Local.props` when you need a higher ceiling (e.g. authoring several asset upgraders).
+- The committed version is overlaid as-is (no tag math); edit `Patch` in `SharedAssemblyInfo.cs` to change it.
 - `dotnet msbuild build/Stride.build -t:StrideRegisterWorktree` registers/prints this checkout's token.
 
 ## Release flow
 
 `.github/workflows/release.yml` (manual dispatch, `stride-release-managers` only for sign/deploy):
 
-1. **Version** = `max(releases/<mm>.* reachable) + 1` (same math as `StrideGitVersion`).
-2. **Package** builds all platforms unsigned → `bin/packages/*.nupkg` at the 3-part version.
-3. **Deploy** (only when `sign && deploy`) pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release, not a precondition. Idempotent: `--skip-duplicate`, plus content-versioned template packages are pre-checked against the nuget flat-container index and skipped if already published.
+1. **Version** = the committed value in `SharedAssemblyInfo.cs` (`StrideGitVersion` reads it and adds `+g<sha>`).
+2. **Package** builds all platforms unsigned → `bin/packages/*.nupkg`.
+3. **Deploy** (only when `sign && deploy`) pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release; re-publishing a not-bumped version is refused because its tag already exists (the forget-to-bump guard). Idempotent: `--skip-duplicate`, plus content-versioned template packages are pre-checked against the nuget flat-container index and skipped if already published.
+4. **Bump** (stable deploys only, unless `bump-version: false`) — after publishing, the workflow commits `Patch+1` to the branch and pushes it, so the branch opens the next dev version. Skipped for prereleases (they keep the same number) and idempotent re-runs (tag already existed).
 
-So a release is cut by dispatching `release.yml` on the commit you want; ongoing dev on descendants then computes the next patch automatically.
+So you just dispatch `release.yml` on the branch: it publishes the committed version, tags it, and (for a stable release) advances the source to the next patch — no manual version-bump commit. You only edit the version by hand to start a new major/minor cycle or a beta. (The bump-commit push needs the checkout token — `GH_PAT` — to have push rights to the branch, i.e. bypass branch protection.)
 
 ## Samples & template package versions
 

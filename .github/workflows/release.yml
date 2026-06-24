@@ -35,6 +35,10 @@ on:
         description: Deploy to NuGet.org and create GitHub Release
         default: false
         type: boolean
+      bump-version:
+        description: After a stable deploy, commit the next Patch to the branch (open next dev version)
+        default: true
+        type: boolean
       upload-binlog:
         description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
@@ -147,24 +151,28 @@ jobs:
         shell: pwsh
         run: |
           $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
-          if ($pkg) {
-            $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-            echo "version=$version" >> $env:GITHUB_OUTPUT
-            echo "::notice::Package version: $version"
-          } else {
+          if (-not $pkg) {
             echo "::error::No Stride.Core package found"
             exit 1
           }
+          $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
+          # Guard against a malformed SharedAssemblyInfo.cs slipping a weird version into the package name.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            echo "::error::Detected package version '$version' is not a valid version - check SharedAssemblyInfo.cs"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Package version: $version"
 
-      # Backstop: a stale/fallback version (e.g. tags not fetched) would re-use an already-released
-      # number. The version is max(reachable tags)+1, so its tag should not exist unless we're rebuilding
-      # the exact tagged commit. Fail a deploy that would re-publish a number tagged on another commit.
+      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped per release. If it
+      # wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
+      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
       - name: Guard against re-publishing an existing version
         if: ${{ inputs.deploy }}
         run: |
           TAG="releases/${{ steps.version.outputs.version }}"
           if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
-            echo "::error::Version ${{ steps.version.outputs.version }} already exists as $TAG on a different commit (tags likely not fetched). Aborting deploy."
+            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch/NuGetVersionSuffix in SharedAssemblyInfo.cs."
             exit 1
           fi
 
@@ -212,6 +220,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true  # Tag release step checks for an existing releases/<version> tag
+          token: ${{ secrets.GH_PAT }}  # push the tag and the post-release version-bump commit
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -284,12 +293,16 @@ jobs:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
 
       - name: Tag release
+        id: tag
         run: |
-          if git rev-parse "releases/${{ needs.Package.outputs.version }}" >/dev/null 2>&1; then
-            echo "Tag releases/${{ needs.Package.outputs.version }} already exists, skipping"
+          TAG="releases/${{ needs.Package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+            echo "created=false" >> "$GITHUB_OUTPUT"
           else
-            git tag "releases/${{ needs.Package.outputs.version }}"
-            git push origin "releases/${{ needs.Package.outputs.version }}"
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "created=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create GitHub Release
@@ -300,6 +313,35 @@ jobs:
             bin/packages/*.nupkg
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Bump version for next cycle
+        # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above
+        # already points at the just-released commit). Skipped for prereleases (they keep the same number) and for
+        # idempotent re-runs where the tag already existed (steps.tag.outputs.created != 'true'). Opt out with the
+        # bump-version input. Requires GH_PAT (checkout token) with push rights to the branch.
+        if: ${{ inputs.bump-version && steps.tag.outputs.created == 'true' && !contains(needs.Package.outputs.version, '-') }}
+        run: |
+          RELEASED="${{ needs.Package.outputs.version }}"
+          FILE=sources/shared/SharedAssemblyInfo.cs
+          CUR=$(sed -n 's/.*public const string Patch = "\([0-9][0-9]*\)".*/\1/p' "$FILE")
+          # Don't commit anything if Patch can't be parsed (e.g. the file's shape changed). The release already
+          # succeeded; warn and skip - the forget-to-bump guard will catch the un-bumped version next release.
+          if ! printf '%s' "$CUR" | grep -qE '^[0-9]+$'; then
+            echo "::warning::Could not parse Patch from $FILE (got '$CUR'); skipping version bump - bump it manually."
+            exit 0
+          fi
+          NEXT=$((CUR + 1))
+          sed -i "s/\(public const string Patch = \)\"$CUR\"/\1\"$NEXT\"/" "$FILE"
+          if ! grep -q "public const string Patch = \"$NEXT\";" "$FILE"; then
+            echo "::warning::Version bump did not apply to $FILE; skipping - bump it manually."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
+          git commit -m "Open ${RELEASED%.*}.$NEXT for development (released $RELEASED)" -- "$FILE"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
 
       - name: Publish summary
         if: success()

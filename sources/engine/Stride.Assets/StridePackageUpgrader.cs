@@ -41,9 +41,12 @@ namespace Stride.Assets
 
         public static readonly Guid UpdatePlatformsTemplateId = new Guid("446B52D3-A6A8-4274-A357-736ADEA87321");
 
-        // True if the version upgraded *from* is numerically below <paramref name="version"/>, ignoring prerelease
-        // suffix — so 4.4.0-dev2 counts as already at 4.4.0 and its gate won't re-run. Use for clean X.Y.0.0 gates;
-        // compare PackageVersion directly only when the threshold is itself a prerelease (e.g. 3.1.0.2-beta01).
+        // True if the version upgraded *from* is numerically below <paramref name="version"/>, ignoring the whole
+        // prerelease suffix — so 4.4.0-beta1, 4.4.0-dev2, 4.4.0-mystudio all count as already at 4.4.0 and the gate
+        // won't re-run. This is the standard gate: the suffix (beta/dev/custom) is cosmetic, so a format change must
+        // be paired with a numeric Patch bump (e.g. 4.4.0 -> 4.4.1), and gates key off that numeric version.
+        // The historical direct PackageVersion compares below (e.g. < 3.1.0.2-beta01) predate this rule; new gates
+        // should use this helper with a clean numeric threshold.
         private static bool UpgradingFromBefore(PackageDependency dependency, string version)
             => dependency.Version.MinVersion.Version < new PackageVersion(version).Version;
 
