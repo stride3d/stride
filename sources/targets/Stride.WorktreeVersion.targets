@@ -1,11 +1,7 @@
 <!-- Per-project version stamping (dev + CI; the release/package path uses StrideGitVersion in Stride.build).
 
-     The build version is max(MinVersion, latest releases/<MajorMinor>.* + 1, [StridePublicVersion override]),
-     computed in StrideVersionTasks.cs and shared with the release generator (Stride.GitVersion.targets). It is
-     keyed to the latest release *tag*, not HEAD height, so it is stable between releases; a tag-state stamp in the
-     generated file skips git work otherwise. Override the floor via StridePublicVersion (in the gitignored
-     build/Stride.Local.props, never the tracked source) when you need a higher ceiling, e.g. while authoring
-     several asset upgraders in sequence.
+     The build version is the committed MajorMinor.Patch from SharedAssemblyInfo.cs, shared with the release
+     generator (Stride.GitVersion.targets) via StrideVersionTasks.cs.
 
      The computed version is overlaid into SharedAssemblyInfo.Generated.cs, which the Stride SDK swaps in for
      SharedAssemblyInfo.cs at compile time (see StrideApplyGeneratedVersion in Sdk.targets) so the
@@ -21,7 +17,7 @@
      into the assemblies (consumer, via the overlay).
 
      On CI (and when StrideSkipWorktreeVersion is set) NoLedgerSuffix gives the clean unsuffixed version with no
-     ledger touch, while still generating the overlay and keeping the tag-state fast path. -->
+     ledger touch, while still generating the overlay and keeping the fast path. -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
@@ -48,7 +44,6 @@
         StrideRoot="$(StrideRoot)"
         OverrideId="$(StrideWorktreeId)"
         NoLedgerSuffix="$(_StrideNoLedgerSuffix)"
-        PublicVersionOverride="$(StridePublicVersion)"
         LedgerPath="$(StrideWorktreeLedger)"
         SourceVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.cs"
         GeneratedVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs">

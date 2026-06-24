@@ -5,16 +5,15 @@
      worktree suffix is appended separately by the producer (StrideAppendWorktreeVersion in Stride.PackageInfo). -->
 <Project>
   <PropertyGroup>
-    <!-- Package builds read the generated overlay (tag-resolved patch + suffix + git metadata); other builds read
-         the floor template. -->
+    <!-- Package builds read the generated overlay (version + suffix + git metadata); other builds read the
+         committed source. -->
     <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' == 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs</_StrideSharedAssemblyInfoFile>
     <_StrideSharedAssemblyInfoFile Condition="'$(StridePackageBuild)' != 'true'">$(StrideRoot)sources/shared/SharedAssemblyInfo.cs</_StrideSharedAssemblyInfoFile>
     <_StrideSharedAssemblyInfoLines>$([System.IO.File]::ReadAllText('$(_StrideSharedAssemblyInfoFile)'))</_StrideSharedAssemblyInfoLines>
-    <!-- Computed package version = MajorMinor.MinPatch (the floor on non-package builds; the tag-resolved patch in
-         the overlay). PublicVersion is the consumer-facing const and is not read here. -->
+    <!-- Package version = MajorMinor.Patch. PublicVersion is the consumer-facing const and is not read here. -->
     <_StridePackageMajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MajorMinor = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMajorMinor>
-    <_StridePackageMinPatch>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*MinPatch = \"(.*)\";.*`).Groups[1].Value)</_StridePackageMinPatch>
-    <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackageMinPatch)</_StridePackagePublicVersion>
+    <_StridePackagePatch>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*[^a-zA-Z]Patch = \"(.*)\";.*`).Groups[1].Value)</_StridePackagePatch>
+    <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackagePatch)</_StridePackagePublicVersion>
     <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
     <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
     <StrideNuGetVersion>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
