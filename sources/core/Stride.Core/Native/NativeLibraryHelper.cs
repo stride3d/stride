@@ -138,8 +138,10 @@ public static partial class NativeLibraryHelper
         {
             var nameWithExtension = name + libExtension;
 
-            // NuGet native libraries
-            if (nativeDependenciesWithExtensions.TryGetValue(nameWithExtension, out string? knownPath))
+            // Resolver-registered natives: the extension-less map is keyed by SONAME-stripped base name
+            // (matches libassimp.so.6); the with-extension map only matches an exact unversioned filename.
+            if (nativeDependenciesWithoutExtensions.TryGetValue(name, out string? knownPath)
+                || nativeDependenciesWithExtensions.TryGetValue(nameWithExtension, out knownPath))
                 return knownPath;
 
             // Try in current path
@@ -420,10 +422,13 @@ public static partial class NativeLibraryHelper
         {
             var libraryNameWithExtension = Path.GetFileName(libraryPath);
             // Strip the full platform extension (.so[.N] / [.N].dylib / .dll) so the key matches
-            // what PreloadLibrary looks up regardless of SONAME-versioned filenames.
+            // what PreloadLibrary/LocateLibrary look up regardless of SONAME-versioned filenames.
             var libraryNameWithoutExtension = StripPlatformNativeExtension(libraryNameWithExtension);
-            nativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
             nativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
+
+            // When a package ships several SONAMEs (Ultz.Native.Assimp 6.x has libassimp.so.5 + .so.6),
+            // keep the highest so the current lib wins, not a stale compat copy.
+            SetHighestVersion(libraryNameWithoutExtension);
 
             // Native libs on Linux/macOS are conventionally named "lib<X>.so/.dylib" but
             // [DllImport] strings typically drop the prefix ("X"). Register the stripped
@@ -431,12 +436,48 @@ public static partial class NativeLibraryHelper
             if (Platform.Type != PlatformType.Windows
                 && libraryNameWithoutExtension.StartsWith("lib", StringComparison.Ordinal))
             {
-                nativeDependenciesWithoutExtensions[libraryNameWithoutExtension[3..]] = libraryPath;
+                SetHighestVersion(libraryNameWithoutExtension[3..]);
+            }
+
+            void SetHighestVersion(string key)
+            {
+                if (!nativeDependenciesWithoutExtensions.TryGetValue(key, out var existing)
+                    || GetNativeSonameVersion(libraryPath) >= GetNativeSonameVersion(existing))
+                {
+                    nativeDependenciesWithoutExtensions[key] = libraryPath;
+                }
             }
 #if STRIDE_PLATFORM_DESKTOP
             EnsureGlobalResolverRegistered();
 #endif
         }
+    }
+
+    /// <summary>SONAME version of a native filename (libfoo.so.6 → 6.0, libfoo.6.dylib → 6.0; else 0.0).</summary>
+    private static Version GetNativeSonameVersion(string path)
+    {
+        var name = Path.GetFileName(path);
+        string version;
+        var soIndex = name.IndexOf(".so.", StringComparison.Ordinal);
+        if (soIndex >= 0)
+        {
+            version = name[(soIndex + ".so.".Length)..];
+        }
+        else if (name.EndsWith(".dylib", StringComparison.Ordinal))
+        {
+            var trimmed = name[..^".dylib".Length];
+            var dot = trimmed.LastIndexOf('.');
+            version = dot >= 0 && dot + 1 < trimmed.Length && char.IsDigit(trimmed[dot + 1]) ? trimmed[(dot + 1)..] : "";
+        }
+        else
+        {
+            version = "";
+        }
+        if (version.Length == 0)
+            return new Version(0, 0);
+        if (!version.Contains('.'))
+            version += ".0";
+        return Version.TryParse(version, out var parsed) ? parsed : new Version(0, 0);
     }
 
     /// <summary>
