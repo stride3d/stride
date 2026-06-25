@@ -1,0 +1,8 @@
+!TemplateAssetFactory
+Id: A3F2E1D4-7B6C-4A9E-8D3F-1C5B2E4F7A90
+AssetTypeName: ColorPaletteAsset
+Name: Color Palette
+Scope: Asset
+Description: A custom color palette for the GameStudio color picker. Import from a .gpl file or define colors manually.
+Group: Rendering
+DefaultOutputName: ColorPalette
