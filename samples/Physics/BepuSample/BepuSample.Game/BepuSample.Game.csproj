@@ -5,7 +5,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
     <PackageReference Include="Stride.Assets" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
     <PackageReference Include="Stride.BepuPhysics" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
     <PackageReference Include="Stride.Core.Assets" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
