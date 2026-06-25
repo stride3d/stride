@@ -9,6 +9,12 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyName>Stride.GameStudio</AssemblyName>
+    <!-- Root app (never referenced as a library): pack the whole runnable under tools/ instead of lib/,
+         so the package isn't a phantom library. All payload flows through BuildOutputInPackage, so this
+         one property relocates everything (exe, dll, Roslyn, BuildHost, resolver bootstrap). -->
+    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <!-- NU5128: an app package intentionally has no lib/, but still declares its dependency closure. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
