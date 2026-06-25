@@ -41,28 +41,33 @@ namespace Stride.Graphics
 
             // Create the default instance to enumerate physical devices
             defaultInstance = new GraphicsAdapterFactoryInstance(false);
+
+            var nativeInstance = defaultInstance.NativeInstance;
+            var nativeInstanceApi = defaultInstance.NativeInstanceApi;
+
             uint physicalDevicesCount = 0;
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, &physicalDevicesCount, null).CheckResult();
-
             if (physicalDevicesCount == 0)
                 throw new Exception("Vulkan: Failed to find GPUs with Vulkan support");
 
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
-            
+
             var adapterList = new List<GraphicsAdapter>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
-                VkPhysicalDeviceProperties properties;
-                defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevices[index], out properties);
+                VkPhysicalDevice nativePhysicalDevice = nativePhysicalDevices[index];
+                List<DisplayInfo> displayInfos = VulkanDisplayHelper.GetDisplayInfos(nativeInstance, nativeInstanceApi, nativePhysicalDevice);
 
+                defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevices[index], out VkPhysicalDeviceProperties deviceProperties);
                 // VK_KHR_driver_properties (core in 1.2) exposes driver identity strings the packed driverVersion can't carry.
                 VkPhysicalDeviceDriverProperties driverProps = new() { sType = VkStructureType.PhysicalDeviceDriverProperties };
                 VkPhysicalDeviceProperties2 properties2 = new() { sType = VkStructureType.PhysicalDeviceProperties2, pNext = &driverProps };
-                if (properties.apiVersion >= VkVersion.Version_1_2)
+                if (deviceProperties.apiVersion >= VkVersion.Version_1_2)
                     defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties2(nativePhysicalDevices[index], &properties2);
 
-                var adapter = new GraphicsAdapter(nativePhysicalDevices[index], properties, driverProps, index);
+                var adapter = new GraphicsAdapter(nativePhysicalDevice, displayInfos, deviceProperties, driverProps, index);
+
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }

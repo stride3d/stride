@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Regen Stride.Shaders.Spirv.Core": {
-      "commandName": "Project",
-      "commandLineArgs": "--output ../Stride.Shaders.Spirv.Core/Generated --extra ../Stride.Shaders.Spirv.Core/Extensions/spirv.sdsl.grammar-ext.json"
-    }
-  }
-}

@@ -1,7 +1,0 @@
-MoltenVK main@21dd02d
-Repository: https://github.com/KhronosGroup/MoltenVK
-Source: built from git ref "main" on the macos-15 runner
-
-Stride: https://github.com/xen2/stride @ 4c3571b4ea8b2bdf7a33b1d1bdbecee9418e631b
-Built: 2026-05-28
-Workflow: https://github.com/xen2/stride/actions/runs/26553290571
