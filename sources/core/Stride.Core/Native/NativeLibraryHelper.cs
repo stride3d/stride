@@ -157,7 +157,10 @@ public static partial class NativeLibraryHelper
     }
 
     /// <summary>
-    ///   Try to preload a native library.
+    ///   Preloads a native library (or returns the handle of one already loaded), so subsequent P/Invoke
+    ///   calls use it instead of triggering their own load. The returned OS module handle also lets callers
+    ///   that resolve exports themselves (for example, libraries with their own function-pointer binding)
+    ///   share the engine's native resolution.
     /// </summary>
     /// <param name="libraryName">The name of the library, without the extension.</param>
     /// <param name="ownerType">
@@ -165,6 +168,7 @@ public static partial class NativeLibraryHelper
     ///   This is needed because <see cref="Assembly.GetCallingAssembly"/> cannot be used,
     ///   as it might be wrong due to optimizations.
     /// </param>
+    /// <returns>The OS module handle of the loaded library.</returns>
     /// <exception cref="DllNotFoundException">
     ///   The library with name <paramref name="libraryName"/> could not be loaded.
     /// </exception>
@@ -178,25 +182,24 @@ public static partial class NativeLibraryHelper
     ///     so those calls use the already loaded library instead of trying to load it again.
     ///   </para>
     /// </remarks>
-    public static void PreloadLibrary(string libraryName, Type ownerType)
+    public static nint PreloadLibrary(string libraryName, Type ownerType)
     {
 #if STRIDE_PLATFORM_DESKTOP
         lock (loadedLibrariesLock)
         {
             EnsureGlobalResolverRegistered();
 
-            // If already loaded, just exit as we want to load it just once
-            if (loadedLibraries.ContainsKey(libraryName))
+            // If already loaded, return the existing handle as we want to load it just once
+            if (loadedLibraries.TryGetValue(libraryName, out nint existingHandle))
             {
-                return;
+                return existingHandle;
             }
 
             // Was the dependency registered beforehand?
             if (nativeDependenciesWithoutExtensions.TryGetValue(libraryName, out string? path) &&
                 NativeLibrary.TryLoad(path, out nint knownLibHandle))
             {
-                AddLoadedLibrary(libraryName, knownLibHandle);
-                return;
+                return AddLoadedLibrary(libraryName, knownLibHandle);
             }
 
             var libraryNameWithExtension = libraryName + libExtension;
@@ -207,15 +210,13 @@ public static partial class NativeLibraryHelper
                 // e.g., /lib/x86_64-linux-gnu, /lib, /usr/lib, etc.
                 if (NativeLibrary.TryLoad(libraryNameWithExtension, out nint result))
                 {
-                    AddLoadedLibrary(libraryName, result);
-                    return;
+                    return AddLoadedLibrary(libraryName, result);
                 }
                 // Also try with 'lib' prefix common on Linux / MacOS
                 else if (!libraryName.StartsWith("lib", StringComparison.Ordinal) &&
                           NativeLibrary.TryLoad("lib" + libraryNameWithExtension, out result))
                 {
-                    AddLoadedLibrary(libraryName, result);
-                    return;
+                    return AddLoadedLibrary(libraryName, result);
                 }
             }
 
@@ -224,8 +225,7 @@ public static partial class NativeLibraryHelper
             {
                 if (NativeLibrary.TryLoad(libraryFilename!, out nint result))
                 {
-                    AddLoadedLibrary(libraryName, result);
-                    return;
+                    return AddLoadedLibrary(libraryName, result);
                 }
             }
 
@@ -236,8 +236,7 @@ public static partial class NativeLibraryHelper
                 {
                     if (NativeLibrary.TryLoad(libraryFilename!, out nint result))
                     {
-                        AddLoadedLibrary(libraryName, result);
-                        return;
+                        return AddLoadedLibrary(libraryName, result);
                     }
                 }
             }
@@ -245,66 +244,44 @@ public static partial class NativeLibraryHelper
             // Finally, try the default loading mechanism (https://docs.microsoft.com/en-us/dotnet/core/dependency-loading/loading-unmanaged)
             if (NativeLibrary.TryLoad(libraryName, ownerType.Assembly, searchPath: null, out nint handle))
             {
-                AddLoadedLibrary(libraryName, handle);
-                return;
+                return AddLoadedLibrary(libraryName, handle);
             }
 
             // Attempt to load it from PATH
-            bool loaded = TryLoadFromEnvironment(libraryNameWithExtension);
+            nint envHandle = TryLoadFromEnvironment(libraryNameWithExtension);
+            if (envHandle != 0)
+                return envHandle;
 
             throw new DllNotFoundException($"Could not locate or load native library {libraryName}");
         }
 
         //
         // Attempts to load the library from the paths defined in the environment's PATH variable.
+        // Returns the loaded handle, or 0 if not found.
         //
-        bool TryLoadFromEnvironment(string libraryNameWithExtension)
+        nint TryLoadFromEnvironment(string libraryNameWithExtension)
         {
             var envPaths = Environment.GetEnvironmentVariable("PATH")!.Split(Path.PathSeparator);
             foreach (var pathDir in envPaths)
             {
                 var libraryFilePath = Path.Combine(pathDir, libraryNameWithExtension);
                 if (NativeLibrary.TryLoad(libraryFilePath, out var result))
-                {
-                    AddLoadedLibrary(libraryName, result);
-                    return true;
-                }
+                    return AddLoadedLibrary(libraryName, result);
             }
 
             // Not found
-            return false;
+            return 0;
         }
 
         //
-        // Adds the loaded library to the dictionary, registers a DllImport resolver
-        // for the owner assembly, and logs the loading event.
+        // Adds the loaded library to the dictionary, logs the loading event, and returns the handle.
         //
-        void AddLoadedLibrary(string name, nint handle)
+        nint AddLoadedLibrary(string name, nint handle)
         {
             loadedLibraries.Add(name, handle);
             LogLibraryLoaded(name, handle);
+            return handle;
         }
-#endif
-    }
-
-    /// <summary>
-    ///   Loads a native library (or returns the handle of one already loaded) using the same search
-    ///   logic as <see cref="PreloadLibrary"/>, and returns its OS module handle. This lets callers that
-    ///   resolve exports themselves (for example, libraries with their own function-pointer binding) use
-    ///   the same native resolution as the rest of the engine.
-    /// </summary>
-    /// <param name="libraryName">The name of the library, without the extension.</param>
-    /// <param name="ownerType">
-    ///   The <see cref="Type"/> whose Assembly location is related to the native library.
-    /// </param>
-    /// <returns>The OS handle of the loaded library.</returns>
-    /// <exception cref="DllNotFoundException">The library could not be located or loaded.</exception>
-    public static nint Load(string libraryName, Type ownerType)
-    {
-#if STRIDE_PLATFORM_DESKTOP
-        PreloadLibrary(libraryName, ownerType);
-        lock (loadedLibrariesLock)
-            return loadedLibraries[libraryName];
 #else
         return 0;
 #endif
