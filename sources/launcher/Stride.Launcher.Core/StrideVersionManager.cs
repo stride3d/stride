@@ -16,6 +16,7 @@ public sealed class StrideVersionManager
     private const string MainPackageId = "Stride.GameStudio";
 
     private readonly NugetStore store = new(oldRootDirectory: null);
+    private readonly ManagedVersionStore managedVersions = new();
 
     /// <summary>Lists the installed Stride versions, newest first.</summary>
     public IReadOnlyList<StrideVersion> GetInstalled()
@@ -59,6 +60,51 @@ public sealed class StrideVersionManager
         await store.UninstallPackage(local, progress: null);
         return true;
     }
+
+    /// <summary>
+    ///   Updates installed lines to their newest patch: installs the newest patch, records it as the line's
+    ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
+    ///   every installed line is updated. Returns the versions that were updated.
+    /// </summary>
+    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, CancellationToken cancellationToken)
+    {
+        var managed = managedVersions.Load();
+        var lines = line is not null
+            ? new[] { line }
+            : GetInstalled().Select(version => version.Line).Distinct().ToArray();
+
+        var available = (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
+            .OrderByDescending(package => package.Version)
+            .ToList();
+
+        var updated = new List<StrideVersion>();
+        foreach (var targetLine in lines)
+        {
+            var newest = available.FirstOrDefault(package => LineOf(package.Version) == targetLine);
+            if (newest is null)
+                continue;
+
+            var installedPackage = await store.InstallPackage(newest.Id, newest.Version, newest.TargetFrameworks, progress: null);
+            if (installedPackage is null)
+                continue;
+
+            // Retire the version this line previously managed, unless it is the one just installed.
+            if (managed.TryGetValue(targetLine, out var previous) && previous != newest.Version.ToString())
+            {
+                var previousPackage = store.FindLocalPackage(MainPackageId, new PackageVersion(previous));
+                if (previousPackage is not null)
+                    await store.UninstallPackage(previousPackage, progress: null);
+            }
+
+            managed[targetLine] = newest.Version.ToString();
+            updated.Add(ToStrideVersion(installedPackage));
+        }
+
+        managedVersions.Save(managed);
+        return updated;
+    }
+
+    private static string LineOf(PackageVersion version) => $"{version.Version.Major}.{version.Version.Minor}";
 
     /// <summary>The newest installed version, or null if none is installed.</summary>
     public StrideVersion? GetDefault() => GetInstalled().FirstOrDefault();
