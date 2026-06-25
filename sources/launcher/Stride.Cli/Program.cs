@@ -133,7 +133,7 @@ assetCommand.SetAction(parseResult =>
     var version = ResolveOrReport(parseResult.GetValue(versionOption));
     return version is null
         ? 1
-        : RunTool(manager.LocateAssetCompiler(version), $"the Asset Compiler for Stride {version}", parseResult.UnmatchedTokens, wait: true);
+        : Tools.Run(manager.LocateAssetCompiler(version), $"the Asset Compiler for Stride {version}", parseResult.UnmatchedTokens, wait: true);
 });
 
 // studio: open Game Studio (launches and returns immediately).
@@ -145,7 +145,7 @@ studioCommand.SetAction(parseResult =>
     var version = ResolveOrReport(parseResult.GetValue(versionOption));
     return version is null
         ? 1
-        : RunTool(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
+        : Tools.Run(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
 });
 
 // self update: update the Stride CLI itself by delegating to dotnet, then exit so the running
@@ -180,36 +180,9 @@ root.Subcommands.Add(listCommand);
 root.Subcommands.Add(installCommand);
 root.Subcommands.Add(uninstallCommand);
 root.Subcommands.Add(updateCommand);
+root.Subcommands.Add(NewCommand.Create(manager));
 root.Subcommands.Add(assetCommand);
 root.Subcommands.Add(studioCommand);
 root.Subcommands.Add(selfCommand);
 root.Subcommands.Add(versionCommand);
 return await root.Parse(args).InvokeAsync();
-
-// Run a located tool, forwarding arguments. When wait is true (Asset Compiler) the console is inherited
-// and the tool's exit code returned; otherwise (Game Studio) it is launched detached.
-static int RunTool(string? executable, string description, IReadOnlyList<string> forwardedArgs, bool wait)
-{
-    if (executable is null)
-    {
-        Console.Error.WriteLine($"Could not find {description}.");
-        return 1;
-    }
-
-    var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
-    foreach (var argument in forwardedArgs)
-        startInfo.ArgumentList.Add(argument);
-
-    var process = Process.Start(startInfo);
-    if (process is null)
-    {
-        Console.Error.WriteLine($"Failed to start {executable}.");
-        return 1;
-    }
-
-    if (!wait)
-        return 0;
-
-    process.WaitForExit();
-    return process.ExitCode;
-}
