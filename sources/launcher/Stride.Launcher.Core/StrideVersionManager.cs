@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Stride.Core;
 using Stride.Core.Packages;
 
@@ -56,6 +58,110 @@ public sealed class StrideVersionManager
 
         await store.UninstallPackage(local, progress: null);
         return true;
+    }
+
+    /// <summary>The newest installed version, or null if none is installed.</summary>
+    public StrideVersion? GetDefault() => GetInstalled().FirstOrDefault();
+
+    /// <summary>
+    ///   Resolves the Stride version to use: <paramref name="explicitVersion"/> if given, otherwise the
+    ///   version pinned by a project under <paramref name="workingDirectory"/>, otherwise the newest installed.
+    /// </summary>
+    public PackageVersion? ResolveVersion(string? explicitVersion, string workingDirectory)
+    {
+        if (!string.IsNullOrEmpty(explicitVersion))
+            return new PackageVersion(explicitVersion);
+
+        return FindProjectVersion(workingDirectory) ?? GetDefault()?.Version;
+    }
+
+    /// <summary>Locates the Game Studio executable for the given version, or null if not found.</summary>
+    public string? LocateGameStudio(PackageVersion version)
+        => LocateExecutable("Stride.GameStudio", version, "Stride.GameStudio.Avalonia.Desktop.exe", "Stride.GameStudio.exe");
+
+    /// <summary>
+    ///   Locates the asset compiler executable for the given version, or null if not found. The package is
+    ///   Stride.AssetCompiler from 4.4.0 onwards and Stride.Core.Assets.CompilerApp before that.
+    /// </summary>
+    public string? LocateAssetCompiler(PackageVersion version)
+    {
+        var packageId = version.Version >= new Version(4, 4, 0) ? "Stride.AssetCompiler" : "Stride.Core.Assets.CompilerApp";
+        return LocateExecutable(packageId, version, packageId + ".exe");
+    }
+
+    // Resolves the Stride version pinned by the project or solution in the current directory, mirroring how
+    // `dotnet build` finds its target there: a .csproj, or the projects a .sln references. Subdirectories are
+    // not scanned. Returns null if nothing is found or the project has not been restored.
+    private static PackageVersion? FindProjectVersion(string workingDirectory)
+    {
+        if (!Directory.Exists(workingDirectory))
+            return null;
+
+        var projectFiles = Directory.EnumerateFiles(workingDirectory, "*.csproj")
+            .Concat(Directory.EnumerateFiles(workingDirectory, "*.sln").SelectMany(ReferencedProjects));
+
+        return projectFiles.Select(ReadRestoredStrideVersion).FirstOrDefault(version => version is not null);
+    }
+
+    // The project paths referenced by a solution file, resolved relative to it.
+    private static IEnumerable<string> ReferencedProjects(string solutionFile)
+    {
+        var solutionDirectory = Path.GetDirectoryName(solutionFile)!;
+        foreach (Match match in Regex.Matches(File.ReadAllText(solutionFile), @"=\s*""[^""]*"",\s*""([^""]+\.csproj)"""))
+            yield return Path.Combine(solutionDirectory, match.Groups[1].Value.Replace('\\', Path.DirectorySeparatorChar));
+    }
+
+    // The resolved Stride version from the project's restored obj/project.assets.json. This avoids a full
+    // MSBuild evaluation: NuGet already resolved central package management, version ranges and props into the
+    // flat "libraries" list. Assumes the default obj/ location; if it is redirected or not yet restored,
+    // returns null so the caller can restore and retry.
+    private static PackageVersion? ReadRestoredStrideVersion(string projectFile)
+    {
+        var assetsFile = Path.Combine(Path.GetDirectoryName(projectFile)!, "obj", "project.assets.json");
+        if (!File.Exists(assetsFile))
+            return null;
+
+        using var document = JsonDocument.Parse(File.ReadAllText(assetsFile));
+        if (!document.RootElement.TryGetProperty("libraries", out var libraries))
+            return null;
+
+        foreach (var library in libraries.EnumerateObject())
+        {
+            // Keys look like "Stride.Engine/4.4.0.1".
+            var separator = library.Name.IndexOf('/');
+            if (separator <= 0)
+                continue;
+
+            var packageId = library.Name[..separator];
+            if (packageId == "Stride" || packageId.StartsWith("Stride.", StringComparison.Ordinal))
+                return new PackageVersion(library.Name[(separator + 1)..]);
+        }
+
+        return null;
+    }
+
+    // Searches the package's tools/ and lib/ folders for the first matching executable.
+    private string? LocateExecutable(string packageId, PackageVersion version, params string[] executableNames)
+    {
+        var installPath = store.GetInstalledPath(packageId, version);
+        if (string.IsNullOrEmpty(installPath))
+            return null;
+
+        foreach (var topLevelFolder in new[] { "tools", "lib" })
+        {
+            var directory = Path.Combine(installPath, topLevelFolder);
+            if (!Directory.Exists(directory))
+                continue;
+
+            foreach (var executableName in executableNames)
+            {
+                var match = Directory.EnumerateFiles(directory, executableName, SearchOption.AllDirectories).FirstOrDefault();
+                if (match is not null)
+                    return match;
+            }
+        }
+
+        return null;
     }
 
     private StrideVersion ToStrideVersion(NugetLocalPackage package)
