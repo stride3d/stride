@@ -150,18 +150,6 @@ namespace Stride.Assets.Textures
             // determine if the desired size if valid depending on the graphics profile
             switch (parameters.GraphicsProfile)
             {
-                case GraphicsProfile.Level_9_1:
-                case GraphicsProfile.Level_9_2:
-                case GraphicsProfile.Level_9_3:
-                    if (parameters.GenerateMipmaps && (!MathUtil.IsPow2(textureSize.Width) || !MathUtil.IsPow2(textureSize.Height)))
-                    {
-                        // TODO: TEMPORARY SETUP A MAX TEXTURE OF 1024. THIS SHOULD BE SPECIFIED DONE IN THE ASSET INSTEAD
-                        textureSize.Width = Math.Min(MathUtil.NextPowerOfTwo(textureSize.Width), 1024);
-                        textureSize.Height = Math.Min(MathUtil.NextPowerOfTwo(textureSize.Height), 1024);
-                        logger?.Warning("Graphic profiles 9.1/9.2/9.3 do not support mipmaps with textures that are not power of 2. Asset is automatically resized to " + textureSize);
-                    }
-                    maxTextureSize = parameters.GraphicsProfile >= GraphicsProfile.Level_9_3 ? 4096 : 2048;
-                    break;
                 case GraphicsProfile.Level_10_0:
                 case GraphicsProfile.Level_10_1:
                     maxTextureSize = 8192;
@@ -213,13 +201,6 @@ namespace Stride.Assets.Textures
                             {
                                 switch (parameters.GraphicsProfile)
                                 {
-                                    case GraphicsProfile.Level_9_1:
-                                    case GraphicsProfile.Level_9_2:
-                                    case GraphicsProfile.Level_9_3:
-                                        // Pre-Vulkan GLES 2.0 era: no encoder for ETC1 ships now that PVRTT is gone,
-                                        // and ASTC is not guaranteed on that hardware. Fall back to uncompressed.
-                                        outputFormat = parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
-                                        break;
                                     case GraphicsProfile.Level_10_0:
                                     case GraphicsProfile.Level_10_1:
                                     case GraphicsProfile.Level_11_0:
@@ -282,23 +263,20 @@ namespace Stride.Assets.Textures
 
                                     // Overrides the format when profile is >= 10.0
                                     // Support some specific optimized formats based on the hint or input type
-                                    if (parameters.GraphicsProfile >= GraphicsProfile.Level_10_0)
+                                    if (hint == TextureHint.NormalMap)
                                     {
-                                        if (hint == TextureHint.NormalMap)
-                                        {
-                                            outputFormat = PixelFormat.BC5_UNorm;
-                                        }
-                                        else if (hint == TextureHint.Grayscale)
-                                        {
-                                            outputFormat = PixelFormat.BC4_UNorm;
-                                        }
-                                        else if (inputImageFormat.IsHDR)
-                                        {
-                                            // TODO BC6H for HDR (modern GPU/ISPC encoders make encode time tractable; profile ≥11.0, AlphaFormat.None).
-                                            outputFormat = inputImageFormat;
-                                        }
-                                        // TODO BC7 for Quality=High color / UI (modern GPU/ISPC encoders make encode time tractable).
+                                        outputFormat = PixelFormat.BC5_UNorm;
                                     }
+                                    else if (hint == TextureHint.Grayscale)
+                                    {
+                                        outputFormat = PixelFormat.BC4_UNorm;
+                                    }
+                                    else if (inputImageFormat.IsHDR)
+                                    {
+                                        // TODO BC6H for HDR (modern GPU/ISPC encoders make encode time tractable; profile ≥11.0, AlphaFormat.None).
+                                        outputFormat = inputImageFormat;
+                                    }
+                                    // TODO BC7 for Quality=High color / UI (modern GPU/ISPC encoders make encode time tractable).     
                                     break;
                                 default:
                                     // Null platform

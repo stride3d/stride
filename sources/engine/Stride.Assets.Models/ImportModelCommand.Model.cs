@@ -24,8 +24,6 @@ namespace Stride.Assets.Models
         public Vector3 PivotPosition { get; set; }
 
         public bool MergeMeshes { get; set; }
-
-        public bool Allow32BitIndex { get; set; }
         public int MaxInputSlots { get; set; }
         public bool DeduplicateMaterials { get; set; }
         public List<ModelMaterial> Materials { get; set; }
@@ -225,7 +223,7 @@ namespace Stride.Assets.Models
 
                     // Add new combined mesh(es)
                     var baseMesh = meshesPerDrawCall.First();
-                    var newMeshList = meshesPerDrawCall.Select(x => x.Draw).ToList().GroupDrawData(Allow32BitIndex);
+                    var newMeshList = meshesPerDrawCall.Select(x => x.Draw).ToList().GroupDrawData();
 
                     foreach (var generatedMesh in newMeshList)
                     {
@@ -242,7 +240,7 @@ namespace Stride.Assets.Models
             }
 
             // split the meshes if necessary
-            model.Meshes = SplitExtensions.SplitMeshes(model.Meshes, Allow32BitIndex);
+            model.Meshes = SplitExtensions.SplitMeshes(model.Meshes);
 
             // Refresh skeleton updater with asset skeleton
             hierarchyUpdater = new SkeletonUpdater(skeleton);

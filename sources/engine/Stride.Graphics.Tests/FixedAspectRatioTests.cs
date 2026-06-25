@@ -41,7 +41,7 @@ namespace Stride.Graphics.Tests
             SceneSystem.GraphicsCompositor = GraphicsCompositorHelper.CreateDefault(
                 enablePostEffects: false,
                 clearColor: Color.Green,
-                graphicsProfile: GraphicsProfile.Level_9_1);
+                graphicsProfile: GraphicsProfile.Level_10_0);
 
             SceneSystem.GraphicsCompositor.Game = new ForceAspectRatioSceneRenderer
             {
