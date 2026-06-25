@@ -107,7 +107,7 @@ namespace Stride.Video.FFmpeg
             foreach (var library in Libraries)
             {
                 var name = Platform.Type == PlatformType.Windows ? library.WindowsName : library.Name;
-                libraryHandles[library.Name] = NativeLibraryHelper.Load(name, type);
+                libraryHandles[library.Name] = NativeLibraryHelper.PreloadLibrary(name, type);
             }
         }
 
