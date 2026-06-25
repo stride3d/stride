@@ -18,7 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
-    <ProjectReference Include="..\Stride\Stride.csproj" />
+    <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\Celt.cpp" />

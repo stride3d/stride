@@ -14,7 +14,7 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\..\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj" />
-    <ProjectReference Include="..\Stride\Stride.csproj" />
+    <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
