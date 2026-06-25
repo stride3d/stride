@@ -37,7 +37,7 @@
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
-    <ProjectReference Include="..\Stride\Stride.csproj" />
+    <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

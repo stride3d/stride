@@ -17,7 +17,7 @@ namespace Stride.Assets.Media
     [CategoryOrder(10, "Size")]
     [CategoryOrder(15, "Trimming")]
     [CategoryOrder(20, "Audio")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.0")]
     public partial class VideoAsset : Asset, IAssetWithSource
     {
         public VideoAsset()
