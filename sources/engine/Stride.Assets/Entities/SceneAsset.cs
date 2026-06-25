@@ -17,8 +17,8 @@ namespace Stride.Assets.Entities
     [DataContract("SceneAsset")]
     [AssetDescription(FileSceneExtension, AllowArchetype = false)]
     [AssetContentType(typeof(Scene))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.1")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.1.0.1", "3.1.0.1", typeof(CharacterComponentGravityVector3Upgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.1")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.1", "3.1.0.1", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class SceneAsset : EntityHierarchyAssetBase
     {
         private const string CurrentVersion = "3.1.0.1";

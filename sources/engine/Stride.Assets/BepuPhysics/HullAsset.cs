@@ -22,8 +22,8 @@ namespace Stride.BepuPhysics.Assets
     [DataContract("HullAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(DecomposedHulls))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(VhacdV4Upgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "3.0.0.0", typeof(VhacdV4Upgrader))]
     public class HullAsset : Asset
     {
         private const string CurrentVersion = "3.0.0.0";

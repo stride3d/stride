@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 
 // Alphabetic sort
-[assembly: InternalsVisibleTo("Stride" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Models" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Audio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets" + Stride.PublicKeys.Default)]
@@ -14,6 +13,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Core.Serializers" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.IO" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Foundation" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Particles" + Stride.PublicKeys.Default)]

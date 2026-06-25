@@ -18,7 +18,7 @@ namespace Stride.Assets.Materials
     [DataContract("MaterialAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Material))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class MaterialAsset : Asset, IMaterialDescriptor
     {
         private const string CurrentVersion = "2.0.0.0";

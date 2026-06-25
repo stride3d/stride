@@ -169,13 +169,13 @@ public partial class App : Avalonia.Application
         return null;
     }
 
-    // Pick up the Stride engine assembly's informational version (the dev1/dev2 suffix is
-    // useful, plain Version drops it). The Stride assembly is loaded by the entry assembly
+    // Pick up the Stride.Foundation assembly's informational version (the dev1/dev2 suffix is
+    // useful, plain Version drops it). The Stride.Foundation assembly is loaded by the entry assembly
     // during test discovery, which happens before the window is shown.
     static string? InferStrideVersion()
     {
         var strideAsm = AppDomain.CurrentDomain.GetAssemblies()
-            .FirstOrDefault(a => a.GetName().Name == "Stride");
+            .FirstOrDefault(a => a.GetName().Name == "Stride.Foundation");
         if (strideAsm is null) return null;
         var info = strideAsm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         return info ?? strideAsm.GetName().Version?.ToString();
