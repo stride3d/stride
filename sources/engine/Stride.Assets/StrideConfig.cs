@@ -14,9 +14,10 @@ namespace Stride.Assets
     [DataContract("Stride")]
     public sealed class StrideConfig
     {
-        public const string PackageName = "Stride";
-
-        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(StrideVersion.NuGetVersion);
+        // Logical engine-package identity for asset versioning and upgraders
+        // (the key written into every saved asset's SerializedVersion)
+        // Intentionally not the assembly or NuGet package id, so it stays "Stride" (Stride real package is kept for dotnet tool)
+        public const string LogicalPackageName = "Stride";
 
         /// <summary>
         /// All created embedded games (preview, scene, etc...) and asset compilers will have <see cref="DeviceCreationFlags.Debug"/> set.
@@ -39,15 +40,6 @@ namespace Stride.Assets
             { VSAnyVersion, @"Microsoft.VisualStudio.Workload.NetCrossPlat" },
             { VS2015Version, @"MSBuild\Xamarin\Android\Xamarin.Android.CSharp.targets" }
         };
-
-        public static PackageDependency GetLatestPackageDependency()
-        {
-            return new PackageDependency(PackageName, new PackageVersionRange()
-                {
-                    MinVersion = LatestPackageVersion,
-                    IsMinInclusive = true
-                });
-        }
 
         /// <summary>
         /// Registers the solution platforms supported by Stride.

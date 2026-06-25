@@ -17,7 +17,7 @@ namespace Stride.Assets.Models
     [AssetDescription(FileExtension, AllowArchetype = false)]
     [AssetContentType(typeof(Skeleton))]
     [Display((int)AssetDisplayPriority.Models, "Skeleton", "A skeleton (node hierarchy)")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public class SkeletonAsset : Asset, IAssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";

@@ -12,7 +12,7 @@ namespace Stride.Assets.Textures
     [DataContract("RenderTexture")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Texture))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class RenderTextureAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

@@ -15,7 +15,7 @@ namespace Stride.Assets.Models
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 60, "Prefab model")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed class PrefabModelAsset : Asset, IModelAsset
     {
         private const string CurrentVersion = "2.0.0.0";

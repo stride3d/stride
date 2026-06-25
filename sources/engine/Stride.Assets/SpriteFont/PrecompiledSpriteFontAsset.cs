@@ -17,7 +17,7 @@ namespace Stride.Assets.SpriteFont
     [DataContract("PregeneratedSpriteFont")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Graphics.SpriteFont))]
-    [AssetFormatVersion(StrideConfig.PackageName, "1.7.0-alpha01", "1.7.0-alpha01")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, "1.7.0-alpha01", "1.7.0-alpha01")]
     [CategoryOrder(10, "Font Data")]
     [CategoryOrder(20, "Font Properties")]
     [CategoryOrder(30, "Font Characters")]
