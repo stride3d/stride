@@ -80,7 +80,9 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             {
                 propertyItem.IsExpanded = false;
             }
-            Dispatcher.BeginInvoke(new Action(() => ExpandSingleProperties(e.Container)));
+
+            Dispatcher.VerifyAccess();
+            ExpandSingleProperties(e.Container);
         }
 
         private PropertyViewItem GetPropertyItem(string propertyPath)
