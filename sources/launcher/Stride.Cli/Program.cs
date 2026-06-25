@@ -71,6 +71,36 @@ uninstallCommand.SetAction(async (parseResult, _) =>
     }
 });
 
+// update: roll installed lines to their newest patch, retiring the previously managed patch.
+var updateLine = new Argument<string?>("line")
+{
+    Arity = ArgumentArity.ZeroOrOne,
+    Description = "Major.minor line to update (e.g. 4.4). Updates all installed lines if omitted.",
+};
+var updateCommand = new Command("update", "Update installed Stride lines to their newest patch.");
+updateCommand.Arguments.Add(updateLine);
+updateCommand.SetAction(async (parseResult, cancellationToken) =>
+{
+    try
+    {
+        var updated = await manager.Update(parseResult.GetValue(updateLine), cancellationToken);
+        if (updated.Count == 0)
+        {
+            Console.WriteLine("Everything is already up to date.");
+            return 0;
+        }
+
+        foreach (var version in updated)
+            Console.WriteLine($"Updated to Stride {version.Version}.");
+        return 0;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine(exception.Message);
+        return 1;
+    }
+});
+
 // --version overrides the version that would otherwise come from a project in the current directory.
 var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version, bypassing a project in the current directory." };
 
@@ -111,6 +141,7 @@ var root = new RootCommand("Stride command-line tool.");
 root.Subcommands.Add(listCommand);
 root.Subcommands.Add(installCommand);
 root.Subcommands.Add(uninstallCommand);
+root.Subcommands.Add(updateCommand);
 root.Subcommands.Add(assetCommand);
 root.Subcommands.Add(studioCommand);
 return await root.Parse(args).InvokeAsync();
