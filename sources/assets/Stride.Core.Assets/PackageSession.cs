@@ -788,7 +788,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             SolutionProject? firstProject = null;
 
             // If we have a solution, load all packages
-            if (string.Equals(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase))
+            if (Solution.IsSolutionFile(filePath))
             {
                 // The session should save back its changes to the solution
                 var solution = session.VSSolution = Solution.FromFile(filePath);
@@ -834,7 +834,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     .Select(lang => lang.Extension)
                     .ToArray();
 
-                sessionResult.Error($"Unsupported file extension (only .sln, {string.Join(", ", supportedExtensions)} and .sdpkg are supported)");
+                sessionResult.Error($"Unsupported file extension (only {string.Join(", ", Solution.SolutionExtensions)}, {string.Join(", ", supportedExtensions)} and .sdpkg are supported)");
                 return;
             }
 
