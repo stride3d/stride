@@ -280,6 +280,59 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
+    /// Enumerates every package installed in the store, regardless of id. Useful when the caller does not
+    /// know the package ids up front (e.g. discovering template packages by their NuGet package type).
+    /// </summary>
+    /// <returns>All installed packages.</returns>
+    public IEnumerable<NugetLocalPackage> GetAllPackagesInstalled()
+    {
+        var result = new List<NugetLocalPackage>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void TryAdd(LocalPackageInfo info)
+        {
+            var package = new NugetLocalPackage(info);
+            if (seen.Add($"{package.Id}/{package.Version}"))
+                result.Add(package);
+        }
+
+        // Extracted packages in the global packages folder (v3 layout).
+        foreach (var installPath in new[] { InstallPath, oldRootDirectory })
+        {
+            if (installPath == null)
+                continue;
+            try
+            {
+                foreach (var info in new FindLocalPackagesResourceV3(installPath).GetPackages(NativeLogger, CancellationToken.None))
+                    TryAdd(info);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A missing or unreadable folder yields no packages.
+            }
+        }
+
+        // Loose nupkgs in configured local-folder sources (e.g. a dev worktree's bin/packages) not yet mirrored
+        // into the global folder. The global folder above wins on duplicates (extracted form preferred).
+        foreach (var source in PackageSources)
+        {
+            if (!source.IsLocal)
+                continue;
+            try
+            {
+                foreach (var info in LocalFolderUtility.GetPackagesV2(source.Source, NativeLogger))
+                    TryAdd(info);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Inaccessible source folder: skip.
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Mirrors any .nupkg of <paramref name="packageId"/> from configured local-folder NuGet sources
     /// (e.g. a worktree's <c>bin/packages</c>) into the global packages folder when the source nupkg
     /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>

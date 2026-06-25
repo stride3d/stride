@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Diagnostics;
 using System.Text.Json;
+using Stride.Assets.Templates;
 using Stride.Core;
 using Stride.Core.Packages;
 using Stride.Core.Solutions;
@@ -138,6 +139,85 @@ public sealed class StrideVersionManager
 
         throw new InvalidOperationException(
             $"Could not determine the Stride version for the project in '{workingDirectory}', even after restoring it.");
+    }
+
+    // Template packages carry a Stride.Core dependency stamping the engine version they were built against
+    // (see Stride.Templates.Common.targets).
+    private const string TemplateMarkerDependencyId = "Stride.Core";
+
+    // Discovery is scoped to packages carrying this tag (set by Stride.Templates.Common.targets), so a
+    // template package from an unrelated local source (e.g. the VS offline packages folder) is not picked up.
+    private const string TemplateTag = "stride-template";
+
+    /// <summary>
+    ///   Opens a template registry over the installed template packages compatible with the given version,
+    ///   plus any explicitly requested <paramref name="extraPackages"/> (a package id or a local .nupkg path).
+    ///   Returns null if none could be installed. The caller owns the returned registry and must dispose it.
+    /// </summary>
+    public async Task<DotNetNewTemplateRegistry?> OpenTemplateRegistry(PackageVersion version, IEnumerable<string>? extraPackages = null)
+    {
+        // Keep template-engine state under a CLI-owned, per-version directory so it stays isolated
+        // from the user's global `dotnet new` installation and is deterministic regardless of whether
+        // Game Studio has been run.
+        var profileDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "stride", "cli", "templates", version.ToString());
+
+        var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);
+        var installedAny = false;
+        foreach (var packageDir in ResolveTemplatePackages(version, extraPackages))
+        {
+            var (success, _) = await registry.InstallPackageAsync(packageDir);
+            installedAny |= success;
+        }
+
+        if (!installedAny)
+        {
+            registry.Dispose();
+            return null;
+        }
+
+        return registry;
+    }
+
+    // The directories to install into the registry: one per discovered template package, plus any explicit
+    // extra packages.
+    private IEnumerable<string> ResolveTemplatePackages(PackageVersion version, IEnumerable<string>? extraPackages)
+    {
+        // Discover template packages by package type + tag, then per id pick the newest version whose
+        // Stride.Core marker floor is <= the requested version (unmarked packages fall back to newest).
+        var discovered = store.GetAllPackagesInstalled()
+            .Where(package => package.IsTemplatePackage && package.HasTag(TemplateTag))
+            .GroupBy(package => package.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group
+                .Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is not { } floor || floor.CompareTo(version) <= 0)
+                .OrderByDescending(package => package.Version)
+                .FirstOrDefault())
+            .OfType<NugetLocalPackage>();
+
+        foreach (var package in discovered)
+        {
+            // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
+            var path = package.NupkgPath ?? package.Path;
+            if (!string.IsNullOrEmpty(path))
+                yield return path;
+        }
+
+        foreach (var extra in extraPackages ?? [])
+        {
+            // A local .nupkg or already-extracted directory is installed as-is; anything else is treated as a
+            // package id and resolved to its newest installed copy.
+            if (File.Exists(extra) || Directory.Exists(extra))
+            {
+                yield return extra;
+                continue;
+            }
+
+            var newest = store.GetPackagesInstalled([extra]).FirstOrDefault();
+            var resolved = newest is null ? null : store.GetInstalledPath(newest.Id, newest.Version);
+            if (!string.IsNullOrEmpty(resolved))
+                yield return resolved;
+        }
     }
 
     /// <summary>Locates the Game Studio executable for the given version, or null if not found.</summary>
