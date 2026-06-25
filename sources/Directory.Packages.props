@@ -25,6 +25,7 @@
     <PackageVersion Include="Microsoft.TemplateEngine.IDE" Version="10.0.100" />
     <PackageVersion Include="Microsoft.TemplateEngine.Edge" Version="10.0.100" />
     <PackageVersion Include="Microsoft.TemplateEngine.Abstractions" Version="10.0.100" />
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.264" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="ServiceWire" Version="5.6.0" />

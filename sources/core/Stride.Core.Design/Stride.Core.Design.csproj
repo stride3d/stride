@@ -27,6 +27,7 @@
     <PackageReference Include="JetBrains.Rider.PathLocator" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     <PackageReference Include="NuGet.Configuration" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="System.Management" />

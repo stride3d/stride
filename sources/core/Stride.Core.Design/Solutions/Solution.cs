@@ -24,6 +24,7 @@
 #endregion
 
 using System.Diagnostics;
+using Microsoft.VisualStudio.SolutionPersistence.Model;
 
 namespace Stride.Core.Solutions;
 
@@ -72,6 +73,12 @@ public class Solution
     /// </summary>
     /// <value>The full path.</value>
     public string FullPath { get; set; }
+
+    /// <summary>
+    /// The model this solution was loaded from, used on save to preserve everything it already
+    /// contained; null for a solution that was not loaded from disk.
+    /// </summary>
+    internal SolutionModel? SourceModel { get; set; }
 
     /// <summary>
     /// Gets all projects that are not folders.
@@ -132,41 +139,7 @@ public class Solution
     /// <param name="solutionPath">The solution path.</param>
     public void SaveAs(string solutionPath)
     {
-        // If the solution file already exists, we want to write it only if it has actually changed, to prevent Visual Studio to reload the solution
-        if (File.Exists(solutionPath))
-        {
-            // Read the current version of the solution file.
-            string currentVersion;
-            StreamReader reader;
-            using (reader = new StreamReader(solutionPath))
-            {
-                currentVersion = reader.ReadToEnd();
-            }
-            var memoryStream = new MemoryStream();
-
-            // Write the new version of the solution file in memory
-            var writer = new SolutionWriter(memoryStream);
-            writer.WriteSolutionFile(this);
-            writer.Flush();
-            memoryStream.Position = 0;
-
-            // Retrieve the new version of the solution file in a string
-            reader = new StreamReader(memoryStream);
-            var newVersion = reader.ReadToEnd();
-            memoryStream.Close();
-
-            // If the versions are different, actually write the new version on disk
-            if (newVersion != currentVersion)
-            {
-                using var streamWriter = new StreamWriter(solutionPath);
-                streamWriter.Write(newVersion);
-            }
-        }
-        else
-        {
-            using var writer = new SolutionWriter(solutionPath);
-            writer.WriteSolutionFile(this);
-        }
+        SolutionSerialization.Write(this, solutionPath);
     }
 
     /// <summary>
@@ -176,10 +149,7 @@ public class Solution
     /// <returns>Solution.</returns>
     public static Solution FromFile(string solutionFullPath)
     {
-        using var reader = new SolutionReader(solutionFullPath);
-        var solution = reader.ReadSolutionFile();
-        solution.FullPath = solutionFullPath;
-        return solution;
+        return SolutionSerialization.Read(solutionFullPath);
     }
 
     /// <summary>
@@ -190,9 +160,6 @@ public class Solution
     /// <returns>Solution.</returns>
     public static Solution FromStream(string solutionFullPath, Stream stream)
     {
-        using var reader = new SolutionReader(solutionFullPath, stream);
-        var solution = reader.ReadSolutionFile();
-        solution.FullPath = solutionFullPath;
-        return solution;
+        return SolutionSerialization.Read(solutionFullPath, stream);
     }
 }
