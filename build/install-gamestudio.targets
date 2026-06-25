@@ -95,13 +95,13 @@
 
   <Target Name="Run" DependsOnTargets="Deploy">
     <ItemGroup>
-      <_GameStudioExe Include="$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\lib\net10.0-windows*\Stride.GameStudio.exe" />
+      <_GameStudioExe Include="$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\tools\net10.0-windows*\Stride.GameStudio.exe" />
     </ItemGroup>
     <PropertyGroup>
       <_GameStudioExePath>@(_GameStudioExe)</_GameStudioExePath>
     </PropertyGroup>
     <Error Condition="'$(_GameStudioExePath)' == ''"
-           Text="Could not find Stride.GameStudio.exe under '$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\lib\' after restore." />
+           Text="Could not find Stride.GameStudio.exe under '$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\tools\' after restore." />
 
     <Message Importance="high" Text="Launching $(_GameStudioExePath)" />
     <Exec Command="&quot;$(_GameStudioExePath)&quot;" />
