@@ -288,6 +288,29 @@ public static partial class NativeLibraryHelper
     }
 
     /// <summary>
+    ///   Loads a native library (or returns the handle of one already loaded) using the same search
+    ///   logic as <see cref="PreloadLibrary"/>, and returns its OS module handle. This lets callers that
+    ///   resolve exports themselves (for example, libraries with their own function-pointer binding) use
+    ///   the same native resolution as the rest of the engine.
+    /// </summary>
+    /// <param name="libraryName">The name of the library, without the extension.</param>
+    /// <param name="ownerType">
+    ///   The <see cref="Type"/> whose Assembly location is related to the native library.
+    /// </param>
+    /// <returns>The OS handle of the loaded library.</returns>
+    /// <exception cref="DllNotFoundException">The library could not be located or loaded.</exception>
+    public static nint Load(string libraryName, Type ownerType)
+    {
+#if STRIDE_PLATFORM_DESKTOP
+        PreloadLibrary(libraryName, ownerType);
+        lock (loadedLibrariesLock)
+            return loadedLibraries[libraryName];
+#else
+        return 0;
+#endif
+    }
+
+    /// <summary>
     ///   Attempts to locate the full file path of a native library associated with the specified owner type.
     ///   The search includes several directories relative to the owner's assembly, the current process,
     ///   and the current working directory.
