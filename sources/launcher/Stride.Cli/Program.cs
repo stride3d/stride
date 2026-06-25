@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using System.Diagnostics;
+using System.Reflection;
 using Stride.Launcher.Core;
 
 var manager = new StrideVersionManager();
@@ -150,6 +151,19 @@ selfUpdateCommand.SetAction(_ =>
 });
 selfCommand.Subcommands.Add(selfUpdateCommand);
 
+// version: show the CLI version and the Stride version resolved for the current directory.
+var versionCommand = new Command("version", "Show the Stride CLI version and the resolved Stride version.");
+versionCommand.SetAction(_ =>
+{
+    var cliVersion = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+    Console.WriteLine($"Stride CLI {cliVersion}");
+
+    var resolved = manager.ResolveVersion(null, Environment.CurrentDirectory);
+    Console.WriteLine(resolved is null
+        ? "No Stride version resolved (none installed, and no project in the current directory)."
+        : $"Resolved Stride version: {resolved}");
+});
+
 // Wire up the command tree and run.
 var root = new RootCommand("Stride command-line tool.");
 root.Subcommands.Add(listCommand);
@@ -159,6 +173,7 @@ root.Subcommands.Add(updateCommand);
 root.Subcommands.Add(assetCommand);
 root.Subcommands.Add(studioCommand);
 root.Subcommands.Add(selfCommand);
+root.Subcommands.Add(versionCommand);
 return await root.Parse(args).InvokeAsync();
 
 // Run a located tool, forwarding arguments. When wait is true (Asset Compiler) the console is inherited
