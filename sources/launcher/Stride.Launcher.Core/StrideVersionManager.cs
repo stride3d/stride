@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Diagnostics;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Stride.Core;
 using Stride.Core.Packages;
+using Stride.Core.Solutions;
 
 namespace Stride.Launcher.Core;
 
@@ -118,7 +119,25 @@ public sealed class StrideVersionManager
         if (!string.IsNullOrEmpty(explicitVersion))
             return new PackageVersion(explicitVersion);
 
-        return FindProjectVersion(workingDirectory) ?? GetDefault()?.Version;
+        var projectFiles = GetProjectFiles(workingDirectory);
+        if (projectFiles.Count == 0)
+            return GetDefault()?.Version;  // not inside a project: use the newest installed version
+
+        var version = FirstRestoredVersion(projectFiles);
+        if (version is not null)
+            return version;
+
+        // A project is present but not restored yet: restore the projects, then read the version again.
+        foreach (var projectFile in projectFiles)
+        {
+            Restore(projectFile);
+            version = ReadRestoredStrideVersion(projectFile);
+            if (version is not null)
+                return version;
+        }
+
+        throw new InvalidOperationException(
+            $"Could not determine the Stride version for the project in '{workingDirectory}', even after restoring it.");
     }
 
     /// <summary>Locates the Game Studio executable for the given version, or null if not found.</summary>
@@ -135,27 +154,37 @@ public sealed class StrideVersionManager
         return LocateExecutable(packageId, version, packageId + ".exe");
     }
 
-    // Resolves the Stride version pinned by the project or solution in the current directory, mirroring how
-    // `dotnet build` finds its target there: a .csproj, or the projects a .sln references. Subdirectories are
-    // not scanned. Returns null if nothing is found or the project has not been restored.
-    private static PackageVersion? FindProjectVersion(string workingDirectory)
+    // The csproj files in the current directory, plus those referenced by any .sln/.slnx/.slnf there. Mirrors
+    // how `dotnet build` finds its target: the current directory only, not a recursive scan.
+    private static List<string> GetProjectFiles(string workingDirectory)
     {
         if (!Directory.Exists(workingDirectory))
-            return null;
+            return [];
 
-        var projectFiles = Directory.EnumerateFiles(workingDirectory, "*.csproj")
-            .Concat(Directory.EnumerateFiles(workingDirectory, "*.sln").SelectMany(ReferencedProjects));
-
-        return projectFiles.Select(ReadRestoredStrideVersion).FirstOrDefault(version => version is not null);
+        var solutionFiles = Directory.EnumerateFiles(workingDirectory).Where(Solution.IsSolutionFile);
+        return Directory.EnumerateFiles(workingDirectory, "*.csproj")
+            .Concat(solutionFiles.SelectMany(ReferencedProjects))
+            .ToList();
     }
 
-    // The project paths referenced by a solution file, resolved relative to it.
-    private static IEnumerable<string> ReferencedProjects(string solutionFile)
+    private static PackageVersion? FirstRestoredVersion(IEnumerable<string> projectFiles)
+        => projectFiles.Select(ReadRestoredStrideVersion).FirstOrDefault(version => version is not null);
+
+    // Runs `dotnet restore <project>` so the project produces a project.assets.json.
+    private static void Restore(string projectFile)
     {
-        var solutionDirectory = Path.GetDirectoryName(solutionFile)!;
-        foreach (Match match in Regex.Matches(File.ReadAllText(solutionFile), @"=\s*""[^""]*"",\s*""([^""]+\.csproj)"""))
-            yield return Path.Combine(solutionDirectory, match.Groups[1].Value.Replace('\\', Path.DirectorySeparatorChar));
+        var startInfo = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+        startInfo.ArgumentList.Add("restore");
+        startInfo.ArgumentList.Add(projectFile);
+        Process.Start(startInfo)?.WaitForExit();
     }
+
+    // The csproj paths referenced by a solution. Stride.Core.Solutions handles the .sln/.slnx formats and
+    // resolves a .slnf filter to its underlying solution.
+    private static IEnumerable<string> ReferencedProjects(string solutionFile)
+        => Solution.FromFile(solutionFile).Projects
+            .Select(project => project.FullPath)
+            .Where(path => path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase));
 
     // The resolved Stride version from the project's restored obj/project.assets.json. This avoids a full
     // MSBuild evaluation: NuGet already resolved central package management, version ranges and props into the
@@ -171,19 +200,24 @@ public sealed class StrideVersionManager
         if (!document.RootElement.TryGetProperty("libraries", out var libraries))
             return null;
 
+        // Keys look like "Stride.Engine/4.4.0". Read the engine version from the canonical engine package
+        // (Stride.Engine), falling back to Stride.Core for a code library that references only Core. Other
+        // Stride.*-prefixed packages can use independent versioning, so they aren't reliable indicators.
+        PackageVersion? engine = null, core = null;
         foreach (var library in libraries.EnumerateObject())
         {
-            // Keys look like "Stride.Engine/4.4.0.1".
             var separator = library.Name.IndexOf('/');
             if (separator <= 0)
                 continue;
 
             var packageId = library.Name[..separator];
-            if (packageId == "Stride" || packageId.StartsWith("Stride.", StringComparison.Ordinal))
-                return new PackageVersion(library.Name[(separator + 1)..]);
+            if (string.Equals(packageId, "Stride.Engine", StringComparison.OrdinalIgnoreCase))
+                engine = new PackageVersion(library.Name[(separator + 1)..]);
+            else if (string.Equals(packageId, "Stride.Core", StringComparison.OrdinalIgnoreCase))
+                core = new PackageVersion(library.Name[(separator + 1)..]);
         }
 
-        return null;
+        return engine ?? core;
     }
 
     // Searches the package's tools/ and lib/ folders for the first matching executable.

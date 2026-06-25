@@ -3,9 +3,28 @@
 using System.CommandLine;
 using System.Diagnostics;
 using System.Reflection;
+using Stride.Core;
 using Stride.Launcher.Core;
 
 var manager = new StrideVersionManager();
+
+// Resolve the version for the current directory (restoring the project if needed). Prints any error and
+// returns null on failure.
+PackageVersion? ResolveOrReport(string? explicitVersion)
+{
+    try
+    {
+        var resolved = manager.ResolveVersion(explicitVersion, Environment.CurrentDirectory);
+        if (resolved is null)
+            Console.Error.WriteLine("No Stride version is installed.");
+        return resolved;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine(exception.Message);
+        return null;
+    }
+}
 
 // list: print the installed Stride versions.
 var listCommand = new Command("list", "List installed Stride versions.");
@@ -111,14 +130,10 @@ assetCommand.Options.Add(versionOption);
 assetCommand.TreatUnmatchedTokensAsErrors = false;
 assetCommand.SetAction(parseResult =>
 {
-    var version = manager.ResolveVersion(parseResult.GetValue(versionOption), Environment.CurrentDirectory);
-    if (version is null)
-    {
-        Console.Error.WriteLine("No Stride version is installed.");
-        return 1;
-    }
-
-    return RunTool(manager.LocateAssetCompiler(version), $"the Asset Compiler for Stride {version}", parseResult.UnmatchedTokens, wait: true);
+    var version = ResolveOrReport(parseResult.GetValue(versionOption));
+    return version is null
+        ? 1
+        : RunTool(manager.LocateAssetCompiler(version), $"the Asset Compiler for Stride {version}", parseResult.UnmatchedTokens, wait: true);
 });
 
 // studio: open Game Studio (launches and returns immediately).
@@ -127,14 +142,10 @@ studioCommand.Options.Add(versionOption);
 studioCommand.TreatUnmatchedTokensAsErrors = false;
 studioCommand.SetAction(parseResult =>
 {
-    var version = manager.ResolveVersion(parseResult.GetValue(versionOption), Environment.CurrentDirectory);
-    if (version is null)
-    {
-        Console.Error.WriteLine("No Stride version is installed.");
-        return 1;
-    }
-
-    return RunTool(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
+    var version = ResolveOrReport(parseResult.GetValue(versionOption));
+    return version is null
+        ? 1
+        : RunTool(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
 });
 
 // self update: update the Stride CLI itself by delegating to dotnet, then exit so the running
@@ -158,10 +169,9 @@ versionCommand.SetAction(_ =>
     var cliVersion = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
     Console.WriteLine($"Stride CLI {cliVersion}");
 
-    var resolved = manager.ResolveVersion(null, Environment.CurrentDirectory);
-    Console.WriteLine(resolved is null
-        ? "No Stride version resolved (none installed, and no project in the current directory)."
-        : $"Resolved Stride version: {resolved}");
+    var resolved = ResolveOrReport(null);
+    if (resolved is not null)
+        Console.WriteLine($"Resolved Stride version: {resolved}");
 });
 
 // Wire up the command tree and run.
