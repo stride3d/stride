@@ -22,7 +22,7 @@ namespace Stride.Assets.Models
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(AnimationClip))]
     [Display((int)AssetDisplayPriority.Models + 20, "Animation")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public class AnimationAsset : Asset, IAssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";

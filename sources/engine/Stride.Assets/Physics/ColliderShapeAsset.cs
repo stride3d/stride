@@ -18,9 +18,9 @@ namespace Stride.Assets.Physics
     [DataContract("ColliderShapeAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(PhysicsColliderShape))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
-    [AssetUpgrader(StrideConfig.PackageName, "3.0.0.0", "4.0.0.0", typeof(VhacdV4Upgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "3.0.0.0", "4.0.0.0", typeof(VhacdV4Upgrader))]
     public partial class ColliderShapeAsset : Asset
     {
         private const string CurrentVersion = "4.0.0.0";

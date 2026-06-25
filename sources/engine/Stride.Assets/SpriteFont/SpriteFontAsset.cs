@@ -17,8 +17,8 @@ namespace Stride.Assets.SpriteFont
     [AssetContentType(typeof(Graphics.SpriteFont))]
     [CategoryOrder(10, "Font")]
     [CategoryOrder(30, "Rendering")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.0.0.0", "2.1.0.0", typeof(ClearTypeToGrayscaleUpgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "2.1.0.0", typeof(ClearTypeToGrayscaleUpgrader))]
     public partial class SpriteFontAsset : Asset
     {
         private const string CurrentVersion = "2.1.0.0";

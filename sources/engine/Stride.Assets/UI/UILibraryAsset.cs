@@ -16,7 +16,7 @@ namespace Stride.Assets.UI
     [DataContract("UILibraryAsset")]
     [AssetDescription(FileExtension, AllowArchetype = false)]
     [AssetContentType(typeof(UILibrary))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.1")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.1")]
     public partial class UILibraryAsset : UIAssetBase
     {
         private const string CurrentVersion = "2.1.0.1";

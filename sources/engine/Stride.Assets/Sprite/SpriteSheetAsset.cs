@@ -25,7 +25,7 @@ namespace Stride.Assets.Sprite
     [CategoryOrder(150, "Sprites")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(SpriteSheet))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public partial class SpriteSheetAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

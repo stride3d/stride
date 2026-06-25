@@ -32,8 +32,8 @@ namespace Stride.Assets.Rendering
     [DataContract("GraphicsCompositorAsset")]
     [AssetContentType(typeof(GraphicsCompositor))]
     [AssetDescription(FileExtension)]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.2")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.1.0.2", "3.1.0.1", typeof(RenderingSplitUpgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.2")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.2", "3.1.0.1", typeof(RenderingSplitUpgrader))]
     public partial class GraphicsCompositorAsset : Asset
     {
         private const string CurrentVersion = "3.1.0.1";
