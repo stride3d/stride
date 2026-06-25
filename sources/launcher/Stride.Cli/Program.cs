@@ -136,6 +136,20 @@ studioCommand.SetAction(parseResult =>
     return RunTool(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
 });
 
+// self update: update the Stride CLI itself by delegating to dotnet, then exit so the running
+// executable is unlocked while dotnet replaces it.
+var selfCommand = new Command("self", "Manage the Stride CLI itself.");
+var selfUpdateCommand = new Command("update", "Update the Stride CLI to its newest version.");
+selfUpdateCommand.SetAction(_ =>
+{
+    Console.WriteLine("Updating the Stride CLI in the background via 'dotnet tool update -g Stride.Cli'...");
+    var startInfo = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+    foreach (var argument in new[] { "tool", "update", "-g", "Stride.Cli" })
+        startInfo.ArgumentList.Add(argument);
+    return Process.Start(startInfo) is null ? 1 : 0;
+});
+selfCommand.Subcommands.Add(selfUpdateCommand);
+
 // Wire up the command tree and run.
 var root = new RootCommand("Stride command-line tool.");
 root.Subcommands.Add(listCommand);
@@ -144,6 +158,7 @@ root.Subcommands.Add(uninstallCommand);
 root.Subcommands.Add(updateCommand);
 root.Subcommands.Add(assetCommand);
 root.Subcommands.Add(studioCommand);
+root.Subcommands.Add(selfCommand);
 return await root.Parse(args).InvokeAsync();
 
 // Run a located tool, forwarding arguments. When wait is true (Asset Compiler) the console is inherited
