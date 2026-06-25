@@ -143,9 +143,10 @@
            and dev-redirect consumers (seeded from $(StrideDevRoot) by the build/<PkgId>.props
            stub written by build/GenerateDevPackages.cs). -->
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(Configuration)\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
-      <!-- NuGet consumer: lib/<TFM>/ relative to this targets file's package root. -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\lib\net10.0-windows7.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
+      <!-- NuGet consumer: the runnable app ships under tools/<TFM>/ (lib/ holds only the reference
+           assembly), relative to this targets file's package root. -->
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\tools\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\tools\net10.0-windows7.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\tools\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>

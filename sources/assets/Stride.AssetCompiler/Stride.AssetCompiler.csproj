@@ -2,6 +2,10 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Referenced in-process (Stride.Editor) AND run as a tool: pack the runnable app under tools/<tfm>/
+         and keep lib/<tfm>/ to just the reference assembly, so consumers don't inherit the apphost
+         (a duplicate of the managed assembly) or the resolver bootstrap dlls. -->
+    <StridePackRunnableInTools>true</StridePackRunnableInTools>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFrameworks>$(StrideXplatEditorTargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="$(StridePlatforms.Contains('Windows'))">$(StrideFrameworkWindows);$(TargetFrameworks)</TargetFrameworks>
