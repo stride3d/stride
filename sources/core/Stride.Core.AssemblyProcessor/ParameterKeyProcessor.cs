@@ -84,13 +84,13 @@ internal class ParameterKeyProcessor : IAssemblyDefinitionProcessor
                 AssemblyDefinition strideEngineAssembly;
                 try
                 {
-                    strideEngineAssembly = assembly.Name.Name == "Stride"
+                    strideEngineAssembly = assembly.Name.Name == "Stride.Foundation"
                         ? assembly
-                        : context.AssemblyResolver.Resolve(new AssemblyNameReference("Stride", null));
+                        : context.AssemblyResolver.Resolve(new AssemblyNameReference("Stride.Foundation", null));
                 }
                 catch (Exception)
                 {
-                    context.Log.WriteLine("Error, cannot find [Stride] assembly for processing ParameterKeyProcessor");
+                    context.Log.WriteLine("Error, cannot find [Stride.Foundation] assembly for processing ParameterKeyProcessor");
                     // We can't generate an exception, so we are just returning. It means that Stride has not been generated so far.
                     return true;
                 }
@@ -199,7 +199,7 @@ internal class ParameterKeyProcessor : IAssemblyDefinitionProcessor
             // Create instances of InternalValueArray<T>. Required for LLVM AOT
             foreach (var elementType in effectKeysArrayElemementTypes)
             {
-                var strideAssembly = assembly.Name.Name == "Stride" ? assembly : assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Stride", null));
+                var strideAssembly = assembly.Name.Name == "Stride.Foundation" ? assembly : assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Stride.Foundation", null));
                 var parameterCollectionType = strideAssembly.MainModule.GetTypeResolved("Stride.Rendering.ParameterCollection");
                 var internalValueArrayType = parameterCollectionType.NestedTypes.First(x => x.Name == "InternalValueArray`1");
                 var constructor = internalValueArrayType.GetConstructors().First();

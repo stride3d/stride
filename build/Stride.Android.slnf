@@ -7,7 +7,7 @@
       "..\\sources\\core\\Stride.Core.Mathematics\\Stride.Core.Mathematics.csproj",
       "..\\sources\\core\\Stride.Core.MicroThreading\\Stride.Core.MicroThreading.csproj",
       "..\\sources\\core\\Stride.Core.Serialization\\Stride.Core.Serialization.csproj",
-      "..\\sources\\engine\\Stride\\Stride.csproj",
+      "..\\sources\\engine\\Stride.Foundation\\Stride.Foundation.csproj",
       "..\\sources\\engine\\Stride.Audio\\Stride.Audio.csproj",
       "..\\sources\\engine\\Stride.Engine\\Stride.Engine.csproj",
       "..\\sources\\engine\\Stride.Games\\Stride.Games.csproj",
