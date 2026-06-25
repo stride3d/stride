@@ -91,6 +91,58 @@ public class TestSolutionSerialization
         }
     }
 
+    [Fact]
+    public void SlnxRoundTripsAsXml()
+    {
+        var dir = NewTempDir();
+        try
+        {
+            // Create as a .sln, then save the same model to a .slnx and confirm it is written as XML.
+            var slnxPath = Path.Combine(dir, "Game.slnx");
+            var solution = new Solution { FullPath = slnxPath };
+            solution.Projects.Add(new Project(
+                Guid.Parse("44444444-4444-4444-4444-444444444444"), KnownProjectTypeGuid.CSharp,
+                "Game", Path.Combine(dir, "Game", "Game.csproj"), Guid.Empty, [], [], []));
+            solution.Save();
+
+            var written = File.ReadAllText(slnxPath);
+            Assert.Contains("<Solution>", written);
+            Assert.Contains("Game/Game.csproj", written);
+
+            // It loads back through the same entry point.
+            var reloaded = Solution.FromFile(slnxPath);
+            Assert.Single(reloaded.Projects);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SolutionFilterResolvesToUnderlyingSolution()
+    {
+        var dir = NewTempDir();
+        try
+        {
+            var slnPath = Path.Combine(dir, "Custom.sln");
+            File.WriteAllText(slnPath, CustomSolution);
+
+            var filterPath = Path.Combine(dir, "Custom.slnf");
+            File.WriteAllText(filterPath,
+                "{ \"solution\": { \"path\": \"Custom.sln\", \"projects\": [ \"Game\\\\Game.csproj\" ] } }");
+
+            var solution = Solution.FromFile(filterPath);
+            // The underlying solution is opened, and saves target it rather than the filter.
+            Assert.Equal(2, solution.Projects.Count);
+            Assert.Equal(slnPath, solution.FullPath);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     private static string NewTempDir()
     {
         var dir = Path.Combine(Path.GetTempPath(), "sln-roundtrip-" + Guid.NewGuid().ToString("N"));

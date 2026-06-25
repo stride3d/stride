@@ -69,6 +69,18 @@ public class Solution
     }
 
     /// <summary>
+    /// The file extensions recognized as a Visual Studio solution: the classic <c>.sln</c>, the XML
+    /// <c>.slnx</c>, and the <c>.slnf</c> solution filter.
+    /// </summary>
+    public static readonly string[] SolutionExtensions = [".sln", ".slnx", ".slnf"];
+
+    /// <summary>
+    /// Determines whether the given path has a recognized solution extension (see <see cref="SolutionExtensions"/>).
+    /// </summary>
+    public static bool IsSolutionFile(string path)
+        => SolutionExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Gets or sets the full path. If it's a solution folder, it should just be the name of the folder.
     /// </summary>
     /// <value>The full path.</value>

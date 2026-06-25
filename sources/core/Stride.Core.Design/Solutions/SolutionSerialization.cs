@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Text.Json;
 using Microsoft.VisualStudio.SolutionPersistence.Model;
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 
@@ -20,10 +21,29 @@ internal static class SolutionSerialization
 
     public static Solution Read(string solutionFullPath)
     {
+        // A .slnf solution filter is JSON pointing at a real .sln; open the underlying solution so edits
+        // persist to it (the filter is a view, not a writable solution).
+        if (Path.GetExtension(solutionFullPath).Equals(".slnf", StringComparison.OrdinalIgnoreCase))
+            return Read(ResolveSolutionFilterTarget(solutionFullPath));
+
         var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFullPath)
             ?? throw new SolutionFileException($"Unsupported solution file format: '{solutionFullPath}'.");
         var model = serializer.OpenAsync(solutionFullPath, CancellationToken.None).GetAwaiter().GetResult();
         return ToSolution(model, solutionFullPath);
+    }
+
+    // The .sln a solution filter (.slnf) points at, resolved relative to the filter file.
+    private static string ResolveSolutionFilterTarget(string filterFile)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(filterFile));
+        if (document.RootElement.TryGetProperty("solution", out var solution)
+            && solution.TryGetProperty("path", out var path)
+            && path.GetString() is { } relativePath)
+        {
+            return Path.GetFullPath(relativePath.Replace('\\', Path.DirectorySeparatorChar), Path.GetDirectoryName(filterFile)!);
+        }
+
+        throw new SolutionFileException($"Solution filter '{filterFile}' does not reference a solution.");
     }
 
     public static Solution Read(string solutionFullPath, Stream stream)
@@ -40,18 +60,29 @@ internal static class SolutionSerialization
         var model = solution.SourceModel is { } source ? new SolutionModel(source) : NewModel(solution);
         Reconcile(model, solution, outputPath);
 
-        byte[] content;
-        using (var memory = new MemoryStream())
+        // Pick the serializer from the output extension so a .slnx round-trips as XML and a .sln as classic format.
+        var serializer = SolutionSerializers.GetSerializerByMoniker(outputPath) ?? SolutionSerializers.SlnFileV12;
+
+        if (!File.Exists(outputPath))
         {
-            SolutionSerializers.SlnFileV12.SaveAsync(memory, model, CancellationToken.None).GetAwaiter().GetResult();
-            content = memory.ToArray();
+            serializer.SaveAsync(outputPath, model, CancellationToken.None).GetAwaiter().GetResult();
+            return;
         }
 
-        // Only write when the content actually changed, so Visual Studio doesn't reload the solution.
-        if (File.Exists(outputPath) && File.ReadAllBytes(outputPath).AsSpan().SequenceEqual(content))
-            return;
-
-        File.WriteAllBytes(outputPath, content);
+        // Write to a sibling temp file first and only replace the solution when its content changed, so
+        // Visual Studio doesn't reload an unchanged solution.
+        var tempPath = outputPath + ".tmp";
+        try
+        {
+            serializer.SaveAsync(tempPath, model, CancellationToken.None).GetAwaiter().GetResult();
+            if (!File.ReadAllBytes(outputPath).AsSpan().SequenceEqual(File.ReadAllBytes(tempPath)))
+                File.Copy(tempPath, outputPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
     }
 
     private static SolutionModel NewModel(Solution solution)

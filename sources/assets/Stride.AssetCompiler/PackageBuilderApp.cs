@@ -278,7 +278,7 @@ namespace Stride.AssetCompiler
                     // bumps. Also cleans up Session log noise from unresolved engine asset refs.
                     // Incremental for already-restored projects, so cheap when called from the
                     // StrideUpgradeAssets MSBuild target inside a real consumer build.
-                    var restoreTarget = options.PackageFile.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
+                    var restoreTarget = Stride.Core.Solutions.Solution.IsSolutionFile(options.PackageFile)
                         || options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
                         ? options.PackageFile
                         : System.IO.Path.ChangeExtension(options.PackageFile, ".csproj");

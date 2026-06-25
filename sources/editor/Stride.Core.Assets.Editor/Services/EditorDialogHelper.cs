@@ -21,8 +21,8 @@ namespace Stride.Core.Assets.Editor.Services
             var initialDirectory = InternalSettings.FileDialogLastOpenSessionDirectory.GetValue();
             var filters = new List<FilePickerFilter>
             {
-                new("Solution or package files") { Patterns = [EditorViewModel.SolutionFileExtension, EditorViewModel.PackageFileExtension]},
-                new("Solution file") { Patterns = [EditorViewModel.SolutionFileExtension]},
+                new("Solution or package files") { Patterns = [.. Stride.Core.Solutions.Solution.SolutionExtensions, EditorViewModel.PackageFileExtension]},
+                new("Solution file") { Patterns = [.. Stride.Core.Solutions.Solution.SolutionExtensions]},
                 new("Package file") { Patterns = [EditorViewModel.PackageFileExtension]},
             };
             var filePaths = await OpenFileDialog(serviceProvider, false, initialDirectory, filters);
