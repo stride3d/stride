@@ -803,7 +803,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 // Note: using ToList() because upgrade from old package system might change Projects list
                 foreach (var vsProject in solution.Projects.ToList())
                 {
-                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
+                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
                     {
                         var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                         project.VSProject = vsProject;
