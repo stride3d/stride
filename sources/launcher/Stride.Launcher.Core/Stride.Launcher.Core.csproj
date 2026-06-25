@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Stride.Launcher.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+  </ItemGroup>
+</Project>
