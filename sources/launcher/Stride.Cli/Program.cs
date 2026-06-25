@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
+using System.Diagnostics;
 using Stride.Launcher.Core;
 
 var manager = new StrideVersionManager();
@@ -70,9 +71,74 @@ uninstallCommand.SetAction(async (parseResult, _) =>
     }
 });
 
+// --version overrides the version that would otherwise come from a project in the current directory.
+var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version, bypassing a project in the current directory." };
+
+// asset: forward the verb and its arguments to the Stride Asset Compiler (waits for it).
+var assetCommand = new Command("asset", "Run the Stride Asset Compiler. Arguments are forwarded to it.");
+assetCommand.Options.Add(versionOption);
+assetCommand.TreatUnmatchedTokensAsErrors = false;
+assetCommand.SetAction(parseResult =>
+{
+    var version = manager.ResolveVersion(parseResult.GetValue(versionOption), Environment.CurrentDirectory);
+    if (version is null)
+    {
+        Console.Error.WriteLine("No Stride version is installed.");
+        return 1;
+    }
+
+    return RunTool(manager.LocateAssetCompiler(version), $"the Asset Compiler for Stride {version}", parseResult.UnmatchedTokens, wait: true);
+});
+
+// studio: open Game Studio (launches and returns immediately).
+var studioCommand = new Command("studio", "Open Game Studio.");
+studioCommand.Options.Add(versionOption);
+studioCommand.TreatUnmatchedTokensAsErrors = false;
+studioCommand.SetAction(parseResult =>
+{
+    var version = manager.ResolveVersion(parseResult.GetValue(versionOption), Environment.CurrentDirectory);
+    if (version is null)
+    {
+        Console.Error.WriteLine("No Stride version is installed.");
+        return 1;
+    }
+
+    return RunTool(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
+});
+
 // Wire up the command tree and run.
 var root = new RootCommand("Stride command-line tool.");
 root.Subcommands.Add(listCommand);
 root.Subcommands.Add(installCommand);
 root.Subcommands.Add(uninstallCommand);
+root.Subcommands.Add(assetCommand);
+root.Subcommands.Add(studioCommand);
 return await root.Parse(args).InvokeAsync();
+
+// Run a located tool, forwarding arguments. When wait is true (Asset Compiler) the console is inherited
+// and the tool's exit code returned; otherwise (Game Studio) it is launched detached.
+static int RunTool(string? executable, string description, IReadOnlyList<string> forwardedArgs, bool wait)
+{
+    if (executable is null)
+    {
+        Console.Error.WriteLine($"Could not find {description}.");
+        return 1;
+    }
+
+    var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+    foreach (var argument in forwardedArgs)
+        startInfo.ArgumentList.Add(argument);
+
+    var process = Process.Start(startInfo);
+    if (process is null)
+    {
+        Console.Error.WriteLine($"Failed to start {executable}.");
+        return 1;
+    }
+
+    if (!wait)
+        return 0;
+
+    process.WaitForExit();
+    return process.ExitCode;
+}
