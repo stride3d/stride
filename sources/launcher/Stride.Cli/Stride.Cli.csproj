@@ -9,7 +9,12 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>stride</ToolCommandName>
     <PackageId>Stride.Cli</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Command-line tool for Stride: install Stride versions and create, build, and manage Stride projects.</Description>
+    <PackageTags>stride;gamedev;cli;dotnet-tool</PackageTags>
   </PropertyGroup>
+  <!-- License, project/repository URL, icon, copyright and authors shared with the engine packages. -->
+  <Import Project="..\..\sdk\Stride.Build.Sdk\Stride.PackageMetadata.props" />
   <ItemGroup>
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
