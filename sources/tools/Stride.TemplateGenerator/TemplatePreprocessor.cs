@@ -1370,6 +1370,12 @@ internal class TemplatePreprocessor
         }
     }
 
+    /// <summary>Directory names never staged into a template: build outputs and editor/VS state.</summary>
+    private static readonly HashSet<string> ExcludedCopyDirs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "bin", "obj", ".vs",
+    };
+
     public static void CopyDirectory(string source, string dest)
     {
         Directory.CreateDirectory(dest);
@@ -1379,6 +1385,10 @@ internal class TemplatePreprocessor
         }
         foreach (var subdir in Directory.EnumerateDirectories(source))
         {
+            // Skip build outputs / editor state: they bloat the package and their deep asset-build
+            // cache paths blow past Windows MAX_PATH once nested under the staging dir.
+            if (ExcludedCopyDirs.Contains(Path.GetFileName(subdir)))
+                continue;
             CopyDirectory(subdir, Path.Combine(dest, Path.GetFileName(subdir)));
         }
     }
