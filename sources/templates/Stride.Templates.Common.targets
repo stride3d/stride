@@ -39,6 +39,14 @@
 
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
+    <!-- NoTargets disables FUTDC by default; re-enable it since we declare UpToDateCheckInput/Built below. -->
+    <DisableFastUpToDateCheck>false</DisableFastUpToDateCheck>
+
+    <!-- No code = no symbols. Stop the build (and VS Build Acceleration) from declaring a pdb output
+         that NoTargets never produces, which otherwise fails FUTDC as a missing output every check. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+
     <TemplateContentRoot>$(MSBuildProjectDirectory)/obj/template-content</TemplateContentRoot>
     <StrideTemplatesProject>$(StrideRoot)sources/tools/Stride.TemplateGenerator/Stride.TemplateGenerator.csproj</StrideTemplatesProject>
     <StrideTemplatesDll>$(StrideRoot)sources/tools/Stride.TemplateGenerator/bin/$(Configuration)/net10.0/Stride.TemplateGenerator.dll</StrideTemplatesDll>
@@ -134,10 +142,11 @@
     <_StrideEvalWorktreeSuffix Condition="'$(_StrideEvalWorktreeToken)' != '' And '$(_StrideEvalWorktreeToken)' != '(primary)' And '$(_StrideEvalWorktreeToken)' != '(empty)'">-$(_StrideEvalWorktreeToken)</_StrideEvalWorktreeSuffix>
   </PropertyGroup>
 
-  <!-- VS fast up-to-date inputs: project has no .cs files, so without these VS skips Build → no Pack → stale nupkg. -->
+  <!-- VS fast up-to-date inputs: no .cs files here, so without these VS skips Build → no Pack → stale nupkg.
+       Per-sample file inputs are added in each csproj as literal-wildcard UpToDateCheckInput: CPS reads only
+       static pre-expanded inputs, and MSBuild only globs wildcards written literally (can't be batched here). -->
   <ItemGroup>
     <UpToDateCheckInput Include="$(StrideTemplatesDll)" />
-    <UpToDateCheckInput Include="@(StrideSampleTemplate->'%(SamplePath)/**/*')" Exclude="@(StrideSampleTemplate->'%(SamplePath)/bin/**;%(SamplePath)/obj/**;%(SamplePath)/Cache/**')" />
     <UpToDateCheckBuilt Include="$(StrideRoot)bin\packages\$(PackageId).$(PackageVersion)$(_StrideEvalWorktreeSuffix).nupkg" />
   </ItemGroup>
 
@@ -162,7 +171,7 @@
     <ItemGroup>
       <!-- nuget.config is preprocessor staging machinery for `dotnet restore` against sample
            templates; sources/modifiers strips it on instantiation. -->
-      <_StrideTemplateFiles Include="$(TemplateContentRoot)/**/*" Exclude="$(TemplateContentRoot)/**/nuget.config;$(TemplateContentRoot)/**/bin/**;$(TemplateContentRoot)/**/obj/**;$(TemplateContentRoot)/**/Cache/**" />
+      <_StrideTemplateFiles Include="$(TemplateContentRoot)/**/*" Exclude="$(TemplateContentRoot)/**/nuget.config;$(TemplateContentRoot)/**/bin/**;$(TemplateContentRoot)/**/obj/**" />
       <_PackageFiles Include="@(_StrideTemplateFiles)">
         <BuildAction>Content</BuildAction>
         <PackagePath>content/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>

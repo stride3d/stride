@@ -4,7 +4,10 @@
     "rollForward": "latestMinor"
   },
   "msbuild-sdks": {
-    // Uncomment if switching back to Sdk="Stride.Build.Sdk" project style.
+    // Template packages (Stride.Templates.*) compile no code; NoTargets produces the nupkg
+    // without an empty assembly, so the VS up-to-date check keys off the nupkg, not a stale pdb.
+    "Microsoft.Build.NoTargets": "3.7.134"
+    // Uncomment if switching back to Sdk="Stride.Build.Sdk" project style (add a comma above first).
     // "Stride.Build.Sdk": "4.3.0-dev",
     // "Stride.Build.Sdk.Editor": "4.3.0-dev",
     // "Stride.Build.Sdk.Tests": "4.3.0-dev"
