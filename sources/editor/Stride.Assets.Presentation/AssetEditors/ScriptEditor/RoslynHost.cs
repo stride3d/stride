@@ -77,7 +77,11 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             var partTypes = assemblies
                 .SelectMany(x => x.DefinedTypes)
                 .Select(x => x.AsType())
-                .Concat(GetDiagnosticCompositionTypes());
+                .Concat(GetDiagnosticCompositionTypes())
+                // Roslyn 5.x ships two IDiagnosticsRefresher exports; MEF allows only one. Drop the
+                // no-op LSP fallback and de-dup, so each contract has a single export (mirrors RoslynPad).
+                .Where(t => t.Name != "NullDiagnosticsRefresher")
+                .Distinct();
 
             return new ContainerConfiguration()
                 .WithParts(partTypes)
