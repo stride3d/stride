@@ -620,17 +620,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
             var packageExists = File.Exists(packagePath);
 
-            // Xenko to Stride migration
-            if (!packageExists)
-            {
-                var oldPackagePath = Path.ChangeExtension(filePath, ".xkpkg");
-                if (File.Exists(oldPackagePath))
-                {
-                    packageExists = true;
-                    XenkoToStrideRenameHelper.RenameStrideFile(oldPackagePath, XenkoToStrideRenameHelper.StrideContentType.Package);
-                }
-            }
-
             var package = packageExists
                 ? LoadRaw(log, packagePath)
                 : new Package
@@ -1241,8 +1230,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
                     // If this kind of file an asset file?
                     var ext = fileUPath.GetFileExtension();
-                    // Adjust extensions for Stride rename
-                    ext = ext?.Replace(".xk", ".sd");
 
                     //make sure to add default shaders in this case, since we don't have a csproj for them
                     //(skipped in manifest mode: project assets come from PrecomputedProjectAssets instead)
@@ -1273,17 +1260,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             FindAssetsInProject(listFiles, package);
         }
 
-        // Adjust extensions for Stride rename
-        foreach (var loadingAsset in listFiles)
-        {
-            var originalExt = loadingAsset.FilePath.GetFileExtension() ?? "";
-            var ext = originalExt.Replace(".xk", ".sd");
-            if (ext != originalExt)
-            {
-                loadingAsset.FilePath = new UFile(loadingAsset.FilePath.FullPath.Replace(".xk", ".sd"));
-            }
-        }
-
         return listFiles;
     }
 
@@ -1302,10 +1278,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
             // For items outside project, let's pretend they are link
             .Select(x => (x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
-            // Test both Stride and Xenko extensions
-            .Where(x =>
-                AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())
-                || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()?.Replace(".xk", ".sd")))
+            .Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()))
             // avoid duplicates otherwise it might save a single file as separte file with renaming
             // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
             .Distinct()
