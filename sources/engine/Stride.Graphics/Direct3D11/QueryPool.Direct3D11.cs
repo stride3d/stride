@@ -46,7 +46,8 @@ public unsafe partial class QueryPool
         {
             HResult result = deviceContext.GetData(nativeQueries[index], ref dataArray[index], sizeof(long), GetDataFlags: 0);
 
-            if (result.IsFailure)
+            // Only S_OK means ready; S_FALSE (not yet finished) is not a failure HResult, so check explicitly.
+            if (result != 0)
                 return false;
         }
 
