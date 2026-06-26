@@ -121,7 +121,7 @@ namespace Stride.Assets.Navigation
                 asset = value;
                 assetUrl = url;
                 
-                Version = 2;
+                Version = 3;
             }
 
             protected override void ComputeParameterHash(BinarySerializationWriter writer)
