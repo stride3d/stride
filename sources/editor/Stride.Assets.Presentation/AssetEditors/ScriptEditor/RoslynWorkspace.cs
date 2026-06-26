@@ -54,13 +54,16 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         /// <inheritdoc/>
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
-            switch (feature)
+            return feature switch
             {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-                default:
-                    return false;
-            }
+                ApplyChangesKind.ChangeDocument
+                    or ApplyChangesKind.ChangeDocumentInfo
+                    or ApplyChangesKind.AddMetadataReference
+                    or ApplyChangesKind.RemoveMetadataReference
+                    or ApplyChangesKind.AddAnalyzerReference
+                    or ApplyChangesKind.RemoveAnalyzerReference => true,
+                _ => false,
+            };
         }
 
         /// <summary>
