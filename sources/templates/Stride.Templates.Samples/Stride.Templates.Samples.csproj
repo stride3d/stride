@@ -1,5 +1,5 @@
 <!-- TreatAsLocalProperty="StrideSkipAutoPack": see Stride.Templates.Games.csproj. -->
-<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="StrideSkipAutoPack">
+<Project Sdk="Microsoft.Build.NoTargets" TreatAsLocalProperty="StrideSkipAutoPack">
   <PropertyGroup>
     <PackageId>Stride.Templates.Samples</PackageId>
     <StrideTemplateContentVersioned>true</StrideTemplateContentVersioned>
@@ -9,17 +9,6 @@
   </PropertyGroup>
 
   <Import Project="..\Stride.Templates.Common.targets" />
-
-  <!-- Build-order chain (Games → Starters → Samples): the preprocessor Exec tasks can collide
-       on shared files when MSBuild builds these three packages in parallel. ProjectReference
-       creates a build-order constraint without producing an actual assembly reference. -->
-  <ItemGroup>
-    <ProjectReference Include="..\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>false</Private>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-    </ProjectReference>
-  </ItemGroup>
 
   <ItemGroup>
     <!-- Tutorials -->
@@ -79,5 +68,28 @@
     <StrideSampleTemplate Include="stride-ui-particles">
       <SamplePath>$(StrideRoot)samples/UI/UIParticles</SamplePath>
     </StrideSampleTemplate>
+  </ItemGroup>
+
+  <!-- Static literal-wildcard inputs so a sample edit triggers a repack (CPS needs pre-expanded paths; see
+       Common.targets). One per StrideSampleTemplate above; bin/obj aren't excluded (source samples stay clean). -->
+  <ItemGroup>
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Tutorials/CSharpBeginner/CSharpBeginner/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Tutorials/CSharpIntermediate/CSharpIntermediate/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Games/JumpyJet/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Games/SpaceEscape/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Audio/SimpleAudio/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Particles/ParticlesSample/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/SpriteStudioDemo/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/AnimatedModel/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/SpriteFonts/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/MaterialShader/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/CustomEffect/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Physics/BepuSample/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Physics/PhysicsSample/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Input/TouchInputs/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Input/GravitySensor/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/UI/GameMenu/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/UI/UIElementLink/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/UI/UIParticles/**/*" />
   </ItemGroup>
 </Project>
