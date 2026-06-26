@@ -153,9 +153,11 @@
   </Target>
 
   <!-- Auto-attach CompilerApp as a ProjectReference so source-tree consumers build it
-       before StrideCompileAsset runs. SkipGet+RemoveProperties=TargetFramework dispatches
-       at outer (cross-targets all TFMs); remaining RemoveProperties strip consumer-specific
-       globals that shouldn't leak (RID/SelfContained/OutputType/StrideIsExecutable).
+       before StrideCompileAsset runs. Pin a single inner TFM via SetTargetFramework instead of
+       dispatching to the cross-targeting outer build: the outer build has no GetTargetPath, which
+       breaks VS with MSB4057. net10.0 ($(StrideFramework)) matches the tool path resolved above.
+       RemoveProperties strip consumer-specific globals that shouldn't leak
+       (RID/SelfContained/OutputType/StrideIsExecutable).
        Test-suite globals are stripped by Stride.Build.Sdk.Tests on top of this.
        Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
   <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj')
@@ -164,7 +166,8 @@
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <GlobalPropertiesToRemove>TargetFramework;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable</GlobalPropertiesToRemove>
+      <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
+      <GlobalPropertiesToRemove>RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
 
