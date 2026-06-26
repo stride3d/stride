@@ -1,0 +1,18 @@
+<Project>
+
+  <!-- Static (non-version) NuGet metadata shared by every packable Stride project. Imported by the
+       Stride.Build.Sdk (Stride.PackageInfo.targets) and by standalone packages such as Stride.Cli. -->
+  <PropertyGroup>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://stride3d.net</PackageProjectUrl>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
+    <Copyright>Copyright © Stride contributors</Copyright>
+    <Authors>Stride contributors</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+</Project>
