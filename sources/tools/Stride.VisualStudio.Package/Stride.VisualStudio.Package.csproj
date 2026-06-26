@@ -65,6 +65,8 @@
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionFileException.cs" Link="Core\Solutions\SolutionFileException.cs" />
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionReader.cs" Link="Core\Solutions\SolutionReader.cs" />
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionWriter.cs" Link="Core\Solutions\SolutionWriter.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionXReader.cs" Link="Core\Solutions\SolutionXReader.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionXExtensions.cs" Link="Core\Solutions\SolutionXExtensions.cs" />
     <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
     <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
     <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />

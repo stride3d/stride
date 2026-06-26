@@ -11,10 +11,10 @@
 // documentation files (the "Software"), to deal in the Software without restriction, including without limitation
 // the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
 // to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions
 // of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
 // TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
@@ -46,9 +46,14 @@ public class Solution
     }
 
     private Solution(Solution original)
-        : this(original.FullPath, original.Headers, original.Projects, original.GlobalSections, original.Properties)
-    {
-    }
+        : this(
+            original.FullPath,
+            original.Headers,
+            original.Projects,
+            original.GlobalSections,
+            original.Properties
+        )
+    { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Solution" /> class.
@@ -58,7 +63,13 @@ public class Solution
     /// <param name="projects">The projects.</param>
     /// <param name="globalSections">The global sections.</param>
     /// <param name="properties">The properties.</param>
-    public Solution(string fullpath, IEnumerable<string> headers, IEnumerable<Project> projects, IEnumerable<Section> globalSections, IEnumerable<PropertyItem> properties)
+    public Solution(
+        string fullpath,
+        IEnumerable<string> headers,
+        IEnumerable<Project> projects,
+        IEnumerable<Section> globalSections,
+        IEnumerable<PropertyItem> properties
+    )
     {
         FullPath = fullpath;
         this.Headers = new List<string>(headers);
@@ -79,10 +90,7 @@ public class Solution
     /// <value>The children.</value>
     public IEnumerable<Project> Children
     {
-        get
-        {
-            return Projects.Where(project => project.GetParentProject(this) == null);
-        }
+        get { return Projects.Where(project => project.GetParentProject(this) == null); }
     }
 
     /// <summary>
@@ -132,6 +140,16 @@ public class Solution
     /// <param name="solutionPath">The solution path.</param>
     public void SaveAs(string solutionPath)
     {
+        // TODO:
+        // Writing only supports the legacy text based .sln format. Routing a .slnx through the text
+        // writer would corrupt the file, so fail explicitly instead.
+        if (solutionPath.IsSolutionX())
+        {
+            throw new NotSupportedException(
+                $"Saving the XML based '.slnx' solution format is not supported. Path: '{solutionPath}'."
+            );
+        }
+
         // If the solution file already exists, we want to write it only if it has actually changed, to prevent Visual Studio to reload the solution
         if (File.Exists(solutionPath))
         {
@@ -176,6 +194,12 @@ public class Solution
     /// <returns>Solution.</returns>
     public static Solution FromFile(string solutionFullPath)
     {
+        if (solutionFullPath.IsSolutionX())
+        {
+            using var stream = new FileStream(solutionFullPath, FileMode.Open, FileAccess.Read);
+            return SolutionXReader.ReadSolutionFile(solutionFullPath, stream);
+        }
+
         using var reader = new SolutionReader(solutionFullPath);
         var solution = reader.ReadSolutionFile();
         solution.FullPath = solutionFullPath;
@@ -190,6 +214,11 @@ public class Solution
     /// <returns>Solution.</returns>
     public static Solution FromStream(string solutionFullPath, Stream stream)
     {
+        if (solutionFullPath.IsSolutionX())
+        {
+            return SolutionXReader.ReadSolutionFile(solutionFullPath, stream);
+        }
+
         using var reader = new SolutionReader(solutionFullPath, stream);
         var solution = reader.ReadSolutionFile();
         solution.FullPath = solutionFullPath;
