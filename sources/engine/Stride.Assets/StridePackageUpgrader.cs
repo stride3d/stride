@@ -27,7 +27,7 @@ using Stride.Core.Annotations;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { StrideConfig.LogicalPackageName, "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion)]
+    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion)]
     public partial class StridePackageUpgrader : PackageUpgrader
     {
         // Should match Stride.nupkg
