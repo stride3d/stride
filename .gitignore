@@ -112,6 +112,7 @@ ui-test-out-dpi*
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
+!.vscode/settings.json
 
 # Xcode
 #
