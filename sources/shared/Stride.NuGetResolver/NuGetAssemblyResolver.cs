@@ -13,7 +13,7 @@ namespace Stride.Core.Assets;
 
 public static partial class NuGetAssemblyResolver
 {
-    public static readonly string DevSource = Path.Combine("Stride", "NugetDev");
+    public static readonly string DevSource = Path.Combine("stride", "nugetdev");
 #if STRIDE_NUGET_RESOLVER_UI
     public static string AvaloniaVersion = string.Empty;
 #endif

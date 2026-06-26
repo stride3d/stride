@@ -279,7 +279,7 @@
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
     <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
          skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
          dir so the next consumer restore re-extracts from the freshly built .nupkg. -->

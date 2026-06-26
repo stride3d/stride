@@ -9,8 +9,8 @@
      an implausible sentinel, so a build that skipped this would ship that sentinel.
 
      Suffix: multiple checkouts on one machine (worktrees/clones) would otherwise auto-pack first-party packages at
-     the same version and clobber each other in the shared %LocalAppData%/Stride/NugetDev feed and the global NuGet
-     cache. A per-machine ledger at <LocalApplicationData>/Stride/worktree-ids.txt maps each checkout to a token —
+     the same version and clobber each other in the shared %LocalAppData%/stride/nugetdev feed and the global NuGet
+     cache. A per-machine ledger at <LocalApplicationData>/stride/worktree-ids.txt maps each checkout to a token —
      first is "dev" (the "-dev" suffix), the rest "dev2", "dev3", ... Use the token "(empty)" for a checkout that
      should build the clean version. The suffix feeds NuGetVersionSuffix on both ends: the .nupkg version (producer,
      via StrideAppendWorktreeVersion in Stride.PackageInfo.targets) and the StrideVersion.NuGetVersion const baked

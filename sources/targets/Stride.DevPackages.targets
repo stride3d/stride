@@ -25,7 +25,7 @@
           Condition="'$(StrideDevPackages)' == 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
-      <_StrideDevPackagesStamp>$(LocalAppData)/Stride/NugetDev/.devpackages-$(PackageVersion)</_StrideDevPackagesStamp>
+      <_StrideDevPackagesStamp>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStamp>
     </PropertyGroup>
 
     <Error Text="StrideDevPackages=true but stubs are missing. Run: dotnet run --file build/GenerateDevPackages.cs"
@@ -62,7 +62,7 @@
           Condition="'$(StrideDevPackages)' != 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
-      <_StrideDevPackagesStampCheck>$(LocalAppData)/Stride/NugetDev/.devpackages-$(PackageVersion)</_StrideDevPackagesStampCheck>
+      <_StrideDevPackagesStampCheck>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStampCheck>
       <_StrideDevPackagesStampExisted Condition="Exists('$(_StrideDevPackagesStampCheck)')">true</_StrideDevPackagesStampExisted>
     </PropertyGroup>
 
@@ -71,7 +71,7 @@
     </ReadLinesFromFile>
 
     <ItemGroup>
-      <_StrideDevPackagesToDelete Include="$(LocalAppData)/Stride/NugetDev/%(_StrideDevPackagesStubManifest.Identity)"
+      <_StrideDevPackagesToDelete Include="$(LocalAppData)/stride/nugetdev/%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
     </ItemGroup>
 

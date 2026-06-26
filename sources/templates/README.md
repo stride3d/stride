@@ -51,7 +51,7 @@ Common parameters (template-dependent):
 
 ## Developing locally
 
-Building any of the three template projects produces a `.nupkg` in `bin/packages/` and auto-deploys it to `%LocalAppData%\Stride\NugetDev` so the GameStudio bridge picks it up on next editor launch:
+Building any of the three template projects produces a `.nupkg` in `bin/packages/` and auto-deploys it to `%LocalAppData%\stride\nugetdev` so the GameStudio bridge picks it up on next editor launch:
 
 ```bash
 dotnet build sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj

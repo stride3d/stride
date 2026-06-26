@@ -106,7 +106,7 @@
        (ProjectReference) consumers get layers too — engine/build/ only fires for NuGet consumers. -->
   <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And '$(StrideGraphicsApi)' == 'Vulkan' And '$(Configuration)' == 'Debug'">
     <StrideVulkanValidationVersion>1.4.341.0</StrideVulkanValidationVersion>
-    <StrideVulkanValidationCacheDir>$(LOCALAPPDATA)\Stride\VulkanValidation\$(StrideVulkanValidationVersion)</StrideVulkanValidationCacheDir>
+    <StrideVulkanValidationCacheDir>$(LOCALAPPDATA)\stride\VulkanValidation\$(StrideVulkanValidationVersion)</StrideVulkanValidationCacheDir>
     <StrideVulkanValidationAbiDir>$(StrideVulkanValidationCacheDir)\android-binaries-$(StrideVulkanValidationVersion)</StrideVulkanValidationAbiDir>
     <StrideVulkanValidationZip>$(StrideVulkanValidationCacheDir)\android-binaries.zip</StrideVulkanValidationZip>
     <StrideVulkanValidationUrl>https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download/vulkan-sdk-$(StrideVulkanValidationVersion)/android-binaries-$(StrideVulkanValidationVersion).zip</StrideVulkanValidationUrl>

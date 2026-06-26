@@ -24,7 +24,7 @@ namespace Stride.Assets.Templates;
 /// <remarks>
 /// Singleton: the registry is process-scoped so the bootstrapper's loaded components survive
 /// across multiple New-Project invocations. The host settings dir lives under
-/// <c>%LocalAppData%\Stride\TemplateEngine\&lt;engineVersion&gt;</c> so we don't share state
+/// <c>%LocalAppData%\stride\template-engine\&lt;engineVersion&gt;</c> so we don't share state
 /// with the user's global <c>dotnet new</c> installation, and so side-by-side Stride versions
 /// keep their own template caches.
 /// </remarks>
@@ -33,7 +33,7 @@ public static class DotNetNewTemplateBridge
     /// <summary>
     /// Package IDs the bridge tries to resolve via <see cref="PackageStore"/> on startup.
     /// Only <c>Stride.Templates.Games</c> (NewGame) ships in the GameStudio installer; the
-    /// other two are dev-only here (present in <c>%LocalAppData%\Stride\NugetDev</c> when the
+    /// other two are dev-only here (present in <c>%LocalAppData%\stride\nugetdev</c> when the
     /// solution has been built, absent in installer-only setups). End users reach Starters /
     /// Samples via the editor's template store (future) or CLI <c>dotnet new install</c>; this
     /// list just controls which packages the bridge proactively probes on startup. Missing
@@ -73,7 +73,7 @@ public static class DotNetNewTemplateBridge
             // share template state. NuGet's ~/.nuget/packages/ cache stays shared.
             var profileDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Stride", "TemplateEngine", StrideVersion.NuGetVersion);
+                "stride", "template-engine", StrideVersion.NuGetVersion);
             if (registry == null)
             {
                 registry = new DotNetNewTemplateRegistry(StrideVersion.NuGetVersion, profileDir);

@@ -120,7 +120,7 @@ jobs:
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
       # Locally this works because the dev's user config has Stride.AutoPackDeploy's
-      # %LocalAppData%\Stride\NugetDev as a source. CI's runner user has no such config,
+      # %LocalAppData%\stride\nugetdev as a source. CI's runner user has no such config,
       # so add bin/packages explicitly to the user config. --configfile forces the write to
       # the user config rather than walking up to the workspace's nuget.config (which would
       # conflict with the existing 'stride-local' source declared there).

@@ -76,7 +76,7 @@ internal static class StrideVersionUtil
 
 // The per-project version generator: resolve this checkout's suffix and overlay the version into
 // SharedAssemblyInfo.Generated.cs (the single file the Stride SDK swaps in). On dev builds the suffix comes from a
-// per-machine ledger (-devN) so multiple checkouts on one machine stop clobbering each other in the shared NugetDev
+// per-machine ledger (-devN) so multiple checkouts on one machine stop clobbering each other in the shared nugetdev
 // feed / global cache. On CI (and when StrideSkipWorktreeVersion is set) NoLedgerSuffix gives the clean, unsuffixed
 // version with no ledger touch. A stamp caches the result so the per-project invocations don't each rewrite the file.
 public class ResolveStrideWorktreeVersion : Task
@@ -90,7 +90,7 @@ public class ResolveStrideWorktreeVersion : Task
     // fast path, unlike an explicit OverrideId).
     public bool NoLedgerSuffix { get; set; }
 
-    // Ledger location override (StrideWorktreeLedger property); defaults to LocalApplicationData/Stride/worktree-ids.txt.
+    // Ledger location override (StrideWorktreeLedger property); defaults to LocalApplicationData/stride/worktree-ids.txt.
     public string LedgerPath { get; set; }
 
     [Required] public string SourceVersionFile { get; set; }
@@ -107,7 +107,7 @@ public class ResolveStrideWorktreeVersion : Task
             string root = NormalizePath(StrideRoot);
             string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                 ? LedgerPath
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stride", "worktree-ids.txt");
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "worktree-ids.txt");
             // Stamp = ledger mtime + committed version+suffix, so a manual worktree-ID remap or a committed
             // version/suffix bump (edit to SharedAssemblyInfo.cs) invalidates the generated overlay.
             string stamp = LedgerStamp(ledgerPath) + "|" + ReadCommittedVersion();
