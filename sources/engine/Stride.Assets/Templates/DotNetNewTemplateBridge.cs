@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using Microsoft.TemplateEngine.Abstractions;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -67,21 +68,21 @@ public static class DotNetNewTemplateBridge
         logger.ActivateLog(LogMessageType.Info);
         lock (InitLock)
         {
+            // Stride-owned settings tree ({profileDir}/.templateengine/...), kept out of the user's
+            // global ~/.templateengine. Versioned subfolder so side-by-side Stride installs don't
+            // share template state. NuGet's ~/.nuget/packages/ cache stays shared.
+            var profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Stride", "TemplateEngine", StrideVersion.NuGetVersion);
             if (registry == null)
             {
-                // Bootstrapper's settings tree lands at {profileDir}/.templateengine/...
-                // The custom IEnvironment in the registry makes {profileDir} the effective
-                // USERPROFILE for path derivation; we point it at a Stride-owned dir to keep
-                // state out of the user's global ~/.templateengine (which dotnet new CLI also
-                // uses). NuGet's package cache at ~/.nuget/packages/ stays shared.
-                // Versioned subfolder so side-by-side Stride installs don't share template state
-                // (4.4 and 4.5 GameStudios coexist with their respective template versions).
-                var profileDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Stride", "TemplateEngine", StrideVersion.NuGetVersion);
                 registry = new DotNetNewTemplateRegistry(StrideVersion.NuGetVersion, profileDir);
                 logger.Info($"Bootstrapper created (profileDir={profileDir}, hostVersion={StrideVersion.NuGetVersion})");
             }
+
+            // Drop missing/stale-version entries before any registry call scans them (the scanner
+            // hard-throws otherwise — e.g. a ...-dev1 mount point left over after moving to ...-dev2).
+            ReconcileInstalledPackages(profileDir, logger);
 
             // Aggregated metadata across all installed Stride template packages. Each package
             // ships its own templates.sdtpls; we merge them so a single template-identity lookup
@@ -158,6 +159,96 @@ public static class DotNetNewTemplateBridge
     }
 
     /// <summary>
+    /// The package version this build expects for <paramref name="packageId"/>: content packages
+    /// (Samples, Starters) use <see cref="StrideVersion.SamplesVersion"/> + the engine NuGet suffix;
+    /// everything else tracks <see cref="StrideVersion.NuGetVersion"/>.
+    /// </summary>
+    private static string DesiredVersionFor(string packageId)
+    {
+        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters";
+        return contentVersioned
+            ? StrideVersion.SamplesVersion + StrideVersion.NuGetVersionSuffix
+            : StrideVersion.NuGetVersion;
+    }
+
+    /// <summary>
+    /// Drops invalid entries from the persisted <c>packages.json</c> before the bootstrapper scans
+    /// it — the scanner throws (failing New-Project) on a missing mount point, and a superseded
+    /// version surfaces stale templates. Keeps only entries that pass <see cref="IsValidCurrentEntry"/>;
+    /// the install loop repopulates the current set. Operates on Stride's own isolated profile only.
+    /// </summary>
+    private static void ReconcileInstalledPackages(string profileDir, Logger logger)
+    {
+        var packagesJson = Path.Combine(profileDir, ".templateengine", "packages.json");
+        if (!File.Exists(packagesJson))
+            return;
+
+        JsonNode? root;
+        try
+        {
+            root = JsonNode.Parse(File.ReadAllText(packagesJson));
+        }
+        catch (Exception e)
+        {
+            // A corrupt settings file crashes the scanner just like a stale entry. Reset it and let
+            // the install loop rebuild from scratch.
+            logger.Warning($"Template package list at {packagesJson} is unreadable ({e.Message}); resetting it.");
+            try { File.Delete(packagesJson); } catch { /* best effort */ }
+            return;
+        }
+
+        var packages = root?["Packages"]?.AsArray();
+        if (packages is null)
+            return;
+
+        var dropped = 0;
+        for (var i = packages.Count - 1; i >= 0; i--)
+        {
+            var uri = packages[i]?["MountPointUri"]?.GetValue<string>();
+            if (uri is not null && IsValidCurrentEntry(uri))
+                continue;
+            logger.Info($"Reconcile: dropping stale template package entry '{uri}'.");
+            packages.RemoveAt(i);
+            dropped++;
+        }
+
+        if (dropped == 0)
+            return;
+
+        File.WriteAllText(packagesJson, root!.ToJsonString());
+        logger.Info($"Reconcile: removed {dropped} stale entr{(dropped == 1 ? "y" : "ies")} from {packagesJson}.");
+    }
+
+    /// <summary>
+    /// True when <paramref name="mountPointUri"/> exists AND — for packages we manage — its version
+    /// matches <see cref="DesiredVersionFor"/>. Mount points use NuGet's global-folder layout
+    /// (<c>&lt;root&gt;\&lt;id&gt;\&lt;version&gt;</c>), so id/version are the trailing two segments;
+    /// unrecognized entries are left untouched.
+    /// </summary>
+    private static bool IsValidCurrentEntry(string mountPointUri)
+    {
+        if (!Directory.Exists(mountPointUri))
+            return false;
+
+        var trimmed = mountPointUri.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var version = Path.GetFileName(trimmed);
+        var id = Path.GetFileName(Path.GetDirectoryName(trimmed) ?? string.Empty);
+
+        var managedId = BundledTemplatePackageIds.FirstOrDefault(p => string.Equals(p, id, StringComparison.OrdinalIgnoreCase));
+        if (managedId is null)
+            return true;
+
+        try
+        {
+            return new PackageVersion(version).Equals(new PackageVersion(DesiredVersionFor(managedId)));
+        }
+        catch
+        {
+            return string.Equals(version, DesiredVersionFor(managedId), StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>
     /// Resolves <paramref name="packageId"/> via <see cref="PackageStore"/>, installs it into the
     /// registry (skipping if unchanged since last session), and merges its <c>templates.sdtpls</c>
     /// entries into <paramref name="sdtplsByIdentity"/>. Tolerates a missing package by logging.
@@ -167,10 +258,7 @@ public static class DotNetNewTemplateBridge
         // Resolve each package at the exact version it's packed at (exact range, so release/prerelease ordering is
         // moot). Content-versioned (Samples, Starters) = StrideSamplesVersion + engine suffix, matching the pack in
         // Stride.Templates.Common.targets from the same source; Games is engine-versioned.
-        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters";
-        var version = contentVersioned
-            ? new PackageVersion(StrideVersion.SamplesVersion + StrideVersion.NuGetVersionSuffix)
-            : new PackageVersion(StrideVersion.NuGetVersion);
+        var version = new PackageVersion(DesiredVersionFor(packageId));
         var versionRange = new PackageVersionRange(version, true, version, true);
         var packageDir = PackageStore.Instance.GetPackageDirectory(packageId, versionRange);
         if (packageDir is null)
