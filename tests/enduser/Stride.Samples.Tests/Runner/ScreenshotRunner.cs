@@ -507,17 +507,28 @@ public static class ScreenshotRunner
     }
 
     /// <summary>
-    /// The in-tree engine NuGet version the samples resolve against. Read back from the deployed
-    /// Stride.Engine dev stub in bin/packages (stride-local): the worktree -devN suffix is only
-    /// patched into SharedAssemblyInfo.cs transiently during a pack (it reads empty at rest), so the
-    /// stub filename is the authoritative source. Falls back to the bare PublicVersion if no stub.
+    /// The in-tree engine NuGet version the samples resolve against (e.g. 4.4.0-dev2). The worktree
+    /// -devN suffix is overlaid into SharedAssemblyInfo.Generated.cs at build time — the base
+    /// SharedAssemblyInfo.cs reads an empty suffix at rest — so the overlay is the authoritative,
+    /// per-worktree source. Falls back to a deployed bin/packages stub, then the bare PublicVersion.
     /// </summary>
     private static string GetStrideDevVersion(string worktreeRoot)
     {
-        var sharedInfo = File.ReadAllText(Path.Combine(worktreeRoot, "sources", "shared", "SharedAssemblyInfo.cs"));
+        var sharedDir = Path.Combine(worktreeRoot, "sources", "shared");
+        var sharedInfo = File.ReadAllText(Path.Combine(sharedDir, "SharedAssemblyInfo.cs"));
         var majorMinor = Regex.Match(sharedInfo, @"MajorMinor\s*=\s*""([^""]*)""").Groups[1].Value;
-        var minPatch = Regex.Match(sharedInfo, @"MinPatch\s*=\s*""([^""]*)""").Groups[1].Value;
-        var publicVersion = majorMinor + "." + minPatch;
+        var patch = Regex.Match(sharedInfo, @"\bPatch\s*=\s*""([^""]*)""").Groups[1].Value;
+        var publicVersion = majorMinor + "." + patch;
+
+        // Prefer the generated overlay's suffix: it carries this worktree's -devN token, which the
+        // shared NugetDev feed can't disambiguate (every worktree's stub matches Stride.Engine.4.4.0*).
+        var generated = Path.Combine(sharedDir, "SharedAssemblyInfo.Generated.cs");
+        if (File.Exists(generated))
+        {
+            var suffix = Regex.Match(File.ReadAllText(generated), @"NuGetVersionSuffix\s*=\s*""([^""]*)""").Groups[1].Value;
+            if (!string.IsNullOrEmpty(suffix))
+                return publicVersion + suffix;
+        }
 
         var packagesDir = Path.Combine(worktreeRoot, "bin", "packages");
         if (Directory.Exists(packagesDir))
