@@ -23,7 +23,7 @@ internal sealed class StrideTemplateEngineEnvironment : IEnvironment
     /// <summary>
     /// <paramref name="profileDir"/> becomes the value returned for USERPROFILE / HOME lookups
     /// (and ExpandEnvironmentVariables substitutions). Typically a path like
-    /// <c>%LocalAppData%\Stride\TemplateEngine\profile</c> — the bootstrapper then derives its
+    /// <c>%LocalAppData%\stride\template-engine\profile</c> — the bootstrapper then derives its
     /// <c>{profileDir}/.templateengine/</c> tree from there.
     /// </summary>
     public StrideTemplateEngineEnvironment(string profileDir)

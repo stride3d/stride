@@ -73,7 +73,7 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\Stride\NugetDev on build. Mirrors
+  <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build. Mirrors
        Stride.Build.Sdk/Sdk.targets (StrideAutoPackDeploy + GeneratePackageOnBuild block); inlined
        here because this project doesn't use the Stride SDK chain. -->
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true'">
@@ -81,7 +81,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack" Condition="'$(StrideSkipAutoPack)' != 'true'">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
     <!-- Purge the extracted copy in the global NuGet cache so consumer restores re-extract
          from the freshly built .nupkg (otherwise same-version repacks load stale content). -->
     <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
@@ -131,7 +131,7 @@
        the up-to-date check. -->
   <PropertyGroup Condition="'$(CI)' != 'true' And '$(GITHUB_ACTIONS)' != 'true' And '$(TF_BUILD)' != 'true' And '$(StrideSkipWorktreeVersion)' != 'true' And '$(StridePackageBuild)' != 'true'">
     <_StrideEvalWorktreeLedger Condition="'$(StrideWorktreeLedger)' != ''">$(StrideWorktreeLedger)</_StrideEvalWorktreeLedger>
-    <_StrideEvalWorktreeLedger Condition="'$(_StrideEvalWorktreeLedger)' == ''">$(LocalAppData)\Stride\worktree-ids.txt</_StrideEvalWorktreeLedger>
+    <_StrideEvalWorktreeLedger Condition="'$(_StrideEvalWorktreeLedger)' == ''">$(LocalAppData)\stride\worktree-ids.txt</_StrideEvalWorktreeLedger>
     <_StrideEvalWorktreeLedgerContent Condition="Exists('$(_StrideEvalWorktreeLedger)')">$([System.IO.File]::ReadAllText('$(_StrideEvalWorktreeLedger)'))</_StrideEvalWorktreeLedgerContent>
     <_StrideEvalRootNorm>$([System.IO.Path]::GetFullPath('$(StrideRoot)').TrimEnd('\').TrimEnd('/'))</_StrideEvalRootNorm>
     <_StrideEvalRootEscaped>$([System.Text.RegularExpressions.Regex]::Escape('$(_StrideEvalRootNorm)'))</_StrideEvalRootEscaped>

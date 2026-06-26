@@ -23,7 +23,7 @@ var configuration = "Debug";
 var solution = "";
 var version = "";
 var disable = false;
-var nugetDevDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stride", "NugetDev");
+var nugetDevDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetdev");
 
 for (int i = 0; i < args.Length; i++)
 {

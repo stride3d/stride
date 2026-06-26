@@ -53,7 +53,7 @@
     <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorPath)' != '' And Exists('$(StrideAssemblyProcessorPath).hash')">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
 
     <!-- Temp directory -->
-    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorHash)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorHash)' != ''">$(TEMP)\stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorTempBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
 
