@@ -36,7 +36,7 @@ public sealed class StrideVersionManager
     ///   resolution prefers stable releases unless <paramref name="includePrerelease"/> is set; an explicit
     ///   version is always honored. Existing versions are left untouched.
     /// </summary>
-    public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, CancellationToken cancellationToken)
+    public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
         var available = (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
             .OrderByDescending(package => package.Version)
@@ -47,17 +47,54 @@ public sealed class StrideVersionManager
                 ? "No Stride version is available from the package source."
                 : $"No Stride version matching '{versionSpec}' is available.");
 
-        var installed = await store.InstallPackage(target.Id, target.Version, target.TargetFrameworks, progress: null)
+        var installed = await InstallWithProgress(target, progress)
             ?? throw new InvalidOperationException($"Failed to install Stride {target.Version}.");
 
         return ToStrideVersion(installed);
+    }
+
+    // Installs a resolved package, forwarding NuGet's restore events as InstallProgress updates.
+    private async Task<NugetLocalPackage?> InstallWithProgress(NugetServerPackage target, IProgress<InstallProgress>? progress)
+    {
+        if (progress is null)
+            return await store.InstallPackage(target.Id, target.Version, target.TargetFrameworks, progress: null);
+
+        var version = target.Version.ToString();
+        var completed = 0;
+        var total = 0;
+
+        progress.Report(new InstallProgress(InstallStage.Downloading, version));
+
+        void OnDownload(long downloaded)
+            => progress.Report(new InstallProgress(InstallStage.Downloading, version, DownloadedBytes: downloaded));
+        void OnStarting(int count) => total = count;
+        void OnInstalled(object? sender, PackageOperationEventArgs e)
+            => progress.Report(new InstallProgress(InstallStage.Installing, version, e.Name.Id, ++completed, total));
+        void OnSettingUp(object? sender, PackageOperationEventArgs e)
+            => progress.Report(new InstallProgress(InstallStage.SettingUp, version, e.Name.Id, completed, total));
+
+        store.NugetDownloadProgress += OnDownload;
+        store.NugetRestoreInstalling += OnStarting;
+        store.NugetPackageInstalled += OnInstalled;
+        store.NugetPackageSettingUp += OnSettingUp;
+        try
+        {
+            return await store.InstallPackage(target.Id, target.Version, target.TargetFrameworks, progress: null);
+        }
+        finally
+        {
+            store.NugetDownloadProgress -= OnDownload;
+            store.NugetRestoreInstalling -= OnStarting;
+            store.NugetPackageInstalled -= OnInstalled;
+            store.NugetPackageSettingUp -= OnSettingUp;
+        }
     }
 
     /// <summary>
     ///   Uninstalls the given Stride version along with any dependencies it pulled in that are no longer used
     ///   by another installed version. Returns false if it was not installed.
     /// </summary>
-    public async Task<bool> Uninstall(string versionSpec)
+    public async Task<bool> Uninstall(string versionSpec, IProgress<InstallProgress>? progress = null)
     {
         var local = store.FindLocalPackage(MainPackageId, new PackageVersion(versionSpec));
         if (local is null)
@@ -67,21 +104,27 @@ public sealed class StrideVersionManager
         var removing = new Dictionary<string, NugetLocalPackage>();
         CollectStrideDependencies(local, removing);
 
-        await store.UninstallPackage(local, progress: null);
-        store.DeleteHttpCacheCopy(local.Id, local.Version);
-
-        // Keep dependencies still referenced by another installed version; remove the rest.
+        // Dependencies still referenced by another installed version are kept.
         var stillReferenced = new Dictionary<string, NugetLocalPackage>();
         foreach (var main in store.GetPackagesInstalled(store.MainPackageIds))
-            CollectStrideDependencies(main, stillReferenced);
-
-        foreach (var (key, dependency) in removing)
         {
+            if (main.Id == local.Id && main.Version.Equals(local.Version))
+                continue;
+            CollectStrideDependencies(main, stillReferenced);
+        }
+
+        // The version itself plus its now-unused dependencies.
+        var toRemove = new List<NugetPackage> { local };
+        foreach (var (key, dependency) in removing)
             if (!stillReferenced.ContainsKey(key))
-            {
-                await store.UninstallPackage(dependency, progress: null);
-                store.DeleteHttpCacheCopy(dependency.Id, dependency.Version);
-            }
+                toRemove.Add(dependency);
+
+        for (var i = 0; i < toRemove.Count; i++)
+        {
+            var package = toRemove[i];
+            progress?.Report(new InstallProgress(InstallStage.Removing, versionSpec, package.Id, i + 1, toRemove.Count));
+            await store.UninstallPackage(package, progress: null);
+            store.DeleteHttpCacheCopy(package.Id, package.Version);
         }
 
         return true;
@@ -115,7 +158,7 @@ public sealed class StrideVersionManager
     ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
     ///   every installed line is updated. Returns the versions that were updated.
     /// </summary>
-    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
         var managed = managedVersions.Load();
         var lines = line is not null
@@ -134,7 +177,7 @@ public sealed class StrideVersionManager
             if (newest is null)
                 continue;
 
-            var installedPackage = await store.InstallPackage(newest.Id, newest.Version, newest.TargetFrameworks, progress: null);
+            var installedPackage = await InstallWithProgress(newest, progress);
             if (installedPackage is null)
                 continue;
 
