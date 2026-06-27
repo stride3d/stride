@@ -972,6 +972,27 @@ public partial class NugetStore : INugetDownloadProgress
         currentProgressReport?.UpdateProgress(ProgressAction.Download, (int)(contentPosition * 100 / contentLength));
     }
 
+    /// <summary>
+    /// Deletes a package's cached download (<c>nupkg_{id}.{version}.dat</c>) from NuGet's HTTP cache. NuGet keeps
+    /// these indefinitely with no size limit, so removing them on uninstall reclaims space (Stride packages are
+    /// large and updated often). Best-effort; only touches the exact package given.
+    /// </summary>
+    public void DeleteHttpCacheCopy(string packageId, PackageVersion version)
+    {
+        try
+        {
+            var httpCache = NuGetEnvironment.GetFolderPath(NuGetFolderPath.HttpCacheDirectory);
+            if (!Directory.Exists(httpCache))
+                return;
+            var fileName = $"nupkg_{packageId.ToLowerInvariant()}.{version}.dat";
+            foreach (var file in Directory.EnumerateFiles(httpCache, fileName, SearchOption.AllDirectories))
+            {
+                try { File.Delete(file); } catch { /* in use / permission; skip */ }
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
     private static void RunPackageInstall(string packageInstall, string arguments, ProgressReport progress)
     {
         // Run packageinstall.exe
