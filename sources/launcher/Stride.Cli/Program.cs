@@ -54,15 +54,17 @@ installCommand.Options.Add(prereleaseOption);
 installCommand.SetAction(async (parseResult, cancellationToken) =>
 {
     var spec = parseResult.GetValue(installVersion);
+    var progress = new InstallProgressConsole();
     try
     {
-        Console.WriteLine(spec is null ? "Installing the latest Stride version..." : $"Installing Stride {spec}...");
-        var installed = await manager.Install(spec, parseResult.GetValue(prereleaseOption), cancellationToken);
+        var installed = await manager.Install(spec, parseResult.GetValue(prereleaseOption), progress, cancellationToken);
+        progress.Dispose();
         Console.WriteLine($"Installed Stride {installed.Version}.");
         return 0;
     }
     catch (Exception exception)
     {
+        progress.Dispose();
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
@@ -75,9 +77,12 @@ uninstallCommand.Arguments.Add(uninstallVersion);
 uninstallCommand.SetAction(async (parseResult, _) =>
 {
     var spec = parseResult.GetValue(uninstallVersion)!;
+    var progress = new InstallProgressConsole();
     try
     {
-        if (await manager.Uninstall(spec))
+        var removed = await manager.Uninstall(spec, progress);
+        progress.Dispose();
+        if (removed)
         {
             Console.WriteLine($"Uninstalled Stride {spec}.");
             return 0;
@@ -88,6 +93,7 @@ uninstallCommand.SetAction(async (parseResult, _) =>
     }
     catch (Exception exception)
     {
+        progress.Dispose();
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
@@ -104,9 +110,11 @@ updateCommand.Arguments.Add(updateLine);
 updateCommand.Options.Add(prereleaseOption);
 updateCommand.SetAction(async (parseResult, cancellationToken) =>
 {
+    var progress = new InstallProgressConsole();
     try
     {
-        var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prereleaseOption), cancellationToken);
+        var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prereleaseOption), progress, cancellationToken);
+        progress.Dispose();
         if (updated.Count == 0)
         {
             Console.WriteLine("Everything is already up to date.");
@@ -119,6 +127,7 @@ updateCommand.SetAction(async (parseResult, cancellationToken) =>
     }
     catch (Exception exception)
     {
+        progress.Dispose();
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
