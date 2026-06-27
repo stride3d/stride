@@ -21,6 +21,7 @@ using Stride.Assets.Templates;
 using Stride.Graphics;
 using Microsoft.Build.Evaluation;
 using Stride.Core.Annotations;
+using static Stride.Assets.CodeUpgrades;
 
 namespace Stride.Assets
 {
@@ -88,6 +89,17 @@ namespace Stride.Assets
         /// </summary>
         public override void DeclareUpgrades(UpgradeRegistry registry)
         {
+            // 4.4: PixelFormat members IsSRgb/IsHDR/Is32bppWithAlpha/SizeInBytes changed from extension
+            // methods to (extension) properties (fmt.IsSRgb() -> fmt.IsSRgb).
+            registry.Code("4.4.0.0",
+            [
+                Rewrite(
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsSRgb"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsHDR"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "Is32bppWithAlpha"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "SizeInBytes")),
+            ]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
