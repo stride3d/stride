@@ -20,17 +20,6 @@ namespace Stride.Core.Presentation.Windows
     /// </summary>
     public class WindowManager : IDisposable
     {
-        // TODO: this list should be completely external
-        private static readonly string[] DebugWindowTypeNames =
-        {
-            // WPF adorners introduced in Visual Studio 2015 Update 2
-            "Microsoft.XamlDiagnostics.WpfTap",
-            // WPF Inspector
-            "ChristianMoser.WpfInspector",
-            // Snoop
-            "Snoop.SnoopUI",
-        };
-
         private static readonly List<WindowInfo> ModalWindowsList = new List<WindowInfo>();
         private static readonly List<WindowInfo> BlockingWindowsList = new List<WindowInfo>();
         private static readonly HashSet<WindowInfo> AllWindowsList = new HashSet<WindowInfo>();
@@ -140,14 +129,11 @@ namespace Stride.Core.Presentation.Windows
             window.Owner = MainWindow?.Window;
             window.WindowStartupLocation = MainWindow != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen;
 
-            // Set the owner now so the window can be recognized as modal when shown
-            if (MainWindow != null)
-            {
-                MainWindow.IsDisabled = true;
-            }
-
             AllWindowsList.Add(windowInfo);
             BlockingWindowsList.Add(windowInfo);
+
+            // Disable the main window now so the blocking window is recognized as modal when shown.
+            RefreshDisabledStates();
 
             // Update the hwnd on load in case the window is closed before being shown
             // We will receive EVENT_OBJECT_HIDE but not EVENT_OBJECT_SHOW in this case.
@@ -194,6 +180,78 @@ namespace Stride.Core.Presentation.Windows
         {
             if (MainWindow != null && MainWindow.Hwnd != IntPtr.Zero)
                 NativeHelper.SetActiveWindow(MainWindow.Hwnd);
+        }
+
+        /// <summary>
+        /// Recomputes the disabled state of the main window and of every blocking window from the
+        /// current contents of the tracking lists, rather than toggling it incrementally as windows
+        /// come and go. This is idempotent and self-healing: a missed or reordered window event can no
+        /// longer leave the main window permanently disabled, because the next event recomputes the
+        /// correct state from ground truth.
+        /// </summary>
+        private static void RefreshDisabledStates()
+        {
+            // Drop tracked windows that have gone away without us seeing a proper hide event.
+            PruneClosed(ModalWindowsList);
+            PruneClosed(BlockingWindowsList);
+
+            var modalPresent = ModalWindowsList.Count > 0;
+
+            // A blocking window is disabled only while a modal sits in front of it.
+            foreach (var blockingWindow in BlockingWindowsList)
+                SetDisabled(blockingWindow, modalPresent);
+
+            // The main window is disabled while any blocking or modal window is up.
+            if (MainWindow != null && MainWindow.IsShown)
+                SetDisabled(MainWindow, modalPresent || BlockingWindowsList.Count > 0);
+        }
+
+        private static void SetDisabled(WindowInfo windowInfo, bool disabled)
+        {
+            if (windowInfo.Hwnd == IntPtr.Zero)
+                return;
+            if (windowInfo.IsDisabled != disabled)
+            {
+                Logger.Verbose($"Window ({windowInfo.Hwnd}) {(disabled ? "disabled" : "enabled")}.");
+                windowInfo.IsDisabled = disabled;
+            }
+        }
+
+        private static void PruneClosed(List<WindowInfo> list)
+        {
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                var windowInfo = list[i];
+                // Only prune windows we actually saw shown; a not-yet-shown window has no hwnd yet.
+                if (windowInfo.IsShown && (windowInfo.Hwnd == IntPtr.Zero || !NativeHelper.IsWindow(windowInfo.Hwnd)))
+                {
+                    Logger.Verbose($"Pruning destroyed window ({windowInfo.Hwnd}) from tracking lists.");
+                    list.RemoveAt(i);
+                    AllWindowsList.Remove(windowInfo);
+                    windowInfo.IsShown = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the given window was injected into our process by external tooling
+        /// (Visual Studio XAML adorners, Snoop, inspectors) rather than created by the application.
+        /// Such windows run on our UI thread but their type comes from an assembly that lives outside
+        /// the application directory; this is identified by assembly location rather than a brittle
+        /// list of known tooling type names. Native windows (e.g. a Win32 message box, with no managed
+        /// <see cref="Window"/>) are genuine OS modals and are never considered foreign.
+        /// </summary>
+        private static bool IsForeignWindow(WindowInfo windowInfo)
+        {
+            var window = windowInfo.Window;
+            if (window == null)
+                return false;
+
+            var location = window.GetType().Assembly.Location;
+            if (string.IsNullOrEmpty(location))
+                return false; // dynamic/single-file assembly: can't tell, assume ours to avoid hiding real dialogs
+
+            return !location.StartsWith(AppContext.BaseDirectory, StringComparison.OrdinalIgnoreCase);
         }
 
         private static void CheckDispatcher()
@@ -253,17 +311,13 @@ namespace Stride.Core.Presentation.Windows
                 if (windowInfo.Window?.Dispatcher != dispatcher)
                     return;
 
-                if (Debugger.IsAttached)
+                // Discard windows injected into our process by external tooling (e.g. Visual Studio
+                // XAML adorners, Snoop, inspectors). They run on our UI thread but are not ours, and
+                // must not be treated as application modals (which would keep the main window disabled).
+                if (IsForeignWindow(windowInfo))
                 {
-                    // Some external processes might attach a window to ours, we want to discard them.
-                    foreach (var debugWindowTypeName in DebugWindowTypeNames)
-                    {
-                        if (windowInfo.Window?.GetType().FullName.StartsWith(debugWindowTypeName, StringComparison.Ordinal) ?? false)
-                        {
-                            Logger.Debug($"Discarding debug/diagnostics window '{windowInfo.Window.GetType().FullName}' ({hwnd})");
-                            return;
-                        }
-                    }
+                    Logger.Debug($"Discarding foreign window '{windowInfo.Window?.GetType().FullName}' ({hwnd})");
+                    return;
                 }
 
                 // Make sure first window is activated (modal windows is not auto activated after splash screen)
@@ -282,34 +336,21 @@ namespace Stride.Core.Presentation.Windows
                 Logger.Info($"Main window ({hwnd}) shown.");
                 foreach (var blockingWindow in BlockingWindowsList)
                 {
-                    Logger.Debug($"Setting owner of exiting blocking window {blockingWindow.Hwnd} to be the main window ({hwnd}).");
+                    Logger.Debug($"Setting owner of existing blocking window {blockingWindow.Hwnd} to be the main window ({hwnd}).");
                     blockingWindow.Owner = MainWindow;
-                }
-                if (ModalWindowsList.Count > 0 || BlockingWindowsList.Count > 0)
-                {
-                    Logger.Verbose($"Main window ({MainWindow.Hwnd}) disabled because a modal or blocking window is already visible.");
-                    MainWindow.IsDisabled = true;
                 }
             }
             else if (windowInfo.IsBlocking)
             {
                 Logger.Info($"Blocking window ({hwnd}) shown.");
-                if (MainWindow != null && MainWindow.IsShown)
-                {
-                    Logger.Verbose($"Main window ({MainWindow.Hwnd}) disabled by new blocking window.");
-                    MainWindow.IsDisabled = true;
-                }
-                if (ModalWindowsList.Count > 0)
-                {
-                    Logger.Verbose($"Blocking window ({hwnd}) disabled because a modal is already visible.");
-                    windowInfo.IsDisabled = true;
-                }
             }
             else if (windowInfo.IsModal)
             {
                 Logger.Info($"Modal window ({hwnd}) shown.");
                 ModalWindowsList.Add(windowInfo);
             }
+
+            RefreshDisabledStates();
         }
 
         private static void WindowHidden(IntPtr hwnd)
@@ -335,16 +376,9 @@ namespace Stride.Core.Presentation.Windows
             else if (windowInfo.IsBlocking)
             {
                 Logger.Info($"Blocking window ({hwnd}) closed.");
-                var index = BlockingWindowsList.IndexOf(windowInfo);
-                if (index < 0)
-                    throw new InvalidOperationException("An unregistered blocking window has been closed.");
-                BlockingWindowsList.RemoveAt(index);
+                BlockingWindowsList.Remove(windowInfo);
                 windowInfo.IsBlocking = false;
-                if (MainWindow != null && MainWindow.IsShown && BlockingWindowsList.Count == 0 && ModalWindows.Count == 0)
-                {
-                    Logger.Verbose($"Main window ({MainWindow.Hwnd}) enabled because no more modal nor blocking windows are visible.");
-                    MainWindow.IsDisabled = false;
-                }
+                RefreshDisabledStates();
                 ActivateMainWindow();
             }
             else
@@ -355,19 +389,10 @@ namespace Stride.Core.Presentation.Windows
                 {
                     Logger.Info($"Modal window ({hwnd}) closed.");
                     ModalWindowsList.RemoveAt(index);
+                    RefreshDisabledStates();
 
                     if (ModalWindowsList.Count == 0)
                     {
-                        foreach (var blockingWindow in BlockingWindowsList)
-                        {
-                            Logger.Verbose($"Blocking window ({blockingWindow.Hwnd}) enabled because no more modal windows are visible.");
-                            blockingWindow.IsDisabled = false;
-                        }
-                        if (MainWindow != null && MainWindow.IsShown && BlockingWindowsList.Count == 0 && ModalWindows.Count == 0)
-                        {
-                            Logger.Verbose($"Main window ({MainWindow.Hwnd}) enabled because no more modal nor blocking windows are visible.");
-                            MainWindow.IsDisabled = false;
-                        }
                         // re-activate only after all popups have closed, since some popups are spawned from popups themselves,
                         // when their original parent closes, reactivating the main window causes the still living children to close.
                         ActivateMainWindow();
