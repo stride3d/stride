@@ -523,6 +523,58 @@ new ShaderMacro("class", "shader"),
         TestCore("StrideTessellation", shaderSource, "./assets/Stride/SDSL");
     }
 
+    // Issue #3236: the MSAA resolve shaders use Texture2DMS<float4, N>. Make sure the SDSL
+    // compiler can build them for each sample count (the editor enables them when MSAA > 0).
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(8)]
+    public void MsaaResolverShaderCompiles(int samples)
+    {
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins =
+            {
+                new ShaderClassSource("MSAAResolverShader", samples, 1, 2.0f),
+            },
+            Macros =
+            {
+                new ShaderMacro("INPUT_MSAA_SAMPLES", samples.ToString()),
+                new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
+                new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", samples.ToString()),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D11", "1"),
+            },
+        };
+
+        TestCore($"MSAAResolverShader{samples}", shaderSource, "./assets/Stride/SDSL");
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(8)]
+    public void MsaaDepthResolverShaderCompiles(int samples)
+    {
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins =
+            {
+                new ShaderClassSource("MSAADepthResolverShader"),
+            },
+            Macros =
+            {
+                new ShaderMacro("INPUT_MSAA_SAMPLES", samples.ToString()),
+                new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
+                new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", samples.ToString()),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D11", "1"),
+            },
+        };
+
+        TestCore($"MSAADepthResolverShader{samples}", shaderSource, "./assets/Stride/SDSL");
+    }
+
     private static void TestCore(string shaderName, ShaderMixinSource shaderSource, params string[] searchPaths)
     {
         var shaderMixer = new ShaderMixer(new ShaderLoader(searchPaths));
