@@ -376,63 +376,71 @@ namespace Stride.Core.Assets.Editor.ViewModel
             serviceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
 
             // Ensure the loading is finished
-            var sessionViewModel = await Task.Run(() =>
+            SessionViewModel sessionViewModel;
+            try
             {
-                SessionViewModel result = null;
-                try
+                sessionViewModel = await Task.Run(() =>
                 {
-                    // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(workProgress, cancellationSource));
-                    if (!cancellationSource.Token.IsCancellationRequested)
+                    SessionViewModel result = null;
+                    try
                     {
-                        // Load references
-                        sessionResult.Session.LoadMissingReferences(sessionResult);
+                        // Load the session file (package or solution)
+                        PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(workProgress, cancellationSource));
+                        if (!cancellationSource.Token.IsCancellationRequested)
+                        {
+                            // Load references
+                            sessionResult.Session.LoadMissingReferences(sessionResult);
 
-                        // Create the session view model (in the UI thread)
-                        var dispatcher = serviceProvider.Get<IDispatcherService>();
-                        result = dispatcher.Invoke(() => new SessionViewModel(serviceProvider, sessionResult, sessionResult.Session, editor));
+                            // Create the session view model (in the UI thread)
+                            var dispatcher = serviceProvider.Get<IDispatcherService>();
+                            result = dispatcher.Invoke(() => new SessionViewModel(serviceProvider, sessionResult, sessionResult.Session, editor));
 
-                        // Build asset view models
-                        result.LoadAssetsFromPackages(sessionResult, workProgress, cancellationSource.Token);
+                            // Build asset view models
+                            result.LoadAssetsFromPackages(sessionResult, workProgress, cancellationSource.Token);
+                        }
                     }
-                }
-                catch (Exception e)
+                    catch (Exception e)
+                    {
+                        sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution.")), e);
+                        result = null;
+                    }
+                    return result;
+                }, cancellationSource.Token);
+
+                if (sessionViewModel == null || cancellationSource.IsCancellationRequested)
                 {
-                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution.")), e);
-                    result = null;
+                    sessionViewModel?.Destroy();
+                    sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
+                    return null;
                 }
-                return result;
-            }, cancellationSource.Token);
 
-            if (sessionViewModel == null || cancellationSource.IsCancellationRequested)
-            {
-                sessionViewModel?.Destroy();
+                // Register the node container to the copy/paste service.
+                sessionViewModel.ServiceProvider.Get<CopyPasteService>().PropertyGraphContainer = sessionViewModel.GraphContainer;
+
+                sessionViewModel.AutoSelectCurrentProject();
+
+                sessionViewModel.LoadDocumentation();
+
+                // Now resize the undo stack to the correct size.
+                undoRedoService.Resize(200);
+
+                // And initialize the actions view model
+                sessionViewModel.ActionHistory.Initialize();
+
+                // Copy the result of the asset loading to the log panel.
+                sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
+
+                sessionViewModel.CheckConsistency();
+
                 sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
-                return null;
             }
-
-            // Register the node container to the copy/paste service.
-            sessionViewModel.ServiceProvider.Get<CopyPasteService>().PropertyGraphContainer = sessionViewModel.GraphContainer;
-
-            sessionViewModel.AutoSelectCurrentProject();
-
-            sessionViewModel.LoadDocumentation();
-
-            // Now resize the undo stack to the correct size.
-            undoRedoService.Resize(200);
-
-            // And initialize the actions view model
-            sessionViewModel.ActionHistory.Initialize();
-
-            // Copy the result of the asset loading to the log panel.
-            sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
-
-            sessionViewModel.CheckConsistency();
-
-            sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
-
-            // Notify that the task is finished
-            await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
+            finally
+            {
+                // Always notify completion so the progress window can close, even if loading failed,
+                // was cancelled, or threw. Otherwise it stays open as a blocking window and leaves the
+                // main window disabled.
+                await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
+            }
 
             return sessionViewModel;
         }

@@ -95,6 +95,10 @@ namespace Stride.Core.Presentation.Interop
         [DllImport(ExternDll.User32, ExactSpelling = true)]
         public static extern IntPtr GetAncestor(IntPtr hwnd, GetAncestorFlags flags);
 
+        [DllImport(ExternDll.User32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindow(IntPtr hWnd);
+
         public static IntPtr SetWindowLong(HandleRef hwnd, WindowLongType index, IntPtr wndProcPtr)
         {
             if (IntPtr.Size == 4)
