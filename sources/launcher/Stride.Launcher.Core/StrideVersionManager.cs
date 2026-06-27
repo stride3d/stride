@@ -32,16 +32,17 @@ public sealed class StrideVersionManager
 
     /// <summary>
     ///   Installs a Stride version and returns it. <paramref name="versionSpec"/> may be a full version,
-    ///   a major.minor line (newest patch in that line), or null for the newest available. Existing
-    ///   versions are left untouched.
+    ///   a major.minor line (newest patch in that line), or null for the newest version. The newest/line
+    ///   resolution prefers stable releases unless <paramref name="includePrerelease"/> is set; an explicit
+    ///   version is always honored. Existing versions are left untouched.
     /// </summary>
-    public async Task<StrideVersion> Install(string? versionSpec, CancellationToken cancellationToken)
+    public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, CancellationToken cancellationToken)
     {
         var available = (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
             .OrderByDescending(package => package.Version)
             .ToList();
 
-        var target = Resolve(available, versionSpec)
+        var target = Resolve(available, versionSpec, includePrerelease)
             ?? throw new InvalidOperationException(string.IsNullOrEmpty(versionSpec)
                 ? "No Stride version is available from the package source."
                 : $"No Stride version matching '{versionSpec}' is available.");
@@ -68,7 +69,7 @@ public sealed class StrideVersionManager
     ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
     ///   every installed line is updated. Returns the versions that were updated.
     /// </summary>
-    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, CancellationToken cancellationToken)
     {
         var managed = managedVersions.Load();
         var lines = line is not null
@@ -82,7 +83,8 @@ public sealed class StrideVersionManager
         var updated = new List<StrideVersion>();
         foreach (var targetLine in lines)
         {
-            var newest = available.FirstOrDefault(package => LineOf(package.Version) == targetLine);
+            var newest = available.FirstOrDefault(package => LineOf(package.Version) == targetLine
+                && (includePrerelease || string.IsNullOrEmpty(package.Version.SpecialVersion)));
             if (newest is null)
                 continue;
 
@@ -328,14 +330,17 @@ public sealed class StrideVersionManager
         => new(package.Id, package.Version, store.GetInstalledPath(package.Id, package.Version));
 
     // available is newest-first. A "major.minor" spec resolves to the newest patch in that line.
-    private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec)
+    private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec, bool includePrerelease)
     {
+        // Newest/line resolution skips prereleases unless opted in; an explicit version is always honored.
+        bool Eligible(NugetServerPackage package) => includePrerelease || string.IsNullOrEmpty(package.Version.SpecialVersion);
+
         if (string.IsNullOrEmpty(versionSpec))
-            return available.FirstOrDefault();
+            return available.FirstOrDefault(Eligible);
 
         var parts = versionSpec.Split('.');
         if (parts.Length == 2 && int.TryParse(parts[0], out var major) && int.TryParse(parts[1], out var minor))
-            return available.FirstOrDefault(package => package.Version.Version.Major == major && package.Version.Version.Minor == minor);
+            return available.FirstOrDefault(package => package.Version.Version.Major == major && package.Version.Version.Minor == minor && Eligible(package));
 
         var target = new PackageVersion(versionSpec);
         return available.FirstOrDefault(package => package.Version.Equals(target));

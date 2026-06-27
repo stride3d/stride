@@ -45,17 +45,19 @@ listCommand.SetAction(_ =>
 var installVersion = new Argument<string?>("version")
 {
     Arity = ArgumentArity.ZeroOrOne,
-    Description = "Version or major.minor line to install. Installs the newest available if omitted.",
+    Description = "Version or major.minor line to install. Installs the newest stable version if omitted.",
 };
+var prereleaseOption = new Option<bool>("--prerelease") { Description = "Include prerelease (beta) versions when resolving the newest version or line." };
 var installCommand = new Command("install", "Install a Stride version (additive; never removes an existing one).");
 installCommand.Arguments.Add(installVersion);
+installCommand.Options.Add(prereleaseOption);
 installCommand.SetAction(async (parseResult, cancellationToken) =>
 {
     var spec = parseResult.GetValue(installVersion);
     try
     {
         Console.WriteLine(spec is null ? "Installing the latest Stride version..." : $"Installing Stride {spec}...");
-        var installed = await manager.Install(spec, cancellationToken);
+        var installed = await manager.Install(spec, parseResult.GetValue(prereleaseOption), cancellationToken);
         Console.WriteLine($"Installed Stride {installed.Version}.");
         return 0;
     }
@@ -99,11 +101,12 @@ var updateLine = new Argument<string?>("line")
 };
 var updateCommand = new Command("update", "Update installed Stride lines to their newest patch.");
 updateCommand.Arguments.Add(updateLine);
+updateCommand.Options.Add(prereleaseOption);
 updateCommand.SetAction(async (parseResult, cancellationToken) =>
 {
     try
     {
-        var updated = await manager.Update(parseResult.GetValue(updateLine), cancellationToken);
+        var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prereleaseOption), cancellationToken);
         if (updated.Count == 0)
         {
             Console.WriteLine("Everything is already up to date.");
