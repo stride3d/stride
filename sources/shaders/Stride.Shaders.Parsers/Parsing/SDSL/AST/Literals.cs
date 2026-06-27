@@ -752,6 +752,14 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                 table.DeclaredTypes.Add(fullTypeName, genericBufferType);
                 symbolType = genericBufferType;
             }
+            else if (Generics.Count == 2 && (Name == "Texture2DMS" || Name == "Texture2DMSArray")
+                     && SymbolType.TryGetBufferType(Name, (TypeName)Generics[0], out var msBufferType))
+            {
+                // Texture2DMS<Type, SampleCount>: the optional sample-count generic doesn't change
+                // the image type, so resolve from the element type alone.
+                table.DeclaredTypes.Add(fullTypeName, msBufferType);
+                symbolType = msBufferType;
+            }
             else if (Name == "SamplerState" || Name == "SamplerComparisonState")
             {
                 symbolType = new SamplerType();
