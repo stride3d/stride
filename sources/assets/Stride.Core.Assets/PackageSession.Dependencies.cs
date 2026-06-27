@@ -74,6 +74,59 @@ partial class PackageSession
         }
     }
 
+    /// <summary>
+    /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
+    /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
+    /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
+    /// is below the upgrader's target. Returns one entry per (project, upgrader); the runner does the
+    /// version-gate and only opens a workspace when source rules actually apply.
+    /// </summary>
+    private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
+    {
+        var result = new List<PendingCodeUpgrade>();
+        foreach (var project in Projects.OfType<SolutionProject>())
+        {
+            if (project.FullPath is null)
+                continue;
+            var projectPath = project.FullPath.ToOSPath();
+            if (!File.Exists(projectPath))
+                continue;
+
+            Microsoft.Build.Evaluation.Project msProject;
+            try
+            {
+                msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+            }
+            catch (Exception e)
+            {
+                log.Verbose($"Code upgrade detection: could not load [{project.FullPath.GetFileName()}]: {e.Message}");
+                continue;
+            }
+
+            var seen = new HashSet<PackageUpgrader>();
+            foreach (var packageReference in msProject.GetItems("PackageReference"))
+            {
+                if (!packageReference.HasMetadata("Version")
+                    || !PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var range)
+                    || range.MinVersion is null)
+                    continue;
+
+                var upgrader = AssetRegistry.GetPackageUpgrader(packageReference.EvaluatedInclude);
+                if (upgrader is null)
+                    continue;
+                // Already at/above the target, or below the minimum supported (the real upgrade path reports that).
+                if (range.MinVersion >= upgrader.Attribute.UpdatedVersionRange.MinVersion
+                    || range.MinVersion < upgrader.Attribute.PackageMinimumVersion)
+                    continue;
+                if (!seen.Add(upgrader))
+                    continue;
+
+                result.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+            }
+        }
+        return result;
+    }
+
     private async Task PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
     {
         ArgumentNullException.ThrowIfNull(log);
