@@ -936,6 +936,30 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 }
             }
 
+            // Source-code migration pre-pass: rewrite user .cs against the consistent OLD closure we just
+            // restored, before any reference is bumped — so Stride symbols still resolve at the old version.
+            // The runner version-gates and only opens a workspace when a rule actually applies, so
+            // project-only upgrades cost nothing extra. Requires the up-front solution restore.
+            if (solutionDependenciesRestored && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            {
+                try
+                {
+                    var pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
+                    if (pendingCodeUpgrades.Count > 0)
+                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, log);
+                }
+                catch (NotImplementedException)
+                {
+                    // Unsupported rule configuration (e.g. resolveSince above the from-version) is an
+                    // upgrader-authoring error — surface it loudly instead of degrading to a warning.
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    log.Warning("Source-code migration pre-pass failed; continuing with the package upgrade.", ex);
+                }
+            }
+
             // Note: list can grow as dependencies get loaded
             for (int i = 0; i < Projects.Count; ++i)
             {

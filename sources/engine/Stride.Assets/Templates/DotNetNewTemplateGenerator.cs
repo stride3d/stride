@@ -179,9 +179,6 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         foreach (var csproj in Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories))
         {
             StridePackageUpgrader.UpgradeProjectVersions(csproj, log);
-            // Future: also invoke StridePackageUpgrader.UpgradeProjectCode here once the
-            // Roslyn-based code upgrade is implemented (fromVersion derived from a Stride.*
-            // PackageReference scan — the version the template's .cs files were authored against).
         }
         return true;
     }
