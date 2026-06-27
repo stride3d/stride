@@ -67,11 +67,17 @@
           Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
   <Target Name="StrideTemplatesAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
-          BeforeTargets="StrideGenerateTemplateContent;_GetOutputItemsFromPack;GenerateNuspec">
+          BeforeTargets="StrideGenerateTemplateContent;_GetOutputItemsFromPack;GenerateNuspec;_GetProjectVersion">
     <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>
   </Target>
+
+  <!-- Also suffix during a parent's cross-project version query (_GetProjectVersion), so GameStudio's
+       nuspec <dependency> on a template records the produced -devN version, not the base. -->
+  <PropertyGroup>
+    <GetPackageVersionDependsOn>$(GetPackageVersionDependsOn);StrideTemplatesAppendWorktreeVersion</GetPackageVersionDependsOn>
+  </PropertyGroup>
 
   <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build. Mirrors
        Stride.Build.Sdk/Sdk.targets (StrideAutoPackDeploy + GeneratePackageOnBuild block); inlined
