@@ -53,15 +53,61 @@ public sealed class StrideVersionManager
         return ToStrideVersion(installed);
     }
 
-    /// <summary>Uninstalls the given Stride version. Returns false if it was not installed.</summary>
+    /// <summary>
+    ///   Uninstalls the given Stride version along with any dependencies it pulled in that are no longer used
+    ///   by another installed version. Returns false if it was not installed.
+    /// </summary>
     public async Task<bool> Uninstall(string versionSpec)
     {
         var local = store.FindLocalPackage(MainPackageId, new PackageVersion(versionSpec));
         if (local is null)
             return false;
 
+        // Dependency closure of the version being removed.
+        var removing = new Dictionary<string, NugetLocalPackage>();
+        CollectStrideDependencies(local, removing);
+
         await store.UninstallPackage(local, progress: null);
+        store.DeleteHttpCacheCopy(local.Id, local.Version);
+
+        // Keep dependencies still referenced by another installed version; remove the rest.
+        var stillReferenced = new Dictionary<string, NugetLocalPackage>();
+        foreach (var main in store.GetPackagesInstalled(store.MainPackageIds))
+            CollectStrideDependencies(main, stillReferenced);
+
+        foreach (var (key, dependency) in removing)
+        {
+            if (!stillReferenced.ContainsKey(key))
+            {
+                await store.UninstallPackage(dependency, progress: null);
+                store.DeleteHttpCacheCopy(dependency.Id, dependency.Version);
+            }
+        }
+
         return true;
+    }
+
+    // Walks the Stride/Xenko dependency closure of a package into acc, keyed by id/version.
+    private void CollectStrideDependencies(NugetPackage package, Dictionary<string, NugetLocalPackage> acc)
+    {
+        foreach (var dependency in package.Dependencies)
+        {
+            var prefix = dependency.Item1.Split('.', 2)[0];
+            if (prefix is not "Stride" and not "Xenko")
+                continue;
+
+            // Resolve at the exact declared version only. A dependency version is a minimum (">= 4.4.0-beta1"),
+            // so range resolution would match a co-installed higher version (e.g. beta2) and wrongly pull it into
+            // this version's closure; Stride packages move in lockstep, so only the exact declared version belongs
+            // here. If it isn't installed, skip it rather than substituting another version.
+            var resolved = dependency.Item2.MinVersion is { } version
+                ? store.FindLocalPackage(dependency.Item1, new PackageVersionRange(version))
+                : null;
+            if (resolved is null || !acc.TryAdd($"{resolved.Id}/{resolved.Version}", resolved))
+                continue;
+
+            CollectStrideDependencies(resolved, acc);
+        }
     }
 
     /// <summary>
