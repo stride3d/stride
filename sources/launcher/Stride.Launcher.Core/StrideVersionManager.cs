@@ -202,6 +202,21 @@ public sealed class StrideVersionManager
     /// <summary>The newest installed version, or null if none is installed.</summary>
     public StrideVersion? GetDefault() => GetInstalled().FirstOrDefault();
 
+    // In-place asset upgrade is driven by the asset compiler's 'upgrade' verb, which only exists from 4.4.0.
+    private static readonly Version UpgradeFloor = new(4, 4, 0);
+
+    /// <summary>True if the asset compiler for <paramref name="version"/> supports the in-place upgrade verb (4.4.0+).</summary>
+    public static bool SupportsUpgrade(PackageVersion version) => version.Version >= UpgradeFloor;
+
+    /// <summary>
+    ///   The newest installed version that supports in-place upgrade (4.4.0+), preferring stable releases
+    ///   unless <paramref name="includePrerelease"/> is set; null if none qualifies.
+    /// </summary>
+    public StrideVersion? GetNewestUpgradeTarget(bool includePrerelease)
+        => GetInstalled().FirstOrDefault(version =>
+            SupportsUpgrade(version.Version)
+            && (includePrerelease || string.IsNullOrEmpty(version.Version.SpecialVersion)));
+
     /// <summary>
     ///   Resolves the Stride version to use: <paramref name="explicitVersion"/> if given, otherwise the
     ///   version pinned by a project under <paramref name="workingDirectory"/>, otherwise the newest installed.
@@ -231,6 +246,18 @@ public sealed class StrideVersionManager
         throw new InvalidOperationException(
             $"Could not determine the Stride version for the project in '{workingDirectory}', even after restoring it.");
     }
+
+    /// <summary>The solution file (.sln/.slnx/.slnf) in <paramref name="workingDirectory"/>, or null if none.</summary>
+    public string? FindSolution(string workingDirectory)
+        => Directory.Exists(workingDirectory)
+            ? Directory.EnumerateFiles(workingDirectory).FirstOrDefault(Solution.IsSolutionFile)
+            : null;
+
+    /// <summary>The first C# project (.csproj) in <paramref name="workingDirectory"/>, or null if none.</summary>
+    public string? FindProject(string workingDirectory)
+        => Directory.Exists(workingDirectory)
+            ? Directory.EnumerateFiles(workingDirectory, "*.csproj").FirstOrDefault()
+            : null;
 
     // Template packages carry a Stride.Core dependency stamping the engine version they were built against
     // (see Stride.Templates.Common.targets).
