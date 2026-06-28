@@ -269,6 +269,23 @@ namespace Stride.AssetCompiler
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
+                    // Prefer the whole solution: a project referencing Stride only transitively is detected only
+                    // while every project is still pre-bump. Resolve a bare .csproj to its .sln, else upgrade it alone.
+                    var upgradeTarget = options.PackageFile;
+                    if (upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var containingSolution = FindContainingSolution(upgradeTarget);
+                        if (containingSolution != null)
+                        {
+                            options.Logger.Info($"Resolved [{System.IO.Path.GetFileName(upgradeTarget)}] to its solution [{System.IO.Path.GetFileName(containingSolution)}] — upgrading the whole solution.");
+                            upgradeTarget = containingSolution;
+                        }
+                        else
+                        {
+                            options.Logger.Warning($"No solution found for [{System.IO.Path.GetFileName(upgradeTarget)}] — upgrading this project alone; projects that reference it may need upgrading separately.");
+                        }
+                    }
+
                     // Restore packages first so PackageSession.Load sees a fully-resolved dep
                     // graph. Today's narrow asset-YAML schema migration doesn't strictly require
                     // this (path-based .sdpkg AssetFolders discovery + no code transforms), but
@@ -278,10 +295,10 @@ namespace Stride.AssetCompiler
                     // bumps. Also cleans up Session log noise from unresolved engine asset refs.
                     // Incremental for already-restored projects, so cheap when called from the
                     // StrideUpgradeAssets MSBuild target inside a real consumer build.
-                    var restoreTarget = Stride.Core.Solutions.Solution.IsSolutionFile(options.PackageFile)
-                        || options.PackageFile.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
-                        ? options.PackageFile
-                        : System.IO.Path.ChangeExtension(options.PackageFile, ".csproj");
+                    var restoreTarget = Stride.Core.Solutions.Solution.IsSolutionFile(upgradeTarget)
+                        || upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                        ? upgradeTarget
+                        : System.IO.Path.ChangeExtension(upgradeTarget, ".csproj");
                     if (System.IO.File.Exists(restoreTarget))
                     {
                         var psi = new System.Diagnostics.ProcessStartInfo
@@ -305,11 +322,16 @@ namespace Stride.AssetCompiler
                         proc.WaitForExit();
                         if (proc.ExitCode != 0)
                         {
-                            // Fail hard rather than tolerate: caller invoked UpgradeAssets expecting
-                            // it to fully work, and code-aware upgrade paths (Roslyn, MSBuild item
-                            // enum) silently produce wrong results on partial state. Surfacing the
-                            // restore error early is the right failure mode.
-                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}). stderr:\n{stderrTask.Result.Trim()}");
+                            // Fail hard: a failed restore would make the code-aware upgrade produce wrong results.
+                            // dotnet writes restore errors (e.g. NU1201) to stdout, not stderr, so surface the error
+                            // lines from both streams, falling back to the full output if none are tagged.
+                            var output = stdoutTask.Result + "\n" + stderrTask.Result;
+                            var errorLines = string.Join("\n", output
+                                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(line => line.Trim())
+                                .Where(line => line.Contains(": error", StringComparison.OrdinalIgnoreCase)));
+                            var detail = string.IsNullOrWhiteSpace(errorLines) ? output.Trim() : errorLines;
+                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}):\n{detail}");
                             return (int)BuildResultCode.BuildError;
                         }
                     }
@@ -327,7 +349,7 @@ namespace Stride.AssetCompiler
                         AllowUpgradeDowngradeRestore = true,
                     };
 
-                    var sessionResult = PackageSession.Load(options.PackageFile, loadParameters);
+                    var sessionResult = PackageSession.Load(upgradeTarget, loadParameters);
                     sessionResult.CopyTo(options.Logger);
                     if (sessionResult.HasErrors || sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
@@ -528,6 +550,63 @@ namespace Stride.AssetCompiler
                 builder.Append(exceptionInfo);
             }
             return builder.ToString();
+        }
+
+        // Finds the nearest ancestor solution that includes the given project, or null if none.
+        private static string FindContainingSolution(string projectPath)
+        {
+            string projectFull;
+            try
+            {
+                projectFull = System.IO.Path.GetFullPath(projectPath);
+            }
+            catch
+            {
+                return null;
+            }
+
+            for (var dir = System.IO.Path.GetDirectoryName(projectFull); dir != null; dir = System.IO.Path.GetDirectoryName(dir))
+            {
+                string[] solutionFiles;
+                try
+                {
+                    solutionFiles = Stride.Core.Solutions.Solution.SolutionExtensions
+                        .SelectMany(ext => System.IO.Directory.GetFiles(dir, "*" + ext))
+                        .ToArray();
+                }
+                catch
+                {
+                    // Unreadable ancestor directory — skip it and keep walking up.
+                    continue;
+                }
+
+                foreach (var solutionPath in solutionFiles)
+                {
+                    try
+                    {
+                        var solutionDir = System.IO.Path.GetDirectoryName(solutionPath);
+                        var solution = Stride.Core.Solutions.Solution.FromFile(solutionPath);
+                        foreach (var project in solution.Projects)
+                        {
+                            if (project.FullPath == null)
+                                continue;
+
+                            // Solution project paths are relative to the solution; resolve before comparing.
+                            var resolved = System.IO.Path.IsPathRooted(project.FullPath)
+                                ? project.FullPath
+                                : System.IO.Path.Combine(solutionDir, project.FullPath);
+                            if (string.Equals(System.IO.Path.GetFullPath(resolved), projectFull, StringComparison.OrdinalIgnoreCase))
+                                return solutionPath;
+                        }
+                    }
+                    catch
+                    {
+                        // Unparseable or foreign solution — ignore and keep looking.
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
