@@ -114,9 +114,12 @@ namespace Stride.Graphics.Font
             // generate the bitmap if it does not exist
             if (bitmap == null)
             {
-                FontManager.GenerateBitmap(characterData, false);
-
-                // TODO: try to find a fallback from different size in the meantime (currently character disappear)
+                // When actually drawing this glyph (not just measuring), generate synchronously so it
+                // appears on the frame it is first used instead of blinking blank for a frame or two
+                // while the async builder thread catches up. Gated by FontSystem.SynchronousGlyphGeneration.
+                var synchronously = uploadGpuResources && FontSystem.SynchronousGlyphGeneration;
+                FontManager.GenerateBitmap(characterData, synchronously);
+                bitmap = Volatile.Read(ref characterData.Bitmap);
             }
 
             // upload the character to the GPU font texture and create the glyph if does not exists

@@ -108,9 +108,16 @@ namespace Stride.Graphics.Font
         public void GenerateBitmap(CharacterSpecification characterSpecification, bool synchronously)
         {
             // Synchronous: render glyph info and bitmap immediately on the calling thread.
+            // Hold dataStructuresLock so we never render the same glyph concurrently with the
+            // builder thread (whichever takes the lock first renders it, the other skips), which
+            // keeps ResetGlyph from clobbering freshly written glyph data.
             if (synchronously)
             {
-                GenerateCharacterGlyph(characterSpecification, true);
+                lock (dataStructuresLock)
+                {
+                    if (characterSpecification.Bitmap == null)
+                        GenerateCharacterGlyph(characterSpecification, true);
+                }
                 return;
             }
 
@@ -354,42 +361,15 @@ namespace Stride.Graphics.Font
                 {
                     var character = bitmapsToGenerate.Peek();
 
-                    // let the glyph data null if the size is not valid
-                    if (character.Size.X < 1 || character.Size.Y < 1)
-                        goto DequeueRequest;
-
-                    // get the face of the font
-                    var fontFace = GetOrCreateFontFace(character.FontName, character.Style);
-
-                    lock (freetypeLock)
-                    {
-                        // set the font to the correct size
-                        SetFontFaceSize(fontFace, character.Size);
-
-                        // get the glyph and render the bitmap
-                        var glyphIndex = FreeTypeNative.FT_Get_Char_Index(fontFace, character.Character);
-
-                        // if the character does not exist in the face => continue
-                        if (glyphIndex == 0)
-                            goto DequeueRequest;
-
-                        // load the character glyph
-                        var loadTarget = character.AntiAlias == FontAntiAliasMode.Aliased
-                            ? FreeTypeLoadTarget.Mono
-                            : FreeTypeLoadTarget.Normal;
-                        int err = FreeTypeNative.FT_Load_Glyph(fontFace, glyphIndex, (int)FreeTypeLoadFlags.Default | (int)loadTarget);
-                        if (err != 0)
-                            goto DequeueRequest;
-
-                        // render the bitmap and set remaining info of the glyph
-                        RenderBitmap(character, fontFace);
-                    }
-
-                DequeueRequest:
-
-                    // update the generated cached data
                     lock (dataStructuresLock)
+                    {
+                        // A synchronous draw-time request may have already rendered this glyph;
+                        // rendering under dataStructuresLock keeps us exclusive with that path.
+                        if (character.Bitmap == null)
+                            GenerateCharacterGlyph(character, true);
+
                         bitmapsToGenerate.Dequeue();
+                    }
                 }
             }
         }

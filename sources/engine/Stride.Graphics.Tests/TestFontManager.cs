@@ -122,6 +122,45 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
+        [SkippableFact]
+        public void TestGenerateBitmapSynchronously()
+        {
+            Init();
+
+            var fontManager = new FontManager(CreateDatabaseProvider());
+
+            // Synchronous generation must produce the bitmap before returning, with no builder-thread wait.
+            var character = new CharacterSpecification('a', "Risaltyp_024", 10f * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            fontManager.GenerateBitmap(character, true);
+            Assert.NotNull(character.Bitmap);
+            Assert.True(character.Bitmap.Width > 0);
+            Assert.True(character.Bitmap.Rows > 0);
+
+            // Redundant synchronous request on an already-generated glyph is a no-op.
+            fontManager.GenerateBitmap(character, true);
+            Assert.NotNull(character.Bitmap);
+
+            fontManager.Dispose();
+        }
+
+        [SkippableFact]
+        public void TestSynchronousFallbackAfterAsync()
+        {
+            Init();
+
+            var fontManager = new FontManager(CreateDatabaseProvider());
+
+            // Draw path: async kick then synchronous fallback on the same glyph must not deadlock or clobber.
+            var character = new CharacterSpecification('g', "Risaltyp_024", 24f * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
+            fontManager.GenerateBitmap(character, false);
+            fontManager.GenerateBitmap(character, true);
+            Assert.NotNull(character.Bitmap);
+            Assert.True(character.Bitmap.Width > 0);
+            Assert.True(character.Bitmap.Rows > 0);
+
+            fontManager.Dispose();
+        }
+
         private void WaitAndCheck(CharacterSpecification character, int sleepTime)
         {
             Thread.Sleep(sleepTime);
