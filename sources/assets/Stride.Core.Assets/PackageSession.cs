@@ -936,11 +936,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 }
             }
 
-            // Source-code migration pre-pass: rewrite user .cs against the consistent OLD closure we just
-            // restored, before any reference is bumped — so Stride symbols still resolve at the old version.
-            // The runner version-gates and only opens a workspace when a rule actually applies, so
-            // project-only upgrades cost nothing extra. Requires the up-front solution restore.
-            if (solutionDependenciesRestored && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped.
+            // Runs for a restored solution or a standalone project (no .sln); the runner skips if it can't resolve.
+            if ((solutionDependenciesRestored || SolutionPath is null) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
             {
                 try
                 {
