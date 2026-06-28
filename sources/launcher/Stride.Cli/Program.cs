@@ -136,8 +136,92 @@ updateCommand.SetAction(async (parseResult, cancellationToken) =>
 // --version overrides the version that would otherwise come from a project in the current directory.
 var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version, bypassing a project in the current directory." };
 
-// asset: forward the verb and its arguments to the Stride Asset Compiler (waits for it).
-var assetCommand = new Command("asset", "Run the Stride Asset Compiler. Arguments are forwarded to it.");
+// upgrade: migrate a project's assets to a newer installed Stride version (what Game Studio does on open).
+var upgradePath = new Argument<string?>("path")
+{
+    Arity = ArgumentArity.ZeroOrOne,
+    Description = "Project or solution to upgrade. Defaults to the solution or project in the current directory.",
+};
+var noBackupOption = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of modified files the upgrade makes before editing in place." };
+var upgradeCommand = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
+upgradeCommand.Arguments.Add(upgradePath);
+upgradeCommand.Options.Add(versionOption);
+upgradeCommand.Options.Add(prereleaseOption);
+upgradeCommand.Options.Add(noBackupOption);
+upgradeCommand.SetAction(parseResult =>
+{
+    var cwd = Environment.CurrentDirectory;
+    var explicitInput = parseResult.GetValue(upgradePath);
+    if (explicitInput is not null && !File.Exists(explicitInput))
+    {
+        Console.Error.WriteLine($"'{explicitInput}' does not exist.");
+        return 1;
+    }
+
+    // Use an explicit path, else the solution or project in the current directory (like `dotnet build` — current
+    // directory only, no walking up). The asset compiler resolves a bare .csproj to its containing solution.
+    var input = explicitInput ?? manager.FindSolution(cwd) ?? manager.FindProject(cwd);
+    if (string.IsNullOrEmpty(input))
+    {
+        Console.Error.WriteLine("No solution or project found in the current directory. Run it from the project folder, or pass a path.");
+        return 1;
+    }
+
+    var projectDirectory = Path.GetDirectoryName(Path.GetFullPath(input))!;
+
+    // Target version: explicit --version, else the newest installed (stable unless --prerelease). Upgrade is
+    // only supported to Stride 4.4.0+ (older asset compilers lack the 'upgrade' verb).
+    PackageVersion target;
+    var explicitVersion = parseResult.GetValue(versionOption);
+    if (!string.IsNullOrEmpty(explicitVersion))
+    {
+        target = new PackageVersion(explicitVersion);
+        if (!StrideVersionManager.SupportsUpgrade(target))
+        {
+            Console.Error.WriteLine($"'stride upgrade' supports Stride 4.4.0 and newer only; {target} is older.");
+            return 1;
+        }
+    }
+    else
+    {
+        var newest = manager.GetNewestUpgradeTarget(parseResult.GetValue(prereleaseOption));
+        if (newest is null)
+        {
+            Console.Error.WriteLine("No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --prerelease / --version.");
+            return 1;
+        }
+        target = newest.Version;
+    }
+
+    // Skip when the project already targets the same-or-newer version (no re-reconcile, no downgrade). Best-effort
+    // since the current version can't always be determined; applies to both implicit and explicit targets.
+    PackageVersion? current = null;
+    try { current = manager.ResolveVersion(null, projectDirectory); } catch { /* current unknown; proceed */ }
+    if (current is not null && target.CompareTo(current) <= 0)
+    {
+        Console.WriteLine($"Project is already on Stride {current}; nothing to upgrade (requested {target}).");
+        return 0;
+    }
+
+    var compiler = manager.LocateAssetCompiler(target);
+    if (compiler is null)
+    {
+        Console.Error.WriteLine($"The Asset Compiler for Stride {target} is not installed. Run 'stride sdk install {target}' first.");
+        return 1;
+    }
+
+    // The asset compiler backs up the files it modifies before editing in place (default on); forward the opt-out.
+    var args = new List<string> { "upgrade", input };
+    if (parseResult.GetValue(noBackupOption))
+        args.Add("--no-backup");
+
+    Console.WriteLine($"Upgrading {Path.GetFileName(input)} to Stride {target}...");
+    return Tools.Run(compiler, $"the Asset Compiler for Stride {target}", args, wait: true);
+});
+
+// asset: advanced escape hatch — forward a verb and arguments straight to the Asset Compiler. Hidden because
+// 'stride upgrade' covers the common case and build/pack/generate-code normally run via 'dotnet build'/'pack'.
+var assetCommand = new Command("asset", "Run the Stride Asset Compiler directly (advanced; arguments are forwarded).") { Hidden = true };
 assetCommand.Options.Add(versionOption);
 assetCommand.TreatUnmatchedTokensAsErrors = false;
 assetCommand.SetAction(parseResult =>
@@ -149,15 +233,30 @@ assetCommand.SetAction(parseResult =>
 });
 
 // studio: open Game Studio (launches and returns immediately).
+var studioPath = new Argument<string?>("path")
+{
+    Arity = ArgumentArity.ZeroOrOne,
+    Description = "Solution to open. Defaults to the solution in the current directory.",
+};
 var studioCommand = new Command("studio", "Open Game Studio.");
+studioCommand.Arguments.Add(studioPath);
 studioCommand.Options.Add(versionOption);
 studioCommand.TreatUnmatchedTokensAsErrors = false;
 studioCommand.SetAction(parseResult =>
 {
     var version = ResolveOrReport(parseResult.GetValue(versionOption));
-    return version is null
-        ? 1
-        : Tools.Run(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", parseResult.UnmatchedTokens, wait: false);
+    if (version is null)
+        return 1;
+
+    // Open the solution in the current directory by default. Game Studio expects a .sln (opening a bare .csproj
+    // crashes it), so only a solution is auto-selected — never a project.
+    var args = new List<string>();
+    var solution = parseResult.GetValue(studioPath) ?? manager.FindSolution(Environment.CurrentDirectory);
+    if (solution is not null)
+        args.Add(solution);
+    args.AddRange(parseResult.UnmatchedTokens);
+
+    return Tools.Run(manager.LocateGameStudio(version), $"Game Studio for Stride {version}", args, wait: false);
 });
 
 // self update: update the Stride CLI itself by delegating to dotnet, then exit so the running
@@ -186,15 +285,20 @@ versionCommand.SetAction(_ =>
         Console.WriteLine($"Resolved Stride version: {resolved}");
 });
 
-// Wire up the command tree and run.
+// sdk: manage installed Stride versions (engine, editor, tools).
+var sdkCommand = new Command("sdk", "Manage installed Stride versions (list, install, uninstall, update).");
+sdkCommand.Subcommands.Add(listCommand);
+sdkCommand.Subcommands.Add(installCommand);
+sdkCommand.Subcommands.Add(uninstallCommand);
+sdkCommand.Subcommands.Add(updateCommand);
+
+// Wire up the command tree and run. SDK management is grouped under 'sdk'; project actions stay flat.
 var root = new RootCommand("Stride command-line tool.");
-root.Subcommands.Add(listCommand);
-root.Subcommands.Add(installCommand);
-root.Subcommands.Add(uninstallCommand);
-root.Subcommands.Add(updateCommand);
+root.Subcommands.Add(sdkCommand);
 root.Subcommands.Add(NewCommand.Create(manager));
-root.Subcommands.Add(assetCommand);
+root.Subcommands.Add(upgradeCommand);
 root.Subcommands.Add(studioCommand);
+root.Subcommands.Add(assetCommand);
 root.Subcommands.Add(selfCommand);
 root.Subcommands.Add(versionCommand);
 return await root.Parse(args).InvokeAsync();
