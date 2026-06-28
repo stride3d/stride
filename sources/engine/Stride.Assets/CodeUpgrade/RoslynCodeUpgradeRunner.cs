@@ -25,14 +25,6 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 {
     public void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, ILogger log)
     {
-        if (solutionPath is null)
-        {
-            // Phase 1 supports solution-based upgrades only (standalone projects need their own
-            // workspace + restore path). Skip rather than risk a partial migration.
-            log.Verbose("Code upgrade: no solution available; skipping source migration.");
-            return;
-        }
-
         // Resolve each pending upgrader's applicable code rules up front. If nothing applies, never open
         // the (expensive) workspace — this keeps project-only upgrades at exactly today's cost.
         var plans = new List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)>();
@@ -87,12 +79,24 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         }
     }
 
-    private static async Task RunAsync(UFile solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, ILogger log)
+    private static async Task RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, ILogger log)
     {
         var cancellationToken = CancellationToken.None;
 
         using var workspace = MSBuildWorkspace.Create();
-        var originalSolution = await workspace.OpenSolutionAsync(solutionPath.ToOSPath(), cancellationToken: cancellationToken);
+        if (solutionPath is not null)
+        {
+            // Solution-coordinated upgrade: open the whole solution (one consistent old closure).
+            await workspace.OpenSolutionAsync(solutionPath.ToOSPath(), cancellationToken: cancellationToken);
+        }
+        else
+        {
+            // Standalone upgrade (no solution): open each pending project directly into the workspace.
+            foreach (var (pendingItem, _) in plans)
+                await workspace.OpenProjectAsync(pendingItem.ProjectFullPath.ToOSPath(), cancellationToken: cancellationToken);
+        }
+
+        var originalSolution = workspace.CurrentSolution;
 
         foreach (var diagnostic in workspace.Diagnostics)
         {
