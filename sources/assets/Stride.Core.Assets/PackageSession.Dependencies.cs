@@ -320,9 +320,11 @@ partial class PackageSession
                 }
             }
 
-            // Now that our references are upgraded, let's do a real nuget restore (download files).
-            // Skip if the up-front solution restore already covered this project and no upgrade rewrote it.
-            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded))
+            // Real nuget restore. Also runs when this project's restore output is missing — e.g. a library just
+            // added to the solution that the up-front solution restore didn't cover.
+            var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
+            var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
+            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
                 await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
