@@ -276,6 +276,23 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- FastUpToDateCheck: bump the copy marker when our own assembly rebuilds -->
+  <!-- ================================================================ -->
+  <!-- The copy-up-to-date marker is only touched by _CopyFilesMarkedCopyLocal, which copies
+       changed copy-local deps — not when this project's own assembly recompiles with an unchanged
+       public API (routine after the assembly processor: same ref assembly, new implementation).
+       So a body-only change leaves the marker stale and consumers' FastUpToDateCheck never re-copies
+       the refreshed assembly (dotnet/msbuild#13478). Touch it after a real CoreCompile so the
+       marker reflects the rebuild. -->
+  <Target Name="_StrideTouchCopyMarkerAfterCompile"
+          AfterTargets="CoreCompile"
+          Condition="'@(CopyUpToDateMarker)' != '' And '$(DesignTimeBuild)' != 'true' And '$(SkipCompilerExecution)' != 'true'">
+    <Touch Files="@(CopyUpToDateMarker)" AlwaysCreate="true">
+      <Output TaskParameter="TouchedFiles" ItemName="FileWrites" />
+    </Touch>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
