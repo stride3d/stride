@@ -6,14 +6,10 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Stride.VisualStudio
 {
-    public class SolutionEventsListener : IVsSolutionEvents, IVsSolutionLoadEvents, IVsUpdateSolutionEvents3, IVsSelectionEvents, IDisposable
+    public class SolutionEventsListener : IVsSolutionEvents, IVsSolutionLoadEvents, IDisposable
     {
         private IVsSolution solution;
-        private IVsSolutionBuildManager3 buildManager;
-        private IVsMonitorSelection monitorSelection;
         private uint solutionEventsCookie;
-        private uint updateSolutionEventsCookie;
-        private uint selectionEventsCoockie;
 
         public event Action AfterSolutionOpened;
         public event Action AfterSolutionBackgroundLoadComplete;
@@ -22,19 +18,10 @@ namespace Stride.VisualStudio
         public event Action<IVsHierarchy> AfterProjectOpened;
         public event Action<IVsHierarchy> BeforeProjectClosed;
 
-        public event Action<IVsCfg, IVsCfg> AfterActiveConfigurationChange;
-        public event Action<IVsHierarchy> StartupProjectChanged;
-
         public SolutionEventsListener(IServiceProvider serviceProvider)
         {
             solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             solution?.AdviseSolutionEvents(this, out solutionEventsCookie);
-
-            buildManager = serviceProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager3;
-            buildManager?.AdviseUpdateSolutionEvents3(this, out updateSolutionEventsCookie);
-
-            monitorSelection = serviceProvider.GetService(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
-            monitorSelection?.AdviseSelectionEvents(this, out selectionEventsCoockie);
         }
 
         public int OnBeforeOpenSolution(string pszSolutionFilename)
@@ -128,45 +115,6 @@ namespace Stride.VisualStudio
 
         #endregion
 
-        #region IVsUpdateSolutionEvents Members
-
-        int IVsUpdateSolutionEvents3.OnBeforeActiveSolutionCfgChange(IVsCfg pOldActiveSlnCfg, IVsCfg pNewActiveSlnCfg)
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsUpdateSolutionEvents3.OnAfterActiveSolutionCfgChange(IVsCfg pOldActiveSlnCfg, IVsCfg pNewActiveSlnCfg)
-        {
-            AfterActiveConfigurationChange?.Invoke(pOldActiveSlnCfg, pNewActiveSlnCfg);
-            return VSConstants.S_OK;
-        }
-
-        #endregion
-
-        #region IVsSelectionEvents Members
-
-        int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
-        {
-            return VSConstants.S_OK;
-        }
-
-        int IVsSelectionEvents.OnElementValueChanged(uint elementid, object varValueOld, object varValueNew)
-        {
-            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_StartupProject)
-            {
-                StartupProjectChanged?.Invoke((IVsHierarchy)varValueNew);
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
-
         #region IDisposable Members
 
         public void Dispose()
@@ -174,16 +122,6 @@ namespace Stride.VisualStudio
             if (solution != null && solutionEventsCookie != 0)
             {
                 solution.UnadviseSolutionEvents(solutionEventsCookie);
-            }
-
-            if (buildManager != null && updateSolutionEventsCookie != 0)
-            {
-                buildManager.UnadviseUpdateSolutionEvents3(updateSolutionEventsCookie);
-            }
-
-            if (monitorSelection != null && selectionEventsCoockie != 0)
-            {
-                monitorSelection.UnadviseSelectionEvents(selectionEventsCoockie);
             }
         }
 

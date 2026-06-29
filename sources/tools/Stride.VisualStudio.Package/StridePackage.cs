@@ -11,8 +11,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
-using EnvDTE80;
-using Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Package;
@@ -81,11 +79,6 @@ namespace Stride.VisualStudio
     {
         public const string Version = "2.0";
 
-        private readonly Dictionary<EnvDTE.Project, string> previousProjectPlatforms = new Dictionary<EnvDTE.Project, string>();
-        private EnvDTE.Project currentStartupProject;
-        private bool configurationLock;
-
-        private DTE2 dte2;
         private SolutionEventsListener solutionEventsListener;
         private ErrorListProvider errorListProvider;
         private uint m_componentID;
@@ -122,10 +115,6 @@ namespace Stride.VisualStudio
             solutionEventsListener = new SolutionEventsListener(this);
             solutionEventsListener.BeforeSolutionClosed += solutionEventsListener_BeforeSolutionClosed;
             solutionEventsListener.AfterSolutionOpened += solutionEventsListener_AfterSolutionOpened;
-            solutionEventsListener.AfterActiveConfigurationChange += SolutionEventsListener_AfterActiveConfigurationChange;
-            solutionEventsListener.StartupProjectChanged += SolutionEventsListener_OnStartupProjectChanged;
-
-            dte2 = GetGlobalService(typeof(SDTE)) as DTE2;
 
             // Register the C# language service
             // inspiration & credits: https://github.com/IInspectable/Nav.Language.Extensions/commit/08af3d897afac5a54975660fa03f4b629da405e1#diff-b73c0f368f242625f60cfad9cc11f2d5R88
@@ -175,147 +164,6 @@ namespace Stride.VisualStudio
 
             // Go back to async thread
             await TaskScheduler.Default;
-        }
-
-        public static bool IsProjectExecutable(EnvDTE.Project project)
-        {
-            var buildProjects = ProjectCollection.GlobalProjectCollection.GetLoadedProjects(project.FileName);
-            return buildProjects.Any(x =>
-            {
-                var outputType = x.GetPropertyValue("OutputType");
-                return outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase)
-                    || x.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            });
-        }
-
-        public static string GetProjectPlatform(EnvDTE.Project project)
-        {
-            var buildProjects = ProjectCollection.GlobalProjectCollection.GetLoadedProjects(project.FileName);
-            return buildProjects.Select(x => x.GetPropertyValue("StridePlatform")).FirstOrDefault(x => !string.IsNullOrEmpty(x));
-        }
-
-        private void SolutionEventsListener_OnStartupProjectChanged(IVsHierarchy hierarchy)
-        {
-            if (configurationLock || hierarchy == null)
-                return;
-
-            currentStartupProject = VsHelper.ToDteProject(hierarchy);
-
-            UpdateConfigurationFromStartupProject();
-        }
-
-        private void SolutionEventsListener_AfterActiveConfigurationChange(IVsCfg oldConfiguration, IVsCfg newConfiguration)
-        {
-            if (configurationLock || newConfiguration == null)
-                return;
-
-            // TODO: Intercept Xamarin more gracefully. It tries to to set platform to "Any Cpu" for android and "iPhone"/"iPhoneSimulator" for iOS.
-            foreach (System.Diagnostics.StackFrame stackFrame in new StackTrace().GetFrames())
-            {
-                var method = stackFrame.GetMethod();
-                if (method.DeclaringType.FullName == "Xamarin.VisualStudio.TastyFlavoredProject" && method.Name == "OnAfterSetStartupProjectCommandExecuted" ||
-                    method.DeclaringType.FullName == "Xamarin.VisualStudio.SolutionConfigurationManager" && method.Name == "ChangePlatform")
-                {
-                    UpdateConfigurationFromStartupProject();
-                    return;
-                }
-            }
-
-            UpdateStartupProjectFromConfiguration();
-        }
-
-        private void UpdateConfigurationFromStartupProject()
-        {
-            if (currentStartupProject == null)
-                return;
-
-            var projectPlatform = GetProjectPlatform(currentStartupProject);
-            var dte = (DTE)GetService(typeof(DTE));
-            var activeConfiguration = dte.Solution.SolutionBuild.ActiveConfiguration;
-
-            string startupPlatform;
-            var hasPreviousPlatform = previousProjectPlatforms.TryGetValue(currentStartupProject, out startupPlatform);
-
-            SolutionConfiguration2 newConfiguration = null;
-
-            bool foundPreferredPlatform = false;
-            foreach (SolutionConfiguration2 configuration in dte.Solution.SolutionBuild.SolutionConfigurations)
-            {
-                if (foundPreferredPlatform)
-                    break;
-
-                if (configuration.Name != activeConfiguration.Name)
-                    continue;
-
-                if ((projectPlatform == null) || !configuration.PlatformName.StartsWith(projectPlatform))
-                    continue;
-
-                foreach (SolutionContext context in configuration.SolutionContexts)
-                {
-                    if (!context.ShouldBuild || context.ProjectName != currentStartupProject.UniqueName)
-                        continue;
-
-                    if (hasPreviousPlatform && context.PlatformName != startupPlatform)
-                        continue;
-
-                    newConfiguration = configuration;
-
-                    if (IsPreferredPlatform(projectPlatform, context.PlatformName))
-                    {
-                        foundPreferredPlatform = true;
-                        break;
-                    }
-                }
-            }
-
-            if (newConfiguration != null && newConfiguration != activeConfiguration)
-            {
-                try
-                {
-                    configurationLock = true;
-                    newConfiguration.Activate();
-                }
-                finally
-                {
-                    configurationLock = false;
-                }
-            }
-        }
-
-        private static bool IsPreferredPlatform(string projectPlatform, string platformName)
-        {
-            // Prefer non-ARM
-            return (platformName != "ARM");
-        }
-
-        private void UpdateStartupProjectFromConfiguration()
-        { 
-            var solution = (IVsSolution)GetGlobalService(typeof(IVsSolution));
-            var buildManager = (IVsSolutionBuildManager)GetGlobalService(typeof(IVsSolutionBuildManager));
-            var dte = (DTE)GetService(typeof(DTE));
-
-            foreach (SolutionContext context in dte.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts)
-            {
-                if (!context.ShouldBuild)
-                    continue;
-
-                foreach (var project in VsHelper.GetDteProjectsInSolution(solution))
-                {
-                    if (context.ProjectName != project.UniqueName || !IsProjectExecutable(project))
-                        continue;
-
-                    var startupProjects = (object[])dte.Solution.SolutionBuild.StartupProjects;
-                    if (!startupProjects.Cast<string>().Contains(project.UniqueName))
-                    {
-                        buildManager.set_StartupProject(VsHelper.ToHierarchy(project));
-                    }
-
-                    previousProjectPlatforms[project] = context.PlatformName;
-                    return;
-                }
-            }
         }
 
         private async void solutionEventsListener_AfterSolutionOpened()
