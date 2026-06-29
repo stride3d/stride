@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 // studio + asset: launch the per-version Stride SDK tools, resolving the version from the current directory's
 // project (or an explicit --version).

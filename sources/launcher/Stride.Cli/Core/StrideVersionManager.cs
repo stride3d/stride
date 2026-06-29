@@ -7,7 +7,7 @@ using Stride.Core;
 using Stride.Core.Packages;
 using Stride.Core.Solutions;
 
-namespace Stride.Launcher.Core;
+namespace Stride.Cli.Core;
 
 /// <summary>
 ///   Manages locally installed Stride versions through the shared NuGet store, so the CLI and the

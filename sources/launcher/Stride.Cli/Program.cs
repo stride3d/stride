@@ -3,7 +3,7 @@
 using System.CommandLine;
 using System.Diagnostics;
 using System.Reflection;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 var manager = new StrideVersionManager();
 

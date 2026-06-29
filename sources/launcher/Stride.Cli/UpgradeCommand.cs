@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using Stride.Core;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 // upgrade: migrate a project's assets to a newer installed Stride version (what Game Studio does on open).
 internal static class UpgradeCommand

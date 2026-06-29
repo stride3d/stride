@@ -5,7 +5,6 @@ User-facing entry points to a Stride install:
 
 - **Stride.Cli** — the cross-platform `stride` command-line tool (a `dotnet tool`): install Stride versions and create, build, and manage projects.
 - **Stride.Launcher** — the WPF launcher/installer application (Windows).
-- **Stride.Launcher.Core** — shared logic used by both (version discovery/management, NuGet store access).
 
 # CLI (`stride`)
 

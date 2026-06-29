@@ -7,7 +7,7 @@ using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Template;
 using Stride.Assets.Templates;
 using Stride.Core;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 // new: create a project from an installed Stride version's bundled templates.
 internal static class NewCommand

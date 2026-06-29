@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 // sdk: manage installed Stride versions (the engine, editor, and tools).
 internal static class SdkCommand

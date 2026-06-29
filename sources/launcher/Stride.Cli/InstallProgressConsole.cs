@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
-using Stride.Launcher.Core;
+using Stride.Cli.Core;
 
 // Renders install/update/uninstall progress on a single console line: a spinner with the downloaded size
 // during download, then "installing X/Y (package)" (or "removing X/Y" on uninstall) as packages are processed.
