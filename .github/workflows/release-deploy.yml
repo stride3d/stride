@@ -74,7 +74,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: 10.0.x
 
       - name: Download packages
         uses: actions/download-artifact@v4
