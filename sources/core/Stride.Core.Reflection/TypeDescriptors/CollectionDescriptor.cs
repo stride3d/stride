@@ -8,9 +8,9 @@ using Stride.Core.Yaml.Serialization;
 namespace Stride.Core.Reflection;
 
 /// <summary>
-/// Provides a descriptor for a <see cref="ICollection"/>.
+/// Provides a descriptor for a non-array <see cref="ICollection"/>. For arrays, use <see cref="ArrayDescriptor"/> instead.
 /// </summary>
-public abstract class CollectionDescriptor : ObjectDescriptor
+public abstract class CollectionDescriptor : CollectionBaseDescriptor
 {
     public CollectionDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         : base(factory, type, emitDefaultValues, namingConvention)
@@ -102,16 +102,7 @@ public abstract class CollectionDescriptor : ObjectDescriptor
     /// </summary>
     /// <param name="collection">The collection.</param>
     /// <param name="index">The index.</param>
-    public abstract object? GetValue(object collection, object index);
-
-    /// <summary>
-    /// Returns the value matching the given index in the collection.
-    /// </summary>
-    /// <param name="collection">The collection.</param>
-    /// <param name="index">The index.</param>
     public abstract object? GetValue(object collection, int index);
-
-    public abstract void SetValue(object list, object index, object? value);
 
     /// <summary>
     /// Add to the collections of the same type than this descriptor.
@@ -154,4 +145,21 @@ public abstract class CollectionDescriptor : ObjectDescriptor
     /// <param name="collection">The collection.</param>
     /// <returns>The number of elements of a collection, -1 if it cannot determine the number of elements.</returns>
     public abstract int GetCollectionCount(object? collection);
+
+    public override Type ValueType => ElementType;
+
+    public override IEnumerable<object> EnumerateKeys(object collection)
+    {
+        return Enumerable.Range(0, GetCollectionCount(collection)).Cast<object>();
+    }
+
+    public override bool IsKeyValid(object? key)
+    {
+        return key is int i && i >= 0;
+    }
+
+    public override bool ContainsKey(object collection, object? key)
+    {
+        return key is int i && i >= 0 && i < GetCollectionCount(collection);
+    }
 }
