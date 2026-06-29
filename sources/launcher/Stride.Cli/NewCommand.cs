@@ -120,7 +120,9 @@ internal static class NewCommand
 
                 // Upgrade to the resolved version when the template targets an older engine; skipped (no
                 // restore) when it already matches.
-                var solutionFile = Directory.EnumerateFiles(output, "*.sln", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                var solutionFile = Directory.EnumerateFiles(output, "*.slnx", SearchOption.TopDirectoryOnly)
+                    .Concat(Directory.EnumerateFiles(output, "*.sln", SearchOption.TopDirectoryOnly))
+                    .FirstOrDefault();
                 var templateVersion = ReadGeneratedEngineVersion(output);
                 if (solutionFile is not null && templateVersion is not null && IsOlderThan(templateVersion, version))
                 {

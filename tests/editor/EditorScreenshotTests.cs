@@ -176,7 +176,7 @@ public class EditorScreenshotTests
     /// <summary>
     /// Instantiates a template sample (by .sdtpl Id GUID) into a per-fixture temp dir via
     /// <see cref="DotNetNewTemplateGenerator"/> — the same path GS's New Project wizard takes
-    /// at runtime. Returns the absolute .sln path the AutoTesting runner should open.
+    /// at runtime. Returns the absolute .slnx path the AutoTesting runner should open.
     /// </summary>
     internal static string GenerateSampleFromTemplate(Guid templateGuid, string sampleName)
     {
@@ -204,7 +204,7 @@ public class EditorScreenshotTests
         parameters.OutputDirectory = outputDir;
         parameters.Logger = logger;
 
-        session.SolutionPath = UPath.Combine<UFile>(outputDir, sampleName + ".sln");
+        session.SolutionPath = UPath.Combine<UFile>(outputDir, sampleName + ".slnx");
 
         var generator = new DotNetNewTemplateGenerator();
         if (!generator.PrepareForRun(parameters).Result)

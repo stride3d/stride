@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text.Json;
+using System.Xml;
 using Microsoft.VisualStudio.SolutionPersistence.Model;
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 
@@ -29,7 +30,9 @@ internal static class SolutionSerialization
         var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFullPath)
             ?? throw new SolutionFileException($"Unsupported solution file format: '{solutionFullPath}'.");
         var model = serializer.OpenAsync(solutionFullPath, CancellationToken.None).GetAwaiter().GetResult();
-        return ToSolution(model, solutionFullPath);
+        var solution = ToSolution(model, solutionFullPath);
+        ReadDefaultStartup(solution, solutionFullPath);
+        return solution;
     }
 
     // The .sln a solution filter (.slnf) points at, resolved relative to the filter file.
@@ -63,11 +66,8 @@ internal static class SolutionSerialization
         // Pick the serializer from the output extension so a .slnx round-trips as XML and a .sln as classic format.
         var serializer = SolutionSerializers.GetSerializerByMoniker(outputPath) ?? SolutionSerializers.SlnFileV12;
 
-        if (!File.Exists(outputPath))
-        {
-            serializer.SaveAsync(outputPath, model, CancellationToken.None).GetAwaiter().GetResult();
-            return;
-        }
+        // SolutionPersistence can't model the .slnx DefaultStartup attribute, so stamp it in after writing.
+        var startupPath = StartupRelativePath(solution, outputPath);
 
         // Write to a sibling temp file first and only replace the solution when its content changed, so
         // Visual Studio doesn't reload an unchanged solution.
@@ -75,6 +75,15 @@ internal static class SolutionSerialization
         try
         {
             serializer.SaveAsync(tempPath, model, CancellationToken.None).GetAwaiter().GetResult();
+            if (startupPath is { } path)
+                StampDefaultStartup(tempPath, path);
+
+            if (!File.Exists(outputPath))
+            {
+                File.Move(tempPath, outputPath);
+                return;
+            }
+
             if (!File.ReadAllBytes(outputPath).AsSpan().SequenceEqual(File.ReadAllBytes(tempPath)))
             {
                 onBeforeOverwrite?.Invoke(outputPath);
@@ -85,6 +94,63 @@ internal static class SolutionSerialization
         {
             if (File.Exists(tempPath))
                 File.Delete(tempPath);
+        }
+    }
+
+    // The flip side of StampDefaultStartup: SolutionPersistence drops the .slnx DefaultStartup attribute on
+    // read, so pick it back up from the XML and map it (by project path) back to a project. Lets the startup
+    // project survive a load/save round-trip.
+    private static void ReadDefaultStartup(Solution solution, string solutionFullPath)
+    {
+        if (!Path.GetExtension(solutionFullPath).Equals(".slnx", StringComparison.OrdinalIgnoreCase) || !File.Exists(solutionFullPath))
+            return;
+
+        try
+        {
+            var document = new XmlDocument();
+            document.Load(solutionFullPath);
+            var solutionDirectory = Path.GetDirectoryName(solutionFullPath) ?? string.Empty;
+            foreach (XmlElement project in document.GetElementsByTagName("Project"))
+            {
+                if (!string.Equals(project.GetAttribute("DefaultStartup"), "true", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var fullPath = Path.GetFullPath(Path.Combine(solutionDirectory, project.GetAttribute("Path").Replace('/', Path.DirectorySeparatorChar)));
+                if (solution.Projects.FirstOrDefault(p => !p.IsSolutionFolder && string.Equals(p.FullPath, fullPath, StringComparison.OrdinalIgnoreCase)) is { } match)
+                    solution.StartupProjectGuid = match.Guid;
+                return;
+            }
+        }
+        catch
+        {
+            // Best-effort: a malformed or locked file just leaves the startup project unset.
+        }
+    }
+
+    // The solution-relative path of the startup project, or null when there's none (or the target isn't a .slnx).
+    private static string? StartupRelativePath(Solution solution, string outputPath)
+    {
+        if (!Path.GetExtension(outputPath).Equals(".slnx", StringComparison.OrdinalIgnoreCase) || solution.StartupProjectGuid is not { } guid)
+            return null;
+        if (solution.Projects.FirstOrDefault(p => !p.IsSolutionFolder && p.Guid == guid) is not { } project)
+            return null;
+        return GetRelativePath(Path.GetDirectoryName(outputPath) ?? string.Empty, project.FullPath).Replace('\\', '/');
+    }
+
+    // SolutionPersistence (1.0.52) has no model for the .slnx DefaultStartup attribute, so add it to the startup
+    // project's element. PreserveWhitespace keeps the rest of the file byte-identical (no BOM, same formatting),
+    // so the unchanged-content check above still skips needless VS reloads.
+    private static void StampDefaultStartup(string slnxPath, string projectRelativePath)
+    {
+        var document = new XmlDocument { PreserveWhitespace = true };
+        document.Load(slnxPath);
+        foreach (XmlElement project in document.GetElementsByTagName("Project"))
+        {
+            if (string.Equals(project.GetAttribute("Path"), projectRelativePath, StringComparison.OrdinalIgnoreCase))
+            {
+                project.SetAttribute("DefaultStartup", "true");
+                document.Save(slnxPath);
+                return;
+            }
         }
     }
 
@@ -107,6 +173,7 @@ internal static class SolutionSerialization
     private static void Reconcile(SolutionModel model, Solution solution, string outputPath)
     {
         var solutionDirectory = Path.GetDirectoryName(outputPath) ?? string.Empty;
+        var isSlnx = Path.GetExtension(outputPath).Equals(".slnx", StringComparison.OrdinalIgnoreCase);
 
         var projectIds = solution.Projects.Where(project => !project.IsSolutionFolder).Select(project => project.Guid).ToHashSet();
         var folderIds = solution.Projects.Where(project => project.IsSolutionFolder).Select(project => project.Guid).ToHashSet();
@@ -135,8 +202,15 @@ internal static class SolutionSerialization
             // Forward slashes: SolutionPersistence's portable form (it writes '\' for .sln, '/' for .slnx).
             // Backslash isn't a path separator on Linux, so forcing it leaves '\' literal in the .slnx.
             var relativePath = GetRelativePath(solutionDirectory, project.FullPath).Replace('\\', '/');
-            var added = model.AddProject(relativePath, ProjectTypeName(project), parent);
-            added.Id = project.Guid;
+            // .slnx infers the C# type from the .csproj (keep it clean); a .sln would infer the legacy guid, so keep it there.
+            var typeName = isSlnx && relativePath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : ProjectTypeName(project);
+            var added = model.AddProject(relativePath, typeName, parent);
+            // .slnx omits the project id — SolutionPersistence regenerates a stable one from the path on load
+            // and Stride reconciles by that; a .sln needs the explicit guid, so keep writing it there.
+            if (!isSlnx)
+                added.Id = project.Guid;
         }
     }
 
