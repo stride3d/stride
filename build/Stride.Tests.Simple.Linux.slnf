@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Stride.sln",
+    "path": "Stride.slnx",
     "projects": [
       "..\\sources\\assets\\Stride.Core.Assets.Quantum.Tests\\Stride.Core.Assets.Quantum.Tests.csproj",
       "..\\sources\\assets\\Stride.Core.Assets.Tests\\Stride.Core.Assets.Tests.csproj",

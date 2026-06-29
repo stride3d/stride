@@ -38,7 +38,7 @@ jobs:
           exclude: samples
       - name: Build
         run: |
-          dotnet build build\Stride.AssemblyProcessor.sln `
+          dotnet build build\Stride.AssemblyProcessor.slnx `
             -restore -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

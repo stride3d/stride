@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/CSharpIntermediate/">
+    <Project Path="CSharpIntermediate/CSharpIntermediate.Game/CSharpIntermediate.Game.csproj" />
+    <Project Path="CSharpIntermediate/CSharpIntermediate.Windows/CSharpIntermediate.Windows.csproj">
+      <BuildDependency Project="../../Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.csproj" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../../../.editorconfig" />
+  </Folder>
+  <Project Path="../../Templates/Packs/mannequinModel/mannequinModel.csproj" />
+  <Project Path="../../Templates/Packs/PrototypingBlocks/PrototypingBlocks.csproj" />
+  <Project Path="../../Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.csproj" />
+</Solution>

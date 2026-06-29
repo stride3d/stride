@@ -62,7 +62,7 @@ if (string.IsNullOrEmpty(strideRoot))
 if (string.IsNullOrEmpty(solution))
 {
     solution = Directory.GetFiles(Path.Combine(strideRoot, "build"), "Stride.slnx").FirstOrDefault()
-        ?? Path.Combine(strideRoot, "build", "Stride.sln");
+        ?? Path.Combine(strideRoot, "build", "Stride.slnx");
 }
 
 if (string.IsNullOrEmpty(version))

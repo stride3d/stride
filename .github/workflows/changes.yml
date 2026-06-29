@@ -121,4 +121,4 @@ jobs:
             full:
               - 'sources/**'
               - 'deps/**'
-              - 'build/Stride.sln'
+              - 'build/Stride.slnx'

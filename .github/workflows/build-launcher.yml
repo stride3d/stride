@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-launcher.yml'
-      - 'build/Stride.Launcher.sln'
+      - 'build/Stride.Launcher.slnx'
       - 'sources/core/**'
       - 'sources/launcher/**'
       - 'sources/presentation/**'
@@ -58,7 +58,7 @@ jobs:
           exclude: samples
       - name: Build
         run: |
-          dotnet build build\Stride.Launcher.sln `
+          dotnet build build\Stride.Launcher.slnx `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `

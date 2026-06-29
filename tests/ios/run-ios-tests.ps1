@@ -38,13 +38,13 @@ if ($null -eq $IsMacOS -or -not $IsMacOS) {
     throw "iOS Simulator only runs on macOS hosts. Use pwsh on macOS."
 }
 
-# Repo root discovery: walk up from $PSScriptRoot looking for build/Stride.sln (same convention
+# Repo root discovery: walk up from $PSScriptRoot looking for build/Stride.slnx (same convention
 # the Android driver and GameTestBase use). Only required when -ResultsDir (or -GoldDir, if
 # pushing gold) isn't provided explicitly; CI artifact-extraction flows pass both paths.
 function Find-RepoRoot {
     $dir = $PSScriptRoot
     while ($dir) {
-        if (Test-Path (Join-Path $dir 'build/Stride.sln')) { return $dir }
+        if (Test-Path (Join-Path $dir 'build/Stride.slnx')) { return $dir }
         $parent = Split-Path -Parent $dir
         if ($parent -eq $dir) { break }
         $dir = $parent
@@ -53,7 +53,7 @@ function Find-RepoRoot {
 }
 if (-not $RepoRoot) { $RepoRoot = Find-RepoRoot }
 if (-not $ResultsDir) {
-    if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
+    if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.slnx found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
     $ResultsDir = Join-Path $RepoRoot "tests/local/$Suite"
 }
 # Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the .app for

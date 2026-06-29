@@ -51,14 +51,14 @@ if ($null -eq $IsWindows) {
     $script:IsLinux = -not $script:IsWindows
 }
 
-# Repo root discovery: walk up from $PSScriptRoot looking for build/Stride.sln (same convention
+# Repo root discovery: walk up from $PSScriptRoot looking for build/Stride.slnx (same convention
 # GameTestBase.FindStrideSolutionRootDirectory uses on desktop). Only required when -ResultsDir
 # (or -GoldDir, if pushing gold) isn't provided explicitly; CI artifact-extraction flows pass
 # both paths and skip the walk-up entirely.
 function Find-RepoRoot {
     $dir = $PSScriptRoot
     while ($dir) {
-        if (Test-Path (Join-Path $dir 'build/Stride.sln')) { return $dir }
+        if (Test-Path (Join-Path $dir 'build/Stride.slnx')) { return $dir }
         $parent = Split-Path -Parent $dir
         if ($parent -eq $dir) { break }
         $dir = $parent
@@ -67,7 +67,7 @@ function Find-RepoRoot {
 }
 if (-not $RepoRoot) { $RepoRoot = Find-RepoRoot }
 if (-not $ResultsDir) {
-    if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.sln found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
+    if (-not $RepoRoot) { throw "ResultsDir not provided and RepoRoot couldn't be auto-discovered (no build/Stride.slnx found walking up from $PSScriptRoot). Pass -ResultsDir or -RepoRoot." }
     $ResultsDir = Join-Path $RepoRoot "tests/local"
 }
 # Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the APK's build dir

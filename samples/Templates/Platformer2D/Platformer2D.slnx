@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Platformer2D/Platformer2D.Game/Platformer2D.csproj" />
+  <Project Path="Platformer2D/Platformer2D.Windows/Platformer2D.Windows.csproj" />
+</Solution>

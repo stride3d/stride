@@ -8,7 +8,7 @@ namespace Stride.Core.Assets;
 /// </summary>
 public static class DirectoryHelper
 {
-    private const string StrideSolution = @"build\Stride.sln";
+    private const string StrideSolution = @"build\Stride.slnx";
 
     /// <summary>
     /// Gets the path to the file corresponding to the given package name in the given directory.
@@ -36,7 +36,7 @@ public static class DirectoryHelper
 
     /// <summary>
     /// Walks up from <paramref name="directory"/> looking for the repository root (the directory
-    /// containing <c>build\Stride.sln</c>). Returns it, or <c>null</c> if the path is not inside a
+    /// containing <c>build\Stride.slnx</c>). Returns it, or <c>null</c> if the path is not inside a
     /// Stride source checkout.
     /// </summary>
     /// <param name="directory">The directory to start the search from.</param>
