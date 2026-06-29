@@ -17,7 +17,7 @@ internal static class NewCommand
         var templateArgument = new Argument<string?>("template")
         {
             Arity = ArgumentArity.ZeroOrOne,
-            Description = "Template short name (e.g. stride-game). Lists the available templates if omitted.",
+            Description = "Template short name (e.g. stride-game). Run 'stride new list' to see them.",
         };
         var nameOption = new Option<string?>("--name", "-n") { Description = "Name of the generated project." };
         var outputOption = new Option<string?>("--output", "-o") { Description = "Output directory (defaults to ./<name>)." };
@@ -41,77 +41,50 @@ internal static class NewCommand
         command.TreatUnmatchedTokensAsErrors = false;
         // `stride new <template> --help` lists that template's parameters after the command's own help.
         var helpOption = new HelpOption();
-        helpOption.Action = new TemplateHelpAction((HelpAction)helpOption.Action!, manager, templateArgument, versionOption);
+        var templateHelp = new TemplateHelpAction((HelpAction)helpOption.Action!, manager, templateArgument, versionOption);
+        helpOption.Action = templateHelp;
         command.Options.Add(helpOption);
+
+        // list: print the templates an installed Stride version offers.
+        var listCommand = new Command("list", "List the templates available in an installed Stride version.");
+        listCommand.Options.Add(versionOption);
+        listCommand.Options.Add(packageOption);
+        listCommand.SetAction(async (parseResult, cancellationToken) =>
+        {
+            var context = await LoadTemplates(manager, parseResult.GetValue(versionOption), parseResult.GetValue(packageOption), cancellationToken);
+            if (context is null)
+                return 1;
+
+            using (context.Registry)
+            {
+                PrintTemplates(context.Version, context.Templates);
+                return 0;
+            }
+        });
+        command.Subcommands.Add(listCommand);
 
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            // `new` starts from no project, so use --version or the newest installed version (not the directory).
-            var versionSpec = parseResult.GetValue(versionOption);
-            var version = versionSpec is not null ? new PackageVersion(versionSpec) : manager.GetDefault()?.Version;
-            if (version is null)
+            var templateName = parseResult.GetValue(templateArgument);
+
+            // No template: show this command's help (same as `stride new --help`). `stride new list` lists templates.
+            if (string.IsNullOrEmpty(templateName))
             {
-                Console.Error.WriteLine("No Stride version is installed. Run 'stride sdk install' first.");
+                templateHelp.Invoke(parseResult);
+                return 0;
+            }
+
+            var context = await LoadTemplates(manager, parseResult.GetValue(versionOption), parseResult.GetValue(packageOption), cancellationToken);
+            if (context is null)
                 return 1;
-            }
 
-            // Loading the registry installs/scans the template packages, which can take several seconds. Show a
-            // transient status on stderr so it never mixes into the listing on stdout.
-            var showStatus = !Console.IsErrorRedirected;
-            var status = $"Scanning Stride {version} templates...";
-            Console.Error.Write(showStatus ? status : status + Environment.NewLine);
-            void ClearStatus()
+            using (context.Registry)
             {
-                if (showStatus)
-                    Console.Error.Write('\r' + new string(' ', status.Length) + '\r');
-            }
-
-            DotNetNewTemplateRegistry? registry;
-            try
-            {
-                registry = await manager.OpenTemplateRegistry(version, parseResult.GetValue(packageOption));
-            }
-            catch (Exception exception)
-            {
-                ClearStatus();
-                Console.Error.WriteLine(exception.Message);
-                return 1;
-            }
-
-            if (registry is null)
-            {
-                ClearStatus();
-                Console.Error.WriteLine($"Stride {version} does not ship project templates.");
-                return 1;
-            }
-
-            using (registry)
-            {
-                var templates = await registry.GetTemplatesAsync(cancellationToken);
-                ClearStatus();
-                var templateName = parseResult.GetValue(templateArgument);
-
-                // No template given: list what this version offers, grouped by source package.
-                if (string.IsNullOrEmpty(templateName))
-                {
-                    Console.WriteLine($"Templates available in Stride {version}:");
-                    // Size the name column to the longest short name so descriptions line up across all groups,
-                    // capped so one very long template name can't push every description far to the right.
-                    var width = Math.Min(templates.Select(info => info.ShortNameList.FirstOrDefault()?.Length ?? 0).DefaultIfEmpty(0).Max() + 2, 30);
-                    foreach (var group in templates.GroupBy(SourcePackage).OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"{group.Key}:");
-                        foreach (var info in group.OrderBy(info => info.ShortNameList.FirstOrDefault(), StringComparer.OrdinalIgnoreCase))
-                            Console.WriteLine($"  {(info.ShortNameList.FirstOrDefault() ?? string.Empty).PadRight(width)}{info.Name}");
-                    }
-                    return 0;
-                }
-
-                var template = ResolveTemplate(templates, templateName);
+                var version = context.Version;
+                var template = ResolveTemplate(context.Templates, templateName);
                 if (template is null)
                 {
-                    Console.Error.WriteLine($"No template '{templateName}' in Stride {version}. Run 'stride new' to list templates.");
+                    Console.Error.WriteLine($"No template '{templateName}' in Stride {version}. Run 'stride new list' to see them.");
                     return 1;
                 }
 
@@ -136,7 +109,7 @@ internal static class NewCommand
 
                 var resolvedName = template.ShortNameList.FirstOrDefault() ?? templateName;
                 Console.WriteLine($"Creating '{name}' from {resolvedName} (Stride {version})...");
-                var result = await registry.InstantiateAsync(template, name, output, parameters, cancellationToken);
+                var result = await context.Registry.InstantiateAsync(template, name, output, parameters, cancellationToken);
                 if (result.Status != CreationResultStatus.Success)
                 {
                     Console.Error.WriteLine($"Template creation failed: {result.ErrorMessage}");
@@ -166,6 +139,73 @@ internal static class NewCommand
         });
 
         return command;
+    }
+
+    // The version + open registry + templates shared by `new <template>` and `new list`. Resolves the version
+    // (explicit --version, else the newest installed), opens the template registry behind a transient status,
+    // and returns its templates. Prints the reason and returns null on failure; the caller disposes the registry.
+    private static async Task<TemplateContext?> LoadTemplates(
+        StrideVersionManager manager, string? versionSpec, string[]? packages, CancellationToken cancellationToken)
+    {
+        // `new` starts from no project, so use --version or the newest installed version (not the directory).
+        var version = versionSpec is not null ? new PackageVersion(versionSpec) : manager.GetDefault()?.Version;
+        if (version is null)
+        {
+            Console.Error.WriteLine("No Stride version is installed. Run 'stride sdk install' first.");
+            return null;
+        }
+
+        // Loading the registry installs/scans the template packages, which can take several seconds. Show a
+        // transient status on stderr so it never mixes into the listing on stdout.
+        var showStatus = !Console.IsErrorRedirected;
+        var status = $"Scanning Stride {version} templates...";
+        Console.Error.Write(showStatus ? status : status + Environment.NewLine);
+        void ClearStatus()
+        {
+            if (showStatus)
+                Console.Error.Write('\r' + new string(' ', status.Length) + '\r');
+        }
+
+        DotNetNewTemplateRegistry? registry;
+        try
+        {
+            registry = await manager.OpenTemplateRegistry(version, packages);
+        }
+        catch (Exception exception)
+        {
+            ClearStatus();
+            Console.Error.WriteLine(exception.Message);
+            return null;
+        }
+
+        if (registry is null)
+        {
+            ClearStatus();
+            Console.Error.WriteLine($"Stride {version} does not ship project templates.");
+            return null;
+        }
+
+        var templates = await registry.GetTemplatesAsync(cancellationToken);
+        ClearStatus();
+        return new TemplateContext(version, registry, templates);
+    }
+
+    private sealed record TemplateContext(PackageVersion Version, DotNetNewTemplateRegistry Registry, IReadOnlyList<ITemplateInfo> Templates);
+
+    // Prints the templates grouped by their source package.
+    private static void PrintTemplates(PackageVersion version, IReadOnlyList<ITemplateInfo> templates)
+    {
+        Console.WriteLine($"Templates available in Stride {version}:");
+        // Size the name column to the longest short name so descriptions line up across all groups,
+        // capped so one very long template name can't push every description far to the right.
+        var width = Math.Min(templates.Select(info => info.ShortNameList.FirstOrDefault()?.Length ?? 0).DefaultIfEmpty(0).Max() + 2, 30);
+        foreach (var group in templates.GroupBy(SourcePackage).OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            Console.WriteLine();
+            Console.WriteLine($"{group.Key}:");
+            foreach (var info in group.OrderBy(info => info.ShortNameList.FirstOrDefault(), StringComparer.OrdinalIgnoreCase))
+                Console.WriteLine($"  {(info.ShortNameList.FirstOrDefault() ?? string.Empty).PadRight(width)}{info.Name}");
+        }
     }
 
     // Parses dotnet-new-style "--key value", "--key=value" and bare "--flag" tokens into template parameters
