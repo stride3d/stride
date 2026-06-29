@@ -140,18 +140,20 @@ public class Solution
     /// <summary>
     /// Saves this instance to the <see cref="FullPath"/> path.
     /// </summary>
-    public void Save()
+    /// <param name="onBeforeOverwrite">Invoked with the path just before an existing file is overwritten (only when its content changed).</param>
+    public void Save(Action<string>? onBeforeOverwrite = null)
     {
-        SaveAs(FullPath);
+        SaveAs(FullPath, onBeforeOverwrite);
     }
 
     /// <summary>
     /// Saves this instance to the specified path.
     /// </summary>
     /// <param name="solutionPath">The solution path.</param>
-    public void SaveAs(string solutionPath)
+    /// <param name="onBeforeOverwrite">Invoked with the path just before an existing file is overwritten (only when its content changed).</param>
+    public void SaveAs(string solutionPath, Action<string>? onBeforeOverwrite = null)
     {
-        SolutionSerialization.Write(this, solutionPath);
+        SolutionSerialization.Write(this, solutionPath, onBeforeOverwrite);
     }
 
     /// <summary>

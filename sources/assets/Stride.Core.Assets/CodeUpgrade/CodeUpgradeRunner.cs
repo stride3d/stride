@@ -26,8 +26,9 @@ public interface ICodeUpgradeRunner
 {
     /// <param name="solutionPath">The solution to open (already restored at the old versions), or <c>null</c> for a standalone project.</param>
     /// <param name="pending">The projects pending source migration, with the upgrader that declared rules and the version each is upgraded from.</param>
+    /// <param name="backup">The copy-on-write backup to snapshot each source file into before overwriting it, or <c>null</c> when no backup is requested.</param>
     /// <param name="log">The logger.</param>
-    void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, ILogger log);
+    void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log);
 }
 
 /// <summary>

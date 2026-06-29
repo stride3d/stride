@@ -442,45 +442,61 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
             }
 
+            // An upgrade (package or pure asset-format) dirties the freshly-loaded session.
+            // Persist it now so the upgrade and its backup complete now instead of manual save later.
+            var loadedSession = sessionResult.Session;
+            if (loadedSession.LocalPackages.Any(package => package.IsDirty || package.Assets.IsDirty))
+                await sessionViewModel.SaveSession();    // save persists the upgrade and disarms the backup
+            else
+                loadedSession.DisarmUpgradeBackup();     // clean load: no save runs, so disarm here
+
             return sessionViewModel;
         }
 
         private static PackageLoadParameters CreatePackageLoadParameters(WorkProgressViewModel workProgress, CancellationTokenSource cancellationSource)
         {
-            return new PackageLoadParameters
+            // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
+            // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
+            // checkbox below can opt out; the callback updates this flag, which the session honors.
+            var loadParameters = new PackageLoadParameters
             {
                 CancelToken = cancellationSource.Token,
-                PackageUpgradeRequested = (package, pendingUpgrades) =>
-                {
-                    // Generate message (in markdown, so we need to double line feeds)
-                    // Note: ** is markdown
-                    var message = new StringBuilder();
-                    message.AppendLine(string.Format(Tr._p("Message", "The following dependencies in the **{0}** package need to be upgraded:"), package.Meta.Name));
-                    message.AppendLine();
-
-                    foreach (var pendingUpgrade in pendingUpgrades)
-                    {
-                        message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion));
-                    }
-
-                    message.AppendLine();
-                    message.AppendLine(string.Format(Tr._p("Message", "Upgrading assets might break them. We recommend you make a manual backup of your project before you upgrade."), package.Meta.Name));
-
-                    var buttons = new[]
-                    {
-                        new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
-                        new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
-                    };
-                    var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
-                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), false, checkBoxMessage, buttons).Result;
-                    var result = (PackageUpgradeRequestedAnswer)messageBoxResult.Result;
-                    if (messageBoxResult.IsChecked == true)
-                    {
-                        result = result == PackageUpgradeRequestedAnswer.Upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
-                    }
-                    return result;
-                }
+                BackupBeforeUpgrade = true,
             };
+            loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
+            {
+                // Generate message (in markdown, so we need to double line feeds)
+                // Note: ** is markdown
+                var message = new StringBuilder();
+                message.AppendLine(string.Format(Tr._p("Message", "The following dependencies in the **{0}** package need to be upgraded:"), package.Meta.Name));
+                message.AppendLine();
+
+                foreach (var pendingUpgrade in pendingUpgrades)
+                {
+                    message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion));
+                }
+
+                message.AppendLine();
+                message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
+
+                var buttons = new[]
+                {
+                    new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
+                    new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
+                };
+                var applyToAll = new DialogCheckBoxInfo { Content = Tr._p("Message", "Do this for every package in the solution"), IsChecked = false };
+                var backup = new DialogCheckBoxInfo { Content = Tr._p("Message", "Back up each modified file to a timestamped folder under the solution"), IsChecked = true };
+                var buttonResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), [applyToAll, backup], buttons).Result;
+
+                loadParameters.BackupBeforeUpgrade = backup.IsChecked == true;
+                var result = (PackageUpgradeRequestedAnswer)buttonResult;
+                if (applyToAll.IsChecked == true)
+                {
+                    result = result == PackageUpgradeRequestedAnswer.Upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
+                }
+                return result;
+            };
+            return loadParameters;
         }
 
         public override void Destroy()
