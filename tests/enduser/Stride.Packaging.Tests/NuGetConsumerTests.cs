@@ -34,9 +34,8 @@ public class NuGetConsumerTests
         var slnPath = TestEnvironment.GenerateSample(templateGuid, sampleName);
         var sampleDir = Path.GetDirectoryName(slnPath)!;
 
-        // Build the host-platform executable project directly: the generated .sln has no
-        // ProjectConfigurationPlatforms section, so `dotnet build <sln>` builds nothing.
-        // The platform project triggers asset compilation and references .Game.
+        // Build the host-platform executable project directly: it triggers asset compilation
+        // and references .Game.
         var platformSuffix = TestEnvironment.HostPlatform == "linux" ? "Linux"
                            : TestEnvironment.HostPlatform == "macos" ? "macOS"
                            : "Windows";

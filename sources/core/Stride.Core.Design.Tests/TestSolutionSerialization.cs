@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Stride.Core.Solutions;
 using Xunit;
 
@@ -112,6 +113,40 @@ public class TestSolutionSerialization
             // It loads back through the same entry point.
             var reloaded = Solution.FromFile(slnxPath);
             Assert.Single(reloaded.Projects);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SlnxOmitsIdsAndRoundTripsTheStartupProject()
+    {
+        var dir = NewTempDir();
+        try
+        {
+            var slnxPath = Path.Combine(dir, "Game.slnx");
+            var solution = new Solution { FullPath = slnxPath };
+            solution.Projects.Add(new Project(
+                Guid.NewGuid(), KnownProjectTypeGuid.CSharp,
+                "Game", Path.Combine(dir, "Game", "Game.csproj"), Guid.Empty, [], [], []));
+            var windowsGuid = Guid.NewGuid();
+            solution.Projects.Add(new Project(
+                windowsGuid, KnownProjectTypeGuid.CSharp,
+                "Game.Windows", Path.Combine(dir, "Game.Windows", "Game.Windows.csproj"), Guid.Empty, [], [], []));
+            solution.StartupProjectGuid = windowsGuid;
+            solution.Save();
+
+            var written = File.ReadAllText(slnxPath);
+            Assert.Contains("DefaultStartup=\"true\"", written);
+            Assert.DoesNotContain("Id=\"", written);   // .slnx carries no project ids
+            Assert.DoesNotContain("Type=\"", written);  // nor an explicit project type (inferred from .csproj)
+
+            // The startup project survives a reload, matched back by its path.
+            var reloaded = Solution.FromFile(slnxPath);
+            var startup = reloaded.Projects.First(project => project.Guid == reloaded.StartupProjectGuid);
+            Assert.EndsWith("Game.Windows.csproj", startup.FullPath.Replace('\\', '/'));
         }
         finally
         {

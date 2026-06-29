@@ -45,7 +45,7 @@ public class NewGameEditor : IUITest
         if (!await ctx.WaitForWindow("DotNetNewTemplateParametersWindow", timeoutSeconds: 30)) { ctx.Exit(1); return; }
         if (!await ctx.CloseModalWithOk("DotNetNewTemplateParametersWindow")) { ctx.Exit(1); return; }
 
-        // Project generation runs (creates .sln, .csproj, asset folders, restores NuGet).
+        // Project generation runs (creates .slnx, .csproj, asset folders, restores NuGet).
         // Then the editor opens it and GameStudioWindow appears.
         if (!await ctx.WaitForWindow("GameStudioWindow", timeoutSeconds: 180)) { ctx.Exit(1); return; }
         await ctx.SetWindowSize("GameStudioWindow", 2560, 1440);

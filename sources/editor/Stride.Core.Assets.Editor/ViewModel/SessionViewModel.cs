@@ -41,7 +41,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     {
         public static string StorePackageCategoryName = Tr._("External packages");
         public static string LocalPackageCategoryName = Tr._("Local packages");
-        public const string SolutionExtension = ".sln";
+        public const string SolutionExtension = ".slnx";
         public const int SaveIrreversibleSourceFileOperationsMessageCount = 5;
 
         private readonly IUndoRedoService undoRedoService;
