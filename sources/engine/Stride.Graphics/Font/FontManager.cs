@@ -116,7 +116,7 @@ namespace Stride.Graphics.Font
                 lock (dataStructuresLock)
                 {
                     if (characterSpecification.Bitmap == null)
-                        GenerateCharacterGlyph(characterSpecification, true);
+                        GenerateCharacterGlyph(characterSpecification, renderBitmap: true, computeMetrics: true);
                 }
                 return;
             }
@@ -131,7 +131,7 @@ namespace Stride.Graphics.Font
                     return;
 
                 // Compute glyph metrics now so text measurement works before the bitmap is ready.
-                GenerateCharacterGlyph(characterSpecification, false);
+                GenerateCharacterGlyph(characterSpecification, renderBitmap: false, computeMetrics: true);
 
                 bitmapsToGenerate.Enqueue(characterSpecification);
                 bitmapBuildSignal.Set();
@@ -166,10 +166,15 @@ namespace Stride.Graphics.Font
             }
         }
 
-        private void GenerateCharacterGlyph(CharacterSpecification character, bool renderBitmap)
+        private void GenerateCharacterGlyph(CharacterSpecification character, bool renderBitmap, bool computeMetrics)
         {
-            // first the possible current glyph info
-            ResetGlyph(character);
+            // Reset and (re)compute Glyph.XAdvance only on the metric pass. The async builder thread
+            // re-renders the bitmap of an already-measured glyph and must leave XAdvance untouched:
+            // text measurement reads it lock-free while the bitmap is still pending, so zeroing it
+            // here — even transiently — makes the last glyph on a line measure as zero-width and the
+            // UI background fall short of the text.
+            if (computeMetrics)
+                ResetGlyph(character);
 
             // let the glyph info null if the size is not valid
             if (character.Size.X < 1 || character.Size.Y < 1)
@@ -199,7 +204,8 @@ namespace Stride.Graphics.Font
                     return;
 
                 // set glyph information (advance is in 26.6 fixed-point)
-                character.Glyph.XAdvance = (int)fontFace->glyph->advance.x.Value / 64.0f;
+                if (computeMetrics)
+                    character.Glyph.XAdvance = (int)fontFace->glyph->advance.x.Value / 64.0f;
 
                 // render the bitmap
                 if (renderBitmap)
@@ -363,10 +369,13 @@ namespace Stride.Graphics.Font
 
                     lock (dataStructuresLock)
                     {
-                        // A synchronous draw-time request may have already rendered this glyph;
-                        // rendering under dataStructuresLock keeps us exclusive with that path.
+                        // Metrics were already computed when this glyph was enqueued; only render the
+                        // bitmap here (computeMetrics: false) so we never disturb XAdvance, which the
+                        // main thread reads lock-free during measurement. A synchronous draw-time
+                        // request may have already rendered this glyph, so skip if it is done; the
+                        // dataStructuresLock keeps us exclusive with that path.
                         if (character.Bitmap == null)
-                            GenerateCharacterGlyph(character, true);
+                            GenerateCharacterGlyph(character, renderBitmap: true, computeMetrics: false);
 
                         bitmapsToGenerate.Dequeue();
                     }
