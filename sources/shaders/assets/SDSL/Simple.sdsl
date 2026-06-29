@@ -1,0 +1,29 @@
+namespace machin {
+    namespace hello;
+    namespace other.thing 
+    {
+        internal partial effect class.heloo {
+            
+        }
+        
+        shader MyCLass<int a, Link machin> : Hello<1,2,3.0f32,"Hello"> {
+            patchstream float a = 5;
+            float3x3 b;
+
+            float Foo(int a, int b)
+            {
+                elif(a == b)
+                {
+                    float a = Comm();
+                }
+                const int a = 3;
+                machin = 5;
+                streams.a.machin.hello[1] = 9;
+                
+            }
+        }
+
+        shader other;
+        
+    }
+}

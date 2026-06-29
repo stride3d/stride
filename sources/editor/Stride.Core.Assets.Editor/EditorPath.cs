@@ -21,6 +21,6 @@ namespace Stride.Core.Assets.Editor
 
         public static string InternalConfigPath => Path.Combine(UserDataPath, "GameStudioInternal.conf");
 
-        private static string ProductNameDirectory => "Stride";
+        private static string ProductNameDirectory => "stride";
     }
 }

@@ -1,0 +1,13 @@
+{
+  "os": "Microsoft Windows 10.0.26100",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "gpu": "Microsoft Basic Render Driver",
+  "gpuVendorId": "0x1414",
+  "gpuDeviceId": "0x008C",
+  "vendorName": "Microsoft",
+  "driverId": "Microsoft",
+  "driverName": "Microsoft",
+  "driverVersion": "1.0.18.0",
+  "apiName": "Direct3D11",
+  "apiVersion": ""
+}

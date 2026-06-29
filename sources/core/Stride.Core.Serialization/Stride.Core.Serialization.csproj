@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,11 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="K4os.Compression.LZ4.Legacy" />
+    <PackageReference Include="K4os.Compression.LZ4.Legacy" PrivateAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
     <ProjectReference Include="..\Stride.Core.IO\Stride.Core.IO.csproj" />
   </ItemGroup>
 

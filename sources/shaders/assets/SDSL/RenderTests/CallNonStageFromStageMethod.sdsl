@@ -1,0 +1,26 @@
+// PSMain(ExpectedResult=#01010101)
+
+namespace Stride.Shaders.Tests;
+
+// Stage method calls non-stage method from the same shader.
+shader CallNonStageFromStageMethod
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    float4 ComputeColor()
+    {
+        return float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = ComputeColor();
+    }
+}

@@ -15,7 +15,7 @@ namespace Stride.SpriteStudio.Offline
     [AssetContentType(typeof(SpriteStudioSheet))]
     [AssetDescription(FileExtension)] // A description used to display in the asset editor
     [Display("SpriteStudio sheet")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public class SpriteStudioModelAsset : Asset
     {
         public const string FileExtension = ".sdss4s";

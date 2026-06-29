@@ -15,17 +15,181 @@ public class TestUtilities
         public int B;
     }
 
-    [Fact]
-    public unsafe void Base()
+    [Theory]
+    [InlineData(16)]
+    [InlineData(32)]
+    [InlineData(64)]
+    public unsafe void AllocateMemory_WithValidAlignment_AllocatesAlignedMemory(int alignment)
     {
-        // Allocate memory
-        var data = MemoryUtilities.Allocate(sizeInBytes: 32, alignment: 16);
+        var data = MemoryUtilities.Allocate(128, alignment);
 
-        // Check allocation and alignment
         Assert.True(data != IntPtr.Zero);
-        Assert.Equal(0, (long)data % 16);
+        Assert.Equal(0, (long)data % alignment);
 
-        // FreeMemory
         MemoryUtilities.Free(data);
+    }
+
+    [Fact]
+    public unsafe void AllocateMemory_WithInvalidAlignment_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() => MemoryUtilities.Allocate(32, 15));
+    }
+
+    [Fact]
+    public unsafe void AllocateClearedMemory_InitializesMemoryToZero()
+    {
+        var size = 128;
+        var data = MemoryUtilities.AllocateCleared(size);
+
+        var span = new Span<byte>((void*)data, size);
+        foreach (var b in span)
+        {
+            Assert.Equal(0, b);
+        }
+
+        MemoryUtilities.Free(data);
+    }
+
+    [Fact]
+    public unsafe void AllocateClearedMemory_WithCustomClearValue_InitializesMemoryToValue()
+    {
+        var size = 128;
+        var clearValue = (byte)0xFF;
+        var data = MemoryUtilities.AllocateCleared(size, clearValue);
+
+        var span = new Span<byte>((void*)data, size);
+        foreach (var b in span)
+        {
+            Assert.Equal(clearValue, b);
+        }
+
+        MemoryUtilities.Free(data);
+    }
+
+    [Theory]
+    [InlineData(16)]
+    [InlineData(32)]
+    [InlineData(64)]
+    public void IsMemoryAligned_WithAlignedPointer_ReturnsTrue(int alignment)
+    {
+        unsafe
+        {
+            var data = MemoryUtilities.Allocate(128, alignment);
+
+            Assert.True(MemoryUtilities.IsAligned(data, alignment));
+
+            MemoryUtilities.Free(data);
+        }
+    }
+
+    [Fact]
+    public void IsMemoryAligned_WithInvalidAlignment_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() => MemoryUtilities.IsAligned(IntPtr.Zero, 15));
+    }
+
+    [Fact]
+    public void Dispose_WithNullObject_DoesNothing()
+    {
+        IDisposable? disposable = null;
+        Utilities.Dispose(ref disposable);
+        Assert.Null(disposable);
+    }
+
+    [Fact]
+    public void Dispose_WithDisposableObject_DisposesAndSetsToNull()
+    {
+        var disposed = false;
+        IDisposable? disposable = new DisposableTestClass(() => disposed = true);
+
+        Utilities.Dispose(ref disposable);
+
+        Assert.True(disposed);
+        Assert.Null(disposable);
+    }
+
+    [Fact]
+    public void GetHashCode_WithDictionary_ReturnsConsistentHashCode()
+    {
+        var dict = new Dictionary<string, int>
+        {
+            ["a"] = 1,
+            ["b"] = 2
+        };
+
+        var hash1 = Utilities.GetHashCode(dict);
+        var hash2 = Utilities.GetHashCode(dict);
+
+        Assert.Equal(hash1, hash2);
+    }
+
+    [Fact]
+    public void GetHashCode_WithNullDictionary_ReturnsZero()
+    {
+        var hash = Utilities.GetHashCode((System.Collections.IDictionary)null!);
+        Assert.Equal(0, hash);
+    }
+
+    [Fact]
+    public void GetHashCode_WithEnumerable_ReturnsConsistentHashCode()
+    {
+        var list = new List<int> { 1, 2, 3 };
+
+        var hash1 = Utilities.GetHashCode((System.Collections.IEnumerable)list);
+        var hash2 = Utilities.GetHashCode((System.Collections.IEnumerable)list);
+
+        Assert.Equal(hash1, hash2);
+    }
+
+    [Fact]
+    public void Compare_WithIdenticalDictionaries_ReturnsTrue()
+    {
+        var dict1 = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
+        var dict2 = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
+
+        Assert.True(Utilities.Compare(dict1, dict2));
+    }
+
+    [Fact]
+    public void Compare_WithDifferentDictionaries_ReturnsFalse()
+    {
+        var dict1 = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
+        var dict2 = new Dictionary<string, int> { ["a"] = 1, ["c"] = 3 };
+
+        Assert.False(Utilities.Compare(dict1, dict2));
+    }
+
+    [Fact]
+    public void Compare_WithSameReference_ReturnsTrue()
+    {
+        var dict = new Dictionary<string, int> { ["a"] = 1 };
+        Assert.True(Utilities.Compare(dict, dict));
+    }
+
+    [Fact]
+    public void Swap_ExchangesValues()
+    {
+        var a = 5;
+        var b = 10;
+
+        MemoryUtilities.Swap(ref a, ref b);
+
+        Assert.Equal(10, a);
+        Assert.Equal(5, b);
+    }
+
+    private class DisposableTestClass : IDisposable
+    {
+        private readonly Action onDispose;
+
+        public DisposableTestClass(Action onDispose)
+        {
+            this.onDispose = onDispose;
+        }
+
+        public void Dispose()
+        {
+            onDispose();
+        }
     }
 }

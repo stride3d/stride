@@ -99,4 +99,4 @@ The directory name under `Assets/` does not have to match the `Group` string exa
 >         - !file Templates/%%AssetName%%.sdtpl
 > ```
 >
-> No `Module.cs` or `AssemblyRegistry.Register` call is needed for game-project assets. Compiler discovery is handled by the `Stride.Core.Assets.CompilerApp` plugin mechanism — the compiler class is found automatically as long as the game project references `Stride.Core.Assets.CompilerApp` as a build-only dependency.
+> No `Module.cs` or `AssemblyRegistry.Register` call is needed for game-project assets. Compiler discovery is handled by the `Stride.AssetCompiler` plugin mechanism — the compiler class is found automatically as long as the game project references `Stride.AssetCompiler` as a build-only dependency.

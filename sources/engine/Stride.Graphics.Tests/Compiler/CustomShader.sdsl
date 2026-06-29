@@ -4,9 +4,6 @@ namespace Stride.Graphics.Tests
 {
     shader CustomShader : SpriteBase
     {
-        // factor used by CustomEffect
-        stage float SwitchEffectLevel;
-
         cbuffer PerPass
         {
             [Link("MyCustomShader.ColorFactor2")]

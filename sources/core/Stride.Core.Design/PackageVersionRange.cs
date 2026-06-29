@@ -355,6 +355,10 @@ public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
         return p =>
         {
             PackageVersion version = extractor(p);
+            // A versionless item can't be proven to satisfy a bounded range; it only matches a fully
+            // unbounded one. (Avoids a null left-operand throw in the comparisons below.)
+            if (version is null)
+                return MinVersion is null && MaxVersion is null;
             bool condition = true;
             if (MinVersion != null)
             {

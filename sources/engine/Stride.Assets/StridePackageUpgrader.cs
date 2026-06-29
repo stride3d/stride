@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Assets;
@@ -10,7 +9,6 @@ using Stride.Core;
 using Stride.Core.Assets.Serializers;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -21,14 +19,14 @@ using Stride.TextureConverter;
 using Stride.Assets.Effect;
 using Stride.Assets.Templates;
 using Stride.Graphics;
-using System.Text;
 using Microsoft.Build.Evaluation;
 using Stride.Core.Annotations;
+using static Stride.Assets.CodeUpgrades;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine", "Xenko", "Xenko.Core", "Xenko.Engine" }, "3.1.0.0", CurrentVersion)]
-    public partial class StridePackageUpgrader : PackageUpgrader
+    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion)]
+    public partial class StridePackageUpgrader : CodePackageUpgrader
     {
         // Should match Stride.nupkg
         public const string CurrentVersion = StrideVersion.NuGetVersion;
@@ -41,277 +39,93 @@ namespace Stride.Assets
 
         public static readonly Guid UpdatePlatformsTemplateId = new Guid("446B52D3-A6A8-4274-A357-736ADEA87321");
 
-        public override bool Upgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles)
+        /// <summary>
+        /// Rewrites every <c>Stride.*</c> <c>PackageReference</c> in the csproj at
+        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>. Standalone — no
+        /// <see cref="PackageSession"/> or <see cref="Stride.Core.Reflection.AssemblyContainer"/>
+        /// involved. Common building block for fresh-template instantiation and legacy
+        /// session-load paths.
+        /// </summary>
+        public static void UpgradeProjectVersions(string csprojPath, ILogger log)
         {
-            if (dependency.Version.MinVersion < new PackageVersion("3.1.0.2-beta01"))
+            ArgumentNullException.ThrowIfNull(csprojPath);
+            try
             {
-                foreach (var assetFile in assetFiles)
+                var project = VSProjectHelper.LoadProject(csprojPath);
+                var isDirty = false;
+
+                foreach (var package in project.GetItems("PackageReference"))
                 {
-                    try
+                    if (IsSkippedPackage(package.EvaluatedInclude))
+                        continue;
+
+                    if (package.EvaluatedInclude.StartsWith("Stride.", StringComparison.Ordinal)
+                        && package.GetMetadataValue("Version") != CurrentVersion)
                     {
-                        // Add new generic parameter to ShadowMapReceiverDirectional in effect log
-                        if (assetFile.OriginalFilePath.GetFileExtension() == ".xkeffectlog")
-                        {
-                            var assetContent = assetFile.AssetContent ?? File.ReadAllBytes(assetFile.OriginalFilePath.FullPath);
-                            var assetContentString = System.Text.Encoding.UTF8.GetString(assetContent);
-                            var newAssetContentString = System.Text.RegularExpressions.Regex.Replace(assetContentString, @"([ ]*)-   ClassName:", "$1- !ShaderClassSource\r\n$1    ClassName:");
-                            if (assetContentString != newAssetContentString)
-                            {
-                                // Need replacement, update with replaced text
-                                // Save file (usually we shouldn't do that, but since we have the renaming in 4.0 we force everything to be on disk before moving on
-                                File.WriteAllBytes(assetFile.OriginalFilePath.FullPath, System.Text.Encoding.UTF8.GetBytes(newAssetContentString));
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        log.Warning($"Could not upgrade asset [{assetFile.AssetLocation}] to ShaderClassSource", e);
+                        package.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
+                        foreach (var metadata in package.Metadata)
+                            metadata.Xml.ExpressedAsAttribute = true;
+                        isDirty = true;
                     }
                 }
+
+                if (isDirty)
+                    project.Save();
+
+                project.ProjectCollection.UnloadAllProjects();
+                project.ProjectCollection.Dispose();
             }
-
-            if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
+            catch (Exception e)
             {
-                foreach (var assetFile in assetFiles)
-                {
-                    try
-                    {
-                        // Note: usually we shouldn't replace files directly (file might be already moved/modified in-memory)
-                        // but since we're currently the first/only upgrader to run, that's fine and later (4.1) we can get rid of this upgrade path
-                        assetFile.OriginalFilePath = assetFile.FilePath = XenkoToStrideRenameHelper.RenameStrideFile(assetFile.OriginalFilePath.FullPath, XenkoToStrideRenameHelper.StrideContentType.Asset);
-                    }
-                    catch (Exception e)
-                    {
-                        log.Warning($"Could not upgrade asset [{assetFile.AssetLocation}] to Stride", e);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private void RunAssetUpgradersUntilVersion(ILogger log, Package dependentPackage, string dependencyName, IList<PackageLoadingAssetFile> assetFiles, PackageVersion maxVersion)
-        {
-            foreach (var assetFile in assetFiles)
-            {
-                if (assetFile.Deleted)
-                    continue;
-
-                var context = new AssetMigrationContext(dependentPackage, assetFile.ToReference(), assetFile.FilePath.ToOSPath(), log);
-                AssetMigration.MigrateAssetIfNeeded(context, assetFile, dependencyName, maxVersion);
+                log.Warning($"Unable to upgrade Stride.* PackageReference versions in [{Path.GetFileName(csprojPath)}]", e);
             }
         }
 
-        /// <inheritdoc/>
-        public override bool UpgradeAfterAssetsLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, PackageVersionRange dependencyVersionBeforeUpdate)
+        /// <summary>
+        /// Declares the Roslyn-driven source-code migrations. Names are literal strings frozen at
+        /// authoring time (never <c>nameof</c>) so a later engine refactor can't retarget an old gate.
+        /// The runner resolves these symbols against the from-version closure and rewrites every
+        /// reference; the per-version gate decides which run.
+        /// </summary>
+        public override void DeclareUpgrades(UpgradeRegistry registry)
         {
-            if (dependencyVersionBeforeUpdate.MinVersion < new PackageVersion("1.3.0-alpha02"))
-            {
-                // Add everything as root assets (since we don't know what the project was doing in the code before)
-                foreach (var assetItem in dependentPackage.Assets)
-                {
-                    if (!AssetRegistry.IsAssetTypeAlwaysMarkAsRoot(assetItem.Asset.GetType()))
-                        dependentPackage.RootAssets.Add(new AssetReference(assetItem.Id, assetItem.Location));
-                }
-            }
+            // 4.4: PixelFormat members IsSRgb/IsHDR/Is32bppWithAlpha/SizeInBytes changed from extension
+            // methods to (extension) properties (fmt.IsSRgb() -> fmt.IsSRgb).
+            registry.Code("4.4.0.0",
+            [
+                Rewrite(
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsSRgb"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsHDR"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "Is32bppWithAlpha"),
+                    MethodToProperty("Stride.Graphics.PixelFormatExtensions", "SizeInBytes")),
+            ]);
 
-            if (dependencyVersionBeforeUpdate.MinVersion < new PackageVersion("1.6.0-beta"))
-            {
-                // Mark all assets dirty to force a resave
-                foreach (var assetItem in dependentPackage.Assets)
-                {
-                    if (!(assetItem.Asset is SourceCodeAsset))
-                    {
-                        assetItem.IsDirty = true;
-                    }
-                }
-            }
-
-            return true;
+            // Structural csproj migrations, gated by the version each change landed at. Run against the
+            // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
+            registry.Project("4.1.0.0", UpgradeProjectTo41);
+            registry.Project("4.2.0.0", UpgradeProjectTo42);
+            registry.Project("4.3.0.0", UpgradeProjectTo43);
+            registry.Project("4.4.0.0", UpgradeProjectTo44);
         }
 
-        public override bool UpgradeBeforeAssembliesLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+        private static bool IsSkippedPackage(string packageName)
         {
-            // Xenko to Stride renaming
-            if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
+            for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Length; i++)
             {
-                UpgradeStrideCode(dependentPackage, log);
-            }
-
-            // Update NuGet references
-            var solutionProject = dependentPackage.Container as SolutionProject;
-            var projectFullPath = solutionProject?.FullPath;
-            if (projectFullPath != null)
-            {
-                try
+                if (packageName.StartsWith(StridePackagesToSkipUpgrade.PackageNames[i])
+                    || StridePackagesToSkipUpgrade.PackageNames[i].Equals(packageName))
                 {
-                    var project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
-                    var isProjectDirty = false;
-
-                    List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
-                    foreach(var package in project.GetItems("PackageReference"))
-                    {
-                        bool addPackage = true;
-                        for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Length; i++)
-                        {
-                            if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames[i])
-                                || StridePackagesToSkipUpgrade.PackageNames[i].Equals(package.EvaluatedInclude))
-                            {
-                                addPackage = false;
-                            }
-                        }
-
-                        if(addPackage)
-                        {
-                            packageReferences.Add(package);
-                        }
-                    }
-
-                    // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
-                    if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0")
-                        && solutionProject.Type == ProjectType.Executable
-                        && (solutionProject.Platform == PlatformType.macOS || solutionProject.Platform == PlatformType.Linux))
-                    {
-                        var strideReference = packageReferences.FirstOrDefault(x => x.EvaluatedInclude == "Stride");
-                        if (strideReference != null)
-                        {
-                            packageReferences.Remove(strideReference);
-                            project.RemoveItem(strideReference);
-                            isProjectDirty = true;
-                        }
-                    }
-
-                    foreach (var packageReference in packageReferences)
-                    {
-                        if (packageReference.EvaluatedInclude.StartsWith("Stride.", StringComparison.Ordinal) && packageReference.GetMetadataValue("Version") != CurrentVersion)
-                        {
-                            packageReference.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
-                            foreach (var metadata in packageReference.Metadata)
-                                metadata.Xml.ExpressedAsAttribute = true;
-                            isProjectDirty = true;
-                        }
-                    }
-
-                    // Change shader generated file from .cs to .xksl.cs or .xkfx.cs
-                    // Note: we support both 3.1.0.1 (.cs) and 3.2.0.1 (.xksl.cs)
-                    if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
-                    {
-                        // Find xksl files
-                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".xksl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator")).ToArray();
-
-                        foreach (var shaderFile in shaderFiles)
-                        {
-                            isProjectDirty = true;
-
-                            var shaderFilePath = Path.Combine(projectFullPath.GetFullDirectory(), new UFile(shaderFile.EvaluatedInclude));
-                            var oldGeneratedFilePath = Path.ChangeExtension(shaderFilePath, ".cs");
-
-                            if (!File.Exists(oldGeneratedFilePath))
-                            {
-                                oldGeneratedFilePath = shaderFilePath + ".cs";
-                            }
-
-                            if (File.Exists(oldGeneratedFilePath))
-                            {
-                                var newShaderFilePath = shaderFilePath.Replace(".xk", ".sd");
-                                File.Move(shaderFilePath, newShaderFilePath);
-                                File.Move(oldGeneratedFilePath, newShaderFilePath + ".cs");
-
-                                // Remove Items (.xksl .cs and .xksl.cs)
-                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x =>
-                                    new UFile(x.Include) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))
-                                    || new UFile(x.Include) == new UFile(shaderFile.EvaluatedInclude + ".cs")
-                                    || new UFile(x.Include) == new UFile(shaderFile.EvaluatedInclude)
-                                    || new UFile(x.Update) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))
-                                    || new UFile(x.Update) == new UFile(shaderFile.EvaluatedInclude + ".cs")
-                                    || new UFile(x.Update) == new UFile(shaderFile.EvaluatedInclude)
-                                    ).ToArray())
-                                {
-                                    csElement.Parent.RemoveChild(csElement);
-                                }
-
-                                if (!shaderFile.IsImported)
-                                    project.RemoveItem(shaderFile);
-                            }
-                        }
-                    }
-
-                    if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0") && solutionProject != null)
-                    {
-                        var tfm = project.GetProperty("TargetFramework");
-                        if (tfm != null)
-                        {
-                            // Library
-                            if (tfm.EvaluatedValue == "netstandard2.0"
-                                || (tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library))
-                            {
-                                tfm.UnevaluatedValue = "net6.0";
-                                isProjectDirty = true;
-                                project.ReevaluateIfNecessary();
-                            }
-                            // Executable
-                            else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
-                            {
-                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
-                                isProjectDirty = true;
-                                project.ReevaluateIfNecessary();
-                            }
-                        }
-                    }
-
-                    if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
-                    {
-                        if (GetTargetFramework(project) is { } tfm)
-                        {
-                            // Library
-                            if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
-                            {
-                                tfm.UnevaluatedValue = "net8.0";
-                                isProjectDirty = true;
-                                project.ReevaluateIfNecessary();
-                            }
-                            // Executable
-                            else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
-                            {
-                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
-                                isProjectDirty = true;
-                                project.ReevaluateIfNecessary();
-                            }
-                        }
-                    }
-
-                    if (dependency.Version.MinVersion < new PackageVersion("4.3.0.0") && solutionProject != null)
-                    {
-                        if (GetTargetFramework(project) is { } tfm)
-                        {
-                            // Library
-                            if (tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
-                            {
-                                tfm.UnevaluatedValue = "net10.0";
-                                isProjectDirty = true;
-                            }
-                            // Executable
-                            else if ((tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
-                            {
-                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net10.0-windows" : "net10.0";
-                                isProjectDirty = true;
-                            }
-                        }
-                    }
-
-                    if (isProjectDirty)
-                        project.Save();
-
-                    project.ProjectCollection.UnloadAllProjects();
-                    project.ProjectCollection.Dispose();
-                }
-                catch (Exception e)
-                {
-                    log.Warning($"Unable to load project [{projectFullPath.GetFileName()}]", e);
+                    return true;
                 }
             }
+            return false;
+        }
 
-            return true;
+        // Bump every Stride.* PackageReference to the current version (also used standalone by the
+        // fresh-template path). The base then runs the gated r.Project structural migrations.
+        protected override void UpgradeProjectReferences(UFile projectFullPath, ILogger log)
+        {
+            UpgradeProjectVersions(projectFullPath.ToOSPath(), log);
         }
 
         [CanBeNull]
@@ -322,6 +136,199 @@ namespace Stride.Assets
                 tfm = project.GetProperty("TargetFrameworks");
 
             return tfm.IsGlobalProperty ? null : tfm;
+        }
+
+        // 4.1: drop the old Stride ref from Linux/macOS executables (no longer needed for runtime.json),
+        // and bump net4.x/net5/netstandard2.0 to net6.0.
+        private static void UpgradeProjectTo41(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var solutionProject = context.SolutionProject;
+
+            // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
+            if (solutionProject.Type == ProjectType.Executable
+                && (solutionProject.Platform == PlatformType.macOS || solutionProject.Platform == PlatformType.Linux))
+            {
+                var strideReference = project.GetItems("PackageReference").FirstOrDefault(x => x.EvaluatedInclude == "Stride");
+                if (strideReference != null)
+                {
+                    project.RemoveItem(strideReference);
+                    context.IsDirty = true;
+                }
+            }
+
+            var tfm = project.GetProperty("TargetFramework");
+            if (tfm != null)
+            {
+                // Library
+                if (tfm.EvaluatedValue == "netstandard2.0"
+                    || (tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library))
+                {
+                    tfm.UnevaluatedValue = "net6.0";
+                    context.IsDirty = true;
+                    project.ReevaluateIfNecessary();
+                }
+                // Executable
+                else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                {
+                    tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
+                    context.IsDirty = true;
+                    project.ReevaluateIfNecessary();
+                }
+            }
+        }
+
+        // 4.2: bump net6 to net8.
+        private static void UpgradeProjectTo42(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var solutionProject = context.SolutionProject;
+            if (GetTargetFramework(project) is { } tfm)
+            {
+                // Library
+                if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                {
+                    tfm.UnevaluatedValue = "net8.0";
+                    context.IsDirty = true;
+                    project.ReevaluateIfNecessary();
+                }
+                // Executable
+                else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                {
+                    tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
+                    context.IsDirty = true;
+                    project.ReevaluateIfNecessary();
+                }
+            }
+        }
+
+        // 4.3: bump net8 to net10.
+        private static void UpgradeProjectTo43(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var solutionProject = context.SolutionProject;
+            if (GetTargetFramework(project) is { } tfm)
+            {
+                // Library
+                if (tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                {
+                    tfm.UnevaluatedValue = "net10.0";
+                    context.IsDirty = true;
+                }
+                // Executable
+                else if ((tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                {
+                    tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net10.0-windows" : "net10.0";
+                    context.IsDirty = true;
+                }
+            }
+        }
+
+        // 4.4: rename the asset-compiler PackageReference (Stride.Core.Assets.CompilerApp -> Stride.AssetCompiler)
+        // and retire the on-disk .sdsl.cs/.sdfx.cs siblings now produced by the Roslyn source generator into obj/.
+        private static void UpgradeProjectTo44(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var log = context.Log;
+
+            // Asset compiler package was renamed Stride.Core.Assets.CompilerApp -> Stride.AssetCompiler.
+            // Also normalize its asset flow to build;buildTransitive: the reference lives on the Game
+            // library, and the build targets only reach the executable (which actually compiles assets)
+            // when they propagate transitively. Drop the inert PrivateAssets (the package ships no
+            // contentfiles/analyzers).
+            foreach (var compilerRef in project.Xml.ItemGroups
+                .SelectMany(g => g.Items)
+                .Where(x => x.ItemType == "PackageReference"
+                    && (x.Include == "Stride.Core.Assets.CompilerApp" || x.Include == "Stride.AssetCompiler"))
+                .ToArray())
+            {
+                if (compilerRef.Include == "Stride.Core.Assets.CompilerApp")
+                    compilerRef.Include = "Stride.AssetCompiler";
+
+                var includeAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "IncludeAssets");
+                if (includeAssets != null)
+                    includeAssets.Value = "build;buildTransitive";
+                else
+                    compilerRef.AddMetadata("IncludeAssets", "build;buildTransitive", true);
+
+                var privateAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "PrivateAssets");
+                if (privateAssets != null)
+                    compilerRef.RemoveChild(privateAssets);
+
+                context.IsDirty = true;
+            }
+
+            // .sdsl/.sdfx generated C# now comes from a Roslyn source generator into obj/, so rename any
+            // on-disk siblings to .bak (recoverable, inert in build) and strip leftover csproj items /
+            // Generator metadata.
+            var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
+            int renamedCount = 0;
+            foreach (var file in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))
+            {
+                if (!(file.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase)
+                    || file.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
+                var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
+                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
+                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
+                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                try
+                {
+                    File.Move(file, file + ".bak", overwrite: true);
+                    log.Info($"Renamed legacy generated shader file: {rel} -> {rel}.bak");
+                    renamedCount++;
+                }
+                catch (Exception e)
+                {
+                    log.Warning($"Could not rename legacy generated shader file [{rel}]", e);
+                }
+            }
+
+            // Strip leftover csproj item nodes referencing .sdsl.cs / .sdfx.cs paths
+            foreach (var item in project.Xml.ItemGroups
+                .SelectMany(g => g.Items)
+                .Where(x =>
+                {
+                    var path = x.Include ?? x.Update ?? string.Empty;
+                    return path.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase)
+                        || path.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToArray())
+            {
+                item.Parent.RemoveChild(item);
+                context.IsDirty = true;
+            }
+
+            // Strip obsolete Generator/LastGenOutput metadata from .sdsl/.sdfx items.
+            // Walk the project XML directly — project.Items returns evaluated items
+            // (including ones from imported SDK props), which can't be mutated.
+            foreach (var item in project.Xml.ItemGroups
+                .SelectMany(g => g.Items)
+                .Where(x =>
+                {
+                    var path = x.Include ?? x.Update ?? string.Empty;
+                    return path.EndsWith(".sdsl", StringComparison.OrdinalIgnoreCase)
+                        || path.EndsWith(".sdfx", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToArray())
+            {
+                foreach (var metadata in item.Metadata.ToArray())
+                {
+                    if (metadata.Name == "Generator" || metadata.Name == "LastGenOutput")
+                    {
+                        item.RemoveChild(metadata);
+                        context.IsDirty = true;
+                    }
+                }
+            }
+
+            if (renamedCount > 0)
+                log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
         }
     }
 }

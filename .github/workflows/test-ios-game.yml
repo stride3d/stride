@@ -1,0 +1,296 @@
+name: Test iOS Game (Vulkan)
+
+run-name: >-
+  ${{ github.event.inputs.commit-sha != '' && format('Test iOS Game (Vulkan) @ {0}', github.event.inputs.commit-sha) || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-filter:
+        description: 'vstest --filter expression forwarded to the on-device runner (blank = all tests)'
+        type: string
+        default: ''
+      project:
+        description: 'Single test .csproj to build/run (blank = Combined .app aggregating all suites)'
+        type: string
+        default: ''
+      commit-sha:
+        description: Commit SHA to test (default = HEAD of selected branch)
+        type: string
+        default: ''
+      upload-binlog:
+        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        default: false
+        type: boolean
+      use-combined:
+        description: 'Combine all test suites into one .app (faster build/install/run); false = per-suite .apps'
+        default: true
+        type: boolean
+      repeat:
+        description: 'Rerun the filtered test set up to N times in-process, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      test-filter:
+        default: ''
+        type: string
+      project:
+        default: ''
+        type: string
+      commit-sha:
+        default: ''
+        type: string
+      # Internal (callers only, e.g. test-gold-gen): tolerate test failures so generating new gold
+      # doesn't fail the run. Build failures still fail. Not exposed in the dispatch UI.
+      tolerate-test-failures:
+        default: false
+        type: boolean
+      upload-binlog:
+        default: false
+        type: boolean
+      use-combined:
+        default: true
+        type: boolean
+      repeat:
+        type: number
+        default: 1
+  schedule:
+    # Daily at 02:43 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # spaced from the other nightlies (03:37–05:17) so they don't compete for the scheduler.
+    - cron: '43 2 * * *'
+
+concurrency:
+  group: test-ios-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  iOS-Tests-Game:
+    # Scheduled (nightly) runs only fire on repos that opt in via STRIDE_ENABLE_SCHEDULED_CI;
+    # workflow_call (main.yml path filter / ci-ios label) and dispatch always run.
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    name: iOS (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
+    # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
+    # is 26.3, which the 26.5 pack rejects.
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+      # Workaround for paravirt-GPU SimMetalHost crash on macos-26 runners: force MoltenVK to
+      # never use Metal argument buffers, so the descriptor-set bind path doesn't trigger
+      # argumentEncoderSetValues on the paravirt driver. SIMCTL_CHILD_ prefix is stripped by
+      # simctl when launching the sim app. Mode 0 = NEVER (mode 1 still uses them when
+      # descriptor indexing is required, which didn't avoid the crash).
+      SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
+    steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
+          ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
+          exclude: samples
+
+      - name: Install iOS + macOS Workloads
+        # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
+        # AVFoundation/Metal bring-up work). slnf-driven builds dispatch all TFMs of every project
+        # they pull in, so the iOS slnf still needs the macOS workload available.
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios macos
+
+      - name: Select Xcode 26.5
+        # Default on macos-26 is 26.4.1; the .NET iOS 26.5 SDK pack needs exactly 26.5.
+        run: sudo xcode-select -s /Applications/Xcode_26.5.app
+
+      - name: Start iOS Simulator (background)
+        # Kick the simulator boot off early so its ~50s first-boot data migration
+        # (PreferencesMigrator etc.) happens in parallel with the build. We block on
+        # readiness in a later step right before tests run.
+        run: |
+          set -e
+          UDID=$(xcrun simctl list devices --json | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          for runtime in sorted((k for k in d if k.startswith("com.apple.CoreSimulator.SimRuntime.iOS-")), reverse=True):
+            for x in d[runtime]:
+              if x.get("isAvailable") and "iPhone" in x["name"]:
+                print(x["udid"]); sys.exit(0)
+          sys.exit(1)
+          ')
+          if [ -z "$UDID" ]; then
+            echo "::error::No available iPhone simulator runtime found"
+            xcrun simctl list devices
+            exit 1
+          fi
+          echo "Booting $UDID"
+          xcrun simctl boot $UDID
+          echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
+
+      - name: Resolve build target / suite
+        run: |
+          # `project` set (gold-gen: one suite only) → that .csproj's .app (~4 min build).
+          # Unset → use-combined=true (default): Combined.csproj — all suites in one .app,
+          # one install, one process run (faster build/testing).
+          # use-combined=false → slnf build + per-suite .apps + per-suite install/run.
+          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
+          if [ -n "$PROJ" ]; then
+            echo "IOS_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
+            echo "IOS_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
+          elif [ "$USE_COMBINED" = "true" ]; then
+            echo "IOS_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "IOS_TEST_SUITES=Stride.Tests.Combined" >> "$GITHUB_ENV"
+          else
+            # slnf path: one build evaluates the graph once; per-suite .app bundles land under
+            # bin/Tests/<Suite>/iOS-Vulkan/<Config>/<Suite>.app. Run step iterates IOS_TEST_SUITES.
+            echo "IOS_BUILD_TARGET=build/Stride.Tests.Game.iOS.slnf" >> "$GITHUB_ENV"
+            {
+              echo "IOS_TEST_SUITES<<EOF"
+              echo "Stride.Engine.NoAssets.Tests"
+              echo "Stride.Input.Tests"
+              echo "Stride.Audio.Tests"
+              echo "Stride.Particles.Tests"
+              echo "Stride.UI.Tests"
+              echo "Stride.Navigation.Tests"
+              echo "Stride.Physics.Tests"
+              echo "Stride.Engine.Tests"
+              echo "Stride.Graphics.Tests"
+              echo "Stride.Graphics.Tests.10_0"
+              echo "Stride.Graphics.Tests.11_0"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          fi
+
+      - name: Build iOS test .app bundle
+        # No explicit RuntimeIdentifier: passing one as a global property leaks into the host
+        # net10.0 build (used to load assemblies into the AssetCompiler) and crashes its
+        # ResolveNativeReferences. The iOS SDK infers iossimulator-arm64 on its own for
+        # net10.0-ios on an arm64 host.
+        run: |
+          dotnet build "$IOS_BUILD_TARGET" \
+            -nr:false -v:m -p:WarningLevel=0 \
+            -p:StrideSkipAutoPack=true \
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=iOS
+
+      - name: Upload build binlog
+        # failure() so we still get the binlog when Build dies (most useful case)
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-binlog-ios-game
+          path: build.binlog
+          if-no-files-found: ignore
+
+      - name: Wait for iOS Simulator boot
+        # Block on the boot we kicked off earlier. If the build took longer than the simulator's
+        # first-boot migration, this is instant; otherwise we wait the remaining seconds.
+        run: xcrun simctl bootstatus $IOS_SIM_UDID -b
+
+      - name: Run tests on iOS Simulator
+        shell: pwsh
+        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          New-Item -ItemType Directory -Force -Path TestResults | Out-Null
+          $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $repeat = "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+          # IOS_TEST_SUITES is single-line (Combined / project=set) OR multi-line (slnf path).
+          # Loop over them — one suite means one launch (matches the Combined case identically).
+          $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
+          $worstExit = 0
+          foreach ($suite in $suites) {
+              $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter "$suite.app" -ErrorAction SilentlyContinue | Select-Object -First 1
+              if (-not $appPath) {
+                  Write-Host "::warning::$suite.app not built — skipping"
+                  continue
+              }
+              # Bundle id lives in the .app's Info.plist.
+              $plist = Join-Path $appPath.FullName 'Info.plist'
+              $package = (& /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' $plist).Trim()
+              Write-Host "::group::Running $suite (bundle=$package)"
+              $driverArgs = @(
+                  '-Package', $package,
+                  '-Suite', $suite,
+                  '-App', $appPath.FullName,
+                  '-Simulator', $env:IOS_SIM_UDID,
+                  '-ResultsDir', "$PWD/tests/local",
+                  '-TimeoutSeconds', '1800',
+                  '-KeepSimulator',
+                  '-StreamLog'
+              )
+              if ($filter) { $driverArgs += @('-Filter', $filter) }
+              if ([int]$repeat -gt 1) { $driverArgs += @('-Repeat', $repeat) }
+              & pwsh tests/ios/run-ios-tests.ps1 @driverArgs
+              if ($LASTEXITCODE -ne 0 -and $worstExit -eq 0) { $worstExit = $LASTEXITCODE }
+              Write-Host "::endgroup::"
+          }
+          # Flatten per-suite TRX into TestResults/ for the test-reporting action (no recurse).
+          Get-ChildItem -Path 'tests/local' -Recurse -Filter '*.trx' -ErrorAction SilentlyContinue |
+              ForEach-Object { Copy-Item $_.FullName 'TestResults/' -Force }
+          if ($worstExit -ne 0) {
+              Write-Host "::error::At least one suite exited with non-zero code (worst=$worstExit)"
+              exit $worstExit
+          }
+
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Test Report: iOS Game (Vulkan)'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+          fail-on-error: ${{ inputs.tolerate-test-failures != true }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-ios-vulkan
+          path: TestResults/
+          if-no-files-found: ignore
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-ios-vulkan
+          path: tests/local/
+          if-no-files-found: ignore
+
+      - name: Collect crash reports
+        # macOS writes .ips crash reports to ~/Library/Logs/DiagnosticReports for any process
+        # killed unexpectedly. Captures both the test app's own crash AND SimMetalHost / other
+        # sim infrastructure crashes that take the test process down by side-effect.
+        if: always()
+        run: |
+          mkdir -p crash-reports
+          find ~/Library/Logs/DiagnosticReports -type f \( -name '*.ips' -o -name '*.crash' \) -mmin -60 -exec cp {} crash-reports/ \; 2>/dev/null || true
+          ls -la crash-reports/
+
+      - name: Upload crash reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-reports-ios-vulkan
+          path: crash-reports/
+          if-no-files-found: ignore

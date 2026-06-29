@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Stride.Dependencies.LLVM.Windows</id>
+    <version>$version$</version>
+    <authors>Stride Contributors</authors>
+    <description>LLVM toolchain (clang, lld, llvm-ar from the official LLVM $llvmVersion$ Windows release) used by Stride.Native.targets to build native code on Windows hosts. Build-time tool package; referenced host-conditionally with PrivateAssets=all.</description>
+    <license type="expression">Apache-2.0 WITH LLVM-exception</license>
+    <repository type="git" url="https://github.com/stride3d/stride" />
+  </metadata>
+  <files>
+    <!-- Packed by .github/workflows/dep-llvm-windows.yml; see its header for details -->
+    <file src="tools/win-x64/clang.exe" target="tools/win-x64/" />
+    <file src="tools/win-x64/lld.exe" target="tools/win-x64/" />
+    <file src="tools/win-x64/llvm-ar.exe" target="tools/win-x64/" />
+    <file src="tools/win-x64/VERSION.txt" target="tools/win-x64/" />
+  </files>
+</package>

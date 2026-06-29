@@ -24,7 +24,7 @@ internal partial class PackageSessionHelper
 
             foreach (var project in solution.Projects)
             {
-                if (project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
+                if (project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
                 {
                     var projectPath = project.FullPath;
                     var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);

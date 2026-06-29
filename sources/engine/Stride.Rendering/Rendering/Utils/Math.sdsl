@@ -81,7 +81,7 @@ shader Math
     // -------------------------------------
     // Quintic interpolation
     // -------------------------------------
-    float Quintic1(float x) {
+    float Quintic(float x) {
         return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
     }
     float2 Quintic(float2 x) {

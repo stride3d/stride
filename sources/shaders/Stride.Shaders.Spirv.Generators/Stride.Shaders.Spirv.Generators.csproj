@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>Stride.Shaders.Spirv.Generators</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="Extensions\spirv.sdsl.grammar-ext.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+		<PackageReference Include="AngleSharp" />
+	</ItemGroup>
+
+</Project>

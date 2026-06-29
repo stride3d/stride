@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Stride.Core;
@@ -132,6 +133,7 @@ public static class PlatformFolders
         return directory;
     }
 
+    [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "Falls back to Environment.ProcessPath when Location is empty.")]
     private static string? GetApplicationExecutablePath()
     {
 #if STRIDE_PLATFORM_ANDROID
@@ -206,6 +208,13 @@ public static class PlatformFolders
 #elif STRIDE_PLATFORM_UWP
         return Windows.ApplicationModel.Package.Current.InstalledLocation.Path + @"\data";
 #else
+        // macOS .app: assemblies live in Contents/MonoBundle, bundled assets in Contents/Resources.
+        if (OperatingSystem.IsMacOS())
+        {
+            var baseDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+            if (Path.GetFileName(baseDir) == "MonoBundle")
+                return Path.GetFullPath(Path.Combine(baseDir, "..", "Resources", "data"));
+        }
         return Path.Combine(GetApplicationBinaryDirectory(), "data");
 #endif
     }

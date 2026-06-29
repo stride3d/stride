@@ -1,0 +1,110 @@
+<!-- Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+     Distributed under the MIT license. See the LICENSE.md file in the project root for more information. -->
+<!--
+    Deploys and runs the *packaged* GameStudio (the Stride.GameStudio NuGet package), as opposed to
+    iterating from the build output (bin) folder. This restores the package's full dependency closure
+    (managed + native) into the global NuGet cache from the local dev feed, then launches the cached
+    Stride.GameStudio.exe via its normal NuGetAssemblyResolver runtime path - i.e. exactly what an
+    end user gets, so packaging / native-resolution regressions surface here.
+
+    A .targets file is itself a valid MSBuild project, so no separate .proj is needed and it runs
+    anywhere `dotnet msbuild` runs (no PowerShell dependency):
+
+        dotnet msbuild build/install-gamestudio.targets -t:Run
+        dotnet msbuild build/install-gamestudio.targets -t:Run -p:GameStudioVersion=4.4.0-dev3
+
+    Targets:
+      Deploy  - restore the package closure into the global NuGet cache (re-extracts dev packages so a
+                rebuilt same-version package takes effect; NuGet otherwise skips same-version re-extract).
+      Run     - Deploy, then launch the cached editor (default target).
+-->
+<Project DefaultTargets="Run">
+
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\</RepoRoot>
+    <StrideLocalFeed>$(RepoRoot)bin\packages\</StrideLocalFeed>
+    <GameStudioPackageId>Stride.GameStudio</GameStudioPackageId>
+
+    <!-- Re-extract dev packages even when the version is unchanged. NuGet keys the global cache by
+         id+version and skips re-extracting a rebuilt same-version .nupkg, which would leave stale DLLs
+         in the cache; for a dev loop we want the freshly built package to win. -->
+    <ForceReextract Condition="'$(ForceReextract)' == ''">true</ForceReextract>
+
+    <!-- Global NuGet packages folder (honour NUGET_PACKAGES; editor is Windows-only so USERPROFILE is safe). -->
+    <NuGetPackagesRoot Condition="'$(NuGetPackagesRoot)' == '' and '$(NUGET_PACKAGES)' != ''">$(NUGET_PACKAGES)</NuGetPackagesRoot>
+    <NuGetPackagesRoot Condition="'$(NuGetPackagesRoot)' == ''">$(USERPROFILE)\.nuget\packages</NuGetPackagesRoot>
+
+    <DeployProjectDir>$(RepoRoot)bin\gamestudio-deploy\</DeployProjectDir>
+    <DeployProjectPath>$(DeployProjectDir)gamestudio-deploy.csproj</DeployProjectPath>
+  </PropertyGroup>
+
+  <!-- Default GameStudioVersion to the single Stride.GameStudio package in the local feed. -->
+  <ItemGroup Condition="'$(GameStudioVersion)' == ''">
+    <_GameStudioNupkg Include="$(StrideLocalFeed)$(GameStudioPackageId).*.nupkg"
+                      Exclude="$(StrideLocalFeed)$(GameStudioPackageId).AutoTesting.*.nupkg" />
+  </ItemGroup>
+
+  <Target Name="_ResolveVersion">
+    <PropertyGroup Condition="'$(GameStudioVersion)' == ''">
+      <!-- '%(Filename)' = 'Stride.GameStudio.<version>'; strip the 'Stride.GameStudio.' prefix (18 chars). -->
+      <_GameStudioFileName>@(_GameStudioNupkg->'%(Filename)')</_GameStudioFileName>
+      <GameStudioVersion Condition="'$(_GameStudioFileName)' != '' and !$(_GameStudioFileName.Contains(';'))">$(_GameStudioFileName.Substring(18))</GameStudioVersion>
+    </PropertyGroup>
+
+    <Error Condition="'$(GameStudioVersion)' == '' and '$(_GameStudioFileName)' == ''"
+           Text="No $(GameStudioPackageId).*.nupkg found in '$(StrideLocalFeed)'. Build the editor packages first, or pass -p:GameStudioVersion=&lt;version&gt;." />
+    <Error Condition="'$(GameStudioVersion)' == '' and $(_GameStudioFileName.Contains(';'))"
+           Text="Multiple $(GameStudioPackageId) packages in '$(StrideLocalFeed)'; disambiguate with -p:GameStudioVersion=&lt;version&gt;. Found: $(_GameStudioFileName)" />
+
+    <Message Importance="high" Text="GameStudio package version: $(GameStudioVersion)" />
+  </Target>
+
+  <Target Name="Deploy" DependsOnTargets="_ResolveVersion">
+    <!-- Force re-extraction of the dev-version Stride.* packages so a rebuilt same-version package wins. -->
+    <ItemGroup Condition="'$(ForceReextract)' == 'true' and Exists('$(NuGetPackagesRoot)')">
+      <_StridePackageDir Include="$([System.IO.Directory]::GetDirectories('$(NuGetPackagesRoot)', 'stride.*'))" />
+      <_StaleVersionDir Include="@(_StridePackageDir->'%(Identity)\$(GameStudioVersion)')"
+                        Condition="Exists('%(Identity)\$(GameStudioVersion)')" />
+    </ItemGroup>
+    <Message Importance="high" Condition="'@(_StaleVersionDir)' != ''"
+             Text="Purging stale cache extractions for $(GameStudioVersion): @(_StaleVersionDir->Count()) package(s)" />
+    <RemoveDir Directories="@(_StaleVersionDir)" />
+
+    <!-- A throwaway PackageReference project: restoring it pulls the GameStudio closure (incl. native
+         packages) into the global cache. Placed under the repo so the root nuget.config (Stride.* -> bin/packages)
+         applies. -->
+    <MakeDir Directories="$(DeployProjectDir)" />
+    <ItemGroup>
+      <_DeployProjectLines Include="&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;" />
+      <_DeployProjectLines Include="  &lt;PropertyGroup&gt;" />
+      <_DeployProjectLines Include="    &lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;" />
+      <_DeployProjectLines Include="    &lt;RuntimeIdentifier&gt;win-x64&lt;/RuntimeIdentifier&gt;" />
+      <_DeployProjectLines Include="    &lt;EnableDefaultCompileItems&gt;false&lt;/EnableDefaultCompileItems&gt;" />
+      <_DeployProjectLines Include="  &lt;/PropertyGroup&gt;" />
+      <_DeployProjectLines Include="  &lt;ItemGroup&gt;" />
+      <_DeployProjectLines Include="    &lt;PackageReference Include=&quot;$(GameStudioPackageId)&quot; Version=&quot;$(GameStudioVersion)&quot; /&gt;" />
+      <_DeployProjectLines Include="  &lt;/ItemGroup&gt;" />
+      <_DeployProjectLines Include="&lt;/Project&gt;" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(DeployProjectPath)" Lines="@(_DeployProjectLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+
+    <Message Importance="high" Text="Restoring $(GameStudioPackageId) $(GameStudioVersion) closure into the NuGet cache..." />
+    <Exec Command="dotnet restore &quot;$(DeployProjectPath)&quot; --configfile &quot;$(RepoRoot)nuget.config&quot; --force"
+          WorkingDirectory="$(RepoRoot)" />
+  </Target>
+
+  <Target Name="Run" DependsOnTargets="Deploy">
+    <ItemGroup>
+      <_GameStudioExe Include="$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\tools\net10.0-windows*\Stride.GameStudio.exe" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_GameStudioExePath>@(_GameStudioExe)</_GameStudioExePath>
+    </PropertyGroup>
+    <Error Condition="'$(_GameStudioExePath)' == ''"
+           Text="Could not find Stride.GameStudio.exe under '$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\tools\' after restore." />
+
+    <Message Importance="high" Text="Launching $(_GameStudioExePath)" />
+    <Exec Command="&quot;$(_GameStudioExePath)&quot;" />
+  </Target>
+
+</Project>

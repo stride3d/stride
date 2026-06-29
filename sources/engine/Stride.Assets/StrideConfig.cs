@@ -14,9 +14,10 @@ namespace Stride.Assets
     [DataContract("Stride")]
     public sealed class StrideConfig
     {
-        public const string PackageName = "Stride";
-
-        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(StrideVersion.NuGetVersion);
+        // Logical engine-package identity for asset versioning and upgraders
+        // (the key written into every saved asset's SerializedVersion)
+        // Intentionally not the assembly or NuGet package id, so it stays "Stride" (Stride real package is kept for dotnet tool)
+        public const string LogicalPackageName = "Stride";
 
         /// <summary>
         /// All created embedded games (preview, scene, etc...) and asset compilers will have <see cref="DeviceCreationFlags.Debug"/> set.
@@ -40,21 +41,6 @@ namespace Stride.Assets
             { VS2015Version, @"MSBuild\Xamarin\Android\Xamarin.Android.CSharp.targets" }
         };
 
-        internal static readonly Dictionary<Version, string> UniversalWindowsPlatformComponents = new Dictionary<Version, string>
-        {
-            { VSAnyVersion, @"Microsoft.VisualStudio.Component.UWP.Support" },
-            { VS2015Version, @"MSBuild\Microsoft\WindowsXaml\v14.0\8.2\Microsoft.Windows.UI.Xaml.Common.Targets" }
-        };
-
-        public static PackageDependency GetLatestPackageDependency()
-        {
-            return new PackageDependency(PackageName, new PackageVersionRange()
-                {
-                    MinVersion = LatestPackageVersion,
-                    IsMinInclusive = true
-                });
-        }
-
         /// <summary>
         /// Registers the solution platforms supported by Stride.
         /// </summary>
@@ -72,53 +58,6 @@ namespace Stride.Assets
                 Type = PlatformType.Windows
             };
             solutionPlatforms.Add(windowsPlatform);
-
-            // Universal Windows Platform (UWP)
-            var uwpPlatform = new SolutionPlatform()
-            {
-                Name = PlatformType.UWP.ToString(),
-                Type = PlatformType.UWP,
-                TargetFramework = "uap10.0.16299",
-                Templates =
-                {
-                    //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
-                    new SolutionPlatformTemplate("ProjectExecutable.UWP/Xaml/ProjectExecutable.UWP.ttproj", "Xaml")
-                },
-                IsAvailable = IsVSComponentAvailableAnyVersion(UniversalWindowsPlatformComponents),
-                UseWithExecutables = false,
-                IncludeInSolution = false,
-            };
-
-            uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_UWP");
-            uwpPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
-            uwpPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
-            uwpPlatform.Configurations["Release"].Properties.Add("<NoWarn>;2008</NoWarn>");
-            uwpPlatform.Configurations["Debug"].Properties.Add("<NoWarn>;2008</NoWarn>");
-            uwpPlatform.Configurations["Testing"].Properties.Add("<NoWarn>;2008</NoWarn>");
-            uwpPlatform.Configurations["AppStore"].Properties.Add("<NoWarn>;2008</NoWarn>");
-
-            uwpPlatform.Configurations["Release"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
-            uwpPlatform.Configurations["Testing"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
-            uwpPlatform.Configurations["AppStore"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
-
-            foreach (var cpu in new[] { "x86", "x64", "ARM" })
-            {
-                var uwpPlatformCpu = new SolutionPlatformPart(uwpPlatform.Name + "-" + cpu)
-                {
-                    LibraryProjectName = uwpPlatform.Name,
-                    ExecutableProjectName = cpu,
-                    Cpu = cpu,
-                    InheritConfigurations = true,
-                    UseWithLibraries = false,
-                    UseWithExecutables = true,
-                };
-                uwpPlatformCpu.Configurations.Clear();
-                uwpPlatformCpu.Configurations.AddRange(uwpPlatform.Configurations);
-
-                uwpPlatform.PlatformsPart.Add(uwpPlatformCpu);
-            }
-
-            solutionPlatforms.Add(uwpPlatform);
 
             // Linux
             var linuxPlatform = new SolutionPlatform()

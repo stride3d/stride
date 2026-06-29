@@ -33,3 +33,4 @@ RootAssets:
     - dbb3b809-4ff0-41da-b125-78a5ea1ec89c:Scenes/Basics/TransformPosition
     - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b:Scenes/Basics/Instantiating prefabs
     - ee2eb459-7847-42b5-bd69-fc43a6625fd5:Scenes/Basics/Keyboard input
+AssetAssemblies: []

@@ -41,7 +41,7 @@ namespace Stride.UI.Tests.Regression
                 DesiredCharacterNumber = 25, 
                 Text = InitialText,
                 TextColor = Color.Black,
-                Font = Content.Load<SpriteFont>("CourierNew12"), 
+                Font = Content.Load<SpriteFont>("LiberationMono12"), 
                 IsEnabled = ForceInteractiveMode,
                 SynchronousCharacterGeneration = true
             };

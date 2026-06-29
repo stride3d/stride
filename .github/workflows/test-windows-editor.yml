@@ -1,0 +1,178 @@
+name: Test GameStudio (Screenshots)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: false
+  schedule:
+    # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # gap from test-enduser (04:37) so they don't compete for runners.
+    - cron: '17 5 * * *'
+
+concurrency:
+  group: test-windows-editor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Editor drift is non-deterministic enough that the LPIPS comparator relies on Claude vision as a
+  # tiebreak on borderline frames. With ANTHROPIC_API_KEY the comparator resolves those inline; without
+  # it (typical on fork PRs, where secrets aren't exposed) the borderline frames are captured and marked
+  # "deferred" in <fixture>/vision-deferred.json, and pr-screenshot-vision-gate re-judges them with the
+  # key on the uploaded artifacts. Hard LPIPS drift (no vision tiebreak) still fails here regardless.
+  #
+  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
+  # workflow_dispatch / workflow_call always run.
+  Run:
+    if: >
+      github.event_name != 'schedule'
+      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    name: Windows (Editor, ${{ inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    env:
+      DOTNET_DbgEnableMiniDump: "1"
+      DOTNET_DbgMiniDumpType: "1"
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+    steps:
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      # Full checkout (no samples exclude): the editor build preprocesses the template source
+      # under samples/NewGame via Stride.Templates.Games.
+      - uses: ./.github/actions/stride-checkout
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Configure crash dumps
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+          $dumpDir = "${{ github.workspace }}\crash-dumps"
+          New-Item -Path $dumpDir -ItemType Directory -Force | Out-Null
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 1 /f
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
+
+      # PackageStore.LoadDefaultSettings(null) only reads the user + machine NuGet configs,
+      # not the workspace nuget.config — register bin/packages in the user config.
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # GH runners default to a 0x0 fallback display; WPF clamps the editor to that. The
+      # composite action installs an IDD virtual display so we get a real desktop surface.
+      - name: Set display resolution
+        uses: ./.github/actions/set-display-resolution-vdd
+        with:
+          width: '3840'
+          height: '2160'
+
+      - name: Build Stride.GameStudio.AutoTesting
+        run: |
+          dotnet build sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
+
+      - name: Build Stride.Editor.Tests
+        run: |
+          dotnet build tests\editor\Stride.Editor.Tests.csproj `
+            -nr:false -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
+
+      # Pre-test snapshot of NuGet state: bin/packages timestamps+sizes (catches partial writes
+      # or out-of-order packing), NuGet global cache extractions for Stride.*, and the user
+      # nuget config (which sources/mapping the sample restore will see).
+      - name: Diagnostic — NuGet state pre-test
+        shell: pwsh
+        run: |
+          Write-Host "=== bin/packages Stride.* (name, size, mtime) ==="
+          Get-ChildItem bin\packages\Stride.*.nupkg -ErrorAction SilentlyContinue |
+            Format-Table Name, Length, LastWriteTimeUtc -AutoSize
+          Write-Host "=== NuGet global cache: stride.* extractions ==="
+          $cache = "$env:UserProfile\.nuget\packages"
+          if (Test-Path $cache) {
+            Get-ChildItem "$cache\stride.*" -Directory -ErrorAction SilentlyContinue |
+              Get-ChildItem -Directory -ErrorAction SilentlyContinue |
+              Format-Table FullName, LastWriteTimeUtc -AutoSize
+          } else { "No global packages cache at $cache" }
+          Write-Host "=== NuGet sources (user config) ==="
+          dotnet nuget list source --configfile "$env:APPDATA\NuGet\NuGet.Config"
+          Write-Host "=== User NuGet.Config ==="
+          if (Test-Path "$env:APPDATA\NuGet\NuGet.Config") { Get-Content "$env:APPDATA\NuGet\NuGet.Config" }
+
+      # EditorScreenshotTests.Capture is an xunit [Theory] over Fixtures(); each entry spawns
+      # the AutoTesting CLI as a subprocess (per-fixture WPF singleton-state isolation),
+      # snapshots the runner output into <worktree>/ui-test-out-dpi<N>/<fixture>/, then runs
+      # ScreenshotComparator.Compare against tests/editor/baselines/dpi<N>/. ANTHROPIC_API_KEY
+      # opts the comparator into Claude vision second-opinions on frames that exceed LPIPS —
+      # cost is bounded because Claude only fires on already-failing frames.
+      - name: Run editor screenshot tests
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          dotnet test tests\editor\Stride.Editor.Tests.csproj `
+            --no-build `
+            --filter "FullyQualifiedName~Stride.Editor.Tests.EditorScreenshotTests" `
+            --logger "trx;LogFileName=editor-screenshots.trx" `
+            --results-directory TestResults `
+            -p:Configuration=${{ inputs.build-type || 'Debug' }}
+
+      - name: Publish test report
+        if: always()
+        uses: phoenix-actions/test-reporting@v15
+        with:
+          name: 'Editor screenshot regression'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+
+      # Named screenshots-* so the trusted vision gate's download pattern (screenshots-*) picks it up
+      # alongside the enduser captures and re-judges any deferred frames.
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-editor
+          path: ui-test-out-dpi*/
+          if-no-files-found: warn
+
+      - name: Upload crash dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-crash-dumps
+          path: crash-dumps/
+          if-no-files-found: ignore
+
+      # Sample's project.assets.json (NuGet resolution record) + csproj/sln, plus the actual
+      # Stride.Engine/Core.Serialization DLLs that ended up in the sample's bin (their content
+      # reveals which version was materialized, independent of what assets.json claims).
+      - name: Upload generated sample obj/ + materialized engine DLLs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-sample-obj
+          path: |
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\obj\project.assets.json
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\*.csproj
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\*.sln
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\bin\**\Stride.Engine.dll
+            C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\bin\**\Stride.Core.Serialization.dll
+          if-no-files-found: warn
+          retention-days: 7

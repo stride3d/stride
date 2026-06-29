@@ -12,7 +12,7 @@ namespace Stride.Assets.Media
     [DataContract("Sound")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Sound))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public partial class SoundAsset : AssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";

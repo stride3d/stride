@@ -32,6 +32,12 @@ namespace Stride.Core.Presentation.Windows
             return dispatcher.InvokeTask(() => Windows.CheckedMessageBox.Show(message, caption, buttons, image, checkboxMessage, isChecked));
         }
 
+        [NotNull]
+        public static Task<int> MultiCheckedMessageBox([NotNull] IDispatcherService dispatcher, string message, string caption, IEnumerable<DialogCheckBoxInfo> checkBoxes, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+        {
+            return dispatcher.InvokeTask(() => Windows.MultiCheckedMessageBox.Show(message, caption, buttons, image, checkBoxes));
+        }
+
         public static int BlockingMessageBox([NotNull] IDispatcherService dispatcher, string message, string caption, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
             return PushFrame(dispatcher, () => MessageBox(dispatcher, message, caption, buttons, image));

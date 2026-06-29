@@ -17,9 +17,26 @@ namespace Stride.Audio
         public static Logger Logger = GlobalLogger.GetLogger(nameof(DynamicSoundSource));
 
         private static Task readFromDiskWorker;
+        private static volatile bool workerShutdownRequested;
 
         protected static readonly ConcurrentBag<DynamicSoundSource> NewSources = new ConcurrentBag<DynamicSoundSource>();
         protected static readonly List<DynamicSoundSource> Sources = new List<DynamicSoundSource>();
+
+        /// <summary>
+        /// Signals the static worker thread to drain pending dispose commands and exit, then
+        /// blocks until it does. Must be called before <see cref="AudioEngine"/> tears down the
+        /// native audio device, otherwise the worker can call into freed native sources.
+        /// </summary>
+        internal static void ShutdownWorker()
+        {
+            if (readFromDiskWorker == null) return;
+            workerShutdownRequested = true;
+            try { readFromDiskWorker.Wait(); } catch { /* ignore: worker has already exited */ }
+            readFromDiskWorker = null;
+            workerShutdownRequested = false;
+            while (NewSources.TryTake(out _)) { }
+            Sources.Clear();
+        }
 
         /// <summary>
         /// The possible async commands that can be queued and be handled by subclasses
@@ -334,6 +351,18 @@ namespace Stride.Audio
             var toRemove = new List<DynamicSoundSource>();
             while (true)
             {
+                if (workerShutdownRequested)
+                {
+                    // Drain pending Dispose commands so native sources/buffers are released
+                    // synchronously by the C# side before AudioEngine tears down the device.
+                    foreach (var source in Sources)
+                    {
+                        while (source.Commands.TryDequeue(out var cmd))
+                            if (cmd == AsyncCommand.Dispose) source.DisposeInternal();
+                    }
+                    Sources.Clear();
+                    return;
+                }
                 toRemove.Clear();
 
                 while (!NewSources.IsEmpty)

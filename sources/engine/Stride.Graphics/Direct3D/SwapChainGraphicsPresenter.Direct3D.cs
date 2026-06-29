@@ -343,13 +343,13 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        public override void BeginDraw(CommandList commandList)
-        {
-        }
-
-        /// <inheritdoc/>
         public override void EndDraw(CommandList commandList, bool present)
         {
+            // Transition the back-buffer to Present so the upcoming IDXGISwapChain::Present sees
+            // it in the required layout. Skipped when the caller won't Present (no-draw frames,
+            // headless tests) — the back buffer stays in its current layout for next frame.
+            if (present)
+                commandList.ResourceBarrierTransition(BackBuffer, BarrierLayout.Present);
         }
 
         /// <inheritdoc/>
@@ -414,6 +414,10 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
+            // Drain the GPU before releasing the swap-chain and its buffers: the last Present may
+            // still be in flight, and DXGI only tears the swap-chain down once it completes.
+            GraphicsDevice.WaitForGpuIdle();
+
             // Manually update Back-Buffer Texture
             backBuffer.OnDestroyed(immediately);
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
@@ -550,6 +554,10 @@ namespace Stride.Graphics
         {
             if (Description.DeviceWindowHandle is null)
                 throw new InvalidOperationException("DeviceWindowHandle cannot be null");
+
+            // D3D presenters don't honor SurfaceRotation (DXGI handles rotation transparently).
+            if (SurfaceRotation != SurfaceRotation.Identity)
+                throw new NotImplementedException($"SurfaceRotation '{SurfaceRotation}' is not supported on Direct3D presenters.");
 
 #if STRIDE_PLATFORM_UWP
             CreateSwapChainForUWP();

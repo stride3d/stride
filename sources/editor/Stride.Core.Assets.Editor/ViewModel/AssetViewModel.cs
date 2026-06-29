@@ -192,7 +192,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the display name of the type of this asset.
         /// </summary>
-        public override string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc != null ? desc.Name : AssetType.Name; } }
+        public override string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc?.Name ?? AssetType.Name; } }
 
         /// <summary>
         /// Gets the dependencies of this asset.

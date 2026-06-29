@@ -117,7 +117,7 @@ public unsafe partial struct GraphicsDeviceFeatures
 
                 HResult result = nativeDevice.CheckFeatureSupport(Feature.MultisampleQualityLevels, ref qualityLevels, sizeInBytes);
 
-                if (result.IsSuccess)
+                if (result.IsSuccess && qualityLevels.NumQualityLevels != 0)
                 {
                     maxCount = i;
                     break;

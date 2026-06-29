@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+shader CSMatrix
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    struct Transform
+    {
+        float4x4 Matrix;
+        float3 Scale;
+    };
+
+    RWTexture2D<float4> Output;
+    RWStructuredBuffer<Transform> Output2;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Output[int2(0, 0)] = float4(0, 0, 0, 0);
+        Output2[0].Scale = float3(0, 0, 0);
+    }
+}

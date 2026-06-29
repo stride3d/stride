@@ -35,6 +35,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="NuGet.Commands" />
     <PackageReference Include="Polysharp" />
 
@@ -63,8 +65,7 @@
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\SectionCollection.cs" Link="Core\Solutions\SectionCollection.cs" />
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\Solution.cs" Link="Core\Solutions\Solution.cs" />
     <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionFileException.cs" Link="Core\Solutions\SolutionFileException.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionReader.cs" Link="Core\Solutions\SolutionReader.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionWriter.cs" Link="Core\Solutions\SolutionWriter.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionSerialization.cs" Link="Core\Solutions\SolutionSerialization.cs" />
     <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
     <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
     <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />
@@ -150,9 +151,18 @@
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\ServiceWire.dll" />
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Newtonsoft.Json.dll" />
+      <!-- Solution load/save now goes through Microsoft.VisualStudio.SolutionPersistence (and System.Text.Json),
+           which the VS SDK reference drops as copy-local; ship our own copies plus their transitive deps. -->
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.VisualStudio.SolutionPersistence.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.IO.Redist.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.Text.Json.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.Text.Encodings.Web.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.IO.Pipelines.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.Bcl.AsyncInterfaces.dll" />
     </ItemGroup>
   </Target>
-  <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+  <!-- NET Sdk must be imported before VsSDK so IntermediateOutputPath is set when VsSDK
+       derives ResourceManifest/cto manifest paths (otherwise they resolve to the drive root). -->
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>

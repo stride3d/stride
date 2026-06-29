@@ -105,6 +105,19 @@ public class PackageStore
     }
 
     /// <summary>
+    /// Resolves the local-install directory of <paramref name="packageName"/>, regardless of
+    /// whether the package ships a Stride <c>.sdpkg</c>. Used by callers that consume the raw
+    /// extracted nupkg content (e.g. <c>Stride.Templates.Games</c>, a vanilla dotnet new template
+    /// package). Returns <c>null</c> if the package isn't installed locally.
+    /// </summary>
+    public UDirectory? GetPackageDirectory(string packageName, PackageVersionRange? versionRange = null, ConstraintProvider? constraintProvider = null, bool allowPreleaseVersion = true, bool allowUnlisted = false)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        var package = store.FindLocalPackage(packageName, versionRange, constraintProvider, allowPreleaseVersion, allowUnlisted);
+        return package is null ? null : (UDirectory)store.GetRealPath(package);
+    }
+
+    /// <summary>
     /// Gets the default package manager.
     /// </summary>
     /// <value>A default instance.</value>

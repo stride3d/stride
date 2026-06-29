@@ -199,8 +199,8 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 initializedTaskSource = new TaskCompletionSource<bool>();
 
-                // Track all packages
-                foreach (var package in session.LocalPackages)
+                // Snapshot: TrackPackage awaits, and concurrent additions invalidate the enumerator.
+                foreach (var package in session.LocalPackages.ToList())
                     await TrackPackage(package);
 
                 // Locate current package's game executable

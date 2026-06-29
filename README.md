@@ -23,6 +23,34 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
 
 This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
 
+## 🚀 Try Stride from the command line
+
+Create and manage Stride projects from the command line — no editor required.
+
+The **Stride CLI tool** installs and manages Stride engine versions, creates projects from templates, and opens Game Studio:
+
+```bash
+dotnet tool install -g Stride.Cli
+
+stride sdk install                   # install the latest Stride engine
+stride new fps -n MyShooter          # template: game, fps, platformer2d, topdownrpg, vrsandbox, ...
+cd MyShooter && dotnet run --project MyShooter.Windows
+
+stride studio                        # open Game Studio, the visual editor
+```
+
+`stride new` with no template lists what's available, `stride sdk` manages installed engine versions (`list`, `install`, `uninstall`, `update`), and `stride upgrade` moves a project to a newer engine. See [`sources/launcher/README.md`](sources/launcher/README.md).
+
+Prefer standard .NET templating? The same templates are available through `dotnet new`:
+
+```bash
+dotnet new install Stride.Templates.Games
+dotnet new stride-game -n MyGame
+cd MyGame && dotnet run --project MyGame.Windows
+```
+
+See [`sources/templates/README.md`](sources/templates/README.md) for the full template catalog (genre starters, 18 feature demos, tutorials) and the local-development workflow.
+
 ## 🤝 Contributing
 
 Want to get involved? See our [Contributing section](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.
@@ -35,70 +63,18 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 ### Prerequisites
 
-1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
-2. **[.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)**
-   - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
-3. **[Visual Studio 2026](https://visualstudio.microsoft.com/downloads/)** (the Community edition is free), with the following workloads. Follow this link if you would rather use [a different IDE or the command line](#build-stride-without-visual-studio).
-   - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** *(should be enabled by default)*
-   - **Desktop development with C++** with:
-     - **Windows 11 SDK (10.0.22621.0)** or a later version *(should be enabled by default)*
-     - **MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)** *(should be enabled by default)*
-     - **MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools (Latest)** *(not enabled by default, click Individual components tab to select or search)*
-     - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
-   - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and the **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
-   - *Optional* (to build the VSIX package): **Visual Studio extension development**
+1. **Latest [Git](https://git-scm.com/downloads)** — the Windows installer includes Git LFS by default; make sure it stays enabled. For convenience, you can also use a UI client like [GitExtensions](https://gitextensions.github.io/).
+2. **[Visual Studio 2026](https://visualstudio.microsoft.com/downloads/)** (Community edition is free), with these two workloads:
+   - **.NET desktop development** (bundles the .NET 10 SDK)
+   - **Desktop development with C++**
 
-> [!NOTE]
-> The installation of Visual Studio with the required components may require up to **19 GB of disk space**, depending on your system and selected components.
-
-> [!WARNING]
-> If this is your first time installing the .NET SDK, you might need to restart your system after the installation so that the system can recognize the new environment variables.
+> See [docs/build/README.md](docs/build/README.md) for detailed prerequisites (specific MSVC toolset versions, optional iOS/Android/ARM64/VSIX components, command-line builds without VS, and troubleshooting).
 
 ### Build Stride
 
-1. **Clone the repository** using a Git UI client or from the command line:
-   ```bash
-   git clone https://github.com/stride3d/stride.git
-   ```
-2. **Open the solution:**
-   - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2026.
-   - Build the `Stride.GameStudio` project in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
-   - _Optionally_, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
-
-> [!WARNING]
-> **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
-
-### Build Stride without Visual Studio
-
-1. **Install** [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/) (Go to *Tools for Visual Studio* and press download next to Build Tools for Visual Studio 2026) with the same prerequisites listed above.
-2. **Add MSBuild to your system's PATH:**
-   - Add MSBuild's directory to your `PATH` environment variable (e.g., `c:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin`).
-3. **Clone the repository:**
-   ```bash
-   git lfs clone https://github.com/stride3d/stride.git
-   ```
-4. **Build using the command line:**
-   - Navigate to the `/build` directory in the command prompt and run:
-   ```bash
-   msbuild /t:Build Stride.build
-   ```
-   This restores and builds the full solution.
-
-### If Building Fails
-
-* Some errors for test projects are normal, GameStudio will start anyway.
-* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2026), but Game Studio will start anyway.
-* If you skipped any of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
-* Visual Studio might have issues building properly if an older version is present alongside 2026. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2026.
-* Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
-* Some changes might require a system reboot. Try that if you haven't yet, for example, if you see these errors:
-  * `Could not find a compatible version of MSBuild.`
-  * `Path to dotnet executable is not set.`
-* Ensure that Git, Git LFS, and Visual Studio can access the internet.
-* Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
-
-> [!WARNING]
-> Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
+1. `git clone https://github.com/stride3d/stride.git`
+2. Open `build\Stride.sln` in Visual Studio 2026.
+3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
 
 ### Contribution Guidelines
 

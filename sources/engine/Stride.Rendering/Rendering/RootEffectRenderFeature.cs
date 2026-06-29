@@ -626,7 +626,21 @@ namespace Stride.Rendering
                                     if (descriptorSet.Layout == null)
                                         continue;
 
-                                    var constantBufferReflection = effectBytecode.Reflection.ConstantBuffers.FirstOrDefault(x => x.Name == descriptorSet.Name);
+                                    var resourceGroup = effectBytecode.Reflection.FindResourceGroup(descriptorSet.Name);
+                                    var constantBufferReflection = resourceGroup?.ConstantBuffer;
+
+                                    // For the default set slot, also check unnamed/Globals groups for a cbuffer
+                                    if (constantBufferReflection == null && descriptorSet.Name == "PerFrame")
+                                    {
+                                        foreach (var fallbackGroup in effectBytecode.Reflection.ResourceGroups)
+                                        {
+                                            if (fallbackGroup.Name is null or "Globals" && fallbackGroup.ConstantBuffer != null)
+                                            {
+                                                constantBufferReflection = fallbackGroup.ConstantBuffer;
+                                                break;
+                                            }
+                                        }
+                                    }
 
                                     renderEffectReflection.ResourceGroupDescriptions[index] = new ResourceGroupDescription(descriptorSet.Layout, constantBufferReflection);
                                 }
@@ -673,14 +687,14 @@ namespace Stride.Rendering
                             renderEffect.Reflection = renderEffectReflection;
 
                             // Invalidate pipeline state (new effect)
-                            renderEffect.PipelineState = null;
+                            renderEffect.InvalidatePipelineState();
 
                             renderEffects[staticEffectObjectNode] = renderEffect;
                         }
                         else
                         {
                             renderEffect.Reflection = RenderEffectReflection.Empty;
-                            renderEffect.PipelineState = null;
+                            renderEffect.InvalidatePipelineState();
                         }
                     }
                 }
@@ -822,9 +836,14 @@ namespace Stride.Rendering
                         }
                     }
 
-                    // Compile pipeline state object (if first time or need change)
+                    // Use the output captured for this view's stage so the pipeline state matches this
+                    // view's render target format (e.g. an RGBA render-texture vs a BGRA backbuffer).
+                    var stageOutput = renderNode.RenderView?.GetRenderStageOutput(renderNode.RenderStage) ?? renderNode.RenderStage.Output;
+
+                    // Compile pipeline state object (once per output format the effect is drawn into)
                     // TODO GRAPHICS REFACTOR how to invalidate if we want to change some state? (setting to null should be fine)
-                    if (renderEffect.PipelineState == null)
+                    var pipelineStateObject = renderEffect.GetPipelineState(stageOutput);
+                    if (pipelineStateObject == null)
                     {
                         var mutablePipelineState = batch.MutablePipelineState;
                         var pipelineState = mutablePipelineState.State;
@@ -834,9 +853,8 @@ namespace Stride.Rendering
                         pipelineState.EffectBytecode = renderEffect.Effect.Bytecode;
                         pipelineState.RootSignature = renderEffect.Reflection.RootSignature;
 
-                        // Extract outputs from render stage
-                        pipelineState.Output = renderNode.RenderStage.Output;
-                        pipelineState.RasterizerState.MultisampleCount = renderNode.RenderStage.Output.MultisampleCount;
+                        pipelineState.Output = stageOutput;
+                        pipelineState.RasterizerState.MultisampleCount = stageOutput.MultisampleCount;
 
                         // Bind VAO
                         ProcessPipelineState(Context, renderNodeReference, ref renderNode, renderObject, pipelineState);
@@ -845,8 +863,17 @@ namespace Stride.Rendering
                             pipelineProcessor.Process(renderNodeReference, ref renderNode, renderObject, pipelineState);
 
                         mutablePipelineState.Update();
-                        renderEffect.PipelineState = mutablePipelineState.CurrentState;
+                        pipelineStateObject = mutablePipelineState.CurrentState;
+                        renderEffect.SetPipelineState(stageOutput, pipelineStateObject);
+
+                        // Snapshot depth-write state so RenderSystem.Draw can auto-detect the
+                        // stage's depth access mode (pre-barrier Read vs Write) before dispatch.
+                        var dss = pipelineState.DepthStencilState;
+                        renderEffect.WritesDepth = dss.DepthBufferWriteEnable
+                            || (dss.StencilEnable && dss.StencilWriteMask != 0);
                     }
+
+                    renderNode.PipelineState = pipelineStateObject;
 
                     RenderNodes[renderNodeReference.Index] = renderNode;
                 });

@@ -150,9 +150,6 @@ namespace Stride.Graphics.Data
                 // Cache data
                 var fileProvider = contentManager.FileProvider;
                 var format = imageDescription.Format;
-                bool isBlockCompressed =
-                    (format >= PixelFormat.BC1_Typeless && format <= PixelFormat.BC5_SNorm) ||
-                    (format >= PixelFormat.BC6H_Typeless && format <= PixelFormat.BC7_UNorm_SRgb);
                 var dataBoxes = new DataBox[imageDescription.MipLevels * imageDescription.ArraySize];
                 int dataBoxIndex = 0;
 
@@ -161,13 +158,7 @@ namespace Stride.Graphics.Data
                 {
                     for (int mipIndex = 0; mipIndex < imageDescription.MipLevels; mipIndex++)
                     {
-                        int mipWidth = imageDescription.Width >> mipIndex;
-                        int mipHeight = imageDescription.Height >> mipIndex;
-                        if (isBlockCompressed && ((mipWidth % 4) != 0 || (mipHeight % 4) != 0))
-                        {
-                            mipWidth = unchecked((int)(((uint)(mipWidth + 3)) & ~3U));
-                            mipHeight = unchecked((int)(((uint)(mipHeight + 3)) & ~3U));
-                        }
+                        var (mipWidth, mipHeight) = Image.GetMipDimensions(format, imageDescription.Width, imageDescription.Height, mipIndex);
 
                         int rowPitch, slicePitch;
                         int widthPacked;

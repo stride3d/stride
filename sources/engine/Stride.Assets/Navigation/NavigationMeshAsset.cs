@@ -14,7 +14,7 @@ namespace Stride.Assets.Navigation
     [DataContract("NavigationMeshAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(NavigationMesh))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public partial class NavigationMeshAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

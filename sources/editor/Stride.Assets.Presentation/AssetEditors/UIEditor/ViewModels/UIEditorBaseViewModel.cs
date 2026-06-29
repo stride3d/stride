@@ -30,7 +30,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Services;
-using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.UI;
@@ -634,7 +634,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 
             // FIXME: only retrieve from current package and its dependencies
             var allLibraries = Session.AllPackages
-                .GroupBy(p => p.Package.IsSystem)
+                .GroupBy(p => p.Package.IsReadOnly)
                 .ToDictionary(p => p.Key, p => p.SelectMany(x => x.Assets).OfType<UILibraryViewModel>());
 
             // system libraries

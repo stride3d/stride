@@ -130,6 +130,19 @@ public sealed class PackageLoadParameters
     public Func<Package, IList<PackageSession.PendingPackageUpgrade>, PackageUpgradeRequestedAnswer> PackageUpgradeRequested;
 
     /// <summary>
+    /// Set by the in-place upgrade flow to tolerate transient NU1605 downgrades when restoring a solution from a
+    /// mixed state. Off for normal loads (GameStudio, build), where a downgrade is a real error.
+    /// </summary>
+    public bool AllowUpgradeDowngradeRestore { get; set; }
+
+    /// <summary>
+    /// When set, an in-place upgrade snapshots each original file into a timestamped backup folder right before
+    /// it overwrites it (copy-on-write — only modified files are copied), so the upgrade stays recoverable.
+    /// Front-ends opt in (the asset compiler and GameStudio default it on); off for normal loads.
+    /// </summary>
+    public bool BackupBeforeUpgrade { get; set; }
+
+    /// <summary>
     /// Occurs when an asset is about to be loaded, if false is returned the asset will be ignored and not loaded.
     /// </summary>
     public Func<PackageLoadingAssetFile, bool> TemporaryAssetFilter;

@@ -1,0 +1,263 @@
+name: "Dep: Build msdfgen"
+
+# Builds stride_msdfgen.{dll,so,dylib} per RID: a single self-contained shared lib
+# that static-links msdfgen-core + msdfgen-ext (and a private FreeType for non-vcpkg
+# builds). Used by Stride.Assets to rasterize signed-distance-field font glyphs,
+# replacing the previous msdfgen.exe subprocess invocation.
+#
+# Upstream:
+#   https://github.com/Chlumsky/msdfgen
+#   https://gitlab.freedesktop.org/freetype/freetype  (font loading dep)
+#
+# Output per OS — one self-contained shared lib per RID:
+#   Windows: stride_msdfgen.dll (+ stride_msdfgen.pdb)
+#   Linux:   stride_msdfgen.so
+#   macOS:   stride_msdfgen.dylib
+#
+# RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+
+on:
+  workflow_dispatch:
+    inputs:
+      msdfgen-version:
+        description: msdfgen tag (e.g. v1.12)
+        default: v1.12
+        required: true
+      freetype-version:
+        description: FreeType tag for the bundled static lib (e.g. VER-2-13-3)
+        default: VER-2-13-3
+        required: true
+
+jobs:
+  build-windows:
+    name: Build msdfgen (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: ARM64
+            rid: win-arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+
+      - name: Checkout msdfgen
+        uses: actions/checkout@v4
+        with:
+          repository: Chlumsky/msdfgen
+          ref: ${{ github.event.inputs.msdfgen-version }}
+          path: msdfgen-src
+
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build & install FreeType (static)
+        shell: pwsh
+        run: |
+          cmake -S freetype-src -B _ft-build -A ${{ matrix.arch }} `
+            -DBUILD_SHARED_LIBS=OFF `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="$pwd/_install" `
+            -DFT_DISABLE_BZIP2=ON `
+            -DFT_DISABLE_BROTLI=ON `
+            -DFT_DISABLE_HARFBUZZ=ON `
+            -DFT_DISABLE_PNG=ON `
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build _ft-build --config Release
+          cmake --install _ft-build --config Release
+
+      - name: Configure & build wrapper
+        shell: pwsh
+        run: |
+          # FindFreetype's HINT search doesn't fire reliably from msdfgen's call site on
+          # Windows, so pre-populate the result variables it would otherwise compute.
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper -B _build -A ${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DFREETYPE_LIBRARY="$pwd/_install/lib/freetype.lib" `
+            -DFREETYPE_INCLUDE_DIRS="$pwd/_install/include/freetype2" `
+            -DMSDFGEN_SRC="$pwd/msdfgen-src"
+          cmake --build _build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          Copy-Item _build/Release/stride_msdfgen.dll "out/${{ matrix.rid }}/"
+          Copy-Item _build/Release/stride_msdfgen.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_msdfgen-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build msdfgen (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+
+      - name: Checkout msdfgen
+        uses: actions/checkout@v4
+        with:
+          repository: Chlumsky/msdfgen
+          ref: ${{ github.event.inputs.msdfgen-version }}
+          path: msdfgen-src
+
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Build & install FreeType (static, PIC)
+        run: |
+          cmake -S freetype-src -B _ft-build -G Ninja \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build _ft-build
+          cmake --install _ft-build
+
+      - name: Configure & build wrapper
+        run: |
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_PREFIX_PATH=$PWD/_install \
+            -DMSDFGEN_SRC=$PWD/msdfgen-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          cp _build/stride_msdfgen.so out/linux-x64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_msdfgen-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build msdfgen (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: stride-src
+          sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+
+      - name: Checkout msdfgen
+        uses: actions/checkout@v4
+        with:
+          repository: Chlumsky/msdfgen
+          ref: ${{ github.event.inputs.msdfgen-version }}
+          path: msdfgen-src
+
+      - name: Checkout FreeType
+        uses: actions/checkout@v4
+        with:
+          repository: freetype/freetype
+          ref: ${{ github.event.inputs.freetype-version }}
+          path: freetype-src
+
+      - name: Build & install FreeType (static)
+        run: |
+          cmake -S freetype-src -B _ft-build -G Ninja \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_INSTALL_PREFIX=$PWD/_install \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_ZLIB=ON
+          cmake --build _ft-build
+          cmake --install _ft-build
+
+      - name: Configure & build wrapper
+        run: |
+          cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper -B _build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_PREFIX_PATH=$PWD/_install \
+            -DMSDFGEN_SRC=$PWD/msdfgen-src
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p out/osx-arm64
+          cp _build/stride_msdfgen.dylib out/osx-arm64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_msdfgen-osx-arm64
+          path: out/osx-arm64/
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout msdfgen (for commit hash)
+        uses: actions/checkout@v4
+        with:
+          repository: Chlumsky/msdfgen
+          ref: ${{ github.event.inputs.msdfgen-version }}
+          path: msdfgen-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into Release/ layout
+        run: |
+          OUT=stride_msdfgen-out
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+            mkdir -p $OUT/Release/$rid
+            cp artifacts/stride_msdfgen-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
+          done
+
+          COMMIT=$(git -C msdfgen-src rev-parse HEAD)
+          printf 'msdfgen %s\nRepository: https://github.com/Chlumsky/msdfgen\nCommit: %s\nFreeType: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.msdfgen-version }}" \
+            "$COMMIT" \
+            "${{ github.event.inputs.freetype-version }}" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
+
+      - name: List contents
+        run: find stride_msdfgen-out -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stride_msdfgen-all-platforms
+          path: stride_msdfgen-out/

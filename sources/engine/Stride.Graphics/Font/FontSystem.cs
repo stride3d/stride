@@ -22,6 +22,15 @@ namespace Stride.Graphics.Font
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
+        /// When <c>true</c> (the default), a dynamic (runtime-rasterized) glyph that is not yet
+        /// cached is generated synchronously the first time it is drawn, so it appears on that frame
+        /// instead of staying blank for a frame or two while the background builder thread catches up.
+        /// Set to <c>false</c> to keep generation fully asynchronous (avoids a render-thread hitch when
+        /// many new glyphs appear at once, at the cost of those glyphs being delayed by a frame or two).
+        /// </summary>
+        public bool SynchronousGlyphGeneration { get; set; } = true;
+
+        /// <summary>
         /// Gets the runtime font provider for registering and managing fonts loaded from the file system.
         /// </summary>
         /// <remarks>

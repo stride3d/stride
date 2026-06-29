@@ -34,14 +34,14 @@ namespace Stride.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
-                Version = 3;
+                Version = 5;
             }
 
             /// <inheritdoc />
             protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 // Get path to ffmpeg
-                var ffmpeg = ToolLocator.LocateTool("ffmpeg")?.ToOSPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
+                var ffmpeg = ToolLocator.LocateTool("ffmpeg", ensureExecutable: true)?.ToOSPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
 
                 // Get absolute path of asset source on disk
                 var assetDirectory = Parameters.Source.GetParent();

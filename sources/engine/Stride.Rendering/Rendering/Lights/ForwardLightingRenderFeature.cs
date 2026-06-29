@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Stride.Core;
@@ -44,9 +43,39 @@ namespace Stride.Rendering.Lights
 
             public readonly Dictionary<RenderLight, LightShadowMapTexture> RenderLightsWithShadows;
 
-            internal ObjectId ViewLayoutHash;
-            internal ParameterCollectionLayout ViewParameterLayout;
-            internal ParameterCollection ViewParameters = new ParameterCollection();
+            // Effects in the same view can resolve to different PerView Lighting layouts (e.g. when
+            // light permutation counts differ). Track one variant per layout hash so each layout's
+            // resource group gets parameters of its expected shape, instead of throwing.
+            internal sealed class ViewLayoutVariant
+            {
+                public ObjectId Hash;
+                public ParameterCollectionLayout ParameterCollectionLayout;
+                public readonly ParameterCollection Parameters = new ParameterCollection();
+                public int LastFrameProcessed = -1;
+            }
+
+            // Inline fast path for the common single-variant case
+            internal ViewLayoutVariant SingleVariant;
+            internal Dictionary<ObjectId, ViewLayoutVariant> ExtraVariants;
+
+            internal ViewLayoutVariant GetOrAddVariant(ObjectId hash)
+            {
+                if (SingleVariant == null)
+                {
+                    SingleVariant = new ViewLayoutVariant { Hash = hash };
+                    return SingleVariant;
+                }
+                if (SingleVariant.Hash == hash)
+                    return SingleVariant;
+
+                ExtraVariants ??= new Dictionary<ObjectId, ViewLayoutVariant>();
+                if (!ExtraVariants.TryGetValue(hash, out var variant))
+                {
+                    variant = new ViewLayoutVariant { Hash = hash };
+                    ExtraVariants[hash] = variant;
+                }
+                return variant;
+            }
 
             public RenderViewLightData()
             {
@@ -342,58 +371,14 @@ namespace Stride.Rendering.Lights
                 if (!renderViewDatas.TryGetValue(view.LightingView ?? view, out renderViewData) || viewFeature.Layouts.Count == 0)
                     continue;
 
-                // Find a PerView layout from an effect in normal state
-                ViewResourceGroupLayout firstViewLayout = null;
-                foreach (var viewLayout in viewFeature.Layouts)
-                {
-                    // Only process view layouts in normal state
-                    if (viewLayout.State != RenderEffectState.Normal)
-                        continue;
-
-                    var viewLighting = viewLayout.GetLogicalGroup(viewLightingKey);
-                    if (viewLighting.Hash != ObjectId.Empty)
-                    {
-                        firstViewLayout = viewLayout;
-                        break;
-                    }
-                }
-
-                // Nothing found for this view (no effects in normal state)
-                if (firstViewLayout == null)
-                    continue;
-
                 var viewIndex = renderViews.IndexOf(view);
+                int frameCounter = RenderSystem.FrameCounter;
 
-                var viewParameterLayout = renderViewData.ViewParameterLayout;
-                var viewParameters = renderViewData.ViewParameters;
-                var firstViewLighting = firstViewLayout.GetLogicalGroup(viewLightingKey);
-
-                // Prepare layout (should be similar for all PerView)
-                if (firstViewLighting.Hash != renderViewData.ViewLayoutHash)
-                {
-                    renderViewData.ViewLayoutHash = firstViewLighting.Hash;
-
-                    // Generate layout
-                    viewParameterLayout = renderViewData.ViewParameterLayout = new ParameterCollectionLayout();
-                    viewParameterLayout.ProcessLogicalGroup(firstViewLayout, ref firstViewLighting);
-
-                    viewParameters.UpdateLayout(viewParameterLayout);
-                }
-
-                // Compute PerView lighting
-                foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
-                {
-                    directLightGroup.ApplyViewParameters(context, viewIndex, viewParameters);
-                }
-                foreach (var environmentLight in shaderPermutation.EnvironmentLights)
-                {
-                    environmentLight.ApplyViewParameters(context, viewIndex, viewParameters);
-                }
-
-                // Update PerView
+                // Build/refresh one variant per distinct PerView Lighting layout hash, then bind each
+                // layout's resource group to its matching variant. Light groups' ApplyViewParameters
+                // is idempotent per (view, parameter collection), so it runs once per variant per frame.
                 foreach (var viewLayout in viewFeature.Layouts)
                 {
-                    // Only process view layouts in normal state
                     if (viewLayout.State != RenderEffectState.Normal)
                         continue;
 
@@ -401,13 +386,25 @@ namespace Stride.Rendering.Lights
                     if (viewLighting.Hash == ObjectId.Empty)
                         continue;
 
-                    if (viewLighting.Hash != firstViewLighting.Hash)
-                        throw new InvalidOperationException("PerView Lighting layout differs between different RenderObject in the same RenderView");
+                    var variant = renderViewData.GetOrAddVariant(viewLighting.Hash);
+                    if (variant.ParameterCollectionLayout == null)
+                    {
+                        variant.ParameterCollectionLayout = new ParameterCollectionLayout();
+                        variant.ParameterCollectionLayout.ProcessLogicalGroup(viewLayout, ref viewLighting);
+                        variant.Parameters.UpdateLayout(variant.ParameterCollectionLayout);
+                    }
+
+                    if (variant.LastFrameProcessed != frameCounter)
+                    {
+                        foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
+                            directLightGroup.ApplyViewParameters(context, viewIndex, variant.Parameters);
+                        foreach (var environmentLight in shaderPermutation.EnvironmentLights)
+                            environmentLight.ApplyViewParameters(context, viewIndex, variant.Parameters);
+                        variant.LastFrameProcessed = frameCounter;
+                    }
 
                     var resourceGroup = viewLayout.Entries[view.Index].Resources;
-
-                    // Update resources
-                    resourceGroup.UpdateLogicalGroup(ref viewLighting, viewParameters);
+                    resourceGroup.UpdateLogicalGroup(ref viewLighting, variant.Parameters);
                 }
 
                 // PerDraw
@@ -427,20 +424,18 @@ namespace Stride.Rendering.Lights
                     if (drawLighting.Hash == ObjectId.Empty)
                         return;
 
-                    // First time, let's build layout
+                    // Rebuild thread-local layout when this node's hash differs from the previous one
+                    // processed on this thread (different effects in the same view can produce different
+                    // PerDraw Lighting layouts).
                     if (drawLighting.Hash != locals.DrawLayoutHash)
                     {
                         locals.DrawLayoutHash = drawLighting.Hash;
 
-                        // Generate layout
                         var drawParameterLayout = new ParameterCollectionLayout();
                         drawParameterLayout.ProcessLogicalGroup(drawLayout, ref drawLighting);
 
                         locals.DrawParameters.UpdateLayout(drawParameterLayout);
                     }
-
-                    // TODO: Does this ever fail?
-                    Debug.Assert(drawLighting.Hash == locals.DrawLayoutHash, "PerDraw Lighting layout differs between different RenderObject in the same RenderView");
 
                     // Compute PerDraw lighting
                     foreach (var directLightGroup in shaderPermutation.DirectLightGroups)

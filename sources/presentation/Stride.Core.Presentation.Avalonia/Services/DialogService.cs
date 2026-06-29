@@ -155,6 +155,11 @@ public class DialogService : IDialogService
         return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, MainWindow));
     }
 
+    public async Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+    {
+        return await Dispatcher.InvokeTask(() => MultiCheckedMessageBox.ShowAsync(ApplicationName, message, checkBoxes, buttons, image, MainWindow));
+    }
+
     public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
     {
         return (MessageBoxResult)await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, MainWindow));

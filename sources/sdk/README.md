@@ -30,7 +30,7 @@ The SDK internal cross-references (`Stride.Build.Sdk.Editor` -> `Stride.Build.Sd
 
 ## Reverting to Full SDK Mode
 
-See the "Reverting to full-SDK style" section in `build/docs/SDK-GUIDE.md` for complete instructions.
+See the "Reverting to full-SDK style" section in `docs/build/SDK-GUIDE.md` for complete instructions.
 
 ## Building the SDK Packages
 
@@ -40,4 +40,4 @@ The packages are only needed when testing NuGet package distribution or revertin
 dotnet build sources/sdk/Stride.Build.Sdk.slnx
 ```
 
-For detailed documentation, see [build/docs/SDK-GUIDE.md](../../build/docs/SDK-GUIDE.md).
+For detailed documentation, see [docs/build/SDK-GUIDE.md](../../docs/build/SDK-GUIDE.md).

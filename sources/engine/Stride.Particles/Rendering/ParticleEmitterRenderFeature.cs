@@ -182,7 +182,7 @@ namespace Stride.Particles.Rendering
                 {
                     // Reset pipeline state, so input layout is regenerated
                     if (renderNode.RenderEffect != null)
-                        renderNode.RenderEffect.PipelineState = null;
+                        renderNode.RenderEffect.InvalidatePipelineState();
                 }
 
                 // Write some attributes back which we will need for rendering later
@@ -223,11 +223,12 @@ namespace Stride.Particles.Rendering
                 var materialInfo = renderParticleEmitter.ParticleMaterialInfo;
                 var materialParameters = material.Parameters;
 
-                if (!MaterialRenderFeature.UpdateMaterial(RenderSystem, context, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
+                var resources = MaterialRenderFeature.UpdateMaterial(RenderSystem, context, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                if (resources == null)
                     continue;
 
                 var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
-                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
             }
 
             particleBufferContext.AllocateBuffers(context, totalVertexBufferSize, highestIndexCount);
@@ -346,7 +347,8 @@ namespace Stride.Particles.Rendering
                 var renderNodeReference = renderViewStage.SortedRenderNodes[index].RenderNode;
 
                 // Get effect
-                var renderEffect = GetRenderNode(renderNodeReference).RenderEffect;
+                var renderNode = GetRenderNode(renderNodeReference);
+                var renderEffect = renderNode.RenderEffect;
                 if (renderEffect.Effect == null)
                     continue;
 
@@ -368,7 +370,7 @@ namespace Stride.Particles.Rendering
                         descriptorSetsLocal[i] = resourceGroup.DescriptorSet;
                 }
 
-                commandList.SetPipelineState(renderEffect.PipelineState);
+                commandList.SetPipelineState(renderNode.PipelineState);
                 commandList.SetDescriptorSets(0, descriptorSetsLocal);
 
                 // Bind the buffers and draw

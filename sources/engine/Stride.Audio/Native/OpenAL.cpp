@@ -561,10 +561,9 @@ extern "C" {
 			SourcePause(source->source);
 		}
 
-		DLL_EXPORT_API void xnAudioSourceFlushBuffers(xnAudioSource* source)
+		// no-lock body; caller must already hold the OpenAL context lock
+		static void FlushBuffersInternal(xnAudioSource* source)
 		{
-			ContextState lock(source->listener->context);
-
 			if (source->streamed)
 			{
 				//flush all buffers
@@ -588,12 +587,19 @@ extern "C" {
 			}
 		}
 
+		DLL_EXPORT_API void xnAudioSourceFlushBuffers(xnAudioSource* source)
+		{
+			ContextState lock(source->listener->context);
+
+			FlushBuffersInternal(source);
+		}
+
 		DLL_EXPORT_API void xnAudioSourceStop(xnAudioSource* source)
 		{
 			ContextState lock(source->listener->context);
 
 			SourceStop(source->source);
-			xnAudioSourceFlushBuffers(source);
+			FlushBuffersInternal(source);
 
 			//reset timing info
 			if(source->streamed)

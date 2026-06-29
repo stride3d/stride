@@ -1,0 +1,27 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Rendering.Materials;
+using Stride.Rendering.Shadows;
+
+namespace Stride.Rendering.Compositing
+{
+    // Spawn a sub-effect for the depth-only Z prepass (no color render target bound)
+    partial effect ZPrepass
+    {
+        using params MaterialKeys;
+
+        // For cut off and blend materials we still need a pixel shader to perform the alpha test
+        if(MaterialKeys.UseDitheredShadows)
+        {
+            mixin ShadowMapCasterAlphaDithered;
+        }
+        else if(MaterialKeys.UsePixelShaderWithDepthPass)
+        {
+            mixin ShadowMapCasterAlphaDiscard;
+        }
+        else
+        {
+            mixin ShadowMapCasterNoPixelShader;
+        }
+    };
+}

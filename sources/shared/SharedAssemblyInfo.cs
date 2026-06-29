@@ -7,7 +7,7 @@
 using System.Reflection;
 using Stride;
 
-[assembly: AssemblyVersion(StrideVersion.PublicVersion)]
+[assembly: AssemblyVersion(StrideVersion.AssemblyVersion)]
 [assembly: AssemblyFileVersion(StrideVersion.PublicVersion)]
 
 [assembly: AssemblyInformationalVersion(StrideVersion.AssemblyInformationalVersion)]
@@ -18,37 +18,72 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// During package build, PackageUpdateVersionTask is updating that file and expect some specific text regex so be careful if you change any of this.
+/// This file is the source of truth for the version: it is the committed value, bumped per release (not derived
+/// from git tags). The generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="Patch"/> +
+/// <see cref="NuGetVersionSuffix"/> and overlay them into a single generated copy, SharedAssemblyInfo.Generated.cs,
+/// which the Stride SDK swaps in at build time (adding the -devN worktree suffix on dev builds, +g&lt;sha&gt; on
+/// package builds). Keep the shape of the MajorMinor/Patch/NuGetVersionSuffix/PublicVersion/BuildMetadata lines
+/// (name = "value";) so the regexes match. Its <see cref="PublicVersion"/> is a sentinel (see below).
 /// </remarks>
 internal class StrideVersion
 {
-    /// <summary>
-    /// The version used by editor for display purpose. The 4th digit will automatically be replaced by the git height when building packages with Stride.Build.
-    /// </summary>
-    public const string PublicVersion = "4.3.0.1";
+    // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
+    // The version is MajorMinor.Patch + NuGetVersionSuffix. Edit these and bump per release — usually that's
+    // release.yml bumping Patch automatically after a stable release, but you edit by hand to start a new
+    // major/minor cycle or a beta. (Patch is a string, not an int, only because a const string can't concatenate
+    // an int.) Don't edit the derived consts below.
 
     /// <summary>
-    /// The current assembly version as text, currently same as <see cref="PublicVersion"/>.
+    /// Release line. The single source for major.minor; pins <see cref="AssemblyVersion"/>. Bump when starting a new
+    /// major/minor cycle.
     /// </summary>
-    public const string AssemblyVersion = PublicVersion;
+    public const string MajorMinor = "4.4";
 
     /// <summary>
-    /// The NuGet package version without special tags.
+    /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped per stable release
+    /// (release.yml). A patch bump is also what gates asset upgraders, so bump it whenever the asset format changes.
     /// </summary>
-    public const string NuGetVersionSimple = PublicVersion;
+    public const string Patch = "0";
 
     /// <summary>
-    /// The NuGet package version.
-    /// </summary>
-    public const string NuGetVersion = NuGetVersionSimple + NuGetVersionSuffix;
-
-    /// <summary>
-    /// The NuGet package suffix (i.e. -beta).
+    /// The prerelease suffix (e.g. -beta1), a cosmetic, NuGet-ordered label — asset upgraders ignore it (they gate on
+    /// the numeric version). Empty for a stable release. The generators overlay it with -devN on dev builds.
     /// </summary>
     public const string NuGetVersionSuffix = "";
 
     /// <summary>
-    /// The build metadata, usually +g[git_hash] during package. Automatically set by Stride.GitVersioning.GenerateVersionFile.
+    /// Base version of the content-versioned template packages (Starters, Samples), independent of the engine
+    /// version. The bridge query and Stride.Templates.Common.targets pack both append <see cref="NuGetVersionSuffix"/>
+    /// to it (one source, so they can't drift); StrideSamplesVersion.props reads it for the build.
+    /// </summary>
+    public const string SamplesVersion = "4.4.0";
+
+    // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The version: MajorMinor.Patch (the single readable value; the editable parts are above).</summary>
+    public const string Version = MajorMinor + "." + Patch;
+
+    /// <summary>
+    /// The build version (used for display and as <see cref="AssemblyFileVersion"/> /
+    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the real version. In this
+    /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="Version"/> so
+    /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking version.
+    /// </summary>
+    public const string PublicVersion = MajorMinor + ".65534";
+
+    /// <summary>
+    /// The assembly binding identity: pinned per major.minor (the patch must not churn it), so it is derived from
+    /// <see cref="MajorMinor"/> rather than from the build version.
+    /// </summary>
+    public const string AssemblyVersion = MajorMinor + ".0.0";
+
+    /// <summary>
+    /// The NuGet package version.
+    /// </summary>
+    public const string NuGetVersion = PublicVersion + NuGetVersionSuffix;
+
+    /// <summary>
+    /// The build metadata, usually +g[git_hash] during package. Set by the release generator (Stride.GitVersion.targets).
     /// </summary>
     public const string BuildMetadata = "";
 

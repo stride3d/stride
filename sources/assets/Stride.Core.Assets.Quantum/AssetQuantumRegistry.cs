@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Quantum;
 
@@ -12,12 +13,36 @@ public static class AssetQuantumRegistry
     private static readonly Dictionary<Type, Type> NodeGraphTypes = [];
     private static readonly Dictionary<Type, AssetPropertyGraphDefinition> NodeGraphDefinitions = [];
     private static readonly Dictionary<Type, Type> GenericNodeGraphDefinitionTypes = [];
+    private static readonly HashSet<Assembly> RegisteredAssemblies = [];
+
+    static AssetQuantumRegistry()
+    {
+        // Asset assemblies carry their graph definitions as a plugin: scan the ones already loaded and
+        // keep listening, so engine/game definitions register without an explicit reference to them.
+        foreach (var assembly in AssemblyRegistry.Find(AssemblyCommonCategories.Assets))
+            RegisterAssembly(assembly);
+        AssemblyRegistry.AssemblyRegistered += (_, e) =>
+        {
+            if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                RegisterAssembly(e.Assembly);
+        };
+    }
 
     public static void RegisterAssembly(Assembly assembly)
     {
-        foreach (var type in assembly.GetTypes())
+        if (!RegisteredAssemblies.Add(assembly))
+            return;
+
+        // Read the precomputed scan index instead of reflecting over every type: the assembly processor
+        // already buckets the [AssemblyScan] graph attributes, so this skips loading unrelated types (some
+        // assemblies, e.g. Stride.Assets referencing MSBuild, can't fully load all their types in every host).
+        var scanTypes = AssemblyRegistry.GetScanTypes(assembly);
+        if (scanTypes is null)
+            return;
+
+        if (scanTypes.Types.TryGetValue(typeof(AssetPropertyGraphAttribute), out var graphTypes))
         {
-            if (typeof(AssetPropertyGraph).IsAssignableFrom(type))
+            foreach (var type in graphTypes)
             {
                 var attribute = type.GetCustomAttribute<AssetPropertyGraphAttribute>();
                 if (attribute is null)
@@ -26,13 +51,14 @@ public static class AssetQuantumRegistry
                 if (type.GetConstructor(AssetPropertyNodeGraphConstructorSignature) is null)
                     throw new InvalidOperationException($"The type {type.Name} does not have a public constructor matching the expected signature: ({string.Join(", ", (IEnumerable<Type>)AssetPropertyNodeGraphConstructorSignature)})");
 
-                if (NodeGraphTypes.ContainsKey(attribute.AssetType))
+                if (!NodeGraphTypes.TryAdd(attribute.AssetType, type))
                     throw new ArgumentException($"The type {attribute.AssetType.Name} already has an associated property node graph type.");
-
-                NodeGraphTypes.Add(attribute.AssetType, type);
             }
+        }
 
-            if (typeof(AssetPropertyGraphDefinition).IsAssignableFrom(type))
+        if (scanTypes.Types.TryGetValue(typeof(AssetPropertyGraphDefinitionAttribute), out var definitionTypes))
+        {
+            foreach (var type in definitionTypes)
             {
                 var attribute = type.GetCustomAttribute<AssetPropertyGraphDefinitionAttribute>();
                 if (attribute is null)

@@ -184,9 +184,9 @@ namespace Stride.Graphics
 
                 // Present
                 var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
-                if (presentResult == VkResult.ErrorOutOfDateKHR)
+                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR || presentResult == VkResult.ErrorSurfaceLostKHR)
                 {
-                    // Likely a window resize; wait for WM_SIZE to be processed next frame
+                    // Resize/rotation (OutOfDate/Suboptimal) or Android suspend (SurfaceLost) — recreate.
                     OnRecreated();
                     return;
                 }
@@ -207,7 +207,7 @@ namespace Stride.Graphics
         {
             // Get next image
             var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
-            if (result == VkResult.ErrorOutOfDateKHR)
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.SuboptimalKHR || result == VkResult.ErrorSurfaceLostKHR)
             {
                 if (recreateIfFails)
                 {
@@ -260,12 +260,16 @@ namespace Stride.Graphics
 
         public override void BeginDraw(CommandList commandList)
         {
-            // Backbuffer needs to be cleared
+            base.BeginDraw(commandList);
             backBuffer.IsInitialized = false;
         }
 
         public override void EndDraw(CommandList commandList, bool present)
         {
+            // Transition the back-buffer to Present before vkQueuePresentKHR sees it.
+            // Skipped when the caller won't actually Present (no-draw frames, headless tests).
+            if (present)
+                commandList.ResourceBarrierTransition(BackBuffer, BarrierLayout.Present);
         }
 
         protected override void OnNameChanged()
@@ -376,6 +380,11 @@ namespace Stride.Graphics
 
         private unsafe void CreateSwapChain(int width, int height, PixelFormat desiredFormat)
         {
+            // Surface lost (Android suspend) — recreate from the current native window before any query.
+            var probeResult = GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out _);
+            if (probeResult == VkResult.ErrorSurfaceLostKHR)
+                RecreateSurface();
+
             var formats = new[] { desiredFormat, PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
 
             foreach (var format in formats)
@@ -432,25 +441,41 @@ namespace Stride.Graphics
             // Create swapchain
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
 
-            Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
-            Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
+            // Match currentTransform so the engine skips the rotation compose pass (saves a vsync
+            // on Android tile-based GPUs). Renderer folds the rotation into the projection.
+            var preTransform = surfaceCapabilities.currentTransform;
+            SurfaceRotation = preTransform switch
+            {
+                VkSurfaceTransformFlagsKHR.Rotate90 => SurfaceRotation.Rotate90,
+                VkSurfaceTransformFlagsKHR.Rotate180 => SurfaceRotation.Rotate180,
+                VkSurfaceTransformFlagsKHR.Rotate270 => SurfaceRotation.Rotate270,
+                _ => SurfaceRotation.Identity,
+            };
+            // With Rotate90/270 the swapchain images are in device-natural orientation: swap W/H.
+            var rotated = SurfaceRotation is SurfaceRotation.Rotate90 or SurfaceRotation.Rotate270;
+            var swapchainWidth = rotated ? (int)surfaceCapabilities.currentExtent.height : (int)surfaceCapabilities.currentExtent.width;
+            var swapchainHeight = rotated ? (int)surfaceCapabilities.currentExtent.width : (int)surfaceCapabilities.currentExtent.height;
+
+            if (!Description.SkipBackBufferClampToWindow)
+            {
+                Description.BackBufferWidth = swapchainWidth;
+                Description.BackBufferHeight = swapchainHeight;
+                // The depth-stencil was created with the pre-clamp Description size at presenter
+                // construction (before this method runs); re-size it to match the swapchain extent
+                // so attachments don't mismatch (Android Vulkan, rotated surfaces).
+                if (DepthStencilBuffer != null
+                    && (DepthStencilBuffer.Description.Width != Description.BackBufferWidth
+                        || DepthStencilBuffer.Description.Height != Description.BackBufferHeight))
+                {
+                    ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
+                }
+            }
 
             // Buffer count
             uint desiredImageCount = Math.Max(surfaceCapabilities.minImageCount, 2);
             if (surfaceCapabilities.maxImageCount > 0 && desiredImageCount > surfaceCapabilities.maxImageCount)
             {
                 desiredImageCount = surfaceCapabilities.maxImageCount;
-            }
-
-            // Transform
-            VkSurfaceTransformFlagsKHR preTransform;
-            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.Identity) != 0)
-            {
-                preTransform = VkSurfaceTransformFlagsKHR.Identity;
-            }
-            else
-            {
-                preTransform = surfaceCapabilities.currentTransform;
             }
 
             // Find present mode
@@ -476,6 +501,15 @@ namespace Stride.Graphics
                 }
             }
 
+            // CompositeAlpha: Android typically only exposes Inherit; pick whichever supported bit
+            // matches the priority (Opaque is the historical default on desktop).
+            var supportedCompositeAlpha = surfaceCapabilities.supportedCompositeAlpha;
+            VkCompositeAlphaFlagsKHR compositeAlpha;
+            if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.Opaque) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque;
+            else if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.PreMultiplied) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.PreMultiplied;
+            else if ((supportedCompositeAlpha & VkCompositeAlphaFlagsKHR.PostMultiplied) != 0) compositeAlpha = VkCompositeAlphaFlagsKHR.PostMultiplied;
+            else compositeAlpha = VkCompositeAlphaFlagsKHR.Inherit;
+
             // Create swapchain
             var swapchainCreateInfo = new VkSwapchainCreateInfoKHR
             {
@@ -488,7 +522,7 @@ namespace Stride.Graphics
                 imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate
                 presentMode = swapChainPresentMode,
-                compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque,
+                compositeAlpha = compositeAlpha,
                 minImageCount = desiredImageCount,
                 preTransform = preTransform,
                 oldSwapchain = swapChain,
@@ -502,6 +536,18 @@ namespace Stride.Graphics
             CreateBackBuffers();
         }
 
+        private unsafe void RecreateSurface()
+        {
+            // Swapchain must be torn down before the surface (Vulkan spec + Android ANativeWindow exclusivity).
+            DestroySwapchain();
+            if (surface != VkSurfaceKHR.Null)
+            {
+                GraphicsDevice.NativeInstanceApi.vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
+                surface = VkSurfaceKHR.Null;
+            }
+            CreateSurface();
+        }
+
         private unsafe void CreateSurface()
         {
             // Check for Window Handle parameter
@@ -510,13 +556,16 @@ namespace Stride.Graphics
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
 
-            // Validate surface extension support (not available with headless ICDs like SwiftShader)
+            // Validate surface extension support (not available with headless ICDs)
             if (!GraphicsAdapterFactory.GetInstance(GraphicsDevice.IsDebugMode).HasSurfaceSupport)
-                throw new InvalidOperationException("Cannot create a swapchain: Vulkan surface extensions are not available. This may happen when using a headless ICD (e.g. SwiftShader).");
+                throw new InvalidOperationException("Cannot create a swapchain: Vulkan surface extensions are not available. This may happen when using a headless ICD.");
 
             // Create surface
 #if STRIDE_UI_SDL
-            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL)
+            // iOS reuses the SDL surface-creation path (GameContextiOS inherits GameContextSDL);
+            // SDL's VulkanCreateSurface routes to VkMetalSurfaceCreateInfoEXT internally on iOS.
+            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL
+                || Description.DeviceWindowHandle.Context == Games.AppContextType.iOS)
             {
                 var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
                 Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;

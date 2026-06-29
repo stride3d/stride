@@ -12,22 +12,28 @@ namespace Stride.Core.IO;
 /// <typeparam name="T">The type of elements in the store.</typeparam>
 public abstract class Store<T> : IDisposable where T : new()
 {
-    // Locking is enabled on all platforms. NativeLockFile handles platform differences internally.
-    // Disabled dynamically if locking fails at runtime (e.g. WSL2 9p).
+    // Disabled only on unsupported filesystems (e.g. WSL2 9p); contention is handled by LockFile retry.
     private static bool LockEnabled = true;
 
-    /// <summary>
-    ///   Tries to lock a file range. If locking fails (e.g. unsupported filesystem),
-    ///   disables locking for all future calls and proceeds without a lock.
-    /// </summary>
+    // Retries on contention; only disables the global flag when the OS reports locking unsupported.
     private static void LockFile(FileStream fileStream, long offset, long count, bool exclusive)
     {
-        if (!NativeLockFile.TryLockFile(fileStream, offset, count, exclusive))
+        // Spin first (per-entry writes are µs), then 1ms, then 5-25ms backoff; ~30s cap.
+        const int MaxAttempts = 2000;
+        for (int attempt = 0; attempt < MaxAttempts; attempt++)
         {
-            // Lock failed — could be contention or unsupported filesystem.
-            // Disable locking to avoid repeated failures and proceed without lock.
-            LockEnabled = false;
+            var result = NativeLockFile.TryAcquireFile(fileStream, offset, count, exclusive);
+            if (result == NativeLockFile.FileLockResult.Acquired) return;
+            if (result == NativeLockFile.FileLockResult.Unsupported)
+            {
+                LockEnabled = false;
+                return;
+            }
+            if (attempt < 16) Thread.Yield();
+            else if (attempt < 64) Thread.Sleep(1);
+            else Thread.Sleep(5 + Random.Shared.Next(20));
         }
+        // Give up and proceed unlocked rather than hang; persistent failure means something external is stuck.
     }
 
     protected Stream stream;

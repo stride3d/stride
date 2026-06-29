@@ -1,0 +1,7 @@
+<!-- Read from StrideVersion.SamplesVersion in SharedAssemblyInfo.cs (single source, shared with the bridge query).
+     The prerelease suffix is appended by Stride.Templates.Common.targets. -->
+<Project>
+  <PropertyGroup>
+    <StrideSamplesVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs')), `.*SamplesVersion = \"(.*)\";.*`).Groups[1].Value)</StrideSamplesVersion>
+  </PropertyGroup>
+</Project>

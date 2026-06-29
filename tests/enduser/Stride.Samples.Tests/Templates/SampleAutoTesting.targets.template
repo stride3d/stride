@@ -1,0 +1,34 @@
+<Project>
+  <!--
+    Screenshot-harness wiring for regenerated samples. Stride.SampleScreenshotRunner fills the
+    in-tree engine version into the harness PackageReference below and writes this as
+    samplesGenerated/Directory.Build.targets, which MSBuild auto-imports for every regenerated
+    sample under it. Per-sample fixtures gate on `#if STRIDE_AUTOTESTING` and self-register via a
+    [ModuleInitializer] (see AutoTestingBootstrap.RegisterTest), so no bootstrap injection is needed.
+  -->
+  <PropertyGroup Condition="'$(StrideAutoTesting)' == 'true'">
+    <DefineConstants>$(DefineConstants);STRIDE_AUTOTESTING</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And Exists('$(MSBuildProjectDirectory)\Tests')">
+    <PackageReference Include="Stride.Games.AutoTesting" Version="$STRIDE_DEV_VERSION$" PrivateAssets="contentfiles;analyzers" />
+  </ItemGroup>
+  <!-- Pin WARP for reproducible D3D11/D3D12 captures. -->
+  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">
+    <PackageReference Include="Microsoft.Direct3D.WARP" Version="1.0.20" GeneratePathProperty="true" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+  <!-- Pin the D3D12 runtime + debug layer (Agility SDK) so captures don't depend on the OS-serviced
+       D3D12. Side-loaded into a D3D12\ subfolder; GraphicsDevice activates it via ID3D12SDKConfiguration
+       before creating the device. D3D12 only — the Agility SDK does not cover D3D11. -->
+  <ItemGroup Condition="'$(StrideAutoTesting)' == 'true' And '$(StrideGraphicsApi)' == 'Direct3D12'">
+    <PackageReference Include="Microsoft.Direct3D.D3D12" Version="1.619.3" GeneratePathProperty="true" />
+    <Content Include="$(PkgMicrosoft_Direct3D_D3D12)\build\native\bin\x64\D3D12Core.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_D3D12)' != ''"
+             Link="D3D12\D3D12Core.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <Content Include="$(PkgMicrosoft_Direct3D_D3D12)\build\native\bin\x64\d3d12SDKLayers.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_D3D12)' != ''"
+             Link="D3D12\D3D12SDKLayers.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+</Project>

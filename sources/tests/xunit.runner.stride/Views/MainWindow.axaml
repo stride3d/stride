@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="xunit.runner.stride.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="XUnit Runner (Stride)">
+        Title="XUnit Runner (Stride)"
+        Background="{DynamicResource WindowBackgroundBrush}">
   <views:MainView />
 </Window>

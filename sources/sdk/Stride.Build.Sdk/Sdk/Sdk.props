@@ -20,7 +20,7 @@
     Rule: Properties defined in the user's .csproj are NOT visible here.
           Move conditional logic to Sdk.targets instead.
 
-    See: build/docs/SDK-GUIDE.md#property-evaluation-order
+    See: docs/build/SDK-GUIDE.md#property-evaluation-order
     ================================================================
   -->
 

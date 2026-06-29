@@ -260,7 +260,7 @@ namespace Stride.Engine
             // Init assets
             if (Context.InitializeDatabase)
             {
-                databaseFileProvider = InitializeAssetDatabase();
+                databaseFileProvider = InitializeAssetDatabase(AssetBundleName);
                 ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
@@ -310,7 +310,7 @@ namespace Stride.Engine
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
-            if (gameCreation)
+            if (gameCreation && !deviceManager.SkipBackBufferClampToWindow)
             {
                 //if our device width or height is actually smaller then requested we use the device one
                 deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
@@ -318,7 +318,7 @@ namespace Stride.Engine
             }
 
             //these might get triggered even during game runtime, resize, orientation change
-            if (renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
+            if (!deviceManager.SkipBackBufferClampToWindow && renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
             {
                 var deviceAr = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
 
@@ -398,12 +398,17 @@ namespace Stride.Engine
             OnGameStarted(this);
         }
 
-        internal static DatabaseFileProvider InitializeAssetDatabase()
+        /// <summary>
+        /// Name of the bundle loaded into the asset database at <see cref="PrepareContext"/>. Defaults to <c>"default"</c>.
+        /// </summary>
+        public string AssetBundleName { get; set; } = "default";
+
+        internal static DatabaseFileProvider InitializeAssetDatabase(string defaultBundleName = "default")
         {
             using (Profiler.Begin(GameProfilingKeys.ObjectDatabaseInitialize))
             {
                 // Create and mount database file system
-                var objDatabase = ObjectDatabase.CreateDefaultDatabase();
+                var objDatabase = ObjectDatabase.CreateDefaultDatabase(defaultBundleName);
 
                 // Only set a mount path if not mounted already
                 var mountPath = VirtualFileSystem.ResolveProviderUnsafe("/asset", true).Provider == null ? "/asset" : null;

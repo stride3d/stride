@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -305,6 +306,7 @@ namespace Stride.Engine
             OnEntityRemoved(entity);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Processor ctor rooted via [DefaultEntityComponentProcessor(typeof(...))] DAM.")]
         private void CollectNewProcessorsByComponentType(TypeInfo componentType)
         {
             if (componentTypes.Contains(componentType))

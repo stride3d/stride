@@ -1,0 +1,211 @@
+name: Release CLI
+
+# Builds, signs, and (optionally) deploys the Stride CLI dotnet tool (Stride.Cli) to NuGet.org.
+#
+# Versioned independently of the engine: the SemVer in sources/launcher/Stride.Cli/Stride.Cli.csproj
+# is the source of truth - bump <Version> by hand before a stable release. A deploy pushes to
+# NuGet.org, tags cli/<version> at the built commit, and creates a GitHub Release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Code sign the package
+        default: true
+        type: boolean
+      deploy:
+        description: Deploy to NuGet.org and create a GitHub Release
+        default: false
+        type: boolean
+      version-suffix:
+        description: Prerelease suffix, no leading dash (e.g. "beta1" -> 1.0.0-beta1). Empty = stable.
+        default: ''
+        type: string
+
+concurrency:
+  group: release-cli-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  Validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  Package:
+    name: Package
+    needs: Validate
+    runs-on: windows-2025-vs2026
+    environment: production  # signing secrets live here
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0  # full history + tags for the re-publish guard
+          fetch-tags: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build and sign package
+        run: |
+          dotnet build build\Stride.build `
+            -t:PackageCli `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:VersionSuffix=${{ inputs.version-suffix }}
+        env:
+          StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
+          StrideSignClientId: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_ID || '' }}
+          StrideSignClientSecret: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_SECRET || '' }}
+          StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
+          StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
+
+      - name: Detect version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Path bin/cli -Filter "Stride.Cli.*.nupkg" | Select-Object -First 1
+          if (-not $pkg) {
+            echo "::error::No Stride.Cli package found"
+            exit 1
+          }
+          $version = $pkg.Name -replace 'Stride\.Cli\.(.*?)\.nupkg','$1'
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            echo "::error::Detected package version '$version' is not a valid version - check Stride.Cli.csproj"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::CLI package version: $version"
+
+      # Forget-to-bump guard: <Version> is committed and bumped per release. If it wasn't bumped, its
+      # cli/<version> tag already exists on a previously-released commit, so fail rather than re-publish.
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        shell: bash
+        run: |
+          TAG="cli/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::CLI version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump <Version> in Stride.Cli.csproj."
+            exit 1
+          fi
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-package
+          path: bin/cli/*.nupkg
+          if-no-files-found: error
+
+  # Surface the version in the run UI even when Deploy is skipped.
+  Version:
+    name: Packaged CLI ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: ${{ always() && needs.Package.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice title=Packaged CLI::${{ needs.Package.outputs.version }}"
+
+  Deploy:
+    name: Deploy ${{ needs.Package.outputs.version }}
+    if: ${{ inputs.deploy && inputs.sign }}
+    needs: Package
+    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    environment: production  # requires manual approval in GitHub settings
+    permissions:
+      contents: write
+    steps:
+      - name: Check release permissions
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}  # push the cli/<version> tag
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: cli-package
+          path: bin/cli
+
+      - name: Push to NuGet.org
+        shell: bash
+        run: |
+          for pkg in bin/cli/*.nupkg; do
+            echo "Pushing $(basename "$pkg")..."
+            dotnet nuget push "$pkg" --api-key "$STRIDE_NUGET_API_KEY" --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+          done
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        run: |
+          TAG="cli/${{ needs.Package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG="cli/${{ needs.Package.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+          else
+            gh release create "$TAG" \
+              --title "Stride CLI ${{ needs.Package.outputs.version }}" \
+              --generate-notes \
+              bin/cli/*.nupkg
+          fi
+
+      - name: Publish summary
+        if: success()
+        shell: bash
+        run: |
+          V="${{ needs.Package.outputs.version }}"
+          {
+            echo "## Published Stride.Cli $V"
+            echo ""
+            echo "- [nuget.org](https://www.nuget.org/packages/Stride.Cli/$V)"
+            echo "- [GitHub Release](${{ github.server_url }}/${{ github.repository }}/releases/tag/cli/$V)"
+            echo ""
+            echo "Install: \`dotnet tool install -g Stride.Cli --version $V\`"
+          } >> "$GITHUB_STEP_SUMMARY"

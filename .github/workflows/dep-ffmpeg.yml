@@ -1,0 +1,479 @@
+name: "Dep: Build & Deploy FFmpeg"
+
+# Builds FFmpeg twice per platform:
+#   1. ffmpeg-libs-<rid>: LGPL shared libav* libraries shipped with the game runtime via
+#      deps/FFmpeg/dotnet/<rid>/. MUST match the FFmpeg.AutoGen NuGet major version.
+#   2. ffmpeg-cli-<rid>: GPL static ffmpeg executable with libx264 + platform HW encoders.
+#      Used by the editor's asset compiler via ToolLocator.LocateTool("ffmpeg").
+#      The GPL CLI does not contaminate the LGPL libs: they are produced from independent
+#      configure/build invocations against separate prefixes.
+#
+# Slimming strategy: --disable-everything then explicit --enable-* per category.
+# Decoders + demuxers + parsers stay BROAD (covers ProRes/DNxHD/AC-3 etc. — anything
+# an artist might realistically feed in). Encoders/muxers/filters/protocols stay NARROW
+# (only what we actually emit). HW encoders enabled per platform.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: FFmpeg ref (must match FFmpeg.AutoGen NuGet major version)
+        default: n7.1.1
+        required: false
+      x264_ref:
+        description: x264 ref (used by the CLI build only)
+        default: stable
+        required: false
+
+env:
+  # YAML `>-` folds newlines into spaces, which would break FFmpeg's comma-separated
+  # --enable-* lists. Keep each value on a single line.
+  # Decoders: broad — covers anything an artist might import (ProRes/DNxHD/AC-3 etc.).
+  COMMON_DECODERS: "h264,hevc,vp8,vp9,av1,mjpeg,mpeg4,mpeg2video,mpeg1video,prores,dnxhd,theora,hap,gif,aac,aac_latm,mp3,mp3float,vorbis,opus,flac,ac3,eac3,alac,pcm_f32le,pcm_f32be,pcm_s16le,pcm_s16be,pcm_s24le,pcm_s24be,pcm_s32le,pcm_s32be,pcm_u8,pcm_s8,pcm_mulaw,pcm_alaw"
+  # Demuxers: broad — input container coverage.
+  COMMON_DEMUXERS: "mov,matroska,ogg,avi,mpegts,mpegps,mpegvideo,asf,flv,wav,mp3,flac,aac,mxf,rawvideo,h264,hevc"
+  # Parsers: matches the decoder set so streams advance cleanly.
+  COMMON_PARSERS: "h264,hevc,vp8,vp9,av1,mjpeg,mpeg4video,mpegvideo,mpegaudio,aac,aac_latm,vorbis,opus,flac,ac3,gif"
+  # Bitstream filters: H.264/HEVC mp4toannexb + a couple metadata BSFs.
+  COMMON_BSFS: "h264_mp4toannexb,hevc_mp4toannexb,vp9_metadata,av1_metadata,extract_extradata,aac_adtstoasc"
+
+jobs:
+  # ====================================================================
+  # Linux x64
+  # ====================================================================
+  linux-x64:
+    name: Build FFmpeg (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            nasm yasm pkg-config diffutils \
+            libva-dev libdrm-dev
+
+      - name: Clone FFmpeg
+        run: |
+          git init ffmpeg-src
+          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
+          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src checkout FETCH_HEAD
+
+      - name: Clone & build x264 (static)
+        run: |
+          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
+            https://code.videolan.org/videolan/x264.git x264-src
+          cd x264-src
+          ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
+          make -j"$(nproc)"
+          make install
+
+      - name: Configure & build libs (LGPL shared, decode-focused)
+        working-directory: ffmpeg-src
+        run: |
+          ./configure --prefix="$PWD/../ffmpeg-libs-install" \
+            --enable-shared --disable-static \
+            --disable-programs --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv \
+            --enable-small --enable-pic \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,subfile \
+            --enable-filter=scale,format,aformat,aresample \
+            --enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=pcm_f32le,wav,mp4,rawvideo
+          make -j"$(nproc)"
+          make install
+          make clean
+
+      - name: Configure & build CLI (GPL static, libx264 + VA-API)
+        working-directory: ffmpeg-src
+        run: |
+          PKG_CONFIG_PATH="$PWD/../x264-install/lib/pkgconfig" ./configure --prefix="$PWD/../ffmpeg-cli-install" \
+            --enable-static --disable-shared \
+            --enable-gpl --enable-libx264 --enable-vaapi \
+            --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv \
+            --enable-small --enable-pic \
+            --pkg-config-flags=--static \
+            --extra-cflags="-I../x264-install/include" \
+            --extra-ldflags="-L../x264-install/lib" \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,pipe,subfile \
+            --enable-filter=scale,format,fps,crop,setdar,setsar,transpose,vflip,hflip,aformat,aresample,hwupload,hwdownload,hwmap \
+            --enable-encoder=libx264,h264_vaapi,hevc_vaapi,aac,pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=mp4,mov,matroska,webm,wav,ogg,null,pcm_f32le,rawvideo
+          make -j"$(nproc)"
+          make install
+
+      - name: Collect lib artifact
+        run: |
+          mkdir -p out-libs
+          # Rename to SONAME (libavcodec.so.61.19.101 → libavcodec.so.61) so .NET
+          # DllImport / dlopen finds them via the major-version name FFmpeg.AutoGen requests.
+          for f in ffmpeg-libs-install/lib/libav*.so.* ffmpeg-libs-install/lib/libsw*.so.*; do
+            [ -L "$f" ] && continue
+            base=$(basename "$f")
+            short=$(echo "$base" | sed -E 's/^(lib[a-z]+)\.so\.([0-9]+)\.[0-9]+\.[0-9]+$/\1.so.\2/')
+            cp "$f" out-libs/"$short"
+          done
+          ls -la out-libs/
+          du -sh out-libs/
+
+      - name: Collect CLI artifact
+        run: |
+          mkdir -p out-cli/linux-x64
+          cp ffmpeg-cli-install/bin/ffmpeg out-cli/linux-x64/
+          strip out-cli/linux-x64/ffmpeg || true
+          ls -la out-cli/linux-x64/
+          du -sh out-cli/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-libs-linux-x64, path: out-libs/ }
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-cli-linux-x64, path: out-cli/ }
+
+  # ====================================================================
+  # macOS ARM64
+  # ====================================================================
+  osx-arm64:
+    name: Build FFmpeg (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - name: Install build deps
+        run: brew install nasm pkg-config
+
+      - name: Clone FFmpeg
+        run: |
+          git init ffmpeg-src
+          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
+          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src checkout FETCH_HEAD
+
+      - name: Clone & build x264 (static)
+        run: |
+          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
+            https://code.videolan.org/videolan/x264.git x264-src
+          cd x264-src
+          ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
+          make -j"$(sysctl -n hw.logicalcpu)"
+          make install
+
+      - name: Configure & build libs (LGPL shared, decode-focused)
+        working-directory: ffmpeg-src
+        run: |
+          ./configure --prefix="$PWD/../ffmpeg-libs-install" \
+            --enable-shared --disable-static \
+            --disable-programs --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv \
+            --enable-small --enable-pic \
+            --install-name-dir=@rpath \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,subfile \
+            --enable-filter=scale,format,aformat,aresample \
+            --enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=pcm_f32le,wav,mp4,rawvideo
+          make -j"$(sysctl -n hw.logicalcpu)"
+          make install
+          make clean
+
+      - name: Configure & build CLI (GPL static, libx264 + VideoToolbox)
+        working-directory: ffmpeg-src
+        run: |
+          PKG_CONFIG_PATH="$PWD/../x264-install/lib/pkgconfig" ./configure --prefix="$PWD/../ffmpeg-cli-install" \
+            --enable-static --disable-shared \
+            --enable-gpl --enable-libx264 --enable-videotoolbox \
+            --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv \
+            --enable-small --enable-pic \
+            --pkg-config-flags=--static \
+            --extra-cflags="-I../x264-install/include" \
+            --extra-ldflags="-L../x264-install/lib" \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,pipe,subfile \
+            --enable-filter=scale,format,fps,crop,setdar,setsar,transpose,vflip,hflip,aformat,aresample,hwupload,hwdownload,hwmap \
+            --enable-encoder=libx264,h264_videotoolbox,hevc_videotoolbox,aac,pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=mp4,mov,matroska,webm,wav,ogg,null,pcm_f32le,rawvideo
+          make -j"$(sysctl -n hw.logicalcpu)"
+          make install
+
+      - name: Collect lib artifact
+        run: |
+          mkdir -p out-libs
+          # Rename to install_name (libavcodec.61.19.101.dylib → libavcodec.61.dylib) so .NET
+          # DllImport / dlopen finds them via the major-version name FFmpeg.AutoGen requests.
+          for f in ffmpeg-libs-install/lib/libav*.[0-9]*.dylib ffmpeg-libs-install/lib/libsw*.[0-9]*.dylib; do
+            [ -L "$f" ] && continue
+            base=$(basename "$f")
+            short=$(echo "$base" | sed -E 's/^(lib[a-z]+)\.([0-9]+)\.[0-9]+\.[0-9]+\.dylib$/\1.\2.dylib/')
+            cp "$f" out-libs/"$short"
+          done
+          ls -la out-libs/
+          du -sh out-libs/
+
+      - name: Collect CLI artifact
+        run: |
+          mkdir -p out-cli/osx-arm64
+          cp ffmpeg-cli-install/bin/ffmpeg out-cli/osx-arm64/
+          strip out-cli/osx-arm64/ffmpeg || true
+          ls -la out-cli/osx-arm64/
+          du -sh out-cli/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-libs-osx-arm64, path: out-libs/ }
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-cli-osx-arm64, path: out-cli/ }
+
+  # ====================================================================
+  # Windows x64 (MSYS2 mingw64). pkg-config inside MSYS2 needs MSYS paths,
+  # so we use relative ../x264-install paths from ffmpeg-src/ instead of
+  # $GITHUB_WORKSPACE (which is a Windows DOS path).
+  # ====================================================================
+  win-x64:
+    name: Build FFmpeg (Windows x64)
+    runs-on: windows-2025-vs2026
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          # UCRT64 (Universal C Runtime) is the modern mingw env. Its toolchain links against
+          # api-ms-win-crt-*.dll (shipped with Windows 10+) instead of msvcrt + libwinpthread.
+          # Important: clock_gettime/nanosleep used by libavutil resolve to UCRT natively here,
+          # which keeps the libav* DLLs free of the libwinpthread-1.dll runtime dep that
+          # MINGW64 unavoidably introduces.
+          msystem: UCRT64
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-nasm
+            mingw-w64-ucrt-x86_64-yasm
+            mingw-w64-ucrt-x86_64-pkgconf
+            diffutils
+            git
+
+      - name: Clone FFmpeg
+        run: |
+          git init ffmpeg-src
+          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
+          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src checkout FETCH_HEAD
+
+      - name: Clone & build x264 (static)
+        run: |
+          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
+            https://code.videolan.org/videolan/x264.git x264-src
+          cd x264-src
+          ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
+          make -j"$(nproc)"
+          make install
+
+      # Headers-only project providing ffnvcodec.pc for NVENC. Tiny, builds in seconds.
+      - name: Clone & install nv-codec-headers
+        run: |
+          git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git nv-codec-src
+          make -C nv-codec-src PREFIX="$PWD/nv-codec-install" install
+
+      - name: Configure & build libs (LGPL shared, decode-focused)
+        working-directory: ffmpeg-src
+        run: |
+          # --enable-w32threads switches FFmpeg from POSIX threads to Win32 native threads.
+          # libavutil's clock_gettime64 still resolves through libwinpthread on gcc/mingw (UCRT
+          # doesn't expose POSIX clock_gettime). Removing libwinpthread.dll.a forces the linker
+          # to pick the static .a archive — end-user libav* DLLs no longer need libwinpthread-1.dll.
+          rm -f /ucrt64/lib/libwinpthread.dll.a /ucrt64/lib/libpthread.dll.a
+          ./configure --prefix="$PWD/../ffmpeg-libs-install" \
+            --enable-shared --disable-static \
+            --enable-w32threads \
+            --disable-programs --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv --disable-bzlib --disable-zlib \
+            --enable-small \
+            --extra-ldflags="-static-libgcc" \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,subfile \
+            --enable-filter=scale,format,aformat,aresample \
+            --enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=pcm_f32le,wav,mp4,rawvideo \
+            --enable-hwaccel=h264_d3d11va,h264_d3d11va2,h264_dxva2,hevc_d3d11va,hevc_d3d11va2,hevc_dxva2,vp9_d3d11va,vp9_d3d11va2,vp9_dxva2,av1_d3d11va,av1_d3d11va2,av1_dxva2
+          make -j"$(nproc)"
+          make install
+          make clean
+
+      # AMF dropped — its SDK headers require the heavyweight AMD AMF repo; libx264 + MF + NVENC
+      # cover NVIDIA + universal Windows paths. AMD users fall back to MF (which uses VCN under
+      # the hood on AMD GPUs anyway).
+      - name: Configure & build CLI (GPL static, libx264 + MF + NVENC)
+        working-directory: ffmpeg-src
+        run: |
+          PKG_CONFIG_PATH="$PWD/../x264-install/lib/pkgconfig:$PWD/../nv-codec-install/lib/pkgconfig" \
+          ./configure --prefix="$PWD/../ffmpeg-cli-install" \
+            --enable-static --disable-shared \
+            --enable-w32threads \
+            --enable-gpl --enable-libx264 \
+            --enable-mediafoundation --enable-nvenc \
+            --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv --disable-bzlib --disable-zlib \
+            --enable-small \
+            --pkg-config-flags=--static \
+            --extra-cflags="-I../x264-install/include" \
+            --extra-ldflags="-static -L../x264-install/lib" \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,pipe,subfile \
+            --enable-filter=scale,format,fps,crop,setdar,setsar,transpose,vflip,hflip,aformat,aresample,hwupload,hwdownload,hwmap \
+            --enable-encoder=libx264,h264_mf,hevc_mf,h264_nvenc,hevc_nvenc,aac,pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=mp4,mov,matroska,webm,wav,ogg,null,pcm_f32le,rawvideo
+          make -j"$(nproc)"
+          make install
+
+      - name: Collect lib artifact
+        run: |
+          mkdir -p out-libs
+          cp ffmpeg-libs-install/bin/av*.dll out-libs/
+          cp ffmpeg-libs-install/bin/sw*.dll out-libs/
+          ls -la out-libs/
+          du -sh out-libs/
+
+      - name: Collect CLI artifact
+        run: |
+          mkdir -p out-cli/win-x64
+          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/win-x64/
+          strip out-cli/win-x64/ffmpeg.exe || true
+          ls -la out-cli/win-x64/
+          du -sh out-cli/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-libs-win-x64, path: out-libs/ }
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-cli-win-x64, path: out-cli/ }
+
+  # ====================================================================
+  # Windows ARM64 (MSYS2 clangarm64). CLANGARM64 ships clang but no cc/gcc
+  # shim, so x264's configure (which defaults to $CC=cc) needs CC=clang.
+  # AMF/NVENC are x64-only — skip on arm64.
+  # ====================================================================
+  win-arm64:
+    name: Build FFmpeg (Windows arm64)
+    runs-on: windows-11-arm
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANGARM64
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-clang-aarch64-toolchain
+            mingw-w64-clang-aarch64-nasm
+            mingw-w64-clang-aarch64-pkgconf
+            diffutils
+            git
+
+      - name: Clone FFmpeg
+        run: |
+          git init ffmpeg-src
+          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
+          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src checkout FETCH_HEAD
+
+      - name: Clone & build x264 (static)
+        run: |
+          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
+            https://code.videolan.org/videolan/x264.git x264-src
+          cd x264-src
+          CC=clang ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
+          make -j"$(nproc)"
+          make install
+
+      - name: Configure & build libs (LGPL shared, decode-focused)
+        working-directory: ffmpeg-src
+        run: |
+          ./configure --prefix="$PWD/../ffmpeg-libs-install" \
+            --cc=clang --arch=aarch64 --target-os=mingw32 \
+            --enable-shared --disable-static \
+            --enable-w32threads \
+            --disable-programs --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv --disable-bzlib --disable-zlib \
+            --enable-small \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,subfile \
+            --enable-filter=scale,format,aformat,aresample \
+            --enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=pcm_f32le,wav,mp4,rawvideo \
+            --enable-hwaccel=h264_d3d11va,h264_d3d11va2,h264_dxva2,hevc_d3d11va,hevc_d3d11va2,hevc_dxva2,vp9_d3d11va,vp9_d3d11va2,vp9_dxva2,av1_d3d11va,av1_d3d11va2,av1_dxva2
+          make -j"$(nproc)"
+          make install
+          make clean
+
+      - name: Configure & build CLI (GPL static, libx264 + MediaFoundation)
+        working-directory: ffmpeg-src
+        run: |
+          PKG_CONFIG_PATH="$PWD/../x264-install/lib/pkgconfig" ./configure --prefix="$PWD/../ffmpeg-cli-install" \
+            --cc=clang --arch=aarch64 --target-os=mingw32 \
+            --enable-static --disable-shared \
+            --enable-w32threads \
+            --enable-gpl --enable-libx264 --enable-mediafoundation \
+            --disable-doc --disable-debug \
+            --disable-network --disable-everything --disable-xlib --disable-libxcb --disable-libxcb-shm --disable-libxcb-shape --disable-libxcb-xfixes --disable-iconv --disable-bzlib --disable-zlib \
+            --enable-small \
+            --pkg-config-flags=--static \
+            --extra-cflags="-I../x264-install/include" \
+            --extra-ldflags="-static -L../x264-install/lib" \
+            --enable-decoder=${COMMON_DECODERS} \
+            --enable-demuxer=${COMMON_DEMUXERS} \
+            --enable-parser=${COMMON_PARSERS} \
+            --enable-bsf=${COMMON_BSFS} \
+            --enable-protocol=file,pipe,subfile \
+            --enable-filter=scale,format,fps,crop,setdar,setsar,transpose,vflip,hflip,aformat,aresample,hwupload,hwdownload,hwmap \
+            --enable-encoder=libx264,h264_mf,hevc_mf,aac,pcm_f32le,pcm_s16le,pcm_s24le \
+            --enable-muxer=mp4,mov,matroska,webm,wav,ogg,null,pcm_f32le,rawvideo
+          make -j"$(nproc)"
+          make install
+
+      - name: Collect lib artifact
+        run: |
+          mkdir -p out-libs
+          cp ffmpeg-libs-install/bin/av*.dll out-libs/
+          cp ffmpeg-libs-install/bin/sw*.dll out-libs/
+          ls -la out-libs/
+          du -sh out-libs/
+
+      - name: Collect CLI artifact
+        run: |
+          mkdir -p out-cli/win-arm64
+          cp ffmpeg-cli-install/bin/ffmpeg.exe out-cli/win-arm64/
+          strip out-cli/win-arm64/ffmpeg.exe || true
+          ls -la out-cli/win-arm64/
+          du -sh out-cli/
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-libs-win-arm64, path: out-libs/ }
+
+      - uses: actions/upload-artifact@v4
+        with: { name: ffmpeg-cli-win-arm64, path: out-cli/ }

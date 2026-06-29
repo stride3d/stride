@@ -13,4 +13,4 @@ This is the base SDK used by all Stride source projects via `<Project Sdk="Strid
 
 This package is for building the Stride engine itself. It is not intended for end-user game projects.
 
-See [SDK-GUIDE.md](https://github.com/stride3d/stride/blob/master/build/docs/SDK-GUIDE.md) for documentation.
+See [SDK-GUIDE.md](https://github.com/stride3d/stride/blob/master/docs/build/SDK-GUIDE.md) for documentation.

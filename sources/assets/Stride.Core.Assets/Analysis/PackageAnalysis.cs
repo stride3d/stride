@@ -127,7 +127,7 @@ public sealed class PackageAnalysis
                 continue;
             }
 
-            if (newSubPackage.FullPath == null || newSubPackage.IsSystem)
+            if (newSubPackage.FullPath == null || newSubPackage.IsReadOnly)
             {
                 continue;
             }

@@ -107,11 +107,13 @@ namespace Stride.Graphics
 
             base.SwapInternal(other);
 
-            (CopyFenceValue, otherResource.CommandListFenceValue)              = (otherResource.CopyFenceValue, CommandListFenceValue);
+            (CopyFenceValue, otherResource.CopyFenceValue)                     = (otherResource.CopyFenceValue, CopyFenceValue);
             (CommandListFenceValue, otherResource.CommandListFenceValue)       = (otherResource.CommandListFenceValue, CommandListFenceValue);
             (UpdatingCommandList, otherResource.UpdatingCommandList)           = (otherResource.UpdatingCommandList, UpdatingCommandList);
             (NativeMemory, otherResource.NativeMemory)                         = (otherResource.NativeMemory, NativeMemory);
             (NativePipelineStageMask, otherResource.NativePipelineStageMask)   = (otherResource.NativePipelineStageMask, NativePipelineStageMask);
+            (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)               = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
+            (LayoutTracker, otherResource.LayoutTracker)                       = (otherResource.LayoutTracker, LayoutTracker);
         }
     }
 }

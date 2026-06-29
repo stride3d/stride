@@ -144,6 +144,8 @@ namespace Stride.GameStudio.ViewModels
         [NotNull]
         public ICommandBase ResetOutputTitleCommand { get; }
 
+        internal Task<(bool Success, Process Process)> RunProjectAsync() => BuildProject(true);
+
         /// <inheritdoc/>
         public override void Destroy()
         {
@@ -340,7 +342,7 @@ namespace Stride.GameStudio.ViewModels
             try
             {
                 // Build projects+assets (note: assets only would be enough)
-                if (!await BuildProjectCore(false))
+                if (!(await BuildProjectCore(false)).Success)
                 {
                     return false;
                 }
@@ -356,19 +358,19 @@ namespace Stride.GameStudio.ViewModels
             }
         }
 
-        private async Task<bool> BuildProject(bool startProject)
+        private async Task<(bool Success, Process Process)> BuildProject(bool startProject)
         {
             if (BuildInProgress)
-                return false;
+                return (false, null);
 
             try
             {
                 BuildInProgress = true;
                 if (!await PrepareBuild())
-                    return false;
+                    return (false, null);
 
                 var jobToken = editor.Status.NotifyBackgroundJobStarted("Building...", JobPriority.Compile);
-                var result = false;
+                var result = (Success: false, Process: (Process)null);
                 try
                 {
                     return result = await BuildProjectCore(startProject);
@@ -376,7 +378,7 @@ namespace Stride.GameStudio.ViewModels
                 finally
                 {
                     editor.Status.NotifyBackgroundJobFinished(jobToken);
-                    editor.Status.PushDiscardableStatus(result ? "Build successful" : "Build failed");
+                    editor.Status.PushDiscardableStatus(result.Success ? "Build successful" : "Build failed");
                 }
             }
             finally
@@ -391,8 +393,9 @@ namespace Stride.GameStudio.ViewModels
             logger.MessageLogged += (sender, e) => Dispatcher.InvokeAsync(() => OutputTitle = outputTitleBase + '*');
         }
 
-        private async Task<bool> BuildProjectCore(bool startProject)
+        private async Task<(bool Success, Process Process)> BuildProjectCore(bool startProject)
         {
+            Process startedProcess = null;
             var logger = new LoggerResult();
             RegisterBuildLogger(logger);
 
@@ -433,7 +436,7 @@ namespace Stride.GameStudio.ViewModels
                             if (androidDevices.Length == 0)
                             {
                                 logger.Error(Tr._p("Message", "No Android device found for execution."));
-                                return false;
+                                return (false, null);
                             }
 
                             // On Android, directly install on device
@@ -463,14 +466,14 @@ namespace Stride.GameStudio.ViewModels
 
                         default:
                             logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform));
-                            return false;
+                            return (false, null);
                     }
                 }
 
                 if (projectViewModel == null)
                 {
                     logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform != PlatformType.Shared ? Session.CurrentProject.Platform : PlatformType.Windows));
-                    return false;
+                    return (false, null);
                 }
 
                 // Build project
@@ -478,7 +481,7 @@ namespace Stride.GameStudio.ViewModels
                 if (currentBuild == null)
                 {
                     logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectViewModel.ProjectPath));
-                    return false;
+                    return (false, null);
                 }
 
                 var assemblyPath = currentBuild.AssemblyPath;
@@ -499,7 +502,7 @@ namespace Stride.GameStudio.ViewModels
                                 if (!File.Exists(assemblyPath))
                                 {
                                     logger.Error(string.Format(Tr._p("Message", "Unable to reach to output executable: {0}"), assemblyPath));
-                                    return false;
+                                    return (false, null);
                                 }
                                 var process = new Process
                                 {
@@ -509,6 +512,7 @@ namespace Stride.GameStudio.ViewModels
                                     }
                                 };
                                 process.Start();
+                                startedProcess = process;
                             }
                             break;
                         case PlatformType.Android:
@@ -516,7 +520,7 @@ namespace Stride.GameStudio.ViewModels
                             if (!buildTask.ResultsByTarget.TryGetValue("GetAndroidPackage", out var targetResult))
                             {
                                 logger.Error(string.Format(Tr._p("Message", "Couldn't find Android package name for {0}."), Session.CurrentProject.Name));
-                                return false;
+                                return (false, null);
                             }
 
                             var packageName = targetResult.Items[0].ItemSpec;
@@ -526,14 +530,14 @@ namespace Stride.GameStudio.ViewModels
                             if (adbPath == null)
                             {
                                 logger.Error(Tr._p("Message", @"Android tool ""adb"" couldn't found (no running process, in registry or on the PATH). Please add it to your PATH."));
-                                return false;
+                                return (false, null);
                             }
                             // Run
                             var adbResult = await Task.Run(() => ShellHelper.RunProcessAndGetOutput(adbPath, $@"shell monkey -p {packageName} -c android.intent.category.LAUNCHER 1"));
                             if (adbResult.ExitCode != 0)
                             {
                                 logger.Error(string.Format(Tr._p("Message", "Can't run Android app with adb: {0}"), string.Join(Environment.NewLine, adbResult.OutputErrors)));
-                                return false;
+                                return (false, null);
                             }
 
                             break;
@@ -546,7 +550,7 @@ namespace Stride.GameStudio.ViewModels
                                     if (!File.Exists(assemblyPath))
                                     {
                                         logger.Error(Tr._p("Message", "Unable to reach to output executable: {0}"));
-                                        return false;
+                                        return (false, null);
                                     }
                                 }
 
@@ -558,7 +562,7 @@ namespace Stride.GameStudio.ViewModels
                                     if (!prompt.AreCredentialsValid)
                                     {
                                         logger.Error(string.Format(Tr._p("Message", "No credentials provided. To allow deployment, add your credentials.")));
-                                        return false;
+                                        return (false, null);
                                     }
                                 }
 
@@ -567,7 +571,7 @@ namespace Stride.GameStudio.ViewModels
                                 if (!launchApp)
                                 {
                                     logger.Error(string.Format(Tr._p("Message", "Unable to launch project {0}"), new UFile(assemblyPath).GetFileName()));
-                                    return false;
+                                    return (false, null);
                                 }
 
                                 break;
@@ -583,7 +587,7 @@ namespace Stride.GameStudio.ViewModels
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            return !currentBuild.IsCanceled && !logger.HasErrors;
+            return (!currentBuild.IsCanceled && !logger.HasErrors, startedProcess);
         }
 
         private async Task<bool> PrepareBuild()

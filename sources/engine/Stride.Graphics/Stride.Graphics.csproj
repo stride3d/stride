@@ -2,10 +2,11 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworksMacOS)</TargetFrameworks>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
+    <StrideAssetAssembly>true</StrideAssetAssembly>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
@@ -36,16 +37,17 @@
       <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
-    <ProjectReference Include="..\Stride\Stride.csproj" />
-    <PackageReference Include="System.Memory" />
+    <ProjectReference Include="..\..\shaders\Stride.Shaders.Effects\Stride.Shaders.Effects.csproj" />
+    <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
-    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="Silk.NET.Sdl" />
-    <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
+    <!-- PrivateAssets="compile": native bindings stay out of consumer compile graphs (analyzer perf);
+         consumers calling GraphicsMarshal interop add their own PackageReference. -->
+    <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)' Or '$(TargetFramework)' == '$(StrideFrameworkmacOS)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Sdl" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'" PrivateAssets="compile" />
   </ItemGroup>
   <Choose>
     <When Condition=" '$(TargetFramework)' == '$(StrideFramework)' And '$(StrideGraphicsApi)' == 'Direct3D12' ">

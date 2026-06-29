@@ -192,8 +192,21 @@ extern "C" {
 			return res;
 		}
 
+		void xnAudioSourceDestroy(xnAudioSource* source);
+
 		void xnAudioDestroy(xnAudioDevice* device)
 		{
+			// Tear down any sources the C# side forgot to dispose: OpenSL refuses to destroy
+			// the OutputMix/Engine while players are attached, then we'd `delete device` with
+			// the render threads still running on those players and crash on freed memory.
+			tinystl::vector<xnAudioSource*> leaked;
+			device->deviceLock.Lock();
+			for (xnAudioSource* s : device->sources)
+				leaked.push_back(s);
+			device->deviceLock.Unlock();
+			for (xnAudioSource* src : leaked)
+				xnAudioSourceDestroy(src);
+
 			(*device->outputMix)->Destroy(device->outputMix);
 			(*device->device)->Destroy(device->device);
 			delete device;
@@ -250,7 +263,7 @@ extern "C" {
 			(void)listener;
 		}
 
-		void QueueCallback(SLAndroidSimpleBufferQueueItf bq, void *context) 
+		void QueueCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 		{
 			(void)bq;
 			auto source = static_cast<xnAudioSource*>(context);
@@ -310,8 +323,8 @@ extern "C" {
 
 					source->freeBuffers.push_back(playedBuffer);
 				}
-				
-				source->buffersLock.Unlock();				
+
+				source->buffersLock.Unlock();
 			}
 		}
 
@@ -464,9 +477,15 @@ extern "C" {
 			source->audioDevice->sources.erase(source);
 
 			source->audioDevice->deviceLock.Unlock();
-		
+
+			// SLES Destroy doesn't always synchronously join the AudioTrack render thread on
+			// emulators (gfxstream-relayed), so stop + clear the queue first to ensure no
+			// buffer pointer is still being read after the C# layer frees it.
+			(*source->player)->SetPlayState(source->player, SL_PLAYSTATE_STOPPED);
+			(*source->queue)->Clear(source->queue);
+
 			(*source->object)->Destroy(source->object);
-			
+
 			delete source;
 		}
 
@@ -545,9 +564,9 @@ extern "C" {
 			source->streamBuffers.clear();
 			source->streamBuffers.push_back(buffer);
 			source->subLength = buffer->dataLength;
-			source->subDataPtr = buffer->dataPtr;		
+			source->subDataPtr = buffer->dataPtr;
 
-			(*source->queue)->Enqueue(source->queue, buffer->dataPtr, buffer->dataLength);
+			(*source->queue)->Enqueue(source->queue, (void*)buffer->dataPtr, buffer->dataLength);
 
 			source->buffersLock.Unlock();
 		}
@@ -563,7 +582,7 @@ extern "C" {
 			source->buffersLock.Lock();
 
 			source->streamBuffers.push_back(buffer);
-			(*source->queue)->Enqueue(source->queue, buffer->dataPtr, buffer->dataLength);
+			(*source->queue)->Enqueue(source->queue, (void*)buffer->dataPtr, buffer->dataLength);
 
 			source->buffersLock.Unlock();
 		}

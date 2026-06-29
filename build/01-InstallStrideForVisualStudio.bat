@@ -1,6 +1,6 @@
 @echo off
 setlocal
-rmdir /S /Q "%LOCALAPPDATA%\temp\Stride"
+rmdir /S /Q "%LOCALAPPDATA%\temp\stride"
 REM -------------------------------------------------------------------
 REM Global config
 REM -------------------------------------------------------------------

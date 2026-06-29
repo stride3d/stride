@@ -22,7 +22,8 @@ internal static unsafe class DebugHelpers
     /// <summary>
     ///   A flag indicating whether to log debug names for Direct3D objects whenever they are set.
     /// </summary>
-    public const bool LogDebugNames = true;
+    /// <remarks>Debugging will be extremely slow with Visual Studio.</remarks>
+    public static bool LogDebugNames { get; set; } = false;
 
 
     // From d3dcommon.h in Windows SDK (WKPDID_D3DDebugObjectName)

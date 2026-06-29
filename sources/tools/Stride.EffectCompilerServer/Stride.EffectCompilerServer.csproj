@@ -3,6 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <!-- Root app (only spawned as a service, never referenced as a library): pack the whole runnable
+         under tools/ instead of lib/. The router locates the exe by package file search. -->
+    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <!-- NU5128: an app package intentionally has no lib/, but still declares its dependency closure. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <ItemGroup>

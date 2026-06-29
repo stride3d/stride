@@ -12,16 +12,18 @@
     <Compile Remove="Frontend\TexArray.cs" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.so">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.so;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.so">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.so;$(MSBuildThisFileDirectory)..\..\..\deps\astcenc\dotnet\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
-    <ProjectReference Include="..\Stride.FreeImage\Stride.FreeImage.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

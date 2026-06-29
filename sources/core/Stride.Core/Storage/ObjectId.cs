@@ -11,7 +11,7 @@ namespace Stride.Core.Storage;
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 #if !STRIDE_ASSEMBLY_PROCESSOR
-[DataContract("ObjectId"),Serializable]
+[DataContract("ObjectId"), Serializable]
 #endif
 public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<ObjectId>
 {
@@ -33,6 +33,11 @@ public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<Object
     private uint hash2;
     private uint hash3;
     private uint hash4;
+
+    public uint Hash1 => hash1;
+    public uint Hash2 => hash2;
+    public uint Hash3 => hash3;
+    public uint Hash4 => hash4;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectId"/> struct.
@@ -147,7 +152,7 @@ public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<Object
     /// <returns><c>true</c> if parsing was successfull, <c>false</c> otherwise</returns>
     public static bool TryParse(string input, out ObjectId result)
     {
-        if (input.Length != HashStringLength)
+        if (input?.Length != HashStringLength)
         {
             result = Empty;
             return false;

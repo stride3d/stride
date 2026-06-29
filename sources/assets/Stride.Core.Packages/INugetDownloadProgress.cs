@@ -2,5 +2,6 @@ namespace Stride.Core.Packages;
 
 interface INugetDownloadProgress
 {
-    void DownloadProgress(long contentPosition, long contentLength);
+    /// <summary>Additional bytes were read from an in-flight package download.</summary>
+    void DownloadAdvanced(long bytesRead);
 }

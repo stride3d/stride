@@ -7,6 +7,7 @@ using NuGet.ProjectModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Packages;
+using Stride.Core.Yaml;
 
 namespace Stride.Core.Assets;
 
@@ -16,6 +17,115 @@ partial class PackageSession
     private readonly Dictionary<string, Microsoft.Build.Evaluation.Project> projectLoadCache = new(StringComparer.OrdinalIgnoreCase);
     // Track projects being processed to avoid infinite recursion
     private readonly HashSet<string> processingProjects = new(StringComparer.OrdinalIgnoreCase);
+    // Set when LoadMissingDependencies restored the whole solution once up front, so the per-project
+    // restore below can be skipped (kept only as a fallback when there's no solution or after an upgrade).
+    private bool solutionDependenciesRestored;
+
+    /// <summary>
+    /// Locates a dev-redirect package's build manifest: the newest <c>&lt;project&gt;.sdbuild</c> under the
+    /// project's <c>obj/</c>. The manifest's <c>ProjectAssets</c> list is platform-invariant, so any recent
+    /// one serves. Returns null when none exists (the project hasn't been built in manifest mode).
+    /// </summary>
+    private static string? FindDevRedirectManifest(string projectFile)
+    {
+        var projectDirectory = Path.GetDirectoryName(projectFile);
+        var objDirectory = projectDirectory != null ? Path.Combine(projectDirectory, "obj") : null;
+        if (objDirectory == null || !Directory.Exists(objDirectory))
+            return null;
+
+        var manifestName = Path.GetFileNameWithoutExtension(projectFile) + AssetBuildManifest.FileExtension;
+        return Directory.EnumerateFiles(objDirectory, manifestName, SearchOption.AllDirectories)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Populates <see cref="Package.PrecomputedProjectAssets"/> from a build manifest so the dev-redirect
+    /// package's project assets (shaders) load from source with no MSBuild evaluation.
+    /// </summary>
+    private static void LoadProjectAssetsFromManifest(Package package, string projectFile, string manifestFile)
+    {
+        package.PrecomputedProjectAssets = [];
+
+        AssetBuildManifest manifest;
+        try
+        {
+            manifest = YamlSerializer.Load<AssetBuildManifest>(manifestFile);
+        }
+        catch
+        {
+            return;
+        }
+
+        var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
+        var projectDirectory = new UDirectory(Path.GetDirectoryName(projectFile)!);
+        package.RootNamespace ??= manifest.RootNamespace;
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in manifest.ProjectAssets)
+        {
+            if (item.Path is null)
+                continue;
+            var filePath = new UFile(Path.GetFullPath(Path.Combine(manifestDirectory, item.Path.ToOSPath())));
+            if (!seen.Add(filePath.FullPath))
+                continue;
+            var link = item.Link is not null ? UPath.Combine(projectDirectory, item.Link) : null;
+            package.PrecomputedProjectAssets.Add(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
+        }
+    }
+
+    /// <summary>
+    /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
+    /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
+    /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
+    /// is below the upgrader's target. Returns one entry per (project, upgrader); the runner does the
+    /// version-gate and only opens a workspace when source rules actually apply.
+    /// </summary>
+    private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
+    {
+        var result = new List<PendingCodeUpgrade>();
+        foreach (var project in Projects.OfType<SolutionProject>())
+        {
+            if (project.FullPath is null)
+                continue;
+            var projectPath = project.FullPath.ToOSPath();
+            if (!File.Exists(projectPath))
+                continue;
+
+            Microsoft.Build.Evaluation.Project msProject;
+            try
+            {
+                msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+            }
+            catch (Exception e)
+            {
+                log.Verbose($"Code upgrade detection: could not load [{project.FullPath.GetFileName()}]: {e.Message}");
+                continue;
+            }
+
+            var seen = new HashSet<PackageUpgrader>();
+            foreach (var packageReference in msProject.GetItems("PackageReference"))
+            {
+                if (!packageReference.HasMetadata("Version")
+                    || !PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var range)
+                    || range.MinVersion is null)
+                    continue;
+
+                var upgrader = AssetRegistry.GetPackageUpgrader(packageReference.EvaluatedInclude);
+                if (upgrader is null)
+                    continue;
+                // Already at/above the target, or below the minimum supported (the real upgrade path reports that).
+                if (range.MinVersion >= upgrader.Attribute.UpdatedVersionRange.MinVersion
+                    || range.MinVersion < upgrader.Attribute.PackageMinimumVersion)
+                    continue;
+                if (!seen.Add(upgrader))
+                    continue;
+
+                result.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+            }
+        }
+        return result;
+    }
 
     private async Task PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
     {
@@ -24,6 +134,9 @@ partial class PackageSession
         ArgumentNullException.ThrowIfNull(loadParameters);
 
         bool packageDependencyErrors = false;
+        // Tracks whether an upgrade rewrote this project's references, requiring a fresh restore even
+        // when the up-front solution restore already ran.
+        bool referencesUpgraded = false;
 
         var package = project.Package;
 
@@ -187,7 +300,10 @@ partial class PackageSession
                         }
 
                         if (isProjectDirty)
+                        {
                             msProject.Save();
+                            referencesUpgraded = true;
+                        }
                     }
                     catch (Exception e)
                     {
@@ -204,10 +320,15 @@ partial class PackageSession
                 }
             }
 
-            // Now that our references are upgraded, let's do a real nuget restore (download files)
-            log.Verbose($"Restore NuGet packages for {project.Name}...");
-            if (loadParameters.AutoCompileProjects)
-                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
+            // Real nuget restore. Also runs when this project's restore output is missing — e.g. a library just
+            // added to the solution that the up-front solution restore didn't cover.
+            var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
+            var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
+            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded || restoreOutputMissing))
+            {
+                log.Verbose($"Restore NuGet packages for {project.Name}...");
+                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
+            }
 
             // If platform was unknown, check it again using cached project
             if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
@@ -251,16 +372,52 @@ partial class PackageSession
 
                     if (file != null && File.Exists(file))
                     {
-                        // Load package
-                        var loadedProject = LoadProject(log, file, loadParameters);
-                        loadedProject.Package.Meta.Name = projectDependency.Name;
-                        loadedProject.Package.Meta.Version = projectDependency.Version;
-                        Projects.Add(loadedProject);
+                        PackageContainer loadedProject;
 
-                        if (loadedProject is StandalonePackage standalonePackage)
+                        // A Package-type dependency whose .sdpkg sits next to a .csproj is a dev-redirect to
+                        // the in-tree source (a real nupkg ships its .sdpkg under stride/ with no sibling
+                        // .csproj). Load it as a read-only external package: its assets/shaders are read live
+                        // from source, but it must NOT become an editable SolutionProject — that would add the
+                        // engine project to the consumer's .sln, force a full MSBuild evaluation per engine
+                        // package on every session load, and wire dependency write-back into the engine source
+                        // csproj. Project assets come from the build manifest (.sdbuild), not MSBuild.
+                        var devRedirectProject = projectDependency.Type == DependencyType.Package
+                            ? Path.ChangeExtension(file, ".csproj")
+                            : null;
+                        var manifestFile = devRedirectProject != null && File.Exists(devRedirectProject)
+                            ? FindDevRedirectManifest(devRedirectProject)
+                            : null;
+
+                        if (manifestFile != null)
                         {
-                            standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
+                            var devPackage = Package.LoadRaw(log, file);
+                            devPackage.Meta.Name = projectDependency.Name;
+                            devPackage.Meta.Version = projectDependency.Version;
+                            LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
+
+                            var devContainer = new StandalonePackage(devPackage);
+                            devContainer.Assemblies.AddRange(projectDependency.Assemblies);
+                            // The consumer's flattened graph already covers this package's dependencies; mark it
+                            // ready so we don't recurse the whole engine project tree into the session.
+                            devPackage.State = PackageState.DependenciesReady;
+                            loadedProject = devContainer;
                         }
+                        else
+                        {
+                            // No build manifest (e.g. engine not built in manifest mode): fall back to the
+                            // legacy load so assets still resolve, accepting the .sln/MSBuild cost.
+                            loadedProject = LoadProject(log, file, loadParameters);
+                            loadedProject.Package.Meta.Name = projectDependency.Name;
+                            loadedProject.Package.Meta.Version = projectDependency.Version;
+
+                            if (projectDependency.Type == DependencyType.Package && loadedProject is SolutionProject)
+                                loadedProject.Package.State = PackageState.DependenciesReady;
+
+                            if (loadedProject is StandalonePackage standalonePackage)
+                                standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
+                        }
+
+                        Projects.Add(loadedProject);
 
                         loadedPackage = loadedProject.Package;
                     }

@@ -30,8 +30,8 @@ namespace Stride.Assets
     [AssetContentType(typeof(GameSettings))]
     [CategoryOrder(4050, "Splash screen")]
     [NonIdentifiableCollectionItems]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.3")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.1.0.3", "3.1.0.1", typeof(RenderingSplitUpgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.3")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.3", "3.1.0.1", typeof(RenderingSplitUpgrader))]
     public partial class GameSettingsAsset : Asset
     {
         private const string CurrentVersion = "3.1.0.1";

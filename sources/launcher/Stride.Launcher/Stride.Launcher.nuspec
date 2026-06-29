@@ -17,6 +17,5 @@ force-reinstall: 5.0.1 https://stride3d.net/files/StrideSetup.exe (note: used in
   <files>
     <!-- Note: we still have Stride.exe for backward compatibility -->
     <file src="Stride.Launcher.exe" target="tools" />
-    <file src="..\..\..\..\Prerequisites\launcher-prerequisites.exe" target="tools\Prerequisites" />
   </files>
 </package>

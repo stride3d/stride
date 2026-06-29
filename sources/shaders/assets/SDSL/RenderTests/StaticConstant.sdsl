@@ -1,0 +1,22 @@
+// PSMain(ExpectedResult=#11111111)
+
+namespace Stride.Shaders.Tests;
+
+shader StaticConstant
+{
+    static const float Const1 = 17.0;
+
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(Const1, Const1, Const1, Const1) / 255.0;
+    }
+}

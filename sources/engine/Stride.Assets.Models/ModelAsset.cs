@@ -16,7 +16,7 @@ namespace Stride.Assets.Models
     [AssetDescription(FileExtension, AllowArchetype = true)]
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
         private const string CurrentVersion = "2.0.0.0";

@@ -14,7 +14,7 @@ namespace Stride.Assets.UI
     [DataContract("UIPageAsset")]
     [AssetDescription(FileExtension, AllowArchetype = false)]
     [AssetContentType(typeof(UIPage))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.1")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.1")]
     public sealed partial class UIPageAsset : UIAssetBase
     {
         private const string CurrentVersion = "2.1.0.1";

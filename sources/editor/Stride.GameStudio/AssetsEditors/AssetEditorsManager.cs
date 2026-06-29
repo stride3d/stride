@@ -31,6 +31,8 @@ namespace Stride.GameStudio.AssetsEditors
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
+
+        internal IEnumerable<IAssetEditorViewModel> EditorViewModels => assetEditors.Keys;
         private readonly Dictionary<AssetViewModel, IAssetEditorViewModel> openedAssets = [];
         // TODO have a base interface for all editors and factorize to make curve editor not be a special case anymore
         private Tuple<CurveEditorViewModel, LayoutAnchorable> curveEditor;

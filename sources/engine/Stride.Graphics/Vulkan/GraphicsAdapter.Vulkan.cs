@@ -30,6 +30,7 @@ namespace Stride.Graphics
         {
             [0x1002] = "AMD",
             [0x1010] = "ImgTec",
+            [0x10005] = "Mesa",
             [0x10DE] = "NVIDIA",
             [0x13B5] = "ARM",
             [0x5143] = "Qualcomm",
@@ -41,11 +42,25 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="physicalDevice">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, int adapterOrdinal)
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
             this.properties = properties;
+
+            DriverInfo = new AdapterDriverInfo
+            {
+                GpuName = Description,
+                VendorId = properties.vendorID,
+                DeviceId = properties.deviceID,
+                VendorName = VendorNames.TryGetValue((int)properties.vendorID, out var v) ? v : null,
+                DriverId = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? driverProperties.driverID.ToString() : null,
+                DriverName = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? Marshal.PtrToStringAnsi((IntPtr)driverProperties.driverName) : null,
+                DriverInfo = driverProperties.sType == VkStructureType.PhysicalDeviceDriverProperties ? Marshal.PtrToStringAnsi((IntPtr)driverProperties.driverInfo) : null,
+                DriverVersion = FormatDriverVersion(properties.vendorID, properties.driverVersion),
+                ApiName = GraphicsDevice.Platform.ToString(),
+                ApiVersion = FormatApiVersion(properties.apiVersion),
+            };
 
             // TODO VULKAN
             //var displayProperties = physicalDevice.DisplayProperties;
@@ -54,6 +69,17 @@ namespace Stride.Graphics
             //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
             graphicsOutputs = [ new GraphicsOutput() ];
         }
+
+        // NVIDIA packs 10/8/8/6 bits; Intel-on-Windows packs 18/14; everyone else uses the
+        // standard VK_MAKE_API_VERSION layout (major<<22 | minor<<12 | patch).
+        private static string FormatDriverVersion(uint vendorId, uint v) => vendorId switch
+        {
+            0x10DE => $"{v >> 22}.{(v >> 14) & 0xFF}.{(v >> 6) & 0xFF}.{v & 0x3F}",
+            0x8086 when OperatingSystem.IsWindows() => $"{v >> 14}.{v & 0x3FFF}",
+            _ => $"{v >> 22}.{(v >> 12) & 0x3FF}.{v & 0xFFF}",
+        };
+
+        private static string FormatApiVersion(uint v) => $"{v >> 22}.{(v >> 12) & 0x3FF}.{v & 0xFFF}";
 
         /// <summary>
         /// Gets the description of this adapter.

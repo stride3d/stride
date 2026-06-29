@@ -15,16 +15,21 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
+    <!-- Override the 17.7.2 transitive from Microsoft.CodeAnalysis.Workspaces.MSBuild 4.12.
+         No PrivateAssets — version constraint must propagate to consumers' nuspec. -->
+    <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
-    <PackageReference Include="SSH.NET" />
-    <Reference Include="VHACDSharp">
-      <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
-    </Reference>
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="SSH.NET" PrivateAssets="compile" />
+    <PackageReference Include="FFmpeg.AutoGen" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Microsoft.TemplateEngine.IDE" />
+    <PackageReference Include="Microsoft.TemplateEngine.Edge" />
+    <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
     <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
@@ -32,12 +37,14 @@
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
-    <ProjectReference Include="..\Stride\Stride.csproj" />
+    <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.sdgfxcomp" />
@@ -59,17 +66,32 @@
     <None Include="UI\StrideUILibrary.sduilib" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.*">
+    <StrideNativeLib Include="..\..\..\deps\VHACD\Release\**\*.dll;..\..\..\deps\VHACD\Release\**\*.so;..\..\..\deps\VHACD\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+    <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+    <!-- Asset compiler ffmpeg CLI — ship every RID under runtimes/<rid>/native/ so the package
+         is portable across hosts. ToolLocator resolves the right one at runtime via the current RID. -->
+    <Content Include="..\..\..\deps\FFmpeg\win-x64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-x64\native\">
+      <Link>runtimes\win-x64\native\ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\win-arm64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-arm64\native\">
+      <Link>runtimes\win-arm64\native\ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\linux-x64\ffmpeg" Pack="true" PackagePath="runtimes\linux-x64\native\">
+      <Link>runtimes\linux-x64\native\ffmpeg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\deps\FFmpeg\osx-arm64\ffmpeg" Pack="true" PackagePath="runtimes\osx-arm64\native\">
+      <Link>runtimes\osx-arm64\native\ffmpeg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />
     <None Include="AssetPackage\Resources\ClearCoatOrangePeelNM.dds" />
     <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
@@ -80,13 +102,5 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
 
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="_StrideIncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(TargetDir)VHACDSharp.dll" />
-    </ItemGroup>
-  </Target>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

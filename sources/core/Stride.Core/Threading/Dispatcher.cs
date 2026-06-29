@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Reflection;
 #endif // PROFILING_SCOPES
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 
@@ -84,7 +85,7 @@ public static class Dispatcher
 
             var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
             if (ex != null)
-                throw ex;
+                ExceptionDispatchInfo.Capture(ex).Throw();
         }
         finally
         {
@@ -126,7 +127,9 @@ public static class Dispatcher
         catch (Exception e)
         {
             Interlocked.Exchange(ref state.ExceptionThrown, e);
-            throw;
+            // Unblock the waiter; it rethrows via ExceptionDispatchInfo. Rethrowing here would
+            // escape the worker thread's root callback and fail-fast the process.
+            state.Finished.Set();
         }
     }
 

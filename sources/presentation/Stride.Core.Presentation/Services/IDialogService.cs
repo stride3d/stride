@@ -136,6 +136,18 @@ public interface IDialogService
     Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None);
 
     /// <summary>
+    /// Displays a modal message box with one or more independent check boxes between the message and the buttons.
+    /// Each <paramref name="checkBoxes"/> instance is updated in place with the user's choice; the returned value
+    /// is the result of the button used to close the window.
+    /// </summary>
+    /// <param name="message">The text to display as message in the message box.</param>
+    /// <param name="checkBoxes">The check boxes to display; their <see cref="DialogCheckBoxInfo.IsChecked"/> reflects the user's choice on return.</param>
+    /// <param name="buttons">The buttons to display in the message box.</param>
+    /// <param name="image">The image to display in the message box.</param>
+    /// <returns>An <see cref="int"/> value indicating which button the user pressed to close the window.</returns>
+    Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None);
+
+    /// <summary>
     /// Displays a modal message box and returns a task that completes when the message box is closed.
     /// </summary>
     /// <param name="message">The text to display as message in the message box.</param>

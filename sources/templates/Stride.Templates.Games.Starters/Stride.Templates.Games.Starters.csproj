@@ -1,0 +1,40 @@
+<!-- TreatAsLocalProperty="StrideSkipAutoPack": see Stride.Templates.Games.csproj. -->
+<Project Sdk="Microsoft.Build.NoTargets" TreatAsLocalProperty="StrideSkipAutoPack">
+  <PropertyGroup>
+    <PackageId>Stride.Templates.Games.Starters</PackageId>
+    <StrideTemplateContentVersioned>true</StrideTemplateContentVersioned>
+    <Title>Stride Game Starters</Title>
+    <Description>dotnet new game-genre starters for Stride (FPS, Platformer, RPG, third-person, VR).</Description>
+    <PackageTags>dotnet-new;templates;stride;stride-template;stride-game-starter;gamedev</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\Stride.Templates.Common.targets" />
+
+  <ItemGroup>
+    <StrideSampleTemplate Include="stride-fps">
+      <SamplePath>$(StrideRoot)samples/Templates/FirstPersonShooter/FirstPersonShooter</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-platformer2d">
+      <SamplePath>$(StrideRoot)samples/Templates/Platformer2D/Platformer2D</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-topdownrpg">
+      <SamplePath>$(StrideRoot)samples/Templates/TopDownRPG/TopDownRPG</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-thirdpersonplatformer">
+      <SamplePath>$(StrideRoot)samples/Templates/ThirdPersonPlatformer/ThirdPersonPlatformer</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-vrsandbox">
+      <SamplePath>$(StrideRoot)samples/Templates/VRSandbox/VRSandbox</SamplePath>
+    </StrideSampleTemplate>
+  </ItemGroup>
+
+  <!-- Static literal-wildcard inputs so a sample edit triggers a repack (CPS needs pre-expanded paths; see
+       Common.targets). One per StrideSampleTemplate above; bin/obj aren't excluded (source samples stay clean). -->
+  <ItemGroup>
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/FirstPersonShooter/FirstPersonShooter/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/Platformer2D/Platformer2D/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/TopDownRPG/TopDownRPG/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/VRSandbox/VRSandbox/**/*" />
+  </ItemGroup>
+</Project>

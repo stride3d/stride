@@ -1,0 +1,63 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <StrideBuildTags>*</StrideBuildTags>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
+    <OutputPath>$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
+    <StrideEnableTestLauncher>false</StrideEnableTestLauncher>
+    <SkipXunitReference>true</SkipXunitReference>
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
+
+    <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <RootNamespace>Stride.Shaders.Parsers.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.HighPerformance" />
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Silk.NET.Input" />
+    <PackageReference Include="Silk.NET.Vulkan" />
+    <PackageReference Include="Silk.NET.Windowing.Sdl" />
+    <PackageReference Include="Silk.NET.Direct3D11" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" />
+    <PackageReference Include="Silk.NET.SPIRV.Cross" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.v3" />
+    <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" LinkBase="assets\SDSL\RenderTests\" />
+    <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" LinkBase="assets\SDSL\ComputeTests\" />
+    <StrideShaderFiles Include="..\assets\SDSL\StreamOutTests\**" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
+    <Content Include="..\assets\SDSL\ComputeTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ComputeTests\" />
+    <Content Include="..\assets\SDSL\StreamOutTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\..\engine\Stride.Graphics\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Graphics\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Rendering\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Rendering\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Engine\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
+    <Content Include="..\..\engine\Stride.Engine\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+</Project>

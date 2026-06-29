@@ -1,0 +1,6 @@
+astcenc 5.3.0
+Repository: https://github.com/ARM-software/astc-encoder
+Commit: 30aabb3f42406df45a910d8496f9bee17eeba9bb
+Stride: https://github.com/xen2/stride @ df62a8bcfdbd82a3871e28ba4358f312f24dad8e
+Built: 2026-05-18
+Workflow: https://github.com/xen2/stride/actions/runs/26025275861

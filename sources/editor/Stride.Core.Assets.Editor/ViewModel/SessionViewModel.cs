@@ -376,103 +376,127 @@ namespace Stride.Core.Assets.Editor.ViewModel
             serviceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
 
             // Ensure the loading is finished
-            var sessionViewModel = await Task.Run(() =>
+            SessionViewModel sessionViewModel;
+            try
             {
-                SessionViewModel result = null;
-                try
+                sessionViewModel = await Task.Run(() =>
                 {
-                    // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(workProgress, cancellationSource));
-                    if (!cancellationSource.Token.IsCancellationRequested)
+                    SessionViewModel result = null;
+                    try
                     {
-                        // Load references
-                        sessionResult.Session.LoadMissingReferences(sessionResult);
+                        // Load the session file (package or solution)
+                        PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(workProgress, cancellationSource));
+                        if (!cancellationSource.Token.IsCancellationRequested)
+                        {
+                            // Load references
+                            sessionResult.Session.LoadMissingReferences(sessionResult);
 
-                        // Create the session view model (in the UI thread)
-                        var dispatcher = serviceProvider.Get<IDispatcherService>();
-                        result = dispatcher.Invoke(() => new SessionViewModel(serviceProvider, sessionResult, sessionResult.Session, editor));
+                            // Create the session view model (in the UI thread)
+                            var dispatcher = serviceProvider.Get<IDispatcherService>();
+                            result = dispatcher.Invoke(() => new SessionViewModel(serviceProvider, sessionResult, sessionResult.Session, editor));
 
-                        // Build asset view models
-                        result.LoadAssetsFromPackages(sessionResult, workProgress, cancellationSource.Token);
+                            // Build asset view models
+                            result.LoadAssetsFromPackages(sessionResult, workProgress, cancellationSource.Token);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution.")), e);
-                    result = null;
-                }
-                return result;
-            }, cancellationSource.Token);
+                    catch (Exception e)
+                    {
+                        sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution.")), e);
+                        result = null;
+                    }
+                    return result;
+                }, cancellationSource.Token);
 
-            if (sessionViewModel == null || cancellationSource.IsCancellationRequested)
-            {
-                sessionViewModel?.Destroy();
+                if (sessionViewModel == null || cancellationSource.IsCancellationRequested)
+                {
+                    sessionViewModel?.Destroy();
+                    sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
+                    return null;
+                }
+
+                // Register the node container to the copy/paste service.
+                sessionViewModel.ServiceProvider.Get<CopyPasteService>().PropertyGraphContainer = sessionViewModel.GraphContainer;
+
+                sessionViewModel.AutoSelectCurrentProject();
+
+                sessionViewModel.LoadDocumentation();
+
+                // Now resize the undo stack to the correct size.
+                undoRedoService.Resize(200);
+
+                // And initialize the actions view model
+                sessionViewModel.ActionHistory.Initialize();
+
+                // Copy the result of the asset loading to the log panel.
+                sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
+
+                sessionViewModel.CheckConsistency();
+
                 sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
-                return null;
+            }
+            finally
+            {
+                // Always notify completion so the progress window can close, even if loading failed,
+                // was cancelled, or threw. Otherwise it stays open as a blocking window and leaves the
+                // main window disabled.
+                await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
             }
 
-            // Register the node container to the copy/paste service.
-            sessionViewModel.ServiceProvider.Get<CopyPasteService>().PropertyGraphContainer = sessionViewModel.GraphContainer;
-
-            sessionViewModel.AutoSelectCurrentProject();
-
-            sessionViewModel.LoadDocumentation();
-
-            // Now resize the undo stack to the correct size.
-            undoRedoService.Resize(200);
-
-            // And initialize the actions view model
-            sessionViewModel.ActionHistory.Initialize();
-
-            // Copy the result of the asset loading to the log panel.
-            sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
-
-            sessionViewModel.CheckConsistency();
-
-            sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
-
-            // Notify that the task is finished
-            await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
+            // An upgrade (package or pure asset-format) dirties the freshly-loaded session.
+            // Persist it now so the upgrade and its backup complete now instead of manual save later.
+            var loadedSession = sessionResult.Session;
+            if (loadedSession.LocalPackages.Any(package => package.IsDirty || package.Assets.IsDirty))
+                await sessionViewModel.SaveSession();    // save persists the upgrade and disarms the backup
+            else
+                loadedSession.DisarmUpgradeBackup();     // clean load: no save runs, so disarm here
 
             return sessionViewModel;
         }
 
         private static PackageLoadParameters CreatePackageLoadParameters(WorkProgressViewModel workProgress, CancellationTokenSource cancellationSource)
         {
-            return new PackageLoadParameters
+            // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
+            // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
+            // checkbox below can opt out; the callback updates this flag, which the session honors.
+            var loadParameters = new PackageLoadParameters
             {
                 CancelToken = cancellationSource.Token,
-                PackageUpgradeRequested = (package, pendingUpgrades) =>
-                {
-                    // Generate message (in markdown, so we need to double line feeds)
-                    // Note: ** is markdown
-                    var message = new StringBuilder();
-                    message.AppendLine(string.Format(Tr._p("Message", "The following dependencies in the **{0}** package need to be upgraded:"), package.Meta.Name));
-                    message.AppendLine();
-
-                    foreach (var pendingUpgrade in pendingUpgrades)
-                    {
-                        message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion));
-                    }
-
-                    message.AppendLine();
-                    message.AppendLine(string.Format(Tr._p("Message", "Upgrading assets might break them. We recommend you make a manual backup of your project before you upgrade."), package.Meta.Name));
-
-                    var buttons = new[]
-                    {
-                        new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
-                        new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
-                    };
-                    var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
-                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), false, checkBoxMessage, buttons).Result;
-                    var result = (PackageUpgradeRequestedAnswer)messageBoxResult.Result;
-                    if (messageBoxResult.IsChecked == true)
-                    {
-                        result = result == PackageUpgradeRequestedAnswer.Upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
-                    }
-                    return result;
-                }
+                BackupBeforeUpgrade = true,
             };
+            loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
+            {
+                // Generate message (in markdown, so we need to double line feeds)
+                // Note: ** is markdown
+                var message = new StringBuilder();
+                message.AppendLine(string.Format(Tr._p("Message", "The following dependencies in the **{0}** package need to be upgraded:"), package.Meta.Name));
+                message.AppendLine();
+
+                foreach (var pendingUpgrade in pendingUpgrades)
+                {
+                    message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion));
+                }
+
+                message.AppendLine();
+                message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
+
+                var buttons = new[]
+                {
+                    new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
+                    new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
+                };
+                var applyToAll = new DialogCheckBoxInfo { Content = Tr._p("Message", "Do this for every package in the solution"), IsChecked = false };
+                var backup = new DialogCheckBoxInfo { Content = Tr._p("Message", "Back up each modified file to a timestamped folder under the solution"), IsChecked = true };
+                var buttonResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), [applyToAll, backup], buttons).Result;
+
+                loadParameters.BackupBeforeUpgrade = backup.IsChecked == true;
+                var result = (PackageUpgradeRequestedAnswer)buttonResult;
+                if (applyToAll.IsChecked == true)
+                {
+                    result = result == PackageUpgradeRequestedAnswer.Upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
+                }
+                return result;
+            };
+            return loadParameters;
         }
 
         public override void Destroy()
@@ -949,7 +973,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             await ActiveProperties.RefreshSelectedPropertiesAsync();
 
             // Notify assets view model that their underlying assets has been saved
-            foreach (var asset in AllPackages.Where(project => !project.Package.IsSystem).SelectMany(package => package.Assets))
+            foreach (var asset in AllPackages.Where(project => !project.Package.IsReadOnly).SelectMany(package => package.Assets))
             {
                 // Note: we use AssetItem.IsDirty rather than AssetViewModel.IsDirty since OnSessionSaved() might be the place where we update AssetViewModel.IsDirty
                 if (!asset.AssetItem.IsDirty)
@@ -1157,7 +1181,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                session.Projects.RemoveWhere(x => !x.Package.IsSystem);
+                session.Projects.RemoveWhere(x => !x.Package.IsReadOnly);
             }
             if (e.NewItems != null)
             {
@@ -1648,7 +1672,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 foreach (var selectedPackage in packagesToDelete)
                 {
                     // Note: this should never happen. UI rules should ensure that the user cannot attempt a system package deletion.
-                    if (selectedPackage.Package.IsSystem && !systemPackageWarningDisplayed)
+                    if (selectedPackage.Package.IsReadOnly && !systemPackageWarningDisplayed)
                     {
                         await Dialogs.MessageBoxAsync(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
                         systemPackageWarningDisplayed = true;
