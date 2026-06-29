@@ -166,6 +166,7 @@ jobs:
       # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
       - name: Guard against re-publishing an existing version
         if: ${{ inputs.deploy }}
+        shell: bash
         run: |
           TAG="releases/${{ steps.version.outputs.version }}"
           if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
