@@ -13,10 +13,8 @@ namespace Stride.LauncherApp.ViewModels
             var frameworkFolder = (string)value;
 
             var framework = NuGetFramework.ParseFolder(frameworkFolder);
-            if (framework.Framework == ".NETFramework")
-                return $".NET {framework.Version.ToString(3)}";
-            else if (framework.Framework == ".NETCoreApp")
-                return $".NET Core {framework.Version.ToString(2)}";
+            if (framework.Framework == ".NETCoreApp")
+                return $".NET {framework.Version.ToString(2)}";
 
             // fallback
             return $"{framework.Framework} {framework.Version.ToString(3)}";
