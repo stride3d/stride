@@ -33,9 +33,10 @@
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <NoDefaultExcludes>true</NoDefaultExcludes>
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- NU5128: content-only package (no lib/ref assemblies). NU5104: on dev builds the Stride.Core marker
+         dependency (see the ProjectReference below) is prerelease while the package version may read stable. -->
+    <NoWarn>$(NoWarn);NU5128;NU5104</NoWarn>
 
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
@@ -116,10 +117,19 @@
   </Target>
 
   <ItemGroup>
+    <!-- Build-order only dependency on the preprocessor tool; PrivateAssets=all keeps it out of the
+         package's nuspec dependencies (ReferenceOutputAssembly=false already does, this makes it explicit). -->
     <ProjectReference Include="$(StrideTemplatesProject)">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
+      <PrivateAssets>all</PrivateAssets>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- Marker dependency: stamps the engine version the templates were built against as a Stride.Core >=
+         dependency. The CLI reads it from nuget metadata to pick a compatible template. Private=false keeps
+         the package content-only (nothing compiles against Stride.Core). -->
+    <ProjectReference Include="$(StrideRoot)sources/core/Stride.Core/Stride.Core.csproj">
+      <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
 

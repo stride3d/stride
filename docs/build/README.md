@@ -75,3 +75,4 @@ Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` 
 - [versioning.md](versioning.md) — versioning &amp; release: engine version, per-checkout `-devN` dev versions, the release flow, and sample/template package versions
 - [aot.md](aot.md) — NativeAOT &amp; trimming: publishing games, feature switches for optional subsystems, keeping the engine AOT-clean
 - [../../sources/templates/README.md](../../sources/templates/README.md) — `dotnet new` template packages (Stride.Templates.Games / .Games.Starters / .Samples): end-user usage, local dev workflow, adding a new sample
+- [../../sources/launcher/README.md](../../sources/launcher/README.md) — the `stride` CLI tool and the WPF launcher: usage, building (`PackageCli`), and the independent CLI release flow

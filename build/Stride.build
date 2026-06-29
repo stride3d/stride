@@ -44,7 +44,7 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <Target Name="Help">
-    <Message Importance="high" Text="Stride build targets (run: dotnet build build/Stride.build -t:&lt;Target&gt;)%0a%0a  Build         - build the full Stride solution (Windows)%0a  BuildWindows / BuildWindowsDirect3D11 / BuildWindowsDirect3D12 / BuildWindowsVulkan%0a  BuildLinux / BuildAndroid / BuildiOS / BuildmacOS - build a platform's runtime%0a  BuildRuntime  - build the runtime slnf (with tests/packing)%0a  Package       - build + pack + sign NuGet packages (BuildPackages = build only, no signing)%0a  VSIXPlugin    - build + pack the Visual Studio extension%0a  FullBuildLauncher - build the launcher + installer%0a  Publish / PublishVSIX / PublishLauncher - push packages to the NuGet store%0a  Clean         - delete the Bin output folder%0a%0aCommon properties: -p:StrideSign=false  -p:StrideGraphicsApiDependentBuildAll=true" />
+    <Message Importance="high" Text="Stride build targets (run: dotnet build build/Stride.build -t:&lt;Target&gt;)%0a%0a  Build         - build the full Stride solution (Windows)%0a  BuildWindows / BuildWindowsDirect3D11 / BuildWindowsDirect3D12 / BuildWindowsVulkan%0a  BuildLinux / BuildAndroid / BuildiOS / BuildmacOS - build a platform's runtime%0a  BuildRuntime  - build the runtime slnf (with tests/packing)%0a  Package       - build + pack + sign NuGet packages (BuildPackages = build only, no signing)%0a  VSIXPlugin    - build + pack the Visual Studio extension%0a  FullBuildLauncher - build the launcher + installer%0a  PackageCli    - build + pack + sign the Stride CLI dotnet tool (Stride.Cli)%0a  Publish / PublishVSIX / PublishLauncher - push packages to the NuGet store%0a  Clean         - delete the Bin output folder%0a%0aCommon properties: -p:StrideSign=false  -p:StrideGraphicsApiDependentBuildAll=true" />
   </Target>
 
   <!--
@@ -151,6 +151,37 @@ Example: dotnet build build/Stride.build -t:Package
   <!-- Build + sign, in order. Same behavior as before; the BuildPackages/SignPackage seam lets
        callers run the two phases separately. -->
   <Target Name="Package" DependsOnTargets="BuildPackages;SignPackage"/>
+
+  <!--
+  Stride CLI dotnet tool (Stride.Cli)
+  Versioned independently of the engine (SemVer in Stride.Cli.csproj); deployed by
+  .github/workflows/release-cli.yml. BuildPackageCli packs the tool nupkg (secret-free),
+  SignPackageCli signs it via the shared _SignFiles target, PackageCli does both.
+  -->
+  <PropertyGroup>
+    <StrideCliProject>$(StrideRoot)sources\launcher\Stride.Cli\Stride.Cli.csproj</StrideCliProject>
+    <StrideCliPackageDir>$(StrideRoot)bin\cli</StrideCliPackageDir>
+  </PropertyGroup>
+
+  <Target Name="BuildPackageCli">
+    <ItemGroup>
+      <_StrideCliOldPackages Include="$(StrideCliPackageDir)\*.nupkg" />
+    </ItemGroup>
+    <Delete Files="@(_StrideCliOldPackages)" />
+    <MSBuild Projects="$(StrideCliProject)" Targets="Restore" />
+    <!-- StrideSkipAutoPack: engine ProjectReferences build but don't auto-pack their own .nupkg into our output. -->
+    <MSBuild Projects="$(StrideCliProject)" Targets="Pack"
+             Properties="Configuration=Release;ContinuousIntegrationBuild=true;StrideSkipAutoPack=true;VersionSuffix=$(VersionSuffix);PackageOutputPath=$(StrideCliPackageDir)" />
+  </Target>
+
+  <Target Name="SignPackageCli">
+    <ItemGroup>
+      <StrideFilesToSign Include="$(StrideCliPackageDir)\*.nupkg" />
+    </ItemGroup>
+    <CallTarget Targets="_SignFiles" />
+  </Target>
+
+  <Target Name="PackageCli" DependsOnTargets="BuildPackageCli;SignPackageCli" />
 
   <!-- In-repo sample version management (SamplesToDevVersion / SamplesToReleaseVersion /
        UpgradeSamplesVersion) is standalone in build/Stride.Samples.build - run it directly, e.g.

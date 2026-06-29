@@ -23,23 +23,30 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
 
 This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
 
-## 🚀 Try the CLI templates
+## 🚀 Try Stride from the command line
 
-Create a Stride project from the command line — no editor required:
+Create and manage Stride projects from the command line — no editor required.
+
+The **Stride CLI tool** installs and manages Stride engine versions, creates projects from templates, and opens Game Studio:
 
 ```bash
-# Blank starter
+dotnet tool install -g Stride.Cli
+
+stride sdk install                   # install the latest Stride engine
+stride new fps -n MyShooter          # template: game, fps, platformer2d, topdownrpg, vrsandbox, ...
+cd MyShooter && dotnet run --project MyShooter.Windows
+
+stride studio                        # open Game Studio, the visual editor
+```
+
+`stride new` with no template lists what's available, `stride sdk` manages installed engine versions (`list`, `install`, `uninstall`, `update`), and `stride upgrade` moves a project to a newer engine. See [`sources/launcher/README.md`](sources/launcher/README.md).
+
+Prefer standard .NET templating? The same templates are available through `dotnet new`:
+
+```bash
 dotnet new install Stride.Templates.Games
 dotnet new stride-game -n MyGame
 cd MyGame && dotnet run --project MyGame.Windows
-```
-
-Or start from a genre-specific starter (FPS, 2D platformer, top-down RPG, third-person platformer, VR):
-
-```bash
-dotnet new install Stride.Templates.Games.Starters
-dotnet new stride-fps -n MyShooter
-cd MyShooter && dotnet run --project MyShooter.Windows
 ```
 
 See [`sources/templates/README.md`](sources/templates/README.md) for the full template catalog (genre starters, 18 feature demos, tutorials) and the local-development workflow.

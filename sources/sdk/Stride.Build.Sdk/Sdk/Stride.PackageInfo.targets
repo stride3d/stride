@@ -9,14 +9,11 @@
   <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.Templates.Common.targets. -->
   <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
 
+  <!-- Static (non-version) metadata, shared with standalone packages such as Stride.Cli. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\Stride.PackageMetadata.props" />
+
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(StrideNuGetVersion)</PackageVersion>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://stride3d.net</PackageProjectUrl>
-    <PackageIcon>nuget-icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
-    <Copyright>Copyright © Stride contributors and Silicon Studio Corp.</Copyright>
-    <Authors>Stride contributors;Silicon Studio Corp.</Authors>
     <PackageTags>Stride;3D;gamedev;Game Engine;engine;games;D3D;Vulkan</PackageTags>
   </PropertyGroup>
 
@@ -26,10 +23,6 @@
   <PropertyGroup>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)../nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
-  </ItemGroup>
 
   <!-- Per-checkout NuGet version suffix (producer side). StrideWorktreeSuffix is resolved by
        StrideEnsureWorktreeVersion in Stride.WorktreeVersion.targets — empty on CI, package

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Stride.Cli</RootNamespace>
+    <AssemblyName>stride</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>stride</ToolCommandName>
+    <PackageId>Stride.Cli</PackageId>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Description>Command-line tool for Stride: install Stride versions and create, build, and manage Stride projects.</Description>
+    <PackageTags>stride;gamedev;cli;dotnet-tool</PackageTags>
+  </PropertyGroup>
+  <!-- License, project/repository URL, icon, copyright and authors shared with the engine packages. -->
+  <Import Project="..\..\sdk\Stride.Build.Sdk\Stride.PackageMetadata.props" />
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
+    <PackageReference Include="Microsoft.TemplateEngine.Edge" />
+    <PackageReference Include="Microsoft.TemplateEngine.IDE" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+  </ItemGroup>
+  <!-- Engine-dependency-free template-engine glue, shared by source with Stride.Assets rather than
+       referencing the engine assembly. -->
+  <ItemGroup>
+    <Compile Include="..\..\engine\Stride.Assets\Templates\DotNetNewTemplateRegistry.cs" Link="Core\Templates\DotNetNewTemplateRegistry.cs" />
+    <Compile Include="..\..\engine\Stride.Assets\Templates\StrideTemplateEngineEnvironment.cs" Link="Core\Templates\StrideTemplateEngineEnvironment.cs" />
+  </ItemGroup>
+</Project>
