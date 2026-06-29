@@ -40,7 +40,7 @@ internal static class SolutionSerialization
             && solution.TryGetProperty("path", out var path)
             && path.GetString() is { } relativePath)
         {
-            return Path.GetFullPath(relativePath.Replace('\\', Path.DirectorySeparatorChar), Path.GetDirectoryName(filterFile)!);
+            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(filterFile)!, relativePath.Replace('\\', Path.DirectorySeparatorChar)));
         }
 
         throw new SolutionFileException($"Solution filter '{filterFile}' does not reference a solution.");
@@ -129,7 +129,7 @@ internal static class SolutionSerialization
         foreach (var project in solution.Projects.Where(project => !project.IsSolutionFolder && !existingProjectIds.Contains(project.Guid)))
         {
             var parent = project.ParentGuid != Guid.Empty && folders.TryGetValue(project.ParentGuid, out var folder) ? folder : null;
-            var relativePath = Path.GetRelativePath(solutionDirectory, project.FullPath).Replace('/', '\\');
+            var relativePath = GetRelativePath(solutionDirectory, project.FullPath).Replace('/', '\\');
             var added = model.AddProject(relativePath, ProjectTypeName(project), parent);
             added.Id = project.Guid;
         }
@@ -153,7 +153,7 @@ internal static class SolutionSerialization
 
         foreach (var project in model.SolutionProjects)
         {
-            var fullPath = Path.GetFullPath(project.FilePath.Replace('\\', Path.DirectorySeparatorChar), solutionDirectory);
+            var fullPath = Path.GetFullPath(Path.Combine(solutionDirectory, project.FilePath.Replace('\\', Path.DirectorySeparatorChar)));
             var name = project.ActualDisplayName ?? Path.GetFileNameWithoutExtension(fullPath);
             solution.Projects.Add(new Project(
                 project.Id, ProjectTypeGuid(project), name, fullPath,
@@ -184,6 +184,27 @@ internal static class SolutionSerialization
         }
 
         return "/" + string.Join("/", segments) + "/";
+    }
+
+    // Path.GetRelativePath isn't available when this file is compiled for .NET Framework (the VS package
+    // link-compiles it as net472), so fall back to a Uri-based computation there.
+    private static string GetRelativePath(string relativeTo, string path)
+    {
+#if NETFRAMEWORK
+        var fromDirectory = Path.GetFullPath(relativeTo);
+        if (!fromDirectory.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+            fromDirectory += Path.DirectorySeparatorChar;
+
+        var fromUri = new Uri(fromDirectory);
+        var toUri = new Uri(Path.GetFullPath(path));
+        if (fromUri.Scheme != toUri.Scheme)
+            return path;
+
+        var relative = Uri.UnescapeDataString(fromUri.MakeRelativeUri(toUri).ToString());
+        return relative.Replace('/', Path.DirectorySeparatorChar);
+#else
+        return Path.GetRelativePath(relativeTo, path);
+#endif
     }
 
     private static bool TryGetVersion(Solution solution, string name, out Version version)
