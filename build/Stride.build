@@ -6,9 +6,9 @@ Example: dotnet build build/Stride.build -t:Package
 <Project DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
-    <StrideSolution>$(StrideRoot)build\Stride.sln</StrideSolution>
-    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.sln</StrideVisualStudioSolution>
-    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.sln</StrideSolutionLauncher>
+    <StrideSolution>$(StrideRoot)build\Stride.slnx</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.slnx</StrideVisualStudioSolution>
+    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.slnx</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
@@ -197,7 +197,7 @@ Example: dotnet build build/Stride.build -t:Package
 
   <Target Name="Build">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Any CPU"/>
   </Target>
 
   <!-- Shared body for the per-platform build entry points below. Restores + builds
@@ -237,10 +237,10 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StridePlatforms=Linux" />
   </Target>
 
-  <!-- macOS is bespoke: uses the full .sln with Platform=macOS (not StridePlatforms). -->
+  <!-- macOS is bespoke: uses the full solution with Platform=macOS (not StridePlatforms). -->
   <Target Name="BuildmacOS">
     <PropertyGroup>
-      <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.sln</StridemacOSSolution>
+      <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.slnx</StridemacOSSolution>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StridemacOSSolution)"/>
     <MSBuild Targets="Build" Projects="$(StridemacOSSolution)" Properties="$(BuildProperties);Platform=macOS"/>

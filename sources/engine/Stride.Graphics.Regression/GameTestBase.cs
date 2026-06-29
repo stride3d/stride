@@ -775,7 +775,7 @@ namespace Stride.Graphics.Regression
         ///   Gets the root directory that contains the <c>tests</c> folder with reference and local images.
         /// </summary>
         /// <remarks>
-        ///   On desktop this is the Stride solution root, located by traversing upward for <c>build/Stride.sln</c>.
+        ///   On desktop this is the Stride solution root, located by traversing upward for <c>build/Stride.slnx</c>.
         ///   On Android it is the app's internal files directory (Context.FilesDir): targetSdk 30+ scoped
         ///   storage blocks the app's own writes through the FUSE-bound external-files path. The host
         ///   script pushes gold + pulls generated images via <c>adb shell run-as &lt;pkg&gt;</c>.
@@ -809,7 +809,7 @@ namespace Stride.Graphics.Regression
             var dir = startDir;
             while (dir is not null)
             {
-                var candidate = Path.Combine(dir, "build", "Stride.sln");
+                var candidate = Path.Combine(dir, "build", "Stride.slnx");
                 if (File.Exists(candidate))
                 {
                     ImageTester.DiagLog($"FindRoot: Found root={dir}");

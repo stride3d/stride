@@ -24,7 +24,7 @@ public enum PlatformType
     // ***************************************************************
     // NOTE: This file is shared with the AssemblyProcessor.
     // If this file is modified, the AssemblyProcessor has to be
-    // recompiled separately. See build\Stride-AssemblyProcessor.sln
+    // recompiled separately. See build\Stride.AssemblyProcessor.slnx
     // ***************************************************************
 
     /// <summary>

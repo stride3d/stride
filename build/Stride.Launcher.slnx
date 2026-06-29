@@ -1,0 +1,19 @@
+<Solution>
+  <Project Path="../sources/assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
+  <Project Path="../sources/core/Stride.Core.Design/Stride.Core.Design.csproj" />
+  <Project Path="../sources/core/Stride.Core.IO/Stride.Core.IO.csproj" />
+  <Project Path="../sources/core/Stride.Core.Mathematics/Stride.Core.Mathematics.csproj" />
+  <Project Path="../sources/core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj" />
+  <Project Path="../sources/core/Stride.Core.Reflection/Stride.Core.Reflection.csproj" />
+  <Project Path="../sources/core/Stride.Core.Serialization/Stride.Core.Serialization.csproj" />
+  <Project Path="../sources/core/Stride.Core.Translation/Stride.Core.Translation.csproj" />
+  <Project Path="../sources/core/Stride.Core.Yaml/Stride.Core.Yaml.csproj" />
+  <Project Path="../sources/core/Stride.Core/Stride.Core.csproj" />
+  <Project Path="../sources/editor/Stride.Editor.CrashReport/Stride.Editor.CrashReport.csproj" />
+  <Project Path="../sources/launcher/Stride.Cli/Stride.Cli.csproj" />
+  <Project Path="../sources/launcher/Stride.Launcher/Stride.Launcher.csproj" />
+  <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Dialogs.csproj" />
+  <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
+  <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
+  <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.csproj" />
+</Solution>

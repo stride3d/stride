@@ -130,6 +130,7 @@
          the package content-only (nothing compiles against Stride.Core). -->
     <ProjectReference Include="$(StrideRoot)sources/core/Stride.Core/Stride.Core.csproj">
       <Private>false</Private>
+      <SetTargetFramework>TargetFramework=$(TargetFramework)</SetTargetFramework>
     </ProjectReference>
   </ItemGroup>
 
