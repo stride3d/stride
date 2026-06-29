@@ -99,9 +99,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="NShader\Common\GLSLKeywords.map" />
-    <EmbeddedResource Update="NShader\Common\HLSLKeywords.map" />
-    <EmbeddedResource Update="NShader\Common\StrideShaderKeywords.map" />
     <None Include="NShader\Common\ShaderMPLexer.lex" />
     <None Include="Stride.VisualStudio.Package.nuspec" />
     <None Include="source.extension.vsixmanifest">
