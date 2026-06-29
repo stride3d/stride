@@ -18,6 +18,12 @@ public sealed class StrideVersionManager
     private const string MainPackageId = "Stride.GameStudio";
 
     private readonly NugetStore store = new(oldRootDirectory: null);
+
+    /// <summary>Raised with the project file name when a NuGet restore starts (e.g. during version resolution).</summary>
+    public event Action<string>? RestoreStarting;
+
+    /// <summary>Raised when a restore announced via <see cref="RestoreStarting"/> has finished.</summary>
+    public event Action? RestoreFinished;
     private readonly ManagedVersionStore managedVersions = new();
 
     /// <summary>Lists the installed Stride versions, newest first.</summary>
@@ -230,21 +236,36 @@ public sealed class StrideVersionManager
         if (projectFiles.Count == 0)
             return GetDefault()?.Version;  // not inside a project: use the newest installed version
 
-        var version = FirstRestoredVersion(projectFiles);
-        if (version is not null)
-            return version;
+        return ReadProjectVersion(projectFiles)
+            ?? throw new InvalidOperationException(
+                $"Could not determine the Stride version for the project in '{workingDirectory}'. Run 'dotnet restore' there to see if it restores.");
+    }
 
-        // A project is present but not restored yet: restore the projects, then read the version again.
+    /// <summary>
+    ///   The Stride version a project under <paramref name="workingDirectory"/> targets, or null if there is no
+    ///   project there or its version can't be determined (unlike <see cref="ResolveVersion"/>, never throws and
+    ///   never falls back to the newest installed version).
+    /// </summary>
+    public PackageVersion? FindProjectVersion(string workingDirectory)
+    {
+        var projectFiles = GetProjectFiles(workingDirectory);
+        return projectFiles.Count == 0 ? null : ReadProjectVersion(projectFiles);
+    }
+
+    // Restores then reads the Stride version from the first project that pins one. Always restores first so a
+    // stale project.assets.json (e.g. after editing or reverting the csproj or a Directory.Packages.props) can't
+    // report an out-of-date version. A no-op restore is ~0.7s; a real restore runs only when an input changed.
+    private PackageVersion? ReadProjectVersion(IReadOnlyList<string> projectFiles)
+    {
         foreach (var projectFile in projectFiles)
         {
             Restore(projectFile);
-            version = ReadRestoredStrideVersion(projectFile);
+            var version = ReadRestoredStrideVersion(projectFile);
             if (version is not null)
                 return version;
         }
 
-        throw new InvalidOperationException(
-            $"Could not determine the Stride version for the project in '{workingDirectory}', even after restoring it.");
+        return null;
     }
 
     /// <summary>The solution file (.sln/.slnx/.slnf) in <paramref name="workingDirectory"/>, or null if none.</summary>
@@ -360,21 +381,47 @@ public sealed class StrideVersionManager
             return [];
 
         var solutionFiles = Directory.EnumerateFiles(workingDirectory).Where(Solution.IsSolutionFile);
+        // Order deterministically: a project's first-found Stride version drives resolution, so without a stable
+        // order a mixed-version solution (rare, usually a half-finished upgrade) would resolve differently run to run.
         return Directory.EnumerateFiles(workingDirectory, "*.csproj")
             .Concat(solutionFiles.SelectMany(ReferencedProjects))
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
-    private static PackageVersion? FirstRestoredVersion(IEnumerable<string> projectFiles)
-        => projectFiles.Select(ReadRestoredStrideVersion).FirstOrDefault(version => version is not null);
-
-    // Runs `dotnet restore <project>` so the project produces a project.assets.json.
-    private static void Restore(string projectFile)
+    // Runs `dotnet restore <project>` so the project produces a project.assets.json. Fires RestoreStarting /
+    // RestoreFinished around it so a UI can show progress (usually a fast no-op, occasionally slow).
+    // Runs `dotnet restore <project>`, discarding its output so NuGet's chatter never pollutes the CLI (the
+    // restore indicator is the user-facing feedback; on failure the caller points to `dotnet restore` for detail).
+    private void Restore(string projectFile)
     {
-        var startInfo = new ProcessStartInfo("dotnet") { UseShellExecute = false };
-        startInfo.ArgumentList.Add("restore");
-        startInfo.ArgumentList.Add(projectFile);
-        Process.Start(startInfo)?.WaitForExit();
+        RestoreStarting?.Invoke(Path.GetFileName(projectFile));
+        try
+        {
+            var startInfo = new ProcessStartInfo("dotnet")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            startInfo.ArgumentList.Add("restore");
+            startInfo.ArgumentList.Add(projectFile);
+            startInfo.ArgumentList.Add("--nologo");
+            startInfo.ArgumentList.Add("-v");
+            startInfo.ArgumentList.Add("quiet");
+            using var process = Process.Start(startInfo);
+            if (process is null)
+                return;
+
+            // Drain both streams (async) so the pipe can't deadlock; the content is discarded.
+            _ = process.StandardOutput.ReadToEndAsync();
+            _ = process.StandardError.ReadToEndAsync();
+            process.WaitForExit();
+        }
+        finally
+        {
+            RestoreFinished?.Invoke();
+        }
     }
 
     // The csproj paths referenced by a solution. Stride.Core.Solutions handles the .sln/.slnx formats and

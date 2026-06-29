@@ -8,7 +8,13 @@ using Stride.Launcher.Core;
 
 var manager = new StrideVersionManager();
 
-// Resolve the version for the current directory (restoring the project if needed). Prints any error and
+// Version resolution restores the project first (so a stale project.assets.json can't report an out-of-date
+// version); surface a spinner if a restore is slow.
+var restoreIndicator = new RestoreIndicator();
+manager.RestoreStarting += restoreIndicator.Start;
+manager.RestoreFinished += restoreIndicator.Stop;
+
+// Resolve the version for the current directory (restoring the project first). Prints any error and
 // returns null on failure.
 PackageVersion? ResolveOrReport(string? explicitVersion)
 {
@@ -54,6 +60,14 @@ installCommand.Options.Add(prereleaseOption);
 installCommand.SetAction(async (parseResult, cancellationToken) =>
 {
     var spec = parseResult.GetValue(installVersion);
+    // No version given but inside a project: install the version that project needs (sets you up to work on it),
+    // rather than the newest available. The restore that resolves it also pulls the project's engine packages.
+    if (spec is null && manager.FindProjectVersion(Environment.CurrentDirectory) is { } projectVersion)
+    {
+        spec = projectVersion.ToString();
+        Console.WriteLine($"Installing Stride {spec} required by the project in this directory.");
+    }
+
     var progress = new InstallProgressConsole();
     try
     {
