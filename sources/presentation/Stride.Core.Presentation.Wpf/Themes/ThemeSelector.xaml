@@ -337,6 +337,38 @@
     </Setter>
   </Style>
 
+  <Style TargetType="{x:Type wnd:MultiCheckedMessageBox}" BasedOn="{StaticResource {x:Type wnd:MessageBox}}">
+    <Setter Property="MessageTemplate">
+      <Setter.Value>
+        <DataTemplate>
+          <DockPanel LastChildFill="True"
+                     MinWidth="{Binding MinWidth, RelativeSource={RelativeSource AncestorType=ContentPresenter}, FallbackValue=320}"
+                     MaxHeight="{Binding MaxHeight, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={cvt:SumNum}, ConverterParameter={me:Double -20}, FallbackValue=748}" >
+            <i:Interaction.Behaviors>
+              <behaviors:ResizeBehavior SizeRatio="5,3"/>
+            </i:Interaction.Behaviors>
+            <ItemsControl DockPanel.Dock="Bottom" Margin="0,15,0,5" VerticalAlignment="Bottom"
+                          HorizontalContentAlignment="Stretch"
+                          ItemsSource="{Binding CheckBoxes, RelativeSource={RelativeSource AncestorType=wnd:MultiCheckedMessageBox}}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <CheckBox Margin="0,3,0,0" HorizontalContentAlignment="Stretch" IsChecked="{Binding IsChecked, Mode=TwoWay}">
+                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
+                  </CheckBox>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Image DockPanel.Dock="Left" Source="{Binding Image, RelativeSource={RelativeSource AncestorType=wnd:MultiCheckedMessageBox}}"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,5" RenderOptions.BitmapScalingMode="HighQuality"
+                   Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}" Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}"
+                   Visibility="{Binding Image, RelativeSource={RelativeSource AncestorType=wnd:MultiCheckedMessageBox}, Converter={cvt:Chained {cvt:ObjectToBool}, {cvt:VisibleOrCollapsed}}}" />
+            <ctrl:MarkdownTextBlock Text="{Binding}" VerticalAlignment="Center"/>
+          </DockPanel>
+        </DataTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style TargetType="{x:Type ctrl:MarkdownTextBlock}">
     <Setter Property="HyperlinkCommand" Value="{x:Static cmd:UtilityCommands.OpenHyperlinkCommand}" />
     <Setter Property="Template">

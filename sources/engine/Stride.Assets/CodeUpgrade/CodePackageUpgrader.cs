@@ -54,6 +54,9 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         if (projectFullPath == null)
             return true;
 
+        // Snapshot the original csproj before the passes below rewrite it.
+        session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
+
         // Bump the upgrader's own package family to the current version (subclass hook).
         UpgradeProjectReferences(projectFullPath, log);
 

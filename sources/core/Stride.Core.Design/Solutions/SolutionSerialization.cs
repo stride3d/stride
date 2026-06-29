@@ -52,7 +52,7 @@ internal static class SolutionSerialization
         return ToSolution(model, solutionFullPath);
     }
 
-    public static void Write(Solution solution, string outputPath)
+    public static void Write(Solution solution, string outputPath, Action<string>? onBeforeOverwrite = null)
     {
         // Behave like Visual Studio: a solution loaded from disk keeps everything it had (platforms, build
         // configurations, solution folders, projects Stride doesn't manage) and only its project list is
@@ -76,7 +76,10 @@ internal static class SolutionSerialization
         {
             serializer.SaveAsync(tempPath, model, CancellationToken.None).GetAwaiter().GetResult();
             if (!File.ReadAllBytes(outputPath).AsSpan().SequenceEqual(File.ReadAllBytes(tempPath)))
+            {
+                onBeforeOverwrite?.Invoke(outputPath);
                 File.Copy(tempPath, outputPath, overwrite: true);
+            }
         }
         finally
         {

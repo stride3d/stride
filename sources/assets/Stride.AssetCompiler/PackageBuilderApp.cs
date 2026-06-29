@@ -117,6 +117,7 @@ namespace Stride.AssetCompiler
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
+                { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -347,12 +348,21 @@ namespace Stride.AssetCompiler
                         PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
                         // Whole-solution upgrade may start mixed (e.g. a shared pack already bumped); tolerate the transient NU1605.
                         AllowUpgradeDowngradeRestore = true,
+                        // Snapshot every file the upgrade overwrites into a timestamped backup folder unless opted out.
+                        BackupBeforeUpgrade = !options.NoBackup,
                     };
 
                     var sessionResult = PackageSession.Load(upgradeTarget, loadParameters);
                     sessionResult.CopyTo(options.Logger);
-                    if (sessionResult.HasErrors || sessionResult.Session == null)
+                    if (sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
+
+                    // Be lenient like Game Studio: load errors (e.g. a project that won't build against the new
+                    // version, so its script-referencing assets load as IUnloadable) don't abort the upgrade.
+                    // Reconcile and save whatever loaded — IUnloadable round-trips its original YAML, so nothing
+                    // is lost — and let the exit code below still report the errors.
+                    if (sessionResult.HasErrors)
+                        options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
 
                     ReconcileBases(sessionResult.Session, options.Logger);
 
