@@ -73,7 +73,7 @@ jobs:
             echo "=== Test run $i / $REPEAT ==="
             dotnet test build/Stride.Tests.Simple.Linux.slnf \
               --no-build \
-              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults \
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
               --blame-hang-timeout 5m --blame-hang-dump-type full \
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
               "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }

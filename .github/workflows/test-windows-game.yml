@@ -188,7 +188,7 @@ jobs:
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test $env:STRIDE_TEST_TARGET `
               --no-build `
-              --logger:"trx;LogFileName=run-$i.trx" --results-directory TestResults `
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
               -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
