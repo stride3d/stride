@@ -311,28 +311,18 @@ namespace Stride.AssetCompiler
                             // earlier in the batch), which is a transient, expected downgrade that the upgrade's
                             // reference rewrite resolves. Scoped to this upgrade-time restore — real builds keep
                             // NU1605 as a hard error. (NoWarn would hide it; WarningsNotAsErrors isn't honored by restore.)
-                            ArgumentList = { "restore", restoreTarget, "--nologo", "-v", "quiet", "-p:WarningsAsErrors=" },
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
+                            ArgumentList = { "restore", restoreTarget, "--nologo", "-p:WarningsAsErrors=" },
                             UseShellExecute = false,
                         };
+                        // No redirect: inherit the console so dotnet's colored terminal-logger output streams live.
+                        // Trade-off vs capturing: no tidy error summary, but on failure dotnet's own error lines are
+                        // already on screen.
                         using var proc = System.Diagnostics.Process.Start(psi)!;
-                        // Drain both streams concurrently to avoid pipe-buffer deadlock.
-                        var stdoutTask = proc.StandardOutput.ReadToEndAsync();
-                        var stderrTask = proc.StandardError.ReadToEndAsync();
                         proc.WaitForExit();
                         if (proc.ExitCode != 0)
                         {
                             // Fail hard: a failed restore would make the code-aware upgrade produce wrong results.
-                            // dotnet writes restore errors (e.g. NU1201) to stdout, not stderr, so surface the error
-                            // lines from both streams, falling back to the full output if none are tagged.
-                            var output = stdoutTask.Result + "\n" + stderrTask.Result;
-                            var errorLines = string.Join("\n", output
-                                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                                .Select(line => line.Trim())
-                                .Where(line => line.Contains(": error", StringComparison.OrdinalIgnoreCase)));
-                            var detail = string.IsNullOrWhiteSpace(errorLines) ? output.Trim() : errorLines;
-                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}):\n{detail}");
+                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}); see the restore output above.");
                             return (int)BuildResultCode.BuildError;
                         }
                     }
@@ -352,8 +342,19 @@ namespace Stride.AssetCompiler
                         BackupBeforeUpgrade = !options.NoBackup,
                     };
 
-                    var sessionResult = PackageSession.Load(upgradeTarget, loadParameters);
-                    sessionResult.CopyTo(options.Logger);
+                    // Load (compiling the project assemblies) is the slow phase; forward each message it logs live.
+                    options.Logger.Info($"Loading [{System.IO.Path.GetFileName(upgradeTarget)}] (compiling and loading project assemblies)...");
+                    var sessionResult = new PackageSessionResult();
+                    void ForwardLog(object sender, MessageLoggedEventArgs e) => options.Logger.Log(e.Message);
+                    sessionResult.MessageLogged += ForwardLog;
+                    try
+                    {
+                        PackageSession.Load(upgradeTarget, sessionResult, loadParameters);
+                    }
+                    finally
+                    {
+                        sessionResult.MessageLogged -= ForwardLog;
+                    }
                     if (sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
 
