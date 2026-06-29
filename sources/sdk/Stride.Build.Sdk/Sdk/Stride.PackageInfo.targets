@@ -20,6 +20,13 @@
     <PackageTags>Stride;3D;gamedev;Game Engine;engine;games;D3D;Vulkan</PackageTags>
   </PropertyGroup>
 
+  <!-- CI only: deterministic, normalized SourceLink paths (/_/ instead of the build
+       machine's absolute path). Off locally so debugging steps into the real
+       working-copy source instead of fetching from GitHub. -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)../nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
   </ItemGroup>
