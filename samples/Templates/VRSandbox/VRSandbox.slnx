@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/mannequinModel/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" Value="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/SamplesAssetPackage/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg" Value="../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/VRSandbox/">
+    <Project Path="VRSandbox/VRSandbox.Game/VRSandbox.Game.csproj" />
+    <Project Path="VRSandbox/VRSandbox.Windows/VRSandbox.Windows.csproj">
+      <Deploy />
+    </Project>
+    <Properties Name="StridePackage">
+      <Property Name="VRSandbox/VRSandbox.sdpkg" Value="VRSandbox/VRSandbox.sdpkg" />
+    </Properties>
+  </Folder>
+</Solution>

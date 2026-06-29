@@ -28,7 +28,7 @@ When installing VS 2026, make sure these are selected:
 ## Build With Visual Studio
 
 1. `git clone https://github.com/stride3d/stride.git`
-2. Open `build\Stride.sln` in Visual Studio 2026.
+2. Open `build\Stride.slnx` in Visual Studio 2026.
 3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
 
 ## Building Without Visual Studio
@@ -54,7 +54,7 @@ If you'd rather not install the full Visual Studio IDE:
 `dotnet build` works without Visual Studio loaded — it auto-selects the Clang toolchain for the native C++ projects:
 
 ```bash
-dotnet build build\Stride.sln
+dotnet build build\Stride.slnx
 ```
 
 Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` with the VS C++ tools loaded (VS Developer Command Prompt or IDE), Clang in every other case — including `dotnet build` from a Developer Command Prompt. See [SDK-GUIDE.md → Native Build Mode](SDK-GUIDE.md#native-build-mode-clang--msvc) for the full logic.

@@ -118,9 +118,9 @@
     <!-- Run the package upgrader once over the whole samples solution: one process + one shared NuGet restore,
          so the samples resolve against one coherent graph and don't each pay a fresh process + restore. It sees
          each sample's committed version, migrates assets, rewrites the Stride.* references to this checkout's dev
-         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .sln/.csproj/.sdpkg. -->
+         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .slnx/.csproj/.sdpkg. -->
     <PropertyGroup>
-      <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.sln</SampleUpgradeTarget>
+      <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.slnx</SampleUpgradeTarget>
     </PropertyGroup>
     <Message Importance="high" Text="UpgradeSamplesVersion: upgrading $(SampleUpgradeTarget)" />
     <Exec WorkingDirectory="$(StrideRoot)"

@@ -48,7 +48,7 @@ public static partial class NuGetAssemblyResolver
 
         while (folder != null)
         {
-            if (File.Exists(Path.Combine(folder, "build", "Stride.sln")))
+            if (File.Exists(Path.Combine(folder, "build", "Stride.slnx")))
             {
                 var settings = Settings.LoadDefaultSettings(null);
 

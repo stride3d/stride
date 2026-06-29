@@ -44,7 +44,7 @@
     </ReadLinesFromFile>
 
     <ItemGroup Condition="'$(_StrideStampTicks)' != ''">
-      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.sln" />
+      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.slnx" />
       <_StrideStubInputs Include="@(_StrideStubManifestCsprojs)" />
       <_StrideStaleStubInputs Include="@(_StrideStubInputs)"
                               Condition="$([System.IO.File]::GetLastWriteTime('%(_StrideStubInputs.FullPath)').Ticks) &gt; $(_StrideStampTicks)" />

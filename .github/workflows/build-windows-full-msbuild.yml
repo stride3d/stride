@@ -1,6 +1,6 @@
 name: Build Windows (Full, VS MSBuild)
 
-# Desktop-MSBuild fidelity check: builds Stride.sln the way Visual Studio does —
+# Desktop-MSBuild fidelity check: builds Stride.slnx the way Visual Studio does —
 # .NET Framework MSBuild engine, separate restore (no dotnet-build sugar), VS dev
 # environment so VCINSTALLDIR selects the MSVC native build mode (the
 # WindowsDesktop.vcxproj link path VS users get with the C++ workload). Everything
@@ -48,19 +48,21 @@ jobs:
         # VS restores via its NuGet integration before building; bare /t:Restore is the
         # CLI equivalent. Same properties as Build so the TFM graph matches.
         run: |
-          msbuild build\Stride.sln `
+          msbuild build\Stride.slnx `
             /t:Restore `
             /m /nr:false /v:m /p:WarningLevel=0 `
             /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            /p:Platform="Any CPU" `
             /p:StridePlatforms=Windows `
             /p:StrideGraphicsApiDependentBuildAll=true `
             /p:StrideSkipUnitTests=true `
             /p:StrideSkipAutoPack=true
       - name: Build
         run: |
-          msbuild build\Stride.sln `
+          msbuild build\Stride.slnx `
             /m /nr:false /v:m /p:WarningLevel=0 `
             /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
+            /p:Platform="Any CPU" `
             /p:StridePlatforms=Windows `
             /p:StrideGraphicsApiDependentBuildAll=true `
             /p:StrideSkipUnitTests=true `

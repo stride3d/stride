@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/CSharpBeginner/">
+    <Project Path="CSharpBeginner/CSharpBeginner.Game/CSharpBeginner.Game.csproj" />
+    <Project Path="CSharpBeginner/CSharpBeginner.Windows/CSharpBeginner.Windows.csproj" />
+  </Folder>
+  <Folder Name="/mannequinModel/">
+    <Properties Name="StridePackage">
+      <Property Name="../../Templates/Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" Value="../../Templates/Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/PrototypingBlocks/">
+    <Properties Name="StridePackage">
+      <Property Name=".../../Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" Value=".../../Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../../../.editorconfig" />
+  </Folder>
+  <Project Path="../../Templates/Packs/mannequinModel/mannequinModel.csproj" />
+  <Project Path="../../Templates/Packs/PrototypingBlocks/PrototypingBlocks.csproj" />
+  <Project Path="../../Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.csproj" />
+</Solution>

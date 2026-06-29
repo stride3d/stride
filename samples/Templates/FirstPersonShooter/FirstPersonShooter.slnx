@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/FirstPersonShooter/">
+    <Project Path="FirstPersonShooter/FirstPersonShooter.Game/FirstPersonShooter.Game.csproj" />
+    <Project Path="FirstPersonShooter/FirstPersonShooter.Windows/FirstPersonShooter.Windows.csproj">
+      <Deploy />
+    </Project>
+    <Properties Name="StridePackage">
+      <Property Name="FirstPersonShooter/FirstPersonShooter.sdpkg" Value="FirstPersonShooter/FirstPersonShooter.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/mannequinModel/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" Value="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/PrototypingBlocks/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" Value="../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/SamplesAssetPackage/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg" Value="../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/VFXPackage/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/VFXPackage/VFXPackage.sdpkg" Value="../Packs/VFXPackage/VFXPackage.sdpkg" />
+    </Properties>
+  </Folder>
+</Solution>

@@ -1,0 +1,164 @@
+<Solution>
+  <Folder Name="/Audio/" />
+  <Folder Name="/Audio/SimpleAudio/">
+    <Project Path="Audio/SimpleAudio/SimpleAudio.Game/SimpleAudio.Game.csproj" />
+    <Project Path="Audio/SimpleAudio/SimpleAudio.Windows/SimpleAudio.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Games/" />
+  <Folder Name="/Games/JumpyJet/">
+    <Project Path="Games/JumpyJet/JumpyJet.Game/JumpyJet.Game.csproj" />
+    <Project Path="Games/JumpyJet/JumpyJet.Windows/JumpyJet.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Games/SpaceEscape/">
+    <Project Path="Games/SpaceEscape/SpaceEscape.Game/SpaceEscape.Game.csproj" />
+    <Project Path="Games/SpaceEscape/SpaceEscape.Windows/SpaceEscape.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Graphics/" />
+  <Folder Name="/Graphics/AnimatedModel/">
+    <Project Path="Graphics/AnimatedModel/AnimatedModel.Game/AnimatedModel.Game.csproj" />
+    <Project Path="Graphics/AnimatedModel/AnimatedModel.Windows/AnimatedModel.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Graphics/CustomEffect/">
+    <Project Path="Graphics/CustomEffect/CustomEffect.Game/CustomEffect.Game.csproj" />
+    <Project Path="Graphics/CustomEffect/CustomEffect.Windows/CustomEffect.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Graphics/MaterialShader/">
+    <Project Path="Graphics/MaterialShader/MaterialShader.Game/MaterialShader.Game.csproj" />
+    <Project Path="Graphics/MaterialShader/MaterialShader.Windows/MaterialShader.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Graphics/SpriteFonts/">
+    <Project Path="Graphics/SpriteFonts/SpriteFonts.Game/SpriteFonts.Game.csproj" />
+    <Project Path="Graphics/SpriteFonts/SpriteFonts.Windows/SpriteFonts.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Graphics/SpriteStudioDemo/">
+    <Project Path="Graphics/SpriteStudioDemo/SpriteStudioDemo.Game/SpriteStudioDemo.Game.csproj" />
+    <Project Path="Graphics/SpriteStudioDemo/SpriteStudioDemo.Windows/SpriteStudioDemo.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Input/" />
+  <Folder Name="/Input/GravitySensor/">
+    <Project Path="Input/GravitySensor/GravitySensor.Game/GravitySensor.Game.csproj" />
+    <Project Path="Input/GravitySensor/GravitySensor.Windows/GravitySensor.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Input/TouchInputs/">
+    <Project Path="Input/TouchInputs/TouchInputs.Game/TouchInputs.Game.csproj" />
+    <Project Path="Input/TouchInputs/TouchInputs.Windows/TouchInputs.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Particles/" />
+  <Folder Name="/Particles/ParticlesSample/">
+    <Project Path="Particles/ParticlesSample/ParticlesSample.Game/ParticlesSample.Game.csproj" />
+    <Project Path="Particles/ParticlesSample/ParticlesSample.Windows/ParticlesSample.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Physics/" />
+  <Folder Name="/Physics/BepuSample/">
+    <Project Path="Physics/BepuSample/BepuSample.Game/BepuSample.Game.csproj" />
+    <Project Path="Physics/BepuSample/BepuSample.Windows/BepuSample.Windows.csproj" />
+  </Folder>
+  <Folder Name="/Physics/PhysicsSample/">
+    <Project Path="Physics/PhysicsSample/PhysicsSample.Game/PhysicsSample.Game.csproj" />
+    <Project Path="Physics/PhysicsSample/PhysicsSample.Windows/PhysicsSample.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Templates/" />
+  <Folder Name="/Templates/FirstPersonShooter/">
+    <Project Path="Templates/FirstPersonShooter/FirstPersonShooter/FirstPersonShooter.Game/FirstPersonShooter.Game.csproj" />
+    <Project Path="Templates/FirstPersonShooter/FirstPersonShooter/FirstPersonShooter.Windows/FirstPersonShooter.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Templates/Packs/">
+    <Project Path="Templates/Packs/mannequinModel/mannequinModel.csproj" />
+    <Project Path="Templates/Packs/MaterialPackage/MaterialPackage.csproj" />
+    <Project Path="Templates/Packs/PrototypingBlocks/PrototypingBlocks.csproj" />
+    <Project Path="Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.csproj" />
+    <Project Path="Templates/Packs/VFXPackage/VFXPackage.csproj" />
+  </Folder>
+  <Folder Name="/Templates/Platformer2D/">
+    <Project Path="Templates/Platformer2D/Platformer2D/Platformer2D.Game/Platformer2D.csproj" />
+    <Project Path="Templates/Platformer2D/Platformer2D/Platformer2D.Windows/Platformer2D.Windows.csproj" />
+  </Folder>
+  <Folder Name="/Templates/ThirdPersonPlatformer/">
+    <Project Path="Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.Game/ThirdPersonPlatformer.Game.csproj" />
+    <Project Path="Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.Windows/ThirdPersonPlatformer.Windows.csproj" />
+  </Folder>
+  <Folder Name="/Templates/TopDownRPG/">
+    <Project Path="Templates/TopDownRPG/TopDownRPG/TopDownRPG.Game/TopDownRPG.Game.csproj" />
+    <Project Path="Templates/TopDownRPG/TopDownRPG/TopDownRPG.Windows/TopDownRPG.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Templates/VRSandbox/">
+    <Project Path="Templates/VRSandbox/VRSandbox/VRSandbox.Game/VRSandbox.Game.csproj" />
+    <Project Path="Templates/VRSandbox/VRSandbox/VRSandbox.Windows/VRSandbox.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Tutorials/" />
+  <Folder Name="/Tutorials/CSharpBeginner/">
+    <Project Path="Tutorials/CSharpBeginner/CSharpBeginner/CSharpBeginner.Game/CSharpBeginner.Game.csproj" />
+    <Project Path="Tutorials/CSharpBeginner/CSharpBeginner/CSharpBeginner.Windows/CSharpBeginner.Windows.csproj" />
+  </Folder>
+  <Folder Name="/Tutorials/CSharpIntermediate/">
+    <Project Path="Tutorials/CSharpIntermediate/CSharpIntermediate/CSharpIntermediate.Game/CSharpIntermediate.Game.csproj" />
+    <Project Path="Tutorials/CSharpIntermediate/CSharpIntermediate/CSharpIntermediate.Windows/CSharpIntermediate.Windows.csproj" />
+  </Folder>
+  <Folder Name="/UI/" />
+  <Folder Name="/UI/GameMenu/">
+    <Project Path="UI/GameMenu/GameMenu.Game/GameMenu.Game.csproj" />
+    <Project Path="UI/GameMenu/GameMenu.Windows/GameMenu.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/UI/UIElementLink/">
+    <Project Path="UI/UIElementLink/UIElementLink.Game/UIElementLink.Game.csproj" />
+    <Project Path="UI/UIElementLink/UIElementLink.Windows/UIElementLink.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/UI/UIParticles/">
+    <Project Path="UI/UIParticles/UIParticles.Game/UIParticles.Game.csproj" />
+    <Project Path="UI/UIParticles/UIParticles.Windows/UIParticles.Windows.csproj">
+      <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
+    </Project>
+  </Folder>
+</Solution>

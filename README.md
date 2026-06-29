@@ -73,7 +73,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 ### Build Stride
 
 1. `git clone https://github.com/stride3d/stride.git`
-2. Open `build\Stride.sln` in Visual Studio 2026.
+2. Open `build\Stride.slnx` in Visual Studio 2026.
 3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
 
 ### Contribution Guidelines
