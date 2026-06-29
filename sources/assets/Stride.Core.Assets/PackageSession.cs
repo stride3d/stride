@@ -495,6 +495,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public AssemblyContainer AssemblyContainer { get; }
 
     /// <summary>
+    /// The copy-on-write backup armed for an in-place upgrade (see <see cref="PackageLoadParameters.BackupBeforeUpgrade"/>),
+    /// or <c>null</c> when no backup is requested. The upgrade write points call <see cref="UpgradeBackup.Snapshot"/>
+    /// on it before overwriting a file.
+    /// </summary>
+    public UpgradeBackup? UpgradeBackup { get; private set; }
+
+    /// <summary>
     /// The targeted visual studio version (if specified by the loaded package)
     /// </summary>
     public Version? VisualStudioVersion { get; set; }
@@ -903,6 +910,26 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         LoadMissingAssets(log, [.. Packages], loadParameters);
     }
 
+    // Constructs the copy-on-write upgrade backup the first time an upgrade-enabled load runs, mirroring the
+    // solution directory (or, for a standalone project upgrade with no solution, the project's directory).
+    private void ArmUpgradeBackup(PackageLoadParameters loadParameters, ILogger log)
+    {
+        if (!loadParameters.BackupBeforeUpgrade || UpgradeBackup is not null)
+            return;
+
+        var root = SolutionPath is not null
+            ? Path.GetDirectoryName(SolutionPath.ToOSPath())
+            : Projects.OfType<SolutionProject>().Select(x => Path.GetDirectoryName(x.FullPath.ToOSPath())).FirstOrDefault();
+        if (!string.IsNullOrEmpty(root))
+            UpgradeBackup = new UpgradeBackup(root, DateTime.Now, log);
+    }
+
+    /// <summary>
+    /// Disarms the upgrade backup so subsequent saves no longer snapshot files. <see cref="Save"/> does this
+    /// automatically after persisting an upgrade; a front-end also calls it for a clean load where no save runs.
+    /// </summary>
+    public void DisarmUpgradeBackup() => UpgradeBackup = null;
+
     /// <summary>
     /// Make sure packages have their dependencies loaded.
     /// </summary>
@@ -913,6 +940,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
 
         var cancelToken = loadParameters.CancelToken;
+
+        // Arm the copy-on-write backup once, before any upgrade write point runs. Copy-on-write keeps this
+        // safe to arm eagerly: the backup folder is only created if an upgrade actually overwrites a file.
+        ArmUpgradeBackup(loadParameters, log);
 
         try
         {
@@ -944,7 +975,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 {
                     var pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
                     if (pendingCodeUpgrades.Count > 0)
-                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, log);
+                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, UpgradeBackup, log);
                 }
                 catch (NotImplementedException)
                 {
@@ -1057,6 +1088,23 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 return;
             }
 
+            // Copy-on-write backup of the files this save is about to overwrite during an upgrade: the dirty
+            // packages and their dirty assets. No-op outside an upgrade (UpgradeBackup is null); copy-once.
+            if (UpgradeBackup is { } upgradeBackup)
+            {
+                foreach (var package in LocalPackages)
+                {
+                    if (package.IsDirty && package.FullPath is not null)
+                        upgradeBackup.Snapshot(package.FullPath.ToOSPath());
+
+                    foreach (var assetItem in package.Assets)
+                    {
+                        if (assetItem.IsDirty)
+                            upgradeBackup.Snapshot(assetItem.FullPath.ToOSPath());
+                    }
+                }
+            }
+
             // Suspend tracking when saving as we don't want to receive
             // all notification events
             dependencies?.BeginSavingSession();
@@ -1148,10 +1196,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             dependencies?.EndSavingSession();
 
             // Once all packages and assets have been saved, we can save the solution (as we need to have fullpath to
-            // be setup for the packages). Skip when the session wasn't loaded from a .sln (empty FullPath).
+            // be setup for the packages). Skip when the session wasn't loaded from a .sln (empty FullPath). The
+            // callback snapshots the .sln only when Save actually rewrites it.
             if (packagesSaved && !string.IsNullOrEmpty(VSSolution.FullPath))
             {
-                VSSolution.Save();
+                VSSolution.Save(path => UpgradeBackup?.Snapshot(path));
             }
             saveCompletion?.SetResult(0);
             saveCompletion = null;
@@ -1159,6 +1208,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         //System.Diagnostics.Trace.WriteLine("Elapsed saved: " + clock.ElapsedMilliseconds);
         IsDirty = packagesDirty;
+
+        // The backup (armed only during an upgrade) has done its job for this save; disarm so later saves of
+        // this session don't snapshot. Normal saves run with it already null, so this is a no-op.
+        DisarmUpgradeBackup();
     }
 
     private Dictionary<UFile, AssetItem> BuildAssetsOrPackagesToRemove()
@@ -1483,6 +1536,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         packageUpgradeAllowed = true;
                     if (upgradeAllowed == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
                         packageUpgradeAllowed = false;
+
+                    // The confirmation callback may have opted out of the backup (e.g. the GameStudio dialog's
+                    // checkbox); disarm so the upgrade writes that follow this point don't snapshot.
+                    if (!loadParameters.BackupBeforeUpgrade)
+                        DisarmUpgradeBackup();
                 }
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))

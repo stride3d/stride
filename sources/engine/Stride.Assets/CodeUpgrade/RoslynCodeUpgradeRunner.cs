@@ -23,7 +23,7 @@ namespace Stride.Assets;
 /// </summary>
 internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 {
-    public void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, ILogger log)
+    public void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log)
     {
         // Resolve each pending upgrader's applicable code rules up front. If nothing applies, never open
         // the (expensive) workspace — this keeps project-only upgrades at exactly today's cost.
@@ -71,7 +71,13 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         try
         {
             // Escape any ambient synchronization context; MSBuildWorkspace is async-heavy.
-            Task.Run(() => RunAsync(solutionPath, plans, log)).GetAwaiter().GetResult();
+            Task.Run(() => RunAsync(solutionPath, plans, backup, log)).GetAwaiter().GetResult();
+        }
+        catch (NotImplementedException)
+        {
+            // Unsupported upgrade output (e.g. project-level changes) is an upgrader-authoring error —
+            // surface it loudly instead of degrading to a warning.
+            throw;
         }
         catch (Exception ex)
         {
@@ -79,7 +85,7 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         }
     }
 
-    private static async Task RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, ILogger log)
+    private static async Task RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, UpgradeBackup? backup, ILogger log)
     {
         var cancellationToken = CancellationToken.None;
 
@@ -128,6 +134,9 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         var changedCount = 0;
         foreach (var projectChanges in solution.GetChanges(originalSolution).GetProjectChanges())
         {
+            // We persist changed .cs text only; reject any other project change rather than drop it silently.
+            EnsureNoUnsupportedChanges(projectChanges);
+
             foreach (var documentId in projectChanges.GetChangedDocuments())
             {
                 var newDocument = solution.GetDocument(documentId);
@@ -141,6 +150,9 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 
                 try
                 {
+                    // Snapshot the original before overwriting it (copy-on-write; no-op when no backup is armed).
+                    backup?.Snapshot(newDocument.FilePath);
+
                     using var writer = new StreamWriter(newDocument.FilePath, append: false, encoding);
                     newText.Write(writer, cancellationToken);
                 }
@@ -156,7 +168,32 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         }
 
         if (changedCount > 0)
-            log.Info($"Code upgrade: migrated {changedCount} source file(s). Review the changes before building (back up / commit first if you haven't).");
+            log.Info($"Code upgrade: migrated {changedCount} source file(s).");
+    }
+
+    // Enumerates the full ProjectChanges surface except GetChangedDocuments (the only delta the runner persists);
+    // anything else would need workspace.TryApplyChanges() to reach the .csproj, so fail loud instead of dropping it.
+    private static void EnsureNoUnsupportedChanges(ProjectChanges projectChanges)
+    {
+        if (projectChanges.GetAddedDocuments().Any()
+            || projectChanges.GetRemovedDocuments().Any()
+            || projectChanges.GetChangedAdditionalDocuments().Any()
+            || projectChanges.GetAddedAdditionalDocuments().Any()
+            || projectChanges.GetRemovedAdditionalDocuments().Any()
+            || projectChanges.GetChangedAnalyzerConfigDocuments().Any()
+            || projectChanges.GetAddedAnalyzerConfigDocuments().Any()
+            || projectChanges.GetRemovedAnalyzerConfigDocuments().Any()
+            || projectChanges.GetAddedMetadataReferences().Any()
+            || projectChanges.GetRemovedMetadataReferences().Any()
+            || projectChanges.GetAddedProjectReferences().Any()
+            || projectChanges.GetRemovedProjectReferences().Any()
+            || projectChanges.GetAddedAnalyzerReferences().Any()
+            || projectChanges.GetRemovedAnalyzerReferences().Any())
+        {
+            throw new NotImplementedException(
+                $"Code upgrade for [{projectChanges.NewProject.Name}] produced changes other than regular document " +
+                "text (added/removed docs, references, etc.); the runner persists changed .cs text only.");
+        }
     }
 
     private static bool PathsEqual(string? a, string? b)
