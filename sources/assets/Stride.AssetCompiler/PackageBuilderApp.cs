@@ -354,8 +354,15 @@ namespace Stride.AssetCompiler
 
                     var sessionResult = PackageSession.Load(upgradeTarget, loadParameters);
                     sessionResult.CopyTo(options.Logger);
-                    if (sessionResult.HasErrors || sessionResult.Session == null)
+                    if (sessionResult.Session == null)
                         return (int)BuildResultCode.BuildError;
+
+                    // Be lenient like Game Studio: load errors (e.g. a project that won't build against the new
+                    // version, so its script-referencing assets load as IUnloadable) don't abort the upgrade.
+                    // Reconcile and save whatever loaded — IUnloadable round-trips its original YAML, so nothing
+                    // is lost — and let the exit code below still report the errors.
+                    if (sessionResult.HasErrors)
+                        options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
 
                     ReconcileBases(sessionResult.Session, options.Logger);
 
