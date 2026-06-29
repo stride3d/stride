@@ -35,6 +35,38 @@ public class NugetLocalPackage : NugetPackage
     public string Language => Info.Nuspec.GetLanguage();
 
     /// <summary>
+    /// Whether the package declares the NuGet "Template" package type (i.e. it ships dotnet-new templates).
+    /// </summary>
+    public bool IsTemplatePackage => Info.Nuspec.GetPackageTypes().Any(type => type.Name == "Template");
+
+    /// <summary>
+    /// Whether the package declares the given freeform <c>&lt;tags&gt;</c> entry (space/semicolon/comma separated).
+    /// </summary>
+    /// <param name="tag">The tag to look for (case-insensitive).</param>
+    public bool HasTag(string tag)
+        => (Info.Nuspec.GetTags() ?? string.Empty)
+            .Split([' ', ';', ','], StringSplitOptions.RemoveEmptyEntries)
+            .Contains(tag, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The minimum version of the given dependency declared by this package, or null if it is not a dependency.
+    /// </summary>
+    /// <param name="dependencyId">The dependency package id to look up.</param>
+    public PackageVersion? GetDependencyFloor(string dependencyId)
+    {
+        foreach (var group in Info.Nuspec.GetDependencyGroups())
+        {
+            foreach (var dependency in group.Packages)
+            {
+                if (string.Equals(dependency.Id, dependencyId, StringComparison.OrdinalIgnoreCase) && dependency.VersionRange.MinVersion is { } min)
+                    return new PackageVersion(min.ToString());
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Nupkg path.
     /// </summary>
     public string? NupkgPath => Info.IsNupkg ? Info.Path : null;

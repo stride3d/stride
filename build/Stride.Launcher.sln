@@ -31,9 +31,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Pre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\sources\assets\Stride.Core.Packages\Stride.Core.Packages.csproj", "{1F5FBA04-C334-41C2-895A-ACC4B786F99E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{2880C313-2483-416D-A902-DC2259EDFF64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{2880C313-2483-416D-A902-DC2259EDFF64}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Cli", "..\sources\launcher\Stride.Cli\Stride.Cli.csproj", "{4A321E09-24D6-4446-8E95-2C29404C8B76}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -46,6 +48,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Release|Any CPU.ActiveCfg = Release|Any CPU

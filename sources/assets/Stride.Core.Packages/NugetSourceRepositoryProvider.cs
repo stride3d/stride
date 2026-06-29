@@ -24,7 +24,12 @@ internal class NugetSourceRepositoryProvider : ISourceRepositoryProvider
     {
         PackageSourceProvider = packageSourceProvider;
 
-        _resourceProviders = [.. Repository.Provider.GetCoreV3()];
+        // Our download-progress handler first (so it wraps responses), then the default V3 providers.
+        _resourceProviders =
+        [
+            new Lazy<INuGetResourceProvider>(() => new DownloadProgressHandlerProvider(downloadProgress)),
+            .. Repository.Provider.GetCoreV3(),
+        ];
 
         // Create repositories
         _repositories = PackageSourceProvider.LoadPackageSources()

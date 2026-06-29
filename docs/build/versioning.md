@@ -52,6 +52,14 @@ So you just dispatch `release.yml` on the branch: it publishes the committed ver
 
 The Deploy stage is a reusable workflow ([`release-deploy.yml`](../../.github/workflows/release-deploy.yml)) that `release.yml` calls with the current run. It can also be **dispatched standalone with a `run-id`** to deploy a *prior* signed build — the "sign once (`deploy: false`), test the artifacts locally, then deploy the exact same `.nupkg`s without a rebuild" flow. It downloads that run's `packages` artifact, tags the commit the artifacts were *built* from (not the current branch tip), and otherwise behaves identically (push → tag → release → bump).
 
+## Stride CLI
+
+The `stride` command-line tool ([`sources/launcher/Stride.Cli`](../../sources/launcher/Stride.Cli)) is versioned and released **independently of the engine** — it's a `dotnet tool` consumed by end users, not part of an engine `major.minor` line. Its version is plain SemVer in [`Stride.Cli.csproj`](../../sources/launcher/Stride.Cli/Stride.Cli.csproj) (`<Version>`), bumped by hand; the project uses `Microsoft.NET.Sdk` (not the Stride SDK), so none of the engine's `-devN`/overlay machinery applies to it.
+
+[`.github/workflows/release-cli.yml`](../../.github/workflows/release-cli.yml) (manual dispatch, `stride-release-managers` only) mirrors the engine flow at a smaller scale: the `PackageCli` target in [`build/Stride.build`](../../build/Stride.build) packs and signs `Stride.Cli.<version>.nupkg` (reusing the shared signing), then — when `sign && deploy` — pushes to nuget.org, tags `cli/<version>`, and creates a GitHub Release. A re-publish guard refuses a version whose `cli/<version>` tag already exists on another commit, so a forgotten bump fails the deploy. There is no auto-bump — bump `<Version>` yourself before the next release.
+
+Install: `dotnet tool install -g Stride.Cli`.
+
 ## Samples & template package versions
 
 The in-repo samples are committed referencing a **clean release version** (e.g. `4.4.0`) — which is typically still *unreleased* at commit time, since the bump rides the release that publishes it (the matching packages only appear on nuget.org once `release.yml` deploys). Locally, only the `-devN` packages exist. So to build/run/edit a sample in your checkout (including opening it in GameStudio) you switch it to the local dev version, and switch back before committing — standalone targets in [`build/Stride.Samples.build`](../../build/Stride.Samples.build):

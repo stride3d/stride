@@ -50,6 +50,7 @@
     <PackageVersion Include="Silk.NET.SPIRV.Cross.Native" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Vulkan" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="$(SilkVersion)" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="10.0.0" />
