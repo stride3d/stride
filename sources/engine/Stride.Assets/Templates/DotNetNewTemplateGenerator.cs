@@ -261,8 +261,8 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             // Package.LoadProject returns a SolutionProject with an empty placeholder Package
             // (no sibling .sdpkg). Type/Platform stay at default until dep-resolution evaluates
             // the MSBuild project, but the session's RegisterProject already uses them for
-            // VS-startup ordering — set them explicitly so .sln save lists per-platform projects
-            // in the same order the preprocessor's GenerateSlnIfMissing produces.
+            // VS-startup ordering — set them explicitly so solution save lists per-platform projects
+            // in the same order the preprocessor's GenerateSlnxIfMissing produces.
             var execProject = (SolutionProject)Package.LoadProject(log, csproj);
             execProject.Type = ProjectType.Executable;
             execProject.Platform = match.Type;
@@ -276,7 +276,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         // Make Session.CurrentProject point at a runnable exec (host platform if among the
         // generated set, else Windows as the GameStudio-only fallback). Without this the
         // Run/LivePlay button can't dispatch (it asserts CurrentProject.Type == Executable),
-        // and the .sln on save loses the startup-project hint that RegisterProject sets via
+        // and the solution on save loses the startup-project hint that RegisterProject sets via
         // the Windows-first VSSolution insertion.
         var startupProject = hostPlatformProject ?? windowsProject;
         if (startupProject != null)
