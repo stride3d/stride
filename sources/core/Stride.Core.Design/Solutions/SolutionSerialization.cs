@@ -129,7 +129,9 @@ internal static class SolutionSerialization
         foreach (var project in solution.Projects.Where(project => !project.IsSolutionFolder && !existingProjectIds.Contains(project.Guid)))
         {
             var parent = project.ParentGuid != Guid.Empty && folders.TryGetValue(project.ParentGuid, out var folder) ? folder : null;
-            var relativePath = GetRelativePath(solutionDirectory, project.FullPath).Replace('/', '\\');
+            // Forward slashes: SolutionPersistence's portable form (it writes '\' for .sln, '/' for .slnx).
+            // Backslash isn't a path separator on Linux, so forcing it leaves '\' literal in the .slnx.
+            var relativePath = GetRelativePath(solutionDirectory, project.FullPath).Replace('\\', '/');
             var added = model.AddProject(relativePath, ProjectTypeName(project), parent);
             added.Id = project.Guid;
         }
