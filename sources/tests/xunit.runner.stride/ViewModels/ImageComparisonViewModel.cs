@@ -30,13 +30,12 @@ public class ImageComparisonViewModel : ViewModelBase
     public string? StatsSummary { get; }
     public string Label { get; }
 
-    Bitmap? currentBitmap;
     public Bitmap? CurrentBitmap
     {
-        get => currentBitmap;
+        get;
         set
         {
-            if (SetProperty(ref currentBitmap, value))
+            if (SetValue(ref field, value))
             {
                 OnPropertyChanged(nameof(ShowCurrentImage));
                 OnPropertyChanged(nameof(ShowCurrentPlaceholder));
@@ -44,13 +43,12 @@ public class ImageComparisonViewModel : ViewModelBase
         }
     }
 
-    Bitmap? referenceBitmap;
     public Bitmap? ReferenceBitmap
     {
-        get => referenceBitmap;
+        get;
         set
         {
-            if (SetProperty(ref referenceBitmap, value))
+            if (SetValue(ref field, value))
             {
                 OnPropertyChanged(nameof(ShowReferenceImage));
                 OnPropertyChanged(nameof(ShowReferencePlaceholder));
@@ -58,13 +56,12 @@ public class ImageComparisonViewModel : ViewModelBase
         }
     }
 
-    WriteableBitmap? diffBitmap;
     public WriteableBitmap? DiffBitmap
     {
-        get => diffBitmap;
+        get;
         set
         {
-            if (SetProperty(ref diffBitmap, value))
+            if (SetValue(ref field, value))
             {
                 OnPropertyChanged(nameof(ShowDiffImage));
                 OnPropertyChanged(nameof(ShowDiffPassed));
@@ -73,11 +70,11 @@ public class ImageComparisonViewModel : ViewModelBase
         }
     }
 
-    public bool ShowCurrentImage => currentBitmap is not null;
-    public bool ShowCurrentPlaceholder => currentBitmap is null && Passed;
-    public bool ShowReferenceImage => referenceBitmap is not null;
-    public bool ShowReferencePlaceholder => referenceBitmap is null;
-    public bool ShowDiffImage => diffBitmap is not null;
-    public bool ShowDiffPassed => diffBitmap is null && Passed;
-    public bool ShowDiffPlaceholder => diffBitmap is null && !Passed;
+    public bool ShowCurrentImage => CurrentBitmap is not null;
+    public bool ShowCurrentPlaceholder => CurrentBitmap is null && Passed;
+    public bool ShowReferenceImage => ReferenceBitmap is not null;
+    public bool ShowReferencePlaceholder => ReferenceBitmap is null;
+    public bool ShowDiffImage => DiffBitmap is not null;
+    public bool ShowDiffPassed => DiffBitmap is null && Passed;
+    public bool ShowDiffPlaceholder => DiffBitmap is null && !Passed;
 }

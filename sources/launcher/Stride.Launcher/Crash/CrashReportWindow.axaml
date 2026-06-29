@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Stride.Crash.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
+        x:Class="Stride.Crash.CrashReportWindow"
+        x:DataType="vm:CrashReportViewModel"
+        Icon="/Assets/CrashReportImage.png"
+        Title="Report your crash"
+        MinWidth="640" MinHeight="480" Width="800" Height="600"
+        WindowStartupLocation="CenterScreen">
+  <Window.Styles>
+    <FluentTheme />
+  </Window.Styles>
+  <DockPanel Margin="16">
+    <StackPanel DockPanel.Dock="Top">
+      <DockPanel>
+        <Image DockPanel.Dock="Left"
+               Width="64" Margin="0,0,8,8"
+               Source="/Assets/CrashReportImage.png"/>
+        <TextBlock TextWrapping="WrapWithOverflow">
+          Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}" /> has crashed.
+          Please help us improve Stride by sending information about this crash through Github Issues.
+        </TextBlock>
+      </DockPanel>
+      <DockPanel LastChildFill="False" Margin="4">
+        <Button DockPanel.Dock="Left" Margin="4 0"
+                Content="View Report"
+                Command="{Binding ViewReportCommand}"/>
+        <Button DockPanel.Dock="Left" Margin="8 0"
+                Content="Copy Report"
+                Command="{Binding CopyReportCommand}" />
+        <!-- TODO: hyperlink style -->
+        <Button DockPanel.Dock="Right" Margin="8 0"
+                Content="New GitHub Issue"
+                Command="{Binding OpenIssueCommand}" />
+        <Button DockPanel.Dock="Right" Margin="4 0"
+                Content="Close" IsDefault="True"
+                Command="{Binding CloseCommand}" />
+      </DockPanel>
+    </StackPanel>
+    <TextBox IsReadOnly="True"
+             IsVisible="{Binding IsReportVisible, Mode=OneWay}"
+             Text="{Binding Report, Mode=OneWay}" />
+  </DockPanel>
+</Window>
