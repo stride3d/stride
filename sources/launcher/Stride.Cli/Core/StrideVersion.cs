@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core;
 
-namespace Stride.Launcher.Core;
+namespace Stride.Cli.Core;
 
 /// <summary>
 ///   A locally installed Stride version, identified by its package id and version.

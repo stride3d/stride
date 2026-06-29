@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Stride.Launcher.Core;
+namespace Stride.Cli.Core;
 
 /// <summary>Phase of a <see cref="StrideVersionManager.Install"/> / Update operation.</summary>
 public enum InstallStage

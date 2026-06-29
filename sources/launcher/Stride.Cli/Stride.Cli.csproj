@@ -17,8 +17,18 @@
   <Import Project="..\..\sdk\Stride.Build.Sdk\Stride.PackageMetadata.props" />
   <ItemGroup>
     <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
+    <PackageReference Include="Microsoft.TemplateEngine.Edge" />
+    <PackageReference Include="Microsoft.TemplateEngine.IDE" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Launcher.Core\Stride.Launcher.Core.csproj" />
+    <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+  </ItemGroup>
+  <!-- Engine-dependency-free template-engine glue, shared by source with Stride.Assets rather than
+       referencing the engine assembly. -->
+  <ItemGroup>
+    <Compile Include="..\..\engine\Stride.Assets\Templates\DotNetNewTemplateRegistry.cs" Link="Core\Templates\DotNetNewTemplateRegistry.cs" />
+    <Compile Include="..\..\engine\Stride.Assets\Templates\StrideTemplateEngineEnvironment.cs" Link="Core\Templates\StrideTemplateEngineEnvironment.cs" />
   </ItemGroup>
 </Project>

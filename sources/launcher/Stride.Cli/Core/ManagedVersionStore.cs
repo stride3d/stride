@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Text.Json;
 
-namespace Stride.Launcher.Core;
+namespace Stride.Cli.Core;
 
 /// <summary>
 ///   Persists, per major.minor line, the version that <see cref="StrideVersionManager.Update"/> currently
