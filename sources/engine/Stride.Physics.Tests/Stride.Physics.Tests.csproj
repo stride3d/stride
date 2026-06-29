@@ -1,0 +1,33 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFrameworks>$(StrideTestTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyName>Stride.Physics.Tests</AssemblyName>
+    <RootNamespace>Stride.Physics.Tests</RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+    <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SendCollisionEndedWhenEntityIsRemovedTest.cs" />
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="CharacterTest.cs" />
+    <Compile Include="ColliderShapesTest.cs" />
+    <Compile Include="GameTest.cs" />
+    <Compile Include="SkinnedTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Stride.Physics.Tests.sdpkg" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
+</Project>

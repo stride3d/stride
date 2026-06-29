@@ -20,7 +20,7 @@ namespace Stride.Assets.Textures
     [AssetContentType(typeof(Texture))]
     [CategoryOrder(10, "Size")]
     [CategoryOrder(20, "Format")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class TextureAsset : AssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";

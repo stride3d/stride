@@ -83,23 +83,25 @@ public class MultiValueSortedList<TKey, TValue> : ILookup<TKey, TValue>, ICollec
 
     public void Add(KeyValuePair<TKey, TValue> item)
     {
+        // Binary search to find insertion point
         var lower = 0;
-        var greater = list.Count;
-        var current = (lower + greater) >> 1;
-        while (greater - lower > 1)
+        var upper = list.Count;
+        
+        while (lower < upper)
         {
-            if (keys[current].CompareTo(item.Key) < 0)
+            var mid = lower + (upper - lower) / 2;
+            if (keys[mid].CompareTo(item.Key) < 0)
             {
-                lower = current;
+                lower = mid + 1;
             }
             else
             {
-                greater = current;
+                upper = mid;
             }
-            current = (lower + greater) >> 1;
         }
-        list.Insert(greater, item);
-        keys.Insert(greater, item.Key);
+        
+        list.Insert(lower, item);
+        keys.Insert(lower, item.Key);
     }
 
     public bool Contains(object key)
@@ -152,7 +154,22 @@ public class MultiValueSortedList<TKey, TValue> : ILookup<TKey, TValue>, ICollec
 
     public int Count => list.Count;
 
-    public IEnumerable<TValue> this[TKey key] { get { return list.Skip(KeyToIndex(key)).TakeWhile(x => x.Key.Equals(key)).Select(x => x.Value); } }
+    public IEnumerable<TValue> this[TKey key]
+    {
+        get
+        {
+            var index = KeyToIndex(key);
+            if (index < 0) return Enumerable.Empty<TValue>();
+            
+            // Binary search may return any matching index, so we need to find the first one
+            while (index > 0 && keys[index - 1].Equals(key))
+            {
+                index--;
+            }
+            
+            return list.Skip(index).TakeWhile(x => x.Key.Equals(key)).Select(x => x.Value);
+        }
+    }
 
     int ICollection.Count => list.Count;
 

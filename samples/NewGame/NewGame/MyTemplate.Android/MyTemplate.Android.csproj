@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyTemplate.Android</RootNamespace>
+    <OutputPath>..\Bin\Android\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ApplicationId>MyTemplate</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <!-- Use AssemblyName for Resource class to avoid clashes between MyTemplate and MyTemplate.Android -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
+    <StrideProjectType>Executable</StrideProjectType>
+    <StridePlatform>Android</StridePlatform>
+    <AndroidApplicationIcon>@mipmap/appicon</AndroidApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyTemplate.Game\MyTemplate.Game.csproj" />
+  </ItemGroup>
+</Project>

@@ -323,6 +323,31 @@ namespace Stride.Rendering
             context.RenderContext.Flush();
         }
 
+        /// <summary>
+        /// Scans a stage's render nodes for whether any/all pipelines write depth. Used to pick a
+        /// pre-pass depth layout (Read or Write) on the main CB before worker fan-out so the depth
+        /// layout transition isn't left to racing workers.
+        /// </summary>
+        private static RenderStageDepthAccess DetectStageDepthAccess(System.Collections.Generic.List<RenderNodeFeatureReference> sortedRenderNodes, int renderNodeCount)
+        {
+            bool hasRead = false, hasWrite = false;
+            for (int i = 0; i < renderNodeCount; i++)
+            {
+                var nodeRef = sortedRenderNodes[i];
+                var node = nodeRef.RootRenderFeature.GetRenderNode(nodeRef.RenderNode);
+                var effect = node.RenderEffect;
+                // RootRenderFeatures that don't use RenderEffect (e.g. SpriteRenderFeature) leave
+                // it null. Conservatively treat those as Mixed — we can't know their depth mode.
+                if (effect == null) return RenderStageDepthAccess.Mixed;
+                if (effect.WritesDepth) hasWrite = true;
+                else hasRead = true;
+                if (hasWrite && hasRead) return RenderStageDepthAccess.Mixed;
+            }
+            if (hasWrite) return RenderStageDepthAccess.Write;
+            if (hasRead) return RenderStageDepthAccess.Read;
+            return RenderStageDepthAccess.Mixed; // empty stage: nothing to pre-transition
+        }
+
         public void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
         {
             using var _ = Profiler.Begin(DrawKey);
@@ -360,7 +385,14 @@ namespace Stride.Rendering
             if (renderNodeCount == 0)
                 return;
 
-            if (!GraphicsDevice.IsDeferred)
+            // Stages with heterogeneous depth access can't be safely pre-transitioned on the main
+            // CB before parallel worker dispatch (workers would race on the Write↔Read transition).
+            // Run them sequentially on the main CB — no cross-CB race by construction.
+            var stageDepthAccess = renderStage.DepthAccess;
+            if (stageDepthAccess == RenderStageDepthAccess.Auto)
+                stageDepthAccess = DetectStageDepthAccess(renderNodes, renderNodeCount);
+
+            if (!GraphicsDevice.IsDeferred || stageDepthAccess == RenderStageDepthAccess.Mixed)
             {
                 using (Profiler.Begin(DrawRootRenderFeaturesKey))
                 {
@@ -397,6 +429,27 @@ namespace Stride.Rendering
 
                 var viewport = commandList.Viewport;
                 var scissor = commandList.Scissor;
+
+                // Pass-entry barriers on the main CB (single-threaded, submitted first). Worker CBs
+                // that follow see the RT/depth layouts already at their target, so per-draw
+                // TransitionBoundResources doesn't race to claim a transition from a stale
+                // "last-submitted" layout. A few redundant no-op barriers from workers are fine.
+                // Depth transition follows the stage's declared access mode; Mixed stages are
+                // skipped (workers will transition per-pipeline and may still race — those stages
+                // should be split or handled separately).
+                for (int i = 0; i < renderTargetCount; i++)
+                {
+                    if (renderTargets[i] != null)
+                        commandList.ResourceBarrierTransition(renderTargets[i], BarrierLayout.RenderTarget);
+                }
+                if (depthStencilBuffer != null)
+                {
+                    // stageDepthAccess here is Write or Read (Mixed was routed to the sequential branch above)
+                    commandList.ResourceBarrierTransition(depthStencilBuffer,
+                        stageDepthAccess == RenderStageDepthAccess.Read
+                            ? BarrierLayout.DepthStencilRead
+                            : BarrierLayout.DepthStencilWrite);
+                }
 
                 // Collect one command list per batch and the main one up to this point
                 if (commandLists == null || (commandLists.Length < batchCount + 1))

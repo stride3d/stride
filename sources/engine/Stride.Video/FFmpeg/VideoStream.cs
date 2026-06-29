@@ -16,8 +16,8 @@ namespace Stride.Video.FFmpeg
         public VideoStream([NotNull] AVStream* pStream, [NotNull] FFmpegMedia media)
             : base(pStream, media)
         {
-            var pCodec = pStream->codec;
-            var framerateRatio = pCodec->framerate;
+            var pCodecpar = pStream->codecpar;
+            var framerateRatio = pCodecpar->framerate;
 
             // HOTFIX (#95)
             if (framerateRatio.den == 0)
@@ -30,9 +30,9 @@ namespace Stride.Video.FFmpeg
                 FPS = Convert.ToDouble(framerateRatio.num) / Convert.ToDouble(framerateRatio.den);
                 FrameDuration = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / Convert.ToInt64(FPS));
             }
-            PixelFormat = pCodec->pix_fmt;
-            Height = pCodec->height;
-            Width = pCodec->width;
+            PixelFormat = (AVPixelFormat)pCodecpar->format;
+            Height = pCodecpar->height;
+            Width = pCodecpar->width;
         }
 
         /// <summary>

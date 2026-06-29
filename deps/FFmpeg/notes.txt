@@ -1,1 +1,10 @@
-Extracted from ffmpeg-20160530-git-d74cc61-win64-static.zip
+FFmpeg 7.1.1 (LGPL libs, GPL CLI with libx264 + platform HW encoders)
+Built by .github/workflows/dep-ffmpeg.yml — re-run that workflow and copy
+the artifacts to refresh.
+
+Layout:
+  win-x64/ffmpeg.exe       Windows x64 CLI    (libx264 + MF + NVENC)
+  win-arm64/ffmpeg.exe     Windows arm64 CLI  (libx264 + MF)
+  linux-x64/ffmpeg         Linux x64 CLI      (libx264 + VA-API)
+  osx-arm64/ffmpeg         macOS arm64 CLI    (libx264 + VideoToolbox)
+  dotnet/<rid>/            Shared libav* libraries shipped with games

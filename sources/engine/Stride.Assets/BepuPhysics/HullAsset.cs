@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
 using Stride.BepuPhysics.Definitions;
 using System.Collections.Generic;
 using Stride.Core.Annotations;
@@ -12,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Assets;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
 
 namespace Stride.BepuPhysics.Assets
 {
@@ -19,10 +22,11 @@ namespace Stride.BepuPhysics.Assets
     [DataContract("HullAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(DecomposedHulls))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "3.0.0.0", typeof(VhacdV4Upgrader))]
     public class HullAsset : Asset
     {
-        private const string CurrentVersion = "2.0.0.0";
+        private const string CurrentVersion = "3.0.0.0";
 
         public const string FileExtension = ".sdhull";
 
@@ -63,5 +67,53 @@ namespace Stride.BepuPhysics.Assets
         [DataMember(50)]
         [NotNull]
         public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
+
+        // V-HACD v1 (HACD clustering) -> V-HACD v4 (voxel/Voronoi). Algorithm change,
+        // not just rename: most v1 knobs have no v4 equivalent. Map what carries over;
+        // drop the rest. Output WILL differ even with these defaults — rebake expected.
+        private class VhacdV4Upgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                if (!asset.ContainsChild("Decomposition"))
+                    return;
+
+                dynamic decomp = asset.Decomposition;
+                bool migrated = false;
+
+                // Depth -> MaxRecursionDepth (both bounded recursion 1..32, direct).
+                if (decomp.ContainsChild("Depth"))
+                {
+                    decomp.MaxRecursionDepth = decomp.Depth;
+                    decomp.RemoveChild("Depth");
+                    migrated = true;
+                }
+
+                // Threshold -> MinimumVolumePercentErrorAllowed.
+                // v1 default 0.01 (ratio); v4 default 1.0 (percent). Multiply by 100
+                // for unit consistency — this only matters if the user changed it.
+                if (decomp.ContainsChild("Threshold"))
+                {
+                    if (float.TryParse((string)decomp.Threshold, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t))
+                        decomp.MinimumVolumePercentErrorAllowed = t * 100.0;
+                    decomp.RemoveChild("Threshold");
+                    migrated = true;
+                }
+
+                foreach (var name in new[] { "PosSampling", "AngleSampling", "PosRefine", "AngleRefine", "Alpha" })
+                {
+                    if (decomp.ContainsChild(name))
+                    {
+                        decomp.RemoveChild(name);
+                        migrated = true;
+                    }
+                }
+
+                if (migrated)
+                {
+                    context.Log.Warning($"Migrated convex hull decomposition parameters in '{assetFile.OriginalFilePath}' from V-HACD v1 to V-HACD v4. Decomposition output may differ; re-tune if needed.");
+                }
+            }
+        }
     }
 }

@@ -10,6 +10,10 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+    <!-- TestGenerator.sdsl is a test input for the VS Custom Tool path, not a real shader.
+         Opt out of the default shader-items discovery so the net10.0 Roslyn source generator
+         is not injected into this .NET Framework project. -->
+    <EnableDefaultStrideShaderItems>false</EnableDefaultStrideShaderItems>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">

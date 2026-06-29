@@ -3,6 +3,7 @@
 #pragma warning disable STRIDE2000 // TODO: Remove this suppression
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -128,6 +129,7 @@ namespace Stride.Updater
         /// <param name="rootObjectType">The type of the root object.</param>
         /// <param name="animationPaths">The different paths and source offsets to use when <see cref="Run"/> is applied.</param>
         /// <returns>A <see cref="CompiledUpdate"/> object that can be used for <see cref="Run"/>.</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2080", Justification = "Member types walked here are rooted by UpdateEngineProcessor.")]
         public static CompiledUpdate Compile(Type rootObjectType, List<UpdateMemberInfo> animationPaths)
         {
             var currentPath = string.Empty;
@@ -364,6 +366,7 @@ namespace Stride.Updater
             }
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Member types are rooted by UpdateEngineProcessor.")]
         private static void ProcessMember(ref ComputeUpdateOperationState state, UpdateMemberInfo animationPath, UpdatableMember updatableMember, List<object> temporaryObjectsList)
         {
             int leaveOffset = 0;

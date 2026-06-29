@@ -1,8 +1,23 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="xunit.runner.stride.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Dark">
   <Application.Styles>
     <FluentTheme />
   </Application.Styles>
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Fluent Dark's default Window background is pure black, which is too contrasty for
+           the runner. We define our own theme-aware brush so the color is centralized and
+           still flips automatically if the runner is ever opened in a light variant. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#1E1E1E" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F3F3F3" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
 </Application>

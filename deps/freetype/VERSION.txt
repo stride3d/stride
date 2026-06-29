@@ -1,4 +1,6 @@
 FreeType VER-2-13-3
 Repository: https://github.com/freetype/freetype
-Built: 2026-04-09
-Workflow: https://github.com/stride3d/stride/actions/runs/24202661437
+Commit: 42608f77f20749dd6ddc9e0536788eaad70ea4b5
+Stride: https://github.com/xen2/stride @ 778e13f19caf694b4ef6911f1d2c08da9e8a5961
+Built: 2026-05-25
+Workflow: https://github.com/xen2/stride/actions/runs/26410404463

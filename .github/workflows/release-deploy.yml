@@ -1,0 +1,245 @@
+name: Release Deploy
+
+# Deploys a previously-built release: downloads the `packages` artifact from a build run, pushes to NuGet.org,
+# tags the built commit, creates the GitHub Release, and (for a stable release) opens the next dev version.
+#
+# Two entry points share one job:
+#   - workflow_call: release.yml's Deploy stage calls this with run-id = the current run (the integrated flow).
+#   - workflow_dispatch: deploy a *prior* signed (no-deploy) build by its run id - "sign once, test locally, then
+#     deploy the exact same artifacts" without a rebuild.
+#
+# The version is detected from the downloaded packages (not an input), so both entry points behave identically.
+# The tag points at the commit the artifacts were *built* from (resolved from the run), even if the branch has
+# since moved; the post-release version bump goes to the current branch tip.
+
+on:
+  workflow_call:
+    inputs:
+      run-id:
+        description: Run whose 'packages' artifact to deploy
+        required: true
+        type: string
+      bump-version:
+        description: After a stable deploy, commit Patch+1 to the branch
+        default: true
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: Run ID of a prior signed (no-deploy) release build to deploy
+        required: true
+        type: string
+      bump-version:
+        description: After a stable deploy, commit Patch+1 to the branch (open next dev version)
+        default: true
+        type: boolean
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    environment: production  # Requires manual approval in GitHub settings
+    permissions:
+      contents: write
+    steps:
+      - name: Check release permissions
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+      - name: Resolve built commit
+        id: src
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          SHA=$(gh run view "${{ inputs.run-id }}" --repo "${{ github.repository }}" --json headSha --jq .headSha)
+          if [ -z "$SHA" ]; then
+            echo "::error::Could not resolve the commit for run ${{ inputs.run-id }}"
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploying artifacts built from $SHA"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}  # push the tag and the post-release version-bump commit
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: bin/packages
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GH_PAT }}
+
+      - name: Detect version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
+          if (-not $pkg) {
+            echo "::error::No Stride.Core package found in run ${{ inputs.run-id }}"
+            exit 1
+          }
+          $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
+          # Guard against a malformed build slipping a weird version into the package name.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            echo "::error::Detected package version '$version' is not a valid version"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Package version: $version"
+
+      - name: Guard against re-publishing an existing version
+        # The version is the committed value, bumped per release. If it wasn't bumped, its releases/<version> tag
+        # already exists on a different commit than the one we're deploying - fail rather than re-publish.
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at ${{ steps.src.outputs.sha }} --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch/NuGetVersionSuffix in SharedAssemblyInfo.cs."
+            exit 1
+          fi
+
+      - name: List packages
+        shell: pwsh
+        run: |
+          echo "## Packages to deploy" >> $env:GITHUB_STEP_SUMMARY
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Path bin -Recurse -Filter "*.nupkg" | ForEach-Object {
+            echo "$($_.Name)" >> $env:GITHUB_STEP_SUMMARY
+          }
+          echo '```' >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Push NuGet packages
+        shell: pwsh
+        run: |
+          # Content-versioned template packages (Samples, Starters) follow StrideSamplesVersion and
+          # only change when the samples are bumped (see plans/samples-version-bump.md). Skip the
+          # upload when that version is already on nuget.org - re-publishing the same version is a
+          # no-op and these packages are large, so this avoids a wasted upload every release.
+          function Test-NuGetPublished([string]$id, [string]$version) {
+            $url = "https://api.nuget.org/v3-flatcontainer/$($id.ToLowerInvariant())/index.json"
+            try { return ((Invoke-RestMethod -Uri $url -TimeoutSec 60 -ErrorAction Stop).versions -contains $version) }
+            catch { return $false }  # 404 (never published) or transient: fall through to push (--skip-duplicate stays safe)
+          }
+
+          $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
+          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters')
+          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+          $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+
+          echo "::group::Pushing main packages ($($main.Count))"
+          foreach ($pkg in $main) {
+            echo "Pushing $($pkg.Name)..."
+            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+          }
+          echo "::endgroup::"
+
+          if ($contentVersioned) {
+            echo "::group::Pushing content-versioned template packages (Samples, Starters)"
+            foreach ($pkg in $contentVersioned) {
+              $id = $contentVersionedIds | Where-Object { $pkg.Name.StartsWith($_ + '.') } | Select-Object -First 1
+              if ($id -and (Test-NuGetPublished $id $pkg.BaseName.Substring($id.Length + 1))) {
+                echo "Skipping $($pkg.Name) (already published; samples unchanged since last release)."
+                continue
+              }
+              echo "Pushing $($pkg.Name)..."
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+            }
+            echo "::endgroup::"
+          }
+
+          if ($gameStudio) {
+            echo "::group::Pushing GameStudio (last, so dependencies are already available)"
+            foreach ($pkg in $gameStudio) {
+              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
+            }
+            echo "::endgroup::"
+          }
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        id: tag
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            git tag "$TAG" "${{ steps.src.outputs.sha }}"   # tag the commit the artifacts were built from
+            git push origin "$TAG"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh release create "releases/${{ steps.version.outputs.version }}" \
+            --title "Stride ${{ steps.version.outputs.version }}" \
+            --target "${{ steps.src.outputs.sha }}" \
+            --generate-notes \
+            bin/packages/*.nupkg
+
+      - name: Bump version for next cycle
+        # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above
+        # points at the just-released commit). Skipped for prereleases (they keep the same number) and idempotent
+        # re-runs where the tag already existed. Opt out with the bump-version input. Pushes to the current branch
+        # tip (github.ref_name), not the built commit, so it advances the branch even if it moved past the build.
+        if: ${{ inputs.bump-version && steps.tag.outputs.created == 'true' && !contains(steps.version.outputs.version, '-') }}
+        run: |
+          RELEASED="${{ steps.version.outputs.version }}"
+          FILE=sources/shared/SharedAssemblyInfo.cs
+          git checkout "${{ github.ref_name }}"
+          CUR=$(sed -n 's/.*public const string Patch = "\([0-9][0-9]*\)".*/\1/p' "$FILE")
+          # Don't commit anything if Patch can't be parsed (e.g. the file's shape changed). The release already
+          # succeeded; warn and skip - the forget-to-bump guard will catch the un-bumped version next release.
+          if ! printf '%s' "$CUR" | grep -qE '^[0-9]+$'; then
+            echo "::warning::Could not parse Patch from $FILE (got '$CUR'); skipping version bump - bump it manually."
+            exit 0
+          fi
+          NEXT=$((CUR + 1))
+          sed -i "s/\(public const string Patch = \)\"$CUR\"/\1\"$NEXT\"/" "$FILE"
+          if ! grep -q "public const string Patch = \"$NEXT\";" "$FILE"; then
+            echo "::warning::Version bump did not apply to $FILE; skipping - bump it manually."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
+          git commit -m "Open ${RELEASED%.*}.$NEXT for development (released $RELEASED)" -- "$FILE"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Publish summary
+        if: success()
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          $v = $env:VERSION
+          echo "## Published $v" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "[GitHub Release]($env:REPO_URL/releases/tag/releases/$v)" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Package | nuget.org |" >> $env:GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Path bin/packages -Filter "*.nupkg" | Sort-Object Name | ForEach-Object {
+            $id = $_.Name -replace "\.$([regex]::Escape($v))\.nupkg$", ''
+            echo "| $id | https://www.nuget.org/packages/$id/$v |" >> $env:GITHUB_STEP_SUMMARY
+          }

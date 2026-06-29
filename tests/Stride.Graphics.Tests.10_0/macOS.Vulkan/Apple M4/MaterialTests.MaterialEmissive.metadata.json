@@ -1,0 +1,13 @@
+{
+  "os": "macOS 26.3.0",
+  "cpu": "Apple M4",
+  "gpu": "Apple M4",
+  "gpuVendorId": "0x106B",
+  "gpuDeviceId": "0x1A030209",
+  "driverId": "Moltenvk",
+  "driverName": "MoltenVK",
+  "driverInfo": "1.4.1",
+  "driverVersion": "0.2.2209",
+  "apiName": "Vulkan",
+  "apiVersion": "1.3.334"
+}

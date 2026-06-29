@@ -4,7 +4,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Theme.AvalonDock.xaml"/>
+        <ResourceDictionary Source="/Stride.GameStudio;component/Theme.AvalonDock.xaml"/>
         <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 

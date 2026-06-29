@@ -9,7 +9,8 @@ namespace Stride.Core.Assets.Tests
 {
     public class TestBase
     {
-        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, @"data\");
+        // Trailing separator is intentional: callers concatenate subpaths with `+ "subdir\..."`.
+        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, "data") + Path.DirectorySeparatorChar;
 
         public static void GenerateAndCompare(string title, string outputFilePath, string referenceFilePath, Asset asset)
         {
@@ -23,15 +24,6 @@ namespace Stride.Core.Assets.Tests
         }
 
         public static string AssemblyDirectory
-        {
-            get
-            {
-                string codeBase = Assembly.GetExecutingAssembly().Location;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return Path.GetDirectoryName(path);
-            }
-        }
-
+            => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
     }
 }

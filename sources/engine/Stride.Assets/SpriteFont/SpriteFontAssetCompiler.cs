@@ -83,7 +83,7 @@ namespace Stride.Assets.SpriteFont
                 : base(url, description, assetFinder)
             {
                 this.colorspace = colorspace;
-                Version = 1; // Bumped: switched from DirectWrite to FreeType for glyph rasterization
+                Version = 2;
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()
@@ -149,6 +149,7 @@ namespace Stride.Assets.SpriteFont
             public SignedDistanceFieldFontCommand(string url, SpriteFontAsset description, IAssetFinder assetFinder)
                 : base(url, description, assetFinder)
             {
+                Version = 1;
             }
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)

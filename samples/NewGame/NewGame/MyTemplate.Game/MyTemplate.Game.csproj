@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>MyTemplate</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Video" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Physics" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Navigation" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Particles" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.UI" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

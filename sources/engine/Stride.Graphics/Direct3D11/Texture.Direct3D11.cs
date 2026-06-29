@@ -904,8 +904,11 @@ namespace Stride.Graphics
         /// <returns>The resulting Shader Resource View format.</returns>
         private Format ComputeShaderResourceViewFormat()
         {
-            // Special case for Depth-Stencil Shader Resource Views that are bound as Float
-            var viewFormat = IsDepthStencil
+            // Depth formats bound as shader resources need a typeless-to-float remap (e.g.
+            // D32_FLOAT -> R32_FLOAT) to match the typeless storage format the texture was
+            // created with. Covers both DS+SR and SR-only-depth placeholders.
+            var needsDepthRemap = IsDepthStencil || (IsShaderResource && IsDepthFormat(ViewFormat));
+            var viewFormat = needsDepthRemap
                 ? (Format) ComputeShaderResourceFormatFromDepthFormat(ViewFormat)
                 : (Format) ViewFormat;
 
@@ -970,8 +973,9 @@ namespace Stride.Graphics
             var format = (Format) textureDescription.Format;
             var flags = textureDescription.Flags;
 
-            // If the Texture is going to be bound as Depth-Stencil, use a typeless format
-            if (IsDepthStencil)
+            // Depth formats bound as shader resources must be created as typeless — covers both DS+SR and SR-only.
+            var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
+            if (needsTypelessDepth)
             {
                 if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
                 {
@@ -1168,6 +1172,14 @@ namespace Stride.Graphics
         ///   <see langword="true"/> if <paramref name="format"/> is a Depth-Stencil format that also contains Stencil data;
         ///   otherwise, <see langword="false"/>.
         /// </returns>
+        internal static bool IsDepthFormat(PixelFormat format)
+        {
+            return format is PixelFormat.D16_UNorm
+                or PixelFormat.D32_Float
+                or PixelFormat.D24_UNorm_S8_UInt
+                or PixelFormat.D32_Float_S8X24_UInt;
+        }
+
         internal static bool IsStencilFormat(PixelFormat format)
         {
             return format switch

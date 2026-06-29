@@ -32,7 +32,7 @@ namespace Stride.Video.FFmpeg
         {
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
             AVStream = pStream;
-            Codec = pStream->codec->codec_id;
+            Codec = pStream->codecpar->codec_id;
             Media = media;
             Index = pStream->index;
             Metadata = FFmpegUtils.ToDictionary(pStream->metadata);
@@ -81,8 +81,7 @@ namespace Stride.Video.FFmpeg
             if (media == null) throw new ArgumentNullException(nameof(media));
 
             FFmpegStream result;
-            var pCodec = pStream->codec;
-            switch (pCodec->codec_type)
+            switch (pStream->codecpar->codec_type)
             {
                 case AVMediaType.AVMEDIA_TYPE_AUDIO:
                     result = new AudioStream(pStream, media);

@@ -18,8 +18,8 @@ namespace Stride.TextureConverter
 
     /// <summary>
     /// Provides method to load images or textures, to modify them and to convert them with different texture compression format.
-    /// Input supported format : gif, png, jpe, pds (Every FreeImage supported format...), dds, pvr, ktx.
-    /// Output format : gif, png, jpe, pds (Every FreeImage supported format...), dds, pvr, ktx.
+    /// Input supported format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
+    /// Output format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
     /// Compression format : DXT1-5, ETC1-2, uncompressed formats (BGRA8888, RGBA8888)
     /// Image processing : resize, flip, gamma correction
     /// Texture utilities : Mipmap generation, normal map generation
@@ -37,16 +37,19 @@ namespace Stride.TextureConverter
         static TextureTool()
         {
             var type = typeof(TextureTool);
-            NativeLibraryHelper.PreloadLibrary("DxtWrapper", type);
-            if (IsPVRTexLibAvailable())
-                NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
-            NativeLibraryHelper.PreloadLibrary("freeimage", type);
+            NativeLibraryHelper.PreloadLibrary("stride_directxtex", type);
+            if (IsAstcEncAvailable())
+                NativeLibraryHelper.PreloadLibrary("astcenc", type);
 
-            static bool IsPVRTexLibAvailable()
+            // Currently shipped RIDs: win-x64, linux-x64, osx-arm64. Skip on others
+            // until binaries for them are added under deps/astcenc/dotnet/<rid>/.
+            static bool IsAstcEncAvailable()
             {
-                if (OperatingSystem.IsWindows())
-                    return RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
-                return true;
+                var arch = RuntimeInformation.ProcessArchitecture;
+                if (OperatingSystem.IsWindows()) return arch == Architecture.X64;
+                if (OperatingSystem.IsLinux())   return arch == Architecture.X64;
+                if (OperatingSystem.IsMacOS())   return arch == Architecture.Arm64;
+                return false;
             }
         }
 
@@ -61,9 +64,9 @@ namespace Stride.TextureConverter
             textureLibraries = new List<ITexLibrary>
             {
                 new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
-                new FITexLib(), // used to open/save common bitmap image formats.
+                new ImageSharpTexLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
-                new PvrttTexLib(), // used to compress/decompress texture to ETC1-2 and load/save *.pvr, *.ktx compressed texture file.
+                new AstcTexLib(), // used to compress/decompress textures to/from ASTC LDR (4x4..12x12 block sizes).
                 new ColorKeyTexLibrary(), // used to apply ColorKey on R8G8B8A8/B8G8R8A8_Unorm
                 new AtlasTexLibrary(), // used to create and manipulate texture atlas
                 new ArrayTexLib(), // used to create and manipulate texture array and texture cube
@@ -250,7 +253,7 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The file " + file + " doesn't exist. Please check the file path.");
             }
 
-            var atlas = new TexAtlas(layout, Load(new LoadingRequest(file, false)));
+            var atlas = new TexAtlas(layout, Load(new FileLoadingRequest(file, false)));
 
             CheckConformity(atlas, layout);
 
@@ -293,7 +296,7 @@ namespace Stride.TextureConverter
             }
 
             var layout = TexAtlas.TexLayout.Import(layoutFile);
-            var atlas = new TexAtlas(layout, Load(new LoadingRequest(file, false)));
+            var atlas = new TexAtlas(layout, Load(new FileLoadingRequest(file, false)));
 
             CheckConformity(atlas, layout);
 
@@ -342,7 +345,7 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The file " + file + " doesn't exist. Please check the file path.");
             }
 
-            return Load(new LoadingRequest(file, isSRgb));
+            return Load(new FileLoadingRequest(file, isSRgb));
         }
 
         /// <summary>
@@ -355,7 +358,7 @@ namespace Stride.TextureConverter
         public TexImage Load(Image image, bool isSRgb)
         {
             if (image == null) throw new ArgumentNullException("image");
-            return Load(new LoadingRequest(image, isSRgb));
+            return Load(new XkImageLoadingRequest(image, isSRgb));
         }
 
         /// <summary>
@@ -367,7 +370,7 @@ namespace Stride.TextureConverter
         private TexImage Load(LoadingRequest request)
         {
             var texImage = new TexImage();
-            texImage.Name = request.FilePath == null ? "" : Path.GetFileName(request.FilePath);
+            texImage.Name = request is FileLoadingRequest file ? Path.GetFileName(file.FilePath) : "";
 
             foreach (ITexLibrary library in textureLibraries)
             {
@@ -1466,7 +1469,10 @@ namespace Stride.TextureConverter
                     {
                         case RequestType.Compressing:
                             {
-                                var intermediateFormat = PixelFormat.R8G8B8A8_UNorm;
+                                // Preserve sRGB-ness; non-sRGB intermediate would gamma-shift in DxtTexLib.Convert.
+                                var intermediateFormat = image.Format.IsSRgb
+                                    ? PixelFormat.R8G8B8A8_UNorm_SRgb
+                                    : PixelFormat.R8G8B8A8_UNorm;
                                 intermediateRequest = new ConvertingRequest(intermediateFormat);
                                 libraryOne = FindLibrary(image, intermediateRequest);
                                 libraryTwo = FindLibrary(intermediateFormat, request);
@@ -1487,7 +1493,7 @@ namespace Stride.TextureConverter
                     }
 
                     // Both libraries for intermediate processing were found, preceeding with the request
-                    if (image.Format.IsBgraOrder && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder && !libraryOne.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }

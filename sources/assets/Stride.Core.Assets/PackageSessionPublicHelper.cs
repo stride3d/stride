@@ -60,8 +60,11 @@ public static class PackageSessionPublicHelper
 
                 var msbuildAssemblyLoadContext = new AssemblyLoadContext("MSBuild");
 
-                AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
+                // Fall back to the SDK directory for MSBuild assemblies. Runs after the NuGet resolver
+                // (registered earlier) so Stride's pinned versions win over name-colliding SDK copies.
+                AppDomain.CurrentDomain.AssemblyResolve += (_, resolveArgs) =>
                 {
+                    var assemblyName = new System.Reflection.AssemblyName(resolveArgs.Name);
                     string path = Path.Combine(MSBuildInstance.MSBuildPath, assemblyName.Name + ".dll");
                     if (File.Exists(path))
                     {

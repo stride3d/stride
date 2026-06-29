@@ -33,4 +33,21 @@ public static class DirectoryHelper
         var strideSolution = Path.Combine(directory, StrideSolution);
         return File.Exists(strideSolution);
     }
+
+    /// <summary>
+    /// Walks up from <paramref name="directory"/> looking for the repository root (the directory
+    /// containing <c>build\Stride.sln</c>). Returns it, or <c>null</c> if the path is not inside a
+    /// Stride source checkout.
+    /// </summary>
+    /// <param name="directory">The directory to start the search from.</param>
+    public static string? FindRootDevDirectory(string directory)
+    {
+        ArgumentNullException.ThrowIfNull(directory);
+        for (var current = new DirectoryInfo(directory); current is not null; current = current.Parent)
+        {
+            if (IsRootDevDirectory(current.FullName))
+                return current.FullName;
+        }
+        return null;
+    }
 }

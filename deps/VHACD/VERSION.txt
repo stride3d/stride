@@ -1,0 +1,6 @@
+V-HACD master
+Repository: https://github.com/kmammou/v-hacd
+Commit: f900e42361491f525262d4825e758845e4969897
+Stride: https://github.com/xen2/stride @ 4b12ccfef12f5568aae152e68a763827dbdcd159
+Built: 2026-05-19
+Workflow: https://github.com/xen2/stride/actions/runs/26090326674

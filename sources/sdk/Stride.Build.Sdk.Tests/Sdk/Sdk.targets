@@ -1,24 +1,187 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- TFM sets are computed in Sdk.props (StrideTestTargetFrameworks / ...MacOS) so a multi-platform
+       test declares <TargetFrameworks> in its csproj and Roslyn SDK-style detection works.
+       _StrideTestPlatforms (incl. the Game host-shadow) is derived there too and consumed below. -->
+
+  <!-- Game TFM is asset-compiler-load-only: skip asset compile + APK packaging on it. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)' And $(_StrideTestPlatforms.Contains(';Game;'))">
+    <StrideCompilerSkipBuild>true</StrideCompilerSkipBuild>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- VS Android device picker activation                               -->
+  <!-- ================================================================ -->
+  <!-- The VS Android workload extension surfaces the emulator/device dropdown when the project
+       has the "Maui" ProjectCapability. The string is a tag VS matches via MEF metadata — VS
+       doesn't validate that the project actually uses MAUI. No MAUI workload, packages, or SDK
+       imports needed; just this capability + a platform-suffixed desktop TFM (covered above on
+       Windows host by the net10.0-windows injection). -->
+  <ItemGroup Condition="$(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))">
+    <ProjectCapability Include="Maui" />
+  </ItemGroup>
+
   <!-- ================================================================ -->
   <!-- Test projects build for a single graphics API at a time.         -->
   <!-- ================================================================ -->
   <!-- Disable cross-targeting dispatch — test projects use StrideGraphicsApi (singular)
-       for output path and engine DLL selection. Build per-API via command line:
+       for output path and engine DLL selection. On Windows/Linux, build per-API via command
+       line:
          dotnet build -p:StrideGraphicsApi=Direct3D11
          dotnet build -p:StrideGraphicsApi=Vulkan
+       Android/iOS are pinned to Vulkan below (their only runtime API), regardless of -p:.
        Engine libraries still cross-target internally and produce all API variants. -->
   <PropertyGroup>
     <StrideGraphicsApiDependent>false</StrideGraphicsApiDependent>
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Resolve StrideTargetFramework / StridePlatform from TargetFramework -->
+  <!-- ================================================================ -->
+  <!-- Stride.Frameworks.targets does this too, but it imports later (via base SDK), and the
+       OutputPath below needs the correct $(StridePlatform) before that. Mirror the per-TFM
+       derivation here so projects that set TargetFramework in the csproj body get the right
+       platform for output path / launcher gating. -->
+  <PropertyGroup>
+    <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">macOS</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
+    <!-- net10.0 + Game in test platforms: tag StridePlatform=Game so the host-loadable
+         library TFM gets its own output folder (bin/Tests/.../Game-Vulkan/) instead of
+         colliding with net10.0-macos on darwin host (which would otherwise both resolve
+         StridePlatform=macOS via Stride.Platform.props's host fallback). Game is suppressed
+         when a runnable host (Linux/macOS/Windows-without-mobile) is also in the list: the
+         runnable's net10.0 .dll is already host-loadable by CompilerApp, so Game would be
+         redundant and would clobber the runnable's StridePlatform identity. -->
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFramework)' And $(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !($(_StrideTestPlatforms.Contains(';Windows;')) And !($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;')))) ">Game</StridePlatform>
+  </PropertyGroup>
+
+  <!-- Game is a host-loadable library shadow with no runner / no entry point. Override the
+       props default (WinExe) so CoreCompile doesn't demand a Main. -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Game'">
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <!-- WinExe (set in props) doesn't trigger APK packaging on Android — switch to Exe.
+       .NET-Android also gates APK packaging on AndroidApplication=true; Microsoft.NET.Test.Sdk
+       forces it false by default, so override explicitly. IncludeXunitLauncher=false suppresses
+       the APK build for suites consumed by Stride.Tests.Combined (meta packages the single APK);
+       without this each suite would also try to package its own APK, finding [Application] in
+       every aggregated assembly. -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(IncludeXunitLauncher)' != 'false' ">
+    <OutputType>Exe</OutputType>
+    <AndroidApplication>true</AndroidApplication>
+    <!-- Pin a default RID so Microsoft.Android.Sdk doesn't dispatch its per-RID inner-build
+         MSBuilds (which set SkipCompilerExecution=true, leaving downstream targets like
+         CopyFilesToOutputDirectory / StrideRunAssemblyProcessor without the compiled
+         assembly to operate on — errors get swallowed and the APK packaging pipeline
+         silently fails, never injecting MainActivity's JNI activation constructor). Tests
+         normally run on a single emulator/device; override via StrideTestRuntimeIdentifier
+         (which Sdk.props already wires to RuntimeIdentifier) or set RuntimeIdentifier
+         directly in the .csproj to target a different RID. -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' == ''">android-x64</RuntimeIdentifier>
+    <SelfContained Condition="'$(RuntimeIdentifier)' != '' And '$(SelfContained)' == ''">false</SelfContained>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <OutputType>Exe</OutputType>
+    <!-- Pin the iOS deployment target to match what Stride.Native compiles against
+         (-mios-version-min=12.0). Without this, the iOS SDK assumes the current SDK
+         major version, which mismatches per-project Info.plist MinimumOSVersion. -->
+    <SupportedOSPlatformVersion Condition="'$(SupportedOSPlatformVersion)' == ''">12.2</SupportedOSPlatformVersion>
+    <!-- xunit + test discovery is reflection-heavy and trips Mono's AOT compiler on a
+         number of test-runner assemblies (xunit.core, xunit.execution.dotnet, Microsoft
+         test platform DLLs). Interpreter mode is the standard for iOS Simulator + test
+         workloads and is fast enough for what we use it for. Device Release builds can
+         opt back into AOT by setting UseInterpreter=false explicitly. -->
+    <UseInterpreter Condition="'$(UseInterpreter)' == ''">true</UseInterpreter>
+    <!-- Per-project bundle keys derived from the assembly name; the iOS SDK turns these
+         into CFBundleIdentifier / CFBundleDisplayName / CFBundle*Version (Single Project). -->
+    <ApplicationId Condition="'$(ApplicationId)' == ''">stride.$(AssemblyName.ToLowerInvariant())</ApplicationId>
+    <ApplicationTitle Condition="'$(ApplicationTitle)' == ''">$(AssemblyName)</ApplicationTitle>
+    <ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0</ApplicationDisplayVersion>
+    <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
+  </PropertyGroup>
+  <!-- Shared modern app manifest. EnableDefaultItems=false suppresses the SDK's *.plist
+       auto-include, so wire the shared Info.plist explicitly via <Link>; the SDK's
+       _DetectAppManifest target picks up any None/BundleResource/Content whose Link is
+       "Info.plist" (Xamarin.Shared.targets). -->
+  <ItemGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(IncludeXunitLauncher)' != 'false' ">
+    <None Include="$(MSBuildThisFileDirectory)Info.plist">
+      <Link>Info.plist</Link>
+    </None>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'macOS' And '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">
+    <OutputType>Exe</OutputType>
+    <!-- Pin RID so the macOS SDK's install_name_tool / dylib processing only walks osx-* native libs.
+         Otherwise it tries to rewrite Linux .so / Windows .dll files included by cross-platform
+         NuGet packages (Skia, shaderc) and fails. _StrideFilterAndFlattenRuntimes filters by this. -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' == ''">osx-arm64</RuntimeIdentifier>
+    <SelfContained Condition="'$(RuntimeIdentifier)' != '' And '$(SelfContained)' == ''">false</SelfContained>
+    <UseInterpreter Condition="'$(UseInterpreter)' == ''">true</UseInterpreter>
+  </PropertyGroup>
+
+  <!-- Silk.NET.Sdl's prebuilt DLL contains BOTH [DllImport("__Internal")] and [DllImport("libSDL2")]
+       wrappers per function (Silk's source generator emits both, runtime selects via host config).
+       The IL linker on Microsoft.macOS treats every DllImport EntryPoint as a force-resolve symbol
+       via `-u<sym>`, including the __Internal twins for SDL's iOS-only APIs — which don't exist on
+       macOS, so the link fails. The libSDL2 path resolves fine through dyld at runtime; nothing on
+       macOS would call the iPhone/UIKit/OnApplication entries anyway. Strip them out of
+       _ProcessedReferenceNativeSymbol after _LoadLinkerOutput populates it. Three prefix patterns
+       cover everything Silk currently exposes; new iOS-only entry points in the same families are
+       auto-handled. -->
+  <Target Name="_StrideStripIOSOnlyDllImportsFromMacLink"
+          AfterTargets="_LoadLinkerOutput"
+          BeforeTargets="_ComputeLinkNativeExecutableInputs"
+          Condition=" '$(StridePlatform)' == 'macOS' And '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">
+    <ItemGroup>
+      <_ProcessedReferenceNativeSymbol Remove="@(_ProcessedReferenceNativeSymbol)"
+          Condition="$([System.String]::Copy('%(Identity)').StartsWith('_SDL_iPhone'))
+                      Or $([System.String]::Copy('%(Identity)').StartsWith('_SDL_UIKit'))
+                      Or $([System.String]::Copy('%(Identity)').StartsWith('_SDL_OnApplication'))" />
+    </ItemGroup>
+  </Target>
+
+
+  <!-- ================================================================ -->
+  <!-- Correct graphics API once the platform is known                  -->
+  <!-- ================================================================ -->
+  <!-- Android and iOS always render with Vulkan. Sdk.props computes StrideGraphicsApi from
+       StridePlatform, but at props time StridePlatform is still the host default (TargetFramework
+       is set in the csproj body, after the props import), so an Android head csproj on a Windows
+       host ends up with Direct3D11. Correct it now that StridePlatform is resolved — otherwise
+       output paths land under the host API and _StrideFilterGraphicsApiSpecificPackages strips
+       Vortice.Vulkan from the device runtime. The host-side AssetCompiler is unaffected: it uses
+       StrideHostGraphicsApi (derived from the build OS in Stride.AssetCompiler.targets),
+       not this device value. -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS' ">
+    <StrideGraphicsApi>Vulkan</StrideGraphicsApi>
+    <StrideGraphicsApis>Vulkan</StrideGraphicsApis>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <!-- Game's StridePlatform is set above in this file (after Sdk.props ran), so Sdk.props's
+       IntermediateOutputPath used the host fallback (e.g. obj/macOS-Vulkan/) which collides with
+       the real net10.0-macos TFM. Recompute now that StridePlatform=Game is resolved. -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Game' ">
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Test-Specific Output Paths (must be set BEFORE .NET SDK import) -->
   <!-- ================================================================ -->
   <!-- Set OutputPath here in targets (not props) so that $(AssemblyName) from the csproj body
-       is available. This must happen before the .NET SDK Sdk.targets import which freezes TargetDir. -->
+       is available. This must happen before the .NET SDK Sdk.targets import which freezes
+       TargetDir. Layout mirrors IntermediateOutputPath (obj\<Platform>-<Api>\<Config>): the
+       graphics-API folder hyphen-joins with platform and the configuration becomes a leaf,
+       so e.g. bin\Tests\<Name>\Windows-Direct3D11\Debug\ pairs with obj\Windows-Direct3D11\Debug\. -->
   <PropertyGroup>
-    <OutputPath>$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(StrideGraphicsApi)\</OutputPath>
+    <OutputPath Condition="'$(StrideGraphicsApi)' == ''">$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)\$(Configuration)\</OutputPath>
+    <OutputPath Condition="'$(StrideGraphicsApi)' != ''">$(StrideRoot)bin\Tests\$(AssemblyName)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
@@ -29,26 +192,33 @@
   <!-- ================================================================ -->
   <!-- Test Framework Package References -->
   <!-- ================================================================ -->
-  <ItemGroup>
+  <!-- Microsoft.NET.Test.Sdk and xunit.runner.visualstudio are dotnet test / VS Test Explorer
+       integration. Skip on Android+iOS: VSTest can't reach the simulator/device-side process
+       (we drive the .app/APK via our own runner), the deps would just bloat the bundle, and
+       on Android they also break the xunit.abstractions bundling into libxamarin-app.so.
+       Skip on Game: it's the host-loadable library shadow, never run via dotnet test. -->
+  <ItemGroup Condition="'$(StridePlatform)' != 'Android' And '$(StridePlatform)' != 'iOS' And '$(StridePlatform)' != 'Game'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
-    <PackageReference Include="xunit" Condition="'$(SkipXunitReference)' != 'true'" />
     <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Condition="'$(SkipXunitReference)' != 'true'" />
+  </ItemGroup>
 
   <!-- ================================================================ -->
   <!-- xUnit Startup Configuration -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows') And '$(IncludeXunitLauncher)' != 'false'">
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS') And '$(IncludeXunitLauncher)' != 'false'">
     <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Include xUnit Launcher Code -->
   <!-- ================================================================ -->
-  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS'">
     <!-- Launcher code depends on whether this is a graphics regression test -->
     <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
              Condition="'$(StrideGraphicsRegression)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
@@ -60,24 +230,118 @@
     </Compile>
   </ItemGroup>
 
+  <!-- Android has no Main entry point; inject the per-project MainActivity so its assembly
+       (the test assembly) is what xunit discovers tests from. Mirror desktop's split between
+       simple xunit tests and graphics-regression tests (which need GameTestBase callback wiring
+       for the runner UI's Interactive Mode / Force Save Image toggles). -->
+  <ItemGroup Condition="'$(StridePlatform)' == 'Android' And '$(IncludeXunitLauncher)' != 'false'">
+    <!-- Avalonia 12 needs a custom Android Application class to host the lifetime; bring it in
+         alongside the per-test-assembly MainActivity. The Application's OnCreate runs before the
+         Activity's, so static App.* delegates the runner reads at OnFrameworkInitializationCompleted
+         (SubscribeImageComparison etc.) must be assigned there — graphics-regression variant adds
+         that wiring; simple variant doesn't. -->
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Application.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true'">
+      <Link>LauncherSimple.Application.Android.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Application.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true'">
+      <Link>LauncherGame.Application.Android.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true'">
+      <Link>LauncherSimple.Android.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Android.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true'">
+      <Link>LauncherGame.Android.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- iOS analog of the Android launcher inject. Unlike Android (entry point auto-derived from
+       [Activity(MainLauncher=true)]), iOS needs an explicit Main, so the launcher .cs contains
+       a Program class and StartupObject points to it. -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'iOS' And '$(IncludeXunitLauncher)' != 'false'">
+    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(StridePlatform)' == 'iOS' And '$(IncludeXunitLauncher)' != 'false'">
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.iOS.cs"
+             Condition="'$(StrideGraphicsRegression)' != 'true'">
+      <Link>LauncherSimple.iOS.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.iOS.cs"
+             Condition="'$(StrideGraphicsRegression)' == 'true'">
+      <Link>LauncherGame.iOS.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Strip test-only globals from transitive ProjectReferences         -->
+  <!-- ================================================================ -->
+  <!-- Globals set by the meta on its test refs (Stride.Tests.Combined) propagate transitively
+       to engine libs by default. The same libs are also reached via host-tool paths (e.g.
+       Stride.Importer.Common, Stride.Shaders.Compilers) that lack those globals — distinct
+       global sets make MSBuild's project graph dispatch two parallel inner builds writing the
+       same obj/, racing on the AssemblyProcessor / pdb files. Strip the globals at the test
+       boundary so they only configure the test itself.
+
+       Suite refs need the test globals propagated, so the strip is skipped for them via
+       the StrideTestSuiteRef="true" marker set on each suite ref in Stride.Tests.Combined.csproj.
+       Custom metadata can't be read in ItemGroup conditions outside a Target (MSB4191), so this
+       Update runs inside a target with BeforeTargets="AssignProjectConfiguration" — the first
+       step in PrepareProjectReferencesDependsOn, ahead of every PR dispatch target. -->
+  <!-- StrideCompilerSkipBuild is set on the meta's shadow-host TFM (net10.0) inner build to skip
+       its own asset compile. As a propagated global it leaks into suites' iOS/Android inner builds
+       and skips _StrideEnsureCompilerAppPacked there too — StrideCompileAsset then errors with
+       "Stride AssetCompiler could not be found". Strip unconditionally at eval time (so NuGet
+       restore's PR-graph dispatch sees it; a target-time strip would be too late for restore). -->
+  <ItemGroup>
+    <ProjectReference Update="@(ProjectReference)">
+      <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(GlobalPropertiesToRemove)', ''));StrideCompilerSkipBuild</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- Other test-only globals (IncludeXunitLauncher=false etc.) need to PROPAGATE to suite refs,
+       so the strip skips them via the StrideTestSuiteRef="true" marker. Custom metadata can't be
+       read in eval-time conditions (MSB4191), so this runs inside a target before any PR dispatch. -->
+  <Target Name="_StrideStripGlobalsOnNonSuiteRefs" BeforeTargets="AssignProjectConfiguration">
+    <ItemGroup>
+      <ProjectReference Update="@(ProjectReference)" Condition=" '%(ProjectReference.StrideTestSuiteRef)' != 'true' ">
+        <GlobalPropertiesToRemove>$([MSBuild]::ValueOrDefault('%(ProjectReference.GlobalPropertiesToRemove)', ''));IncludeXunitLauncher;OutputType;StrideIsExecutable;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
+
   <!-- ================================================================ -->
   <!-- Asset Compilation Support -->
   <!-- ================================================================ -->
-  <!-- When StrideCompileAssets=true, add a build-only reference to the asset compiler
-       and import its targets for asset compilation during build.
-       Uses $(StrideRoot) from sources/Directory.Build.props to locate the source tree. -->
+  <!-- CompilerApp.targets self-attaches a ProjectReference back to CompilerApp.csproj
+       (gated on source-tree existence) so MSBuild builds it before our StrideCompileAsset
+       runs. -->
+  <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
+          Project="$(StrideRoot)sources\assets\Stride.AssetCompiler\build\Stride.AssetCompiler.targets"/>
+
+  <!-- Strip test-SDK globals from the auto-attached CompilerApp ref (its own strip list
+       stays generic — it ships to end users). -->
   <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
-    <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <!-- Strip test-project-only properties so CompilerApp still packs its .nupkg
-           (needed at AssetCompiler time for the test's package graph resolution). -->
-      <GlobalPropertiesToRemove>TargetFramework;StrideSkipAutoPack</GlobalPropertiesToRemove>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    <ProjectReference Update="@(ProjectReference)" Condition="$([System.String]::Copy('%(Filename)').Equals('Stride.AssetCompiler'))">
+      <GlobalPropertiesToRemove>%(GlobalPropertiesToRemove);IncludeXunitLauncher;StrideTestPlatforms;StrideExplicitMacOSRuntime</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
-  <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
-          Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+
+  <!-- Force the Game inner build to finish before any peer TFM (Android/iOS/macOS) runs
+       StrideCompileAsset. CompilerApp resolves the project's TargetPath via VSProjectHelper
+       which picks TargetFrameworks.First() — that's $(StrideFramework) = Game. Cross-targeting
+       dispatches inner builds in parallel by default, so without this barrier a peer TFM's
+       compile-asset step can race ahead of Game finishing. Re-entering the same csproj is
+       cached by MSBuild — no-op if Game is already built, blocking barrier otherwise. -->
+  <Target Name="_StrideWaitForGameInnerBuild"
+          BeforeTargets="StrideCompileAsset"
+          Condition="$(_StrideTestPlatforms.Contains(';Game;')) And '$(StridePlatform)' != 'Game' And '$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Build"
+             Properties="TargetFramework=$(StrideFramework)" />
+  </Target>
 
   <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
@@ -88,19 +352,30 @@
        and flatten matching ones to the output root. This ensures only the target RID's
        native libs are copied, and they're placed flat for dlopen to find them. -->
   <Target Name="_StrideFilterAndFlattenRuntimes"
-          BeforeTargets="_CopyFilesMarkedCopyLocal;_CopySourceItemsToOutputDirectory"
+          BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways;_CopyFilesMarkedCopyLocal"
+          DependsOnTargets="GetCopyToOutputDirectoryItems"
           Condition="'$(RuntimeIdentifier)' != ''">
     <ItemGroup>
-      <!-- Remove non-matching runtimes/ items -->
-      <None Remove="@(None)"
-          Condition="'%(None.CopyToOutputDirectory)' != '' And
-                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\')) And
-                     !$([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
-      <!-- Flatten matching runtimes/ items to output root -->
-      <None Update="@(None)"
-          Condition="'%(None.CopyToOutputDirectory)' != '' And
-                     $([System.String]::Copy('%(None.Link)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
-          Link="%(Filename)%(Extension)" />
+      <!-- Filter source items (None / Content / etc. with CopyToOutputDirectory) -->
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <_SourceItemsToCopyToOutputDirectory Update="@(_SourceItemsToCopyToOutputDirectory)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          TargetPath="%(Filename)%(Extension)" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Update="@(_SourceItemsToCopyToOutputDirectoryAlways)"
+          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          TargetPath="%(Filename)%(Extension)" />
+      <!-- Filter ReferenceCopyLocalPaths (NuGet runtime assets + project-reference copies) -->
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\')) And
+                     !$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))" />
+      <ReferenceCopyLocalPaths Update="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('/','\\').StartsWith('runtimes\$(RuntimeIdentifier)\'))"
+          DestinationSubPath="%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 
@@ -115,6 +390,20 @@
         <PlatformTarget>$(PlatformTarget)</PlatformTarget>
       </TargetPathWithTargetPlatformMoniker>
     </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Android: push gold reference images to the device after install   -->
+  <!-- ================================================================ -->
+  <!-- GameTestBase keys gold paths by Assembly.GetName().Name at runtime, so each suite reads
+       <deviceRoot>/tests/<AssemblyName>/. adb push with the sync flag only transfers files
+       whose mtime/size differs, so subsequent deploys are near-instant. Exists() gates
+       projects with no gold images yet. Multi-suite hosts (Stride.Tests.Combined) extend
+       this in their csproj to push gold for each referenced suite. -->
+  <Target Name="_StridePushTestGoldImages"
+          AfterTargets="Install"
+          Condition="'$(StridePlatform)' == 'Android' And Exists('$(StrideRoot)tests\$(AssemblyName)')">
+    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\$(AssemblyName)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/$(AssemblyName)&quot;" />
   </Target>
 
 </Project>

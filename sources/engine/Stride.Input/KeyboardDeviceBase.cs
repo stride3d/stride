@@ -88,10 +88,9 @@ namespace Stride.Input
         public void HandleKeyUp(Keys key)
         {
             // Prevent duplicate up events
-            if (!KeyRepeats.ContainsKey(key))
+            if (!KeyRepeats.Remove(key))
                 return;
 
-            KeyRepeats.Remove(key);
             downKeys.Remove(key);
             var keyEvent = InputEventPool<KeyEvent>.GetOrCreate(this);
             keyEvent.IsDown = false;

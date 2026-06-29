@@ -78,8 +78,41 @@
       <_InnerBuildProjects Include="$(MSBuildProjectFile)">
         <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework)</AdditionalProperties>
         <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' == 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework);StrideGraphicsApi=%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApi)</AdditionalProperties>
+        <!-- Single-API TFMs (iOS/Android/macOS/UWP): drop any StrideGraphicsApi inherited as a
+             global from a desktop API-dep consumer's reference, so the inner build resolves its
+             own default (Vulkan) instead of compiling D3D sources it has no references for. -->
+        <UndefineProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">StrideGraphicsApi</UndefineProperties>
       </_InnerBuildProjects>
     </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Override GetTargetFrameworksWithPlatformFromInnerBuilds          -->
+  <!-- ================================================================ -->
+  <!-- Original: Microsoft.Common.CrossTargeting.targets
+       The standard implementation invokes GetTargetFrameworksWithPlatformForSingleTargetFramework
+       once per @(_InnerBuildProjects). With our _ComputeTargetFrameworkItems override producing
+       one entry per (TFM x StrideGraphicsApi) under StrideGraphicsApiDependent=true, that path
+       reports duplicate TFMs (e.g. "net10.0;net10.0;net10.0" for 3 APIs on net10.0) to consumer
+       reference resolution. CLI builds bypass it via _StrideAnnotateProjectReferences below, but
+       VS design-time builds query GetReferenceNearestTargetFrameworkTask, which calls this and
+       errors on duplicates. Override to invoke once per UNIQUE TFM, dropping the API dimension
+       that's internal to our build dispatch. _InnerBuildProjects is unchanged (still per-API
+       for actual build/pack), so multi-API dispatch keeps working. -->
+  <Target Name="GetTargetFrameworksWithPlatformFromInnerBuilds"
+          DependsOnTargets="_ComputeTargetFrameworkItems">
+    <ItemGroup>
+      <_StrideInnerBuildProjectsTfmOnly Include="$(MSBuildProjectFile)">
+        <AdditionalProperties>TargetFramework=%(_TargetFrameworkNormalized.Identity)</AdditionalProperties>
+      </_StrideInnerBuildProjectsTfmOnly>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_StrideInnerBuildProjectsTfmOnly)"
+             Condition="'@(_StrideInnerBuildProjectsTfmOnly)' != ''"
+             Targets="GetTargetFrameworksWithPlatformForSingleTargetFramework"
+             BuildInParallel="$(BuildInParallel)">
+      <Output ItemName="_TargetFrameworkInfo" TaskParameter="TargetOutputs" />
+    </MSBuild>
   </Target>
 
   <!-- ================================================================ -->
@@ -106,6 +139,7 @@
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Video;</_StrideGraphicsApiDependentProjectList>
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.Regression;</_StrideGraphicsApiDependentProjectList>
     <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Graphics.RenderDocPlugin;</_StrideGraphicsApiDependentProjectList>
+    <_StrideGraphicsApiDependentProjectList>$(_StrideGraphicsApiDependentProjectList)Stride.Games.AutoTesting;</_StrideGraphicsApiDependentProjectList>
     <!-- Current API for this evaluation. In an API-dep inner build this is the dispatched
          API (set via global from _ComputeTargetFrameworkItems); in a non-API-dep build it
          falls back to the first entry of StrideGraphicsApis so A(API-dep)→B(non-API-dep)→
@@ -115,11 +149,11 @@
     <!-- TFMs where Stride.Graphics.targets disables per-API dispatch (single inner build,
          no StrideGraphicsApi in cache key). Consumer refs at these TFMs must NOT add
          StrideGraphicsApi, or they'd diverge from the callee's own outer→inner dispatch. -->
-    <_StrideGraphicsApiDependentDisabledAtCurrentTF Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' Or '$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'">true</_StrideGraphicsApiDependentDisabledAtCurrentTF>
+    <_StrideGraphicsApiDependentDisabledAtCurrentTF Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">true</_StrideGraphicsApiDependentDisabledAtCurrentTF>
   </PropertyGroup>
 
   <!-- Consistency checks on the _StrideGraphicsApiDependentProjectList. Skipped on TFMs where Stride.Graphics.targets
-       overrides StrideGraphicsApiDependent (iOS/Android/UWP) since the flag's in-memory value
+       overrides StrideGraphicsApiDependent (iOS/Android/UWP/macOS) since the flag's in-memory value
        no longer matches the user's csproj declaration. -->
   <Target Name="_StrideValidateGraphicsApiDependentProjectList" BeforeTargets="Build"
           Condition="'$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
@@ -133,24 +167,29 @@
            Text="$(MSBuildProjectName) directly references %(ProjectReference.Filename) which sets &lt;StrideGraphicsApiDependent&gt;true&lt;/StrideGraphicsApiDependent&gt;, but %(ProjectReference.Filename) is not in _StrideGraphicsApiDependentProjectList (Stride.GraphicsApi.InnerBuild.targets). Add it there so consumer refs don't race under parallel build." />
   </Target>
 
-  <!-- Runs at target time so _MSBuildProjectReferenceExistent is fully populated (direct
-       refs, SDK-auto-added refs, AND transitive refs from project.assets.json).
-       AdditionalProperties is the cache-key-contributing channel: the MSBuild task engine
-       reads it from item metadata automatically at dispatch time. SetTargetFramework also
-       works but has a side effect of setting SkipGetTargetFrameworkProperties=true, which
-       bypasses TFM negotiation and breaks cases like Games[net10.0-windows]→Graphics[net10.0]. -->
-  <Target Name="_StrideAnnotateProjectReferences" BeforeTargets="_GetProjectReferenceTargetFrameworkProperties;PrepareProjectReferences"
-          Condition="'$(_StrideGraphicsApiCurrent)' != '' And '$(_StrideGraphicsApiDependentDisabledAtCurrentTF)' != 'true'">
+  <!-- Runs AFTER _GetProjectReferenceTargetFrameworkProperties so %(_MSBuildProjectReferenceExistent.NearestTargetFramework) carries the
+       negotiated callee TFM (which tells a single-API target apart from a desktop one), and before the
+       references are dispatched. AdditionalProperties is the cache-key channel the MSBuild task reads at
+       dispatch time; SetTargetFramework is avoided (it sets SkipGetTargetFrameworkProperties=true and
+       breaks negotiation, e.g. Games[net10.0-windows]→Graphics[net10.0]). -->
+  <Target Name="_StrideAnnotateProjectReferences" AfterTargets="_GetProjectReferenceTargetFrameworkProperties" BeforeTargets="ResolveProjectReferences"
+          Condition="'$(_StrideGraphicsApiCurrent)' != ''">
     <ItemGroup>
-      <!-- API-dep ref: pass the current API so consumer and callee share a per-API cache entry. -->
+      <!-- In-list ref negotiated to a desktop (multi-API) TFM: pass the current API so the consumer
+           shares that build's per-API inner cache key instead of a second unset compile that races it.
+           A single-API consumer that down-resolves to net10.0 thus pulls its own runtime API
+           (e.g. macOS → Vulkan) rather than the unset default. -->
       <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
-                                        Condition="$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
+                                        Condition="$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);')) And !('%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkiOS)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkAndroid)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkmacOS)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkUWP)')">
         <AdditionalProperties>%(_MSBuildProjectReferenceExistent.AdditionalProperties);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</AdditionalProperties>
       </_MSBuildProjectReferenceExistent>
-      <!-- Non-API-dep ref: strip StrideGraphicsApi so different-API callers collapse to one
-           cache entry per (project, TF) instead of racing on a shared obj/ path. -->
+      <!-- Strip StrideGraphicsApi for (a) non-API-dep refs and (b) in-list refs negotiated to a single-API
+           TFM, so the dispatch matches that build's collapsed / flat (API-less) cache key instead of racing
+           it with an inherited API global (also keeps Direct3D out of single-API TFMs). The non-API-dep
+           case otherwise races parallel inner-builds of e.g. Stride.Audio in obj/, crashing the assembly
+           processor with FileNotFoundException. -->
       <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)"
-                                        Condition="!$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);'))">
+                                        Condition="!$(_StrideGraphicsApiDependentProjectList.Contains(';%(Filename);')) Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkiOS)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkAndroid)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkmacOS)' Or '%(_MSBuildProjectReferenceExistent.NearestTargetFramework)' == '$(StrideFrameworkUWP)'">
         <GlobalPropertiesToRemove>%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);StrideGraphicsApi</GlobalPropertiesToRemove>
       </_MSBuildProjectReferenceExistent>
     </ItemGroup>

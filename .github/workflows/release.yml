@@ -5,15 +5,19 @@ on:
     inputs:
       platform-linux:
         description: Include Linux
-        default: false
+        default: true
         type: boolean
       platform-android:
         description: Include Android
-        default: false
+        default: true
         type: boolean
       platform-ios:
         description: Include iOS
-        default: false
+        default: true
+        type: boolean
+      platform-macos:
+        description: Include macOS
+        default: true
         type: boolean
       sign:
         description: Code sign packages
@@ -23,8 +27,20 @@ on:
         description: Build prerequisites installer
         default: true
         type: boolean
+      version-suffix:
+        description: Prerelease suffix, no leading dash (e.g. "beta" -> 4.4.123-beta). Empty = stable.
+        default: ''
+        type: string
       deploy:
         description: Deploy to NuGet.org and create GitHub Release
+        default: false
+        type: boolean
+      bump-version:
+        description: After a stable deploy, commit the next Patch to the branch (open next dev version)
+        default: true
+        type: boolean
+      upload-binlog:
+        description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
         type: boolean
 
@@ -74,16 +90,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 0  # Full history needed for GitVersioning
+          fetch-depth: 0  # Full history + tags needed for tag-based versioning
+          fetch-tags: true
 
       - uses: actions/setup-dotnet@v4
         with:
-          # 6.0.x required by deps/Gettext.Net/GNU.Gettext.Msgfmt.exe (see #3113)
-          dotnet-version: |
-            6.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
-      - uses: microsoft/setup-msbuild@v2
+      - name: Install Apple Workloads
+        # VS provisions the android workload but not ios/macos.
+        if: ${{ inputs.platform-ios || inputs.platform-macos }}
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ${{ inputs.platform-ios && inputs.platform-macos && 'ios macos' || inputs.platform-ios && 'ios' || 'macos' }}
 
       - name: Install Advanced Installer
         if: ${{ inputs.build-prerequisites-installer }}
@@ -102,15 +121,20 @@ jobs:
           if ("${{ inputs.platform-linux }}" -eq "true") { $platforms += ";Linux" }
           if ("${{ inputs.platform-android }}" -eq "true") { $platforms += ";Android" }
           if ("${{ inputs.platform-ios }}" -eq "true") { $platforms += ";iOS" }
+          if ("${{ inputs.platform-macos }}" -eq "true") { $platforms += ";macOS" }
           echo "Building for platforms: $platforms"
-          msbuild build\Stride.build `
-            /t:Package `
-            /bl /m /nr:false `
-            /p:StridePlatforms="$platforms" `
-            /p:StrideGraphicsApiDependentBuildAll=true `
-            /p:StrideSign=${{ inputs.sign }} `
-            /p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
-            /p:StrideNativeBuildMode=Clang
+          # --no-restore: Stride.build's targets restore their own solutions (same as the
+          # previous desktop msbuild invocation, which never passed /restore).
+          dotnet build build\Stride.build `
+            -t:Package `
+            --no-restore `
+            ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
+            -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
+            -p:StrideGraphicsApiDependentBuildAll=true `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideVersionSuffix=${{ inputs.version-suffix }} `
+            -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
+            -p:StrideNativeBuildMode=Clang
         env:
           StrideDisableAssetCompilerExecServerProxy: true
           StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
@@ -124,14 +148,30 @@ jobs:
         shell: pwsh
         run: |
           $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
-          if ($pkg) {
-            $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-            echo "version=$version" >> $env:GITHUB_OUTPUT
-            echo "::notice::Package version: $version"
-          } else {
+          if (-not $pkg) {
             echo "::error::No Stride.Core package found"
             exit 1
           }
+          $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
+          # Guard against a malformed SharedAssemblyInfo.cs slipping a weird version into the package name.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            echo "::error::Detected package version '$version' is not a valid version - check SharedAssemblyInfo.cs"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Package version: $version"
+
+      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped per release. If it
+      # wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
+      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch/NuGetVersionSuffix in SharedAssemblyInfo.cs."
+            exit 1
+          fi
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
@@ -143,11 +183,23 @@ jobs:
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
-        if: ${{ always() && !inputs.sign }}
+        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log
           path: msbuild.binlog
           if-no-files-found: ignore
+
+  #
+  # Surface the package version in the run UI. A job can't reference its own outputs in its
+  # name, so this lightweight job shows Package's version even when Deploy is skipped.
+  #
+  Version:
+    name: Packaged ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: ${{ always() && needs.Package.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice title=Packaged::${{ needs.Package.outputs.version }}"
 
   #
   # Deploy to NuGet.org and create GitHub Release
@@ -156,82 +208,10 @@ jobs:
     name: Deploy ${{ needs.Package.outputs.version }}
     if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
-    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
-    environment: production  # Requires manual approval in GitHub settings
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Download packages
-        uses: actions/download-artifact@v4
-        with:
-          name: packages
-          path: bin/packages
-
-      - name: List packages
-        shell: pwsh
-        run: |
-          echo "## Packages to deploy" >> $env:GITHUB_STEP_SUMMARY
-          echo '```' >> $env:GITHUB_STEP_SUMMARY
-          Get-ChildItem -Path bin -Recurse -Filter "*.nupkg" | ForEach-Object {
-            echo "$($_.Name)" >> $env:GITHUB_STEP_SUMMARY
-          }
-          echo '```' >> $env:GITHUB_STEP_SUMMARY
-
-      - name: Push NuGet packages
-        shell: pwsh
-        run: |
-          $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
-          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Samples\.Templates' }
-          $samples = $packages | Where-Object { $_.Name -match 'Samples\.Templates' }
-          $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
-
-          echo "::group::Pushing main packages ($($main.Count))"
-          foreach ($pkg in $main) {
-            echo "Pushing $($pkg.Name)..."
-            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
-          }
-          echo "::endgroup::"
-
-          if ($samples) {
-            echo "::group::Pushing Samples.Templates"
-            foreach ($pkg in $samples) {
-              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
-            }
-            echo "::endgroup::"
-          }
-
-          if ($gameStudio) {
-            echo "::group::Pushing GameStudio (last, so dependencies are already available)"
-            foreach ($pkg in $gameStudio) {
-              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
-            }
-            echo "::endgroup::"
-          }
-        env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
-
-      - name: Tag release
-        run: |
-          if git rev-parse "releases/${{ needs.Package.outputs.version }}" >/dev/null 2>&1; then
-            echo "Tag releases/${{ needs.Package.outputs.version }} already exists, skipping"
-          else
-            git tag "releases/${{ needs.Package.outputs.version }}"
-            git push origin "releases/${{ needs.Package.outputs.version }}"
-          fi
-
-      - name: Create GitHub Release
-        run: |
-          gh release create "releases/${{ needs.Package.outputs.version }}" \
-            --title "Stride ${{ needs.Package.outputs.version }}" \
-            --generate-notes \
-            bin/packages/*.nupkg
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+    uses: ./.github/workflows/release-deploy.yml
+    with:
+      run-id: ${{ github.run_id }}
+      bump-version: ${{ inputs.bump-version }}
+    secrets: inherit

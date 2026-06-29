@@ -23,8 +23,8 @@ public class SafeList<T> : ConstrainedList<T> where T : class
     {
     }
 
-    private static bool NonNullConstraint(ConstrainedList<T> constrainedList, T arg2)
+    private static bool NonNullConstraint(ConstrainedList<T> constrainedList, T? arg2)
     {
-        return arg2 != null;
+        return arg2 is not null;
     }
 }

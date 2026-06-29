@@ -58,10 +58,8 @@ namespace Stride.Input
         /// <param name="device">The device</param>
         protected void UnregisterDevice(IInputDevice device)
         {
-            if (!Devices.ContainsKey(device.Id))
+            if (!Devices.Remove(device.Id))
                 throw new InvalidOperationException($"Input device with Id {device.Id} was not registered");
-
-            Devices.Remove(device.Id);
         }
     }
 }

@@ -39,6 +39,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50-Presentation", "50-Prese
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Avalonia", "..\sources\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj", "{3B613E66-671E-4049-8EF5-43CDAA549210}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Cli", "..\sources\launcher\Stride.Cli\Stride.Cli.csproj", "{4A321E09-24D6-4446-8E95-2C29404C8B76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A321E09-24D6-4446-8E95-2C29404C8B76}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Release|Any CPU.ActiveCfg = Release|Any CPU

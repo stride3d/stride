@@ -31,6 +31,9 @@ namespace Stride.Assets
 
             // Add AllowMultipleComponentsAttribute on EntityComponent yaml proxy (since there might be more than one)
             UnloadableObjectInstantiator.ProcessProxyType += ProcessEntityComponent;
+
+            // Provide the Roslyn-based source-code upgrade runner to the (Roslyn-free) core upgrade hook.
+            CodeUpgradeRunner.Instance = new RoslynCodeUpgradeRunner();
         }
 
         private static void ProcessEntityComponent(Type baseType, TypeBuilder typeBuilder)

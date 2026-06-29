@@ -15,6 +15,7 @@
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>GuidGenerator.cs</Link>
     </Compile>
+    <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
@@ -22,20 +23,18 @@
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestSceneUpgrader.cs" />
+    <Compile Include="TestSystemFontProvider.cs" />
+    <Compile Include="TestSignedDistanceFieldFont.cs" />
     <Compile Include="TestVisualScriptCompiler.cs" />
     <Compile Include="TexturePackerTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\data\tests\factory\factory.fbx">
-      <Link>app_data\Stride.Assets.Tests\factory.fbx</Link>
+    <Content Include="..\..\data\tests\Fonts\NotoSans-Bold.ttf">
+      <Link>Fonts\NotoSans-Bold.ttf</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\data\tests\knight\scenes\knight.fbx">
       <Link>app_data\Stride.Assets.Tests\knight.fbx</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\data\tests\factory\TX-Factory_Ground.dds">
-      <Link>app_data\Stride.Assets.Tests\TX-Factory_Ground.dds</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="materials\testConstantValueKey.sdmat">

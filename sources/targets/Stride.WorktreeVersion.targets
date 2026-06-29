@@ -1,0 +1,61 @@
+<!-- Per-project version stamping (dev + CI; the release/package path uses StrideGitVersion in Stride.build).
+
+     The build version is the committed MajorMinor.Patch from SharedAssemblyInfo.cs, shared with the release
+     generator (Stride.GitVersion.targets) via StrideVersionTasks.cs.
+
+     The computed version is overlaid into SharedAssemblyInfo.Generated.cs, which the Stride SDK swaps in for
+     SharedAssemblyInfo.cs at compile time (see StrideApplyGeneratedVersion in Sdk.targets) so the
+     StrideVersion.* consts carry the real version. The overlay is always emitted: the base file's PublicVersion is
+     an implausible sentinel, so a build that skipped this would ship that sentinel.
+
+     Suffix: multiple checkouts on one machine (worktrees/clones) would otherwise auto-pack first-party packages at
+     the same version and clobber each other in the shared %LocalAppData%/stride/nugetdev feed and the global NuGet
+     cache. A per-machine ledger at <LocalApplicationData>/stride/worktree-ids.txt maps each checkout to a token —
+     first is "dev" (the "-dev" suffix), the rest "dev2", "dev3", ... Use the token "(empty)" for a checkout that
+     should build the clean version. The suffix feeds NuGetVersionSuffix on both ends: the .nupkg version (producer,
+     via StrideAppendWorktreeVersion in Stride.PackageInfo.targets) and the StrideVersion.NuGetVersion const baked
+     into the assemblies (consumer, via the overlay).
+
+     On CI (and when StrideSkipWorktreeVersion is set) NoLedgerSuffix gives the clean unsuffixed version with no
+     ledger touch, while still generating the overlay and keeping the fast path. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <_StrideWorktreeVersionTargetsImported>true</_StrideWorktreeVersionTargetsImported>
+    <!-- CI / explicit skip: empty suffix, no ledger registration (but still generate the overlay). -->
+    <_StrideNoLedgerSuffix Condition="'$(_StrideNoLedgerSuffix)' == ''">false</_StrideNoLedgerSuffix>
+    <_StrideNoLedgerSuffix Condition="'$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true' Or '$(StrideSkipWorktreeVersion)' == 'true'">true</_StrideNoLedgerSuffix>
+  </PropertyGroup>
+
+  <UsingTask TaskName="ResolveStrideWorktreeVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <Task>
+      <Code Type="Class" Source="$(MSBuildThisFileDirectory)StrideVersionTasks.cs" Language="cs" />
+    </Task>
+  </UsingTask>
+
+  <!-- Resolve the suffix and (re)generate SharedAssemblyInfo.Generated.cs. Skipped on package builds: there
+       StrideGitVersion (Stride.build) generates the overlay once up front. The lock inside the task plus this target
+       running before PrepareResources means no project compiles the generated file while another is still writing
+       it. The actual Compile swap lives in StrideApplyGeneratedVersion (Sdk.targets), so it happens in one place. -->
+  <Target Name="StrideEnsureWorktreeVersion"
+          Condition="'$(StridePackageBuild)' != 'true'"
+          BeforeTargets="PrepareResources">
+    <ResolveStrideWorktreeVersion
+        StrideRoot="$(StrideRoot)"
+        OverrideId="$(StrideWorktreeId)"
+        NoLedgerSuffix="$(_StrideNoLedgerSuffix)"
+        LedgerPath="$(StrideWorktreeLedger)"
+        SourceVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.cs"
+        GeneratedVersionFile="$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs">
+      <Output TaskParameter="WorktreeSuffix" PropertyName="StrideWorktreeSuffix" />
+    </ResolveStrideWorktreeVersion>
+  </Target>
+
+  <!-- Explicit path: `dotnet msbuild -t:StrideRegisterWorktree` registers the checkout in the
+       ledger (or reports its token) without a full build — handy from a worktree-setup script.
+       Reuses StrideEnsureWorktreeVersion so the task is invoked from one place. -->
+  <Target Name="StrideRegisterWorktree" DependsOnTargets="StrideEnsureWorktreeVersion">
+    <Message Importance="high" Text="Stride worktree version suffix for $(StrideRoot): '$(StrideWorktreeSuffix)' (first checkout = '-dev'; empty via the '(empty)' ledger token or StrideSkipWorktreeVersion/CI)" />
+  </Target>
+
+</Project>

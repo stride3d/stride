@@ -1,28 +1,32 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!--
-    StrideRuntime is checked here in .targets (not .props) because
-    it's defined in the user's .csproj which loads AFTER Sdk.props
-    but BEFORE Sdk.targets.
+    Runs in .targets (not .props) because the re-derivations below depend on the inner-build
+    TargetFramework, which is only known after the base SDK targets resolve it.
   -->
 
-  <!-- Define target frameworks for runtime -->
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
-    <!-- Add default framework no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
+  <!-- Re-evaluate StrideTargetFramework now that TargetFramework is known. The same logic
+       runs in Stride.Frameworks.props for completeness, but TargetFramework is empty at
+       props time under standard SDK-style imports, so this targets-phase pass is what
+       actually populates the value for SDK conditions to consume. -->
+  <PropertyGroup>
+    <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+  </PropertyGroup>
 
-    <!-- Desktop platforms: Add net10.0-windows only if explicitly requested -->
-    <!-- Most projects only need net10.0; net10.0-windows is for WPF/WinForms dependencies -->
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
-
-    <!-- Mobile/UWP platforms -->
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkUWP)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkiOS)</StrideRuntimeTargetFrameworks>
-
-    <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
-
-    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+  <!-- Re-derive StridePlatform from the now-known StrideTargetFramework. Stride.Platform.props
+       resolves StridePlatform at props time, but TargetFramework is empty there for projects
+       that set it in the csproj body (e.g. Tests SDK consumers), so StridePlatform falls back
+       to the host OS. Fix it here so SDK conditions gating on StridePlatform pick the right
+       platform when targeting Android/iOS/etc. from a non-Stride-runtime project. -->
+  <PropertyGroup>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">macOS</StridePlatform>
+    <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
   </PropertyGroup>
 
 </Project>

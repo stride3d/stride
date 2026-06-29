@@ -5,6 +5,7 @@ using System;
 using Stride.Media;
 using Android.Views;
 using Stride.Core;
+using Stride.Core.Extensions;
 
 namespace Stride.Video.Android
 {
@@ -52,9 +53,11 @@ namespace Stride.Video.Android
                 waitTime = TimeSpan.Zero;
                 return true;
             }
-            else if (videoDelay < TimeSpan.Zero) // the video is ahead of the synchronizer
+            else if (videoDelay <= TimeSpan.Zero) // the video is at or ahead of the synchronizer
             {
-                waitTime = -videoDelay;
+                // At exact equality (frozen clock right after a seek) decoding further would
+                // overshoot the seek target by one frame; wait for the clock to move instead.
+                waitTime = videoDelay < TimeSpan.Zero ? -videoDelay : TimeSpan.FromMilliseconds(1);
                 return false;
             }
             else if (videoDelay > TimeSpan.FromSeconds(2)) // the video is far behind we try to seek bit
@@ -71,11 +74,15 @@ namespace Stride.Video.Android
 
         protected override void ProcessOutputBuffer(MediaCodec.BufferInfo bufferInfo, int outputIndex)
         {
-            MediaDecoder.ReleaseOutputBuffer(outputIndex, true);
+            // Render the decoded frame to the ImageReader's Surface; the backend pulls it with
+            // AcquireLatestImage on the next game-thread Update. Seek catch-up frames (between the
+            // previous sync point and the seek target) are decoded but not rendered, so the first
+            // frame to reach the screen after a seek is the target itself.
+            var render = isSeekRequestCompleted || bufferInfo.PresentationTimeUs >= SeekTargetTime.TotalMicroSeconds();
+            MediaDecoder.ReleaseOutputBuffer(outputIndex, render);
 
-            isSeekRequestCompleted = true;
-
-            VideoInstance.OnReceiveNotificationToUpdateVideoTextureSurface();
+            if (render)
+                isSeekRequestCompleted = true;
         }
     }
 }

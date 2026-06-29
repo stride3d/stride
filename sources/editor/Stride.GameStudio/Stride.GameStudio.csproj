@@ -9,6 +9,12 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyName>Stride.GameStudio</AssemblyName>
+    <!-- Root app (never referenced as a library): pack the whole runnable under tools/ instead of lib/,
+         so the package isn't a phantom library. All payload flows through BuildOutputInPackage, so this
+         one property relocates everything (exe, dll, Roslyn, BuildHost, resolver bootstrap). -->
+    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <!-- NU5128: an app package intentionally has no lib/, but still declares its dependency closure. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
@@ -34,6 +40,7 @@
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="SSH.NET" />
     <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net10'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
@@ -72,6 +79,19 @@
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
+    <!-- NuGet dependencies (and build-ordering triggers) on the three template packages, so a Stride
+         install pulls them in. Private=false alone emits a content-only nuspec <dependency> (the templates
+         produce no assembly to reference) — same idiom as the Stride.Core marker dep in
+         Stride.Templates.Common.targets. ReferenceOutputAssembly=false would suppress the dependency. -->
+    <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">

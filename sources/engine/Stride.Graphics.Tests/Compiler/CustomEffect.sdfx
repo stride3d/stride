@@ -2,11 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Graphics.Tests
 {
+    params CustomEffectParameters
+    {
+        // factor used by CustomEffect
+        float SwitchEffectLevel;
+    }
+
     partial effect CustomSubEffect
     {
-        using params CustomShaderKeys;
+        using params CustomEffectParameters;
 
-		if (CustomShaderKeys.SwitchEffectLevel < 10)
+		if (CustomEffectParameters.SwitchEffectLevel < 10)
 		{
 			mixin CustomShader;
 		}

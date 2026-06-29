@@ -14,7 +14,7 @@ namespace Stride.Graphics;
 /// Works around Silk.NET's DefaultPathResolver having a hardcoded list of Linux distro RIDs
 /// for native library fallback resolution. Distros not in the list (e.g. Ubuntu) fail to find
 /// native libs in runtimes/linux-x64/native/.
-/// See build/docs/silk-net-runtimesfolder-issue.md
+/// See docs/build/silk-net-runtimesfolder-issue.md
 /// </summary>
 internal static class SilkNetResolverFix
 {

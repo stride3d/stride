@@ -1,0 +1,9 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Auto-imported by NuGet for direct and transitive consumers of the
+       Stride.Assets package.  Pulls in the filter-contribution sub-file and
+       is the place to add any other editor / asset-pipeline consumer-side
+       targets in the future. -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Assets.GraphicsApiSpecificPackages.targets" />
+
+</Project>

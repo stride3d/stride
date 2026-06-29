@@ -1,5 +1,6 @@
 *.suo
 *.csproj.user
+/Directory.Build.props
 *.vcxproj.user
 *.ReSharper.user
 *.DotSettings.user
@@ -9,6 +10,7 @@ _ReSharper.*
 *.i.cs
 *.cache
 *.Cache
+*.lscache
 *.tlog
 *.log
 *.obj
@@ -39,10 +41,15 @@ stride_doc_output
 doc/doxygen/html
 Tools/bin
 Temp/
+/logs/
 bin/
 Bin/
+!bin/packages/
+bin/packages/*
+!bin/packages/.gitkeep
 ipch/
 obj/
+TestResults/
 .vs/
 .idea/
 Cache/
@@ -97,11 +104,15 @@ x64Release
 *.opendb
 screenshots
 samplesGenerated
+screenshot-regression-out
+screenshot-out
+ui-test-out-dpi*
 
 # VS Code files
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
+!.vscode/settings.json
 
 # Xcode
 #
@@ -160,3 +171,10 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
+
+# Auto-generated local developer settings (Stride.Platform.props bootstrap)
+/build/Stride.Local.props
+
+# Auto-generated version overlay (Stride.WorktreeVersion.targets / Stride.GitVersion.targets)
+/sources/shared/SharedAssemblyInfo.Generated.cs
+

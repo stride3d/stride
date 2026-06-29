@@ -104,11 +104,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public Dictionary<string, PackageVersion>? SerializedVersion { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this package is a system package.
+    /// Gets a value indicating whether this package is read-only: a restored dependency (or otherwise
+    /// not backed by an editable in-solution <see cref="SolutionProject"/>), so it is never edited or saved.
     /// </summary>
-    /// <value><c>true</c> if this package is a system package; otherwise, <c>false</c>.</value>
     [DataMemberIgnore]
-    public bool IsSystem => Container is not SolutionProject;
+    public bool IsReadOnly => Container is not SolutionProject;
 
     /// <summary>
     /// Gets or sets the metadata associated with this package.
@@ -163,6 +163,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// </summary>
     [DataMember(100)]
     public RootAssetCollection RootAssets { get; private set; } = [];
+
+    /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// </summary>
+    [DataMember(105)]
+    public List<AssetAssembly> AssetAssemblies { get; } = [];
 
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
@@ -261,8 +267,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMemberIgnore]
     public List<PackageLoadedAssembly> LoadedAssemblies { get; } = [];
 
+    /// <summary>
+    /// Build-time-resolved project asset files (from a .sdbuild manifest). When set, project
+    /// asset discovery uses this list directly.
+    /// </summary>
     [DataMemberIgnore]
-    public string? RootNamespace { get; private set; }
+    internal List<PackageLoadingAssetFile>? PrecomputedProjectAssets { get; set; }
+
+    [DataMemberIgnore]
+    public string? RootNamespace { get; internal set; }
 
     [DataMemberIgnore]
     public bool IsImplicitProject
@@ -573,6 +586,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 : AssetFileSerializer.Load<Package>(filePath, log);
             var package = loadResult.Asset;
             package.FullPath = packageFile.FilePath;
+            // .sdpkg has no serialized name (identity = file name). PackageSession derives this on
+            // session load; do it here too so a direct Package.Load doesn't leave Meta.Name null.
+            if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath is not null)
+                package.Meta.Name = package.FullPath.GetFileNameWithoutExtension();
+            // A package always carries a version. The session graph-walk overwrites this with the
+            // authored csproj PackageVersion when available; this guarantees the value is never null.
+            package.Meta.Version ??= GetFallbackVersion(Path.GetDirectoryName(filePath));
             package.PreviousPackagePath = packageFile.OriginalFilePath;
             package.IsDirty = packageFile.AssetContent is not null || loadResult.AliasOccurred;
 
@@ -584,6 +604,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
     }
 
+    // Fallback version for a package with none authored: a dev-source package's PackageVersion is
+    // computed in a build target (empty at static eval), so use StrideVersion for packages inside
+    // this Stride checkout; anything else gets a neutral default.
+    internal static PackageVersion GetFallbackVersion(string? directory)
+        => directory is not null && DirectoryHelper.FindRootDevDirectory(directory) is not null
+            ? new PackageVersion(StrideVersion.NuGetVersion)
+            : new PackageVersion("1.0.0");
+
     public static PackageContainer LoadProject(ILogger log, string filePath)
     {
         if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(filePath).ToLowerInvariant()))
@@ -592,22 +620,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
             var packageExists = File.Exists(packagePath);
 
-            // Xenko to Stride migration
-            if (!packageExists)
-            {
-                var oldPackagePath = Path.ChangeExtension(filePath, ".xkpkg");
-                if (File.Exists(oldPackagePath))
-                {
-                    packageExists = true;
-                    XenkoToStrideRenameHelper.RenameStrideFile(oldPackagePath, XenkoToStrideRenameHelper.StrideContentType.Package);
-                }
-            }
-
             var package = packageExists
                 ? LoadRaw(log, packagePath)
                 : new Package
                 {
-                    Meta = { Name = Path.GetFileNameWithoutExtension(packagePath) },
+                    Meta = { Name = Path.GetFileNameWithoutExtension(packagePath), Version = GetFallbackVersion(Path.GetDirectoryName(packagePath)) },
                     AssetFolders = { new AssetFolder("Assets") },
                     ResourceFolders = { "Resources" },
                     FullPath = packagePath,
@@ -789,7 +806,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 .Join(TemporaryAssets, o => o.Id, t => t.Id, (_, t) => t)
                 .ToList();
             // Dirty assets (except in system package) should be mark as deleted so that are properly saved again later.
-            if (!IsSystem && dirtyAssets.Count > 0)
+            if (!IsReadOnly && dirtyAssets.Count > 0)
             {
                 IsDirty = true;
 
@@ -1027,6 +1044,18 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             if (projectReference is not null)
             {
                 var fullProjectLocation = projectReference.Location.ToOSPath();
+
+                // If the project's output assembly is already loaded in the AppDomain (e.g. GameStudio
+                // loading its own Stride.Assets.Presentation), reuse it. Building it via MSBuild here
+                // would be wasted: the freshly built DLL is discarded below in favor of the already-
+                // loaded one anyway, and the build can be slow.
+                var loadedProjectAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(fullProjectLocation), StringComparison.InvariantCultureIgnoreCase));
+                if (loadedProjectAssembly is not null)
+                {
+                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, loadedProjectAssembly.Location) { Assembly = loadedProjectAssembly });
+                    return;
+                }
+
                 if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                 {
                     assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
@@ -1201,11 +1230,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
                     // If this kind of file an asset file?
                     var ext = fileUPath.GetFileExtension();
-                    // Adjust extensions for Stride rename
-                    ext = ext?.Replace(".xk", ".sd");
 
                     //make sure to add default shaders in this case, since we don't have a csproj for them
-                    if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && (package.Container is not SolutionProject || package.IsSystem))
+                    //(skipped in manifest mode: project assets come from PrecomputedProjectAssets instead)
+                    if (AssetRegistry.IsProjectAssetFileExtension(ext) && package.PrecomputedProjectAssets is null && package.IsReadOnly)
                     {
                         listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                         continue;
@@ -1232,17 +1260,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             FindAssetsInProject(listFiles, package);
         }
 
-        // Adjust extensions for Stride rename
-        foreach (var loadingAsset in listFiles)
-        {
-            var originalExt = loadingAsset.FilePath.GetFileExtension() ?? "";
-            var ext = originalExt.Replace(".xk", ".sd");
-            if (ext != originalExt)
-            {
-                loadingAsset.FilePath = new UFile(loadingAsset.FilePath.FullPath.Replace(".xk", ".sd"));
-            }
-        }
-
         return listFiles;
     }
 
@@ -1256,15 +1273,12 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         if (nameSpace?.Length == 0)
             nameSpace = null;
 
-        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
             // Build full path for Include and Link
             .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
             // For items outside project, let's pretend they are link
             .Select(x => (x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
-            // Test both Stride and Xenko extensions
-            .Where(x =>
-                AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())
-                || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()?.Replace(".xk", ".sd")))
+            .Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()))
             // avoid duplicates otherwise it might save a single file as separte file with renaming
             // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
             .Distinct()
@@ -1278,8 +1292,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
     {
-        if (package.IsSystem) return;
+        // Manifest mode: project assets were resolved at build time, no MSBuild evaluation.
+        if (package.PrecomputedProjectAssets is not null)
+        {
+            foreach (var assetFile in package.PrecomputedProjectAssets)
+                list.Add(assetFile);
+            return;
+        }
 
+        // Legacy: walk the csproj (only SolutionProject packages have one).
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;
 

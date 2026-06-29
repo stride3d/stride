@@ -69,6 +69,11 @@ namespace Stride.Core.Presentation.Dialogs
             return DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, buttons, image);
         }
 
+        public Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+        {
+            return DialogHelper.MultiCheckedMessageBox(Dispatcher, message, ApplicationName, checkBoxes, buttons, image);
+        }
+
         public MessageBoxResult BlockingMessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
             return (MessageBoxResult)DialogHelper.BlockingMessageBox(Dispatcher, message, ApplicationName, IDialogService.GetButtons(buttons), image);

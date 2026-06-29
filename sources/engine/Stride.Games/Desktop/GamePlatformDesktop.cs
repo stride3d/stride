@@ -85,8 +85,10 @@ namespace Stride.Games
 
                  case AppContextType.DesktopWinForms:
 #if (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && STRIDE_UI_WINFORMS
-                    return new GameWindowWinforms();
-#elif STRIDE_UI_SDL
+                    if (GameContextFactory.WinFormsBackendEnabled)
+                        return new GameWindowWinforms();
+#endif
+#if STRIDE_UI_SDL
                     return new GameWindowSDL();
 #else
                     return null;

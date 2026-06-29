@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -107,16 +108,22 @@ namespace Stride.Graphics.Font
             // get the character data associated to the provided character and size
             var characterData = GetOrCreateCharacterData(realFontSize, character);
 
-            // generate the bitmap if it does not exist
-            if (characterData.Bitmap == null)
-            {
-                FontManager.GenerateBitmap(characterData, false);
+            // Acquire-read so the matching Glyph.Offset write in FontManager.RenderBitmap is visible.
+            var bitmap = Volatile.Read(ref characterData.Bitmap);
 
-                // TODO: try to find a fallback from different size in the meantime (currently character disappear)
+            // generate the bitmap if it does not exist
+            if (bitmap == null)
+            {
+                // When actually drawing this glyph (not just measuring), generate synchronously so it
+                // appears on the frame it is first used instead of blinking blank for a frame or two
+                // while the async builder thread catches up. Gated by FontSystem.SynchronousGlyphGeneration.
+                var synchronously = uploadGpuResources && FontSystem.SynchronousGlyphGeneration;
+                FontManager.GenerateBitmap(characterData, synchronously);
+                bitmap = Volatile.Read(ref characterData.Bitmap);
             }
 
             // upload the character to the GPU font texture and create the glyph if does not exists
-            if (uploadGpuResources && characterData.Bitmap != null && !characterData.IsBitmapUploaded)
+            if (uploadGpuResources && bitmap != null && !characterData.IsBitmapUploaded)
                 FontCacheManager.UploadCharacterBitmap(commandList, characterData);
 
             // update the character usage info

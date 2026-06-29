@@ -227,7 +227,7 @@ namespace Stride.Graphics
             //
             void InitializeStagingTexture()
             {
-                NativeResourceState = ResourceStates.CopyDest;
+                IsHostVisibleHeap = true;
                 LayoutTracker.Initialize(BarrierLayout.CopyDest, ArraySize * MipLevelCount);
                 NativeTextureDescription = GetTextureDescription(Dimension);
 
@@ -236,7 +236,7 @@ namespace Stride.Graphics
 
                 HeapProperties heap = new HeapProperties { Type = HeapType.Readback };
 
-                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, NativeResourceState, pOptimizedClearValue: null,
+                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, ResourceStates.CopyDest, pOptimizedClearValue: null,
                                                                       out ComPtr<ID3D12Resource> stagingTextureResource);
                 if (result.IsFailure)
                     result.Throw();
@@ -363,30 +363,18 @@ namespace Stride.Graphics
 
                 var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
-                // Initialize resource state based on texture usage.
-                if (Usage == GraphicsResourceUsage.Staging)
-                    NativeResourceState = ResourceStates.CopyDest;
-                else if (ViewFlags.HasFlag(TextureFlags.DepthStencil))
-                    NativeResourceState = ResourceStates.DepthWrite;
-                else if (ViewFlags.HasFlag(TextureFlags.RenderTarget))
-                    NativeResourceState = ResourceStates.RenderTarget;
-                else if (ViewFlags.HasFlag(TextureFlags.ShaderResource))
-                    NativeResourceState = ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
-                else
-                    NativeResourceState = ResourceStates.Common;
-
-                var desiredResourceState = NativeResourceState;
-
+                // Textures settle at their "resting" layout right after init (SR for shader-readable,
+                // RenderTarget/DepthStencilWrite for write-only targets, etc.). Renderers transition
+                // to/from the write state explicitly at pass boundaries.
+                var desiredLayout = GetInitialBarrierLayout();
                 bool hasInitData = initialData?.Length > 0;
 
-                // Always create in the desired state. For textures with init data that aren't
-                // already in CopyDest, we'll transition explicitly within the command list.
-                var initialResourceState = desiredResourceState;
-
+                // CreateCommittedResource must use COMMON so the subsequent enhanced Barrier on the
+                // copy CL is valid (legacy-to-enhanced barrier interop requires COMMON).
                 // TODO: D3D12: Move that to a global allocator in bigger committed resources
                 var heap = new HeapProperties { Type = HeapType.Default };
 
-                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, initialResourceState,
+                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, ResourceStates.Common,
                                                                       in clearValueRef, out ComPtr<ID3D12Resource> textureResource);
                 if (result.IsFailure)
                     result.Throw();
@@ -394,7 +382,11 @@ namespace Stride.Graphics
                 SetNativeDeviceChild(textureResource.AsDeviceChild());
                 GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
 
-                if (hasInitData)
+                // Submit an init CL whenever we need to move the texture off Common — either to
+                // upload data or to reach the resting layout for no-data textures (so a parallel
+                // worker's first SRV bind doesn't race with the Common → resting transition).
+                bool needsInitCL = hasInitData || desiredLayout != BarrierLayout.Common;
+                if (needsInitCL)
                 {
                     var commandList = GraphicsDevice.NativeCopyCommandList;
                     lock (GraphicsDevice.NativeCopyCommandListLock)
@@ -405,78 +397,80 @@ namespace Stride.Graphics
                         if (result.IsFailure)
                             result.Throw();
 
-                        const uint D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES = 0xFFFFFFFF;
-                        var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                        resourceBarrier.Transition.PResource = NativeResource;
-                        resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-
-                        // Transition to CopyDest for the upload
-                        if (initialResourceState != ResourceStates.CopyDest)
+                        if (hasInitData)
                         {
-                            resourceBarrier.Transition.StateBefore = initialResourceState;
-                            resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
-                            commandList.ResourceBarrier(1, in resourceBarrier);
-                        }
+                            // Enhanced Barrier Common → CopyDest for the upload.
+                            EnhancedBarriers.TextureBarrier(commandList,
+                                NativeResource,
+                                syncBefore: D3D12BarrierSync.None, syncAfter: D3D12BarrierSync.Copy,
+                                accessBefore: D3D12BarrierAccess.NoAccess, accessAfter: D3D12BarrierAccess.CopyDest,
+                                layoutBefore: Silk.NET.Direct3D12.BarrierLayout.Common, layoutAfter: Silk.NET.Direct3D12.BarrierLayout.CopyDest);
 
-                        var subresourceCount = initialData.Length;
-                        scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
-                        scoped Span<uint> rowCounts = stackalloc uint[subresourceCount];
-                        scoped Span<ulong> rowSizeInBytes = stackalloc ulong[subresourceCount];
+                            var subresourceCount = initialData.Length;
+                            scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
+                            scoped Span<uint> rowCounts = stackalloc uint[subresourceCount];
+                            scoped Span<ulong> rowSizeInBytes = stackalloc ulong[subresourceCount];
 
-                        ulong textureCopySize = 0;
+                            ulong textureCopySize = 0;
 
-                        NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
-                                                           ref placedSubresources.GetReference(),
-                                                           ref rowCounts.GetReference(),
-                                                           ref rowSizeInBytes.GetReference(),
-                                                           ref textureCopySize);
+                            NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
+                                                               ref placedSubresources.GetReference(),
+                                                               ref rowCounts.GetReference(),
+                                                               ref rowSizeInBytes.GetReference(),
+                                                               ref textureCopySize);
 
-                        nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize,
-                                                                                out ComPtr<ID3D12Resource> uploadResource,
-                                                                                out int uploadOffset,
-                                                                                D3D12.TextureDataPlacementAlignment);
-                        for (int i = 0; i < subresourceCount; ++i)
-                        {
-                            scoped ref readonly var databox = ref initialData[i];
-                            scoped ref var placedSubresource = ref placedSubresources[i];
-
-                            var dataPointer = databox.DataPointer;
-
-                            var rowCount = rowCounts[i];
-                            var sliceCount = placedSubresource.Footprint.Depth;
-                            var rowSize = (int) rowSizeInBytes[i];
-                            var destRowPitch = placedSubresource.Footprint.RowPitch;
-
-                            // Copy the init data to the upload buffer
-                            for (int zSlice = 0; zSlice < sliceCount; zSlice++)
+                            nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize,
+                                                                                    out ComPtr<ID3D12Resource> uploadResource,
+                                                                                    out int uploadOffset,
+                                                                                    D3D12.TextureDataPlacementAlignment);
+                            for (int i = 0; i < subresourceCount; ++i)
                             {
-                                var uploadMemoryCurrent = uploadMemory + (int) placedSubresource.Offset + zSlice * destRowPitch * rowCount;
-                                var dataPointerCurrent = dataPointer + zSlice * databox.SlicePitch;
+                                scoped ref readonly var databox = ref initialData[i];
+                                scoped ref var placedSubresource = ref placedSubresources[i];
 
-                                for (int row = 0; row < rowCount; ++row)
+                                var dataPointer = databox.DataPointer;
+
+                                var rowCount = rowCounts[i];
+                                var sliceCount = placedSubresource.Footprint.Depth;
+                                var rowSize = (int) rowSizeInBytes[i];
+                                var destRowPitch = placedSubresource.Footprint.RowPitch;
+
+                                // Copy the init data to the upload buffer
+                                for (int zSlice = 0; zSlice < sliceCount; zSlice++)
                                 {
-                                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
-                                    uploadMemoryCurrent += destRowPitch;
-                                    dataPointerCurrent += databox.RowPitch;
+                                    var uploadMemoryCurrent = uploadMemory + (int) placedSubresource.Offset + zSlice * destRowPitch * rowCount;
+                                    var dataPointerCurrent = dataPointer + zSlice * databox.SlicePitch;
+
+                                    for (int row = 0; row < rowCount; ++row)
+                                    {
+                                        MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
+                                        uploadMemoryCurrent += destRowPitch;
+                                        dataPointerCurrent += databox.RowPitch;
+                                    }
                                 }
+
+                                // Adjust upload offset (circular dependency between GetCopyableFootprints and AllocateUploadBuffer)
+                                placedSubresource.Offset += (ulong) uploadOffset;
+
+                                var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
+                                var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresource };
+
+                                commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                             }
-
-                            // Adjust upload offset (circular dependency between GetCopyableFootprints and AllocateUploadBuffer)
-                            placedSubresource.Offset += (ulong) uploadOffset;
-
-                            var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
-                            var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresource };
-
-                            commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                         }
 
-                        // Transition back to the desired state
-                        if (initialResourceState != ResourceStates.CopyDest)
-                        {
-                            resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
-                            resourceBarrier.Transition.StateAfter = desiredResourceState;
-                            commandList.ResourceBarrier(1, in resourceBarrier);
-                        }
+                        // Transition to the resting layout so the texture is immediately usable
+                        // without any further transition for its primary purpose (SR for shader-
+                        // readable textures, RT/DSWrite for write targets, etc.). The LayoutBefore
+                        // is CopyDest when we uploaded, or Common (creation state) when we didn't.
+                        var preLayout = hasInitData ? Silk.NET.Direct3D12.BarrierLayout.CopyDest : Silk.NET.Direct3D12.BarrierLayout.Common;
+                        var preAccess = hasInitData ? D3D12BarrierAccess.CopyDest : D3D12BarrierAccess.NoAccess;
+                        var preSync = hasInitData ? D3D12BarrierSync.Copy : D3D12BarrierSync.None;
+                        EnhancedBarriers.TextureBarrier(commandList,
+                            NativeResource,
+                            syncBefore: preSync, syncAfter: D3D12BarrierSync.None,
+                            accessBefore: preAccess, accessAfter: D3D12BarrierAccess.NoAccess,
+                            layoutBefore: preLayout, layoutAfter: BarrierMapping.ToEnhancedLayout(desiredLayout));
 
                         result = commandList.Close();
 
@@ -490,8 +484,10 @@ namespace Stride.Graphics
                     }
                 }
 
-                NativeResourceState = desiredResourceState;
-                LayoutTracker.Initialize(BarrierMapping.ToBarrierLayout(desiredResourceState), ArraySize * MipLevelCount);
+                // needsInitCL transitioned the texture to its resting layout; otherwise it stays
+                // at Common and the first runtime enhanced Barrier will transition it from there.
+                LayoutTracker.Initialize(needsInitCL ? desiredLayout : BarrierLayout.Common,
+                                         ArraySize * MipLevelCount);
             }
 
             //
@@ -882,8 +878,11 @@ namespace Stride.Graphics
             //
             Format ComputeShaderResourceViewFormat()
             {
-                // Special case for Depth-Stencil Shader Resource View that are bound as Float
-                var viewFormat = IsDepthStencil
+                // Depth formats bound as shader resources need a typeless-to-float remap (e.g.
+                // D32_FLOAT -> R32_FLOAT) to match the typeless storage format the texture was
+                // created with. Covers both DS+SR and SR-only-depth placeholders.
+                var needsDepthRemap = IsDepthStencil || (IsShaderResource && IsDepthFormat(ViewFormat));
+                var viewFormat = needsDepthRemap
                     ? (Format) ComputeShaderResourceFormatFromDepthFormat(ViewFormat)
                     : (Format) ViewFormat;
 
@@ -1061,8 +1060,9 @@ namespace Stride.Graphics
             var format = (Format) textureDescription.Format;
             var flags = textureDescription.Flags;
 
-            // If the Texture is going to be bound on the Depth-Stencil, use Typeless format
-            if (IsDepthStencil)
+            // Depth formats bound as shader resources must be created as typeless — covers both DS+SR and SR-only.
+            var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
+            if (needsTypelessDepth)
             {
                 if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
                 {
@@ -1123,6 +1123,14 @@ namespace Stride.Graphics
         ///   The View format corresponding to <paramref name="depthFormat"/>,
         ///   or <see cref="PixelFormat.None"/> if no compatible format could be computed.
         /// </returns>
+        internal static bool IsDepthFormat(PixelFormat format)
+        {
+            return format is PixelFormat.D16_UNorm
+                or PixelFormat.D32_Float
+                or PixelFormat.D24_UNorm_S8_UInt
+                or PixelFormat.D32_Float_S8X24_UInt;
+        }
+
         internal static PixelFormat ComputeShaderResourceFormatFromDepthFormat(PixelFormat format)
         {
             var viewFormat = format switch

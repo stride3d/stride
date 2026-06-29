@@ -99,6 +99,8 @@ namespace Stride.UI.Controls
         private void EnsureStaticEditText()
         {
             var gameContext = GetGameContext();
+            if (gameContext is null)
+                return;  // headless test environment — no Android UI to attach a popup to
             if (staticEditText is null || gameContext.RecreateEditTextPopupWindow)
             {
                 // create and add the edit text
@@ -238,6 +240,8 @@ namespace Stride.UI.Controls
                     throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
 
                 EnsureStaticEditText();
+                if (staticEditText is null)
+                    return;  // headless test environment — no native popup means no activation
 
                 activeEditText = this;
 
@@ -248,7 +252,7 @@ namespace Stride.UI.Controls
                 // is actually invoked to ensure the control is fully ready
                 staticEditText.Post(editTextSetActivatedStateAction);
 
-                GetGameContext().ShowEditTextPopup();
+                GetGameContext()?.ShowEditTextPopup();
             }
         }
 
@@ -256,8 +260,9 @@ namespace Stride.UI.Controls
         {
             lock (syncRoot)
             {
+                // Destroy/pause can re-enter while the native popup was never opened.
                 if (activeEditText == null)
-                    throw new Exception("Internal error: Can not deactivate the EditText, it is already nullified");
+                    return;
 
                 // remove callbacks
                 editText.EditorAction -= AndroidEditTextOnEditorAction;
@@ -266,7 +271,7 @@ namespace Stride.UI.Controls
                 editText = null;
                 activeEditText = null;
 
-                GetGameContext().HideEditTextPopup();
+                GetGameContext()?.HideEditTextPopup();
             }
         }
 
@@ -275,8 +280,10 @@ namespace Stride.UI.Controls
             if (UIElementServices.Services == null)
                 throw new InvalidOperationException("services");
 
+            // In headless tests game.Context is GameContextHeadless, not GameContextAndroid;
+            // return null so callers can skip the native-popup wiring.
             var game = UIElementServices.Services.GetSafeServiceAs<IGame>();
-            return ((GameContextAndroid) game.Context);
+            return game.Context as GameContextAndroid;
         }
 
         private static void OnTouchMoveImpl(TouchEventArgs args)

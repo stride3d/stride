@@ -12,7 +12,7 @@ namespace Stride.SpriteStudio.Offline
     [AssetContentType(typeof(AnimationClip))]
     [AssetDescription(FileExtension)] // A description used to display in the asset editor
     [Display("SpriteStudio animation")]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public class SpriteStudioAnimationAsset : AssetWithSource
     {
         public const string FileExtension = ".sdss4a";

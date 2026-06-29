@@ -374,6 +374,11 @@ namespace Stride.Games
                     // Setup the graphics device if it was not already setup.
                     SetupGraphicsDeviceEvents();
 
+                    // Drain pending GPU work before the window is destroyed: a queued flip-model
+                    // Present can only complete while its window is alive, and the device is
+                    // destroyed after the window on the exit path.
+                    Window.Closing += (_, _) => GraphicsDevice?.WaitForGpuIdle();
+
                     // Bind Graphics Context enabling initialize to use GL API eg. SetData to texture ...etc
                     BeginDraw();
 
@@ -426,7 +431,7 @@ namespace Stride.Games
             if (gameContext == null)
             {
                 AppContextType c;
-                if (OperatingSystem.IsWindows())
+                if (OperatingSystem.IsWindows() && GameContextFactory.WinFormsBackendEnabled)
                     c = AppContextType.DesktopWinForms;
                 else if (OperatingSystem.IsAndroid())
                     c = AppContextType.Android;
@@ -674,7 +679,11 @@ namespace Stride.Games
                 {
                     using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                     {
-                        EndDraw(true);
+                        // Only Present if we actually drew this frame. Skipping Present on
+                        // no-draw ticks avoids re-presenting undefined/stale back-buffer content
+                        // (flip-model discards after Present) and, on D3D12, avoids emitting a
+                        // barrier-only command list that trips the perf warning.
+                        EndDraw(drawFrame);
                     }
                 }
 
@@ -781,7 +790,6 @@ namespace Stride.Games
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
-                // Note: RT/DS transitions are handled by SetRenderTargetsImpl when targets are bound.
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 
@@ -815,18 +823,19 @@ namespace Stride.Games
         {
             if (beginDrawOk)
             {
-                if (GraphicsDevice.Presenter != null)
-                {
-                    // Perform end of frame presenter operations
-                    GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
-
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, BarrierLayout.Present);
-                }
+                // Each presenter handles its own back-buffer transition in EndDraw — swap-chain
+                // presenters transition to Present, render-target (headless) presenters skip
+                // since there is no Present call. Keeps this method presenter-agnostic.
+                GraphicsDevice.Presenter?.EndDraw(GraphicsContext.CommandList, present);
 
                 GraphicsContext.ResourceGroupAllocator.Flush();
 
                 // Close command list
                 GraphicsContext.CommandList.Flush();
+
+                // After the frame's submits have aggregated their per-CL counters into the
+                // scope tree, render it (if any validation issue fired) and reset for next frame.
+                GraphicsDevice.DebugEndFrame();
 
                 // Present (if necessary)
                 graphicsDeviceManager.EndDraw(present);

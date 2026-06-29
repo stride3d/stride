@@ -524,6 +524,9 @@ namespace Stride.Rendering.Lights
                     fixed (Int2* dataPtr = renderViewInfo.LightClusters)
                         context.CommandList.UpdateSubResource(clusteredGroupRenderer.lightClusters, 0, new DataBox((IntPtr)dataPtr, sizeof(Int2) * renderViewInfo.ClusterCount.X, sizeof(Int2) * renderViewInfo.ClusterCount.X * renderViewInfo.ClusterCount.Y),
                             new ResourceRegion(0, 0, 0, renderViewInfo.ClusterCount.X, renderViewInfo.ClusterCount.Y, ClusterSlices));
+                    // Transition back to SR on the main-thread CL so parallel worker CLs don't
+                    // race on the lazy CopyDest → ShaderResource transition at first bind.
+                    context.CommandList.ResourceBarrierTransition(clusteredGroupRenderer.lightClusters, Graphics.BarrierLayout.ShaderResource);
                 }
 
                 // PointLights: Ensure size and update

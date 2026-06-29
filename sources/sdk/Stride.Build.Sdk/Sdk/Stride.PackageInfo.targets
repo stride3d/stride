@@ -6,28 +6,62 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <_StrideSharedAssemblyInfoLines Condition="'$(StridePackageBuild)' == 'true'">$([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.NuGet.cs'))</_StrideSharedAssemblyInfoLines>
-    <_StrideSharedAssemblyInfoLines Condition="'$(StridePackageBuild)' != 'true'">$([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.cs'))</_StrideSharedAssemblyInfoLines>
-    <StridePublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</StridePublicVersion>
-    <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
-    <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(StridePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
-  </PropertyGroup>
+  <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.Templates.Common.targets. -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
+
+  <!-- Static (non-version) metadata, shared with standalone packages such as Stride.Cli. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\Stride.PackageMetadata.props" />
 
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(StrideNuGetVersion)</PackageVersion>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://stride3d.net</PackageProjectUrl>
-    <PackageIcon>nuget-icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
-    <Copyright>Copyright © Stride contributors and Silicon Studio Corp.</Copyright>
-    <Authors>Stride contributors;Silicon Studio Corp.</Authors>
     <PackageTags>Stride;3D;gamedev;Game Engine;engine;games;D3D;Vulkan</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)../nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
-  </ItemGroup>
+  <!-- CI only: deterministic, normalized SourceLink paths (/_/ instead of the build
+       machine's absolute path). Off locally so debugging steps into the real
+       working-copy source instead of fetching from GitHub. -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Per-checkout NuGet version suffix (producer side). StrideWorktreeSuffix is resolved by
+       StrideEnsureWorktreeVersion in Stride.WorktreeVersion.targets — empty on CI, package
+       builds, and the primary checkout; "-devN" on additional checkouts. Append it to
+       PackageVersion before the pack pipeline reads it so the .nupkg matches the suffix the
+       consumer-side StrideVersion.NuGetVersion const is compiled with.
+
+       Hook list — every consumer of $(PackageVersion) we know of needs the suffix in place
+       before it reads:
+         _GetOutputItemsFromPack             — computes @(NuGetPackOutput) early in
+                                               GenerateNuspec's DependsOnTargets chain; if
+                                               this fires un-suffixed, StrideAutoPackDeploy
+                                               later MSB3030s copying a file that was never
+                                               produced.
+         GenerateNuspec                      — used by PackTask to name the .nupkg.
+         NuGetResolverModuleInitializerGenerate — bakes $(PackageVersion) into the entry-point
+                                               .cs at compile time; CompilerApp would otherwise
+                                               try to restore the un-suffixed version that the
+                                               worktree never produced.
+         _GetProjectVersion                  — NuGet's per-ProjectReference cross-project query
+                                               for nuspec dependency versions
+                                               (NuGet.Build.Tasks.Pack.targets). Without this
+                                               hook the parent .nupkg's <dependency> entries
+                                               carry the un-suffixed version and fail to match
+                                               the actually-produced -devN packages. -->
+  <Target Name="StrideAppendWorktreeVersion"
+          DependsOnTargets="StrideEnsureWorktreeVersion"
+          BeforeTargets="_GetOutputItemsFromPack;GenerateNuspec;NuGetResolverModuleInitializerGenerate;_GetProjectVersion">
+    <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
+      <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Also run during cross-project version queries: NuGet pack on a parent calls _GetProjectVersion
+       on each ProjectReference child to fill in dependency versions in the nuspec, and that target
+       depends on $(GetPackageVersionDependsOn). Without this, child returns the un-suffixed version
+       and consumers hit a Stride.A 4.4.0.1-devN -> Stride.B (>= 4.4.0.1) downgrade error. -->
+  <PropertyGroup>
+    <GetPackageVersionDependsOn>$(GetPackageVersionDependsOn);StrideAppendWorktreeVersion</GetPackageVersionDependsOn>
+  </PropertyGroup>
 
 </Project>

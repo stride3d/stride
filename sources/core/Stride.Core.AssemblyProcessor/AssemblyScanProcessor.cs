@@ -19,10 +19,10 @@ internal class AssemblyScanProcessor : IAssemblyDefinitionProcessor
         var registry = new AssemblyScanRegistry();
         foreach (var type in context.Assembly.MainModule.GetAllTypes())
         {
-            // Ignore interface types as well as types with generics
-            // Note: we could support generic types at some point but we probably need
-            //       to get static generic instantiation type list from serializer code generator
-            if (type.IsInterface || type.HasGenericParameters)
+            // Ignore interface types. Open generic type definitions are kept in the index; consumers that
+            // instantiate scanned types filter them out (e.g. via IsGenericTypeDefinition), while
+            // AssetQuantumRegistry closes generic graph definitions on demand via MakeGenericType.
+            if (type.IsInterface)
                 continue;
 
             var currentType = type;

@@ -3,6 +3,10 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <!-- Referenced in-process (GameStudio, Presentation) AND run as a service: pack the runnable app under
+         tools/<tfm>/ and keep lib/<tfm>/ to just the reference assembly, so consumers don't inherit the
+         apphost or the resolver bootstrap dlls. The router exe is located by package file search. -->
+    <StridePackRunnableInTools>true</StridePackRunnableInTools>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideNuGetResolverUI>true</StrideNuGetResolverUI>

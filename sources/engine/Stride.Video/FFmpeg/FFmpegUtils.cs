@@ -18,11 +18,15 @@ namespace Stride.Video.FFmpeg
     public static class FFmpegUtils
     {
         private static volatile bool initialized = false;
+        private static volatile bool librariesPreloaded = false;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CheckPlatformSupport()
         {
-            return (Platform.Type == PlatformType.Windows || Platform.Type == PlatformType.Android);
+            return Platform.Type == PlatformType.Windows
+                || Platform.Type == PlatformType.Linux
+                || Platform.Type == PlatformType.macOS
+                || Platform.Type == PlatformType.Android;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -40,11 +44,29 @@ namespace Stride.Video.FFmpeg
             if (!CheckPlatformSupport() || initialized)
                 return;
 
+            // Ensure the native libraries (and our function resolver) are in place before the first
+            // ffmpeg call triggers FFmpeg.AutoGen's one-shot binding.
+            PreloadLibraries();
+
             initialized = true;
-            ffmpeg.av_register_all();
-            ffmpeg.avcodec_register_all();
+            // av_register_all / avcodec_register_all removed in FFmpeg 4.0 / 5.0 — registration is automatic now.
             ffmpeg.avformat_network_init();
         }
+
+        // FFmpeg.AutoGen calls our resolver with these base names; map each to the version-stamped
+        // Windows file name. Order matters: dependencies first (avcodec needs avutil, etc.).
+        private static readonly (string Name, string WindowsName)[] Libraries =
+        [
+            ("avutil", "avutil-59"),
+            ("swresample", "swresample-5"),
+            ("avcodec", "avcodec-61"),
+            ("avformat", "avformat-61"),
+            ("swscale", "swscale-8"),
+            ("avfilter", "avfilter-10"),
+            ("avdevice", "avdevice-61"),
+        ];
+
+        private static readonly Dictionary<string, nint> libraryHandles = new();
 
         /// <summary>
         /// Preload all FFmpeg libraries.
@@ -54,47 +76,62 @@ namespace Stride.Video.FFmpeg
         /// </remarks>
         public static void PreloadLibraries()
         {
-            if (!CheckPlatformSupport() || initialized)
+            if (!CheckPlatformSupport() || librariesPreloaded)
                 return;
+            librariesPreloaded = true;
 
-            // Note: order matters (dependencies)
-            // avdevice
-            //   |---- avfilter
-            //   |       |---- avformat
-            //   |       |       |---- avcodec
-            //   |       |       |       |---- swresample
-            //   |       |       |       |       |---- avutil
-            //   |       |       |       |---- avutil
-            //   |       |       |---- avutil
-            //   |       |---- swscale
-            //   |       |       |---- avutil
-            //   |       |---- swresample
-            //   |       |---- avutil
-            //   |---- avformat
-            //   |---- avcodec
-            //   |---- avutil
-            if (Platform.Type == PlatformType.Windows)
+            // Android ships the libs on the loader's default search path, so FFmpeg.AutoGen's own
+            // resolver finds them; force-load via a no-op call so dlopen happens here (clearer stacks).
+            if (Platform.Type == PlatformType.Android)
             {
-                var type = typeof(FFmpegUtils);
-                NativeLibraryHelper.PreloadLibrary("avutil-55", type);
-                NativeLibraryHelper.PreloadLibrary("swresample-2", type);
-                NativeLibraryHelper.PreloadLibrary("avcodec-57", type);
-                NativeLibraryHelper.PreloadLibrary("avformat-57", type);
-                NativeLibraryHelper.PreloadLibrary("swscale-4", type);
-                NativeLibraryHelper.PreloadLibrary("avfilter-6", type);
-                NativeLibraryHelper.PreloadLibrary("avdevice-57", type);
+                _ = ffmpeg.avutil_version();
+                _ = ffmpeg.swresample_version();
+                _ = ffmpeg.avcodec_version();
+                _ = ffmpeg.avformat_version();
+                _ = ffmpeg.swscale_version();
+                _ = ffmpeg.avfilter_version();
+                _ = ffmpeg.avdevice_version();
+                return;
             }
-            else
+
+            // Desktop: resolve FFmpeg's natives through NativeLibraryHelper (so libraries registered from
+            // the NuGet cache are found) rather than its own RootPath probing. Must be set before any
+            // ffmpeg member is touched: ffmpeg's static ctor binds every function once, keeping the first
+            // non-null resolver.
+            DynamicallyLoadedBindings.FunctionResolver = StrideFunctionResolver.Instance;
+
+            // Load in dependency order so each library's imports bind to the already-loaded modules.
+            // Windows files carry the version in the name (avutil-59.dll); Linux/macOS use the SONAME,
+            // which NativeLibraryHelper matches from the base name.
+            var type = typeof(FFmpegUtils);
+            foreach (var library in Libraries)
             {
-                // This is likely there for forcing dll loading (on Android?), it will need some review.
-                uint version;
-                version = ffmpeg.avutil_version();
-                version = ffmpeg.swresample_version();
-                version = ffmpeg.avcodec_version();
-                version = ffmpeg.avformat_version();
-                version = ffmpeg.swscale_version();
-                version = ffmpeg.avfilter_version();
-                version = ffmpeg.avdevice_version();
+                var name = Platform.Type == PlatformType.Windows ? library.WindowsName : library.Name;
+                libraryHandles[library.Name] = NativeLibraryHelper.PreloadLibrary(name, type);
+            }
+        }
+
+        // Resolves FFmpeg.AutoGen function pointers from libraries loaded by NativeLibraryHelper, so
+        // FFmpeg uses the same native resolution as the rest of the engine instead of ffmpeg.RootPath.
+        private sealed class StrideFunctionResolver : IFunctionResolver
+        {
+            public static readonly StrideFunctionResolver Instance = new();
+
+            public T GetFunctionDelegate<T>(string libraryName, string functionName, bool throwOnError)
+            {
+                if (!libraryHandles.TryGetValue(libraryName, out var handle) || handle == 0)
+                {
+                    if (throwOnError)
+                        throw new DllNotFoundException($"FFmpeg library '{libraryName}' was not loaded.");
+                    return default;
+                }
+                if (!NativeLibrary.TryGetExport(handle, functionName, out var function))
+                {
+                    if (throwOnError)
+                        throw new EntryPointNotFoundException($"Could not find function '{functionName}' in FFmpeg library '{libraryName}'.");
+                    return default;
+                }
+                return (T)(object)Marshal.GetDelegateForFunctionPointer(function, typeof(T));
             }
         }
 

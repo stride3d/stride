@@ -66,7 +66,7 @@ namespace Stride.Assets.Media
             public EncodeVideoFileCommand(string url, VideoConvertParameters description, IAssetFinder assetFinder, AVCodecID[] listSupportedCodecNames)
                 : base(url, description, assetFinder)
             {
-                Version = 4;
+                Version = 5;
                 ListSupportedCodecNames = listSupportedCodecNames;
             }
 
@@ -83,7 +83,7 @@ namespace Stride.Assets.Media
                 try
                 {
                     // Get path to ffmpeg
-                    var ffmpeg = ToolLocator.LocateTool("ffmpeg")?.ToOSPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
+                    var ffmpeg = ToolLocator.LocateTool("ffmpeg", ensureExecutable: true)?.ToOSPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
 
                     // Get absolute path of asset source on disk
                     var assetDirectory = videoAsset.Source.GetParent();

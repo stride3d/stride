@@ -1,0 +1,9 @@
+!Texture
+Id: be555a59-996c-479b-b489-ef1718bd25ff
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/stone4_nml.jpeg
+GenerateMipmaps: false
+IsStreamable: false
+Type: !NormalMapTextureType
+    InvertY: false

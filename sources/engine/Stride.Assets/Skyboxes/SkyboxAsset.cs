@@ -21,7 +21,7 @@ namespace Stride.Assets.Skyboxes
     [DataContract("SkyboxAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Skybox))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class SkyboxAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

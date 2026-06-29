@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
-using Stride.Core.Shaders.Ast;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
 using Stride.Extensions;

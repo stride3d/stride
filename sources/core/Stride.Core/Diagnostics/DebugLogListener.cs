@@ -10,8 +10,19 @@ namespace Stride.Core.Diagnostics;
 /// </summary>
 public class DebugLogListener : LogListener
 {
+    /// <summary>
+    /// Minimum severity captured; messages below this level are dropped. Defaults to
+    /// <see cref="LogMessageType.Verbose"/> so the listener catches everything unless the host
+    /// raises the threshold (e.g. <see cref="LogMessageType.Warning"/> in a hot path where
+    /// Info/Verbose chatter would slow the debugger).
+    /// </summary>
+    public LogMessageType MinimumLevel { get; set; } = LogMessageType.Verbose;
+
     protected override void OnLog(ILogMessage logMessage)
     {
+        if (logMessage.Type < MinimumLevel)
+            return;
+
         Debug.WriteLine(GetDefaultText(logMessage));
         var exceptionMsg = GetExceptionText(logMessage);
         if (!string.IsNullOrEmpty(exceptionMsg))

@@ -1,0 +1,113 @@
+name: Screenshot Vision Gate
+
+# Trusted re-judge of frames a keyless screenshot run deferred. Fork PRs get no ANTHROPIC_API_KEY, so
+# the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
+# failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator +
+# gold), over the PR's uploaded image artifacts only — so no PR-built code ever runs with the key.
+# It posts a "Screenshot Vision Gate" status on the PR head; mark it required to make deferrals blocking.
+
+on:
+  workflow_run:
+    workflows: ["PR Label Suites", "Test End-User", "Test GameStudio (Screenshots)"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read       # download artifacts from the triggering run
+  statuses: write     # post the gate status on the PR head
+
+jobs:
+  vision-gate:
+    # Only PR-triggered runs carry a PR head to post a check on. Dispatch/schedule runs of Test End-User
+    # are trusted and keyed (nothing gets deferred), so they need no gate.
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      # Base checkout: trusted comparator source + gold baselines to judge against — pinned EXPLICITLY to
+      # the repo default branch, never the PR. This is the key-exfiltration boundary: the gate runs with
+      # ANTHROPIC_API_KEY in scope, so it must execute only trusted (base) code over the PR's uploaded
+      # image artifacts (data). Do NOT change this ref to github.event.workflow_run.head_sha/head_branch —
+      # that would run fork-controlled code with the secret, and a fork mustn't be able to swap the gold
+      # or comparator to pass a regression either.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          lfs: true
+
+      - name: Download screenshot artifacts from the triggering run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: screenshots-*
+          path: artifacts
+
+      - name: Re-judge deferred frames (vision tiebreak)
+        id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+        run: |
+          cli="sources/tests/Stride.ScreenshotComparator.VisionGate/Stride.ScreenshotComparator.VisionGate.csproj"
+          rc=0
+          shopt -s nullglob
+          captured=false
+
+          # Enduser sample captures → committed sample fixtures as gold (gameplay vision prompt).
+          enduser_baseline="tests/enduser/Stride.Samples.Tests/Fixtures"
+          for d in artifacts/*/screenshot-out artifacts/*/screenshot-out-aot; do
+            [ -d "$d" ] || continue
+            captured=true
+            echo "::group::vision gate over $d"
+            dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
+              --new "$d" --baseline "$enduser_baseline" || rc=1
+            echo "::endgroup::"
+          done
+
+          # Editor captures → per-DPI editor baselines (the capture dir name encodes the DPI bucket,
+          # e.g. ui-test-out-dpi100 → tests/editor/baselines/dpi100). Uses the editor vision prompt.
+          for d in artifacts/*/ui-test-out-dpi*; do
+            [ -d "$d" ] || continue
+            dpi="${d##*ui-test-out-}"   # ui-test-out-dpi100 → dpi100
+            # $dpi comes from a fork-controlled artifact dir name and feeds the baseline path below,
+            # so constrain it — a crafted name must not traverse out of tests/editor/baselines.
+            if [[ ! "$dpi" =~ ^dpi[0-9]+$ ]]; then
+              echo "::warning::skipping artifact dir with unexpected DPI token: $d"
+              continue
+            fi
+            captured=true
+            echo "::group::vision gate over $d (baseline dpi=$dpi)"
+            dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
+              --new "$d" --baseline "tests/editor/baselines/$dpi" --prompt editor || rc=1
+            echo "::endgroup::"
+          done
+
+          if [ "$captured" = false ]; then
+            # No screenshots-* artifacts → no screenshot suite ran (or it ran with nothing deferred):
+            # nothing to re-judge, so pass. This keeps the gate green on ordinary PRs so it's safe to
+            # mark required. It can't hide a regression: deferred frames always ship an uploaded
+            # vision-deferred.json, and a capture failure fails the suite itself.
+            echo "::notice::no screenshot artifacts from the triggering run — nothing to gate (pass)"
+          fi
+          echo "result=$rc" >> "$GITHUB_OUTPUT"
+
+      # Posted as a commit status (not a Checks API run) so it shows as its own entry on the PR
+      # instead of nesting under an arbitrary unrelated workflow's check suite. target_url points at
+      # this gate run — where the actual re-judge log lives.
+      - name: Post gate status on PR head
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const ok = '${{ steps.gate.outputs.result }}' === '0';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              sha: context.payload.workflow_run.head_sha,
+              context: 'Screenshot Vision Gate',
+              state: ok ? 'success' : 'failure',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: ok
+                ? 'Deferred frames resolved (or nothing was deferred)'
+                : 'Deferred frame(s) failed the vision re-judge',
+            });
+            if (!ok) core.setFailed('Screenshot Vision Gate failed');

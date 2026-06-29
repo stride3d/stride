@@ -18,41 +18,29 @@ namespace Stride
         /// <param name="command">The name or path of the command.</param>
         /// <param name="parameters">The parameters of the command.</param>
         /// <returns>The outputs.</returns>
-        public static Task<int> RunProcessAndGetOutputAsync(string command, string parameters, ILogger logger, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<int> RunProcessAndGetOutputAsync(string command, string parameters, ILogger logger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var process = new Process
+            using var process = new Process
             {
-                StartInfo =
-                    new ProcessStartInfo(command, parameters)
-                    {
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                    }
+                StartInfo = new ProcessStartInfo(command, parameters)
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                }
             };
-
-            var tcs = new TaskCompletionSource<int>();
-
-            process.EnableRaisingEvents = true;
             process.OutputDataReceived += (_, args) => { if (!string.IsNullOrEmpty(args.Data)) { logger.Verbose(args.Data); } };
             process.ErrorDataReceived += (_, args) => { if (!string.IsNullOrEmpty(args.Data)) { logger.Error(args.Data); } };
 
-            process.Exited += (_, args) =>
-            {
-                tcs.TrySetResult(process.ExitCode);
-                process.Dispose();
-            };
-            if (cancellationToken != default(CancellationToken))
-                cancellationToken.Register(tcs.SetCanceled);
-
             if (!process.Start())
-                tcs.TrySetException(new InvalidOperationException($"Process [{command}] couldn't start"));
+                throw new InvalidOperationException($"Process [{command}] couldn't start");
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            return tcs.Task;
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            return process.ExitCode;
         }
 
         /// <summary>
@@ -73,7 +61,8 @@ namespace Stride
                     RedirectStandardOutput = true,
                 }))
             {
-                process.OutputDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputLines, args);
+                // non null (can only happen when opening documents)
+                process!.OutputDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputLines, args);
                 process.ErrorDataReceived += (_, args) => LockProcessAndAddDataToList(process, outputs.OutputErrors, args);
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
@@ -99,7 +88,7 @@ namespace Stride
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
-                });
+                })!; // non null (can only happen when opening documents)
         }
         public static int RunProcessAndRedirectToLogger(string command, string parameters, string workingDirectory, LoggerResult logger)
         {

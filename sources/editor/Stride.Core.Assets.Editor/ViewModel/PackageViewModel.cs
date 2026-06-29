@@ -108,7 +108,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets whether this package is editable.
         /// </summary>
-        public override bool IsEditable => !Package.IsSystem && IsLoaded;
+        public override bool IsEditable => !Package.IsReadOnly && IsLoaded;
 
         /// <inheritdoc/>
         public override bool IsEditing { get { return false; } set { base.IsEditing = value; } }
@@ -374,7 +374,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public void Delete()
         {
-            if (Package.IsSystem)
+            if (Package.IsReadOnly)
             {
                 // Note: this should never happen (see comments in method SessionViewModel.DeleteSelectedSolutionItems)
                 throw new InvalidOperationException("System packages cannot be deleted.");
@@ -623,7 +623,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         protected override void UpdateIsDeletedStatus()
         {
-            var collection = Package.IsSystem ? Session.StorePackages : Session.LocalPackages;
+            var collection = Package.IsReadOnly ? Session.StorePackages : Session.LocalPackages;
 
             if (IsDeleted)
             {

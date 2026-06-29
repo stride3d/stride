@@ -10,79 +10,74 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
-
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
 
 concurrency:
   group: test-linux-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
-  # Build on Windows — some projects have Windows-only build dependencies
-  # (native compilation, asset compiler) even though the tests themselves are cross-platform.
-  Build:
-    name: Build for Linux (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: windows-2025-vs2026
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-      - name: Build
-        run: |
-          dotnet build build\Stride.Tests.Simple.Linux.slnf `
-            -p:StrideTestRuntimeIdentifier=linux-x64 `
-            -p:StrideNativeBuildMode=Clang `
-            -nr:false `
-            -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StridePlatform=Linux `
-            -p:StrideGraphicsApis=Vulkan `
-            -p:StrideGraphicsApi=Vulkan
-      - name: Upload test binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-simple-test-binaries
-          path: bin/Tests/
-          retention-days: 1
-
-  # Run tests on actual Linux
-  Test:
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    needs: Build
+  Linux-Tests:
+    name: Linux (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-dotnet@v4
+          submodules: true
+          ref: ${{ github.ref }}
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
+      - uses: actions/checkout@v4
         with:
-          dotnet-version: '10.0.x'
-      - name: Download test binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-simple-test-binaries
-          path: bin/Tests/
+          lfs: true
+          submodules: true
+          ref: ${{ github.ref }}
+      - name: Build
+        run: |
+          dotnet build build/Stride.Tests.Simple.Linux.slnf \
+            -p:StrideTestRuntimeIdentifier=linux-x64 \
+            -nr:false \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=Linux \
+            -p:StrideGraphicsApis=Vulkan
       - name: Test
         run: |
-          dotnet vstest \
-            bin/Tests/Stride.Core.Tests/Linux/Vulkan/Stride.Core.Tests.dll \
-            bin/Tests/Stride.Core.Mathematics.Tests/Linux/Vulkan/Stride.Core.Mathematics.Tests.dll \
-            bin/Tests/Stride.Core.Design.Tests/Linux/Vulkan/Stride.Core.Design.Tests.dll \
-            bin/Tests/Stride.Core.Yaml.Tests/Linux/Vulkan/Stride.Core.Yaml.Tests.dll \
-            bin/Tests/Stride.Core.CompilerServices.Tests/Linux/Vulkan/Stride.Core.CompilerServices.Tests.dll \
-            bin/Tests/Stride.Core.BuildEngine.Tests/Linux/Vulkan/Stride.Core.BuildEngine.Tests.dll \
-            bin/Tests/Stride.Core.Assets.Quantum.Tests/Linux/Vulkan/Stride.Core.Assets.Quantum.Tests.dll \
-            bin/Tests/Stride.Core.Quantum.Tests/Linux/Vulkan/Stride.Core.Quantum.Tests.dll \
-            bin/Tests/Stride.Core.Presentation.Quantum.Tests/Linux/Vulkan/Stride.Core.Presentation.Quantum.Tests.dll \
-            --logger:trx --ResultsDirectory:TestResults
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+          FILTER_ARG=()
+          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          for i in $(seq 1 "$REPEAT"); do
+            echo "=== Test run $i / $REPEAT ==="
+            dotnet test build/Stride.Tests.Simple.Linux.slnf \
+              --no-build \
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
+              --blame-hang-timeout 5m --blame-hang-dump-type full \
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+              "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+          done
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15
@@ -92,3 +87,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-simple
+          path: TestResults/
+          if-no-files-found: ignore

@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Physics;
 using System;
 using System.Collections.Generic;
@@ -17,11 +18,12 @@ namespace Stride.Assets.Physics
     [DataContract("ColliderShapeAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(PhysicsColliderShape))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "3.0.0.0", "4.0.0.0", typeof(VhacdV4Upgrader))]
     public partial class ColliderShapeAsset : Asset
     {
-        private const string CurrentVersion = "3.0.0.0";
+        private const string CurrentVersion = "4.0.0.0";
 
         public const string FileExtension = ".sdphy;pdxphy";
 
@@ -85,6 +87,64 @@ namespace Stride.Assets.Physics
                         shape.RemoveChild("AngleRefine");
                         shape.RemoveChild("Alpha");
                         shape.RemoveChild("Threshold");
+                    }
+                }
+            }
+        }
+
+        // V-HACD v1 (HACD clustering) -> V-HACD v4 (voxel/Voronoi). Algorithm change,
+        // not just rename: most v1 knobs have no v4 equivalent. Map what carries over;
+        // drop the rest. Output WILL differ even with these defaults — rebake expected.
+        private class VhacdV4Upgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                bool warned = false;
+                foreach (dynamic item in asset.ColliderShapes)
+                {
+                    dynamic shape = item.Value;
+                    if (shape.Node.Tag != "!ConvexHullColliderShapeDesc")
+                        continue;
+                    if (!shape.ContainsChild("Decomposition"))
+                        continue;
+
+                    dynamic decomp = shape.Decomposition;
+                    bool migrated = false;
+
+                    // Depth -> MaxRecursionDepth (both bounded recursion 1..32, direct).
+                    if (decomp.ContainsChild("Depth"))
+                    {
+                        decomp.MaxRecursionDepth = decomp.Depth;
+                        decomp.RemoveChild("Depth");
+                        migrated = true;
+                    }
+
+                    // Threshold -> MinimumVolumePercentErrorAllowed.
+                    // v1 default 0.01 (ratio); v4 default 1.0 (percent). Multiply by 100
+                    // for unit consistency — this only matters if the user changed it.
+                    if (decomp.ContainsChild("Threshold"))
+                    {
+                        if (float.TryParse((string)decomp.Threshold, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t))
+                            decomp.MinimumVolumePercentErrorAllowed = t * 100.0;
+                        decomp.RemoveChild("Threshold");
+                        migrated = true;
+                    }
+
+                    // Unmappable in v4 — drop. ShrinkWrap / FillMode / MaxConvexHulls /
+                    // Resolution / MaxNumVerticesPerConvexHull get their v4 defaults.
+                    foreach (var name in new[] { "PosSampling", "AngleSampling", "PosRefine", "AngleRefine", "Alpha" })
+                    {
+                        if (decomp.ContainsChild(name))
+                        {
+                            decomp.RemoveChild(name);
+                            migrated = true;
+                        }
+                    }
+
+                    if (migrated && !warned)
+                    {
+                        context.Log.Warning($"Migrated convex hull decomposition parameters in '{assetFile.OriginalFilePath}' from V-HACD v1 to V-HACD v4. Decomposition output may differ; re-tune if needed.");
+                        warned = true;
                     }
                 }
             }

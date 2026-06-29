@@ -44,6 +44,12 @@ namespace Stride.Rendering
         /// </summary>
         public RenderEffect RenderEffect;
 
+        /// <summary>
+        /// The pipeline state selected for this node, matching its view's render target format
+        /// (see <see cref="RenderEffect.GetPipelineState"/>).
+        /// </summary>
+        public PipelineState PipelineState;
+
         public RenderNode(RenderObject renderObject, RenderView renderView, ViewObjectNodeReference viewObjectNode, RenderStage renderStage)
         {
             RenderObject = renderObject;
@@ -52,6 +58,7 @@ namespace Stride.Rendering
             EffectObjectNode = EffectObjectNodeReference.Invalid;
             RenderStage = renderStage;
             RenderEffect = null;
+            PipelineState = null;
             Resources = null;
         }
     }

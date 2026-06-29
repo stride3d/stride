@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Annotations;
 using Stride.Rendering;
 
@@ -18,7 +19,7 @@ namespace Stride.Engine.Design
         /// Initializes a new instance of the <see cref="DefaultEntityComponentRendererAttribute"/> class.
         /// </summary>
         /// <param name="type">The type must derived from <see cref="IEntityComponentRenderProcessor"/>.</param>
-        public DefaultEntityComponentRendererAttribute(Type type) : base(type)
+        public DefaultEntityComponentRendererAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type) : base(type)
         {
             order = 0;
         }
@@ -28,7 +29,7 @@ namespace Stride.Engine.Design
         /// </summary>
         /// <param name="type">The type must derived from <see cref="IEntityComponentRenderProcessor" />.</param>
         /// <param name="order">The order.</param>
-        public DefaultEntityComponentRendererAttribute(Type type, int order) : base(type)
+        public DefaultEntityComponentRendererAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, int order) : base(type)
         {
             this.order = order;
         }

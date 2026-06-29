@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <StrideRuntime>true</StrideRuntime>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -17,7 +17,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="ServiceWire" />
     <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
   </ItemGroup>

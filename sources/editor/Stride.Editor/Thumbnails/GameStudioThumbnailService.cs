@@ -24,7 +24,8 @@ namespace Stride.Editor.Thumbnails
     public class GameStudioThumbnailService : IThumbnailService
     {
         private readonly object hashLock = new object();
-        private readonly Dictionary<AssetItem, PriorityQueueNode<AssetBuildUnit>> thumbnailQueueHash = new Dictionary<AssetItem, PriorityQueueNode<AssetBuildUnit>>();
+        // Keyed by AssetId, not AssetItem: a single asset can have several AssetItem instances over time (reload, rename).
+        private readonly Dictionary<AssetId, PriorityQueueNode<AssetBuildUnit>> thumbnailQueueHash = new Dictionary<AssetId, PriorityQueueNode<AssetBuildUnit>>();
 
         // Note: KVP.Value is usually null, and is only set if a new request for the same thumbnail has been done and we need to start it when the current one finish (avoid running it twice at the same time)
         private readonly Dictionary<AssetId, ThumbnailContinuation> thumbnailsInProgressAndContinuation = new Dictionary<AssetId, ThumbnailContinuation>();
@@ -136,14 +137,7 @@ namespace Stride.Editor.Thumbnails
             // Mark thumbnail as being compiled
             lock (hashLock)
             {
-                thumbnailQueueHash.Remove(asset);
-                if (thumbnailsInProgressAndContinuation.ContainsKey(asset.Id) && System.Diagnostics.Debugger.IsAttached)
-                {
-                    // Virgile: This case should not happen, but it happened to me once and could not reproduce.
-                    // Please let me know if it happens to you.
-                    // Note: this is likely not critical and should work fine even if it happens.
-                    System.Diagnostics.Debugger.Break();
-                }
+                thumbnailQueueHash.Remove(asset.Id);
                 thumbnailsInProgressAndContinuation[asset.Id] = null;
             }
 
@@ -168,21 +162,21 @@ namespace Stride.Editor.Thumbnails
                         else if (position == QueuePosition.First)
                         {
                             PriorityQueueNode<AssetBuildUnit> node;
-                            if (thumbnailQueueHash.TryGetValue(asset, out node))
+                            if (thumbnailQueueHash.TryGetValue(asset.Id, out node))
                             {
                                 assetBuilderService.RemoveBuildUnit(node);
-                                thumbnailQueueHash.Remove(asset);
+                                thumbnailQueueHash.Remove(asset.Id);
                             }
 
                             node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, firstPriority--));
-                            thumbnailQueueHash.Add(asset, node);
+                            thumbnailQueueHash.Add(asset.Id, node);
                         }
                         else
                         {
-                            if (!thumbnailQueueHash.ContainsKey(asset))
+                            if (!thumbnailQueueHash.ContainsKey(asset.Id))
                             {
                                 var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, lastPriority++));
-                                thumbnailQueueHash.Add(asset, node);
+                                thumbnailQueueHash.Add(asset.Id, node);
                             }
                         }
                     }
@@ -200,7 +194,7 @@ namespace Stride.Editor.Thumbnails
                     foreach (var assetItem in assetItems)
                     {
                         PriorityQueueNode<AssetBuildUnit> node;
-                        if (thumbnailQueueHash.TryGetValue(assetItem, out node))
+                        if (thumbnailQueueHash.TryGetValue(assetItem.Id, out node))
                         {
                             var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetItem.Asset.GetType(), typeof(ThumbnailCompilationContext));
                             var priority = compiler.Priority;
@@ -219,9 +213,9 @@ namespace Stride.Editor.Thumbnails
                         var asset = thumbnailPriorityItem.Asset;
 
                         assetBuilderService.RemoveBuildUnit(node);
-                        thumbnailQueueHash.Remove(asset);
+                        thumbnailQueueHash.Remove(asset.Id);
                         node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, firstPriority--));
-                        thumbnailQueueHash.Add(asset, node);
+                        thumbnailQueueHash.Add(asset.Id, node);
                     }
 
                     assetsToIncreasePriority.Clear();
@@ -255,7 +249,7 @@ namespace Stride.Editor.Thumbnails
                 {
                     var priority = thumbnailContinuation.Position == QueuePosition.First ? firstPriority-- : lastPriority++;
                     var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(thumbnailContinuation.UpdatedAssetToRecompile, currentGameSettings, this, priority));
-                    thumbnailQueueHash.Add(thumbnailContinuation.UpdatedAssetToRecompile, node);
+                    thumbnailQueueHash.Add(thumbnailContinuation.UpdatedAssetToRecompile.Id, node);
                 }
             }
         }

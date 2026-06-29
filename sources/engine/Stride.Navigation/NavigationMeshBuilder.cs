@@ -524,14 +524,12 @@ namespace Stride.Navigation
                             var hull = (ConvexHullColliderShape)shape;
                             Matrix transform = hull.PositiveCenterMatrix * entityWorldMatrix;
 
-                            // Convert hull indices to int
+                            // V-HACD emits hull triangles in left-handed winding, matching the navmesh input convention.
                             int[] indices = new int[hull.Indices.Count];
                             if (hull.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
-                            for (int i = 0; i < hull.Indices.Count; i += 3)
+                            for (int i = 0; i < hull.Indices.Count; i++)
                             {
                                 indices[i] = (int)hull.Indices[i];
-                                indices[i + 2] = (int)hull.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
-                                indices[i + 1] = (int)hull.Indices[i + 2];
                             }
 
                             entityNavigationMeshInputBuilder.AppendArrays(hull.Points.ToArray(), indices, transform);

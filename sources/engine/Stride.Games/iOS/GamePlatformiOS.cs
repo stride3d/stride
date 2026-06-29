@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Foundation;
+using UIKit;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -27,9 +29,31 @@ namespace Stride.Games
             Marshal.FreeHGlobal(output);
         }
 
+        // Notification observers; kept so Destroy() can remove them. All fire on main thread.
+        private NSObject didBecomeActiveObserver;
+        private NSObject willResignActiveObserver;
+        private NSObject didEnterBackgroundObserver;
+        private NSObject willEnterForegroundObserver;
+        private NSObject didReceiveMemoryWarningObserver;
+
         public GamePlatformiOS(GameBase game) : base(game)
         {
             PopulateFullName();
+            SubscribeAppLifecycle();
+        }
+
+        // NSNotificationCenter rather than UIApplicationDelegate overrides so we don't depend
+        // on which AppDelegate the host app uses (Avalonia.iOS, custom, etc.). Notifications fire
+        // on the main thread; the shared GamePlatform.NotifyApp* helpers marshal the work onto
+        // the game thread (and NotifyAppBackground blocks here, bounded, until the GPU is drained).
+        private void SubscribeAppLifecycle()
+        {
+            var center = NSNotificationCenter.DefaultCenter;
+            didBecomeActiveObserver         = center.AddObserver(UIApplication.DidBecomeActiveNotification,         _ => NotifyAppActivated());
+            willResignActiveObserver        = center.AddObserver(UIApplication.WillResignActiveNotification,        _ => NotifyAppDeactivated());
+            didEnterBackgroundObserver      = center.AddObserver(UIApplication.DidEnterBackgroundNotification,      _ => NotifyAppBackground());
+            willEnterForegroundObserver     = center.AddObserver(UIApplication.WillEnterForegroundNotification,     _ => NotifyAppForeground());
+            didReceiveMemoryWarningObserver = center.AddObserver(UIApplication.DidReceiveMemoryWarningNotification, _ => NotifyAppMemoryWarning());
         }
 
         public override string DefaultAppDirectory
@@ -43,14 +67,12 @@ namespace Stride.Games
 
         internal override GameWindow GetSupportedGameWindow(AppContextType type)
         {
-            if (type == AppContextType.iOS)
+            return type switch
             {
-                return new GameWindowSDL();
-            }
-            else
-            {
-                return null;
-            }
+                AppContextType.iOS => new GameWindowSDL(),
+                AppContextType.Headless => new GameWindowHeadless(),
+                _ => null,
+            };
         }
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
@@ -66,16 +88,16 @@ namespace Stride.Games
                     // Check if this profile is supported.
                     if (graphicsAdapter.IsProfileSupported(featureLevel))
                     {
-                        // Everything is already created at this point, just transmit what has been done
+                        // Report the SDL window's actual size; formats stay caller-preferred (negotiated at swapchain creation).
+                        var clientBounds = gameWindowiOS.ClientBounds;
                         var deviceInfo = new GraphicsDeviceInformation
                         {
                             Adapter = GraphicsAdapterFactory.DefaultAdapter,
                             GraphicsProfile = featureLevel,
-                            PresentationParameters = new PresentationParameters(preferredParameters.PreferredBackBufferWidth,
-                                                                                preferredParameters.PreferredBackBufferHeight,
+                            PresentationParameters = new PresentationParameters(clientBounds.Width,
+                                                                                clientBounds.Height,
                                                                                 gameWindowiOS.NativeWindow)
                             {
-                                // TODO: PDX-364: Transmit what was actually created
                                 BackBufferFormat = preferredParameters.PreferredBackBufferFormat,
                                 DepthStencilFormat = preferredParameters.PreferredDepthStencilFormat,
                             }
@@ -95,9 +117,23 @@ namespace Stride.Games
 
         public override void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            // TODO: Check when it needs to be disabled on iOS?
-            // Force to resize the gameWindow
-            //gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
+            // No-op: the OS owns the surface size on iOS. Format changes are handled by the swapchain.
+        }
+
+        protected override void Destroy()
+        {
+            UnsubscribeAppLifecycle();
+            base.Destroy();
+        }
+
+        private void UnsubscribeAppLifecycle()
+        {
+            var center = NSNotificationCenter.DefaultCenter;
+            if (didBecomeActiveObserver != null)        { center.RemoveObserver(didBecomeActiveObserver);        didBecomeActiveObserver = null; }
+            if (willResignActiveObserver != null)       { center.RemoveObserver(willResignActiveObserver);       willResignActiveObserver = null; }
+            if (didEnterBackgroundObserver != null)     { center.RemoveObserver(didEnterBackgroundObserver);     didEnterBackgroundObserver = null; }
+            if (willEnterForegroundObserver != null)    { center.RemoveObserver(willEnterForegroundObserver);    willEnterForegroundObserver = null; }
+            if (didReceiveMemoryWarningObserver != null) { center.RemoveObserver(didReceiveMemoryWarningObserver); didReceiveMemoryWarningObserver = null; }
         }
     }
 }

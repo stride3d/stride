@@ -1,0 +1,204 @@
+name: "Dep: Build astcenc"
+
+# Builds the ARM astc-encoder shared library for desktop host platforms used by
+# the asset compiler (Stride.TextureConverter -> AstcTexLib backend).
+# Runtime/mobile targets do NOT need astcenc; mobile devices decode ASTC natively.
+#
+# Output layout matches deps/<dep>/dotnet/<rid>/ convention (see dep-freetype.yml).
+# After the workflow completes, download the "astcenc-all-platforms" artifact and
+# commit its contents to deps/astcenc/.
+#
+# ISA variant per RID:
+#   * win-x64 / linux-x64 -> SSE4.1  (covers all x64 hardware since 2008)
+#   * win-arm64           -> NEON    (Windows on ARM)
+#   * osx-arm64           -> NEON    (Apple Silicon)
+# Only ONE ISA is built per binary; astcenc does not runtime-dispatch.
+
+on:
+  workflow_dispatch:
+    inputs:
+      astcenc-version:
+        description: astcenc git tag (e.g. 5.3.0)
+        default: 5.3.0
+        required: true
+
+jobs:
+  build-windows:
+    name: Build astcenc (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+            isa-flag: ASTCENC_ISA_SSE41
+            isa-suffix: sse4.1
+          - arch: ARM64
+            rid: win-arm64
+            isa-flag: ASTCENC_ISA_NEON
+            isa-suffix: neon
+    steps:
+      - name: Checkout astc-encoder
+        uses: actions/checkout@v4
+        with:
+          repository: ARM-software/astc-encoder
+          ref: ${{ github.event.inputs.astcenc-version }}
+          path: astcenc-src
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cmake -S astcenc-src -B astcenc-build -A ${{ matrix.arch }} `
+            -D${{ matrix.isa-flag }}=ON `
+            -DASTCENC_SHAREDLIB=ON `
+            -DASTCENC_CLI=OFF `
+            -DASTCENC_UNITTEST=OFF `
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build astcenc-build --config Release
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force
+          # astcenc-shared.dll lands in build/Source/Release/ for the VS generator.
+          # Single ISA build -> single shared lib; rename to astcenc.dll.
+          $dll = Get-ChildItem astcenc-build -Recurse -Filter "astcenc-${{ matrix.isa-suffix }}-shared.dll" | Select-Object -First 1
+          if (-not $dll) { $dll = Get-ChildItem astcenc-build -Recurse -Filter "astcenc-shared.dll" | Select-Object -First 1 }
+          if (-not $dll) { throw "astcenc shared library not found under astcenc-build" }
+          Copy-Item $dll.FullName "out/${{ matrix.rid }}/astcenc.dll"
+          $pdb = $dll.FullName -replace '\.dll$', '.pdb'
+          if (Test-Path $pdb) { Copy-Item $pdb "out/${{ matrix.rid }}/astcenc.pdb" }
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}/
+
+  build-linux:
+    name: Build astcenc (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout astc-encoder
+        uses: actions/checkout@v4
+        with:
+          repository: ARM-software/astc-encoder
+          ref: ${{ github.event.inputs.astcenc-version }}
+          path: astcenc-src
+
+      - name: Build
+        run: |
+          cmake -S astcenc-src -B astcenc-build \
+            -DASTCENC_ISA_SSE41=ON \
+            -DASTCENC_SHAREDLIB=ON \
+            -DASTCENC_CLI=OFF \
+            -DASTCENC_UNITTEST=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="-fPIC"
+          cmake --build astcenc-build -- -j$(nproc)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/linux-x64
+          so=$(find astcenc-build -name "libastcenc-sse4.1-shared.so" -o -name "libastcenc-shared.so" | head -n1)
+          if [ -z "$so" ]; then echo "astcenc shared library not found"; find astcenc-build -name '*.so'; exit 1; fi
+          # Resolve symlinks so we copy the actual binary, not a soname link.
+          cp "$(readlink -f "$so")" out/linux-x64/libastcenc.so
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-x64
+          path: out/linux-x64/
+
+  build-macos:
+    name: Build astcenc (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - name: Checkout astc-encoder
+        uses: actions/checkout@v4
+        with:
+          repository: ARM-software/astc-encoder
+          ref: ${{ github.event.inputs.astcenc-version }}
+          path: astcenc-src
+
+      - name: Build
+        run: |
+          cmake -S astcenc-src -B astcenc-build \
+            -DASTCENC_ISA_NEON=ON \
+            -DASTCENC_SHAREDLIB=ON \
+            -DASTCENC_CLI=OFF \
+            -DASTCENC_UNITTEST=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64
+          cmake --build astcenc-build -- -j$(sysctl -n hw.ncpu)
+
+      - name: Collect output
+        run: |
+          mkdir -p out/osx-arm64
+          dylib=$(find astcenc-build -name "libastcenc-neon-shared.dylib" -o -name "libastcenc-shared.dylib" | head -n1)
+          if [ -z "$dylib" ]; then echo "astcenc shared library not found"; find astcenc-build -name '*.dylib'; exit 1; fi
+          cp "$(readlink -f "$dylib")" out/osx-arm64/libastcenc.dylib
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-osx-arm64
+          path: out/osx-arm64/
+
+  collect:
+    name: Collect all platforms
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout astc-encoder (for version metadata + header)
+        uses: actions/checkout@v4
+        with:
+          repository: ARM-software/astc-encoder
+          ref: ${{ github.event.inputs.astcenc-version }}
+          path: astcenc-src
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Organize into deps/ layout
+        run: |
+          OUT=astcenc-out
+
+          # Desktop -> dotnet/{rid}/  (matches dep-freetype.yml convention)
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64; do
+            mkdir -p $OUT/dotnet/$rid
+            cp artifacts/astcenc-$rid/* $OUT/dotnet/$rid/ 2>/dev/null || true
+          done
+
+          # Public header (single C API surface) for reference + future bindings.
+          mkdir -p $OUT/Include
+          cp astcenc-src/Source/astcenc.h $OUT/Include/
+
+          # License (Apache-2.0 from upstream).
+          cp astcenc-src/LICENSE.txt $OUT/license.txt
+
+          # Version metadata.
+          COMMIT=$(git -C astcenc-src rev-parse HEAD)
+          URL=$(git -C astcenc-src config --get remote.origin.url)
+          printf 'astcenc %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+            "${{ github.event.inputs.astcenc-version }}" \
+            "$URL" \
+            "$COMMIT" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+            "$(date -u +%Y-%m-%d)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            > $OUT/VERSION.txt
+
+      - name: List contents
+        run: find astcenc-out -type f | sort
+
+      - name: Upload combined
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-all-platforms
+          path: astcenc-out/

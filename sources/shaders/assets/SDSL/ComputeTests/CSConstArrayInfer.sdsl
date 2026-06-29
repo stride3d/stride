@@ -1,0 +1,22 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Regression: an unsized const array (size inferred from initializer) used as
+// the source of a dynamic indexing must yield a sized array temp, not a
+// runtime-array temp — otherwise OpStore on the materialization fails SPIR-V
+// validation with "OpStore Pointer's type does not match Object's type".
+shader CSConstArrayInfer
+{
+    static const uint info[] = { 0, 1, 2, 3, 4, 5, 6 };
+
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    RWStructuredBuffer<uint> Out;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint idx = streams.DispatchThreadId.x;
+        Out[idx] = info[idx];
+    }
+};

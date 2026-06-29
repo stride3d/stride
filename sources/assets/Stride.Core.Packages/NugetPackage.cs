@@ -185,13 +185,16 @@ public abstract class NugetPackage : IEquatable<NugetPackage>
     {
         get
         {
+            // Union dependencies across every target-framework group: engine packages declare per-TFM and
+            // per-platform groups, so reading only the first would miss most of the dependency closure.
             var res = new List<Tuple<string, PackageVersionRange>>();
-            var set = DependencySets.FirstOrDefault();
-            if (set != null)
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var set in DependencySets)
             {
                 foreach (var dependency in set.Packages)
                 {
-                    res.Add(new Tuple<string, PackageVersionRange>(dependency.Id, dependency.VersionRange.ToPackageVersionRange()));
+                    if (seen.Add(dependency.Id))
+                        res.Add(new Tuple<string, PackageVersionRange>(dependency.Id, dependency.VersionRange.ToPackageVersionRange()));
                 }
             }
             return res;

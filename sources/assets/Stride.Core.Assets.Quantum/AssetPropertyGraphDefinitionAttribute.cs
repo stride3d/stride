@@ -1,10 +1,12 @@
 
 using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Quantum;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 [BaseTypeRequired(typeof(AssetPropertyGraphDefinition))]
+[AssemblyScan]
 public class AssetPropertyGraphDefinitionAttribute : Attribute
 {
     public AssetPropertyGraphDefinitionAttribute(Type assetType)

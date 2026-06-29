@@ -56,7 +56,7 @@ RenderFeatures:
                 EffectName: StrideForwardShadingEffect.ShadowMapCasterCubeMap
             106341b76db9fcda6a033dad16aa708b: !Stride.Rendering.MeshTransparentRenderStageSelector,Stride.Rendering
                 OpaqueRenderStage: ref!! ab36cf6a-ec78-4ad6-9138-705affaa1712
-                EffectName: StrideForwardShadingEffect.ShadowMapCaster
+                EffectName: StrideForwardShadingEffect.ZPrepass
         PipelineProcessors:
             d70f5aee0616e4ab25081ceaf643290c: !Stride.Rendering.MeshPipelineProcessor,Stride.Rendering
                 TransparentRenderStage: ref!! 2048e4a1-778d-44d7-91a3-10cceefc0034

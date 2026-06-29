@@ -31,8 +31,8 @@ namespace Stride.Graphics.Tests
         {
             base.PrepareContext();
 
-            SceneSystem.InitialGraphicsCompositorUrl = "LightShaftsGraphicsCompositor";
-            SceneSystem.InitialSceneUrl = "LightShafts";
+            SceneSystem.InitialGraphicsCompositorUrl = "LightShafts/GraphicsCompositor";
+            SceneSystem.InitialSceneUrl = "LightShafts/Scene";
         }
 
         protected override async Task LoadContent()

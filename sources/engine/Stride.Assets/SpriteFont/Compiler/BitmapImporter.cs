@@ -77,8 +77,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -90,8 +91,11 @@ namespace Stride.Assets.SpriteFont.Compiler
     // and around the edges of the grid should be filled with bright pink (red=255,
     // green=0, blue=255). It doesn't matter if your grid includes lots of wasted space,
     // because the converter will rearrange characters, packing as tightly as possible.
-    internal class  BitmapImporter : IFontImporter
+    internal class BitmapImporter : IFontImporter
     {
+        // Magenta marker — fully opaque (255, 0, 255, 255).
+        private static readonly Rgba32 MarkerColor = new Rgba32(255, 0, 255, 255);
+
         // Properties hold the imported font data.
         public IEnumerable<Glyph> Glyphs { get; private set; }
 
@@ -102,20 +106,16 @@ namespace Stride.Assets.SpriteFont.Compiler
         public void Import(SpriteFontAsset options, List<char> characters)
         {
             // Load the source bitmap.
-            Bitmap bitmap;
+            Image<Rgba32> bitmap;
 
             try
             {
-                // TODO Check if source can be used as is from here
-                bitmap = new Bitmap(options.FontSource.GetFontPath());
+                bitmap = Image.Load<Rgba32>(options.FontSource.GetFontPath());
             }
             catch
             {
                 throw new FontNotFoundException(options.FontSource.GetFontPath());
             }
-
-            // Convert to our desired pixel format.
-            bitmap = BitmapUtils.ChangePixelFormat(bitmap, PixelFormat.Format32bppArgb);
 
             // What characters are included in this font?
             int characterIndex = 0;
@@ -142,40 +142,37 @@ namespace Stride.Assets.SpriteFont.Compiler
             // If the bitmap doesn't already have an alpha channel, create one now.
             if (BitmapUtils.IsAlphaEntirely(255, bitmap))
             {
-                BitmapUtils.ConvertGreyToAlpha(bitmap, new Rectangle(0,0,bitmap.Width, bitmap.Height));
+                BitmapUtils.ConvertGreyToAlpha(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height));
             }
         }
 
         // Seems to be the same as this one: http://www.tonicodes.net/blog/creating-custom-fonts-with-outline-for-wp7-and-xna/
         // Searches a 2D bitmap for characters that are surrounded by a marker pink color.
-        static IEnumerable<Rectangle> FindGlyphs(Bitmap bitmap)
+        static IEnumerable<Rectangle> FindGlyphs(Image<Rgba32> bitmap)
         {
-            using (var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly))
+            for (int y = 1; y < bitmap.Height; y++)
             {
-                for (int y = 1; y < bitmap.Height; y++)
+                for (int x = 1; x < bitmap.Width; x++)
                 {
-                    for (int x = 1; x < bitmap.Width; x++)
+                    // Look for the top left corner of a character (a pixel that is not pink, but was pink immediately to the left and above it)
+                    if (!IsMarkerColor(bitmap[x, y]) &&
+                         IsMarkerColor(bitmap[x - 1, y]) &&
+                         IsMarkerColor(bitmap[x, y - 1]))
                     {
-                        // Look for the top left corner of a character (a pixel that is not pink, but was pink immediately to the left and above it)
-                        if (!IsMarkerColor(bitmapData[x, y]) &&
-                             IsMarkerColor(bitmapData[x - 1, y]) &&
-                             IsMarkerColor(bitmapData[x, y - 1]))
+                        // Measure the size of this character.
+                        int w = 1, h = 1;
+
+                        while ((x + w < bitmap.Width) && !IsMarkerColor(bitmap[x + w, y]))
                         {
-                            // Measure the size of this character.
-                            int w = 1, h = 1;
-
-                            while ((x + w < bitmap.Width) && !IsMarkerColor(bitmapData[x + w, y]))
-                            {
-                                w++;
-                            }
-
-                            while ((y + h < bitmap.Height) && !IsMarkerColor(bitmapData[x, y + h]))
-                            {
-                                h++;
-                            }
-
-                            yield return new Rectangle(x, y, w, h);
+                            w++;
                         }
+
+                        while ((y + h < bitmap.Height) && !IsMarkerColor(bitmap[x, y + h]))
+                        {
+                            h++;
+                        }
+
+                        yield return new Rectangle(x, y, w, h);
                     }
                 }
             }
@@ -183,9 +180,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Checks whether a color is the magic magenta marker value.
-        static bool IsMarkerColor(Color color)
+        static bool IsMarkerColor(Rgba32 color)
         {
-            return color.ToArgb() == Color.Magenta.ToArgb();
+            return color.PackedValue == MarkerColor.PackedValue;
         }
     }
 }

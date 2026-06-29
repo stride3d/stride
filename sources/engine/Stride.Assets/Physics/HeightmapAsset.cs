@@ -13,7 +13,7 @@ namespace Stride.Assets.Physics
     [CategoryOrder(20, "Convert", Expand = ExpandRule.Always)]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Heightmap))]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "3.0.0.0")]
+    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "3.0.0.0")]
     public partial class HeightmapAsset : AssetWithSource
     {
         private const string CurrentVersion = "3.0.0.0";

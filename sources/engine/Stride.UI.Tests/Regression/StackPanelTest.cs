@@ -135,7 +135,7 @@ namespace Stride.UI.Tests.Regression
 
         private Button CreateButton(string name, float height, string text)
         {
-            var textBlock = new TextBlock { Text = text, Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
+            var textBlock = new TextBlock { Text = text, Font = Content.Load<SpriteFont>("NotoSans15") };
             ApplyTextBlockDefaultStyle(textBlock);
             var button = new Button { Name = name, Height = height, Content = textBlock };
             ApplyButtonDefaultStyle(button);

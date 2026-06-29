@@ -1,0 +1,41 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Referenced in-process (Stride.Editor) AND run as a tool: pack the runnable app under tools/<tfm>/
+         and keep lib/<tfm>/ to just the reference assembly, so consumers don't inherit the apphost
+         (a duplicate of the managed assembly) or the resolver bootstrap dlls. -->
+    <StridePackRunnableInTools>true</StridePackRunnableInTools>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <TargetFrameworks>$(StrideXplatEditorTargetFramework)</TargetFrameworks>
+    <TargetFrameworks Condition="$(StridePlatforms.Contains('Windows'))">$(StrideFrameworkWindows);$(TargetFrameworks)</TargetFrameworks>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Options" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
+    <ProjectReference Include="..\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+  </ItemGroup>
+  <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

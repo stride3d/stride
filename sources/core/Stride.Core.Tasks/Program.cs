@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Locator;
 using Mono.Options;
-using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.AssetCompiler.Tasks;
 using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Tasks
@@ -38,6 +38,7 @@ namespace Stride.Core.Tasks
         {
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
+            var packAssetAssemblies = new List<string>();
 
             var p = new OptionSet
             {
@@ -58,6 +59,7 @@ namespace Stride.Core.Tasks
                 string.Empty,
                 "=== Options ===",
                 string.Empty,
+                { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => packAssetAssemblies.Add(v) },
                 { "h|help", "Show this message and exit", v => showHelp = v != null },
             };
 
@@ -99,9 +101,10 @@ namespace Stride.Core.Tasks
 
                         var csprojFile = commandArgs[1];
                         var intermediatePackagePath = commandArgs[2];
+                        // Host-loadable asset assemblies are passed as repeated --pack-asset-assembly= options.
                         var generatedItems = new List<(string SourcePath, string PackagePath)>();
                         var logger = new LoggerResult();
-                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, packAssetAssemblies))
                         {
                             foreach (var message in logger.Messages)
                             {

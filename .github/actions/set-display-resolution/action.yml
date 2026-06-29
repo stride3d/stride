@@ -1,0 +1,27 @@
+name: Set up display resolution
+description: >-
+  Resize the runner's primary display via the built-in Set-DisplayResolution
+  cmdlet. The Hyper-V Video adapter caps at 1920x1080; for higher resolutions
+  use set-display-resolution-vdd (IDD virtual display).
+
+inputs:
+  width:
+    description: Display width in pixels (max 1920 on stock GH runners)
+    required: false
+    default: '1920'
+  height:
+    description: Display height in pixels (max 1080 on stock GH runners)
+    required: false
+    default: '1080'
+
+runs:
+  using: composite
+  steps:
+    - name: Set display resolution to ${{ inputs.width }}x${{ inputs.height }}
+      shell: pwsh
+      run: |
+        Write-Host "Before:"
+        Get-CimInstance Win32_VideoController | Format-Table Name, CurrentHorizontalResolution, CurrentVerticalResolution
+        Set-DisplayResolution -Width ${{ inputs.width }} -Height ${{ inputs.height }} -Force
+        Write-Host "After:"
+        Get-CimInstance Win32_VideoController | Format-Table Name, CurrentHorizontalResolution, CurrentVerticalResolution

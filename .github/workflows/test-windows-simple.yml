@@ -10,12 +10,25 @@ on:
         options:
           - Debug
           - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
-
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
 
 concurrency:
   group: test-windows-simple-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -23,21 +36,21 @@ concurrency:
 
 jobs:
   Windows-Tests:
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, Simple)
+    name: Windows (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     steps:
+      # Full checkout: the Simple test solutions build Stride.Templates.*, which
+      # preprocesses template content from samples/.
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+          submodules: true
+          ref: ${{ github.ref }}
       - name: Build
         run: |
           dotnet build build\Stride.Tests.Simple.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
@@ -45,10 +58,22 @@ jobs:
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
         run: |
-          dotnet test build\Stride.Tests.Simple.slnf `
-            --no-build `
-            --logger:trx --results-directory TestResults `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
+          $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
+          for ($i = 1; $i -le $repeat; $i++) {
+            Write-Host "=== Test run $i / $repeat ==="
+            dotnet test build\Stride.Tests.Simple.slnf `
+              --no-build `
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
+              --blame-hang-timeout 5m --blame-hang-dump-type full `
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+              @filterArgs
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
+              exit $LASTEXITCODE
+            }
+          }
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v15
@@ -58,3 +83,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-simple
+          path: TestResults/
+          if-no-files-found: ignore

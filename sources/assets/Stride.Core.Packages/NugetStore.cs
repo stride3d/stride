@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
@@ -12,6 +13,7 @@ using NuGet.LibraryModel;
 using NuGet.PackageManagement;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
 using NuGet.ProjectManagement;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
@@ -35,9 +37,18 @@ public partial class NugetStore : INugetDownloadProgress
     private readonly ISettings settings;
     private ProgressReport? currentProgressReport;
 
+    // Download byte counter (reset per InstallPackage); fed by DownloadProgressHandlerProvider.
+    private long downloadedBytes;
+    private long lastReportTicks;
+
     private readonly string? oldRootDirectory;
 
     private static readonly Regex powerShellProgressRegex = GetPowerShellProgressRegex();
+
+    private readonly Lock localFolderSyncLock = new();
+    private readonly HashSet<string> syncedPackageIds = new(StringComparer.OrdinalIgnoreCase);
+    private List<(string Source, FindPackageByIdResource Resource)>? localFolderResources;
+    private SourceCacheContext? localFolderCacheContext;
 
     /// <summary>
     /// Initialize a new instance of <see cref="NugetStore"/>.
@@ -203,6 +214,19 @@ public partial class NugetStore : INugetDownloadProgress
     public event EventHandler<PackageOperationEventArgs>? NugetPackageInstalled;
 
     /// <summary>
+    /// Event executed once before a restore installs its resolved packages, carrying the total count.
+    /// </summary>
+    public event Action<int>? NugetRestoreInstalling;
+
+    /// <summary>Event raised as packages download, with the total bytes downloaded so far (throttled to ~1s).</summary>
+    public event Action<long>? NugetDownloadProgress;
+
+    /// <summary>
+    /// Event executed before a package's packageinstall.exe setup step runs.
+    /// </summary>
+    public event EventHandler<PackageOperationEventArgs>? NugetPackageSettingUp;
+
+    /// <summary>
     /// Event executed when a package's uninstallation has completed.
     /// </summary>
     public event EventHandler<PackageOperationEventArgs>? NugetPackageUninstalled;
@@ -251,6 +275,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// <returns>A list of packages.</returns>
     public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId)
     {
+        SyncLocalFolderSources(packageId);
+
         var res = new List<NugetLocalPackage>();
 
         // We also scan rootDirectory for 1.x/2.x
@@ -269,6 +295,162 @@ public partial class NugetStore : INugetDownloadProgress
         }
 
         return res;
+    }
+
+    /// <summary>
+    /// Enumerates every package installed in the store, regardless of id. Useful when the caller does not
+    /// know the package ids up front (e.g. discovering template packages by their NuGet package type).
+    /// </summary>
+    /// <returns>All installed packages.</returns>
+    public IEnumerable<NugetLocalPackage> GetAllPackagesInstalled()
+    {
+        var result = new List<NugetLocalPackage>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void TryAdd(LocalPackageInfo info)
+        {
+            var package = new NugetLocalPackage(info);
+            if (seen.Add($"{package.Id}/{package.Version}"))
+                result.Add(package);
+        }
+
+        // Extracted packages in the global packages folder (v3 layout).
+        foreach (var installPath in new[] { InstallPath, oldRootDirectory })
+        {
+            if (installPath == null)
+                continue;
+            try
+            {
+                foreach (var info in new FindLocalPackagesResourceV3(installPath).GetPackages(NativeLogger, CancellationToken.None))
+                    TryAdd(info);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A missing or unreadable folder yields no packages.
+            }
+        }
+
+        // Loose nupkgs in configured local-folder sources (e.g. a dev worktree's bin/packages) not yet mirrored
+        // into the global folder. The global folder above wins on duplicates (extracted form preferred).
+        foreach (var source in PackageSources)
+        {
+            if (!source.IsLocal)
+                continue;
+            try
+            {
+                foreach (var info in LocalFolderUtility.GetPackagesV2(source.Source, NativeLogger))
+                    TryAdd(info);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Inaccessible source folder: skip.
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Mirrors any .nupkg of <paramref name="packageId"/> from configured local-folder NuGet sources
+    /// (e.g. a worktree's <c>bin/packages</c>) into the global packages folder when the source nupkg
+    /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>
+    /// without a separate restore step.
+    /// </summary>
+    private void SyncLocalFolderSources(string packageId)
+    {
+        if (InstallPath == null)
+            return;
+
+        lock (localFolderSyncLock)
+        {
+            // Each id is synced at most once per process
+            if (!syncedPackageIds.Add(packageId))
+                return;
+
+            if (localFolderResources == null)
+            {
+                localFolderResources = [];
+                localFolderCacheContext = new SourceCacheContext();
+                foreach (var source in PackageSources)
+                {
+                    if (!source.IsLocal)
+                        continue;
+
+                    try
+                    {
+                        var repository = Repository.Factory.GetCoreV3(source.Source);
+                        localFolderResources.Add((source.Source, repository.GetResourceAsync<FindPackageByIdResource>().GetAwaiter().GetResult()));
+                    }
+                    catch
+                    {
+                        // Source folder might not exist or be inaccessible
+                    }
+                }
+            }
+
+            Task.Run(async () =>
+            {
+                var resolver = new VersionFolderPathResolver(InstallPath);
+
+                foreach (var (source, findPackageById) in localFolderResources)
+                {
+                    List<NuGetVersion> versions;
+                    try
+                    {
+                        // Versions come from file names; no nupkg is opened at this point
+                        versions = (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    foreach (var version in versions)
+                    {
+                        var identity = new PackageIdentity(packageId, version);
+
+                        // Try the conventional file name first to avoid opening the package
+                        var nupkgPath = Path.Combine(source, $"{packageId}.{version}.nupkg");
+                        if (!File.Exists(nupkgPath))
+                            nupkgPath = LocalFolderUtility.GetPackageV2(source, identity, NativeLogger)?.Path;
+                        if (string.IsNullOrEmpty(nupkgPath) || !File.Exists(nupkgPath))
+                            continue;
+
+                        var hashPath = resolver.GetHashPath(identity.Id, identity.Version);
+                        var nupkgWriteTime = File.GetLastWriteTimeUtc(nupkgPath);
+
+                        if (File.Exists(hashPath) && File.GetLastWriteTimeUtc(hashPath) >= nupkgWriteTime)
+                            continue;
+
+                        var extractedDir = resolver.GetInstallPath(identity.Id, identity.Version);
+                        if (Directory.Exists(extractedDir))
+                        {
+                            try { Directory.Delete(extractedDir, recursive: true); }
+                            catch { continue; }
+                        }
+
+                        try
+                        {
+                            using var stream = File.OpenRead(nupkgPath);
+                            await GlobalPackagesFolderUtility.AddPackageAsync(
+                                source: source,
+                                packageIdentity: identity,
+                                packageStream: stream,
+                                globalPackagesFolder: InstallPath,
+                                parentId: Guid.Empty,
+                                clientPolicyContext: ClientPolicyContext.GetClientPolicy(settings, NativeLogger),
+                                logger: NativeLogger,
+                                token: CancellationToken.None).ConfigureAwait(false);
+                        }
+                        catch
+                        {
+                            // Best-effort: if extraction fails (race with a concurrent build, locked file, etc.)
+                            // fall through to whatever was already in the global cache.
+                        }
+                    }
+                }
+            }).GetAwaiter().GetResult();
+        }
     }
 
     /// <summary>
@@ -305,6 +487,8 @@ public partial class NugetStore : INugetDownloadProgress
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;
+            Interlocked.Exchange(ref downloadedBytes, 0);
+            Interlocked.Exchange(ref lastReportTicks, 0);
             try
             {
                 var identity = new PackageIdentity(packageId, version.ToNuGetVersion());
@@ -394,10 +578,23 @@ public partial class NugetStore : INugetDownloadProgress
                         // Create requests from the arguments
                         var requests = requestProvider.CreateRequests(restoreArgs).Result;
 
+                        // Route restore downloads through repositories whose HTTP stack reports byte progress
+                        // (DownloadProgressHandlerProvider, wired in NugetSourceRepositoryProvider).
+                        var progressSources = spec.RestoreMetadata.Sources
+                            .Select(sourceRepositoryProvider.CreateRepository)
+                            .ToList();
+                        var providersCache = new RestoreCommandProvidersCache();
+
                         foreach (var request in requests)
                         {
                             // Limit concurrency to avoid timeout
                             request.Request.MaxDegreeOfConcurrency = 4;
+                            request.Request.DependencyProviders = providersCache.GetOrCreate(
+                                installPath,
+                                spec.RestoreMetadata.FallbackFolders.ToList(),
+                                progressSources,
+                                context,
+                                NativeLogger);
 
                             var command = new RestoreCommand(request.Request);
 
@@ -408,7 +605,9 @@ public partial class NugetStore : INugetDownloadProgress
                             {
                                 throw new InvalidOperationException($"Could not restore package {packageId}");
                             }
-                            foreach (var install in result.RestoreGraphs.Last().Install)
+                            var toInstall = result.RestoreGraphs.Last().Install;
+                            NugetRestoreInstalling?.Invoke(toInstall.Count);
+                            foreach (var install in toInstall)
                             {
                                 var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
                                 if (package != null)
@@ -441,6 +640,7 @@ public partial class NugetStore : INugetDownloadProgress
             var packageInstallPath = Path.Combine(args.InstallPath, "tools\\packageinstall.exe");
             if (File.Exists(packageInstallPath))
             {
+                NugetPackageSettingUp?.Invoke(this, args);
                 RunPackageInstall(packageInstallPath, "/install", currentProgressReport);
             }
 
@@ -737,15 +937,53 @@ public partial class NugetStore : INugetDownloadProgress
 
     public string GetRealPath(NugetLocalPackage package)
     {
-        if (IsDevRedirectPackage(package) && package.Version < new PackageVersion(3, 1, 0, 0))
+        if (IsDevRedirectPackage(package))
         {
-            var realPath = File.ReadAllText(GetRedirectFile(package));
-            if (!Directory.Exists(realPath))
-                throw new DirectoryNotFoundException();
-            return realPath;
+            // Legacy dev-redirect (<3.1): a "<Id>.redirect" file holds the source directory directly.
+            if (package.Version < new PackageVersion(3, 1, 0, 0))
+            {
+                var realPath = File.ReadAllText(GetRedirectFile(package));
+                if (!Directory.Exists(realPath))
+                    throw new DirectoryNotFoundException();
+                return realPath;
+            }
+
+            // Modern dev-redirect stub: resolve the in-tree source project directory from the
+            // build/<Id>.props the stub generator emitted, so the asset compiler reads assets and
+            // shader source straight from the checkout instead of the (asset-less) stub.
+            var sourceDir = TryGetDevRedirectProjectDirectory(package);
+            if (sourceDir != null)
+                return sourceDir;
         }
 
         return package.Path;
+    }
+
+    /// <summary>
+    /// Reads <c>StrideDevProjectDirectory</c> (with <c>$(StrideDevRoot)</c> resolved) from a modern
+    /// dev-redirect stub's <c>build/&lt;Id&gt;.props</c>. Returns null if it isn't a resolvable stub.
+    /// </summary>
+    private static string? TryGetDevRedirectProjectDirectory(NugetLocalPackage package)
+    {
+        var propsPath = Path.Combine(package.Path, "build", $"{package.Id}.props");
+        if (!File.Exists(propsPath))
+            return null;
+
+        var text = File.ReadAllText(propsPath);
+        var dir = Regex.Match(text, "<StrideDevProjectDirectory>(.*?)</StrideDevProjectDirectory>").Groups[1].Value;
+        if (string.IsNullOrEmpty(dir))
+            return null;
+
+        if (dir.Contains("$(StrideDevRoot)"))
+        {
+            var root = Regex.Match(text, "<StrideDevRoot[^>]*>(.*?)</StrideDevRoot>").Groups[1].Value;
+            if (string.IsNullOrEmpty(root))
+                return null;
+            dir = dir.Replace("$(StrideDevRoot)", root);
+        }
+
+        dir = dir.Replace('/', Path.DirectorySeparatorChar);
+        return Directory.Exists(dir) ? dir : null;
     }
 
     public string GetRedirectFile(NugetLocalPackage package)
@@ -765,9 +1003,36 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.');
     }
 
-    void INugetDownloadProgress.DownloadProgress(long contentPosition, long contentLength)
+    void INugetDownloadProgress.DownloadAdvanced(long bytesRead)
     {
-        currentProgressReport?.UpdateProgress(ProgressAction.Download, (int)(contentPosition * 100 / contentLength));
+        Interlocked.Add(ref downloadedBytes, bytesRead);
+        // Throttle UI updates to ~1s; chunk reads fire far more often than that.
+        var now = Environment.TickCount64;
+        if (now - Interlocked.Read(ref lastReportTicks) < 1000)
+            return;
+        Interlocked.Exchange(ref lastReportTicks, now);
+        NugetDownloadProgress?.Invoke(Interlocked.Read(ref downloadedBytes));
+    }
+
+    /// <summary>
+    /// Deletes a package's cached download (<c>nupkg_{id}.{version}.dat</c>) from NuGet's HTTP cache. NuGet keeps
+    /// these indefinitely with no size limit, so removing them on uninstall reclaims space (Stride packages are
+    /// large and updated often). Best-effort; only touches the exact package given.
+    /// </summary>
+    public void DeleteHttpCacheCopy(string packageId, PackageVersion version)
+    {
+        try
+        {
+            var httpCache = NuGetEnvironment.GetFolderPath(NuGetFolderPath.HttpCacheDirectory);
+            if (!Directory.Exists(httpCache))
+                return;
+            var fileName = $"nupkg_{packageId.ToLowerInvariant()}.{version}.dat";
+            foreach (var file in Directory.EnumerateFiles(httpCache, fileName, SearchOption.AllDirectories))
+            {
+                try { File.Delete(file); } catch { /* in use / permission; skip */ }
+            }
+        }
+        catch { /* best-effort */ }
     }
 
     private static void RunPackageInstall(string packageInstall, string arguments, ProgressReport progress)

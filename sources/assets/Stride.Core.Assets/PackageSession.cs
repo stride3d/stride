@@ -475,7 +475,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Gets the user packages (excluding system packages).
     /// </summary>
     /// <value>The user packages.</value>
-    public IEnumerable<Package> LocalPackages => Packages.Where(package => !package.IsSystem);
+    public IEnumerable<Package> LocalPackages => Packages.Where(package => !package.IsReadOnly);
 
     /// <summary>
     /// Gets a task that completes when the session is finished saving.
@@ -493,6 +493,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     }
 
     public AssemblyContainer AssemblyContainer { get; }
+
+    /// <summary>
+    /// The copy-on-write backup armed for an in-place upgrade (see <see cref="PackageLoadParameters.BackupBeforeUpgrade"/>),
+    /// or <c>null</c> when no backup is requested. The upgrade write points call <see cref="UpgradeBackup.Snapshot"/>
+    /// on it before overwriting a file.
+    /// </summary>
+    public UpgradeBackup? UpgradeBackup { get; private set; }
 
     /// <summary>
     /// The targeted visual studio version (if specified by the loaded package)
@@ -788,7 +795,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             SolutionProject? firstProject = null;
 
             // If we have a solution, load all packages
-            if (string.Equals(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase))
+            if (Solution.IsSolutionFile(filePath))
             {
                 // The session should save back its changes to the solution
                 var solution = session.VSSolution = Solution.FromFile(filePath);
@@ -803,7 +810,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 // Note: using ToList() because upgrade from old package system might change Projects list
                 foreach (var vsProject in solution.Projects.ToList())
                 {
-                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
+                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
                     {
                         var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                         project.VSProject = vsProject;
@@ -834,7 +841,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     .Select(lang => lang.Extension)
                     .ToArray();
 
-                sessionResult.Error($"Unsupported file extension (only .sln, {string.Join(", ", supportedExtensions)} and .sdpkg are supported)");
+                sessionResult.Error($"Unsupported file extension (only {string.Join(", ", Solution.SolutionExtensions)}, {string.Join(", ", supportedExtensions)} and .sdpkg are supported)");
                 return;
             }
 
@@ -903,6 +910,26 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         LoadMissingAssets(log, [.. Packages], loadParameters);
     }
 
+    // Constructs the copy-on-write upgrade backup the first time an upgrade-enabled load runs, mirroring the
+    // solution directory (or, for a standalone project upgrade with no solution, the project's directory).
+    private void ArmUpgradeBackup(PackageLoadParameters loadParameters, ILogger log)
+    {
+        if (!loadParameters.BackupBeforeUpgrade || UpgradeBackup is not null)
+            return;
+
+        var root = SolutionPath is not null
+            ? Path.GetDirectoryName(SolutionPath.ToOSPath())
+            : Projects.OfType<SolutionProject>().Select(x => Path.GetDirectoryName(x.FullPath.ToOSPath())).FirstOrDefault();
+        if (!string.IsNullOrEmpty(root))
+            UpgradeBackup = new UpgradeBackup(root, DateTime.Now, log);
+    }
+
+    /// <summary>
+    /// Disarms the upgrade backup so subsequent saves no longer snapshot files. <see cref="Save"/> does this
+    /// automatically after persisting an upgrade; a front-end also calls it for a clean load where no save runs.
+    /// </summary>
+    public void DisarmUpgradeBackup() => UpgradeBackup = null;
+
     /// <summary>
     /// Make sure packages have their dependencies loaded.
     /// </summary>
@@ -914,8 +941,54 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var cancelToken = loadParameters.CancelToken;
 
+        // Arm the copy-on-write backup once, before any upgrade write point runs. Copy-on-write keeps this
+        // safe to arm eagerly: the backup folder is only created if an upgrade actually overwrites a file.
+        ArmUpgradeBackup(loadParameters, log);
+
         try
         {
+            // Restore the whole solution once up front (one project-graph evaluation) instead of one
+            // restore per project. The per-project restore in PreLoadPackageDependencies then only runs
+            // as a fallback (no solution, or a project whose references an upgrade rewrote). Skip when no
+            // project needs loading (this is called again after everything is already DependenciesReady).
+            solutionDependenciesRestored = false;
+            var anyProjectNeedsLoading = Projects.OfType<SolutionProject>().Any(x => x.Package.State < PackageState.DependenciesReady);
+            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && SolutionPath != null && File.Exists(SolutionPath.ToOSPath()))
+            {
+                try
+                {
+                    log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
+                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
+                    solutionDependenciesRestored = true;
+                }
+                catch (Exception ex)
+                {
+                    log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
+                }
+            }
+
+            // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped.
+            // Runs for a restored solution or a standalone project (no .sln); the runner skips if it can't resolve.
+            if ((solutionDependenciesRestored || SolutionPath is null) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            {
+                try
+                {
+                    var pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
+                    if (pendingCodeUpgrades.Count > 0)
+                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, UpgradeBackup, log);
+                }
+                catch (NotImplementedException)
+                {
+                    // Unsupported rule configuration (e.g. resolveSince above the from-version) is an
+                    // upgrader-authoring error — surface it loudly instead of degrading to a warning.
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    log.Warning("Source-code migration pre-pass failed; continuing with the package upgrade.", ex);
+                }
+            }
+
             // Note: list can grow as dependencies get loaded
             for (int i = 0; i < Projects.Count; ++i)
             {
@@ -935,6 +1008,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         finally
         {
+            solutionDependenciesRestored = false;
             // Clean up all cached MSBuild projects
             ClearAllCachedProjects();
         }
@@ -1014,6 +1088,23 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 return;
             }
 
+            // Copy-on-write backup of the files this save is about to overwrite during an upgrade: the dirty
+            // packages and their dirty assets. No-op outside an upgrade (UpgradeBackup is null); copy-once.
+            if (UpgradeBackup is { } upgradeBackup)
+            {
+                foreach (var package in LocalPackages)
+                {
+                    if (package.IsDirty && package.FullPath is not null)
+                        upgradeBackup.Snapshot(package.FullPath.ToOSPath());
+
+                    foreach (var assetItem in package.Assets)
+                    {
+                        if (assetItem.IsDirty)
+                            upgradeBackup.Snapshot(assetItem.FullPath.ToOSPath());
+                    }
+                }
+            }
+
             // Suspend tracking when saving as we don't want to receive
             // all notification events
             dependencies?.BeginSavingSession();
@@ -1042,7 +1133,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                             project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                             vsProjs.Add(projectFullPath, project);
                         }
-                        var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == projectInclude);
+                        var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && x.EvaluatedInclude == projectInclude);
                         if (projectItem?.IsImported == false)
                         {
                             project.RemoveItem(projectItem);
@@ -1056,7 +1147,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                             File.Delete(generatedAbsolutePath);
 
                             var generatedInclude = assetItem.GetGeneratedInclude();
-                            var generatedItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == generatedInclude);
+                            var generatedItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && x.EvaluatedInclude == generatedInclude);
                             if (generatedItem is not null)
                             {
                                 project.RemoveItem(generatedItem);
@@ -1083,8 +1174,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             packagesCopy.Clear();
             foreach (var package in LocalPackages)
             {
-                // Save the package to disk and all its assets
-                package.Container.Save(loggerResult, saveParameters);
+                // Save the package to disk and all its assets (skip packages filtered out — e.g.
+                // template generation must not rewrite pre-existing dependency packages).
+                if (saveParameters.PackageFilter?.Invoke(package) != false)
+                    package.Container.Save(loggerResult, saveParameters);
 
                 // Check if everything was saved (might not be the case if things are filtered out)
                 if (package.IsDirty || package.Assets.IsDirty)
@@ -1103,10 +1196,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             dependencies?.EndSavingSession();
 
             // Once all packages and assets have been saved, we can save the solution (as we need to have fullpath to
-            // be setup for the packages)
-            if (packagesSaved)
+            // be setup for the packages). Skip when the session wasn't loaded from a .sln (empty FullPath). The
+            // callback snapshots the .sln only when Save actually rewrites it.
+            if (packagesSaved && !string.IsNullOrEmpty(VSSolution.FullPath))
             {
-                VSSolution.Save();
+                VSSolution.Save(path => UpgradeBackup?.Snapshot(path));
             }
             saveCompletion?.SetResult(0);
             saveCompletion = null;
@@ -1114,6 +1208,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         //System.Diagnostics.Trace.WriteLine("Elapsed saved: " + clock.ElapsedMilliseconds);
         IsDirty = packagesDirty;
+
+        // The backup (armed only during an upgrade) has done its job for this save; disarm so later saves of
+        // this session don't snapshot. Normal saves run with it already null, so this is a no-op.
+        DisarmUpgradeBackup();
     }
 
     private Dictionary<UFile, AssetItem> BuildAssetsOrPackagesToRemove()
@@ -1290,7 +1388,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
     private void RegisterPackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
         package.AssetDirtyChanged += OnAssetDirtyChanged;
 
@@ -1309,7 +1407,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// <param name="package">The package to freeze.</param>
     private void FreezePackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
 
         // Freeze only when assets are loaded
@@ -1323,7 +1421,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
     private void UnRegisterPackage(Package package)
     {
-        if (package.IsSystem)
+        if (package.IsReadOnly)
             return;
         package.AssetDirtyChanged -= OnAssetDirtyChanged;
 
@@ -1438,6 +1536,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         packageUpgradeAllowed = true;
                     if (upgradeAllowed == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
                         packageUpgradeAllowed = false;
+
+                    // The confirmation callback may have opted out of the backup (e.g. the GameStudio dialog's
+                    // checkbox); disarm so the upgrade writes that follow this point don't snapshot.
+                    if (!loadParameters.BackupBeforeUpgrade)
+                        DisarmUpgradeBackup();
                 }
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
@@ -1536,7 +1639,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
         // Don't do anything if source is a system (read-only) package for now
         // We only want to process local packages
-        if (dependentPackage.IsSystem)
+        if (dependentPackage.IsReadOnly)
             return null;
 
         // Check if package might need upgrading

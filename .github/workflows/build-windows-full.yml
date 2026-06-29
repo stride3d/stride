@@ -1,18 +1,6 @@
 name: Build Windows (Full)
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/build-windows-full.yml'
-      - 'build/Stride.sln'
-      - 'deps/**'
-      - 'sources/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-      - '!crowdin.yml'
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -37,20 +25,17 @@ jobs:
   # Build Stride for Windows
   #
   Windows:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    name: Windows Full (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+          submodules: true
+          ref: ${{ github.ref }}
       - name: Build
         run: |
           dotnet build build\Stride.sln `
-            -p:StrideNativeBuildMode=Clang `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

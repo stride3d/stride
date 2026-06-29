@@ -267,7 +267,7 @@ public sealed class AssetSourceTracker : IDisposable
             // TODO: This is not handling shadow registry
 
             // No need to clone assets from readonly package 
-            var clonedAsset = assetItem.Package?.IsSystem == true ? assetItem.Asset : AssetCloner.Clone(assetItem.Asset);
+            var clonedAsset = assetItem.Package?.IsReadOnly == true ? assetItem.Asset : AssetCloner.Clone(assetItem.Asset);
             var trackedAsset = new TrackedAsset(this, assetItem.Asset, clonedAsset);
 
             // Adds to global list

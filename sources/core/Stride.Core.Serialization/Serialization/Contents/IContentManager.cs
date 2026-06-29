@@ -35,15 +35,6 @@ public interface IContentManager
     T Load<T>(string url, ContentManagerLoaderSettings? settings = null) where T : class;
 
     /// <summary>
-    /// Loads content from the specified URL asynchronously.
-    /// </summary>
-    /// <typeparam name="T">The content type.</typeparam>
-    /// <param name="url">The URL to load from.</param>
-    /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default"/>.</param>
-    /// <returns></returns>
-    Task<T> LoadAsync<T>(string url, ContentManagerLoaderSettings? settings = null) where T : class;
-
-    /// <summary>
     /// Gets a previously loaded asset from its URL.
     /// </summary>
     /// <typeparam name="T">The type of asset to retrieve.</typeparam>

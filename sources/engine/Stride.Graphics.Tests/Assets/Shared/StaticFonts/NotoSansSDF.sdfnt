@@ -1,0 +1,13 @@
+!SpriteFont
+Id: 7d5f0001-1a2b-4c3d-9e01-000000000001
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !FileFontProvider
+    Source: ../../../../../data/tests/Fonts/NotoSans-Bold.ttf
+FontType: !SignedDistanceFieldSpriteFontType
+    Size: 32.0
+    CharacterSet: null
+    CharacterRegions:
+        7d5f0001000000000000000000000001:
+            Start: ' '
+            End: "\x7F"
