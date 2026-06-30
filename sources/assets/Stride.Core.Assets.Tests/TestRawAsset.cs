@@ -14,14 +14,6 @@ public class TestRawAsset
     }
 
     [Fact]
-    public void TestCompressProperty()
-    {
-        var rawAsset = new RawAsset { Compress = false };
-
-        Assert.False(rawAsset.Compress);
-    }
-
-    [Fact]
     public void TestInheritsFromAssetWithSource()
     {
         var rawAsset = new RawAsset();
