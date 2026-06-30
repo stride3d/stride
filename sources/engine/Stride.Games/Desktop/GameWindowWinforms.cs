@@ -381,6 +381,7 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc />
         internal override Int2 RawClientSize
         {
             get
