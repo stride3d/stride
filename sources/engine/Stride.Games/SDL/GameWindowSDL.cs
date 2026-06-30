@@ -347,6 +347,17 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc />
+        internal override Int2 RawClientSize
+        {
+            get
+            {
+                return window != null
+                    ? new Int2(window.ClientSize.Width, window.ClientSize.Height)
+                    : new Int2(0, 0);
+            }
+        }
+
         public override DisplayOrientation CurrentOrientation
         {
             get

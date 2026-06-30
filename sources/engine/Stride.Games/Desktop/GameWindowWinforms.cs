@@ -105,7 +105,12 @@ namespace Stride.Games
             if (deviceChangeChangedVisible)
                 Visible = oldVisible;
 
-            if (form != null)
+            if (form != null
+                && form.WindowState != FormWindowState.Minimized
+                && form.ClientSize.Width > 0
+                && form.ClientSize.Height > 0
+                && clientWidth > 0
+                && clientHeight > 0)
             {
                 form.ClientSize = new Size(clientWidth, clientHeight);
             }
@@ -373,6 +378,20 @@ namespace Stride.Games
             {
                 // Ensure width and height are at least 1 to avoid divisions by 0
                 return new Stride.Core.Mathematics.Rectangle(0, 0, Math.Max(Control.ClientSize.Width, 1), Math.Max(Control.ClientSize.Height, 1));
+            }
+        }
+
+        /// <inheritdoc />
+        internal override Int2 RawClientSize
+        {
+            get
+            {
+                if (IsMinimized)
+                    return new Int2(0, 0);
+
+                return Control != null
+                    ? new Int2(Control.ClientSize.Width, Control.ClientSize.Height)
+                    : new Int2(0, 0);
             }
         }
 
