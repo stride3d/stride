@@ -76,6 +76,21 @@ namespace Stride.Rendering.Sprites
                 Vector3 halfBoxSize;
                 var boxWorldPosition = WorldMatrix.TranslationVector;
 
+                if (Sprite != null)
+                {
+                    var sourceRegion = Sprite.RegionInternal;
+                    var normalizedCenter = new Vector2(
+                        Sprite.Center.X / sourceRegion.Width - 0.5f,
+                        0.5f - Sprite.Center.Y / sourceRegion.Height);
+                
+                    var centerOffset = Vector2.Modulate(normalizedCenter, Sprite.SizeInternal);
+                
+                    // Apply the same offset as the render - move the center box
+                    boxWorldPosition.X -= centerOffset.X * WorldMatrix.M11 + centerOffset.Y * WorldMatrix.M21;
+                    boxWorldPosition.Y -= centerOffset.X * WorldMatrix.M12 + centerOffset.Y * WorldMatrix.M22;
+                    boxWorldPosition.Z -= centerOffset.X * WorldMatrix.M13 + centerOffset.Y * WorldMatrix.M23;
+                }
+                
                 if (SpriteType == SpriteType.Billboard)
                 {
                     // Make a gross estimation here as we don't have access to the camera view matrix
