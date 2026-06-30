@@ -22,26 +22,42 @@ public class StaticComponent : CollidableComponent
     /// <summary> Can be null when it isn't part of a simulation yet/anymore </summary>
     internal StaticReference? StaticReference { get; private set; } = null;
 
+    /// <summary>
+    /// The position of this static in the physics scene, setting it will 'teleport' this object to the position provided.
+    /// </summary>
+    /// <remarks>
+    /// This is performed automatically by the engine at the end of the frame when this entity's <see cref="TransformComponent"/> has been moved,
+    /// you may call this manually earlier if needed.<br/><br/>
+    /// Moving statics is very inefficient, do not write to this property every frame.<br/><br/>
+    /// This value is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>.<br/><br/>
+    /// Writing to this property is equivalent to calling <see cref="Teleport"/>.<br/><br/>
+    /// This property overwrites this <see cref="Entity.Transform"/>'s data.
+    /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be finite</exception>
     [DataMemberIgnore]
     public Vector3 Position
     {
         get => StaticReference?.Pose.Position.ToStride() ?? default;
-        set
-        {
-            if (StaticReference is {} staticRef)
-                staticRef.Pose.Position = value.ToNumeric();
-        }
+        set => Teleport(value, Orientation);
     }
 
+
+    /// <summary>
+    /// The rotation of this body in the physics scene, setting it will 'teleport' this object's rotation to the one provided.
+    /// </summary>
+    /// <remarks>
+    /// This is performed automatically by the engine at the end of the frame when this entity's <see cref="TransformComponent"/> has been moved,
+    /// you may call this manually earlier if needed.<br/><br/>
+    /// Moving statics is very inefficient, do not write to this property every frame.<br/><br/>
+    /// Writing to this property is equivalent to calling <see cref="Teleport"/>.<br/><br/>
+    /// This property overwrites this <see cref="Entity.Transform"/>'s data.
+    /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be normalized</exception>
     [DataMemberIgnore]
     public Quaternion Orientation
     {
         get => StaticReference?.Pose.Orientation.ToStride() ?? default;
-        set
-        {
-            if (StaticReference is {} staticRef)
-                staticRef.Pose.Orientation = value.ToNumeric();
-        }
+        set => Teleport(Position, value);
     }
 
     [DataMemberIgnore]
@@ -105,5 +121,35 @@ public class StaticComponent : CollidableComponent
         StaticReference = null;
 
         Processor.Statics.Remove(this);
+    }
+
+    /// <summary>
+    /// Teleport this static into a new pose
+    /// </summary>
+    /// <remarks>
+    /// This is performed automatically by the engine at the end of the frame when this entity's <see cref="TransformComponent"/> has been moved,
+    /// you may call this manually earlier if needed<br/><br/>
+    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>.<br/><br/>
+    /// This method overwrites this <see cref="Entity.Transform"/>'s data.
+    /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="orientation"/> must be normalized; <paramref name="position"/> must be finite</exception>
+    public void Teleport(Vector3 position, Quaternion orientation)
+    {
+        TeleportNoTransformUpdate(position, orientation);
+        UpdateTransformationComponent(position, orientation);
+    }
+
+    /// <inheritdoc cref="Teleport"/>
+    internal void TeleportNoTransformUpdate(Vector3 position, Quaternion orientation)
+    {
+        position.ValidateRange(nameof(TeleportNoTransformUpdate), nameof(position));
+        orientation.ValidateRange(nameof(TeleportNoTransformUpdate), nameof(orientation));
+
+        if (StaticReference is { } staticRef)
+        {
+            staticRef.Pose.Orientation = orientation.ToNumeric();
+            staticRef.Pose.Position = position + CenterOfMass;
+            staticRef.UpdateBounds();
+        }
     }
 }

@@ -851,9 +851,7 @@ public sealed class BepuSimulation : IDisposable
             // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
             var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
 
-            body.WorldToLocal(ref interpolatedPosition, ref interpolatedRotation);
-            body.Entity.Transform.Position = interpolatedPosition;
-            body.Entity.Transform.Rotation = interpolatedRotation;
+            body.UpdateTransformationComponent(interpolatedPosition, interpolatedRotation);
         }
     }
 
@@ -881,20 +879,10 @@ public sealed class BepuSimulation : IDisposable
                 component.Parent.Entity.Transform.UpdateWorldMatrix();
             }
 
-            var localPosition = body.Pose.Position.ToStride();
-            var localRotation = body.Pose.Orientation.ToStride();
+            var worldPos = body.Pose.Position.ToStride();
+            var worldRot = body.Pose.Orientation.ToStride();
 
-            var entityTransform = component.Entity.Transform;
-            if (entityTransform.Parent is { } parent)
-            {
-                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
-                var iRotation = Quaternion.Invert(parentEntityRotation);
-                localPosition = Vector3.Transform(localPosition - parentEntityPosition, iRotation);
-                localRotation = localRotation * iRotation;
-            }
-
-            entityTransform.Rotation = localRotation;
-            entityTransform.Position = localPosition - Vector3.Transform(component.CenterOfMass, localRotation);
+            component.UpdateTransformationComponent(worldPos, worldRot);
         }
     }
 
