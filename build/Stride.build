@@ -29,10 +29,15 @@ Example: dotnet build build/Stride.build -t:Package
     <StrideSignArgs>--description "Stride" --description-url "https://stride3d.net" --publisher-name "Stride" --azure-key-vault-tenant-id "$(StrideSignTenantId)" --azure-key-vault-client-id "$(StrideSignClientId)" --azure-key-vault-client-secret "$(StrideSignClientSecret)" --azure-key-vault-certificate "$(StrideSignKeyVaultCertificate)" --azure-key-vault-url "https://$(StrideSignKeyVaultName).vault.azure.net/" --file-list "sign\nupkgfilter.txt" -v Information</StrideSignArgs>
   </PropertyGroup>
 
-  <!-- Sign every file in @(StrideFilesToSign). Callers set the item then invoke this target. -->
-  <Target Name="_SignFiles" DependsOnTargets="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true' And '@(StrideFilesToSign)' != ''">
-    <Message Importance="high" Text="Signing @(StrideFilesToSign->Count()) file(s)" />
-    <Exec Command="$(StrideSignTool) %(StrideFilesToSign.Identity) $(StrideSignArgs)" EchoOff="true" />
+  <!-- Sign every *.nupkg in $(StrideSignDir). Pass the dir, not a glob: a wildcard expands only when
+       literal in an Include, not via a property. Error if nothing matches, so we never ship unsigned. -->
+  <Target Name="_SignFiles" DependsOnTargets="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
+    <ItemGroup>
+      <_SignList Include="$(StrideSignDir)\*.nupkg" />
+    </ItemGroup>
+    <Error Condition="'@(_SignList)' == ''" Text="StrideSign=true but no .nupkg found in '$(StrideSignDir)' — nothing to sign. Refusing to ship an unsigned package." />
+    <Message Importance="high" Text="Signing @(_SignList->Count()) file(s)" />
+    <Exec Command="$(StrideSignTool) %(_SignList.Identity) $(StrideSignArgs)" EchoOff="true" />
   </Target>
 
   <!-- Build an AdvancedInstaller .aip ($(StrideInstallerAip)), signing inline when StrideSign.
@@ -61,10 +66,9 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
-    <ItemGroup>
-      <StrideFilesToSign Include="$(MSBuildThisFileDirectory)..\bin\vsix\*.nupkg" />
-    </ItemGroup>
-    <CallTarget Targets="_SignFiles" />
+    <!-- Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves -->
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\vsix" />
   </Target>
   
   <!--
@@ -175,10 +179,8 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <Target Name="SignPackageCli">
-    <ItemGroup>
-      <StrideFilesToSign Include="$(StrideCliPackageDir)\*.nupkg" />
-    </ItemGroup>
-    <CallTarget Targets="_SignFiles" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(StrideCliPackageDir)" />
   </Target>
 
   <Target Name="PackageCli" DependsOnTargets="BuildPackageCli;SignPackageCli" />
@@ -270,10 +272,8 @@ Example: dotnet build build/Stride.build -t:Package
     <!-- Generate the nuget package for the launcher application -->
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
 
-    <ItemGroup>
-      <StrideFilesToSign Include="$(MSBuildThisFileDirectory)..\bin\launcher\*.nupkg" />
-    </ItemGroup>
-    <CallTarget Targets="_SignFiles" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\launcher" />
   </Target>
   
   <!--
@@ -314,10 +314,8 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <Target Name="SignPackage">
-    <ItemGroup>
-      <StrideFilesToSign Include="$(MSBuildThisFileDirectory)..\bin\packages\*.nupkg" />
-    </ItemGroup>
-    <CallTarget Targets="_SignFiles" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\packages" />
   </Target>
 
   <!-- StrideGitVersion task (package version from git release tags); shared with Stride.Samples.build. -->
