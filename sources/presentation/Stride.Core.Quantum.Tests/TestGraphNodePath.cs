@@ -97,6 +97,42 @@ public class TestGraphNodePath
     }
 
     [Fact]
+    public void TestEqualityMembers()
+    {
+        var obj = new Class { ClassMember = new Class() };
+        var nodeContainer = new NodeContainer();
+        var root = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(root);
+        path.PushMember(nameof(Class.ClassMember));
+        var equal = new GraphNodePath(root);
+        equal.PushMember(nameof(Class.ClassMember));
+        var different = new GraphNodePath(root);
+        different.PushMember(nameof(Class.IntMember));
+
+        // IEquatable<GraphNodePath>.Equals
+        Assert.True(path.Equals(equal));
+        Assert.False(path.Equals(different));
+        Assert.False(path.Equals((GraphNodePath)null));
+
+        // object.Equals override: reference-equal, value-equal, different, wrong type, null
+        Assert.True(path.Equals((object)path));
+        Assert.True(path.Equals((object)equal));
+        Assert.False(path.Equals((object)different));
+        Assert.False(path.Equals("not a path"));
+        Assert.False(path.Equals((object)null));
+
+        // == / != operators
+        Assert.True(path == equal);
+        Assert.False(path == different);
+        Assert.True(path != different);
+        Assert.False(path != equal);
+
+        // GetHashCode invariant: equal paths sharing a root hash equally
+        Assert.Equal(path.GetHashCode(), equal.GetHashCode());
+    }
+
+    [Fact]
     public void TestClone()
     {
         var obj = new Class { ClassMember = new Class(), ListMember = { new Class(), new Class(), new Class() } };
