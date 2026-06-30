@@ -81,29 +81,39 @@ namespace Stride.Physics
     }
 
     /// <summary>
-    /// Flags that control how ray tests are performed
+    /// Flags that allows to modify default execution and performance of ray tests algorithms.
     /// </summary>
     [Flags]
     public enum EFlags : uint
     {
         None = 0,
         /// <summary>
-        /// Do not return a hit when a ray traverses a back-facing triangle
+        /// Default execution with no modifiers
+        /// </summary>
+        /// <summary>
+        /// Do not return a hit when a ray traverses a back-facing triangle. The option refers only to triangle meshes - collision shapes are volumes and do not utilize backfaces, so it's hitpoint detection is not affected
         /// </summary>
         FilterBackfaces = 1 << 0,
         /// <summary>
-        /// Prevents returned face normal getting flipped when a ray hits a back-facing triangle
+        /// Do not return a hit when a ray traverses a back-facing triangle. 
+/// The option refers only to triangle meshes - collision shapes are volumes and do not utilize backfaces, so it's hitpoint detection is not affected.
         /// </summary>
         KeepUnflippedNormal = 1 << 1,
         /// <summary>
-        /// Uses an approximate but faster ray versus convex intersection algorithm
-        /// SubSimplexConvexCastRaytest is the default, even if kF_None is set.
+        ///Prevents returned face normal getting flipped when a ray hits a back-facing triangle. 
+///The option refers only to triangle meshes - collision shapes are volumes and do not utilize backfaces, so it's hitpoint detection is not affected.
         /// </summary>
         UseSubSimplexConvexCastRaytest = 1 << 2,
+        /// <summary>
+        /// Uses an approximate but faster ray intersection algorithm. The algorithm is also used by default, even if the flag value is not used.
+        /// </summary>
         UseGjkConvexCastRaytest = 1 << 3,
         /// <summary>
-        /// Don't use the heightfield raycast accelerator. See https://github.com/bulletphysics/bullet3/pull/2062
+        /// Switch convex cast algorithm from sub-simplex to slower, but more precise and complete Gilbert-Johnson-Keerthi variant.
         /// </summary>
         DisableHeightfieldAccelerator  = 1 << 4
+        /// <summary>
+        /// Don't use the heightfield raycast accelerator. This option reduces additional memory allocation at the expense of increased. CPU cycles.
+        /// </summary>
     }
 }
