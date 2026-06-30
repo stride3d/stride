@@ -196,6 +196,9 @@ namespace Stride.Games
         /// <summary>
         ///   Determines the requested size for the Back-Buffer based on the current window bounds and user preferences.
         /// </summary>
+        /// <param name="size">
+        ///   When this method returns, contains the requested size for the Back-Buffer.
+        /// </param>
         /// <param name="format">
         ///   When this method returns, contains the pixel format to be used for the Back-Buffer.
         ///   This will be the preferred Back-Buffer format if specified;
@@ -225,6 +228,9 @@ namespace Stride.Games
         ///   using the requested size and format. It configures the presentation parameters,
         ///   including Depth-Stencil format and presentation interval.
         /// </remarks>
+        /// <returns>
+        ///   <see langword="true"/> when the presenter exists or could be created; otherwise, <see langword="false"/>.
+        /// </returns>
         protected virtual bool CreateOrUpdatePresenter()
         {
             if (Presenter is null || isColorSpaceToChange)
