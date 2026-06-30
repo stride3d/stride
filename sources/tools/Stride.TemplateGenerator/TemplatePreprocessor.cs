@@ -1288,7 +1288,8 @@ internal class TemplatePreprocessor
                 { "condition": "(!MacOSActive)",   "exclude": [ "MyTemplate.macOS/**"   ] },
                 { "condition": "(!iOsActive)",     "exclude": [ "MyTemplate.iOS/**"     ] },
                 { "condition": "(!AndroidActive)", "exclude": [ "MyTemplate.Android/**" ] },
-                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.slnx" ] }
+                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.slnx" ] },
+                { "exclude": [ ".sdtpl/**" ] }
         """);
         if (Sdtpl?.HasParameter("HDR") == true && Sdtpl?.HasParameter("GraphicsProfile") == true)
         {
