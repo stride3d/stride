@@ -25,6 +25,23 @@ internal static class SdkCommand
                 Console.WriteLine($"{version.Version}  ({version.PackageId})");
         });
 
+        // available: print the Stride versions offered by the package sources (one per line, newest first).
+        var availableCommand = new Command("available", "List Stride versions available from the package sources.");
+        availableCommand.Options.Add(prerelease);
+        availableCommand.SetAction(async (parseResult, cancellationToken) =>
+        {
+            var versions = await manager.GetAvailable(parseResult.GetValue(prerelease), cancellationToken);
+            if (versions.Count == 0)
+            {
+                Console.Error.WriteLine("No Stride version is available from the package sources.");
+                return 1;
+            }
+
+            foreach (var version in versions)
+                Console.WriteLine(version);
+            return 0;
+        });
+
         // install: add a Stride version (newest, a major.minor line, or an exact version).
         var installVersion = new Argument<string?>("version")
         {
@@ -124,8 +141,9 @@ internal static class SdkCommand
             }
         });
 
-        var sdk = new Command("sdk", "Manage installed Stride versions (list, install, uninstall, update).");
+        var sdk = new Command("sdk", "Manage installed Stride versions (list, available, install, uninstall, update).");
         sdk.Subcommands.Add(listCommand);
+        sdk.Subcommands.Add(availableCommand);
         sdk.Subcommands.Add(installCommand);
         sdk.Subcommands.Add(uninstallCommand);
         sdk.Subcommands.Add(updateCommand);

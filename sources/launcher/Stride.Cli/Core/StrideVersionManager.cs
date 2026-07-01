@@ -37,6 +37,19 @@ public sealed class StrideVersionManager
     }
 
     /// <summary>
+    ///   Lists the Stride versions available from the configured package sources, newest first. Prereleases
+    ///   are excluded unless <paramref name="includePrerelease"/> is set.
+    /// </summary>
+    public async Task<IReadOnlyList<PackageVersion>> GetAvailable(bool includePrerelease, CancellationToken cancellationToken)
+    {
+        return (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
+            .Select(package => package.Version)
+            .Where(version => includePrerelease || string.IsNullOrEmpty(version.SpecialVersion))
+            .OrderByDescending(version => version)
+            .ToList();
+    }
+
+    /// <summary>
     ///   Installs a Stride version and returns it. <paramref name="versionSpec"/> may be a full version,
     ///   a major.minor line (newest patch in that line), or null for the newest version. The newest/line
     ///   resolution prefers stable releases unless <paramref name="includePrerelease"/> is set; an explicit

@@ -23,7 +23,7 @@ internal static class UpgradeCommand
         command.Options.Add(version);
         command.Options.Add(prerelease);
         command.Options.Add(noBackup);
-        command.SetAction(parseResult =>
+        command.SetAction(async (parseResult, cancellationToken) =>
         {
             var cwd = Environment.CurrentDirectory;
             var explicitInput = parseResult.GetValue(path);
@@ -81,8 +81,27 @@ internal static class UpgradeCommand
             var compiler = manager.LocateAssetCompiler(target);
             if (compiler is null)
             {
-                Console.Error.WriteLine($"The Asset Compiler for Stride {target} is not installed. Run 'stride sdk install {target}' first.");
-                return 1;
+                // Auto-install the target version's tooling, then locate its Asset Compiler again.
+                Console.WriteLine($"Stride {target} isn't installed; installing it first...");
+                var progress = new InstallProgressConsole();
+                try
+                {
+                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), progress, cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    progress.Dispose();
+                    Console.Error.WriteLine(exception.Message);
+                    return 1;
+                }
+
+                progress.Dispose();
+                compiler = manager.LocateAssetCompiler(target);
+                if (compiler is null)
+                {
+                    Console.Error.WriteLine($"Installed Stride {target} but couldn't locate its Asset Compiler.");
+                    return 1;
+                }
             }
 
             // The asset compiler backs up the files it modifies before editing in place (default on); forward the opt-out.
