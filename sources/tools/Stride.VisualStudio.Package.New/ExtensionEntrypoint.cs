@@ -22,5 +22,10 @@ internal sealed class ExtensionEntrypoint : Extension
         {
             Icon = "Resources/GameStudio.png",
         },
+        // Only load for Stride solutions: the "Stride" project capability (Stride 4.4+, from Stride.Core.props)
+        // or the StrideAssemblyProcessor build property (fallback for already-released 4.1-4.3).
+        LoadedWhen =
+            ActivationConstraint.SolutionHasProjectCapability("Stride") |
+            ActivationConstraint.SolutionHasProjectBuildProperty("StrideAssemblyProcessor", ".+"),
     };
 }
