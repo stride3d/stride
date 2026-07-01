@@ -11,7 +11,6 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
-    <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>iOS</StridePlatform>
   </PropertyGroup>
   <!-- Debug = Mono interpreter (fast iteration). Release = NativeAOT (ship quality). -->

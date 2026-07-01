@@ -10,7 +10,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\SimpleAudio.sdpkg</StrideCurrentPackagePath>
-    <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
   </PropertyGroup>
   <ItemGroup>
