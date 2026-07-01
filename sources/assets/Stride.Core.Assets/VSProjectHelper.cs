@@ -26,7 +26,6 @@ public interface ICancellableAsyncBuild
 
 public static class VSProjectHelper
 {
-    private const string StrideProjectType = "StrideProjectType";
     private const string StridePlatform = "StridePlatform";
 
     private static readonly BuildManager mainBuildManager = new();
@@ -42,9 +41,16 @@ public static class VSProjectHelper
         return GetEnumFromProperty<PlatformType>(project, StridePlatform);
     }
 
-    public static ProjectType? GetProjectTypeFromProject(MicrosoftProject project)
+    public static ProjectType GetProjectTypeFromProject(MicrosoftProject project)
     {
-        return GetEnumFromProperty<ProjectType>(project, StrideProjectType);
+        ArgumentNullException.ThrowIfNull(project);
+        var outputType = project.GetPropertyValue("OutputType");
+        return outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
+            || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
+            || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase) // UWP
+            || project.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase) // Android
+            ? ProjectType.Executable
+            : ProjectType.Library;
     }
 
     private static T? GetEnumFromProperty<T>(MicrosoftProject project, string propertyName) where T : struct

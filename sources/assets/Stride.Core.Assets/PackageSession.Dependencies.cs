@@ -175,13 +175,7 @@ partial class PackageSession
                     project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(projectPath), project.AssemblyProcessorSerializationHashFile);
                 package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
-                var outputType = msProject.GetPropertyValue("OutputType");
-                project.Type = outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase) // UWP
-                    || msProject.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase) // Android
-                    ? ProjectType.Executable
-                    : ProjectType.Library;
+                project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
 
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again

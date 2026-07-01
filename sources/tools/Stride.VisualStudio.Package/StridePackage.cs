@@ -180,7 +180,14 @@ namespace Stride.VisualStudio
         public static bool IsProjectExecutable(EnvDTE.Project project)
         {
             var buildProjects = ProjectCollection.GlobalProjectCollection.GetLoadedProjects(project.FileName);
-            return buildProjects.Any(x => x.GetPropertyValue("StrideProjectType") == "Executable");
+            return buildProjects.Any(x =>
+            {
+                var outputType = x.GetPropertyValue("OutputType");
+                return outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
+                    || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
+                    || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase)
+                    || x.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase);
+            });
         }
 
         public static string GetProjectPlatform(EnvDTE.Project project)

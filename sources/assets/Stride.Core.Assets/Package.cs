@@ -324,23 +324,16 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             try
             {
                 var projectType = VSProjectHelper.GetProjectTypeFromProject(msProject);
-                if (!projectType.HasValue)
-                {
-                    logger.Error("This project is not a project created with the editor");
-                }
-                else
-                {
-                    var platformType = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
-                    var projectReference = new ProjectReference(VSProjectHelper.GetProjectGuid(msProject), pathToMsproj.MakeRelative(RootDirectory), projectType.Value);
+                var platformType = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+                var projectReference = new ProjectReference(VSProjectHelper.GetProjectGuid(msProject), pathToMsproj.MakeRelative(RootDirectory), projectType);
 
-                    // TODO CSPROJ=XKPKG
-                    throw new NotImplementedException();
-                    // Add the ProjectReference only for the compatible profiles (same platform or no platform)
-                    //foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
-                    //{
-                    //    profile.ProjectReferences.Add(projectReference);
-                    //}
-                }
+                // TODO CSPROJ=XKPKG
+                throw new NotImplementedException();
+                // Add the ProjectReference only for the compatible profiles (same platform or no platform)
+                //foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
+                //{
+                //    profile.ProjectReferences.Add(projectReference);
+                //}
             }
             finally
             {
