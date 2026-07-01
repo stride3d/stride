@@ -110,6 +110,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - uses: actions/checkout@v4  # full history + tags for the vspackage-scoped changelog and tagging
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}  # push the vspackage/<version> tag
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -129,3 +135,46 @@ jobs:
           }
         env:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        run: |
+          TAG="vspackage/${{ needs.Package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG="vspackage/${{ needs.Package.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+          else
+            # The VS package is a separate product from the engine. Build its changelog from the
+            # previous vspackage/* tag and scope it to the VS package sources, so engine/CLI commits
+            # don't leak in (and the products' changelogs don't interleave, as GitHub's auto notes would).
+            PREV=$(git describe --tags --abbrev=0 --match 'vspackage/*' "$TAG^" 2>/dev/null || true)
+            RANGE="$TAG"
+            [ -n "$PREV" ] && RANGE="$PREV..$TAG"
+            NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- sources/tools/Stride.VisualStudio.*)
+            [ -z "$NOTES" ] && NOTES="_No VS package-specific changes since the previous release._"
+            {
+              echo "## What's changed in the Stride Visual Studio package"
+              echo ""
+              echo "$NOTES"
+              if [ -n "$PREV" ]; then
+                echo ""
+                echo "**Full VS package changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV...$TAG"
+              fi
+            } > vspackage-notes.md
+            # Separate product: never the repository's "Latest" release (that's the engine).
+            gh release create "$TAG" \
+              --title "Stride VS Package ${{ needs.Package.outputs.version }}" \
+              --notes-file vspackage-notes.md \
+              --latest=false \
+              bin/vsix/*.nupkg
+          fi
