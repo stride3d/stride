@@ -182,5 +182,5 @@ jobs:
           tag_name: launcher/${{ needs.Package.outputs.version }}
           name: Stride Launcher ${{ needs.Package.outputs.version }}
           files: bin/launcher/*.exe
-          prerelease: ${{ contains(needs.Package.outputs.version, '-') }}
+          make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
           body_path: launcher-notes.md

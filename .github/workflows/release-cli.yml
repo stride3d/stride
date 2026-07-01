@@ -210,6 +210,7 @@ jobs:
             gh release create "$TAG" \
               --title "Stride CLI ${{ needs.Package.outputs.version }}" \
               --notes-file cli-notes.md \
+              --latest=false \
               bin/cli/*.nupkg
           fi
 
