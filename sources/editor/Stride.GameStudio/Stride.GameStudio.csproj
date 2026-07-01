@@ -21,6 +21,8 @@
     <StrideLocalized>true</StrideLocalized>
     <StrideNuGetResolverUI>true</StrideNuGetResolverUI>
     <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
+    <!-- Desktop-only tool: drop non-desktop runtimes/<rid>/ from the no-RID output. -->
+    <StrideToolingHost>true</StrideToolingHost>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
