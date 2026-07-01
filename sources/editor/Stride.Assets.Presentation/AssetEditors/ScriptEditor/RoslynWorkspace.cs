@@ -172,11 +172,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         {
             if (documentId != null && CurrentSolution.ContainsDocument(documentId) && !IsDocumentOpen(documentId))
             {
-                if (CurrentSolution.ContainsDocument(documentId) && !IsDocumentOpen(documentId))
-                {
-                    OnDocumentOpened(documentId, sourceTextContainer);
-                    OnDocumentContextUpdated(documentId);
-                }
+                OnDocumentOpened(documentId, sourceTextContainer);
+                OnDocumentContextUpdated(documentId);
 
                 if (onDiagnosticsChanged != null)
                     diagnosticsChangedNotifiers.TryAdd(documentId, onDiagnosticsChanged);
