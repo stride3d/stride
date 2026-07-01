@@ -171,7 +171,7 @@ namespace Stride.GameStudio.ViewModels
 
         private async void PullAssemblyChanges([NotNull] ProjectWatcher projectWatcher)
         {
-            await foreach (var events in projectWatcher.BatchChange)
+            await foreach (var events in projectWatcher.AssemblyChange)
             {
                 foreach (var assemblyChange in events)
                 {

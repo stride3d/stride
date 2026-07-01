@@ -129,7 +129,7 @@ namespace Stride.Assets.Presentation.ViewModel
             var session = strideAssetsViewModel.Session;
             try
             {
-                await foreach (var events in projectWatcher.BatchChange)
+                await foreach (var events in projectWatcher.SourceChange)
                 {
                     // InvokeTask (not InvokeAsync) so the batch is actually awaited: no reentrancy, exceptions observed.
                     await Dispatcher.InvokeTask(async () =>

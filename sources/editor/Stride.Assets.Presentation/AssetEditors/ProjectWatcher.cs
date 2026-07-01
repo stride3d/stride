@@ -74,6 +74,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         private readonly BufferBlock<FileEvent> fileChanged = new BufferBlock<FileEvent>();
         private readonly IDisposable fileChangedLink1;
         private readonly IDisposable fileChangedLink2;
+        private IDisposable assemblyChangedLink;
         private readonly DirectoryWatcher directoryWatcher;
         private readonly SessionViewModel session;
         private readonly bool trackBinaries;
@@ -81,7 +82,10 @@ namespace Stride.Assets.Presentation.AssetEditors
         private Project gameExecutable;
 
         private CancellationTokenSource batchChangesCancellationTokenSource = new CancellationTokenSource();
-        public IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChange;
+        // Source/project changes for ALL tracked projects (feeds the Roslyn workspace via CodeViewModel).
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> SourceChange;
+        // Changes for editor-loaded projects only (non-null Assembly); feeds the assembly-reload path.
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> AssemblyChange;
 
         private MSBuildWorkspace msbuildWorkspace;
         private bool solutionOpened;
@@ -119,15 +123,18 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             var fileChangedTransform = new TransformBlock<FileEvent, AssemblyChangedEvent>(x => FileChangeTransformation(x));
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
-            fileChangedLink2 = fileChangedTransform.LinkTo(AssemblyChangedBroadcast);
+            fileChangedLink2 = fileChangedTransform.LinkTo(SourceChangedBroadcast);
+            // Editor-loaded projects only reach the assembly-reload path; unloaded heads never do.
+            assemblyChangedLink = SourceChangedBroadcast.LinkTo(AssemblyChangedBroadcast, e => e?.Assembly != null);
 
-            BatchChange = BatchChanges();
+            SourceChange = BatchChanges(SourceChangedBroadcast, loadedOnly: false);
+            AssemblyChange = BatchChanges(AssemblyChangedBroadcast, loadedOnly: true);
         }
 
-        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges()
+        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges(ISourceBlock<AssemblyChangedEvent> source, bool loadedOnly)
         {
             var buffer = new BufferBlock<AssemblyChangedEvent>();
-            using (AssemblyChangedBroadcast.LinkTo(buffer))
+            using (source.LinkTo(buffer))
             {
                 while (!batchChangesCancellationTokenSource.IsCancellationRequested)
                 {
@@ -157,6 +164,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                             var target = trackedSnapshot.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
                             if (target != null)
                             {
+                                // On the assembly-reload path, skip dependents the editor doesn't load (no assembly to reload).
+                                if (loadedOnly && target.LoadedAssembly == null)
+                                    continue;
                                 string file = assemblyChange.ChangedFile;
                                 if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
                                 {
@@ -189,6 +199,10 @@ namespace Stride.Assets.Presentation.AssetEditors
                 }
             }
         }
+        // All tracked-project changes (fed by the file-change transform).
+        public BroadcastBlock<AssemblyChangedEvent> SourceChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
+
+        // Editor-loaded projects only (non-null Assembly); a filtered view of SourceChangedBroadcast.
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
 
         public Project CurrentGameLibrary
@@ -227,6 +241,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             directoryWatcher.Dispose();
             fileChangedLink1.Dispose();
             fileChangedLink2.Dispose();
+            assemblyChangedLink?.Dispose();
         }
 
         public async Task Initialize()
@@ -270,7 +285,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         {
             var hasChanged = false;
             var buffer = new BufferBlock<AssemblyChangedEvent>();
-            using (AssemblyChangedBroadcast.LinkTo(buffer))
+            using (SourceChangedBroadcast.LinkTo(buffer))
             {
                 do
                 {
