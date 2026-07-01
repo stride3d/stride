@@ -190,6 +190,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           SHA="${{ steps.src.outputs.sha }}"
+          VERSION="${{ steps.version.outputs.version }}"
           # Base the changelog on the previous engine release, not the chronologically previous
           # tag (which could be a cli/* release and would interleave the two products' changelogs).
           PREV=$(git describe --tags --abbrev=0 --match 'releases/*' "$SHA^" 2>/dev/null || true)
@@ -197,10 +198,14 @@ jobs:
           if [ -n "$PREV" ]; then
             START_TAG_ARG=(--notes-start-tag "$PREV")
           fi
-          gh release create "releases/${{ steps.version.outputs.version }}" \
-            --title "Stride ${{ steps.version.outputs.version }}" \
+          # A suffixed version (e.g. 4.4.0-beta1) is a prerelease, so it must not become the
+          # repository's "Latest" release. Stable versions stay eligible for the Latest label.
+          PRERELEASE_ARG=()
+          case "$VERSION" in *-*) PRERELEASE_ARG=(--prerelease);; esac
+          gh release create "releases/$VERSION" \
+            --title "Stride $VERSION" \
             --target "$SHA" \
-            --generate-notes "${START_TAG_ARG[@]}" \
+            --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
             bin/packages/*.nupkg
 
       - name: Bump version for next cycle
