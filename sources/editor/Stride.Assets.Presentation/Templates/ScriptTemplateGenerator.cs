@@ -79,6 +79,13 @@ namespace Stride.Assets.Presentation.Templates
                     defaultClassName = className;
                 }
 
+                // Suffix the proposed name if a script with the same name already exists in the package
+                // (the Add Asset dialog dedups the default name the same way).
+                defaultClassName = NamingHelper.ComputeNewName(defaultClassName,
+                    name => parameters.Package.Assets.Any(a => a.Asset is ScriptSourceFileAsset
+                        && string.Equals(a.Location.GetFileNameWithoutExtension(), name, StringComparison.OrdinalIgnoreCase)),
+                    "{0}{1}");
+
                 bool enableTemplateSelect = parameters.TryGetTag(EnableTemplateSelectKey);
 
                 IEnumerable<TemplateAssetDescription> scriptTemplates = null;
