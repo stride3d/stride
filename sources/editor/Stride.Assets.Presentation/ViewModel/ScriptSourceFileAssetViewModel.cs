@@ -256,17 +256,24 @@ namespace Stride.Assets.Presentation.ViewModel
                 if (sourceProject == null)
                     throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
 
-                // Wait for project to be loaded
+                // Wait for project to be loaded, but bounded: a project that never appears (e.g. one that
+                // isn't in the workspace) must not spin forever and freeze callers that block on DocumentId.
                 Project project = null;
-                while (true)
+                for (var retries = 0; retries < 500; retries++)
                 {
                     cancellationToken.Token.ThrowIfCancellationRequested();
 
-                    // Wait for project to be available
-                    project = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == sourceProject);
+                    // Wait for project to be available (case-insensitive: MSBuild and SolutionProject paths may differ in casing)
+                    project = workspace.CurrentSolution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, sourceProject, StringComparison.OrdinalIgnoreCase));
                     if (project != null)
                         break;
                     await Task.Delay(10);
+                }
+
+                if (project == null)
+                {
+                    // Couldn't locate the project; leave the asset untracked rather than hang.
+                    return null;
                 }
 
                 // If possible, we use AbsoluteSourceLocation which is the path from where it was loaded (in case it moved afterwise)
