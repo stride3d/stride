@@ -54,7 +54,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         public async Task Initialize(SessionViewModel session, ProjectWatcher watcher, CancellationToken token)
         {
             this.watcher = watcher;
-            var assemblies = watcher.TrackedAssemblies.ToList();
+            var assemblies = watcher.SnapshotTrackedAssemblies();
             foreach (var trackedAssembly in assemblies.Where(trackedAssembly => trackedAssembly.Project != null))
             {
                 await AnalyzeProject(session, trackedAssembly.Project, token);

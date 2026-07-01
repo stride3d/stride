@@ -175,7 +175,10 @@ namespace Stride.GameStudio.ViewModels
             {
                 foreach (var assemblyChange in events)
                 {
-                    if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                    // Skip Binary changes, and changes from projects the editor doesn't load (null Assembly,
+                    // e.g. executable heads): those have no loaded assembly to reload, and their source is
+                    // handled by the Roslyn/CodeViewModel path instead.
+                    if (assemblyChange?.Assembly == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
                         continue;
                     modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
                     {
