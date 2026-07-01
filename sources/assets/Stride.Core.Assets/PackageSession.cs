@@ -312,6 +312,13 @@ public class SolutionProject : PackageContainer
 
     public PlatformType Platform { get; set; }
 
+    // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
+    public bool? ContainsAssetTypes { get; set; }
+
+    // Load the built assembly for type resolution (scripts, serialization, inheritable asset types) when
+    // explicitly flagged, otherwise only for libraries.
+    public bool ShouldLoadAssemblyInEditor => ContainsAssetTypes ?? (Type == ProjectType.Library);
+
     public bool IsImplicitProject { get; set; }
 
     public bool TrackDirectDependencies { get; set; }

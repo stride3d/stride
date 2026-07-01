@@ -177,6 +177,13 @@ partial class PackageSession
 
                 project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
 
+                // Explicit StrideContainsAssetTypes opt-in/opt-out for editor/compiler assembly loading (null = default).
+                // Imported values are ignored: the consumer default (AssetBuildManifest.targets) evaluates true
+                // for every project including exe heads, which must stay unloaded unless explicitly flagged.
+                var containsAssetTypesProperty = msProject.GetProperty("StrideContainsAssetTypes");
+                if (containsAssetTypesProperty is { IsImported: false } && bool.TryParse(containsAssetTypesProperty.EvaluatedValue, out var containsAssetTypes))
+                    project.ContainsAssetTypes = containsAssetTypes;
+
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again
                 if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
