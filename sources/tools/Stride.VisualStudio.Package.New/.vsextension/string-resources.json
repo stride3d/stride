@@ -1,3 +1,4 @@
 {
-  "Stride.VisualStudio.OpenInGameStudio.DisplayName": "Open in Game Studio"
+  "Stride.VisualStudio.OpenInGameStudio.DisplayName": "Open in Game Studio",
+  "Stride.VisualStudio.UpdateStrideVersion.DisplayName": "Update Stride Version…"
 }
