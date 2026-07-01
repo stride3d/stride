@@ -23,8 +23,10 @@ namespace Stride.Core.Assets
 {
     static class RestoreHelper
     {
-        public static List<string> ListAssemblies(LockFile lockFile, string graphicsApi = "Direct3D11")
+        public static List<string> ListAssemblies(LockFile lockFile, string? graphicsApi = null)
         {
+            graphicsApi ??= GraphicsApiSelector.Default;
+
             var assemblies = new List<string>();
 
             var libPaths = GetLibPaths(lockFile);

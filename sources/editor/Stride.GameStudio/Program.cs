@@ -71,6 +71,13 @@ public static class Program
     [STAThread]
     public static void Main()
     {
+        // Surface a recorded --graphics-api startup error and exit.
+        if (GraphicsApiSelector.StartupError is { } graphicsApiError)
+        {
+            MessageBox.Show(graphicsApiError, "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(1);
+        }
+
         Run(Environment.GetCommandLineArgs().Skip(1).ToList());
     }
 
@@ -124,6 +131,11 @@ public static class Program
                     else if (args[i] == "/DebugEditorGraphics")
                     {
                         StrideConfig.GraphicsDebugMode = true;
+                    }
+                    else if (args[i] == "--graphics-api")
+                    {
+                        // Consumed at startup by GraphicsApiSelector; skip the following value here.
+                        i++;
                     }
                     else if (args[i] == "/DisableThumbnails")
                     {

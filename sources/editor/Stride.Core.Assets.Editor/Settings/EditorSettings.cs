@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -91,6 +92,14 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Automatically reload last session at startup")}",
             };
+            GraphicsApi = new SettingsKey<string>("Environment/GraphicsApi", SettingsContainer, GraphicsApiDefault)
+            {
+                DisplayName = $"{Environment}/{Tr._p("Settings", "Graphics API (Game Studio only)")}",
+                // "Default" follows the platform default; Windows also offers all three explicitly, other platforms only Vulkan.
+                GetAcceptableValues = () => OperatingSystem.IsWindows()
+                    ? new List<string> { GraphicsApiDefault, "Direct3D11", "Direct3D12", "Vulkan" }
+                    : new List<string> { GraphicsApiDefault, "Vulkan" },
+            };
         }
 
         public static SettingsKey<UFile> DefaultTextEditor { get; }
@@ -119,6 +128,12 @@ namespace Stride.Core.Assets.Editor.Settings
 
         public static SettingsKey<bool> EnableMetrics { get; }
 
+        /// <summary>Value meaning "follow the platform default" for <see cref="GraphicsApi"/>.</summary>
+        public const string GraphicsApiDefault = "Default";
+
+        // Graphics API Game Studio itself loads; applied at startup by GraphicsApiSelector, so it needs a restart.
+        public static SettingsKey<string> GraphicsApi { get; }
+
         public static bool NeedRestart { get; set; }
 
         public static void Initialize()
@@ -130,6 +145,7 @@ namespace Stride.Core.Assets.Editor.Settings
             UseEffectCompilerServer.ChangesValidated += (s, e) => NeedRestart = true;
             Language.ChangesValidated += (s, e) => NeedRestart = true;
             EnableMetrics.ChangesValidated += (s, e) => NeedRestart = true;
+            GraphicsApi.ChangesValidated += (s, e) => NeedRestart = true;
 
             Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => NeedRestart = true;
         }

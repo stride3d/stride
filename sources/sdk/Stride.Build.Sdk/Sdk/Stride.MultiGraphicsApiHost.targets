@@ -1,0 +1,144 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Stride.MultiGraphicsApiHost.targets - Local multi-API bin layout (StrideMultiGraphicsApiHost=true).
+
+    For hosts that pick the graphics API at launch (GameStudio, AssetCompiler), lay API-dependent
+    runtime assemblies into per-API subfolders (bin/.../Vulkan/Stride.Graphics.dll) instead of flat;
+    GraphicsApiHostResolver loads the selected one. Routed in: (1) Stride.* graphics assemblies (same identity across APIs, so must be
+    isolated; detected by their bin/<cfg>[/<tfm>]/<Api>/ path) and (2) API-exclusive interop
+    (Silk.NET.Direct3D12/WinPixEventRuntime -> Direct3D12/, Vortice.Vulkan -> Vulkan/). Shared interop
+    stays flat (DXGI/DXC span D3D11+D3D12; Silk.NET.Direct3D11 is used cross-API by FXC reflection).
+  -->
+
+  <PropertyGroup>
+    <!-- APIs laid out = the platform's runtime-selectable set. Windows offers all three (default
+         Direct3D11); Linux/macOS can only run Vulkan, so there is no choice there. Keyed off the
+         host's own TFM: net10.0-windows = Windows, anything else = portable (Vulkan only). -->
+    <StrideMultiGraphicsApiHostApis Condition="'$(StrideMultiGraphicsApiHostApis)' == '' And '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'">Direct3D11;Direct3D12;Vulkan</StrideMultiGraphicsApiHostApis>
+    <StrideMultiGraphicsApiHostApis Condition="'$(StrideMultiGraphicsApiHostApis)' == ''">Vulkan</StrideMultiGraphicsApiHostApis>
+  </PropertyGroup>
+
+  <!-- Inline task: classify copy-local items and compute their per-API siblings. -->
+  <UsingTask TaskName="_StrideComputeMultiApiLayout"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <CopyLocalItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Apis ParameterType="System.String" Required="true" />
+      <!-- API-exclusive interop packages, as "PackageId=Api;PackageId=Api" (single API each). -->
+      <ExclusiveApiPackages ParameterType="System.String" Required="false" />
+      <!-- Graphics-API-dependent copy-local items to strip from the flat output. -->
+      <FlatToRemove ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <!-- Per-API files to stage; metadata StageSubPath = "<Api>\<filename>". -->
+      <Staged ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var apis = Apis.Split(new[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+        var known = new System.Collections.Generic.HashSet<string>(
+            new[] { "Direct3D11", "Direct3D12", "Vulkan", "OpenGL", "OpenGLES", "Null" },
+            System.StringComparer.OrdinalIgnoreCase);
+
+        // PackageId -> single owning API (Silk.NET.Direct3D12=Direct3D12, Vortice.Vulkan=Vulkan, ...).
+        var exclusive = new System.Collections.Generic.Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (var pair in (ExclusiveApiPackages ?? "").Split(new[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = pair.Split('=');
+            if (kv.Length == 2)
+                exclusive[kv[0].Trim()] = kv[1].Trim();
+        }
+
+        var flat = new System.Collections.Generic.List<Microsoft.Build.Framework.ITaskItem>();
+        var staged = new System.Collections.Generic.List<Microsoft.Build.Framework.ITaskItem>();
+        var seen = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+
+        System.Action<string, string> stageInto = (srcFile, api) =>
+        {
+            foreach (var f in new[] { srcFile, System.IO.Path.ChangeExtension(srcFile, ".pdb"), System.IO.Path.ChangeExtension(srcFile, ".xml") })
+            {
+                if (!System.IO.File.Exists(f) || !seen.Add(api + "|" + System.IO.Path.GetFileName(f)))
+                    continue;
+                var ti = new Microsoft.Build.Utilities.TaskItem(f);
+                ti.SetMetadata("StageSubPath", System.IO.Path.Combine(api, System.IO.Path.GetFileName(f)));
+                staged.Add(ti);
+            }
+        };
+
+        foreach (var item in CopyLocalItems)
+        {
+            var path = item.GetMetadata("FullPath");
+            var fileName = System.IO.Path.GetFileName(path);
+            var dir = System.IO.Path.GetDirectoryName(path);
+
+            // (1) Stride.* graphics assembly: same identity across APIs, produced under
+            // bin/<cfg>[/<tfm>]/<Api>/<file> -> isolate all its sibling variants into subfolders.
+            if (dir != null && known.Contains(System.IO.Path.GetFileName(dir)))
+            {
+                flat.Add(item);
+                var apiRoot = System.IO.Path.GetDirectoryName(dir); // strip the <Api> segment
+                foreach (var api in apis)
+                    stageInto(System.IO.Path.Combine(apiRoot, api, fileName), api);
+                continue;
+            }
+
+            // (2) API-exclusive interop/native package: route this single file into its one API folder.
+            // Match by NuGet package id (package-origin copy-local) or, as a fallback, by file name
+            // (package id == assembly name for these interop packages).
+            var pkgId = item.GetMetadata("NuGetPackageId");
+            var nameNoExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
+            string owningApi;
+            if ((!string.IsNullOrEmpty(pkgId) && exclusive.TryGetValue(pkgId, out owningApi))
+                || exclusive.TryGetValue(nameNoExt, out owningApi))
+            {
+                flat.Add(item);
+                stageInto(path, owningApi);
+            }
+        }
+
+        FlatToRemove = flat.ToArray();
+        Staged = staged.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Strip the graphics DLLs from the flat copy-local set BEFORE they're copied to the output,
+       and remember the per-API files to stage. Runs after references are resolved. -->
+  <Target Name="_StrideMultiApiStripFlat"
+          AfterTargets="ResolveReferences"
+          BeforeTargets="GetCopyToOutputDirectoryItems;_CopyFilesMarkedCopyLocal"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <!-- API-exclusive interop packages: those whose GraphicsApis metadata names a single API.
+         (Shared ones like Silk.NET.DXGI / DXC list multiple APIs and stay flat.) -->
+    <ItemGroup>
+      <_StrideExclusiveApiPackage Include="@(StrideGraphicsApiSpecificPackage)"
+          Condition="!$([System.String]::Copy('%(StrideGraphicsApiSpecificPackage.GraphicsApis)').Contains(';'))" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_StrideExclusiveApiPackagesStr>@(_StrideExclusiveApiPackage->'%(Identity)=%(GraphicsApis)', ';')</_StrideExclusiveApiPackagesStr>
+    </PropertyGroup>
+    <_StrideComputeMultiApiLayout CopyLocalItems="@(ReferenceCopyLocalPaths)" Apis="$(StrideMultiGraphicsApiHostApis)" ExclusiveApiPackages="$(_StrideExclusiveApiPackagesStr)">
+      <Output TaskParameter="FlatToRemove" ItemName="_StrideMultiApiFlat" />
+      <Output TaskParameter="Staged" ItemName="_StrideMultiApiStaged" />
+    </_StrideComputeMultiApiLayout>
+    <ItemGroup>
+      <!-- Absent from the app base so the default-context probe misses and the runtime resolver
+           supplies the selected API's copy (no same-identity clash with a flat DLL). -->
+      <ReferenceCopyLocalPaths Remove="@(_StrideMultiApiFlat)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Copy each API variant into its subfolder. -->
+  <Target Name="_StrideMultiApiStage"
+          AfterTargets="CopyFilesToOutputDirectory"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Copy SourceFiles="@(_StrideMultiApiStaged)"
+          DestinationFiles="@(_StrideMultiApiStaged->'$(OutDir)%(StageSubPath)')"
+          SkipUnchangedFiles="true"
+          OverwriteReadOnlyFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="@(_StrideMultiApiStaged->'$(OutDir)%(StageSubPath)')" />
+    </ItemGroup>
+  </Target>
+
+</Project>
