@@ -55,7 +55,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         {
             this.watcher = watcher;
             var assemblies = watcher.SnapshotTrackedAssemblies();
-            foreach (var trackedAssembly in assemblies.Where(trackedAssembly => trackedAssembly.Project != null))
+            // Only editor-loaded projects (non-null LoadedAssembly) can be reflected; skip unloaded heads.
+            foreach (var trackedAssembly in assemblies.Where(trackedAssembly => trackedAssembly.Project != null && trackedAssembly.LoadedAssembly != null))
             {
                 await AnalyzeProject(session, trackedAssembly.Project, token);
             }
