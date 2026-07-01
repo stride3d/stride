@@ -97,5 +97,39 @@ namespace Stride.Core.Assets.Editor.Components.Properties
         [Category]
         [NonIdentifiableCollectionItems]
         public Dictionary<string, SettingsKeyWrapper> UserSettings => HasExecutables ? ExecutableUserSettings : NonExecutableUserSettings;
+
+        private const string GraphicsApiProperty = "StrideGraphicsApi";
+        private const string AssetAssemblyProperty = "StrideAssetAssembly";
+
+        // Selected project file backing the properties below; null when the package isn't a project.
+        internal string ProjectPath { get; set; }
+
+        // True for a Windows executable head (gates GraphicsApi).
+        internal bool IsWindowsExecutable { get; set; }
+
+        /// <userdoc>The graphics API the game is built and run with. Default uses the platform default.</userdoc>
+        [DataMember]
+        [Display("Graphics API", "Build")]
+        public GameGraphicsApi GraphicsApi
+        {
+            get
+            {
+                var value = VSProjectHelper.GetProjectPropertyValue(ProjectPath, GraphicsApiProperty);
+                return Enum.TryParse<GameGraphicsApi>(value, ignoreCase: true, out var api) && Enum.IsDefined(api)
+                    ? api
+                    : GameGraphicsApi.Default;
+            }
+            set => VSProjectHelper.SetProjectPropertyValue(ProjectPath, GraphicsApiProperty,
+                value == GameGraphicsApi.Default ? null : value.ToString());
+        }
+
+        /// <userdoc>The Asset Compiler scans this project for custom assets.</userdoc>
+        [DataMember]
+        [Display("Contains Stride assets", "Build")]
+        public bool AssetAssembly
+        {
+            get => string.Equals(VSProjectHelper.GetProjectPropertyValue(ProjectPath, AssetAssemblyProperty), "true", StringComparison.OrdinalIgnoreCase);
+            set => VSProjectHelper.SetProjectPropertyValue(ProjectPath, AssetAssemblyProperty, value ? "true" : null);
+        }
     }
 }
