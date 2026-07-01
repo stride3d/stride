@@ -389,8 +389,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public void CheckConsistency()
         {
-            var assetList = Package.Assets.Where(item => item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true).ToDictionary(x => x.Location.FullPath);
-            var assetViewModels = Assets.ToList();
+            // Only compare referenceable assets: non-referenceable ones (e.g. scripts) are indexed
+            // differently and must be filtered on both sides, otherwise they always appear inconsistent.
+            static bool IsReferenceable(Asset asset) => asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
+
+            var assetList = Package.Assets.Where(item => IsReferenceable(item.Asset)).ToDictionary(x => x.Location.FullPath);
+            var assetViewModels = Assets.Where(x => IsReferenceable(x.AssetItem.Asset)).ToList();
             var logger = Session.AssetLog.GetLogger(LogKey.Get("Consistency"));
 
             foreach (var asset in assetViewModels)
