@@ -147,7 +147,9 @@ namespace Stride.GameStudio.View
 
         public EditorViewModel Editor => (EditorViewModel)DataContext;
 
-        public string EditorTitle => Editor.Session.SolutionPath != null ? $"{Editor.Session.SolutionPath.GetFileName()} - {StrideGameStudio.EditorName}" : StrideGameStudio.EditorName;
+        public string EditorTitle => Editor.Session.SolutionPath != null
+            ? $"{Editor.Session.SolutionPath.GetFileName()} - {StrideGameStudio.EditorNameWithGraphicsApi}"
+            : StrideGameStudio.EditorNameWithGraphicsApi;
 
         public ICommandBase OpenDebugWindowCommand { get; }
 

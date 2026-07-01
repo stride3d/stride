@@ -83,7 +83,7 @@ namespace Stride.AssetCompiler
                     "{0}.{1}.{2}",
                     typeof(Program).Assembly.GetName().Version.Major,
                     typeof(Program).Assembly.GetName().Version.Minor,
-                    typeof(Program).Assembly.GetName().Version.Build) + string.Empty,
+                    typeof(Program).Assembly.GetName().Version.Build) + $" [{Stride.Graphics.GraphicsDevice.Platform}]",
                 string.Format("Usage: {0} <command> <input> [options]*", exeName),
                 string.Empty,
                 "Commands: build | pack | upgrade | generate-code",
@@ -114,6 +114,7 @@ namespace Stride.AssetCompiler
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
+                { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },

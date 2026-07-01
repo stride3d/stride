@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Include="..\Stride.NuGetResolver\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
     <Compile Include="..\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />
+    <Compile Include="..\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="GraphicsApiSelector.cs" />
+    <Compile Include="..\Stride.NuGetResolver\GraphicsApiHostResolver.cs" Link="GraphicsApiHostResolver.cs" />
   </ItemGroup>
 
   <ItemGroup>

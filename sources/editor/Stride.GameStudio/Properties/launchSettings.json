@@ -1,0 +1,33 @@
+{
+  "profiles": {
+    "Stride.GameStudio": {
+      "commandName": "Project"
+    },
+    "GameStudio (Direct3D12)": {
+      "commandName": "Project",
+      "commandLineArgs": "--graphics-api Direct3D12"
+    },
+    "GameStudio (Vulkan)": {
+      "commandName": "Project",
+      "commandLineArgs": "--graphics-api Vulkan"
+    },
+    "GameStudio (packaged nupkg)": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run",
+      "workingDirectory": "../../.."
+    },
+    "GameStudio (packaged, Direct3D12)": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run -p:GameStudioGraphicsApi=Direct3D12",
+      "workingDirectory": "../../.."
+    },
+    "GameStudio (packaged, Vulkan)": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run -p:GameStudioGraphicsApi=Vulkan",
+      "workingDirectory": "../../.."
+    }
+  }
+}

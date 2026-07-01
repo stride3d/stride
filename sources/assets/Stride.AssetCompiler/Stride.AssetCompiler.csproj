@@ -7,6 +7,8 @@
          (a duplicate of the managed assembly) or the resolver bootstrap dlls. -->
     <StridePackRunnableInTools>true</StridePackRunnableInTools>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <!-- Lay graphics-API DLLs into per-API subfolders so the API is chosen at launch. -->
+    <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
     <!-- Desktop-only tool: drop non-desktop runtimes/<rid>/ (mobile, ~250 MB) from the no-RID output. -->
     <StrideToolingHost>true</StrideToolingHost>
     <TargetFrameworks>$(StrideXplatEditorTargetFramework)</TargetFrameworks>

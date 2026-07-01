@@ -106,6 +106,13 @@
   <Import Project="$(StrideRoot)sources/engine/Stride.Graphics/build/Stride.GraphicsApiSpecificPackages.targets" />
 
   <!-- ================================================================ -->
+  <!-- Multi-graphics-API host layout (launch-time API selection) -->
+  <!-- ================================================================ -->
+  <!-- Lay API-dependent runtime DLLs into per-API subfolders so the runtime resolver loads the
+       launch-selected one. No-op unless StrideMultiGraphicsApiHost=true. -->
+  <Import Project="Stride.MultiGraphicsApiHost.targets" Condition="'$(StrideMultiGraphicsApiHost)' == 'true'" />
+
+  <!-- ================================================================ -->
   <!-- Native dependency system (.ssdeps) -->
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />
