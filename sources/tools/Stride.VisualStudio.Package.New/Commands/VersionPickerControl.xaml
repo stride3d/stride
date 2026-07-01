@@ -1,0 +1,78 @@
+<DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:vs="http://schemas.microsoft.com/visualstudio/extensibility/2022/xaml"
+              xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+  <Grid MinWidth="420" Margin="8">
+    <Grid.Resources>
+      <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+      <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ComboBoxStyleKey}}" />
+      <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.CheckBoxStyleKey}}" />
+      <Style TargetType="Button" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" />
+      <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+      </Style>
+    </Grid.Resources>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+
+    <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="{Binding Prompt}" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+    <ComboBox Grid.Row="1" Grid.Column="0" MinWidth="72" Margin="0,0,8,0" IsEnabled="{Binding HasVersions}"
+              ItemsSource="{Binding Lines}" SelectedItem="{Binding SelectedLine, Mode=TwoWay}" />
+    <ComboBox Grid.Row="1" Grid.Column="1" IsEnabled="{Binding HasVersions}"
+              ItemsSource="{Binding Versions}" SelectedItem="{Binding SelectedVersion, Mode=TwoWay}" />
+    <Button Grid.Row="1" Grid.Column="2" MinWidth="80" Margin="8,0,0,0"
+            Content="Update" Command="{Binding UpdateCommand}" />
+
+    <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" Height="4" IsIndeterminate="True" Margin="0,8,0,0"
+                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+    <TextBlock Grid.Row="3" Grid.ColumnSpan="3" Text="{Binding StatusMessage}" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+    <CheckBox Grid.Row="4" Grid.ColumnSpan="3" Content="Include pre-release versions" Margin="0,8,0,0"
+              IsChecked="{Binding IncludePrerelease, Mode=TwoWay}" IsEnabled="{Binding HasPrerelease}" />
+
+    <ProgressBar Grid.Row="5" Grid.ColumnSpan="3" Height="4" IsIndeterminate="True" Margin="0,8,0,0"
+                 Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisibility}}" />
+
+    <ScrollViewer Grid.Row="6" Grid.ColumnSpan="3" MinHeight="140" Margin="0,8,0,0"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  Visibility="{Binding ShowLog, Converter={StaticResource BoolToVisibility}}">
+      <ItemsControl ItemsSource="{Binding LogLines}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding Text}" FontFamily="Consolas" TextWrapping="NoWrap">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                      <Setter Property="Foreground" Value="#E6B450" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Severity}" Value="Error">
+                      <Setter Property="Foreground" Value="#F48771" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <TextBlock Grid.Row="7" Grid.ColumnSpan="3" Text="{Binding ResultMessage}" TextWrapping="Wrap" Margin="0,8,0,0" />
+  </Grid>
+</DataTemplate>
