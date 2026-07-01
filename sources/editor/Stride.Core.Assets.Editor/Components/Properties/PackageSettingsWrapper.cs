@@ -107,6 +107,9 @@ namespace Stride.Core.Assets.Editor.Components.Properties
         // True for a Windows executable head (gates GraphicsApi).
         internal bool IsWindowsExecutable { get; set; }
 
+        // True for a library project (gates AssetAssembly): only libraries hold Stride assets.
+        internal bool IsLibrary { get; set; }
+
         /// <userdoc>The graphics API the game is built and run with. Default uses the platform default.</userdoc>
         [DataMember]
         [Display("Graphics API", "Build")]
