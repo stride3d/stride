@@ -1011,7 +1011,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
 
         // Load from csproj
-        if (Container is SolutionProject project && project.FullPath is not null && project.Type == ProjectType.Library)
+        if (Container is SolutionProject project && project.FullPath is not null && project.ShouldLoadAssemblyInEditor)
         {
             // Check if already loaded
             // TODO: More advanced cases: unload removed references, etc...
