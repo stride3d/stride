@@ -189,10 +189,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          SHA="${{ steps.src.outputs.sha }}"
+          # Base the changelog on the previous engine release, not the chronologically previous
+          # tag (which could be a cli/* release and would interleave the two products' changelogs).
+          PREV=$(git describe --tags --abbrev=0 --match 'releases/*' "$SHA^" 2>/dev/null || true)
+          START_TAG_ARG=()
+          if [ -n "$PREV" ]; then
+            START_TAG_ARG=(--notes-start-tag "$PREV")
+          fi
           gh release create "releases/${{ steps.version.outputs.version }}" \
             --title "Stride ${{ steps.version.outputs.version }}" \
-            --target "${{ steps.src.outputs.sha }}" \
-            --generate-notes \
+            --target "$SHA" \
+            --generate-notes "${START_TAG_ARG[@]}" \
             bin/packages/*.nupkg
 
       - name: Bump version for next cycle
