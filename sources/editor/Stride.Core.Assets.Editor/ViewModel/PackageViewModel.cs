@@ -733,11 +733,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         IObjectNode IPropertyProviderViewModel.GetRootNode()
         {
-            packageSettingsWrapper.HasExecutables = (this as ProjectViewModel)?.Type == ProjectType.Executable;
+            var project = this as ProjectViewModel;
+            packageSettingsWrapper.HasExecutables = project?.Type == ProjectType.Executable;
+            packageSettingsWrapper.ProjectPath = project?.ProjectPath.ToOSPath();
+            // Only a Windows executable head has a build-time graphics API choice.
+            packageSettingsWrapper.IsWindowsExecutable = project is { Type: ProjectType.Executable, Platform: PlatformType.Windows };
             return Session.AssetNodeContainer.GetOrCreateNode(packageSettingsWrapper);
         }
 
-        bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
+        bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => member.Name switch
+        {
+            nameof(PackageSettingsWrapper.GraphicsApi) => packageSettingsWrapper.IsWindowsExecutable,
+            nameof(PackageSettingsWrapper.AssetAssembly) => packageSettingsWrapper.ProjectPath != null,
+            _ => true,
+        };
 
         bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
 
