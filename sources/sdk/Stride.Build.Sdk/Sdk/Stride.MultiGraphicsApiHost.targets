@@ -12,11 +12,11 @@
   -->
 
   <PropertyGroup>
-    <!-- APIs laid out = the platform's runtime-selectable set. Windows offers all three (default
-         Direct3D11); Linux/macOS can only run Vulkan, so there is no choice there. Keyed off the
-         host's own TFM: net10.0-windows = Windows, anything else = portable (Vulkan only). -->
-    <StrideMultiGraphicsApiHostApis Condition="'$(StrideMultiGraphicsApiHostApis)' == '' And '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'">Direct3D11;Direct3D12;Vulkan</StrideMultiGraphicsApiHostApis>
-    <StrideMultiGraphicsApiHostApis Condition="'$(StrideMultiGraphicsApiHostApis)' == ''">Vulkan</StrideMultiGraphicsApiHostApis>
+    <!-- APIs laid out = the APIs this build produces. $(StrideGraphicsApis) is final here:
+         platform default, single-API override (e.g. per-API CI jobs), or the full set on
+         package builds (StrideGraphicsApiDependentBuildAll). The launch-time choice is
+         limited to this set; a variant that wasn't built can't be staged. -->
+    <StrideMultiGraphicsApiHostApis Condition="'$(StrideMultiGraphicsApiHostApis)' == ''">$(StrideGraphicsApis)</StrideMultiGraphicsApiHostApis>
   </PropertyGroup>
 
   <!-- Inline task: classify copy-local items and compute their per-API siblings. -->
@@ -107,7 +107,7 @@
   <Target Name="_StrideMultiApiStripFlat"
           AfterTargets="ResolveReferences"
           BeforeTargets="GetCopyToOutputDirectoryItems;_CopyFilesMarkedCopyLocal"
-          Condition="'$(DesignTimeBuild)' != 'true'">
+          Condition="'$(DesignTimeBuild)' != 'true' And '$(StrideMultiGraphicsApiHostApis)' != ''">
     <!-- API-exclusive interop packages: those whose GraphicsApis metadata names a single API.
          (Shared ones like Silk.NET.DXGI / DXC list multiple APIs and stay flat.) -->
     <ItemGroup>
