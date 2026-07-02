@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.Diagnostics;
 using System.Reflection;
 using Stride.Cli.Core;
@@ -46,6 +47,16 @@ root.Subcommands.Add(NewCommand.Create(manager));
 root.Subcommands.Add(UpgradeCommand.Create(manager));
 root.Subcommands.Add(ToolCommands.CreateStudio(manager));
 root.Subcommands.Add(ToolCommands.CreateAsset(manager));
+var legacyCommands = new List<Command> { Stride.Cli.Legacy.LegacyCommands.CreateGenerateLegacyShaderCode(manager) };
+foreach (var legacyCommand in legacyCommands)
+    root.Subcommands.Add(legacyCommand);
+root.Subcommands.Add(Stride.Cli.Legacy.LegacyCommands.CreateLister(legacyCommands));
 root.Subcommands.Add(selfCommand);
 root.Subcommands.Add(versionCommand);
+
+// Let 'stride <hidden-command> --help' render help instead of nothing (the default writer skips Hidden commands).
+foreach (var option in root.Options)
+    if (option is HelpOption helpOption)
+        helpOption.Action = new RevealHiddenHelpAction();
+
 return await root.Parse(args).InvokeAsync();
