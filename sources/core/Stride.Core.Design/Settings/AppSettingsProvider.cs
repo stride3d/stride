@@ -19,12 +19,17 @@ internal class AppSettingsProvider : IAppSettingsProvider
             return new AppSettings();
 
         var settingsFilePath = Path.ChangeExtension(execFilePath, SettingsExtension);
+        // No settings file is the normal case; check instead of catching (keeps first-chance exceptions quiet).
+        if (!File.Exists(settingsFilePath))
+            return new AppSettings();
+
         try
         {
             return YamlSerializer.Load<AppSettings>(settingsFilePath);
         }
         catch (FileNotFoundException)
         {
+            // Deleted between the check above and the load.
             return new AppSettings();
         }
     }
