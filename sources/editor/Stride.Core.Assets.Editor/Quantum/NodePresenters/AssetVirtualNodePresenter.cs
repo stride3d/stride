@@ -16,13 +16,15 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         private readonly Func<bool> hasBase;
         private readonly Func<bool> isInerited;
         private readonly Func<bool> isOverridden;
+        private readonly Action resetOverride;
 
-        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null)
+        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null, Action resetOverride = null)
             : base(factory, propertyProvider, parent, name, type, order, getter, setter)
         {
             this.hasBase = hasBase;
             this.isInerited = isInerited;
             this.isOverridden = isOverridden;
+            this.resetOverride = resetOverride;
         }
 
         protected override void Dispose(bool disposing)
@@ -66,9 +68,32 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
             return AssociatedNode.Node != null && (Asset?.PropertyGraph?.Definition.IsObjectReference(AssociatedNode, value) ?? false);
         }
 
+        /// <inheritdoc/>
+        public override void UpdateValue(object newValue)
+        {
+            // With delegate-provided override state, a set can flip IsOverridden; notify so bold refreshes.
+            if (isOverridden == null)
+            {
+                base.UpdateValue(newValue);
+                return;
+            }
+            OverrideChanging?.Invoke(this, EventArgs.Empty);
+            base.UpdateValue(newValue);
+            OverrideChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         public void ResetOverride()
         {
-            // TODO: for now we cannot reset override if we don't have an AssociatedNode. We could provide a delegate via the constructor for custom reset.
+            if (resetOverride != null)
+            {
+                OverrideChanging?.Invoke(this, EventArgs.Empty);
+                var oldValue = Value;
+                resetOverride();
+                RaiseValueChanged(oldValue);
+                OverrideChanged?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             var memberNode = AssociatedNode.Node as IAssetMemberNode;
             memberNode?.ResetOverrideRecursively();
 
