@@ -10,10 +10,6 @@ AssetFolders:
     -   Path: !dir Assets
 ResourceFolders:
     - !dir Resources
-OutputGroupDirectories: {}
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 142e5ceb-04a0-41e2-845d-b3d177a4700e:Scenes/09_FirstPersonCamera/Start-FirstPersonCamera
     - 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/10_ThirdPersonCamera/Completed-ThirdPersonCamera

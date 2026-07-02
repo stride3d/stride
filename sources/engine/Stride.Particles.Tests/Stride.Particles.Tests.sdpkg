@@ -3,9 +3,6 @@ Id: 6d251236-da95-409a-8f4b-7d42ae1fd32c
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir GameAssets
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 224c05c6-a9fd-43ad-b7e8-727bf088b554:VisualTestRibbons
     - 2281b29e-cfae-4a65-ba18-ffa926b92b68:VisualTestGeneral

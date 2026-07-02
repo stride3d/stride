@@ -3,9 +3,6 @@ Id: 04ed1618-1a06-4a69-ac34-1006a978af11
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir Assets/Shared
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 016f522f-7283-4bd5-a8b1-03056f2c80bd:PrecompiledFonts/Arial18
     - 02f7368b-8c33-4b23-a923-c6ead567e96d:PrecompiledFonts/Arial20

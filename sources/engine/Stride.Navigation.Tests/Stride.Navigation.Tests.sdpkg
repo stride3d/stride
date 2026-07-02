@@ -3,9 +3,6 @@ Id: f98cfc8c-b3de-442a-ae37-06db6235f7da
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir Assets/Shared
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 03c79b44-52a8-4ca4-8a0c-771cad0a3f64:DynamicBarrierTest
     - 2adc5156-90ac-4f63-bf2a-e616460c5f37:B

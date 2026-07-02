@@ -11,12 +11,7 @@ AssetFolders:
     -   Path: !dir Effects
 ResourceFolders:
     - !dir ../Resources
-OutputGroupDirectories: {}
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 45f5d521-b83c-4608-937d-64f93812fba7:Constraints
     - 86fed268-baa8-4929-9eba-4d14cf3a0e68:Raycasting
     - a5a4f13e-6366-43de-b071-a87c1dfff115:VolumeTrigger
-AssetAssemblies: []
