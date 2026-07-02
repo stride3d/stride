@@ -76,12 +76,15 @@ public static class AppSettingsManager
     /// </summary>
     public static void ReloadSettings()
     {
-        if (SettingsProvider != null)
+        try
         {
-            settings = SettingsProvider.LoadAppSettings();
+            settings = SettingsProvider?.LoadAppSettings() ?? new AppSettings();
         }
-        else
+        catch (Exception e)
         {
+            // Reached from Logger static initialization: a throwing provider would crash the process
+            // during type load, and Logger can't be used to report from here.
+            Console.Error.WriteLine($"Error loading application settings: {e.Message}");
             settings = new AppSettings();
         }
     }
