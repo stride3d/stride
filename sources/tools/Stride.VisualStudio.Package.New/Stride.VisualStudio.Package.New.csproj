@@ -21,6 +21,8 @@
     <!-- RemoteUserControl XAML: embedded (loaded by type name), not compiled as a WPF Page. -->
     <EmbeddedResource Include="Commands\VersionPickerControl.xaml" LogicalName="Stride.VisualStudio.Commands.VersionPickerControl.xaml" />
     <Page Remove="Commands\VersionPickerControl.xaml" />
+    <EmbeddedResource Include="Commands\ShaderRegenControl.xaml" LogicalName="Stride.VisualStudio.Commands.ShaderRegenControl.xaml" />
+    <Page Remove="Commands\ShaderRegenControl.xaml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" />
