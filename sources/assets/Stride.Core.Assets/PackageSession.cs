@@ -312,6 +312,9 @@ public class SolutionProject : PackageContainer
 
     public PlatformType Platform { get; set; }
 
+    // The msbuild property behind ContainsAssetTypes.
+    public const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
+
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
 

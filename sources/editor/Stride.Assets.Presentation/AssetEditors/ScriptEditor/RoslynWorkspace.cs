@@ -108,11 +108,13 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         }
 
         /// <summary>
-        /// Removes a project.
+        /// Removes a project. No-op when absent (the caller's project reference can be newer than this
+        /// workspace, which syncs through batched change events).
         /// </summary>
         public void RemoveProject(ProjectId projectId)
         {
-            this.OnProjectRemoved(projectId);
+            if (CurrentSolution.ContainsProject(projectId))
+                this.OnProjectRemoved(projectId);
         }
 
         /// <summary>

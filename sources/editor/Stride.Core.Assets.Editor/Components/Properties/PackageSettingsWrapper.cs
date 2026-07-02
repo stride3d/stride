@@ -99,7 +99,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
         public Dictionary<string, SettingsKeyWrapper> UserSettings => HasExecutables ? ExecutableUserSettings : NonExecutableUserSettings;
 
         internal const string GraphicsApiProperty = "StrideGraphicsApi";
-        internal const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
+        internal const string ContainsAssetTypesProperty = SolutionProject.ContainsAssetTypesProperty;
 
         // Selected project file backing the build settings rows (synthesized by PackageSettingsNodeUpdater);
         // null when the package isn't a project.

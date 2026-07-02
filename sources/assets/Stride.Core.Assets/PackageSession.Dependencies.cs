@@ -180,7 +180,7 @@ partial class PackageSession
                 // Explicit StrideContainsAssetTypes opt-in/opt-out for editor/compiler assembly loading (null = default).
                 // Imported values are ignored: the consumer default (AssetBuildManifest.targets) evaluates true
                 // for every project including exe heads, which must stay unloaded unless explicitly flagged.
-                var containsAssetTypesProperty = msProject.GetProperty("StrideContainsAssetTypes");
+                var containsAssetTypesProperty = msProject.GetProperty(SolutionProject.ContainsAssetTypesProperty);
                 if (containsAssetTypesProperty is { IsImported: false } && bool.TryParse(containsAssetTypesProperty.EvaluatedValue, out var containsAssetTypes))
                     project.ContainsAssetTypes = containsAssetTypes;
 
