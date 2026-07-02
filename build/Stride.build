@@ -64,7 +64,11 @@ Example: dotnet build build/Stride.build -t:Package
 
     <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution)" />
     <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU"/>
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
+    <!-- Ask the package for its .vsix path (derived from Configuration/TargetFramework) so the nuspec stays TFM-agnostic. -->
+    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=Any CPU">
+      <Output TaskParameter="TargetOutputs" PropertyName="StrideVsixPath" />
+    </MSBuild>
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -Properties "VsixPath=$(StrideVsixPath)" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
     <!-- Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves -->
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
