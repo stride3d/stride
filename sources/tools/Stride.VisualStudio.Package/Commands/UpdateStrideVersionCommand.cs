@@ -9,6 +9,10 @@ using Microsoft.VisualStudio.ProjectSystem.Query;
 using Microsoft.VisualStudio.RpcContracts.Notifications;
 using NuGet.Versioning;
 
+// The output window API is still marked experimental in the Extensibility SDK. The project sets NoWarn for this,
+// but the shared release build passes a global NoWarn that overrides it, so suppress it at the source too.
+#pragma warning disable VSEXTPREVIEW_OUTPUTWINDOW
+
 namespace Stride.VisualStudio.Commands;
 
 /// <summary>
