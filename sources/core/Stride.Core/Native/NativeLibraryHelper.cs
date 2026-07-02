@@ -314,18 +314,24 @@ public static partial class NativeLibraryHelper
                                            [NotNullWhen(true)] out string? result)
     {
         string ownerAssemblyDir = Path.GetDirectoryName(ownerType.Assembly.Location) ?? string.Empty;
+        // The app base differs from the owner dir when the assembly is staged in a per-API
+        // subfolder (multi-graphics-API hosts), and from the exe dir under `dotnet app.dll`.
+        string baseDir = AppContext.BaseDirectory;
         string currentExeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
 
         result = ProbePath(Path.Combine(ownerAssemblyDir, platformNativeLibsDir)) ??
+                 ProbePath(Path.Combine(baseDir, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir)) ??
                  ProbePath(Path.Combine(currentExeDir, platformNativeLibsDir)) ??
                  // .NET flattens runtimes/<rid>/native/ to the publish root when RuntimeIdentifier
                  // is set, so probe the bare directories too.
                  ProbePath(ownerAssemblyDir) ??
+                 ProbePath(baseDir) ??
                  ProbePath(Environment.CurrentDirectory) ??
                  ProbePath(currentExeDir) ??
                  // Also try without platform for Windows-only packages (backwards compatible for editor packages)
                  ProbePath(Path.Combine(ownerAssemblyDir, cpu)) ??
+                 ProbePath(Path.Combine(baseDir, cpu)) ??
                  ProbePath(Path.Combine(Environment.CurrentDirectory, cpu)) ??
                  ProbePath(Path.Combine(currentExeDir, cpu));
 
