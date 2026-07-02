@@ -98,41 +98,22 @@ namespace Stride.Core.Assets.Editor.Components.Properties
         [NonIdentifiableCollectionItems]
         public Dictionary<string, SettingsKeyWrapper> UserSettings => HasExecutables ? ExecutableUserSettings : NonExecutableUserSettings;
 
-        private const string GraphicsApiProperty = "StrideGraphicsApi";
-        private const string AssetAssemblyProperty = "StrideAssetAssembly";
+        internal const string GraphicsApiProperty = "StrideGraphicsApi";
+        internal const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
 
-        // Selected project file backing the properties below; null when the package isn't a project.
+        // Selected project file backing the build settings rows (synthesized by PackageSettingsNodeUpdater);
+        // null when the package isn't a project.
         internal string ProjectPath { get; set; }
 
         // True for a Windows executable head (gates GraphicsApi).
         internal bool IsWindowsExecutable { get; set; }
 
-        // True for a library project (gates AssetAssembly): only libraries hold Stride assets.
-        internal bool IsLibrary { get; set; }
+        // Effective ContainsAssetTypes value when the csproj doesn't set it (libraries load, other projects don't).
+        internal bool ContainsAssetTypesDefault { get; set; }
 
-        /// <userdoc>The graphics API the game is built and run with. Default uses the platform default.</userdoc>
-        [DataMember]
-        [Display("Graphics API", "Build")]
-        public GameGraphicsApi GraphicsApi
-        {
-            get
-            {
-                var value = VSProjectHelper.GetProjectPropertyValue(ProjectPath, GraphicsApiProperty);
-                return Enum.TryParse<GameGraphicsApi>(value, ignoreCase: true, out var api) && Enum.IsDefined(api)
-                    ? api
-                    : GameGraphicsApi.Default;
-            }
-            set => VSProjectHelper.SetProjectPropertyValue(ProjectPath, GraphicsApiProperty,
-                value == GameGraphicsApi.Default ? null : value.ToString());
-        }
+        // Raw csproj value (null when not explicitly set), so explicit values can render as overrides.
+        internal string GetProjectProperty(string propertyName) => VSProjectHelper.GetProjectPropertyValue(ProjectPath, propertyName);
 
-        /// <userdoc>The Asset Compiler scans this project for custom assets.</userdoc>
-        [DataMember]
-        [Display("Contains Stride assets", "Build")]
-        public bool AssetAssembly
-        {
-            get => string.Equals(VSProjectHelper.GetProjectPropertyValue(ProjectPath, AssetAssemblyProperty), "true", StringComparison.OrdinalIgnoreCase);
-            set => VSProjectHelper.SetProjectPropertyValue(ProjectPath, AssetAssemblyProperty, value ? "true" : null);
-        }
+        internal void SetProjectProperty(string propertyName, string value) => VSProjectHelper.SetProjectPropertyValue(ProjectPath, propertyName, value);
     }
 }

@@ -742,17 +742,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             packageSettingsWrapper.ProjectPath = project?.ProjectPath.ToOSPath();
             // Only a Windows executable head has a build-time graphics API choice.
             packageSettingsWrapper.IsWindowsExecutable = project is { Type: ProjectType.Executable, Platform: PlatformType.Windows };
-            // Only libraries hold Stride assets (compiled into sdbuild/sdpkg).
-            packageSettingsWrapper.IsLibrary = project?.Type == ProjectType.Library;
+            // Mirrors SolutionProject.ShouldLoadAssemblyInEditor's unset fallback.
+            packageSettingsWrapper.ContainsAssetTypesDefault = project?.Type == ProjectType.Library;
             return Session.AssetNodeContainer.GetOrCreateNode(packageSettingsWrapper);
         }
 
-        bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => member.Name switch
-        {
-            nameof(PackageSettingsWrapper.GraphicsApi) => packageSettingsWrapper.IsWindowsExecutable,
-            nameof(PackageSettingsWrapper.AssetAssembly) => packageSettingsWrapper.IsLibrary,
-            _ => true,
-        };
+        bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
 
         bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
 
