@@ -11,7 +11,7 @@
          SpinScript), so don't declare Consumer.dll as an asset assembly. A single Exe project
          compiles assets before its own dll lands in bin/, so declaring it would fail to load;
          real multi-project games avoid that via the .Game/.Exe split. -->
-    <StrideAssetAssembly>false</StrideAssetAssembly>
+    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />

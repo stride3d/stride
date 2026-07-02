@@ -16,7 +16,7 @@ namespace Stride.Packaging.Tests;
 ///
 /// Positive: the packed plugin declares its asset assembly (stride/&lt;Id&gt;.sdpkg), so the
 /// consumer's asset compiler loads it and resolves the scene's <c>!StrideAssetPlugin.SpinScript</c>
-/// tag. Negative: packing with <c>StrideAssetAssembly=false</c> ships no sdpkg, so the assembly
+/// tag. Negative: packing with <c>StrideContainsAssetTypes=false</c> ships no sdpkg, so the assembly
 /// never registers as an asset assembly and the consumer build fails to resolve the type — proving
 /// the declaration is load-bearing, not incidental.
 /// </summary>
@@ -78,7 +78,7 @@ public class AssetPluginPackagingTests
             "-o", feedDir,
         };
         if (!declareAssetAssembly)
-            packArgs.Add("-p:StrideAssetAssembly=false");
+            packArgs.Add("-p:StrideContainsAssetTypes=false");
         var pack = Dotnet.Exec(packArgs, pluginDir, output, timeoutMin: 10);
         Assert.True(pack.ExitCode == 0, $"Plugin pack failed with exit {pack.ExitCode}");
 
