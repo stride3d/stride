@@ -10,8 +10,3 @@ AssetFolders:
     -   Path: !dir Assets
 ResourceFolders:
     - !dir Resources
-OutputGroupDirectories: {}
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
-RootAssets: []

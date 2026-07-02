@@ -3,9 +3,6 @@ Id: 04ed1618-1a06-4a69-ac34-1006a978af11
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir Assets
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 021570bd-56a4-4248-819f-a25ce3405fda:TextureCompressionTests/Grayscale
     - 0a657835-0b2f-4ba6-9f52-01b3dceb3737:StrideBackground

@@ -3,9 +3,6 @@ Id: b18707e8-1d26-49fc-9911-3834506d8149
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir Assets
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 08cf0491-78f1-42ee-93e4-7ad8732c766e:HanSans13
     - 0d564cf9-3de7-4550-8bdd-ad29f7c57d36:RotatedImages

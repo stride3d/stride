@@ -3,9 +3,6 @@ Id: 04ed1618-1a06-4a69-ac34-1006a978af11
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir GameAssets
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 0851d017-5e86-4954-a5db-1bcf98687ac2:DdsMaskBC1
     - 08872397-58a1-4b94-830d-6676d48d1aca:SheetNoAlpha

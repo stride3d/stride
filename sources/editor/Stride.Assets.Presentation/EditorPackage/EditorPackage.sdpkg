@@ -30,7 +30,6 @@ Profiles:
             -   Path: Assets/Shared
         OutputGroupDirectories: {}
         ProjectReferences: []
-ExplicitFolders: []
 Bundles:
     -   Name: EditorShadersD3D11
         Selectors:
@@ -38,5 +37,3 @@ Bundles:
                 Paths:
                     - __shaders_bytecode__/*
         Dependencies: []
-TemplateFolders: []
-RootAssets: []
