@@ -13,7 +13,7 @@
     <!-- Game/code projects' scripts are asset types, so the asset compiler must load their assembly;
          default it on for consumers (StrideRoot empty, or dev-redirect where the stub also sets
          StrideDevRoot). The engine source tree and test SDK set it explicitly; opt out =false. -->
-    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == '' And ('$(StrideRoot)' == '' Or '$(StrideDevRoot)' != '')">true</StrideAssetAssembly>
+    <StrideContainsAssetTypes Condition="'$(StrideContainsAssetTypes)' == '' And ('$(StrideRoot)' == '' Or '$(StrideDevRoot)' != '')">true</StrideContainsAssetTypes>
   </PropertyGroup>
 
   <!-- Expose the extension list to the STRDIAG011 analyzer as a comma-separated copy (editorconfig
@@ -217,7 +217,7 @@
 
     <!-- The asset compiler loads host builds: non-host manifests reference their host-TFM
          sibling (which carries the AssetAssemblies entry) instead of naming assemblies -->
-    <MSBuild Condition="'$(StrideAssetAssembly)' == 'true' And '$(_StrideManifestIsHostFramework)' != 'true'"
+    <MSBuild Condition="'$(StrideContainsAssetTypes)' == 'true' And '$(_StrideManifestIsHostFramework)' != 'true'"
              Projects="$(MSBuildProjectFullPath)"
              Targets="GetStrideAssetBuildManifestPath"
              Properties="TargetFramework=$(_StrideManifestHostFramework)">
@@ -225,8 +225,8 @@
     </MSBuild>
 
     <ItemGroup>
-      <_StrideAssetBuildManifestAssembly Include="$(TargetPath)" Condition="'$(StrideAssetAssembly)' == 'true' And '$(_StrideManifestIsHostFramework)' == 'true'" />
-      <_StrideAssetBuildManifestAssembly Include="@(StrideAssetAssembly)" />
+      <_StrideAssetBuildManifestAssembly Include="$(TargetPath)" Condition="'$(StrideContainsAssetTypes)' == 'true' And '$(_StrideManifestIsHostFramework)' == 'true'" />
+      <_StrideAssetBuildManifestAssembly Include="@(StrideAssetBuildManifestAssembly)" />
       <_StrideAssetBuildManifestCandidate Include="@(Compile);@(None);@(AdditionalFiles)" />
     </ItemGroup>
 
