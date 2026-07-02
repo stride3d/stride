@@ -105,26 +105,31 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         {
             for (int index = loadedAssemblies.Count - 1; index >= 0; index--)
             {
-                var loadedAssembly = loadedAssemblies[index];
-                var assembly = loadedAssembly.PackageLoadedAssembly.Assembly;
-
-                // Already unloaded or never loaded?
-                if (assembly == null)
-                    continue;
-
-                log?.Info($"Unloading assembly {assembly}");
-
-                // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
-                AssemblyRegistry.Unregister(assembly);
-
-                // Unload binary serialization
-                DataSerializerFactory.UnregisterSerializationAssembly(assembly);
-
-                // Unload assembly
-                assemblyContainer.UnloadAssembly(assembly);
-
-                loadedAssembly.PackageLoadedAssembly.Assembly = null;
+                UnloadAssembly(log, assemblyContainer, loadedAssemblies[index].PackageLoadedAssembly);
             }
+        }
+
+        /// <summary>Unloads and unregisters a single loaded assembly (no-op when not loaded).</summary>
+        public static void UnloadAssembly(ILogger log, AssemblyContainer assemblyContainer, PackageLoadedAssembly loadedAssembly)
+        {
+            var assembly = loadedAssembly.Assembly;
+
+            // Already unloaded or never loaded?
+            if (assembly == null)
+                return;
+
+            log?.Info($"Unloading assembly {assembly}");
+
+            // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
+            AssemblyRegistry.Unregister(assembly);
+
+            // Unload binary serialization
+            DataSerializerFactory.UnregisterSerializationAssembly(assembly);
+
+            // Unload assembly
+            assemblyContainer.UnloadAssembly(assembly);
+
+            loadedAssembly.Assembly = null;
         }
     }
 }

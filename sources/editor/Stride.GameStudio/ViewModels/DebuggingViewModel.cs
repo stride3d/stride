@@ -41,6 +41,9 @@ namespace Stride.GameStudio.ViewModels
         private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
+        // Projects whose editor loadability (StrideContainsAssetTypes) flipped; null LoadedAssembly = to load, otherwise to unload.
+        private readonly Dictionary<PackageViewModel, ModifiedAssembly> modifiedLoadabilities = new Dictionary<PackageViewModel, ModifiedAssembly>();
+        private ProjectWatcher projectWatcher;
         private readonly EntityComponentSourceCodeResolver entityComponentsSorter;
         private readonly CancellationTokenSource assemblyTrackingCancellation;
         private readonly LoggerResult assemblyReloadLogger = new LoggerResult();
@@ -171,10 +174,23 @@ namespace Stride.GameStudio.ViewModels
 
         private async void PullAssemblyChanges([NotNull] ProjectWatcher projectWatcher)
         {
+            this.projectWatcher = projectWatcher;
             await foreach (var events in projectWatcher.AssemblyChange)
             {
                 foreach (var assemblyChange in events)
                 {
+                    // A loadability flip means the project's assembly must be loaded (null Assembly) or unloaded.
+                    if (assemblyChange is { ChangeType: AssemblyChangeType.Loadability, Package: not null })
+                    {
+                        modifiedLoadabilities[assemblyChange.Package] = new ModifiedAssembly
+                        {
+                            LoadedAssembly = assemblyChange.Assembly,
+                            ChangeType = assemblyChange.ChangeType,
+                            Project = assemblyChange.Project,
+                            Package = assemblyChange.Package
+                        };
+                        continue;
+                    }
                     // Skip Binary changes, and changes from projects the editor doesn't load (null Assembly,
                     // e.g. executable heads): those have no loaded assembly to reload, and their source is
                     // handled by the Roslyn/CodeViewModel path instead.
@@ -189,7 +205,7 @@ namespace Stride.GameStudio.ViewModels
                 }
 
                 var shouldNotify = !assemblyChangesPending;
-                if (modifiedAssemblies.Count > 0 && shouldNotify)
+                if ((modifiedAssemblies.Count > 0 || modifiedLoadabilities.Count > 0) && shouldNotify)
                     RunNotifier(true);
             }
         }
@@ -222,7 +238,7 @@ namespace Stride.GameStudio.ViewModels
 
         private void UpdateCommands()
         {
-            assemblyChangesPending = modifiedAssemblies.Count > 0;
+            assemblyChangesPending = modifiedAssemblies.Count > 0 || modifiedLoadabilities.Count > 0;
             var hasCurrentProject = editor.Session.CurrentProject != null;
 
             BuildProjectCommand.IsEnabled = !BuildInProgress;
@@ -241,6 +257,8 @@ namespace Stride.GameStudio.ViewModels
             public AssemblyChangeType ChangeType;
 
             public Project Project;
+
+            public PackageViewModel Package;
         }
 
         private async Task ReloadAssemblies()
@@ -250,6 +268,67 @@ namespace Stride.GameStudio.ViewModels
             var modifiedAssembliesCopy = new Dictionary<PackageLoadedAssembly, ModifiedAssembly>(modifiedAssemblies);
             var assembliesToReload = new List<ModifiedAssembly>();
             modifiedAssemblies.Clear();
+
+            // Apply loadability flips: load projects that became asset assemblies, unload ones that no longer are.
+            var modifiedLoadabilitiesCopy = new Dictionary<PackageViewModel, ModifiedAssembly>(modifiedLoadabilities);
+            modifiedLoadabilities.Clear();
+            var loadabilityChanged = false;
+            foreach (var modifiedLoadability in modifiedLoadabilitiesCopy)
+            {
+                var package = modifiedLoadability.Key;
+                var change = modifiedLoadability.Value;
+                var logResult = new LoggerResult();
+                BuildLog.AddLogger(logResult);
+                if (change.LoadedAssembly == null)
+                {
+                    // The project should now be loaded: build it, then load and register it through the
+                    // standard package path (gated on the updated ShouldLoadAssemblyInEditor).
+                    if (package.Package.Container is not SolutionProject solutionProject)
+                        continue;
+                    var result = await BuildProject(solutionProject.FullPath);
+                    if (!result.IsSuccessful)
+                    {
+                        modifiedLoadabilities[package] = change;
+                        continue;
+                    }
+                    using (var transaction = Session.UndoRedoService.CreateTransaction())
+                    {
+                        package.Package.UpdateAssemblyReferences(logResult);
+                        // Reload with no assembly swap: re-deserializes IUnloadable instances so the newly loaded types resurrect.
+                        GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
+                        {
+                            if (change.Project != null)
+                                await entityComponentsSorter.AnalyzeProject(Session, change.Project, assemblyTrackingCancellation.Token);
+                            UpdateCommands();
+                        }, () =>
+                        {
+                            modifiedLoadabilities[package] = change;
+                        }, new Dictionary<PackageLoadedAssembly, string>());
+                        Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
+                        Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
+                        Session.UndoRedoService.SetName(transaction, "Load game assemblies");
+                    }
+                }
+                else
+                {
+                    // The project should no longer be loaded: live instances of its types become IUnloadable
+                    // (preserving their Yaml), then the assembly is unloaded and unregistered.
+                    using (var transaction = Session.UndoRedoService.CreateTransaction())
+                    {
+                        GameStudioAssemblyReloader.Unload(Session, logResult, UpdateCommands, () =>
+                        {
+                            modifiedLoadabilities[package] = change;
+                        }, package.Package, change.LoadedAssembly);
+                        Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
+                        Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
+                        Session.UndoRedoService.SetName(transaction, "Unload game assemblies");
+                    }
+                    // Don't also reload what was just unloaded.
+                    modifiedAssembliesCopy.Remove(change.LoadedAssembly);
+                }
+                loadabilityChanged = true;
+                projectWatcher.RefreshLoadedAssembly(package);
+            }
 
             foreach (var modifiedAssembly in modifiedAssembliesCopy)
             {
@@ -316,6 +395,11 @@ namespace Stride.GameStudio.ViewModels
 
                     Session.UndoRedoService.SetName(transaction, "Reload game assemblies");
                 }
+                // Make sure we refresh the property grid so we don't reference any old type
+                Session.AssetViewProperties.RefreshSelectedPropertiesAsync().Forget();
+            }
+            else if (loadabilityChanged)
+            {
                 // Make sure we refresh the property grid so we don't reference any old type
                 Session.AssetViewProperties.RefreshSelectedPropertiesAsync().Forget();
             }

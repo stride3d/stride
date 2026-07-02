@@ -90,6 +90,60 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
         }
 
+        /// <summary>
+        /// Unloads a game assembly within the editor (no reload): live instances of its types are serialized
+        /// to Yaml and restored as <see cref="IUnloadable"/>, preserving their content for a later reload.
+        /// </summary>
+        public static void Unload([NotNull] SessionViewModel session, ILogger log, Action postUnloadAction, Action undoAction, [NotNull] Package package, [NotNull] PackageLoadedAssembly unloadedAssembly)
+        {
+            using (session.CreateAssetFixupContext())
+            {
+                var unloadedAssembliesSet = new HashSet<Assembly>();
+                if (unloadedAssembly.Assembly != null)
+                    unloadedAssembliesSet.Add(unloadedAssembly.Assembly);
+
+                // Serialize live instances of the assembly's types as Yaml, and unset them
+                var unloadingVisitor = new UnloadingVisitor(log, unloadedAssembliesSet);
+                Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
+                try
+                {
+                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
+                }
+                catch (Exception e)
+                {
+                    log.Error("Could not prepare asset for assembly unload", e);
+                    throw;
+                }
+
+                var unloadOperation = new UnloadAssembliesOperation(session.AssemblyContainer, package, unloadedAssembly, []);
+                session.UndoRedoService.SetName(unloadOperation, "Unload assemblies");
+                unloadOperation.Execute(log);
+                session.UndoRedoService.PushOperation(unloadOperation);
+
+                postUnloadAction();
+                var postUnloadOperation = new AnonymousDirtyingOperation([], postUnloadAction, postUnloadAction);
+                session.UndoRedoService.PushOperation(postUnloadOperation);
+                session.UndoRedoService.SetName(postUnloadOperation, "Post unload action");
+
+                // Restore the cleared items: with the assembly gone they deserialize as IUnloadable
+                try
+                {
+                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, log, assetItemsToReload);
+                }
+                catch (Exception e)
+                {
+                    log.Error("Could not restore asset after assembly unload", e);
+                    throw;
+                }
+
+                var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
+                session.UndoRedoService.PushOperation(undoOperation);
+                session.UndoRedoService.SetName(undoOperation, "Undo action");
+            }
+
+            session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
+        }
+
         private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IUndoRedoService actionService)
         {
             var assetItemsToReload = new Dictionary<AssetViewModel, List<ItemToReload>>();
