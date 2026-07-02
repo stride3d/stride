@@ -42,10 +42,8 @@ public static partial class NuGetAssemblyResolver
         if (packagesConfigs.Count == 0) return;
 
         // Launch-time graphics API (one live API per process); shared by both host layouts.
-        var selectedGraphicsApi = GraphicsApiSelector.Resolve() ?? GraphicsApiSelector.Default;
-
         // Local build: wire the subfolder resolver before the deps.json early-return below. No-op on flat.
-        GraphicsApiHostResolver.Setup(selectedGraphicsApi);
+        var selectedGraphicsApi = GraphicsApiHostResolver.Setup(GraphicsApiSelector.Resolve());
 
         // Make sure our nuget local store is added to nuget config
         var executingPath = Assembly.GetExecutingAssembly().Location;

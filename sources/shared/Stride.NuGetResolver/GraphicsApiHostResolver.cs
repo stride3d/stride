@@ -14,22 +14,26 @@ namespace Stride.Core.Assets;
 /// Local-build counterpart of the NuGet-cache resolver: with <c>StrideMultiGraphicsApiHost=true</c>,
 /// graphics-API-dependent assemblies sit in per-API subfolders (e.g. <c>Vulkan/</c>) next to the exe.
 /// Loads them from the selected API's subfolder via <see cref="AssemblyLoadContext.Default"/> Resolving.
+/// Without an explicit selection, the platform default falls back to a staged API if it isn't there.
 /// No-op on a flat build (no such subfolders).
 /// </summary>
 public static class GraphicsApiHostResolver
 {
     static bool initialized;
 
-    /// <param name="api">API chosen at launch (see <see cref="GraphicsApiSelector"/>).</param>
-    public static void Setup(string api)
+    /// <param name="explicitApi">API explicitly chosen at launch (see <see cref="GraphicsApiSelector"/>),
+    /// or null to use the platform default, falling back to an API the build actually staged.</param>
+    /// <returns>The API this process loads.</returns>
+    public static string Setup(string? explicitApi)
     {
+        var api = explicitApi ?? GraphicsApiSelector.Default;
         if (initialized)
-            return;
+            return api;
         initialized = true;
 
         // A --graphics-api error was recorded: don't hook, so graphics can't silently load the default.
         if (GraphicsApiSelector.StartupError != null)
-            return;
+            return api;
 
         var baseDir = AppContext.BaseDirectory;
         var apiDir = Path.Combine(baseDir, api);
@@ -42,10 +46,18 @@ public static class GraphicsApiHostResolver
                 .Select(Path.GetFileName)
                 .ToList();
             if (available.Count == 0)
-                return; // flat build
+                return api; // flat build
 
-            GraphicsApiSelector.FailStartup($"Graphics API '{api}' is not available in this build. Available: {string.Join(", ", available)}.");
-            return;
+            if (explicitApi != null)
+            {
+                GraphicsApiSelector.FailStartup($"Graphics API '{explicitApi}' is not available in this build. Available: {string.Join(", ", available)}.");
+                return api;
+            }
+
+            // Nothing was asked for and the platform default isn't staged (e.g. a Vulkan-only
+            // build on Windows): use what the build produced instead.
+            api = GraphicsApiSelector.KnownApis.FirstOrDefault(k => available.Contains(k, StringComparer.OrdinalIgnoreCase)) ?? available[0]!;
+            apiDir = Path.Combine(baseDir, api);
         }
 
         AssemblyLoadContext.Default.Resolving += (context, name) =>
@@ -63,6 +75,8 @@ public static class GraphicsApiHostResolver
             }
             return IntPtr.Zero;
         };
+
+        return api;
     }
 
     static string[] NativeCandidates(string apiDir, string libraryName)
