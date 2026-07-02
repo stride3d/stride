@@ -5,20 +5,21 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Extensions;
-using Stride.Core.BuildEngine;
-using Stride.Core;
-using Stride.Core.Annotations;
-using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.SceneEditor;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.BuildEngine;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.InputInteractions;
+using Stride.Games;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -32,9 +33,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// </summary>
     public class EditorGameEntitySelectionService : EditorGameMouseServiceBase, IEditorGameEntitySelectionService, IEditorGameSelectionViewModelService
     {
+        private const int SelectionInteractionPriority = -1000;
+        private bool isListeningForMouseClick = false;
         private Vector2 mouseMoveAccumulator;
         private PickingSceneRenderer entityPicker;
         private EntityHierarchyEditorGame game;
+        private IInputInteractionService interactionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorGameEntitySelectionService"/> class.
@@ -164,11 +168,19 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (SelectedIds.Count == 0)
                 return;
 
-            IsControllingMouse = true;
-            Editor.Dispatcher.InvokeAsync(() =>
+            InteractionService.Request(new InputInteractionRequest
             {
-                Editor.ClearSelection();
-                Editor.Controller.InvokeAsync(() => IsControllingMouse = false);
+                Name = "SelectionService.ClearEntitySelection",
+                InteractionType = InputInteractionType.SceneSelection,
+                Order = SelectionInteractionPriority,
+                Factory = () =>
+                {
+                    var task = Editor.Dispatcher.InvokeAsync(() =>
+                    {
+                        Editor.ClearSelection();
+                    });
+                    return new BlockInteraction(this, task);
+                }
             });
         }
 
@@ -182,14 +194,22 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (!SelectableIds.Contains(entityId) || SelectedIds.Count == 1 && SelectedIds.Contains(entityId))
                 return;
 
-            IsControllingMouse = true;
-            Editor.Dispatcher.InvokeAsync(() =>
+            InteractionService.Request(new InputInteractionRequest
             {
-                var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
-                Editor.ClearSelection();
-                if (viewModel != null)
-                    Editor.SelectedContent.Add(viewModel);
-                Editor.Controller.InvokeAsync(() => IsControllingMouse = false);
+                Name = "SelectionService.SetEntity",
+                InteractionType = InputInteractionType.SceneSelection,
+                Order = SelectionInteractionPriority,
+                Factory = () =>
+                {
+                    var task = Editor.Dispatcher.InvokeAsync(() =>
+                    {
+                        var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
+                        Editor.ClearSelection();
+                        if (viewModel != null)
+                            Editor.SelectedContent.Add(viewModel);
+                    });
+                    return new BlockInteraction(this, task);
+                }
             });
         }
 
@@ -203,18 +223,26 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (!SelectableIds.Contains(entityId) || SelectedIds.Contains(entityId))
                 return;
 
-            IsControllingMouse = true;
-            Editor.Dispatcher.InvokeAsync(() =>
+            InteractionService.Request(new InputInteractionRequest
             {
-                var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
-                if (viewModel?.IsSelectable == true)
-                    Editor.SelectedContent.Add(viewModel);
-                Editor.Controller.InvokeAsync(() => IsControllingMouse = false);
+                Name = "SelectionService.AddEntity",
+                InteractionType = InputInteractionType.SceneSelection,
+                Order = SelectionInteractionPriority,
+                Factory = () =>
+                {
+                    var task = Editor.Dispatcher.InvokeAsync(() =>
+                    {
+                        var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
+                        if (viewModel?.IsSelectable == true)
+                            Editor.SelectedContent.Add(viewModel);
+                    });
+                    return new BlockInteraction(this, task);
+                }
             });
         }
 
         /// <summary>
-        /// Adds the given entity from the selection.
+        /// Removes the given entity from the selection.
         /// </summary>
         /// <param name="entity">The entity that must be removed from selection.</param>
         private void Remove([NotNull] Entity entity)
@@ -223,13 +251,21 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (!SelectedIds.Contains(entityId))
                 return;
 
-            IsControllingMouse = true;
-            Editor.Dispatcher.InvokeAsync(() =>
+            InteractionService.Request(new InputInteractionRequest
             {
-                var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
-                if (viewModel != null)
-                    Editor.SelectedContent.Remove(viewModel);
-                Editor.Controller.InvokeAsync(() => IsControllingMouse = false);
+                Name = "SelectionService.RemoveEntity",
+                InteractionType = InputInteractionType.SceneSelection,
+                Order = SelectionInteractionPriority,
+                Factory = () =>
+                {
+                    var task = Editor.Dispatcher.InvokeAsync(() =>
+                    {
+                        var viewModel = (EntityHierarchyElementViewModel)Editor.FindPartViewModel(entityId);
+                        if (viewModel != null)
+                            Editor.SelectedContent.Remove(viewModel);
+                    });
+                    return new BlockInteraction(this, task);
+                }
             });
         }
 
@@ -459,13 +495,19 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                     var screenSize = new Vector2(game.GraphicsDevice.Presenter.BackBuffer.Width, game.GraphicsDevice.Presenter.BackBuffer.Height);
 
-                    if (game.Input.IsMouseButtonPressed(MouseButton.Left))
+                    if (game.Input.IsMouseButtonPressed(MouseButton.Left) && !InteractionService.HasActiveInteraction)
                     {
+                        isListeningForMouseClick = true;
                         mouseMoveAccumulator = Vector2.Zero;
+                    }
+                    if (isListeningForMouseClick && InteractionService.HasActiveInteraction)
+                    {
+                        isListeningForMouseClick = false;
                     }
                     mouseMoveAccumulator += new Vector2(Math.Abs(game.Input.MouseDelta.X * screenSize.X), Math.Abs(game.Input.MouseDelta.Y * screenSize.Y));
 
-                    if (IsMouseAvailable && game.Input.IsMouseButtonReleased(MouseButton.Left) && !game.Input.IsMouseButtonDown(MouseButton.Right))
+                    if (isListeningForMouseClick
+                        && game.Input.IsMouseButtonReleased(MouseButton.Left) && !game.Input.IsMouseButtonDown(MouseButton.Right))
                     {
                         if (mouseMoveAccumulator.Length() >= TransformationGizmo.TransformationStartPixelThreshold)
                             continue;
@@ -512,6 +554,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
         {
             game = (EntityHierarchyEditorGame)editorGame;
+            interactionService = game.Services.GetSafeServiceAs<IInputInteractionService>();
 
             Editor.SelectedContent.CollectionChanged += SelectedContentChanged;
             game.Script.AddTask(Execute);
@@ -616,6 +659,29 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 }
 
                 return false;
+            }
+        }
+
+        private class BlockInteraction(EditorGameEntitySelectionService EditorService, Task DispatchTask) : IInputInteraction
+        {
+            public object Owner => EditorService;
+
+            public void Start()
+            {
+            }
+
+            public bool Update(GameTime gameTime)
+            {
+                bool isStillControlling = !DispatchTask.IsCompleted;
+                return isStillControlling;
+            }
+
+            public void End()
+            {
+            }
+
+            public void Cancel()
+            {
             }
         }
     }

@@ -4,13 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core;
-using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
-using Stride.Core.Serialization;
-using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Assets.Entities;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
@@ -18,8 +11,17 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.SceneEditor;
+using Stride.Core;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Serialization;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.InputInteractions;
+using Stride.Games;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
@@ -265,7 +267,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         entityId = editor.Controller.GetAbsoluteId(entityUnderMouse);
                         entityUnderMouseInSelection = previouslySelected.Contains(entityId.Value);
                     }
-                    if (!game.Input.IsMousePositionLocked && entityUnderMouse != null && materialSelected >= 0 && entityUnderMouseInSelection)
+                    bool canInteract = !InteractionService.HasActiveInteraction || InteractionService.IsActiveInteractionOwner(this);
+                    if (canInteract && entityUnderMouse != null && materialSelected >= 0 && entityUnderMouseInSelection)
                     {
                         HighlightMaterial(entityUnderMouse, materialSelected);
                     }
@@ -277,23 +280,14 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                 NotifyMaterialHighlighted(entityUnderMouseInSelection ? entityUnderMouse : null, materialSelected, meshSelected);
 
-                if (IsMouseAvailable && entityUnderMouse != null && previouslySelected.Contains(entityId.Value) && game.Input.IsMouseButtonPressed(MouseButton.Left))
+                if (!InteractionService.HasActiveInteraction && entityUnderMouse != null && previouslySelected.Contains(entityId.Value) && game.Input.IsMouseButtonPressed(MouseButton.Left))
                 {
-                    IsControllingMouse = true;
-                }
-                
-                if (IsControllingMouse && !game.Input.IsMouseButtonReleased(MouseButton.Left) && !game.Input.IsMouseButtonDown(MouseButton.Left))
-                {
-                    IsControllingMouse = false;
-                }
-
-                if (IsControllingMouse && game.Input.IsMouseButtonReleased(MouseButton.Left))
-                {
-                    // Note: we set IsControllingMouse back to false next frame so that no other EditorGameMouseServiceBase take over during the same frame
-                    if (entityUnderMouse != null && materialSelected >= 0 && previouslySelected.Contains(entityId.Value))
+                    InteractionService.Request(new InputInteractionRequest
                     {
-                        editor.Dispatcher.Invoke(() => SelectMaterialInAssetView(entityUnderMouse, materialSelected));
-                    }
+                        Name = "MaterialHighlight",
+                        InteractionType = InputInteractionType.SceneSelection,
+                        Factory = () => new Interaction(this, previouslySelected)
+                    });
                 }
             }
         }
@@ -363,6 +357,59 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     (HighlightRenderFeature.MaterialsHighlightedForModel.Contains(renderMesh.MaterialPass.Material)
                      && renderMesh.Source is ModelComponent component
                      && HighlightRenderFeature.ModelHighlightColors.ContainsKey(component)));
+            }
+        }
+
+        private class Interaction(EditorGameMaterialHighlightService EditorService, IReadOnlyCollection<AbsoluteId> PreviouslySelected) : IInputInteraction
+        {
+            public object Owner => EditorService;
+
+            public void Start()
+            {
+            }
+
+            public bool Update(GameTime gameTime)
+            {
+                var game = EditorService.game;
+                if (game.Input.IsMouseButtonDown(MouseButton.Left))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            public void End()
+            {
+                var editor = EditorService.editor;
+
+                var entityUnderMouse = EditorService.Gizmos.GetContentEntityUnderMouse();
+                int materialSelected = -1;
+
+                AbsoluteId? entityId = null;
+                if (entityUnderMouse is null)
+                {
+                    var entityPicked = EditorService.Selection.Pick();
+                    materialSelected = entityPicked.MaterialIndex;
+                    entityUnderMouse = entityPicked.Entity;
+                    if (entityUnderMouse is not null)
+                    {
+                        entityId = editor.Controller.GetAbsoluteId(entityUnderMouse);
+                    }
+                }
+                else
+                {
+                    entityId = editor.Controller.GetAbsoluteId(entityUnderMouse);
+                }
+
+                if (entityUnderMouse is not null && materialSelected >= 0 && PreviouslySelected.Contains(entityId.Value))
+                {
+                    editor.Dispatcher.Invoke(() => EditorService.SelectMaterialInAssetView(entityUnderMouse, materialSelected));
+                }
+            }
+
+            public void Cancel()
+            {
             }
         }
     }

@@ -2,23 +2,25 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core.Annotations;
-using Stride.Core.Mathematics;
+using System.Diagnostics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Stride.Assets.Presentation.SceneEditor;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
 using Stride.Editor.Engine;
 using Stride.Engine;
-using Stride.Engine.Processors;
+using Stride.Engine.InputInteractions;
+using Stride.Games;
 using Stride.Input;
 using static Stride.Assets.Presentation.SceneEditor.SceneEditorSettings;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
-    public class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameEntityCameraViewModelService
+    public class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameEntityCameraViewModelService, IInputInteraction
     {
         protected struct Input
         {
@@ -30,6 +32,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             public bool isShiftDown;
         };
         private const float panningSpeedModifier = 0.033f;
+        private CameraMode cameraMode;
+
+        private IInputInteractionService interactionService;
 
         private readonly EntityHierarchyEditorViewModel editor;
         private float revolutionRadius;
@@ -117,7 +122,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (duplicating)
                 return;
 
-            if (!IsMouseAvailable)
+            interactionService ??= Game.Services.GetSafeServiceAs<IInputInteractionService>();
+            if (interactionService.HasActiveInteraction && !interactionService.IsActiveInteractionOwner(this))
                 return;
 
             var yaw = Yaw;
@@ -139,40 +145,135 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             SetCurrentYaw(yaw);
             UpdateViewMatrix();
 
-            var isAnyMouseButtonDown = (Game.Input.IsMouseButtonDown(MouseButton.Left) || Game.Input.IsMouseButtonDown(MouseButton.Middle) || Game.Input.IsMouseButtonDown(MouseButton.Right));
-            var shouldControlMouse = IsMouseAvailable && isAnyMouseButtonDown && (input.isMoving || input.isPanning || input.isRotating || input.isOrbiting || input.isZooming);
-            if (shouldControlMouse != IsControllingMouse)
+            if (cameraMode == CameraMode.Inactive)
             {
-                IsControllingMouse = shouldControlMouse;
-
-                if (IsControllingMouse)
+                bool wantsFreeLookMode = Game.Input.IsMouseButtonPressed(MouseButton.Right);
+                bool wantsPanMode = Game.Input.IsMouseButtonPressed(MouseButton.Middle);
+                bool isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
+                bool wantsOrbitMode = Game.Input.IsMouseButtonPressed(MouseButton.Left) && isAltDown;
+                if (wantsFreeLookMode)
                 {
-                    Game.Input.LockMousePosition();
-                    Game.IsMouseVisible = false;
+                    interactionService.Request(new InputInteractionRequest
+                    {
+                        Name = "SceneCamera.FreeLook",
+                        InteractionType = InputInteractionType.Camera,
+                        Factory = () =>
+                        {
+                            cameraMode = CameraMode.FreeLook;
+                            return this;
+                        },
+                    });
                 }
-                else
+                else if (wantsPanMode)
                 {
-                    Game.Input.UnlockMousePosition();
-                    Game.IsMouseVisible = true;
+                    interactionService.Request(new InputInteractionRequest
+                    {
+                        Name = "SceneCamera.Pan",
+                        InteractionType = InputInteractionType.Camera,
+                        Factory = () =>
+                        {
+                            cameraMode = CameraMode.Pan;
+                            return this;
+                        },
+                    });
+                }
+                else if (wantsOrbitMode)
+                {
+                    interactionService.Request(new InputInteractionRequest
+                    {
+                        Name = "SceneCamera.Orbit",
+                        InteractionType = InputInteractionType.Camera,
+                        Factory = () =>
+                        {
+                            cameraMode = CameraMode.Orbit;
+                            return this;
+                        },
+                    });
                 }
             }
         }
 
+        object IInputInteraction.Owner =>  this;
+
+        void IInputInteraction.Start()
+        {
+            Game.Input.LockMousePosition();
+            Game.IsMouseVisible = false;
+        }
+
+        bool IInputInteraction.Update(GameTime gameTime)
+        {
+            // Check if we want to release control
+            switch (cameraMode)
+            {
+                case CameraMode.Inactive:
+                    return false;
+                case CameraMode.FreeLook:
+                    bool wantsFreeLookMode = Game.Input.IsMouseButtonDown(MouseButton.Right);
+                    if (!wantsFreeLookMode)
+                    {
+                        return false;
+                    }
+                    break;
+                case CameraMode.Pan:
+                    bool wantsPanMode = Game.Input.IsMouseButtonDown(MouseButton.Middle);
+                    if (!wantsPanMode)
+                    {
+                        return false;
+                    }
+                    break;
+                case CameraMode.Orbit:
+                    bool wantsOrbitMode = Game.Input.IsMouseButtonDown(MouseButton.Left);
+                    if (!wantsOrbitMode)
+                    {
+                        return false;
+                    }
+                    break;
+            }
+
+            return true;
+        }
+
+        void IInputInteraction.End()
+        {
+            ReleaseInput();
+        }
+
+        void IInputInteraction.Cancel()
+        {
+            ReleaseInput();
+        }
+
+        private void ReleaseInput()
+        {
+            cameraMode = CameraMode.Inactive;
+            Game.Input.UnlockMousePosition();
+            Game.IsMouseVisible = true;
+        }
+
         private Input GetInput()
         {
-            Input input;
+            Input input = default;
 
-            bool lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);    // TODO: Combine this with UpdateCameraAsOrthographic!
-            bool mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle);
-            bool rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right);
-            bool isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
-            input.isShiftDown = Game.Input.IsKeyDown(Keys.LeftShift) || Game.Input.IsKeyDown(Keys.RightShift);
+            if (cameraMode != CameraMode.Inactive)
+            {
+                bool lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);    // TODO: Combine this with UpdateCameraAsOrthographic!
+                bool mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle);
+                bool rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right);
+                bool isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
+                input.isShiftDown = Game.Input.IsKeyDown(Keys.LeftShift) || Game.Input.IsKeyDown(Keys.RightShift);
 
-            input.isPanning = mbDown && !rbDown;
-            input.isRotating = !isAltDown && !mbDown && rbDown;
-            input.isMoving = !isAltDown && mbDown && rbDown;
-            input.isZooming = (isAltDown && !lbDown && !mbDown && rbDown) || (MathF.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance);
-            input.isOrbiting = isAltDown && lbDown && !mbDown && !rbDown;
+                input.isPanning = cameraMode == CameraMode.Pan;
+                input.isRotating = !isAltDown && !mbDown && cameraMode == CameraMode.FreeLook;
+                input.isMoving = !isAltDown && mbDown && cameraMode == CameraMode.FreeLook;
+                input.isZooming = (isAltDown && !mbDown && cameraMode == CameraMode.FreeLook) || (MathF.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance);
+                input.isOrbiting = cameraMode == CameraMode.Orbit;
+            }
+            else
+            {
+                // Allow wheel 'zoom' (forward/back movement) even when not actively in control
+                input.isZooming = (MathF.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance);
+            }
 
             return input;
         }
@@ -273,7 +374,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Move
             if (input.isMoving)
             {
-                if(asOrthographic)
+                if (asOrthographic)
                 {
                     zoomDelta -= MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
                 }
@@ -338,12 +439,20 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
         protected void UpdateCameraAsOrthographic(ref float yaw, ref float pitch, ref Vector3 position, Input input)
         {
-            UpdateCameraBase(ref yaw, ref pitch, ref position, true, input);
+            UpdateCameraBase(ref yaw, ref pitch, ref position, asOrthographic: true, input);
         }
 
         protected void UpdateCameraAsPerspective(ref float yaw, ref float pitch, ref Vector3 position, Input input)
         {
-            UpdateCameraBase(ref yaw, ref pitch, ref position, false, input);
+            UpdateCameraBase(ref yaw, ref pitch, ref position, asOrthographic: false, input);
+        }
+
+        private enum CameraMode
+        {
+            Inactive,
+            FreeLook,
+            Pan,
+            Orbit,
         }
     }
 }

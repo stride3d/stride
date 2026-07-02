@@ -18,6 +18,7 @@ using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Extensions;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Engine.InputInteractions;
 using Stride.Games;
 using Stride.Physics;
 using Stride.Rendering;
@@ -262,6 +263,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             var physicsSystem = new Bullet2PhysicsSystem(Services);
             Services.AddService<IPhysicsSystem>(physicsSystem);
             GameSystems.Add(physicsSystem);
+
+            var interactionSystem = new InputInteractionSystem(Services);
+            Services.AddService<IInputInteractionService>(interactionSystem);
+            GameSystems.Add(interactionSystem);
         }
 
         /// <inheritdoc />
@@ -297,6 +302,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             //OnClientSizeChanged(this, EventArgs.Empty);
 
             // Initialize the services
+            var inputInteractionService = Services.GetSafeServiceAs<IInputInteractionService>();
             var initialized = new List<IEditorGameService>();
             foreach (var service in EditorServices.OrderByDependency())
             {
@@ -313,6 +319,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                 var mouseService = service as EditorGameMouseServiceBase;
                 mouseService?.RegisterMouseServices(EditorServices);
+                mouseService?.InitializeMouseService(inputInteractionService);
             }
 
             // TODO: Maybe define this scene default graphics compositor as an asset?

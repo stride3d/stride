@@ -137,6 +137,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         public Vector3 Position { get; private set; }
 
         /// <inheritdoc/>
+        [Obsolete]
         public override bool IsControllingMouse { get; protected set; }
 
         protected IEditorGameController Controller { get; }
