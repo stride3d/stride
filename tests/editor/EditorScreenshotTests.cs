@@ -44,17 +44,19 @@ public class EditorScreenshotTests
 
     public static IEnumerable<object[]> Fixtures()
     {
-        // (fixtureName, optional template GUID to instantiate and upgrade before opening, timeout-minutes)
-        yield return new object?[] { "EmptyEditor",   (Guid?)null,                                                       3 };
-        yield return new object?[] { "TopDownCreate", (Guid?)null,                                                       8 };
-        yield return new object?[] { "TopDownLoad",   (Guid?)new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034"),           5 };
-        yield return new object?[] { "ScriptEditor",  (Guid?)new Guid("81d2adea-37b1-4711-834c-0d73a05c206c"),           6 };
-        yield return new object?[] { "NewGameEditor", (Guid?)null,                                                       5 };
+        // (fixtureName, optional template GUID to instantiate and upgrade before opening, timeout-minutes,
+        //  comparison prompt — ScriptEditor ignores the script's literal text (template content can change)
+        //  and only checks it renders as syntax-highlighted C# in the editor theme)
+        yield return new object?[] { "EmptyEditor",   (Guid?)null,                                             3, EditorComparisonPrompt.Default };
+        yield return new object?[] { "TopDownCreate", (Guid?)null,                                             8, EditorComparisonPrompt.Default };
+        yield return new object?[] { "TopDownLoad",   (Guid?)new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034"), 5, EditorComparisonPrompt.Default };
+        yield return new object?[] { "ScriptEditor",  (Guid?)new Guid("81d2adea-37b1-4711-834c-0d73a05c206c"), 6, EditorComparisonPrompt.ScriptEditor };
+        yield return new object?[] { "NewGameEditor", (Guid?)null,                                             5, EditorComparisonPrompt.Default };
     }
 
     [Theory]
     [MemberData(nameof(Fixtures))]
-    public void Capture(string fixtureName, Guid? templateGuid, int timeoutMin)
+    public void Capture(string fixtureName, Guid? templateGuid, int timeoutMin, EditorComparisonPrompt prompt)
     {
         var worktree = WorktreeRoot();
         var captureRoot = Path.Combine(worktree, "ui-test-out-" + Dpi);
@@ -121,9 +123,6 @@ public class EditorScreenshotTests
         // Compare against baselines. Filter to this fixture so the same captureRoot can host
         // multiple fixtures' captures across test invocations.
         var baselineDir = Path.Combine(worktree, "tests", "editor", "baselines", Dpi);
-        // The script-editor capture ignores the script's literal text (template content can change)
-        // and only checks it renders as syntax-highlighted C# in the editor theme.
-        var prompt = fixtureName == "ScriptEditor" ? EditorComparisonPrompt.ScriptEditor : EditorComparisonPrompt.Default;
         var results = ScreenshotComparator.Compare(captureRoot, baselineDir,
             sampleFilter: fixtureName, defaultPrompt: prompt,
             deferWhenVisionUnavailable: true);
