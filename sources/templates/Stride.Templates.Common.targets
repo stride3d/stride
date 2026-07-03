@@ -72,6 +72,13 @@
     <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>
+    <!-- The engine version stamped into template content (the engine-version flag below). Distinct
+         from PackageVersion: content-versioned packages (Samples/Starters) follow StrideSamplesVersion,
+         but their PackageReferences must name engine packages that actually exist. -->
+    <PropertyGroup>
+      <_StrideTemplatesEngineVersion>$(StrideNuGetVersion)</_StrideTemplatesEngineVersion>
+      <_StrideTemplatesEngineVersion Condition="'$(StrideWorktreeSuffix)' != '' And !$(_StrideTemplatesEngineVersion.EndsWith('$(StrideWorktreeSuffix)'))">$(_StrideTemplatesEngineVersion)$(StrideWorktreeSuffix)</_StrideTemplatesEngineVersion>
+    </PropertyGroup>
   </Target>
 
   <!-- Also suffix during a parent's cross-project version query (_GetProjectVersion), so GameStudio's
@@ -176,10 +183,13 @@
     <Message Text="StrideTemplates [$(PackageId)]: pack mode = $(StrideTemplatesPackMode), templates = @(StrideSampleTemplate->Count())" Importance="high" />
 
     <!-- Per-template preprocess. MSBuild's per-item Exec batching runs one command per item.
-         The engine-version flag substitutes $EngineVersion$ literals in template content.
-         platform-template-path points the preprocessor at the NewGame scaffold so samples that ship
-         only Windows (most of them) gain Linux/macOS/iOS/Android exec projects in the packed output. -->
-    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(PackageVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag)" />
+         The engine-version flag stamps the engine version into template content ($EngineVersion$
+         literals + concrete Stride.* PackageReference versions), so packed content instantiates
+         against the engine it shipped with — including via plain `dotnet new`, which has no
+         Stride-side rewrite hook. platform-template-path points the preprocessor at the NewGame
+         scaffold so samples that ship only Windows (most of them) gain Linux/macOS/iOS/Android
+         exec projects in the packed output. -->
+    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(_StrideTemplatesEngineVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag)" />
 
     <!-- Aggregate every wrapped template's .sdtpl into a single multi-doc YAML at the package
          root. GameStudio's bridge reads this one file for display metadata. -->
