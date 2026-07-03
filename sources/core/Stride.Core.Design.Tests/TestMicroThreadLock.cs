@@ -14,7 +14,7 @@ public class TestMicroThreadLock
     [Fact]
     public void TestConcurrencyInMicrothreads()
     {
-        using var scheduler = new Scheduler();
+        var scheduler = new Scheduler();
         var microThreadLock = new MicroThreadLock();
         var counter = 0;
         for (var j = 0; j < ThreadCount; ++j)
@@ -44,7 +44,7 @@ public class TestMicroThreadLock
     [Fact]
     public void TestSequentialLocksInMicrothreads()
     {
-        using var scheduler = new Scheduler();
+        var scheduler = new Scheduler();
         var microThreadLock = new MicroThreadLock();
         var counter = 0;
         for (var j = 0; j < ThreadCount; ++j)
@@ -84,7 +84,7 @@ public class TestMicroThreadLock
     [Fact]
     public void TestReentrancyInMicrothreads()
     {
-        using var scheduler = new Scheduler();
+        var scheduler = new Scheduler();
         var microThreadLock = new MicroThreadLock();
         var counter = 0;
         for (var j = 0; j < ThreadCount; ++j)
@@ -359,7 +359,7 @@ public class TestMicroThreadLock
     [Fact]
     public void TestConcurrencyInThreadsAndMicrothreads()
     {
-        using var scheduler = new Scheduler();
+        var scheduler = new Scheduler();
         var microThreadLock = new MicroThreadLock();
         var counter = 0;
         for (var j = 0; j < ThreadCount; ++j)
@@ -417,7 +417,7 @@ public class TestMicroThreadLock
     [Fact]
     public async Task TestConcurrencyInTasksAndMicrothreads()
     {
-        using var scheduler = new Scheduler();
+        var scheduler = new Scheduler();
         var microThreadLock = new MicroThreadLock();
         var counter = 0;
         for (var j = 0; j < ThreadCount; ++j)
