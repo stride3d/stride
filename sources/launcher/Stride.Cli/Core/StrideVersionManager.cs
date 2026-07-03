@@ -324,14 +324,19 @@ public sealed class StrideVersionManager
     private IEnumerable<string> ResolveTemplatePackages(PackageVersion version, IEnumerable<string>? extraPackages)
     {
         // Discover template packages by package type + tag, then per id pick the newest version whose
-        // Stride.Core marker floor is <= the requested version (unmarked packages fall back to newest).
+        // Stride.Core marker floor is <= the requested version. Unmarked (legacy) packages have unknown
+        // engine compatibility, so they are a last resort: any marked match wins over a newer unmarked one
+        // (otherwise a co-installed newer dev package without the marker silently hijacks the request).
         var discovered = store.GetAllPackagesInstalled()
             .Where(package => package.IsTemplatePackage && package.HasTag(TemplateTag))
             .GroupBy(package => package.Id, StringComparer.OrdinalIgnoreCase)
-            .Select(group => group
-                .Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is not { } floor || floor.CompareTo(version) <= 0)
-                .OrderByDescending(package => package.Version)
-                .FirstOrDefault())
+            .Select(group =>
+                group.Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is { } floor && floor.CompareTo(version) <= 0)
+                    .OrderByDescending(package => package.Version)
+                    .FirstOrDefault()
+                ?? group.Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is null)
+                    .OrderByDescending(package => package.Version)
+                    .FirstOrDefault())
             .OfType<NugetLocalPackage>();
 
         foreach (var package in discovered)
