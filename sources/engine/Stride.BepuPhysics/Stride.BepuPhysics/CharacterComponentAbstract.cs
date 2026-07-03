@@ -18,7 +18,7 @@ public abstract class CharacterComponentAbstract : BodyComponent, ISimulationUpd
     /// <inheritdoc/>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
-        base.AttachInner(pose, new BodyInertia { InverseMass = 1f }, shapeIndex);
+        base.AttachInner(pose, new BodyInertia { InverseMass = shapeInertia.InverseMass }, shapeIndex);
 
         Debug.Assert(BodyReference.HasValue);
         Debug.Assert(Simulation is not null);
