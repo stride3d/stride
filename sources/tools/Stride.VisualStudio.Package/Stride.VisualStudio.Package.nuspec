@@ -2,7 +2,8 @@
 <package>
   <metadata>
     <id>Stride.VisualStudio.Package</id>
-    <version>4.3.0</version>
+    <!-- Fallback only: VSIXPlugin packs with -Version from the project's VersionPrefix (+ VersionSuffix). -->
+    <version>4.4.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>
