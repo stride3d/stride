@@ -357,7 +357,7 @@ namespace Stride.AssetCompiler
                 }
 
                 // Create scheduler
-                using var scheduler = new Scheduler();
+                var scheduler = new Scheduler();
 
                 var status = ResultStatus.NotProcessed;
 
