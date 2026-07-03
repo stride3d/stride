@@ -68,7 +68,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
      ```bash
      dotnet run build/GenerateDevPackages.cs
      ```
-     Builds the solution and deploys redirect packages to `%LocalAppData%\stride\nugetdev`, mirrored into `bin\packages` so the repo's own feed stays current too. The very first run in a fresh checkout can fail with "No packages found" (the version overlay doesn't exist yet) — just run it again.
+     Builds the solution and deploys redirect packages to `%LocalAppData%\stride\nugetdev`, mirrored into `bin\packages` so the repo's own feed stays current too.
    - Normal mode: any engine build (Visual Studio or `dotnet build build\Stride.slnx`) auto-packs real packages into `bin\packages`.
 2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
    ```bash

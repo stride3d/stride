@@ -55,8 +55,8 @@
   </Target>
 
   <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
-       Stamp file is a manifest of stub nupkg filenames written by GenerateDevPackages.cs,
-       so we delete only those — leaving real packages (e.g. Stride.Templates.*) intact. -->
+       Stamp file is a manifest of the nupkg filenames GenerateDevPackages.cs deployed, so we
+       delete exactly those and nothing else. -->
   <Target Name="_StrideCleanDevPackages"
           BeforeTargets="CoreCompile"
           Condition="'$(StrideDevPackages)' != 'true' And '$(DesignTimeBuild)' != 'true'">
