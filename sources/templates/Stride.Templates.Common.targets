@@ -127,9 +127,12 @@
     </ProjectReference>
     <!-- Marker dependency: stamps the engine version the templates were built against as a Stride.Core >=
          dependency. The CLI reads it from nuget metadata to pick a compatible template. Private=false keeps
-         the package content-only (nothing compiles against Stride.Core). -->
+         the package content-only (nothing compiles against Stride.Core). ReferenceOutputAssembly must be
+         forced back on: the NoTargets SDK defaults it to false on every ProjectReference, and NuGet restore
+         drops such references from the   dependency graph, which silently drops this marker from the nuspec. -->
     <ProjectReference Include="$(StrideRoot)sources/core/Stride.Core/Stride.Core.csproj">
       <Private>false</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <SetTargetFramework>TargetFramework=$(TargetFramework)</SetTargetFramework>
     </ProjectReference>
   </ItemGroup>
