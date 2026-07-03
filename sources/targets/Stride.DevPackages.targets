@@ -73,6 +73,10 @@
     <ItemGroup>
       <_StrideDevPackagesToDelete Include="$(LocalAppData)/stride/nugetdev/%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
+      <!-- The bin/packages mirrors (GenerateDevPackages copies stubs there so the repo
+           nuget.config's stride-local mapping stays valid in dev mode). -->
+      <_StrideDevPackagesToDelete Include="$(StrideRoot)bin\packages\%(_StrideDevPackagesStubManifest.Identity)"
+                                  Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
     </ItemGroup>
 
     <Delete Files="@(_StrideDevPackagesToDelete)" />
