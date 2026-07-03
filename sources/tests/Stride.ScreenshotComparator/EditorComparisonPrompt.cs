@@ -20,6 +20,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
     public bool TolerateThumbnailRenderTiming { get; init; }
     public bool TolerateScrollPosition { get; init; }
     public bool TolerateSelectionHighlight { get; init; }
+    public bool TolerateCodeText { get; init; }
 
     // Regression triggers — visible differences that ARE a real regression.
     public bool RegressionOnBlankPanel { get; init; }
@@ -30,6 +31,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
     public bool RegressionOnBrokenScenePreview { get; init; }
     public bool RegressionOnThemeColorShift { get; init; }
     public bool RegressionOnBuildLogErrors { get; init; }
+    public bool RegressionOnMissingSyntaxHighlighting { get; init; }
 
     /// <summary>Curated preset for editor screenshot tests.</summary>
     public static readonly EditorComparisonPrompt Default = new()
@@ -51,6 +53,18 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         RegressionOnBuildLogErrors = true,
     };
 
+    /// <summary>
+    /// Preset for the RoslynPad script-editor capture: the literal script text is irrelevant — only
+    /// that the document renders as syntax-highlighted C# in the editor theme. Guards the RoslynPad/
+    /// Roslyn MEF composition, whose failure leaves the editor blank or unstyled.
+    /// </summary>
+    public static readonly EditorComparisonPrompt ScriptEditor = Default with
+    {
+        TolerateCodeText = true,
+        RegressionOnWrongLabels = false,        // the script body is content, not a UI label, and may change
+        RegressionOnMissingSyntaxHighlighting = true,
+    };
+
     public override string Build(int baselineCount = 1)
     {
         var sb = new StringBuilder(Intro("Stride GameStudio editor UI", baselineCount));
@@ -62,6 +76,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         AppendIf(sb, TolerateThumbnailRenderTiming, "Asset-thumbnail loading state (rendered icon vs placeholder vs spinner).");
         AppendIf(sb, TolerateScrollPosition, "Scroll position / first-visible-item differs in lists or trees.");
         AppendIf(sb, TolerateSelectionHighlight, "Selection / hover / focus highlight on a different item.");
+        AppendIf(sb, TolerateCodeText, "The literal source-code text in a code/script editor differs — only that it renders as syntax-highlighted C# matters, not the specific code.");
         sb.Append("\nNO (real regression):\n");
         AppendIf(sb, RegressionOnBlankPanel, "Panel is blank / black / shows only chrome with no content.");
         AppendIf(sb, RegressionOnExceptionDialog, "An error / exception / crash dialog is visible.");
@@ -71,6 +86,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         AppendIf(sb, RegressionOnBrokenScenePreview, "Embedded scene preview is BROKEN (pink-checker, all-black, distorted, debug-error overlay) — distinct from normal viewport drift.");
         AppendIf(sb, RegressionOnThemeColorShift, "Whole-window color / theme shift (light vs dark theme, wrong accent color throughout).");
         AppendIf(sb, RegressionOnBuildLogErrors, "Build/output log shows error or warning lines (color-coded red/yellow vs the normal info-level color) — but timestamps and elapsed-time numbers in those lines are still tolerated.");
+        AppendIf(sb, RegressionOnMissingSyntaxHighlighting, "A code/script editor shows plain monochrome text with no C# syntax highlighting (keywords, types, strings, comments should appear in distinct theme colors).");
         sb.Append(OutroWithHint());
         return sb.ToString();
     }

@@ -48,6 +48,7 @@ public class EditorScreenshotTests
         yield return new object?[] { "EmptyEditor",   (Guid?)null,                                                       3 };
         yield return new object?[] { "TopDownCreate", (Guid?)null,                                                       8 };
         yield return new object?[] { "TopDownLoad",   (Guid?)new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034"),           5 };
+        yield return new object?[] { "ScriptEditor",  (Guid?)new Guid("81d2adea-37b1-4711-834c-0d73a05c206c"),           6 };
         yield return new object?[] { "NewGameEditor", (Guid?)null,                                                       5 };
     }
 
@@ -120,8 +121,11 @@ public class EditorScreenshotTests
         // Compare against baselines. Filter to this fixture so the same captureRoot can host
         // multiple fixtures' captures across test invocations.
         var baselineDir = Path.Combine(worktree, "tests", "editor", "baselines", Dpi);
+        // The script-editor capture ignores the script's literal text (template content can change)
+        // and only checks it renders as syntax-highlighted C# in the editor theme.
+        var prompt = fixtureName == "ScriptEditor" ? EditorComparisonPrompt.ScriptEditor : EditorComparisonPrompt.Default;
         var results = ScreenshotComparator.Compare(captureRoot, baselineDir,
-            sampleFilter: fixtureName, defaultPrompt: EditorComparisonPrompt.Default,
+            sampleFilter: fixtureName, defaultPrompt: prompt,
             deferWhenVisionUnavailable: true);
 
         foreach (var r in results)
