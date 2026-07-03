@@ -81,10 +81,13 @@ internal class TemplatePreprocessor
     public string? TemplateName { get; set; }
 
     /// <summary>
-    /// When set, every literal <c>$EngineVersion$</c> in <c>.csproj</c> output files is rewritten
-    /// to this value (typically pack-time <c>PackageVersion</c>). No-op for samples that hardcode
-    /// their version; required for the NewGame starter so its <c>PackageReference</c> versions
-    /// pin to the matching engine release.
+    /// When set, staged <c>.csproj</c> files get this engine version stamped in: every literal
+    /// <c>$EngineVersion$</c> (NewGame starter) and every concrete engine-family <c>Stride.*</c>
+    /// <c>PackageReference</c> version (samples commit the samples-authority version, which may
+    /// not match — or even restore against — the engine being packed). Stamping at pack time
+    /// makes the content instantiable as-is by every consumer, including plain <c>dotnet new</c>,
+    /// which has no Stride-side rewrite hook; instantiation-side upgrading remains only for
+    /// running a template against a newer engine than it was packed with.
     /// </summary>
     public string? EngineVersion { get; set; }
 
@@ -248,8 +251,9 @@ internal class TemplatePreprocessor
         EmitTemplateJson();
         logger.Info($"Wrote template.json with {GuidMap.Count} generated/guid symbols");
 
-        // $EngineVersion$ substitution. Only NewGame's csprojs use this literal; samples
-        // hardcode their version and pass through unchanged.
+        // Engine-version stamp: $EngineVersion$ literals (NewGame) plus concrete Stride.*
+        // PackageReference versions (samples), so packed content instantiates against the
+        // engine it shipped with. See the EngineVersion property doc.
         if (!string.IsNullOrEmpty(EngineVersion))
             SubstituteEngineVersion(logger);
 
@@ -327,19 +331,48 @@ internal class TemplatePreprocessor
             Copy(screenshot);
     }
 
+    /// <summary>Matches a <c>Stride*</c> Include + Version attribute pair (PackageReference shape).</summary>
+    private static readonly Regex StridePackageReferenceRegex = new(
+        "(Include=\"(Stride[^\"]*)\"\\s+Version=\")([^\"]*)(\")", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Community/third-party <c>Stride.*</c>-prefixed packages that version independently of the
+    /// engine; their references pass through the engine-version stamp untouched.
+    /// </summary>
+    private static readonly string[] NonEnginePackagePrefixes =
+    {
+        "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
+        "Stride.GraphX", "Stride.Metrics", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+    };
+
+    private static bool IsNonEnginePackage(string packageId)
+        => NonEnginePackagePrefixes.Any(prefix => packageId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+
     private void SubstituteEngineVersion(ILogger logger)
     {
-        var replaced = 0;
+        var files = 0;
+        var references = 0;
         foreach (var csproj in Directory.EnumerateFiles(OutputDirectory!, "*.csproj", SearchOption.AllDirectories))
         {
             var content = File.ReadAllText(csproj);
-            if (content.IndexOf("$EngineVersion$", StringComparison.Ordinal) < 0)
+            var updated = content.Replace("$EngineVersion$", EngineVersion);
+            updated = StridePackageReferenceRegex.Replace(updated, match =>
+            {
+                var version = match.Groups[3].Value;
+                // A remaining $placeholder$ is someone else's substitution point; community
+                // packages keep their committed version.
+                if (version.IndexOf('$') >= 0 || version == EngineVersion || IsNonEnginePackage(match.Groups[2].Value))
+                    return match.Value;
+                references++;
+                return match.Groups[1].Value + EngineVersion + match.Groups[4].Value;
+            });
+            if (updated == content)
                 continue;
-            File.WriteAllText(csproj, content.Replace("$EngineVersion$", EngineVersion));
-            replaced++;
+            File.WriteAllText(csproj, updated);
+            files++;
         }
-        if (replaced > 0)
-            logger.Info($"Substituted $EngineVersion$ → {EngineVersion} in {replaced} .csproj file(s)");
+        if (files > 0)
+            logger.Info($"Stamped engine version {EngineVersion} into {files} .csproj file(s) ({references} Stride.* reference(s) rewritten)");
     }
 
     /// <summary>
