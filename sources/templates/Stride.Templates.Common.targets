@@ -87,20 +87,10 @@
     <GetPackageVersionDependsOn>$(GetPackageVersionDependsOn);StrideTemplatesAppendWorktreeVersion</GetPackageVersionDependsOn>
   </PropertyGroup>
 
-  <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build. Mirrors
-       Stride.Build.Sdk/Sdk.targets (StrideAutoPackDeploy + GeneratePackageOnBuild block); inlined
-       here because this project doesn't use the Stride SDK chain. -->
-  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true'">
-    <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  </PropertyGroup>
-  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack" Condition="'$(StrideSkipAutoPack)' != 'true'">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
-    <!-- Purge the extracted copy in the global NuGet cache so consumer restores re-extract
-         from the freshly built .nupkg (otherwise same-version repacks load stale content). -->
-    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
-               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
-  </Target>
+  <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build
+       (shared with the Stride SDK chain; imported directly here because this project uses
+       vanilla Microsoft.NET.Sdk). -->
+  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
 
   <!-- CI safeguard: never publish a non-preprocessed nupkg. -->
   <Target Name="StrideAssertPackModeForRelease" BeforeTargets="GenerateNuspec"

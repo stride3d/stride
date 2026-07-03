@@ -302,27 +302,10 @@
   <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
-  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
-    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
-         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
-         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
-    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
-               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
-  </Target>
-  <!-- Dev packages mode: skip packing and use redirect packages (must be before GeneratePackageOnBuild) -->
+  <!-- Dev packages mode: skip packing and use redirect packages (must set StrideSkipAutoPack
+       before Stride.AutoPackDeploy.targets evaluates its GeneratePackageOnBuild gate) -->
   <Import Project="$(StrideRoot)sources\targets\Stride.DevPackages.targets" />
-
-  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
-       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
-       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
-       suppresses Pack in those inner dispatches. No additional gate needed here. -->
-  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
-    <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
-  </PropertyGroup>
+  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
 
   <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->
