@@ -5,11 +5,10 @@
 // eliminating the ~50s NuGet packing overhead on every incremental build.
 //
 // Steps:
-//   1. Packs fresh nupkgs (--no-build) into a temp dir
-//   2. Strips managed DLLs/PDBs, adds _._  markers
-//   3. Injects build/<PkgId>.props with <Reference HintPath> redirects
-//   4. Deploys to NugetDev, invalidates NuGet cache
-//   5. Writes a stamp file so subsequent builds skip generation
+//   1. Builds + packs fresh nupkgs into a temp dir
+//   2. Injects build/<PkgId>.props/.targets redirects into each engine nupkg (templates deploy as-is)
+//   3. Deploys to NugetDev + mirrors into bin/packages, invalidates NuGet cache
+//   4. Writes a stamp manifest (staleness check / cleanup) and prunes superseded versions
 
 using System.Diagnostics;
 using System.IO.Compression;
@@ -113,7 +112,7 @@ Console.WriteLine("\nBuilding + packing fresh packages...");
 // so packed asset content would be dead weight; skipping it also drops the slow per-package copy.
 // Output -> tempPackDir (not NugetDev); we deploy stubs there explicitly in step 3.
 // No --no-build: self-bootstraps a fresh checkout in one go.
-RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
+var packExitCode = RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
 {
     // "Successfully created package 'X.nupkg'." is emitted once per project at pack completion.
     var packMarker = "Successfully created package '";
@@ -135,9 +134,32 @@ RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoP
     }
     if (line.TrimStart().StartsWith("Determining projects to restore"))
         Console.WriteLine("  restore phase...");
+    if (line.Contains(": error "))
+        Console.WriteLine($"  {line.Trim()}");
 });
+if (packExitCode != 0)
+{
+    Console.Error.WriteLine($"ERROR: dotnet pack failed with exit code {packExitCode}; stubs not regenerated (feeds keep the previous state).");
+    return packExitCode;
+}
 
 var freshPackages = Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
+
+// First run on a fresh worktree: the -devN suffix doesn't exist until the pack itself assigns
+// it (StrideEnsureWorktreeVersion writes the ledger + overlay), so the up-front derivation can
+// be wrong. The pack output is the truth — read the version off Stride.Core's nupkg.
+if (freshPackages.Length == 0)
+{
+    var coreVersion = Directory.GetFiles(tempPackDir, "Stride.Core.*.nupkg")
+        .Select(f => Regex.Match(Path.GetFileName(f), @"^Stride\.Core\.(\d.*)\.nupkg$"))
+        .FirstOrDefault(m => m.Success)?.Groups[1].Value;
+    if (coreVersion != null && coreVersion != version)
+    {
+        version = coreVersion;
+        Console.WriteLine($"Version resolved from pack output: {version}");
+        freshPackages = Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
+    }
+}
 Console.WriteLine($"Packed {freshPackages.Length} packages");
 
 if (freshPackages.Length == 0)
@@ -162,6 +184,10 @@ foreach (var pkgPath in freshPackages)
     var pkgFileName = Path.GetFileName(pkgPath);
     var pkgId = Regex.Replace(pkgFileName, $@"\.{Regex.Escape(version)}\.nupkg$", "", RegexOptions.IgnoreCase);
 
+    // Content-only packages — nothing to redirect; deployed as-is below.
+    if (pkgId.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
+        continue;
+
     if (!projectMap.TryGetValue(pkgId, out var projInfo))
     {
         Console.WriteLine($"  SKIP {pkgId} (no matching project)");
@@ -184,9 +210,27 @@ foreach (var pkgPath in freshPackages)
     }
 }
 
+// Templates are real content packages: no DLLs to redirect, so no stub injection — but our pack
+// ran with StrideSkipAutoPack=true, which also suppressed their own auto-pack-deploy, so deploy
+// the fresh nupkgs here. Globbed separately: content-versioned ones (Samples, Starters) can carry
+// a different version than the engine. Listed in the manifest so cleanup/pruning covers them;
+// after a flag-off their auto-pack (independent of StrideDevPackages) repopulates the feeds.
+foreach (var tplPath in Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupkg"))
+{
+    var tplName = Path.GetFileName(tplPath);
+    var tplMatch = Regex.Match(tplName, @"^(?<id>.+?)\.(?<ver>\d.*)\.nupkg$");
+    if (!tplMatch.Success) continue;
+
+    Console.Write($"  {tplMatch.Groups["id"].Value}...");
+    File.Copy(tplPath, Path.Combine(nugetDevDir, tplName), overwrite: true);
+    InvalidateNuGetCache(nugetPackagesDir, tplMatch.Groups["id"].Value, tplMatch.Groups["ver"].Value);
+    generatedStubs.Add(tplName);
+    Console.WriteLine(" OK (deployed as-is)");
+}
+
 // --- Step 4: Write stamp + inputs manifests.
-// Stamp: newline list of generated stub nupkg filenames; the cleanup target reads it to
-// delete only what we generated (real packages like Stride.Templates.* stay put).
+// Stamp: newline list of deployed nupkg filenames (stubs + as-is templates); the cleanup
+// target reads it to delete only what we deployed.
 // Inputs: absolute paths of the csprojs we scanned; the staleness target reads it so the
 // check tracks exactly the projects that contributed (no glob false-positives from WPF tmp
 // projects, preprocessor-staged template csprojs, etc.). ---
@@ -201,6 +245,36 @@ Directory.CreateDirectory(binPackagesDir);
 foreach (var stubName in generatedStubs)
     File.Copy(Path.Combine(nugetDevDir, stubName), Path.Combine(binPackagesDir, stubName), overwrite: true);
 Console.WriteLine($"Mirrored {generatedStubs.Count} stub package(s) into bin/packages");
+
+// Prune this worktree's superseded versions from NugetDev (shared across worktrees, so it grows
+// on every version bump otherwise). The -devN suffix identifies the owner: any older stamp with
+// the same suffix belongs to this worktree; its manifest lists exactly what was deployed, so
+// delete those files (and their bin/packages mirrors) plus the stamp. Other suffixes untouched.
+var suffixIdx = version.IndexOf('-');
+if (suffixIdx >= 0)
+{
+    var suffix = version[suffixIdx..];
+    foreach (var oldStamp in Directory.GetFiles(nugetDevDir, ".devpackages-*"))
+    {
+        var stampName = Path.GetFileName(oldStamp);
+        if (stampName.EndsWith(".inputs")) continue;
+        var oldVersion = stampName[".devpackages-".Length..];
+        if (oldVersion == version || !oldVersion.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+
+        var removed = 0;
+        foreach (var pkgName in File.ReadAllLines(oldStamp).Where(l => !string.IsNullOrWhiteSpace(l)))
+        {
+            foreach (var dir in new[] { nugetDevDir, binPackagesDir })
+            {
+                var stale = Path.Combine(dir, pkgName);
+                if (File.Exists(stale)) { File.Delete(stale); removed++; }
+            }
+        }
+        File.Delete(oldStamp);
+        if (File.Exists(oldStamp + ".inputs")) File.Delete(oldStamp + ".inputs");
+        Console.WriteLine($"Pruned superseded {oldVersion}: {removed} package file(s)");
+    }
+}
 
 // Cleanup temp
 try { Directory.Delete(tempPackDir, true); } catch { }
@@ -375,7 +449,13 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, s
     var destPath = Path.Combine(nugetDevDir, Path.GetFileName(pkgPath));
     File.Copy(pkgPath, destPath, overwrite: true);
 
-    // Invalidate NuGet cache
+    InvalidateNuGetCache(nugetPackagesDir, pkgId, version);
+}
+
+// Delete the extracted copy's integrity files so the next consumer restore re-extracts from
+// the freshly deployed .nupkg (NuGet otherwise skips same-version re-extraction).
+static void InvalidateNuGetCache(string nugetPackagesDir, string pkgId, string version)
+{
     var cacheDir = Path.Combine(nugetPackagesDir, pkgId.ToLowerInvariant(), version);
     if (Directory.Exists(cacheDir))
     {
