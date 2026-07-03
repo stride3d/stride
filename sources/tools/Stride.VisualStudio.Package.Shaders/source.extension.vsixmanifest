@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="Stride.VisualStudio.Package.Shaders" Version="4.4.0" Language="en-US" Publisher="Stride" />
+    <DisplayName>Stride Shader Language</DisplayName>
+    <Description>Syntax highlighting for Stride shader files (.sdsl / .sdfx).</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
+  </Dependencies>
+  <Assets>
+    <!-- Registers the TextMate grammar; the pkgdef points at the grammar folder and language configuration. -->
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="stride-shaders.pkgdef" />
+    <!-- Marks the extension as containing editor components so VS activates it and scans the TextMate repository
+         registered by the pkgdef above. The assembly has no MEF exports — the asset's presence is what matters. -->
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+  </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+</PackageManifest>

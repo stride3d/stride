@@ -63,16 +63,22 @@ Example: dotnet build build/Stride.build -t:Package
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
     <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution)" />
-    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU;VersionSuffix=$(VersionSuffix)"/>
-    <!-- Ask the package for its .vsix path (Configuration/TargetFramework-derived) and its independent NuGet
-         version (VersionPrefix + optional VersionSuffix), so the nuspec stays TFM- and engine-version-agnostic. -->
-    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=Any CPU;VersionSuffix=$(VersionSuffix)">
+    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_Package_Shaders;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU;VersionSuffix=$(VersionSuffix)"/>
+    <!-- Ask each package for its built .vsix path (Configuration/TargetFramework-derived) and the main package for
+         its independent NuGet version (VersionPrefix + VersionSuffix), so the nuspec stays TFM- and version-agnostic.
+         Use Platform=AnyCPU (not "Any CPU"): these query the csproj directly, where the spaced solution-platform
+         name isn't normalized and would append an "Any CPU" segment to $(OutputPath) that the solution build (which
+         does normalize it) never produces — leaving nuget pack looking for a .vsix that isn't there. -->
+    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=AnyCPU;VersionSuffix=$(VersionSuffix)">
       <Output TaskParameter="TargetOutputs" PropertyName="StrideVsixPath" />
     </MSBuild>
-    <MSBuild Targets="GetPackageVersion" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=Any CPU;VersionSuffix=$(VersionSuffix)">
+    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package.Shaders\Stride.VisualStudio.Package.Shaders.csproj" Properties="$(BuildProperties);Platform=AnyCPU">
+      <Output TaskParameter="TargetOutputs" PropertyName="StrideShadersVsixPath" />
+    </MSBuild>
+    <MSBuild Targets="GetPackageVersion" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=AnyCPU;VersionSuffix=$(VersionSuffix)">
       <Output TaskParameter="TargetOutputs" PropertyName="StrideVsPackageVersion" />
     </MSBuild>
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -Version "$(StrideVsPackageVersion)" -Properties "VsixPath=$(StrideVsixPath)" -OutputDirectory "$(StrideRoot)bin\vsix"' />
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -Version "$(StrideVsPackageVersion)" -Properties "VsixPath=$(StrideVsixPath);ShadersVsixPath=$(StrideShadersVsixPath)" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
     <!-- Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves -->
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"

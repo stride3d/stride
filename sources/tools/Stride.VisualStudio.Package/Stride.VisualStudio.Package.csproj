@@ -19,12 +19,6 @@
     <NoWarn>$(NoWarn);VSEXTPREVIEW_OUTPUTWINDOW</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- syntaxes/ holds the generated SDSL TextMate grammar and its 'dotnet run' generator script. The grammar
-         is NOT consumed yet — it's kept for future use (a VS Code extension, or the LSP's baseline coloring) and
-         is deliberately not packed here: the out-of-process model can't register a TextMate grammar (that needs
-         a classic pkgdef asset, see syntaxes/README.md). The generator .cs has top-level statements, so keep it
-         out of the extension compilation. -->
-    <Compile Remove="syntaxes\**\*.cs" />
     <!-- Extension icon referenced by ExtensionConfiguration.Metadata.Icon (Content is IncludeInVSIX by default). -->
     <Content Include="Resources\GameStudio.png" />
     <!-- RemoteUserControl XAML: embedded (loaded by type name), not compiled as a WPF Page. -->
