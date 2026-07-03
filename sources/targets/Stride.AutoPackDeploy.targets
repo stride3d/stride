@@ -1,0 +1,32 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Auto-pack on build: packs to bin/packages and deploys to the NugetDev feed
+    (%LocalAppData%\stride\nugetdev) so out-of-tree consumers resolve the fresh build.
+    Imported by the Stride SDK chain (Sdk.targets) and by the template projects
+    (Stride.Templates.Common.targets — vanilla Microsoft.NET.Sdk, outside the chain).
+    StrideSkipAutoPack disables both halves (dev-packages mode, or an explicit `dotnet pack`
+    where GeneratePackageOnBuild would recurse).
+  -->
+
+  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
+       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
+       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
+       suppresses Pack in those inner dispatches. No additional gate needed here. -->
+  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+
+  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack" Condition="'$(StrideSkipAutoPack)' != 'true'">
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
+    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
+         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
+         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
+    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
+               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
+  </Target>
+
+</Project>
