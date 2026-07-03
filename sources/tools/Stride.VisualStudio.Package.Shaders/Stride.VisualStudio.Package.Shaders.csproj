@@ -1,0 +1,83 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">18.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Classic (in-process) content-only VSIX. Its sole job is to register the SDSL TextMate grammar via a
+         .pkgdef asset, which the out-of-process Stride.VisualStudio.Package can't do. No commands, no language
+         service — just the grammar + language configuration, for instant .sdsl/.sdfx colorization. -->
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Stride.VisualStudio.Shaders</RootNamespace>
+    <AssemblyName>Stride.VisualStudio.Package.Shaders</AssemblyName>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- Name the produced .vsix so the delivery nuspec can pack it next to the out-of-process Stride.vsix.
+         Absolute path: GetVsixOutputPath feeds it to nuget pack, whose BasePath is the main package's folder. -->
+    <TargetVsixContainerName>StrideShaders.vsix</TargetVsixContainerName>
+    <TargetVsixContainer>$(MSBuildProjectDirectory)\bin\$(TargetVsixContainerName)</TargetVsixContainer>
+    <!-- SDK-style VSIX setup (needs VS 18.5+ / VSSDK.BuildTools 18.5+). AutoSetup turns on CreateVsixContainer
+         and the modern deploy path; the CreateVsixContainer ProjectCapability (below) is what makes VS recognize
+         this as a deployable VSIX project (the Deploy checkbox / F5-to-Exp). VsixDeployOnDebug deploys on F5. -->
+    <VSSDKBuildToolsAutoSetup>true</VSSDKBuildToolsAutoSetup>
+    <VsixDeployOnDebug>true</VsixDeployOnDebug>
+    <!-- No pkgdef is generated from assembly attributes (this VSIX has no VS registration attributes / Package
+         class); the grammar is registered by the hand-authored stride-shaders.pkgdef declared in the manifest. -->
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <!-- Ship the (otherwise empty) assembly so the MefComponent asset in the manifest can reference it — that
+         asset is what makes VS activate the extension and scan the TextMate grammar repository. -->
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <!-- F5 launches VS's experimental instance with this VSIX deployed. There's no code to break on — F5 just
+         deploys the grammar and opens VS Exp so you can open a .sdsl file. -->
+    <StartAction>Program</StartAction>
+    <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix Exp</StartArguments>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Makes VS treat this as a VSIX project (enables Deploy / F5 to the experimental instance). -->
+    <ProjectCapability Include="CreateVsixContainer" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
+      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+    <!-- pkgdef registers the grammar; language configuration + grammar are the payload it points at. -->
+    <Content Include="stride-shaders.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sdsl-language-configuration.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Grammars\sdsl.tmLanguage.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Companion theme (VS pairs it with the grammar by filename base); maps scopes to VS classifications. -->
+    <Content Include="Grammars\sdsl.tmLanguage.tmTheme">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- The grammar generator is a standalone 'dotnet run' tool, not part of the VSIX. -->
+    <Compile Remove="generate-sdsl-grammar.cs" />
+    <None Include="generate-sdsl-grammar.cs" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <!-- Returns the built .vsix path so the delivery nuspec (packed by nuget.exe) can pick it up. -->
+  <Target Name="GetVsixOutputPath" Returns="$(TargetVsixContainer)" />
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

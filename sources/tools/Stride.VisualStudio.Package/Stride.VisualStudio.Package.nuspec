@@ -16,6 +16,7 @@
   </metadata>
   <files>
     <file src="$VsixPath$" target="tools\Stride.vsix" />
+    <file src="$ShadersVsixPath$" target="tools\StrideShaders.vsix" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.*" target="tools" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>

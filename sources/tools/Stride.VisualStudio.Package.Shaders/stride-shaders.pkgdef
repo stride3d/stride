@@ -1,0 +1,8 @@
+; Registers the SDSL grammar folder with VS's TextMate engine. Association to .sdsl/.sdfx is by the grammar's
+; own "fileTypes"; no per-extension registration is needed here.
+[$RootKey$\TextMate\Repositories]
+"stride"="$PackageFolder$\Grammars"
+
+; Language configuration (comments, brackets, auto-close), keyed by the grammar's scopeName.
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"source.sdsl"="$PackageFolder$\sdsl-language-configuration.json"
