@@ -15,6 +15,10 @@ on:
         description: Capture and upload an MSBuild binlog (diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
         type: boolean
+      version-suffix:
+        description: Prerelease suffix for the NuGet package, no leading dash (e.g. "beta1" -> 4.4.0-beta1). Empty = stable. The .vsix manifest version is numeric-only, so it always ships the suffix-less 4.4.0.0.
+        default: ''
+        type: string
 
 concurrency:
   group: release-vspackage-${{ github.ref }}
@@ -70,7 +74,8 @@ jobs:
             -t:VSIXPlugin `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
-            -p:StrideSign=${{ inputs.sign }}
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:VersionSuffix=${{ inputs.version-suffix }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}

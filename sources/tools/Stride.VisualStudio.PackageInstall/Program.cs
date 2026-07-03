@@ -41,7 +41,9 @@ static class Program
 
                 case "/uninstall":
                 {
-                    // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific Visual Studio version)
+                    // Uninstall the current extension, plus the legacy net472 one (id "...".2022") so upgrading from
+                    // it doesn't leave both installed. Both are allowed to fail (not installed for this VS version).
+                    RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package /quiet");
                     RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022 /quiet");
                     break;
                 }

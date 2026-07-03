@@ -5,6 +5,11 @@
          (net10 isn't supported yet, per microsoft/VSExtensibility#544) -->
     <TargetFramework>net8.0-windows8.0</TargetFramework>
     <RootNamespace>Stride.VisualStudio</RootNamespace>
+    <!-- Versioned independently of the engine (like the Stride CLI): this VersionPrefix is the source of truth,
+         bumped by hand per VS-package release. It starts at 4.4.0 (one minor above the old 4.3.x package).
+         release-vspackage.yml supplies VersionSuffix (e.g. beta1) for prerelease NuGet packages; the .vsix
+         manifest version is numeric-only, so it always ships the suffix-less AssemblyVersion (4.4.0.0). -->
+    <VersionPrefix>4.4.0</VersionPrefix>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <Nullable>enable</Nullable>
@@ -14,8 +19,6 @@
     <NoWarn>$(NoWarn);VSEXTPREVIEW_OUTPUTWINDOW</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Stamps the VSIX with the shared Stride version (4.4.x); ExtensionAssemblyVersion reads it. -->
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs" Link="Properties\SharedAssemblyInfo.cs" />
     <!-- Extension icon referenced by ExtensionConfiguration.Metadata.Icon (Content is IncludeInVSIX by default). -->
     <Content Include="Resources\GameStudio.png" />
     <!-- RemoteUserControl XAML: embedded (loaded by type name), not compiled as a WPF Page. -->
@@ -65,5 +68,24 @@
        delivery nuspec (packed by nuget.exe, which can't evaluate MSBuild properties) doesn't hardcode them. -->
   <Target Name="GetVsixOutputPath" Returns="$(OutputPath)$(TargetName).vsix" />
 
+  <!-- Returns the independent NuGet package version (VersionPrefix + optional VersionSuffix) so the nuspec,
+       packed by nuget.exe with -Version, tracks this project rather than the engine version. -->
+  <Target Name="GetPackageVersion" Returns="$(_VsPackageVersion)">
+    <PropertyGroup>
+      <_VsPackageVersion>$(VersionPrefix)</_VsPackageVersion>
+      <_VsPackageVersion Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</_VsPackageVersion>
+    </PropertyGroup>
+  </Target>
+
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+
+  <!-- The Stride SDK turns these off to defer the assembly version to the shared SharedAssemblyInfo.cs. This
+       package versions independently (it doesn't link that file), so turn them back on — the built assembly's
+       AssemblyVersion (from VersionPrefix) is what ExtensionAssemblyVersion stamps into the .vsix manifest.
+       Placed after the SDK import so it overrides the SDK's defaults. -->
+  <PropertyGroup>
+    <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>true</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
 </Project>
