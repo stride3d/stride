@@ -194,6 +194,14 @@ var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
 File.WriteAllLines(stampPath, generatedStubs);
 File.WriteAllLines(stampPath + ".inputs", projectMap.Values.Select(p => p.CsprojPath).Distinct());
 
+// Also mirror the stubs into bin/packages (not refreshed while auto-pack is skipped) so the
+// repo nuget.config's stride-local mapping keeps resolving; the flag-off cleanup removes them.
+var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
+Directory.CreateDirectory(binPackagesDir);
+foreach (var stubName in generatedStubs)
+    File.Copy(Path.Combine(nugetDevDir, stubName), Path.Combine(binPackagesDir, stubName), overwrite: true);
+Console.WriteLine($"Mirrored {generatedStubs.Count} stub package(s) into bin/packages");
+
 // Cleanup temp
 try { Directory.Delete(tempPackDir, true); } catch { }
 
