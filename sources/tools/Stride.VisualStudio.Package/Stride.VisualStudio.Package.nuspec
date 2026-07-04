@@ -2,7 +2,8 @@
 <package>
   <metadata>
     <id>Stride.VisualStudio.Package</id>
-    <version>4.3.0</version>
+    <!-- Fallback only: VSIXPlugin packs with -Version from the project's VersionPrefix (+ VersionSuffix). -->
+    <version>4.4.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>
@@ -14,7 +15,8 @@
     <tags>internal</tags>
   </metadata>
   <files>
-    <file src="bin\Stride.vsix" target="tools" />
+    <file src="$VsixPath$" target="tools\Stride.vsix" />
+    <file src="$ShadersVsixPath$" target="tools\StrideShaders.vsix" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.*" target="tools" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>
