@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -127,6 +128,140 @@ public static class CodeUpgrades
                     .WithTrailingTrivia(invocation.GetTrailingTrivia());
                 editor.ReplaceNode(invocation, rewritten);
             });
+    }
+
+    /// <summary>
+    /// Migrates a renamed parameter at call sites: <c>x.Foo(count: 1)</c> → <c>x.Foo(indexCount: 1)</c>.
+    /// Matches the method(s) named <paramref name="methodName"/> on <paramref name="declaringType"/> (its
+    /// full metadata name) that have a parameter named <paramref name="oldParameterName"/>, and renames
+    /// the matching named argument at every call site — invocations, object creations (including
+    /// <c>new(...)</c>), <c>this</c>/<c>base</c> initializers and attributes. Positional arguments need no
+    /// migration and are left untouched. Use <c>".ctor"</c> as <paramref name="methodName"/> for
+    /// constructors.
+    /// </summary>
+    public static SymbolRewrite ParameterRename(string declaringType, string methodName, string oldParameterName, string newParameterName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(methodName);
+        ArgumentNullException.ThrowIfNull(oldParameterName);
+        ArgumentNullException.ThrowIfNull(newParameterName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, methodName)
+                .Where(member => member is IMethodSymbol method && method.Parameters.Any(p => p.Name == oldParameterName)),
+            (editor, referenceNode, symbol) =>
+            {
+                foreach (var nameColon in GetArgumentNameColons(referenceNode))
+                {
+                    if (nameColon.Name.Identifier.ValueText != oldParameterName)
+                        continue;
+                    editor.ReplaceNode(nameColon.Name, SyntaxFactory.IdentifierName(newParameterName).WithTriviaFrom(nameColon.Name));
+                }
+            });
+    }
+
+    /// <summary>
+    /// Finds the argument list the referenced member is called with, and yields the
+    /// <see cref="NameColonSyntax"/> of each named argument in it. Reference forms without an argument
+    /// list (method groups, <c>nameof</c>, cref) yield nothing.
+    /// </summary>
+    private static IEnumerable<NameColonSyntax> GetArgumentNameColons(SyntaxNode referenceNode)
+    {
+        // Climb the name wrappers (qualification, member access) so target ends up the direct child of
+        // the argument-bearing construct.
+        var target = referenceNode;
+        while (true)
+        {
+            if (target.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == target)
+                target = qualifiedName;
+            else if (target.Parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name == target)
+                target = aliasQualifiedName;
+            else if (target.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == target)
+                target = memberAccess;
+            else if (target.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.Name == target)
+                target = memberBinding;
+            else
+                break;
+        }
+
+        var argumentList = target switch
+        {
+            // Implicit object creation (`new(...)`) and this(...)/base(...) initializers: the reference
+            // location is the construct itself.
+            BaseObjectCreationExpressionSyntax creation => creation.ArgumentList,
+            ConstructorInitializerSyntax initializer => initializer.ArgumentList,
+            _ when target.Parent is InvocationExpressionSyntax invocation && invocation.Expression == target => invocation.ArgumentList,
+            _ when target.Parent is ObjectCreationExpressionSyntax objectCreation && objectCreation.Type == target => objectCreation.ArgumentList,
+            _ when target.Parent is PrimaryConstructorBaseTypeSyntax primaryBase && primaryBase.Type == target => primaryBase.ArgumentList,
+            _ => null,
+        };
+        if (argumentList is not null)
+        {
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameColon is not null)
+                    yield return argument.NameColon;
+            }
+        }
+        else if (target.Parent is AttributeSyntax attribute && attribute.Name == target && attribute.ArgumentList is not null)
+        {
+            foreach (var argument in attribute.ArgumentList.Arguments)
+            {
+                if (argument.NameColon is not null)
+                    yield return argument.NameColon;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure
+    /// (each entry matches itself and its sub-namespaces). Only directives the compiler reports as
+    /// unnecessary (CS8019, checked against the old-version closure) are removed: an unused directive is
+    /// dead weight that turns into a compile error once the namespace is gone, while a used one means the
+    /// code needs manual porting anyway and is left for the user to see.
+    /// </summary>
+    public static CodeUpgrade RemoveUnusedUsings(params string[] namespaces)
+    {
+        ArgumentNullException.ThrowIfNull(namespaces);
+        return async (solution, targets, cancellationToken) =>
+        {
+            foreach (var projectId in targets)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    continue;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    var document = solution.GetDocument(documentId);
+                    if (document is null || !SymbolRewriteEngine.IsUpgradableSource(document))
+                        continue;
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    if (root is null || semanticModel is null)
+                        continue;
+
+                    // CS8019 (unnecessary using directive) is only reported through the semantic model.
+                    var removable = new List<UsingDirectiveSyntax>();
+                    foreach (var diagnostic in semanticModel.GetDiagnostics(cancellationToken: cancellationToken))
+                    {
+                        if (diagnostic.Id != "CS8019")
+                            continue;
+                        if (root.FindNode(diagnostic.Location.SourceSpan) is not UsingDirectiveSyntax usingDirective)
+                            continue;
+                        var name = usingDirective.Name?.ToString();
+                        if (name is not null && namespaces.Any(ns => name == ns || name.StartsWith(ns + ".", StringComparison.Ordinal)))
+                            removable.Add(usingDirective);
+                    }
+                    if (removable.Count == 0)
+                        continue;
+
+                    var newRoot = root.RemoveNodes(removable, SyntaxRemoveOptions.KeepNoTrivia);
+                    solution = solution.WithDocumentSyntaxRoot(documentId, newRoot);
+                }
+            }
+            return solution;
+        };
     }
 
     /// <summary>
