@@ -227,52 +227,63 @@ public class TestProfiler
 
     private class ProfilerWatcher
     {
-        public int CurrentMessage;
-
-        public readonly List<MatchMessageDelegate> ExpectedMessages;
-
-        public Action<ILogMessage> LogAction;
+        private readonly List<MatchMessageDelegate> expectedMessages;
+        private readonly List<string> receivedMessages = [];
+        private readonly Action<ILogMessage> logAction;
 
         public ProfilerWatcher(List<MatchMessageDelegate> expectedMessages)
         {
-            ExpectedMessages = expectedMessages;
+            this.expectedMessages = expectedMessages;
+            // Record-only, filtered to this fixture's own keys: other test classes run in parallel and also log
+            // through GlobalLogger, and asserting inside the handler would leave it subscribed on failure,
+            // cascading into the following tests.
+            logAction = message =>
+            {
+                var messageToString = message.ToString();
+                if (!messageToString.StartsWith("[Profiler] #", StringComparison.Ordinal) || !messageToString.Contains(": TestProfiler."))
+                    return;
+
+                lock (receivedMessages)
+                    receivedMessages.Add(messageToString);
+            };
+            GlobalLogger.GlobalMessageLogged += logAction;
         }
 
-        // THis is not a using/Dispose because otherwise it would swallow any inner exception and emit an unrelated exception about missing profiler events
+        // This is not a using/Dispose because otherwise it would swallow any inner exception and emit an unrelated exception about missing profiler events
         public void Finish()
         {
-            GlobalLogger.GlobalMessageLogged -= LogAction;
-            var missingMessage = new StringBuilder();
-            for (int i = CurrentMessage; i < ExpectedMessages.Count; i++)
+            GlobalLogger.GlobalMessageLogged -= logAction;
+
+            lock (receivedMessages)
             {
-                ExpectedMessages[i](string.Empty, out var expectedMessage, true);
-                missingMessage.Append(expectedMessage);
-                if ((CurrentMessage + 1) < ExpectedMessages.Count)
+                var count = Math.Min(receivedMessages.Count, expectedMessages.Count);
+                for (int i = 0; i < count; i++)
                 {
-                    missingMessage.AppendLine();
+                    var result = expectedMessages[i](receivedMessages[i], out var expectedMessage, false);
+                    Assert.True(result, $"Expecting message \"{expectedMessage}\", but got \"{receivedMessages[i]}\"");
+                }
+
+                if (receivedMessages.Count > expectedMessages.Count)
+                    Assert.Fail($"Unexpected message received: [{receivedMessages[expectedMessages.Count]}]");
+
+                if (receivedMessages.Count < expectedMessages.Count)
+                {
+                    var missingMessage = new StringBuilder();
+                    for (int i = receivedMessages.Count; i < expectedMessages.Count; i++)
+                    {
+                        expectedMessages[i](string.Empty, out var expectedMessage, true);
+                        missingMessage.AppendLine(expectedMessage);
+                    }
+
+                    Assert.Fail($"Invalid number of profiler events received [{receivedMessages.Count}] Expecting [{expectedMessages.Count}]. Missing messages: [{missingMessage}]");
                 }
             }
-
-            Assert.True(CurrentMessage == ExpectedMessages.Count, $"Invalid number of profiler events received [{CurrentMessage}] Expecting [{ExpectedMessages.Count}]. Missing messages: [{missingMessage}]");
         }
     }
 
     private static ProfilerWatcher ExpectLog(List<MatchMessageDelegate> expectedMessages)
     {
-        var watcher = new ProfilerWatcher(expectedMessages);
-        watcher.LogAction = message =>
-        {
-            var messageToString = message.ToString();
-            Console.Out.WriteLine(message.ToString());
-            Console.Out.Flush();
-
-            Assert.True(watcher.CurrentMessage < expectedMessages.Count, $"Unexpected message received: [{messageToString}]");
-            var result = expectedMessages[watcher.CurrentMessage](messageToString, out var expectedMessage, false);
-            Assert.True(result, $"Expecting message \"{expectedMessage}\", but got \"{messageToString}\"");
-            watcher.CurrentMessage++;
-        };
-        GlobalLogger.GlobalMessageLogged += watcher.LogAction;
-        return watcher;
+        return new ProfilerWatcher(expectedMessages);
     }
 
     private class TestEventReader
