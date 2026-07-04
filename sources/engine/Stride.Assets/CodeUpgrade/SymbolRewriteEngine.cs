@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,8 +58,9 @@ internal static class SymbolRewriteEngine
                 {
                     foreach (var location in referencedSymbol.Locations)
                     {
-                        if (location.IsImplicit)
-                            continue;
+                        // Implicit locations are not skipped: some carry rewritable syntax (a target-typed
+                        // `new(...)` referencing a constructor is reported implicit). Ones that truly have
+                        // none (e.g. foreach's GetEnumerator) match no rewriter pattern and no-op.
                         var documentId = location.Document.Id;
                         if (!targetDocumentIds.Contains(documentId))
                             continue;
@@ -126,23 +128,37 @@ internal static class SymbolRewriteEngine
     }
 
     /// <summary>
-    /// A real, rewritable user source file: has a path, supports syntax, and is not build output or
-    /// generated shader C# (the structural phase renames <c>.sdsl.cs</c>/<c>.sdfx.cs</c> to <c>.bak</c>
-    /// and the source generator regenerates them, so rewriting them is wasted).
+    /// A real, rewritable source file: has a path, supports syntax, and is not under the project's
+    /// output directories. <c>.sdsl.cs</c>/<c>.sdfx.cs</c> are still compile items at this point (this
+    /// pre-pass runs before the structural phase retires them to <c>.bak</c>), so skip them explicitly;
+    /// other generated code is rewritten, keeping it compiling until regeneration overwrites it.
     /// </summary>
-    private static bool IsUpgradableSource(Document document)
+    internal static bool IsUpgradableSource(Document document)
     {
         if (document.FilePath is null || !document.SupportsSyntaxTree)
             return false;
 
-        var path = document.FilePath.Replace('\\', '/');
-        if (path.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || path.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
-            return false;
-        if (path.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase))
-            return false;
-        if (path.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase))
+        if (document.FilePath.EndsWith(".sdsl.cs", StringComparison.OrdinalIgnoreCase) || document.FilePath.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        return true;
+        return !IsUnderOutputDirectory(document);
     }
+
+    /// <summary>
+    /// True when the document lives under the project's intermediate or final output directory (taken
+    /// from the project's own compilation output paths, wherever the build put them).
+    /// </summary>
+    private static bool IsUnderOutputDirectory(Document document)
+    {
+        var documentPath = Path.GetFullPath(document.FilePath!);
+        foreach (var outputFilePath in (string?[])[document.Project.CompilationOutputInfo.AssemblyPath, document.Project.OutputFilePath, document.Project.OutputRefFilePath])
+        {
+            if (Path.GetDirectoryName(outputFilePath) is not { } outputDirectory)
+                continue;
+            if (documentPath.StartsWith(Path.GetFullPath(outputDirectory) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
 }
