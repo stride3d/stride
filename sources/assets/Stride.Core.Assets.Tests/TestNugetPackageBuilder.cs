@@ -83,7 +83,7 @@ public class TestNugetPackageBuilder
 
         // Assert
         Assert.Equal("TestPackage", builder.Id);
-        Assert.Equal("1.0.0.0", builder.Version.ToString());
+        Assert.Equal("1.0.0", builder.Version.ToString());
         Assert.Equal("Test Package", builder.Title);
         Assert.Equal("A test package", builder.Description);
         Assert.Contains("Test Author", builder.Authors);
@@ -111,7 +111,7 @@ public class TestNugetPackageBuilder
         // expose dependency groups on its public surface, so we verify the populated state that
         // is observable rather than re-asserting the input metadata's dependency count.
         Assert.Equal("TestPackage", builder.Id);
-        Assert.Equal("1.0.0.0", builder.Version.ToString());
+        Assert.Equal("1.0.0", builder.Version.ToString());
         Assert.Equal("Test", builder.Description);
     }
 
@@ -145,7 +145,7 @@ public class TestNugetPackageBuilder
 
         // Assert
         Assert.Equal("ComplexPackage", builder.Id);
-        Assert.Equal("2.5.3.0", builder.Version.ToString());
+        Assert.Equal("2.5.3", builder.Version.ToString());
         Assert.Equal("Complex Test Package", builder.Title);
         Assert.Equal("A complex test package with many properties", builder.Description);
         Assert.Equal(2, builder.Authors.Count());
@@ -253,7 +253,7 @@ public class TestNugetPackageBuilder
 
         // Assert - Last populate should win
         Assert.Equal("Package2", builder.Id);
-        Assert.Equal("2.0.0.0", builder.Version.ToString());
+        Assert.Equal("2.0.0", builder.Version.ToString());
         Assert.Equal("Second", builder.Description);
     }
 

@@ -57,7 +57,7 @@ public class TestPackageBasics
     public void TestFullPathProperty()
     {
         var package = new Package();
-        var path = new UFile(@"C:\Projects\MyPackage\MyPackage.sdpkg");
+        var path = new UFile("/Projects/MyPackage/MyPackage.sdpkg");
 
         package.FullPath = path;
 
