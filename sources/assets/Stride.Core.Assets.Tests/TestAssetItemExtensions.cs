@@ -10,12 +10,12 @@ public class TestAssetItemExtensions
     [Fact]
     public void TestGetProjectIncludeWithPackage()
     {
-        var package = new Package { FullPath = new UFile(@"C:\Projects\MyPackage\MyPackage.sdpkg") };
-        var solutionProject = new SolutionProject(package, Guid.NewGuid(), @"C:\Projects\MyPackage\MyPackage.csproj");
+        var package = new Package { FullPath = new UFile("/Projects/MyPackage/MyPackage.sdpkg") };
+        var solutionProject = new SolutionProject(package, Guid.NewGuid(), "/Projects/MyPackage/MyPackage.csproj");
         package.Container = solutionProject;
 
         var asset = new TestAssetSimple();
-        var assetItem = new AssetItem(@"C:\Projects\MyPackage\Assets\MyAsset", asset)
+        var assetItem = new AssetItem("/Projects/MyPackage/Assets/MyAsset", asset)
         {
             Package = package
         };
@@ -30,24 +30,24 @@ public class TestAssetItemExtensions
     public void TestGetGeneratedAbsolutePath()
     {
         var asset = new TestAssetSimple();
-        var assetItem = new AssetItem(@"C:\Projects\MyPackage\Assets\MyAsset", asset);
+        var assetItem = new AssetItem("/Projects/MyPackage/Assets/MyAsset", asset);
 
         var generatedPath = assetItem.GetGeneratedAbsolutePath();
 
         Assert.NotNull(generatedPath);
         Assert.EndsWith(".cs", generatedPath.ToString());
-        Assert.Equal("C:/Projects/MyPackage/Assets/MyAsset.cs", generatedPath.ToString());
+        Assert.Equal("/Projects/MyPackage/Assets/MyAsset.cs", generatedPath.ToString());
     }
 
     [Fact]
     public void TestGetGeneratedInclude()
     {
-        var package = new Package { FullPath = new UFile(@"C:\Projects\MyPackage\MyPackage.sdpkg") };
-        var solutionProject = new SolutionProject(package, Guid.NewGuid(), @"C:\Projects\MyPackage\MyPackage.csproj");
+        var package = new Package { FullPath = new UFile("/Projects/MyPackage/MyPackage.sdpkg") };
+        var solutionProject = new SolutionProject(package, Guid.NewGuid(), "/Projects/MyPackage/MyPackage.csproj");
         package.Container = solutionProject;
 
         var asset = new TestAssetSimple();
-        var assetItem = new AssetItem(@"C:\Projects\MyPackage\Assets\MyAsset", asset)
+        var assetItem = new AssetItem("/Projects/MyPackage/Assets/MyAsset", asset)
         {
             Package = package
         };
@@ -73,11 +73,11 @@ public class TestAssetItemExtensions
     public void TestGetGeneratedAbsolutePathWithNullPackage()
     {
         var asset = new TestAssetSimple();
-        var assetItem = new AssetItem(@"C:\Test\Assets\MyAsset", asset);
+        var assetItem = new AssetItem("/Test/Assets/MyAsset", asset);
 
         // GetGeneratedAbsolutePath works even without a package
         var generatedPath = assetItem.GetGeneratedAbsolutePath();
-        Assert.Equal("C:/Test/Assets/MyAsset.cs", generatedPath.ToString());
+        Assert.Equal("/Test/Assets/MyAsset.cs", generatedPath.ToString());
     }
 
     [Fact]
