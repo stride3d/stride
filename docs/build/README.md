@@ -28,7 +28,7 @@ When installing VS 2026, make sure these are selected:
 ## Build With Visual Studio
 
 1. `git clone https://github.com/stride3d/stride.git`
-2. Open `build\Stride.sln` in Visual Studio 2026.
+2. Open `build\Stride.slnx` in Visual Studio 2026.
 3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
 
 ## Building Without Visual Studio
@@ -54,10 +54,43 @@ If you'd rather not install the full Visual Studio IDE:
 `dotnet build` works without Visual Studio loaded — it auto-selects the Clang toolchain for the native C++ projects:
 
 ```bash
-dotnet build build\Stride.sln
+dotnet build build\Stride.slnx
 ```
 
 Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` with the VS C++ tools loaded (VS Developer Command Prompt or IDE), Clang in every other case — including `dotnet build` from a Developer Command Prompt. See [SDK-GUIDE.md → Native Build Mode](SDK-GUIDE.md#native-build-mode-clang--msvc) for the full logic.
+
+## Running a Sample Against Your Local Build
+
+Instantiates a sample from the locally built template packages, bound to this checkout's engine build (`-devN` dev version — see [versioning.md](versioning.md)). Works in both package modes:
+
+1. **Produce the packages.**
+   - Dev-redirect mode (`StrideDevPackages=true` in `build/Stride.Local.props` — fastest engine iteration):
+     ```bash
+     dotnet run build/GenerateDevPackages.cs
+     ```
+     Builds the solution and deploys redirect packages to `%LocalAppData%\stride\nugetdev`, mirrored into `bin\packages` so the repo's own feed stays current too.
+   - Normal mode: any engine build (Visual Studio or `dotnet build build\Stride.slnx`) auto-packs real packages into `bin\packages`.
+2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
+   ```bash
+   dotnet msbuild build/install-gamestudio.targets -t:Deploy
+   ```
+3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`):
+   ```bash
+   stride new stride-animatedmodel --version 4.4.0-devN -n MySample -o C:\path\MySample
+   ```
+   Template content is stamped with the matching engine version at pack time, so the generated project restores as-is. Without the [`stride` CLI](../../sources/launcher/README.md) installed, run it from source: `dotnet run --project sources/launcher/Stride.Cli -- new ...`.
+4. **Build and run.** The graphics API is a per-game choice; it must be one of the `StrideGraphicsApis` values in `build/Stride.Local.props` the engine was built with:
+   ```bash
+   dotnet build C:\path\MySample\MySample.Windows\MySample.Windows.csproj -p:StrideGraphicsApi=Vulkan
+   C:\path\MySample\Bin\Windows\Debug\MySample.Windows.exe
+   ```
+
+After engine changes: in dev-redirect mode rebuild the engine project, then rebuild the game (the redirect re-copies the tree's DLLs into its `Bin`); in normal mode rebuild (auto-repack) and run the Deploy step again.
+
+> [!NOTE]
+> Any build run with `-p:StrideDevPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off) — rerun `GenerateDevPackages.cs` afterwards.
+
+See also [sources/templates/README.md](../../sources/templates/README.md) for iterating on the template packages themselves.
 
 ## Troubleshooting
 

@@ -63,11 +63,11 @@
        Order/conditions mirror the per-platform expansion (Game host-shadow, host-windows when a
        mobile platform is present on a Windows host, then mobile). -->
   <PropertyGroup Condition="'$(StrideTestPlatforms)' != ''">
-    <StrideAssetAssembly Condition="'$(StrideAssetAssembly)' == ''">true</StrideAssetAssembly>
+    <StrideContainsAssetTypes Condition="'$(StrideContainsAssetTypes)' == ''">true</StrideContainsAssetTypes>
     <_StrideTestPlatforms>;$(StrideTestPlatforms);</_StrideTestPlatforms>
     <!-- Game = host-loadable library TFM; auto-add for mobile-only lists (a desktop platform
-         fills that role when present). Opt out with StrideAssetAssembly=false. -->
-    <_StrideTestPlatforms Condition="'$(StrideAssetAssembly)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
+         fills that role when present). Opt out with StrideContainsAssetTypes=false. -->
+    <_StrideTestPlatforms Condition="'$(StrideContainsAssetTypes)' != 'false' And ($(_StrideTestPlatforms.Contains(';Android;')) Or $(_StrideTestPlatforms.Contains(';iOS;'))) And !$(_StrideTestPlatforms.Contains(';Game;')) And !$(_StrideTestPlatforms.Contains(';Linux;')) And !$(_StrideTestPlatforms.Contains(';macOS;')) And !$(_StrideTestPlatforms.Contains(';Windows;'))">;Game$(_StrideTestPlatforms)</_StrideTestPlatforms>
 
     <!-- shared tail: host-windows (when a mobile platform is present on a Windows host) + mobile -->
     <_StrideTestTargetFrameworksTail></_StrideTestTargetFrameworksTail>

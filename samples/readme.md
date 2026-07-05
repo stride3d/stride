@@ -10,7 +10,7 @@
 	- `Input` : All input samples (touch, mouse, gamepad...etc.)
 	- `UI` : All UI samples
 	- `Tutorials` : All Tutorial sample projects with a related video or Stride documentation page
-	- `StrideSamples.sln` : A top level `StrideSamples.sln` referencing all Game Packages (sdpkg)
+	- `StrideSamples.slnx` : A top level `StrideSamples.slnx` referencing all Game Packages (sdpkg)
 - Inside a category, we store a package in its own directory. For example `SimpleAudio` in `Audio`
 	- Audio
 		- `SimpleAudio`

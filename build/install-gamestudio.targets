@@ -12,6 +12,7 @@
 
         dotnet msbuild build/install-gamestudio.targets -t:Run
         dotnet msbuild build/install-gamestudio.targets -t:Run -p:GameStudioVersion=4.4.0-dev3
+        dotnet msbuild build/install-gamestudio.targets -t:Run -p:GameStudioGraphicsApi=Vulkan
 
     Targets:
       Deploy  - restore the package closure into the global NuGet cache (re-extracts dev packages so a
@@ -103,8 +104,14 @@
     <Error Condition="'$(_GameStudioExePath)' == ''"
            Text="Could not find Stride.GameStudio.exe under '$(NuGetPackagesRoot)\stride.gamestudio\$(GameStudioVersion)\tools\' after restore." />
 
-    <Message Importance="high" Text="Launching $(_GameStudioExePath)" />
-    <Exec Command="&quot;$(_GameStudioExePath)&quot;" />
+    <!-- Forward launch args to the packaged editor: GameStudioGraphicsApi=<api> is a no-space
+         shorthand (survives VS launch profiles) for the graphics-api arg; GameStudioArgs passes
+         anything verbatim. Exercises the deployed graphics-API selection path (ListAssemblies). -->
+    <PropertyGroup>
+      <GameStudioArgs Condition="'$(GameStudioArgs)' == '' And '$(GameStudioGraphicsApi)' != ''">--graphics-api $(GameStudioGraphicsApi)</GameStudioArgs>
+    </PropertyGroup>
+    <Message Importance="high" Text="Launching $(_GameStudioExePath) $(GameStudioArgs)" />
+    <Exec Command="&quot;$(_GameStudioExePath)&quot; $(GameStudioArgs)" />
   </Target>
 
 </Project>

@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -28,9 +26,16 @@ namespace Stride.Assets.Presentation.AssetEditors
 {
     public enum AssemblyChangeType
     {
+        /// <summary>The compiled assembly binary changed.</summary>
         Binary,
+        /// <summary>The .csproj changed: reload the MSBuild project and Roslyn workspace.</summary>
         Project,
+        /// <summary>A .cs file was added/removed/renamed: reconcile the asset tree, no MSBuild/workspace reload.</summary>
+        ProjectAssets,
+        /// <summary>A .cs file's content changed: reload its document text only.</summary>
         Source,
+        /// <summary>The project's editor loadability (StrideContainsAssetTypes) flipped: load or unload its assembly.</summary>
+        Loadability,
     }
 
     public class AssemblyChangedEvent
@@ -43,22 +48,38 @@ namespace Stride.Assets.Presentation.AssetEditors
             Project = project;
         }
 
+        /// <summary>The kind of change that occurred.</summary>
         public AssemblyChangeType ChangeType { get; set; }
 
+        /// <summary>The tracked assembly the change applies to.</summary>
         public PackageLoadedAssembly Assembly { get; set; }
 
+        /// <summary>The full path of the file that changed.</summary>
         public string ChangedFile { get; set; }
 
+        /// <summary>The Roslyn project the change applies to.</summary>
         public Project Project { get; set; }
+
+        /// <summary>For a .cs change, the underlying file change type.</summary>
+        public FileEventChangeType SourceChangeType { get; set; }
+
+        /// <summary>For a renamed .cs file, the previous full path.</summary>
+        public string OldChangedFile { get; set; }
+
+        /// <summary>For a <see cref="AssemblyChangeType.Loadability"/> change, the package to load/unload.</summary>
+        public PackageViewModel Package { get; set; }
     }
 
     public class ProjectWatcher : IDisposable
     {
         private readonly LoggerResult logger;
         private readonly TrackingCollection<TrackedAssembly> trackedAssemblies;
+        // Guards trackedAssemblies mutations/enumerations: mutated from package changes, enumerated on the dataflow thread.
+        private readonly object trackedAssembliesLock = new object();
         private readonly BufferBlock<FileEvent> fileChanged = new BufferBlock<FileEvent>();
         private readonly IDisposable fileChangedLink1;
         private readonly IDisposable fileChangedLink2;
+        private IDisposable assemblyChangedLink;
         private readonly DirectoryWatcher directoryWatcher;
         private readonly SessionViewModel session;
         private readonly bool trackBinaries;
@@ -66,9 +87,14 @@ namespace Stride.Assets.Presentation.AssetEditors
         private Project gameExecutable;
 
         private CancellationTokenSource batchChangesCancellationTokenSource = new CancellationTokenSource();
-        public IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChange;
+        // Source/project changes for ALL tracked projects (feeds the Roslyn workspace via CodeViewModel).
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> SourceChange;
+        // Changes for editor-loaded projects only (non-null Assembly); feeds the assembly-reload path.
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> AssemblyChange;
 
         private MSBuildWorkspace msbuildWorkspace;
+        private bool solutionOpened;
+        private readonly SemaphoreSlim solutionLock = new SemaphoreSlim(1, 1);
 
         private Lazy<Task<RoslynHost>> roslynHost;
 
@@ -102,15 +128,19 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             var fileChangedTransform = new TransformBlock<FileEvent, AssemblyChangedEvent>(x => FileChangeTransformation(x));
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
-            fileChangedLink2 = fileChangedTransform.LinkTo(AssemblyChangedBroadcast);
+            fileChangedLink2 = fileChangedTransform.LinkTo(SourceChangedBroadcast);
+            // Editor-loaded projects only reach the assembly-reload path; unloaded heads never do,
+            // except for loadability flips, which are exactly the "should now (un)load" signal.
+            assemblyChangedLink = SourceChangedBroadcast.LinkTo(AssemblyChangedBroadcast, e => e != null && (e.Assembly != null || e.ChangeType == AssemblyChangeType.Loadability));
 
-            BatchChange = BatchChanges();
+            SourceChange = BatchChanges(SourceChangedBroadcast, loadedOnly: false);
+            AssemblyChange = BatchChanges(AssemblyChangedBroadcast, loadedOnly: true);
         }
 
-        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges()
+        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges(ISourceBlock<AssemblyChangedEvent> source, bool loadedOnly)
         {
             var buffer = new BufferBlock<AssemblyChangedEvent>();
-            using (AssemblyChangedBroadcast.LinkTo(buffer))
+            using (source.LinkTo(buffer))
             {
                 while (!batchChangesCancellationTokenSource.IsCancellationRequested)
                 {
@@ -125,19 +155,30 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                         assemblyChanges.Add(assemblyChange);
                         var project = assemblyChange.Project;
-                        var referencedProjects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+                        // Only binary/project structural changes fan out to dependent assemblies;
+                        // source-content and asset-membership changes are local to their own project.
+                        var referencedProjects = assemblyChange.ChangeType is AssemblyChangeType.Binary or AssemblyChangeType.Project
+                            ? msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id)
+                            : Enumerable.Empty<ProjectId>();
+                        var trackedSnapshot = SnapshotTrackedAssemblies();
                         foreach (var referenceProject in referencedProjects)
                         {
                             var foundProject = msbuildWorkspace.CurrentSolution.GetProject(referenceProject);
                             if (foundProject is null)
                                 continue;
                             var assemblyName = foundProject.AssemblyName;
-                            var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
+                            var target = trackedSnapshot.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
                             if (target != null)
                             {
+                                // On the assembly-reload path, skip dependents the editor doesn't load (no assembly to reload).
+                                if (loadedOnly && target.LoadedAssembly == null)
+                                    continue;
                                 string file = assemblyChange.ChangedFile;
                                 if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
                                 {
+                                    // The executable is tracked without a LoadedAssembly; it has no binary path to report.
+                                    if (target.LoadedAssembly == null)
+                                        continue;
                                     file = target.LoadedAssembly.Path;
                                 }
                                 else if (assemblyChange.ChangeType == AssemblyChangeType.Project)
@@ -157,13 +198,18 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                     } while (!hasChanged || buffer.Count > 0);
 
-                    // Merge files that were modified multiple time
-                    assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
+                    // Merge files that were modified multiple time (a csproj change can carry both a
+                    // Project and a Loadability event, so the change type is part of the key)
+                    assemblyChanges = assemblyChanges.GroupBy(x => (x.ChangedFile, x.ChangeType)).Select(x => x.Last()).ToList();
 
                     yield return assemblyChanges;
                 }
             }
         }
+        // All tracked-project changes (fed by the file-change transform).
+        public BroadcastBlock<AssemblyChangedEvent> SourceChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
+
+        // Editor-loaded projects only (non-null Assembly); a filtered view of SourceChangedBroadcast.
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
 
         public Project CurrentGameLibrary
@@ -174,7 +220,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (project == null || project.Type != ProjectType.Library)
                     return null;
 
-                return TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == project.ProjectPath)?.Project;
+                return SnapshotTrackedAssemblies().FirstOrDefault(x => new UFile(x.Project.FilePath) == project.ProjectPath)?.Project;
             }
         }
 
@@ -182,15 +228,27 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         public Project CurrentGameExecutable => gameExecutable;
 
+        /// <summary>All projects currently loaded in the shared MSBuild solution (any csproj, not just tracked libraries).</summary>
+        public IEnumerable<Project> GetLoadedProjects() => msbuildWorkspace?.CurrentSolution.Projects ?? Enumerable.Empty<Project>();
+
         public TrackingCollection<TrackedAssembly> TrackedAssemblies => trackedAssemblies;
+
+        /// <summary>Thread-safe snapshot of the tracked assemblies for enumeration off the mutating thread.</summary>
+        public List<TrackedAssembly> SnapshotTrackedAssemblies()
+        {
+            lock (trackedAssembliesLock)
+                return trackedAssemblies.ToList();
+        }
 
         public void Dispose()
         {
             batchChangesCancellationTokenSource.Cancel();
 
+            session.LocalPackages.CollectionChanged -= LocalPackagesChanged;
             directoryWatcher.Dispose();
             fileChangedLink1.Dispose();
             fileChangedLink2.Dispose();
+            assemblyChangedLink?.Dispose();
         }
 
         public async Task Initialize()
@@ -203,11 +261,24 @@ namespace Stride.Assets.Presentation.AssetEditors
                 foreach (var package in session.LocalPackages.ToList())
                     await TrackPackage(package);
 
-                // Locate current package's game executable
+                // Locate the current package's game executable and track it, so external changes to its
+                // scripts sync too (the executable isn't tracked as a library assembly).
                 // TODO: Handle current package changes. Detect this as part of the package solution.
-                var gameExecutableViewModel = (session.CurrentProject as ProjectViewModel)?.Type == ProjectType.Executable ? session.CurrentProject : null;
-                if (gameExecutableViewModel != null && gameExecutableViewModel.IsLoaded)
+                var gameExecutableViewModel = session.CurrentProject as ProjectViewModel;
+                if (gameExecutableViewModel?.Type == ProjectType.Executable && gameExecutableViewModel.IsLoaded)
+                {
                     gameExecutable = await OpenProject(gameExecutableViewModel.ProjectPath);
+                    if (gameExecutable != null)
+                    {
+                        directoryWatcher.Track(gameExecutableViewModel.ProjectPath);
+                        TrackProjectDocuments(gameExecutable, gameExecutableViewModel.PackagePath.GetFullDirectory());
+                        lock (trackedAssembliesLock)
+                        {
+                            if (!trackedAssemblies.Any(x => string.Equals(x.Project?.FilePath, gameExecutable.FilePath, StringComparison.OrdinalIgnoreCase)))
+                                trackedAssemblies.Add(new TrackedAssembly { Package = gameExecutableViewModel, Project = gameExecutable });
+                        }
+                    }
+                }
 
                 initializedTaskSource.SetResult(true);
             }
@@ -221,7 +292,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         {
             var hasChanged = false;
             var buffer = new BufferBlock<AssemblyChangedEvent>();
-            using (AssemblyChangedBroadcast.LinkTo(buffer))
+            using (SourceChangedBroadcast.LinkTo(buffer))
             {
                 do
                 {
@@ -240,102 +311,124 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         private async Task<AssemblyChangedEvent> FileChangeTransformation(FileEvent e)
         {
-            string changedFile;
             var renameEvent = e as FileRenameEvent;
-            changedFile = renameEvent?.OldFullPath ?? e.FullPath;
+            // For a rename, the old path is what identifies the existing document/tracked assembly.
+            var changedFile = renameEvent?.OldFullPath ?? e.FullPath;
 
-            foreach (var trackedAssembly in trackedAssemblies)
+            foreach (var trackedAssembly in SnapshotTrackedAssemblies())
             {
-                // Report change of the assembly binary
-                if (string.Equals(trackedAssembly.LoadedAssembly.Path, changedFile, StringComparison.OrdinalIgnoreCase))
+                // Report change of the assembly binary (the executable is tracked without a LoadedAssembly).
+                if (trackedAssembly.LoadedAssembly != null && string.Equals(trackedAssembly.LoadedAssembly.Path, changedFile, StringComparison.OrdinalIgnoreCase))
                     return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Binary, changedFile, trackedAssembly.Project);
 
-                var needProjectReload = string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase);
+                // The .csproj itself changed: reload the MSBuild project and Roslyn workspace.
+                if (string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    await UpdateProject(trackedAssembly, forceReload: true);
+                    CheckLoadabilityChanged(trackedAssembly);
+                    return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Project, trackedAssembly.Project.FilePath, trackedAssembly.Project);
+                }
 
                 var directoryName = Path.GetDirectoryName(trackedAssembly.Project.FilePath) + Path.DirectorySeparatorChar;
                 var changedFileDirectoryName = Path.GetDirectoryName(changedFile) + Path.DirectorySeparatorChar;
 
-                // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
+                // Only handle .cs files under this project's directory (DefaultItems auto import *.cs).
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
-                if (needProjectReload == false
-                    && ((e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
-                    && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && changedFileDirectoryName.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    needProjectReload = true;
-                }
-
-                // Reparse the project file and report source changes
-                if (needProjectReload)
-                {
-                    // Reparse the project file and report source changes
-                    await UpdateProject(trackedAssembly);
-                    return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Project, trackedAssembly.Project.FilePath, trackedAssembly.Project);
-                }
-
-                // Only deal with file changes
-                if (e.ChangeType != FileEventChangeType.Changed)
+                if (Path.GetExtension(changedFile)?.ToLowerInvariant() != ".cs"
+                    || !changedFileDirectoryName.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                // Check if we have a matching document
-                var document = trackedAssembly.Project.Documents.FirstOrDefault(x => string.Equals(x.FilePath, changedFile, StringComparison.OrdinalIgnoreCase));
-                if (document == null)
-                    continue;
-
-                string source = null;
-                // Try multiple times
-                for (int i = 0; i < 10; ++i)
+                switch (e.ChangeType)
                 {
-                    try
-                    {
-                        using (var streamReader = new StreamReader(File.Open(changedFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Encoding.UTF8, true))
+                    // File membership changed: reconcile the asset tree (no MSBuild/workspace reload).
+                    case FileEventChangeType.Created:
+                    case FileEventChangeType.Deleted:
+                    case FileEventChangeType.Renamed:
+                        return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.ProjectAssets, e.FullPath, trackedAssembly.Project)
                         {
-                            source = await streamReader.ReadToEndAsync();
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                    }
-                    await Task.Delay(1);
+                            SourceChangeType = e.ChangeType,
+                            OldChangedFile = renameEvent?.OldFullPath,
+                        };
+
+                    // Content changed: reload just this document's text.
+                    case FileEventChangeType.Changed:
+                        return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Source, changedFile, trackedAssembly.Project)
+                        {
+                            SourceChangeType = FileEventChangeType.Changed,
+                        };
                 }
-
-                if (source == null)
-                {
-                    // Something went wrong reading the file
-                    return null;
-                }
-
-                // Remove and readd new source
-                trackedAssembly.Project = trackedAssembly.Project.RemoveDocument(document.Id);
-                var documentId = DocumentId.CreateNewId(trackedAssembly.Project.Id);
-                trackedAssembly.Project = trackedAssembly.Project.Solution.AddDocument(documentId, document.Name, SourceText.From(source, Encoding.UTF8), null, document.FilePath).GetDocument(documentId).Project;
-
-                return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Source, changedFile, trackedAssembly.Project);
             }
 
             return null;
         }
 
+        // Re-reads StrideContainsAssetTypes from the csproj and, if editor loadability flipped compared to
+        // the currently loaded state, emits a Loadability event so the reload path can load/unload it.
+        private void CheckLoadabilityChanged(TrackedAssembly trackedAssembly)
+        {
+            if (trackedAssembly.Package?.Package.Container is not SolutionProject solutionProject || solutionProject.FullPath == null)
+                return;
+
+            var rawValue = VSProjectHelper.GetProjectPropertyValue(solutionProject.FullPath.ToOSPath(), SolutionProject.ContainsAssetTypesProperty);
+            solutionProject.ContainsAssetTypes = bool.TryParse(rawValue, out var parsed) ? parsed : null;
+
+            var isLoaded = trackedAssembly.LoadedAssembly != null;
+            if (solutionProject.ShouldLoadAssemblyInEditor == isLoaded)
+                return;
+
+            SourceChangedBroadcast.Post(new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Loadability, trackedAssembly.Project.FilePath, trackedAssembly.Project)
+            {
+                Package = trackedAssembly.Package,
+            });
+        }
+
+        /// <summary>
+        /// Re-syncs the tracked LoadedAssembly after a loadability flip. The tracked set itself doesn't
+        /// change: projects stay tracked (and in the Roslyn workspace) whether loaded or not.
+        /// </summary>
+        public void RefreshLoadedAssembly(PackageViewModel package)
+        {
+            lock (trackedAssembliesLock)
+            {
+                foreach (var trackedAssembly in trackedAssemblies)
+                {
+                    if (trackedAssembly.Package != package)
+                        continue;
+                    trackedAssembly.LoadedAssembly = package.LoadedAssemblies.FirstOrDefault();
+                    if (trackBinaries && trackedAssembly.LoadedAssembly != null)
+                        directoryWatcher.Track(trackedAssembly.LoadedAssembly.Path);
+                }
+            }
+        }
+
         private async void LocalPackagesChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.OldItems != null)
+            // async void event handler: an unhandled throw would crash the process, so guard the body.
+            try
             {
-                foreach (PackageViewModel oldItem in e.OldItems)
-                    UntrackPackage(oldItem);
-            }
+                if (e.OldItems != null)
+                {
+                    foreach (PackageViewModel oldItem in e.OldItems)
+                        UntrackPackage(oldItem);
+                }
 
-            if (e.NewItems != null)
+                if (e.NewItems != null)
+                {
+                    foreach (PackageViewModel newItem in e.NewItems)
+                        await TrackPackage(newItem);
+                }
+            }
+            catch (Exception ex)
             {
-                foreach (PackageViewModel newItem in e.NewItems)
-                    await TrackPackage(newItem);
+                logger.Error("Failed to track local package changes", ex);
             }
         }
 
         private void UntrackPackage(PackageViewModel package)
         {
             // TODO: Properly untrack all files
-            trackedAssemblies.RemoveWhere(trackedAssembly => trackedAssembly.Package == package);
+            lock (trackedAssembliesLock)
+                trackedAssemblies.RemoveWhere(trackedAssembly => trackedAssembly.Package == package);
         }
 
         private async Task TrackPackage(PackageViewModel package)
@@ -359,29 +452,64 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 // Track project source code
                 if (await UpdateProject(trackedAssembly))
-                    trackedAssemblies.Add(trackedAssembly);
+                {
+                    lock (trackedAssembliesLock)
+                        trackedAssemblies.Add(trackedAssembly);
+                }
+            }
+
+            // Track the project of a package whose assembly isn't editor-loaded (exe heads,
+            // ContainsAssetTypes=false libraries): csproj/source changes still sync to Roslyn,
+            // and a ContainsAssetTypes flip can be detected.
+            if (package.LoadedAssemblies.Count == 0 && package is ProjectViewModel projectViewModel)
+            {
+                var project = await OpenProject(projectViewModel.ProjectPath);
+                if (project != null)
+                {
+                    directoryWatcher.Track(projectViewModel.ProjectPath);
+                    TrackProjectDocuments(project, projectViewModel.PackagePath.GetFullDirectory());
+                    lock (trackedAssembliesLock)
+                    {
+                        if (!trackedAssemblies.Any(x => string.Equals(x.Project?.FilePath, project.FilePath, StringComparison.OrdinalIgnoreCase)))
+                            trackedAssemblies.Add(new TrackedAssembly { Package = package, Project = project });
+                    }
+                }
             }
 
             // TODO: Detect changes to loaded assemblies?
         }
 
         // TODO: Properly untrack removed documents
-        private async Task<bool> UpdateProject(TrackedAssembly trackedAssembly)
+        private async Task<bool> UpdateProject(TrackedAssembly trackedAssembly, bool forceReload = false)
         {
-            var location = trackedAssembly.LoadedAssembly.ProjectReference.Location;
-            if (location.IsRelative)
+            UFile location;
+            if (trackedAssembly.Project?.FilePath is { } existingPath)
             {
-                location = UPath.Combine(trackedAssembly.Package.PackagePath.GetFullDirectory(), location);
+                // Reload from the known project path (also covers projects without a LoadedAssembly, e.g. the executable).
+                location = new UFile(existingPath);
             }
-            var project = await OpenProject(location);
+            else
+            {
+                location = trackedAssembly.LoadedAssembly.ProjectReference.Location;
+                if (location.IsRelative)
+                {
+                    location = UPath.Combine(trackedAssembly.Package.PackagePath.GetFullDirectory(), location);
+                }
+            }
+
+            var project = await OpenProject(location, forceReload);
             if (project == null)
                 return false;
 
             trackedAssembly.Project = project;
+            TrackProjectDocuments(project, trackedAssembly.Package.PackagePath.GetFullDirectory());
+            return true;
+        }
 
-            var packageDirectory = trackedAssembly.Package.PackagePath.GetFullDirectory();
-            var projectDirectory = location.GetFullDirectory();
-
+        /// <summary>Tracks the source documents of a project (limited to the package/project folders) for change notifications.</summary>
+        private void TrackProjectDocuments(Project project, UDirectory packageDirectory)
+        {
+            var projectDirectory = new UFile(project.FilePath).GetFullDirectory();
             foreach (var document in project.Documents)
             {
                 // Limit ourselves to our package subfolders or project folders
@@ -391,49 +519,64 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 directoryWatcher.Track(document.FilePath);
             }
-
-            return true;
         }
 
-        private async Task<Project> OpenProject(UFile projectPath)
+        private async Task<Project> OpenProject(UFile projectPath, bool forceReload = false)
         {
-            if (msbuildWorkspace == null)
-            {
-                var host = await RoslynHost;
-                msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
-            }
-            await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+            var solution = await EnsureSolutionOpened(forceReload);
+            var osPath = projectPath.ToOSPath();
+            // Path match is case-insensitive; a multi-targeted project yields one entry per TFM (any works here).
+            var project = solution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, osPath, StringComparison.OrdinalIgnoreCase));
+            if (project == null)
+                logger.Warning($"[ScriptWorkspace] Could not load project '{osPath}' into the script workspace.");
+            return project;
+        }
 
-            // Try up to 10 times (1 second)
-            const int retryCount = 10;
-            for (var i = retryCount - 1; i >= 0; --i)
+        /// <summary>
+        /// Opens the solution into the shared <see cref="msbuildWorkspace"/> once (or reloads it on <paramref name="forceReload"/>).
+        /// </summary>
+        private async Task<Solution> EnsureSolutionOpened(bool forceReload)
+        {
+            // Serialize workspace init/reopen: concurrent callers (package changes, file changes, init)
+            // must not race on the non-thread-safe MSBuildWorkspace.
+            await solutionLock.WaitAsync();
+            try
             {
-                try
+                if (msbuildWorkspace == null)
                 {
+                    var host = await RoslynHost;
+                    msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
+                }
 
-                    var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == projectPath.ToOSPath());
-                    if (msbuildWorkspace.Diagnostics.Count > 0)
+                if (!solutionOpened || forceReload)
+                {
+                    await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+                    solutionOpened = true;
+
+                    // Surface design-time build issues instead of swallowing them (empty-document symptoms).
+                    foreach (var diagnostic in msbuildWorkspace.Diagnostics)
                     {
-                        // There was an issue compiling the project
-                        // at the moment there's no mechanism to surface those errors to the UI, so leaving this in here:
-                        //if (Debugger.IsAttached) Debugger.Break();
-                        foreach (var diagnostic in msbuildWorkspace.Diagnostics)
-                            Debug.WriteLine(diagnostic.Message, category: nameof(ProjectWatcher));
+                        if (diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                            logger.Warning($"[ScriptWorkspace] {diagnostic.Message}");
+                        else
+                            logger.Verbose($"[ScriptWorkspace] {diagnostic.Message}");
                     }
-                    return project;
-                }
-                catch (IOException)
-                {
-                    // FIle might still be locked, let's wait little bit more
-                    await Task.Delay(100);
 
-                    if (i == 0)
-                        throw;
+                    // Reopening mints new project ids, so rebind existing snapshots to the fresh solution.
+                    foreach (var tracked in SnapshotTrackedAssemblies())
+                    {
+                        var refreshed = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, tracked.Project?.FilePath, StringComparison.OrdinalIgnoreCase));
+                        if (refreshed != null)
+                            tracked.Project = refreshed;
+                    }
                 }
+
+                return msbuildWorkspace.CurrentSolution;
             }
-
-            // Unreachable
-            throw new InvalidOperationException();
+            finally
+            {
+                solutionLock.Release();
+            }
         }
 
         private void directoryWatcher_Modified(object sender, FileEvent e)

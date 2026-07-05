@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Client-side copy of the Stride.VisualStudio.Commands.Interfaces ABI, used by the stride CLI
+    to talk to a released (spawned) Stride.VisualStudio.Commands server over ServiceWire.
+
+    ServiceWire identifies types by their assembly-qualified name (minus version), so the client's
+    IStrideCommands must live in an assembly literally named Stride.VisualStudio.Commands.Interfaces
+    to match the server's registration and payload type names. Hence the AssemblyName override.
+
+    The real Interfaces project targets net10.0-windows (editor SDK) and can't be referenced from the
+    cross-platform net10.0 CLI, so the same source files are linked here into a plain net10.0 assembly.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Stride.VisualStudio.Commands.Interfaces</AssemblyName>
+    <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ServiceWire" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\IStrideCommands.cs" Link="IStrideCommands.cs" />
+    <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\Shaders\RawSourceSpan.cs" Link="Shaders\RawSourceSpan.cs" />
+    <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\Shaders\RawShaderNavigationResult.cs" Link="Shaders\RawShaderNavigationResult.cs" />
+    <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\Shaders\RawShaderAnalysisMessage.cs" Link="Shaders\RawShaderAnalysisMessage.cs" />
+  </ItemGroup>
+</Project>

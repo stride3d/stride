@@ -7,7 +7,6 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
-    <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>macOS</StridePlatform>
   </PropertyGroup>
   <ItemGroup>

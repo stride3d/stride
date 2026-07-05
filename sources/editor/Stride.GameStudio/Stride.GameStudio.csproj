@@ -21,6 +21,10 @@
     <StrideLocalized>true</StrideLocalized>
     <StrideNuGetResolverUI>true</StrideNuGetResolverUI>
     <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
+    <!-- Lay graphics-API DLLs into per-API subfolders so the API is chosen at launch. -->
+    <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
+    <!-- Desktop-only tool: drop non-desktop runtimes/<rid>/ from the no-RID output. -->
+    <StrideToolingHost>true</StrideToolingHost>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>

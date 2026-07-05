@@ -68,7 +68,7 @@ internal static class Program
             { "output-path=", "Output staging directory", v => preprocessor.OutputDirectory = v },
             { "template-name=", "dotnet new short name (e.g. stride-game)", v => preprocessor.TemplateName = v },
             { "source-name=", "Original literal name to rename to 'MyTemplate' across staged content (auto-detected from first .sdpkg's Name field if omitted)", v => preprocessor.SourceName = v },
-            { "engine-version=", "Substitutes $EngineVersion$ literal in produced .csproj files with this value (typically pack-time PackageVersion). No-op for inputs without the literal.", v => preprocessor.EngineVersion = v },
+            { "engine-version=", "Stamps this engine version into produced .csproj files: $EngineVersion$ literals plus concrete engine-family Stride.* PackageReference versions (community Stride.*-prefixed packages pass through).", v => preprocessor.EngineVersion = v },
             { "skip-prune", "Skip the asset prune step. Templates ship larger but pack runs faster; diagnostic escape hatch.", _ => preprocessor.SkipPrune = true },
             { "platform-template-path=", "Reference template (typically NewGame) whose MyTemplate.{Linux,macOS,iOS,Android,Windows} folders are copied into the staged output when the input sample doesn't ship its own. Sibling-dir csproj/sdpkg references are rewritten to match the sample's library name. Omit to disable injection.", v => preprocessor.PlatformTemplatePath = v },
         };

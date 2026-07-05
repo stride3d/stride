@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Stride.Assets.Templates;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 
 namespace Stride.TemplateGenerator;
@@ -45,7 +46,7 @@ internal class TemplatePreprocessor
     /// </summary>
     private static readonly HashSet<string> TextExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".cs", ".csproj", ".sln", ".targets", ".props", ".config",
+        ".cs", ".csproj", ".sln", ".slnx", ".targets", ".props", ".config",
         ".json", ".yaml", ".yml",
         ".xml", ".html", ".htm",
         ".md", ".txt", ".gitignore", ".gitattributes", ".editorconfig",
@@ -80,10 +81,13 @@ internal class TemplatePreprocessor
     public string? TemplateName { get; set; }
 
     /// <summary>
-    /// When set, every literal <c>$EngineVersion$</c> in <c>.csproj</c> output files is rewritten
-    /// to this value (typically pack-time <c>PackageVersion</c>). No-op for samples that hardcode
-    /// their version; required for the NewGame starter so its <c>PackageReference</c> versions
-    /// pin to the matching engine release.
+    /// When set, staged <c>.csproj</c> files get this engine version stamped in: every literal
+    /// <c>$EngineVersion$</c> (NewGame starter) and every concrete engine-family <c>Stride.*</c>
+    /// <c>PackageReference</c> version (samples commit the samples-authority version, which may
+    /// not match — or even restore against — the engine being packed). Stamping at pack time
+    /// makes the content instantiable as-is by every consumer, including plain <c>dotnet new</c>,
+    /// which has no Stride-side rewrite hook; instantiation-side upgrading remains only for
+    /// running a template against a newer engine than it was packed with.
     /// </summary>
     public string? EngineVersion { get; set; }
 
@@ -215,7 +219,7 @@ internal class TemplatePreprocessor
         // including any platform exec project injected above. Per-platform exec csprojs get wrapped
         // in #if (XActive) conditional regions so template.json's SpecialCustomOperations strips
         // unselected platforms at instantiation.
-        GenerateSlnIfMissing(logger);
+        GenerateSlnxIfMissing(logger);
 
         // Inject a BasicCameraController placeholder component into the Camera entity, BEFORE
         // the GUID scan so the injected component's Id gets caught by the placeholder pass
@@ -247,8 +251,9 @@ internal class TemplatePreprocessor
         EmitTemplateJson();
         logger.Info($"Wrote template.json with {GuidMap.Count} generated/guid symbols");
 
-        // $EngineVersion$ substitution. Only NewGame's csprojs use this literal; samples
-        // hardcode their version and pass through unchanged.
+        // Engine-version stamp: $EngineVersion$ literals (NewGame) plus concrete Stride.*
+        // PackageReference versions (samples), so packed content instantiates against the
+        // engine it shipped with. See the EngineVersion property doc.
         if (!string.IsNullOrEmpty(EngineVersion))
             SubstituteEngineVersion(logger);
 
@@ -261,7 +266,7 @@ internal class TemplatePreprocessor
     }
 
     /// <summary>
-    /// Final-pass line-ending normalization. <c>.sln</c> → CRLF (VS/dotnet sln write CRLF on
+    /// Final-pass line-ending normalization. <c>.sln</c>/<c>.slnx</c> → CRLF (VS/dotnet write CRLF on
     /// edit; matching avoids the "Inconsistent line endings" prompt on first save). Everything
     /// else → LF (modern cross-platform convention, matches what <c>dotnet/sdk</c> templates
     /// ship). Only files in the <see cref="TextExtensions"/> whitelist are touched — binaries
@@ -274,7 +279,8 @@ internal class TemplatePreprocessor
         {
             var content = File.ReadAllText(path);
             var normalized = content.Replace("\r\n", "\n");
-            if (Path.GetExtension(path).Equals(".sln", StringComparison.OrdinalIgnoreCase))
+            var ext = Path.GetExtension(path);
+            if (ext.Equals(".sln", StringComparison.OrdinalIgnoreCase) || ext.Equals(".slnx", StringComparison.OrdinalIgnoreCase))
                 normalized = normalized.Replace("\n", "\r\n");
             if (normalized != content)
             {
@@ -325,19 +331,48 @@ internal class TemplatePreprocessor
             Copy(screenshot);
     }
 
+    /// <summary>Matches a <c>Stride*</c> Include + Version attribute pair (PackageReference shape).</summary>
+    private static readonly Regex StridePackageReferenceRegex = new(
+        "(Include=\"(Stride[^\"]*)\"\\s+Version=\")([^\"]*)(\")", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Community/third-party <c>Stride.*</c>-prefixed packages that version independently of the
+    /// engine; their references pass through the engine-version stamp untouched.
+    /// </summary>
+    private static readonly string[] NonEnginePackagePrefixes =
+    {
+        "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
+        "Stride.GraphX", "Stride.Metrics", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+    };
+
+    private static bool IsNonEnginePackage(string packageId)
+        => NonEnginePackagePrefixes.Any(prefix => packageId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+
     private void SubstituteEngineVersion(ILogger logger)
     {
-        var replaced = 0;
+        var files = 0;
+        var references = 0;
         foreach (var csproj in Directory.EnumerateFiles(OutputDirectory!, "*.csproj", SearchOption.AllDirectories))
         {
             var content = File.ReadAllText(csproj);
-            if (content.IndexOf("$EngineVersion$", StringComparison.Ordinal) < 0)
+            var updated = content.Replace("$EngineVersion$", EngineVersion);
+            updated = StridePackageReferenceRegex.Replace(updated, match =>
+            {
+                var version = match.Groups[3].Value;
+                // A remaining $placeholder$ is someone else's substitution point; community
+                // packages keep their committed version.
+                if (version.IndexOf('$') >= 0 || version == EngineVersion || IsNonEnginePackage(match.Groups[2].Value))
+                    return match.Value;
+                references++;
+                return match.Groups[1].Value + EngineVersion + match.Groups[4].Value;
+            });
+            if (updated == content)
                 continue;
-            File.WriteAllText(csproj, content.Replace("$EngineVersion$", EngineVersion));
-            replaced++;
+            File.WriteAllText(csproj, updated);
+            files++;
         }
-        if (replaced > 0)
-            logger.Info($"Substituted $EngineVersion$ → {EngineVersion} in {replaced} .csproj file(s)");
+        if (files > 0)
+            logger.Info($"Stamped engine version {EngineVersion} into {files} .csproj file(s) ({references} Stride.* reference(s) rewritten)");
     }
 
     /// <summary>
@@ -522,23 +557,31 @@ internal class TemplatePreprocessor
         { "Android", "AndroidActive" },
     };
 
+    // Default-startup priority: desktop platforms first, then mobile. The highest-priority platform the
+    // user keeps gets the .slnx DefaultStartup. PlatformType (not strings) so the names stay
+    // compile-checked; covers every PlatformActiveSymbol platform.
+    private static readonly PlatformType[] StartupPlatformPriority =
+        [PlatformType.Windows, PlatformType.Linux, PlatformType.macOS, PlatformType.Android, PlatformType.iOS];
+
     /// <summary>
-    /// Synthesizes a <c>MyTemplate.sln</c> at the staged root when one isn't already present.
-    /// Walks <c>*.csproj</c> under the tree and emits a Project block for each, wrapping
+    /// Synthesizes a <c>MyTemplate.slnx</c> at the staged root when no solution is already present.
+    /// Walks <c>*.csproj</c> under the tree and emits a <c>&lt;Project&gt;</c> for each, wrapping
     /// per-platform exec projects (those whose dir name ends in a known platform suffix) in
     /// <c>#if (XActive)</c> markers so the template engine's SpecialCustomOperations strips
-    /// unselected platforms at instantiation. Instance GUIDs are random but flow through the
-    /// subsequent GUID-placeholder pass and get fresh values per dotnet new invocation.
+    /// unselected platforms at instantiation. Exactly one exec — the highest-priority platform the
+    /// user keeps (<see cref="StartupPlatformPriority"/>) — is marked <c>DefaultStartup</c>, since
+    /// .slnx, unlike classic .sln, doesn't pick the startup project from file order.
     /// </summary>
-    private void GenerateSlnIfMissing(ILogger logger)
+    private void GenerateSlnxIfMissing(ILogger logger)
     {
-        var existing = Directory.EnumerateFiles(OutputDirectory!, "*.sln", SearchOption.TopDirectoryOnly).ToList();
+        var existing = Directory.EnumerateFiles(OutputDirectory!, "*.sln", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.EnumerateFiles(OutputDirectory!, "*.slnx", SearchOption.TopDirectoryOnly))
+            .ToList();
         if (existing.Count > 0)
             return;
 
-        // Discover csprojs and classify.
-        // Each entry: (csprojPath, dirName, platformSuffix-or-null, instanceGuid)
-        var projects = new List<(string Csproj, string DirName, string? Platform, Guid InstanceId)>();
+        // Discover csprojs and classify by per-platform suffix (null = the shared game library).
+        var projects = new List<(string Csproj, string DirName, string? Platform)>();
         foreach (var csproj in Directory.EnumerateFiles(OutputDirectory!, "*.csproj", SearchOption.AllDirectories))
         {
             var dirName = Path.GetFileName(Path.GetDirectoryName(csproj)!);
@@ -551,66 +594,53 @@ internal class TemplatePreprocessor
                     break;
                 }
             }
-            projects.Add((csproj, dirName, platform, Guid.NewGuid()));
+            projects.Add((csproj, dirName, platform));
         }
         if (projects.Count == 0)
             return;
 
-        // Per-platform execs sort first (in PlatformActiveSymbol order, so Windows leads),
-        // game library after. VS / dotnet picks the first project in the .sln as the startup
-        // project when no .vs/ user state exists; putting Windows first means the user can
-        // F5 / dotnet run straight after instantiation without manually picking a startup.
-        var ordered = projects
-            .OrderBy(p => p.Platform == null ? 1 : 0)
-            .ThenBy(p => p.Platform == null ? 0 : new List<string>(PlatformActiveSymbol.Keys).IndexOf(p.Platform))
-            .ToList();
+        string Rel(string csproj) => Path.GetRelativePath(OutputDirectory!, csproj).Replace('\\', '/');
 
-        const string SdkProjectTypeGuid = "9A19103F-16F7-4668-BE54-9A1E7A4F7556";
         var sb = new StringBuilder();
-        sb.AppendLine("Microsoft Visual Studio Solution File, Format Version 12.00");
-        sb.AppendLine("# Visual Studio Version 17");
-        sb.AppendLine("VisualStudioVersion = 17.0.0.0");
-        sb.AppendLine("MinimumVisualStudioVersion = 10.0.40219.1");
-        foreach (var p in ordered)
-        {
-            var relCsproj = Path.GetRelativePath(OutputDirectory!, p.Csproj).Replace('/', '\\');
-            if (p.Platform != null)
-                sb.AppendLine($"#if ({PlatformActiveSymbol[p.Platform]})");
-            sb.AppendLine($"Project(\"{{{SdkProjectTypeGuid}}}\") = \"{p.DirName}\", \"{relCsproj}\", \"{{{p.InstanceId.ToString().ToUpperInvariant()}}}\"");
-            sb.AppendLine("EndProject");
-            if (p.Platform != null)
-                sb.AppendLine("#endif");
-        }
-        sb.AppendLine("Global");
-        sb.AppendLine("\tGlobalSection(SolutionConfigurationPlatforms) = preSolution");
-        sb.AppendLine("\t\tDebug|Any CPU = Debug|Any CPU");
-        sb.AppendLine("\t\tRelease|Any CPU = Release|Any CPU");
-        sb.AppendLine("\tEndGlobalSection");
-        sb.AppendLine("\tGlobalSection(ProjectConfigurationPlatforms) = postSolution");
-        foreach (var p in ordered)
-        {
-            if (p.Platform != null)
-                sb.AppendLine($"#if ({PlatformActiveSymbol[p.Platform]})");
-            var idStr = p.InstanceId.ToString().ToUpperInvariant();
-            sb.AppendLine($"\t\t{{{idStr}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU");
-            sb.AppendLine($"\t\t{{{idStr}}}.Debug|Any CPU.Build.0 = Debug|Any CPU");
-            sb.AppendLine($"\t\t{{{idStr}}}.Release|Any CPU.ActiveCfg = Release|Any CPU");
-            sb.AppendLine($"\t\t{{{idStr}}}.Release|Any CPU.Build.0 = Release|Any CPU");
-            if (p.Platform != null)
-                sb.AppendLine("#endif");
-        }
-        sb.AppendLine("\tEndGlobalSection");
-        sb.AppendLine("\tGlobalSection(SolutionProperties) = preSolution");
-        sb.AppendLine("\t\tHideSolutionNode = FALSE");
-        sb.AppendLine("\tEndGlobalSection");
-        sb.AppendLine("\tGlobalSection(ExtensibilityGlobals) = postSolution");
-        sb.AppendLine($"\t\tSolutionGuid = {{{Guid.NewGuid().ToString().ToUpperInvariant()}}}");
-        sb.AppendLine("\tEndGlobalSection");
-        sb.AppendLine("EndGlobal");
+        sb.AppendLine("<Solution>");
 
-        var slnPath = Path.Combine(OutputDirectory!, "MyTemplate.sln");
-        File.WriteAllText(slnPath, sb.ToString());
-        logger.Info($"Generated MyTemplate.sln with {ordered.Count} project(s)");
+        // Game library (and any other non-platform project) first; .slnx project order is irrelevant —
+        // the startup project is the DefaultStartup below, not the first entry.
+        foreach (var p in projects.Where(p => p.Platform == null))
+            sb.AppendLine($"  <Project Path=\"{Rel(p.Csproj)}\" />");
+
+        // Per-platform execs in startup priority order. DefaultStartup goes on the first active one: each
+        // lower-priority exec claims it only when no higher-priority platform is active, so exactly one
+        // DefaultStartup survives whatever set of platforms the user selects.
+        var higherPriority = new List<string>();
+        foreach (var p in projects.Where(p => p.Platform != null)
+                     .OrderBy(p => Enum.TryParse<PlatformType>(p.Platform, out var pt) ? Array.IndexOf(StartupPlatformPriority, pt) : int.MaxValue))
+        {
+            var rel = Rel(p.Csproj);
+            var symbol = PlatformActiveSymbol[p.Platform!];
+            if (higherPriority.Count == 0)
+            {
+                sb.AppendLine($"#if ({symbol})");
+                sb.AppendLine($"  <Project Path=\"{rel}\" DefaultStartup=\"true\" />");
+                sb.AppendLine("#endif");
+            }
+            else
+            {
+                var noneHigher = string.Join(" && ", higherPriority.Select(s => $"!{s}"));
+                sb.AppendLine($"#if ({symbol} && {noneHigher})");
+                sb.AppendLine($"  <Project Path=\"{rel}\" DefaultStartup=\"true\" />");
+                sb.AppendLine($"#elseif ({symbol})");
+                sb.AppendLine($"  <Project Path=\"{rel}\" />");
+                sb.AppendLine("#endif");
+            }
+            higherPriority.Add(symbol);
+        }
+
+        sb.AppendLine("</Solution>");
+
+        var slnxPath = Path.Combine(OutputDirectory!, "MyTemplate.slnx");
+        File.WriteAllText(slnxPath, sb.ToString());
+        logger.Info($"Generated MyTemplate.slnx with {projects.Count} project(s)");
     }
 
     /// <summary>
@@ -1291,7 +1321,8 @@ internal class TemplatePreprocessor
                 { "condition": "(!MacOSActive)",   "exclude": [ "MyTemplate.macOS/**"   ] },
                 { "condition": "(!iOsActive)",     "exclude": [ "MyTemplate.iOS/**"     ] },
                 { "condition": "(!AndroidActive)", "exclude": [ "MyTemplate.Android/**" ] },
-                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.sln" ] }
+                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.slnx" ] },
+                { "exclude": [ ".sdtpl/**" ] }
         """);
         if (Sdtpl?.HasParameter("HDR") == true && Sdtpl?.HasParameter("GraphicsProfile") == true)
         {
@@ -1332,7 +1363,7 @@ internal class TemplatePreprocessor
             }
           ],
           "SpecialCustomOperations": {
-            "**/*.sln": {
+            "**/*.slnx": {
               "operations": [
                 {
                   "type": "conditional",

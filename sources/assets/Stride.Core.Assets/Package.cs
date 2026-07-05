@@ -170,6 +170,16 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMember(105)]
     public List<AssetAssembly> AssetAssemblies { get; } = [];
 
+    // Keep saved .sdpkg files minimal: skip empty collections (ShouldSerialize* is discovered by ObjectDescriptor).
+    private bool ShouldSerializeAssetFolders() => AssetFolders.Count > 0;
+    private bool ShouldSerializeResourceFolders() => ResourceFolders.Count > 0;
+    private bool ShouldSerializeOutputGroupDirectories() => OutputGroupDirectories.Count > 0;
+    private bool ShouldSerializeExplicitFolders() => ExplicitFolders.Count > 0;
+    private bool ShouldSerializeBundles() => Bundles.Count > 0;
+    private bool ShouldSerializeTemplateFolders() => TemplateFolders.Count > 0;
+    private bool ShouldSerializeRootAssets() => RootAssets.Count > 0;
+    private bool ShouldSerializeAssetAssemblies() => AssetAssemblies.Count > 0;
+
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
     /// </summary>
@@ -324,23 +334,16 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             try
             {
                 var projectType = VSProjectHelper.GetProjectTypeFromProject(msProject);
-                if (!projectType.HasValue)
-                {
-                    logger.Error("This project is not a project created with the editor");
-                }
-                else
-                {
-                    var platformType = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
-                    var projectReference = new ProjectReference(VSProjectHelper.GetProjectGuid(msProject), pathToMsproj.MakeRelative(RootDirectory), projectType.Value);
+                var platformType = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+                var projectReference = new ProjectReference(VSProjectHelper.GetProjectGuid(msProject), pathToMsproj.MakeRelative(RootDirectory), projectType);
 
-                    // TODO CSPROJ=XKPKG
-                    throw new NotImplementedException();
-                    // Add the ProjectReference only for the compatible profiles (same platform or no platform)
-                    //foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
-                    //{
-                    //    profile.ProjectReferences.Add(projectReference);
-                    //}
-                }
+                // TODO CSPROJ=XKPKG
+                throw new NotImplementedException();
+                // Add the ProjectReference only for the compatible profiles (same platform or no platform)
+                //foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
+                //{
+                //    profile.ProjectReferences.Add(projectReference);
+                //}
             }
             finally
             {
@@ -1018,7 +1021,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
 
         // Load from csproj
-        if (Container is SolutionProject project && project.FullPath is not null && project.Type == ProjectType.Library)
+        if (Container is SolutionProject project && project.FullPath is not null && project.ShouldLoadAssemblyInEditor)
         {
             // Check if already loaded
             // TODO: More advanced cases: unload removed references, etc...
@@ -1049,7 +1052,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 // loading its own Stride.Assets.Presentation), reuse it. Building it via MSBuild here
                 // would be wasted: the freshly built DLL is discarded below in favor of the already-
                 // loaded one anyway, and the build can be slow.
-                var loadedProjectAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(fullProjectLocation), StringComparison.InvariantCultureIgnoreCase));
+                var loadedProjectAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(fullProjectLocation), StringComparison.InvariantCultureIgnoreCase)
+                    && CanReuseLoadedAssembly(x));
                 if (loadedProjectAssembly is not null)
                 {
                     LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, loadedProjectAssembly.Location) { Assembly = loadedProjectAssembly });
@@ -1076,8 +1080,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 return;
             }
 
-            // Check if assembly is already loaded in appdomain (for Stride core assemblies that are not plugins)
-            var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(assemblyPath), StringComparison.InvariantCultureIgnoreCase));
+            // Check if assembly is already loaded in appdomain (for Stride core assemblies that are not
+            // plugins, or an assembly already loaded by another package of the session)
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(assemblyPath), StringComparison.InvariantCultureIgnoreCase)
+                && CanReuseLoadedAssembly(x));
 
             // Otherwise, load assembly from its file
             if (assembly is null)
@@ -1103,6 +1109,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         {
             log.Error($"Unexpected error while loading assembly reference [{assemblyPath}]", ex);
         }
+
+        // Reuse assemblies from the default load context or still live in this container. Container loads
+        // stay in the AppDomain even after UnloadAssembly, so anything else is a stale unloaded copy
+        // that would come back unregistered.
+        bool CanReuseLoadedAssembly(System.Reflection.Assembly candidate)
+            => System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(candidate) == System.Runtime.Loader.AssemblyLoadContext.Default
+                || assemblyContainer.LoadedAssemblies.Any(x => x.Assembly == candidate);
     }
 
     /// <summary>

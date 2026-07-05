@@ -87,6 +87,12 @@ public class Solution
     public string FullPath { get; set; }
 
     /// <summary>
+    /// The id of the project to mark as the solution's default startup (the <c>.slnx</c>
+    /// <c>DefaultStartup</c> attribute); null to leave it unset.
+    /// </summary>
+    public Guid? StartupProjectGuid { get; set; }
+
+    /// <summary>
     /// The model this solution was loaded from, used on save to preserve everything it already
     /// contained; null for a solution that was not loaded from disk.
     /// </summary>

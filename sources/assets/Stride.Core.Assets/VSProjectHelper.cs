@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using NuGet.ProjectModel;
@@ -25,7 +26,6 @@ public interface ICancellableAsyncBuild
 
 public static class VSProjectHelper
 {
-    private const string StrideProjectType = "StrideProjectType";
     private const string StridePlatform = "StridePlatform";
 
     private static readonly BuildManager mainBuildManager = new();
@@ -41,9 +41,16 @@ public static class VSProjectHelper
         return GetEnumFromProperty<PlatformType>(project, StridePlatform);
     }
 
-    public static ProjectType? GetProjectTypeFromProject(MicrosoftProject project)
+    public static ProjectType GetProjectTypeFromProject(MicrosoftProject project)
     {
-        return GetEnumFromProperty<ProjectType>(project, StrideProjectType);
+        ArgumentNullException.ThrowIfNull(project);
+        var outputType = project.GetPropertyValue("OutputType");
+        return outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
+            || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
+            || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase) // UWP
+            || project.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase) // Android
+            ? ProjectType.Executable
+            : ProjectType.Library;
     }
 
     private static T? GetEnumFromProperty<T>(MicrosoftProject project, string propertyName) where T : struct
@@ -246,6 +253,82 @@ public static class VSProjectHelper
 
         return project;
     }
+
+    /// <summary>
+    /// Reads a property explicitly declared in the project file (not SDK/import defaults), or null if absent.
+    /// Only matches an element carrying the given <paramref name="condition"/> (empty for an unconditioned one),
+    /// so a Windows-scoped value isn't confused with a portable-TFM default.
+    /// </summary>
+    public static string? GetProjectPropertyValue(string fullProjectLocation, string propertyName, string? condition = null)
+    {
+        var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection();
+        try
+        {
+            var root = ProjectRootElement.Open(fullProjectLocation, projectCollection, preserveFormatting: true);
+            var property = root.Properties.LastOrDefault(p => Matches(p, propertyName, condition));
+            return property?.Value;
+        }
+        finally
+        {
+            projectCollection.UnloadAllProjects();
+            projectCollection.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Writes a property (carrying the given <paramref name="condition"/>) to the project file, or removes it
+    /// when <paramref name="value"/> is null/empty. Preserves formatting and only saves when something changed.
+    /// </summary>
+    public static void SetProjectPropertyValue(string fullProjectLocation, string propertyName, string? value, string? condition = null)
+    {
+        var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection();
+        try
+        {
+            var root = ProjectRootElement.Open(fullProjectLocation, projectCollection, preserveFormatting: true);
+            var existing = root.Properties.Where(p => Matches(p, propertyName, condition)).ToList();
+            var dirty = false;
+
+            if (string.IsNullOrEmpty(value))
+            {
+                foreach (var property in existing)
+                {
+                    var group = property.Parent;
+                    group.RemoveChild(property);
+                    // Don't leave behind an empty property group we created earlier.
+                    if (group.Count == 0)
+                        group.Parent?.RemoveChild(group);
+                    dirty = true;
+                }
+            }
+            else if (existing.Count > 0)
+            {
+                if (existing[^1].Value != value)
+                {
+                    existing[^1].Value = value;
+                    dirty = true;
+                }
+            }
+            else
+            {
+                var property = root.AddProperty(propertyName, value);
+                if (!string.IsNullOrEmpty(condition))
+                    property.Condition = condition;
+                dirty = true;
+            }
+
+            if (dirty)
+                root.Save();
+        }
+        finally
+        {
+            projectCollection.UnloadAllProjects();
+            projectCollection.Dispose();
+        }
+    }
+
+    private static bool Matches(ProjectPropertyElement property, string propertyName, string? condition)
+        => string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(property.Condition?.Trim() ?? string.Empty, condition?.Trim() ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
     private class LoggerRedirect : Microsoft.Build.Utilities.Logger
     {

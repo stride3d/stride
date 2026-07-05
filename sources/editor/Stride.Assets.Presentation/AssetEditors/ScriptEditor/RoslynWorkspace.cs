@@ -16,7 +16,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using RoslynPad.Roslyn.Diagnostics;
@@ -107,26 +108,30 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         }
 
         /// <summary>
-        /// Removes a project.
+        /// Removes a project. No-op when absent (the caller's project reference can be newer than this
+        /// workspace, which syncs through batched change events).
         /// </summary>
         public void RemoveProject(ProjectId projectId)
         {
-            this.OnProjectRemoved(projectId);
+            if (CurrentSolution.ContainsProject(projectId))
+                this.OnProjectRemoved(projectId);
         }
 
         /// <summary>
         /// Called when a document is reloaded.
         /// </summary>
-        protected internal async void HostDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        protected internal async Task HostDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
             var document = GetDocument(documentId);
             if (document == null)
                 return;
 
+            // No longer async void: the awaiting caller observes and logs any failure (e.g. the file
+            // vanishing between the change notification and the reload), so it no longer crashes the process.
             object reloadState = null;
             TrackDocumentCallback trackDocumentCallback;
             trackDocumentCallbacks.TryGetValue(documentId, out trackDocumentCallback);
-            
+
             trackDocumentCallback.ExternalChangesDetected?.Invoke();
             if (trackDocumentCallback.AllowReload?.Invoke(document, ref reloadState) ?? true)
             {
@@ -169,11 +174,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         {
             if (documentId != null && CurrentSolution.ContainsDocument(documentId) && !IsDocumentOpen(documentId))
             {
-                if (CurrentSolution.ContainsDocument(documentId) && !IsDocumentOpen(documentId))
-                {
-                    OnDocumentOpened(documentId, sourceTextContainer);
-                    OnDocumentContextUpdated(documentId);
-                }
+                OnDocumentOpened(documentId, sourceTextContainer);
+                OnDocumentContextUpdated(documentId);
 
                 if (onDiagnosticsChanged != null)
                     diagnosticsChangedNotifiers.TryAdd(documentId, onDiagnosticsChanged);
@@ -197,6 +199,9 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         /// </summary>
         public void RemoveDocument(DocumentId documentId)
         {
+            // Close first so an open editor is notified (HostDocumentClosed) and Roslyn drops its open state.
+            if (IsDocumentOpen(documentId))
+                CloseDocument(documentId);
             OnDocumentRemoved(documentId);
         }
 
@@ -238,7 +243,19 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                 diagnosticsChangedNotifiers.TryRemove(documentId, out var diagnosticChangedNotifier);
 
                 var currentDoc = this.CurrentSolution.GetDocument(documentId);
-                OnDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(currentDoc.GetTextAsync().Result, currentDoc.GetTextVersionAsync().Result)));
+                if (currentDoc == null)
+                    return;
+
+                // Open documents already have materialized text, so this doesn't block the UI thread.
+                TextLoader loader;
+                if (currentDoc.TryGetText(out var text) && currentDoc.TryGetTextVersion(out var version))
+                    loader = TextLoader.From(TextAndVersion.Create(text, version, currentDoc.FilePath));
+                else if (!string.IsNullOrEmpty(currentDoc.FilePath) && File.Exists(currentDoc.FilePath))
+                    loader = new FileTextLoader(currentDoc.FilePath, Encoding.UTF8);
+                else
+                    loader = TextLoader.From(TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Create(), currentDoc.FilePath));
+
+                OnDocumentClosed(documentId, loader);
             }
         }
 
@@ -366,18 +383,24 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         }
 
         /// <summary>
-        /// Gets document source text synchronously
+        /// Creates a lazy text loader for a document, avoiding a synchronous disk read on the UI thread.
         /// </summary>
-        private SourceText GetTextForced(TextDocument doc)
+        private static TextLoader CreateTextLoader(TextDocument doc)
         {
-            var task = doc.GetTextAsync(CancellationToken.None);
-            task.Wait(CancellationToken.None);
-            return task.Result;
+            // On-disk documents: load lazily/asynchronously from file when text is actually needed.
+            if (!string.IsNullOrEmpty(doc.FilePath) && File.Exists(doc.FilePath))
+                return new FileTextLoader(doc.FilePath, Encoding.UTF8);
+
+            // In-memory documents (e.g. open scratch scripts) already have materialized text.
+            if (doc.TryGetText(out var text))
+                return TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), doc.FilePath));
+
+            return TextLoader.From(TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Create(), doc.FilePath));
         }
 
         private DocumentInfo CreateDocumentInfoWithText(ProjectId projectId, TextDocument doc, Dictionary<string, ImmutableArray<DocumentId>> fileMapping = null)
         {
-            return CreateDocumentInfoWithoutText(projectId, doc, fileMapping).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
+            return CreateDocumentInfoWithoutText(projectId, doc, fileMapping).WithTextLoader(CreateTextLoader(doc));
         }
 
         private DocumentInfo CreateDocumentInfoWithoutText(ProjectId projectId, TextDocument doc, Dictionary<string, ImmutableArray<DocumentId>> fileMapping = null)

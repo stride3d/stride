@@ -1,168 +1,91 @@
-<Project>
+﻿<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">18.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TargetVsixContainerName>Stride.vsix</TargetVsixContainerName>
-    <TargetVsixContainer>bin\$(TargetVsixContainerName)</TargetVsixContainer>
+    <!-- net8.0: VisualStudio.Extensibility out-of-process extensions run on the .NET 8 host runtime only
+         (net10 isn't supported yet, per microsoft/VSExtensibility#544) -->
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
     <RootNamespace>Stride.VisualStudio</RootNamespace>
-    <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>net472</TargetFramework>
+    <!-- Versioned independently of the engine (like the Stride CLI): this VersionPrefix is the source of truth,
+         bumped by hand per VS-package release. It starts at 4.4.0 (one minor above the old 4.3.x package).
+         release-vspackage.yml supplies VersionSuffix (e.g. beta1) for prerelease NuGet packages; the .vsix
+         manifest version is numeric-only, so it always ships the suffix-less AssemblyVersion (4.4.0.0). -->
+    <VersionPrefix>4.4.0</VersionPrefix>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
-    <!-- VSSDK CTO merger requires legacy resource format, not the preserialized one -->
-    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
-    <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
-    <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <!-- The output window API is still marked experimental in the Extensibility SDK; opt into using it. -->
+    <NoWarn>$(NoWarn);VSEXTPREVIEW_OUTPUTWINDOW</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="NShader\Common\GLSLKeywords.map" />
-    <None Remove="NShader\Common\HLSLKeywords.map" />
-    <None Remove="NShader\Common\StrideShaderKeywords.map" />
+    <!-- Extension icon referenced by ExtensionConfiguration.Metadata.Icon (Content is IncludeInVSIX by default). -->
+    <Content Include="Resources\GameStudio.png" />
+    <!-- RemoteUserControl XAML: embedded (loaded by type name), not compiled as a WPF Page. -->
+    <EmbeddedResource Include="Commands\VersionPickerControl.xaml" LogicalName="Stride.VisualStudio.Commands.VersionPickerControl.xaml" />
+    <Page Remove="Commands\VersionPickerControl.xaml" />
+    <EmbeddedResource Include="Commands\ShaderRegenControl.xaml" LogicalName="Stride.VisualStudio.Commands.ShaderRegenControl.xaml" />
+    <Page Remove="Commands\ShaderRegenControl.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
-      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" />
+    <!-- StrideVersionResolver reads the Stride version from the solution/project. -->
     <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
-    <PackageReference Include="System.Text.Json" />
-    <PackageReference Include="NuGet.Commands" />
-    <PackageReference Include="Polysharp" />
-
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="System.Xaml" />
+    <PackageReference Include="NuGet.ProjectModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
-      <Link>Assets\PackageSessionHelper.Solution.cs</Link>
-    </Compile>
-    <Compile Include="..\..\core\Stride.Core.Design\Extensions\ExceptionExtensions.cs" Link="Assets\ExceptionExtensions.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\PackageVersion.cs" Link="Core\PackageVersion.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\KeyedCollectionExtensions.cs" Link="Core\Solutions\KeyedCollectionExtensions.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\KnownProjectTypeGuid.cs" Link="Core\Solutions\KnownProjectTypeGuid.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Project.cs" Link="Core\Solutions\Project.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\ProjectCollection.cs" Link="Core\Solutions\ProjectCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\PropertyItem.cs" Link="Core\Solutions\PropertyItem.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\PropertyItemCollection.cs" Link="Core\Solutions\PropertyItemCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Section.cs" Link="Core\Solutions\Section.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SectionCollection.cs" Link="Core\Solutions\SectionCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Solution.cs" Link="Core\Solutions\Solution.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionFileException.cs" Link="Core\Solutions\SolutionFileException.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionSerialization.cs" Link="Core\Solutions\SolutionSerialization.cs" />
-    <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
-    <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Schemas\*.cs" Link="Yaml\Schemas\%(Filename)%(Extension)" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Tokens\*.cs" Link="Yaml\Tokens\%(Filename)%(Extension)" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Events\*.cs" Link="Yaml\Events\%(Filename)%(Extension)" />
-    <Compile Include="..\..\core\Stride.Core\Annotations\CanBeNullAttribute.cs" Link="Core\Annotations\CanBeNullAttribute.cs" />
-    <Compile Include="..\..\core\Stride.Core\Annotations\ItemNotNullAttribute.cs" Link="Core\Annotations\ItemNotNullAttribute.cs" />
-    <Compile Include="..\..\core\Stride.Core\Annotations\NotNullAttribute.cs" Link="Core\Annotations\NotNullAttribute.cs" />
-    <Compile Include="..\..\shared\AttachedChildProcessJob.cs" Link="Commands\AttachedChildProcessJob.cs" />
-    <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="NuGet\RestoreHelper.cs" />
-    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
+    <!-- Build-order only (this net8 package never references the net10 CLI assembly): pulls Stride.Cli into the
+         same MSBuild invocation so its shared Stride.Core (net10) is built once and deduped against the rest of
+         the solution, instead of the BundleStrideCli publish racing a concurrent build over Stride.Core's obj. -->
+    <ProjectReference Include="..\..\launcher\Stride.Cli\Stride.Cli.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      Private="false" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="VSPackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>VSPackage</ManifestResourceName>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="NShader\Common\GLSLKeywords.map" />
-    <EmbeddedResource Update="NShader\Common\HLSLKeywords.map" />
-    <EmbeddedResource Update="NShader\Common\StrideShaderKeywords.map" />
-    <None Include="NShader\Common\ShaderMPLexer.lex" />
-    <None Include="Stride.VisualStudio.Package.nuspec" />
-    <None Include="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Key.snk" />
-  </ItemGroup>
-  <ItemGroup>
-    <VSCTCompile Include="StridePackage.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-    </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\VSPackage16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\VSPackage.ico">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="NShader\Common\ShaderMPLexer.lst" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="NShader\Common\GLSLKeywords.map" />
-    <EmbeddedResource Include="NShader\Common\HLSLKeywords.map" />
-    <EmbeddedResource Include="NShader\Common\StrideShaderKeywords.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Core\Annotations\" />
-    <Folder Include="Core\" />
-    <Folder Include="Yaml\" />
-    <Folder Include="NuGet\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
-  </ItemGroup>
-  <PropertyGroup>
-    <UseCodebase>true</UseCodebase>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_StrideIncludeExtraAssemblies</GetVsixSourceItemsDependsOn>
-  </PropertyGroup>
-  <Target Name="_StrideIncludeExtraAssemblies">
+  <!-- Bundle the (net10) stride CLI into the VSIX under tools\stride\ so the extension can spawn it. Publishing
+       framework-dependent keeps it small; it runs on the machine's .NET 10 install. -->
+  <!-- DependsOnTargets=ResolveProjectReferences builds the Stride.Cli reference first, so the publish below is a
+       no-op incremental over already-built outputs. BuildProjectReferences=false then stops the publish from
+       rebuilding (and locking) the shared Stride.Core; it only gathers Stride.Cli's framework-dependent closure. -->
+  <Target Name="BundleStrideCli" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveProjectReferences">
+    <PropertyGroup>
+      <_StrideCliProject>$(MSBuildThisFileDirectory)..\..\launcher\Stride.Cli\Stride.Cli.csproj</_StrideCliProject>
+      <_StrideCliPublishDir>$(IntermediateOutputPath)stride-cli</_StrideCliPublishDir>
+    </PropertyGroup>
+    <Exec Command="dotnet publish &quot;$(_StrideCliProject)&quot; -f net10.0 -c $(Configuration) -o &quot;$(_StrideCliPublishDir)&quot; -p:BuildProjectReferences=false --nologo -v quiet" />
     <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\ServiceWire.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Newtonsoft.Json.dll" />
-      <!-- Solution load/save now goes through Microsoft.VisualStudio.SolutionPersistence (and System.Text.Json),
-           which the VS SDK reference drops as copy-local; ship our own copies plus their transitive deps. -->
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.VisualStudio.SolutionPersistence.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.IO.Redist.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.Text.Json.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.Text.Encodings.Web.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\System.IO.Pipelines.dll" />
-      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Microsoft.Bcl.AsyncInterfaces.dll" />
+      <Content Include="$(_StrideCliPublishDir)\**\*">
+        <Link>tools\stride\%(RecursiveDir)%(Filename)%(Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <IncludeInVSIX>true</IncludeInVSIX>
+        <Visible>false</Visible>
+      </Content>
     </ItemGroup>
   </Target>
-  <!-- NET Sdk must be imported before VsSDK so IntermediateOutputPath is set when VsSDK
-       derives ResourceManifest/cto manifest paths (otherwise they resolve to the drive root). -->
+
+  <!-- Returns the built .vsix path, derived from $(Configuration)/$(TargetFramework) via $(OutputPath), so the
+       delivery nuspec (packed by nuget.exe, which can't evaluate MSBuild properties) doesn't hardcode them. -->
+  <Target Name="GetVsixOutputPath" Returns="$(OutputPath)$(TargetName).vsix" />
+
+  <!-- Returns the independent NuGet package version (VersionPrefix + optional VersionSuffix) so the nuspec,
+       packed by nuget.exe with -Version, tracks this project rather than the engine version. -->
+  <Target Name="GetPackageVersion" Returns="$(_VsPackageVersion)">
+    <PropertyGroup>
+      <_VsPackageVersion>$(VersionPrefix)</_VsPackageVersion>
+      <_VsPackageVersion Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</_VsPackageVersion>
+    </PropertyGroup>
+  </Target>
+
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+
+  <!-- The Stride SDK turns these off to defer the assembly version to the shared SharedAssemblyInfo.cs. This
+       package versions independently (it doesn't link that file), so turn them back on — the built assembly's
+       AssemblyVersion (from VersionPrefix) is what ExtensionAssemblyVersion stamps into the .vsix manifest.
+       Placed after the SDK import so it overrides the SDK's defaults. -->
+  <PropertyGroup>
+    <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>true</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
 </Project>

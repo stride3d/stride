@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/check-parallel-build.yml'
       - 'build/tools/ParallelBuildAuditor/**'
-      - 'build/Stride.sln'
+      - 'build/Stride.slnx'
       - 'sources/**/*.csproj'
       - 'sources/**/*.targets'
       - 'sources/**/*.props'
@@ -35,12 +35,12 @@ jobs:
       - name: Build ParallelBuildAuditor
         run: dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:m
 
-      - name: Build Stride.sln (capturing binlog)
+      - name: Build Stride.slnx (capturing binlog)
         # Continue on build error: even partial binlog data is enough for leak detection
-        # (and Stride.sln contains native vcxproj projects that may fail under dotnet build).
+        # (and Stride.slnx contains native vcxproj projects that may fail under dotnet build).
         continue-on-error: true
         run: |
-          dotnet build build\Stride.sln `
+          dotnet build build\Stride.slnx `
             -bl:parallel-audit.binlog `
             -nr:false `
             -v:m -p:WarningLevel=0 `

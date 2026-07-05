@@ -63,7 +63,8 @@ public class CharacterComponent : CharacterComponentAbstract
         set
         {
             _velocity = value;
-            var inv = Quaternion.Invert(Orientation);
+
+            var inv = Quaternion.Invert(GlobalBasis);
             value = inv * value;
             MoveVector = new Vector2(value.X, value.Z) / Speed;
         }
@@ -71,6 +72,7 @@ public class CharacterComponent : CharacterComponentAbstract
 
     /// <summary>
     /// The current movement direction of this component, it is local to its <see cref="BodyComponent.Orientation"/>
+    /// where +X is left, -X is right, +Y is forward and -Y is backward. This is similar to how the arrow Gizmo in the editor is laid out.
     /// </summary>
     /// <remarks>
     /// The input is scaled by <see cref="Speed"/> before usage<br/>
@@ -83,7 +85,7 @@ public class CharacterComponent : CharacterComponentAbstract
         set
         {
             field = value;
-            _velocity = Orientation * new Vector3(value.X, 0, value.Y) * Speed;
+            _velocity = GlobalBasis * new Vector3(value.X, 0, value.Y) * Speed;
         }
     }
 
@@ -128,6 +130,8 @@ public class CharacterComponent : CharacterComponentAbstract
     [DataMemberIgnore, Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     public List<(CollidableComponent Source, Contact Contact)> Contacts { get; } = new();
 
+    private Quaternion GlobalBasis => Quaternion.LookRotation(Orientation * Vector3.UnitZ, Orientation * LocalUp);
+
     public CharacterComponent()
     {
         InterpolationMode = InterpolationMode.Interpolated;
@@ -144,7 +148,7 @@ public class CharacterComponent : CharacterComponentAbstract
     public virtual void Move(Vector3 direction)
     {
         // Note that this method should be thread safe, see usage in RecastPhysicsNavigationProcessor
-        var inv = Quaternion.Invert(Orientation);
+        var inv = Quaternion.Invert(GlobalBasis);
         direction = inv * direction;
         MoveVector = new Vector2(direction.X, direction.Z);
     }
@@ -165,8 +169,6 @@ public class CharacterComponent : CharacterComponentAbstract
     /// <inheritdoc/>
     protected override void SimulationUpdate(BepuSimulation sim, float simTimeStep, ref InternalCharacterData character, in BodyReference characterBody, out bool wakeupBody)
     {
-        /*Entity.Transform.UpdateWorldMatrix();
-        var viewDirection = (NVector3)Entity.Transform.WorldMatrix.Backward;*/
         var viewDirection = (NVector3)(Orientation * Vector3.UnitZ);
 
         var newTargetVelocity = new System.Numerics.Vector2(MoveVector.X, MoveVector.Y) * Speed;
@@ -204,13 +206,13 @@ public class CharacterComponent : CharacterComponentAbstract
         if (!character.Supported && newTargetVelocity.LengthSquared() > 0)
         {
             QuaternionEx.Transform(character.LocalUp, characterBody.Pose.Orientation, out var characterUp);
-            var characterRight = Vector3.Cross(character.ViewDirection, characterUp);
-            var rightLengthSquared = characterRight.LengthSquared();
+            var characterLeft = Vector3.Cross(characterUp, character.ViewDirection);
+            var rightLengthSquared = characterLeft.LengthSquared();
             if (rightLengthSquared > 1e-10f)
             {
-                characterRight /= MathF.Sqrt(rightLengthSquared);
-                var characterForward = Vector3.Cross(characterUp, characterRight);
-                var worldMovementDirection = characterRight * newTargetVelocity.X + characterForward * newTargetVelocity.Y;
+                characterLeft /= MathF.Sqrt(rightLengthSquared);
+                var characterForward = Vector3.Cross(characterLeft, characterUp);
+                var worldMovementDirection = characterLeft * newTargetVelocity.X + characterForward * newTargetVelocity.Y;
                 var currentVelocity = Vector3.Dot(characterBody.Velocity.Linear, worldMovementDirection);
                 //We'll arbitrarily set air control to be a fraction of supported movement's speed/force.
                 var airAccelerationDt = characterBody.LocalInertia.InverseMass * character.MaximumHorizontalForce * AirControlForceScale * simTimeStep;
@@ -219,7 +221,7 @@ public class CharacterComponent : CharacterComponentAbstract
                 //While we shouldn't allow the character to continue accelerating in the air indefinitely, trying to move in a given direction should never slow us down in that direction.
                 var velocityChangeAlongMovementDirection = MathF.Max(0, targetVelocity - currentVelocity);
                 characterBody.Velocity.Linear += worldMovementDirection * velocityChangeAlongMovementDirection;
-                Debug.Assert(characterBody.Awake, "Velocity changes don't automatically update objects; the character should have already been woken up before applying air control.");
+                Debug.Assert(characterBody.Awake || wakeupBody, "Velocity changes don't automatically update objects; the character should have already been woken up before applying air control.");
             }
         }
     }

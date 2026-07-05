@@ -1,2 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Marks any project that references Stride, so tooling (e.g. the VS extension) can detect a Stride
+       project/solution via the project system's capabilities. -->
+  <ItemGroup>
+    <ProjectCapability Include="Stride" />
+  </ItemGroup>
 </Project>

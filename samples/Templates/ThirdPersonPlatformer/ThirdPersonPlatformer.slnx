@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/mannequinModel/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" Value="../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/PrototypingBlocks/">
+    <Properties Name="StridePackage">
+      <Property Name="../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" Value="../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg" />
+    </Properties>
+  </Folder>
+  <Folder Name="/ThirdPersonPlatformer/">
+    <Project Path="ThirdPersonPlatformer/ThirdPersonPlatformer.Game/ThirdPersonPlatformer.Game.csproj" />
+    <Project Path="ThirdPersonPlatformer/ThirdPersonPlatformer.Windows/ThirdPersonPlatformer.Windows.csproj">
+      <Deploy />
+    </Project>
+    <Properties Name="StridePackage">
+      <Property Name="ThirdPersonPlatformer/ThirdPersonPlatformer.sdpkg" Value="ThirdPersonPlatformer/ThirdPersonPlatformer.sdpkg" />
+    </Properties>
+  </Folder>
+</Solution>

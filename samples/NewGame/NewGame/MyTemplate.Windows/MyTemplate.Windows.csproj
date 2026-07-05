@@ -9,7 +9,6 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
-    <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
   </PropertyGroup>
   <ItemGroup>

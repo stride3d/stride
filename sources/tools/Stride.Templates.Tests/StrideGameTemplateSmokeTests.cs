@@ -192,7 +192,7 @@ public class StrideGameTemplateSmokeTests
     }
 
     /// <summary>
-    /// Walk up from the test's bin dir looking for build/Stride.sln as the repo root marker.
+    /// Walk up from the test's bin dir looking for build/Stride.slnx as the repo root marker.
     /// The test is launched from sources/tools/Stride.Templates.Tests/bin/.../ so a few hops up.
     /// </summary>
     private static string FindRepoRoot()
@@ -200,10 +200,10 @@ public class StrideGameTemplateSmokeTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "build", "Stride.sln")))
+            if (File.Exists(Path.Combine(dir.FullName, "build", "Stride.slnx")))
                 return dir.FullName;
             dir = dir.Parent;
         }
-        throw new InvalidOperationException("Could not locate repo root (no build/Stride.sln found walking up from test bin dir)");
+        throw new InvalidOperationException("Could not locate repo root (no build/Stride.slnx found walking up from test bin dir)");
     }
 }

@@ -2,4 +2,3 @@
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir Effects
-RootAssets: []

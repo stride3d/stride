@@ -75,6 +75,11 @@ jobs:
       # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
       # whose timestamping CAs have expired. Disable verification for this CI job.
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+      # createdump writes a full dump into TestResults/ on native faults (e.g. Lavapipe teardown);
+      # relied on since the CI runner leaves no collectable OS core dump.
+      DOTNET_DbgEnableMiniDump: "1"
+      DOTNET_DbgMiniDumpType: "4"                                                # MiniDumpWithFullMemory
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}/TestResults/dotnet_%p.dmp"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
@@ -116,6 +121,8 @@ jobs:
           fi
       - name: Resolve build/test target
         run: |
+          # createdump (DOTNET_DbgMiniDumpName) won't create the parent dir; ensure it exists up front.
+          mkdir -p "$GITHUB_WORKSPACE/TestResults"
           # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU + Runtime solutions.
           PROJ="${{ github.event.inputs.project || inputs.project }}"
           echo "STRIDE_TEST_TARGET=${PROJ:-build/Stride.Tests.Game.GPU.slnf}" >> "$GITHUB_ENV"

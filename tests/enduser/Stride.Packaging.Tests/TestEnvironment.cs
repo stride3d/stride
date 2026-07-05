@@ -85,7 +85,7 @@ internal static class TestEnvironment
 
     private static bool msbuildReady;
 
-    /// <summary>Generate a sample from its template GUID into a fresh temp directory; returns the .sln path.</summary>
+    /// <summary>Generate a sample from its template GUID into a fresh temp directory; returns the .slnx path.</summary>
     public static string GenerateSample(Guid templateGuid, string sampleName)
     {
         if (!msbuildReady)

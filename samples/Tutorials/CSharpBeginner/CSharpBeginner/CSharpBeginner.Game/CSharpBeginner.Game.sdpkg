@@ -12,10 +12,6 @@ AssetFolders:
     -   Path: !dir Effects
 ResourceFolders:
     - !dir ../Resources
-OutputGroupDirectories: {}
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 0a019d87-d943-4543-9b51-a4016200dff9:Scenes/Basics/Properties
     - 137dcdfa-bfc8-4805-92a3-dd48f2b79061:Scenes/Basics/DeltaTime
@@ -33,4 +29,3 @@ RootAssets:
     - dbb3b809-4ff0-41da-b125-78a5ea1ec89c:Scenes/Basics/TransformPosition
     - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b:Scenes/Basics/Instantiating prefabs
     - ee2eb459-7847-42b5-bd69-fc43a6625fd5:Scenes/Basics/Keyboard input
-AssetAssemblies: []
