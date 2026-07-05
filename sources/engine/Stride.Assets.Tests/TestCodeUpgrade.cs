@@ -246,6 +246,101 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task ParameterRenameRenamesNamedArgumentOnConstructor()
+    {
+        // The actual #3249 case: IndexBufferBinding's constructor parameter `count` became `indexCount`,
+        // breaking call sites that used a named argument.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public Target(int count, int offset = 0) { }
+                }
+                class Other
+                {
+                    public Other(int count) { }
+                }
+                class Usage
+                {
+                    Target A() => new Target(count: 5);
+                    Target B() => new(count: 5);
+                    Target C(int count) => new Target(count);
+                    Other D() => new Other(count: 5);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(ParameterRename("TestNs.Target", ".ctor", "count", "indexCount")));
+
+        // Named arguments on the matching constructor are renamed (explicit and implicit creation)...
+        Assert.Contains("new Target(indexCount: 5)", result);
+        Assert.Contains("new(indexCount: 5)", result);
+        // ...while positional arguments and the unrelated same-shaped constructor are untouched.
+        Assert.Contains("new Target(count);", result);
+        Assert.Contains("new Other(count: 5)", result);
+    }
+
+    [Fact]
+    public async Task ParameterRenameRenamesNamedArgumentOnMethod()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void Fill(int count) { }
+                    public void Fill(string other) { }
+                }
+                class Usage
+                {
+                    void A(Target t) => t.Fill(count: 3);
+                    void B(Target t) => t.Fill(other: "x");
+                    void C(Target t) => t?.Fill(count: 3);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(ParameterRename("TestNs.Target", "Fill", "count", "newCount")));
+
+        Assert.Contains("t.Fill(newCount: 3)", result);
+        Assert.Contains("t?.Fill(newCount: 3)", result);
+        // The overload without the renamed parameter is untouched.
+        Assert.Contains("t.Fill(other: \"x\")", result);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedUsingsRemovesOnlyListedAndUnusedDirectives()
+    {
+        // Namespaces are declared so they resolve, standing in for the from-version closure (where e.g.
+        // SharpDX still exists). Only the unused directive matching the dropped list may be removed.
+        var source = """
+            using DroppedNs;
+            using DroppedNs.Sub;
+            using System.Text;
+
+            namespace DroppedNs { public class A { } }
+            namespace DroppedNs.Sub { public class B { } }
+            namespace TestNs
+            {
+                class Usage
+                {
+                    A a; // keeps `using DroppedNs;` in use
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, RemoveUnusedUsings("DroppedNs"));
+
+        // The unused directive of the dropped namespace family is removed (sub-namespaces included)...
+        Assert.DoesNotContain("using DroppedNs.Sub;", result);
+        // ...the used one stays (that code needs manual porting; removing the using would only obscure it),
+        Assert.Contains("using DroppedNs;", result);
+        // ...and unused directives outside the dropped list are none of our business.
+        Assert.Contains("using System.Text;", result);
+    }
+
+    [Fact]
     public async Task MethodToPropertyLeavesArgumentCallsAlone()
     {
         // A call that passes arguments can't become a property access; it must be left untouched.

@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "build/Stride.sln",
+    "dotnet.defaultSolution": "build/Stride.slnx",
     "files.watcherExclude": {
         "**/obj/**": true,
         "**/bin/**": true

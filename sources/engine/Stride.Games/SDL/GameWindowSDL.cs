@@ -61,6 +61,7 @@ namespace Stride.Games
             if (!deviceChangeWillBeFullScreen.HasValue)
                 return;
 
+            var wasFullScreenMaximized = isFullScreenMaximized;
             isFullScreenMaximized = deviceChangeWillBeFullScreen.Value;
             if (window != null)
             {
@@ -74,7 +75,11 @@ namespace Stride.Games
                 {
                     window.IsFullScreen = false;
                     window.ClientSize = new Size2(clientWidth, clientHeight);
-                    window.Location = savedFormLocation;
+                    // Only restore the windowed position when actually leaving fullscreen. On plain
+                    // resizes the get/set round-trip is not symmetric about the decoration frame on
+                    // X11 reparenting WMs, so restoring it every resize walks the window up-left.
+                    if (wasFullScreenMaximized)
+                        window.Location = savedFormLocation;
                     UpdateFormBorder();
                 }
                 window.BringToFront();

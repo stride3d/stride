@@ -12,8 +12,10 @@ namespace Stride.Core.MicroThreading;
 /// </summary>
 /// <remarks>
 /// Microthreading provides a way to execute many small execution contexts who cooperatively yield to each others.
+/// There is no explicit shutdown: once <see cref="Run"/> stops being called, suspended microthreads are abandoned
+/// as-is and continuations they post are quietly ignored.
 /// </remarks>
-public class Scheduler : IDisposable
+public class Scheduler
 {
     /// <summary>
     /// Note that this does not limit the maximum amount of supported priorities without allocating,
@@ -25,7 +27,6 @@ public class Scheduler : IDisposable
 
     internal LinkedList<MicroThread> AllMicroThreads = [];
     internal Stack<MicroThreadCallbackNode> CallbackNodePool = [];
-    private bool isDisposed;
     private int runRecursion;
     private readonly Lock bucketsLock = new();
     private readonly PriorityQueue<ExecutionQueue> sortedPriorities = new(NonNullPrioritiesComparer.Shared);
@@ -50,25 +51,6 @@ public class Scheduler : IDisposable
     {
         PropagateExceptions = true;
         FrameChannel = new Channel<int> { Preference = ChannelPreference.PreferSender };
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!isDisposed)
-        {
-            if (disposing)
-            {
-                runningMicroThread.Dispose();
-            }
-
-            isDisposed = true;
-        }
     }
 
     /// <summary>

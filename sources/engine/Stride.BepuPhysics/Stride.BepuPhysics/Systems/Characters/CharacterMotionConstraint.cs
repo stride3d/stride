@@ -239,7 +239,7 @@ internal struct StaticCharacterMotionFunctions : IOneBodyConstraintFunctions<Sta
         Symmetric2x2Wide.InvertWithoutOverlap(inverseHorizontalEffectiveMass, out var horizontalEffectiveMass);
 
         Vector2Wide horizontalConstraintSpaceVelocityChange;
-        horizontalConstraintSpaceVelocityChange.X = prestep.TargetVelocity.X - horizontalVelocity.X;
+        horizontalConstraintSpaceVelocityChange.X = -prestep.TargetVelocity.X - horizontalVelocity.X;
         //The surface basis's Z axis points in the opposite direction to the view direction, so negate the target velocity along the Z axis to point it in the expected direction.
         horizontalConstraintSpaceVelocityChange.Y = -prestep.TargetVelocity.Y - horizontalVelocity.Y;
         Symmetric2x2Wide.TransformWithoutOverlap(horizontalConstraintSpaceVelocityChange, horizontalEffectiveMass, out var horizontalCorrectiveImpulse);
@@ -564,7 +564,7 @@ internal struct DynamicCharacterMotionFunctions : ITwoBodyConstraintFunctions<Dy
         Symmetric2x2Wide.InvertWithoutOverlap(inverseHorizontalEffectiveMass, out var horizontalEffectiveMass);
 
         Vector2Wide horizontalConstraintSpaceVelocityChange;
-        horizontalConstraintSpaceVelocityChange.X = prestep.TargetVelocity.X - horizontalVelocity.X;
+        horizontalConstraintSpaceVelocityChange.X = -prestep.TargetVelocity.X - horizontalVelocity.X;
         //The surface basis's Z axis points in the opposite direction to the view direction, so negate the target velocity along the Z axis to point it in the expected direction.
         horizontalConstraintSpaceVelocityChange.Y = -prestep.TargetVelocity.Y - horizontalVelocity.Y;
         Symmetric2x2Wide.TransformWithoutOverlap(horizontalConstraintSpaceVelocityChange, horizontalEffectiveMass, out var horizontalCorrectiveImpulse);

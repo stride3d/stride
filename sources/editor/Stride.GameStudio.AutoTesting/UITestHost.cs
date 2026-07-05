@@ -791,6 +791,79 @@ internal sealed class UITestHost
                 return (Guid)created[0].Id;
             }).Task.Unwrap();
 
+        public Task<string?> OpenAssetEditor(string assetUrl) =>
+            host.dispatcher.InvokeAsync(async () =>
+            {
+                var session = TryGetSession();
+                if (session is null) { host.Log("OpenAssetEditor: no session"); return (string?)null; }
+                // Exact Url first, then a trailing-segment match so callers can pass just the script name.
+                var asset = session.AllAssets.FirstOrDefault(a => string.Equals(a.Url, assetUrl, StringComparison.OrdinalIgnoreCase))
+                         ?? session.AllAssets.FirstOrDefault(a => a.Url.EndsWith(assetUrl, StringComparison.OrdinalIgnoreCase));
+                if (asset is null)
+                {
+                    host.Log($"OpenAssetEditor: '{assetUrl}' not found among {session.AllAssets.Count()} assets");
+                    return (string?)null;
+                }
+                if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not { } aem) { host.Log("OpenAssetEditor: no IAssetEditorsManager"); return (string?)null; }
+                await aem.OpenAssetEditorWindow(asset).ConfigureAwait(true);
+                host.Log($"OpenAssetEditor: opened '{asset.Url}' (id={asset.Id})");
+                return asset.Url;
+            }).Task.Unwrap();
+
+        public async Task<bool> WaitForSyntaxHighlighting(string title, double timeoutSeconds = 60)
+        {
+            host.Log($"WaitForSyntaxHighlighting: '{title}' (timeout={timeoutSeconds}s)");
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            var colors = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                colors = await host.dispatcher.InvokeAsync(() => CountEditorTextColors(title)).Task.ConfigureAwait(false);
+                if (colors >= 3)
+                {
+                    host.Log($"WaitForSyntaxHighlighting: '{title}' shows {colors} text colors");
+                    return true;
+                }
+                await Task.Delay(250).ConfigureAwait(false);
+            }
+            host.Log($"WaitForSyntaxHighlighting: '{title}' timed out with {colors} text color(s)");
+            return false;
+        }
+
+        /// <summary>
+        /// Counts distinct foreground colors across the visible lines of the AvalonEdit text view
+        /// hosted by the document pane titled <paramref name="title"/>. One color = plain
+        /// (unclassified) text; several = Roslyn classification applied. 0 = pane/view not found
+        /// or not rendered yet.
+        /// </summary>
+        private static int CountEditorTextColors(string title)
+        {
+            if (FindAnchorable(title)?.Content is not DependencyObject content) return 0;
+            var textView = FindVisualDescendant<ICSharpCode.AvalonEdit.Rendering.TextView>(content);
+            if (textView is null || !textView.VisualLinesValid) return 0;
+            var colors = new HashSet<System.Windows.Media.Color>();
+            foreach (var line in textView.VisualLines)
+            {
+                foreach (var element in line.Elements)
+                {
+                    if (element.TextRunProperties?.ForegroundBrush is SolidColorBrush brush)
+                        colors.Add(brush.Color);
+                }
+            }
+            return colors.Count;
+        }
+
+        private static T? FindVisualDescendant<T>(DependencyObject node) where T : DependencyObject
+        {
+            if (node is T hit) return hit;
+            var count = VisualTreeHelper.GetChildrenCount(node);
+            for (var i = 0; i < count; i++)
+            {
+                if (FindVisualDescendant<T>(VisualTreeHelper.GetChild(node, i)) is { } childHit)
+                    return childHit;
+            }
+            return null;
+        }
+
         public async Task QueueAssetPickerResponse(string assetName, double timeoutSeconds = 30)
         {
             host.Log($"QueueAssetPickerResponse: assetName='{assetName ?? "<cancel>"}' timeout={timeoutSeconds}s");

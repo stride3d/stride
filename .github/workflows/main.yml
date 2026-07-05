@@ -76,7 +76,7 @@ jobs:
   VS-Package:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.full == 'true'
-    uses: ./.github/workflows/build-vs-package.yml
+    uses: ./.github/workflows/build-vspackage.yml
     with:
       build-type: Debug   # Release has a bug and cannot build
 

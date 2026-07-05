@@ -6,7 +6,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StridePackAssets>true</StridePackAssets>
-    <StrideAssetAssembly>true</StrideAssetAssembly>
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

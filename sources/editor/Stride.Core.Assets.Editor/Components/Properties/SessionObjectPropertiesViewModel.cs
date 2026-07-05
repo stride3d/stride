@@ -53,6 +53,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
             RegisterNodePresenterUpdater(new ArchetypeNodeUpdater());
             RegisterNodePresenterUpdater(new DocumentationNodeUpdater(documentationService));
             RegisterNodePresenterUpdater(new OwnerAssetUpdater());
+            RegisterNodePresenterUpdater(new PackageSettingsNodeUpdater());
             RegisterNodePresenterUpdater(new SessionNodeUpdater(session));
         }
 

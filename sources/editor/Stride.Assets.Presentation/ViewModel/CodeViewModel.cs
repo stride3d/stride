@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -15,6 +16,7 @@ using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -45,6 +47,8 @@ namespace Stride.Assets.Presentation.ViewModel
 
         private readonly TaskCompletionSource<ProjectWatcher> projectWatcherCompletion = new();
         private readonly TaskCompletionSource<RoslynWorkspace> workspaceCompletion = new();
+        private ProjectWatcher projectWatcher;
+        private RoslynWorkspace roslynWorkspace;
         private int editorFontSize = ScriptEditorSettings.FontSize.GetValue(); // default size
 
         private readonly Brush keywordBrush;
@@ -68,68 +72,103 @@ namespace Stride.Assets.Presentation.ViewModel
 
         private async Task InitializeAsync(StrideAssetsViewModel strideAssetsViewModel)
         {
-            var projectWatcher = new ProjectWatcher(strideAssetsViewModel.Session, Logger);
-            await projectWatcher.Initialize();
-            var workspace = (await projectWatcher.RoslynHost).Workspace;
-
-            // Load and update roslyn workspace with latest compiled version
-            foreach (var trackedAssembly in projectWatcher.TrackedAssemblies)
+            try
             {
-                if (trackedAssembly.Project is { } project)
+                // Surface workspace load diagnostics and reload errors in the asset log panel.
+                strideAssetsViewModel.Session.AssetLog.AddLogger(LogKey.Get("Project"), Logger);
+
+                var watcher = new ProjectWatcher(strideAssetsViewModel.Session, Logger);
+                projectWatcher = watcher;
+                await watcher.Initialize();
+                var workspace = (await watcher.RoslynHost).Workspace;
+                roslynWorkspace = workspace;
+
+                // Add every project loaded in the solution (library packages, executable heads, any csproj
+                // package) so scripts in any of them get a workspace project — required for diagnostics and
+                // to avoid opening empty / freezing on delete when the project isn't in the workspace.
+                foreach (var project in watcher.GetLoadedProjects())
                     workspace.AddOrUpdateProject(project);
+
+                watcher.TrackedAssemblies.CollectionChanged += TrackedAssembliesCollectionChanged;
+
+                _ = UpdateProjects(watcher, workspace, strideAssetsViewModel);
+
+                projectWatcherCompletion.SetResult(watcher);
+                workspaceCompletion.SetResult(workspace);
             }
-            projectWatcher.TrackedAssemblies.CollectionChanged += TrackedAssembliesCollectionChanged;
-
-            _ = UpdateProjects(projectWatcher, workspace, strideAssetsViewModel);
-
-            projectWatcherCompletion.SetResult(projectWatcher);
-            workspaceCompletion.SetResult(workspace);
-
-            void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+            catch (Exception e)
             {
-                if (((ProjectWatcher.TrackedAssembly)e.Item).Project is { } project)
+                // Surface the failure to consumers instead of leaving them awaiting forever.
+                Logger.Error("Failed to initialize the script editor workspace", e);
+                projectWatcherCompletion.TrySetException(e);
+                workspaceCompletion.TrySetException(e);
+            }
+        }
+
+        private void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+        {
+            if (roslynWorkspace == null)
+                return;
+
+            if (((ProjectWatcher.TrackedAssembly)e.Item).Project is { } project)
+            {
+                switch (e.Action)
                 {
-                    switch (e.Action)
-                    {
-                        case NotifyCollectionChangedAction.Add:
-                            {
-                                workspace.AddOrUpdateProject(project);
-                                break;
-                            }
-                        case NotifyCollectionChangedAction.Remove:
-                            {
-                                workspace.RemoveProject(project.Id);
-                                break;
-                            }
-                    }
+                    case NotifyCollectionChangedAction.Add:
+                        roslynWorkspace.AddOrUpdateProject(project);
+                        break;
+                    case NotifyCollectionChangedAction.Remove:
+                        roslynWorkspace.RemoveProject(project.Id);
+                        break;
                 }
             }
         }
 
         private async Task UpdateProjects(ProjectWatcher projectWatcher, RoslynWorkspace workspace, StrideAssetsViewModel strideAssetsViewModel)
         {
-            await foreach (var events in projectWatcher.BatchChange)
+            var session = strideAssetsViewModel.Session;
+            try
             {
-                await Dispatcher.InvokeAsync(async () =>
+                await foreach (var events in projectWatcher.SourceChange)
                 {
-                    // Update projects
-                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Project))
+                    // InvokeTask (not InvokeAsync) so the batch is actually awaited: no reentrancy, exceptions observed.
+                    await Dispatcher.InvokeTask(async () =>
                     {
-                        var project = e.Project;
-                        if (project != null)
+                        // Structural changes first: .csproj reloads and .cs add/remove/rename asset reconciliation.
+                        foreach (var e in events.Where(x => x.ChangeType is AssemblyChangeType.Project or AssemblyChangeType.ProjectAssets))
                         {
-                            await ReloadProject(strideAssetsViewModel.Session, project);
+                            if (e.Project == null)
+                                continue;
+                            try
+                            {
+                                await ReloadProject(session, e.Project, reloadWorkspace: e.ChangeType == AssemblyChangeType.Project);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"Failed to reload project for '{e.ChangedFile}'", ex);
+                            }
                         }
-                    }
 
-                    // Update files
-                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
-                    {
-                        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
-                        if (documentId != null)
-                            workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, null));
-                    }
-                });
+                        // Then document text reloads.
+                        foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
+                        {
+                            try
+                            {
+                                var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
+                                if (documentId != null)
+                                    await workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, Encoding.UTF8));
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"Failed to reload document '{e.ChangedFile}'", ex);
+                            }
+                        }
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // The project watcher was disposed; stop listening for changes.
             }
         }
 
@@ -175,7 +214,7 @@ namespace Stride.Assets.Presentation.ViewModel
         /// <remarks>
         /// In case of destructive changes (i.e. dirty files that disappeared), user confirmation will be asked to proceed.
         /// </remarks>
-        private async Task ReloadProject(SessionViewModel session, Project project)
+        private async Task ReloadProject(SessionViewModel session, Project project, bool reloadWorkspace = true)
         {
             var workspace = await Workspace;
 
@@ -210,8 +249,10 @@ namespace Stride.Assets.Presentation.ViewModel
             if (!continueReload)
                 return;
 
-            // Update Roslyn project
-            workspace.AddOrUpdateProject(project);
+            // Update Roslyn project (only when the .csproj itself changed; for .cs add/remove the
+            // asset view models add/remove their own documents, so no full workspace rebuild is needed).
+            if (reloadWorkspace)
+                workspace.AddOrUpdateProject(project);
 
             // Add new assets
             AddNewProjectAssets(projectViewModel, projectAssets, project, projectFiles);
@@ -357,7 +398,13 @@ namespace Stride.Assets.Presentation.ViewModel
 
         private void Cleanup()
         {
-            // nothing for now
+            if (projectWatcher != null)
+            {
+                projectWatcher.TrackedAssemblies.CollectionChanged -= TrackedAssembliesCollectionChanged;
+                // Cancels BatchChanges (ends the UpdateProjects loop) and disposes the directory watcher / dataflow links.
+                projectWatcher.Dispose();
+                projectWatcher = null;
+            }
         }
 
         private void StyleRunFromSymbolDisplayPartKind(SymbolDisplayPartKind partKind, Run run)

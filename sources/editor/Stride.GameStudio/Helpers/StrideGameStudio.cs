@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
+using Stride.Graphics;
 using Stride.Metrics;
 
 namespace Stride.GameStudio.Helpers
@@ -19,6 +20,10 @@ namespace Stride.GameStudio.Helpers
 
         [NotNull]
         public static string EditorName => $"Stride Game Studio {EditorVersion} ({RuntimeInformation.FrameworkDescription})";
+
+        // EditorName plus the active graphics API in the environment group; for the main window title.
+        [NotNull]
+        public static string EditorNameWithGraphicsApi => $"Stride Game Studio {EditorVersion} ({RuntimeInformation.FrameworkDescription}, {GraphicsDevice.Platform})";
 
         [NotNull]
         public static string EditorVersion => StrideVersion.NuGetVersion;

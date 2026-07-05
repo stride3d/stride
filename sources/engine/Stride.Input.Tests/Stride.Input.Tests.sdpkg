@@ -3,9 +3,6 @@ Id: 6d251236-da95-409a-8f4b-7d42ae1fd32c
 SerializedVersion: {Assets: 3.1.0.0}
 AssetFolders:
     -   Path: !dir GameAssets
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
 RootAssets:
     - 4d5503ec-11ee-43ce-9e1a-296202319167:GraphicsCompositor
     - 538255f3-de32-465e-b749-c73978ccd75e:Font

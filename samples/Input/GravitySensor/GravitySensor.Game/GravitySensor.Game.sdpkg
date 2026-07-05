@@ -10,9 +10,3 @@ AssetFolders:
     -   Path: !dir ../Assets/Shared
 ResourceFolders:
     - !dir ../Resources
-OutputGroupDirectories: {}
-ExplicitFolders: []
-Bundles: []
-TemplateFolders: []
-RootAssets: []
-AssetAssemblies: []

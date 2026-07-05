@@ -98,6 +98,16 @@ namespace Stride.Assets
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsHDR"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "Is32bppWithAlpha"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "SizeInBytes")),
+
+                // 4.4: IndexBufferBinding constructor parameter `count` was renamed `indexCount`,
+                // breaking named arguments at call sites (#3249).
+                Rewrite(
+                    ParameterRename("Stride.Graphics.IndexBufferBinding", ".ctor", "count", "indexCount")),
+
+                // 4.4: SharpDX and SharpFont were dropped, Vortice no longer flows to game projects,
+                // and Stride.Core.Shaders was retired by the sdsl rewrite; their leftover (unused)
+                // using directives would no longer compile (#3249).
+                RemoveUnusedUsings("SharpDX", "SharpFont", "Vortice", "Stride.Core.Shaders"),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

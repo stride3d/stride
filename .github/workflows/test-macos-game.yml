@@ -73,6 +73,11 @@ jobs:
     timeout-minutes: 20
     env:
       STRIDE_MAX_PARALLELISM: "8"
+      # createdump writes a full dump into TestResults/ on native faults (e.g. MoltenVK teardown).
+      # Job-level so it also covers the .app-hosted suites; the .ips step below is the OS backstop.
+      DOTNET_DbgEnableMiniDump: "1"
+      DOTNET_DbgMiniDumpType: "4"                                                # MiniDumpWithFullMemory
+      DOTNET_DbgMiniDumpName: "${{ github.workspace }}/TestResults/dotnet_%p.dmp"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v4
@@ -105,6 +110,8 @@ jobs:
           echo "MVK_CONFIG_LOG_LEVEL=3" >> $GITHUB_ENV
       - name: Resolve build/test target
         run: |
+          # createdump (DOTNET_DbgMiniDumpName) won't create the parent dir; ensure it exists up front.
+          mkdir -p "$GITHUB_WORKSPACE/TestResults"
           # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU + Runtime solutions.
           PROJ="${{ github.event.inputs.project || inputs.project }}"
           echo "STRIDE_TEST_TARGET=${PROJ:-build/Stride.Tests.Game.GPU.slnf}" >> "$GITHUB_ENV"
@@ -242,4 +249,20 @@ jobs:
         with:
           name: test-artifacts-macos-vulkan
           path: tests/local/
+          if-no-files-found: ignore
+      - name: Collect crash reports
+        # The test host occasionally dies natively (no managed exception, no [FAIL]); vstest only
+        # reports "Test host process crashed". macOS writes an .ips crash report to
+        # ~/Library/Logs/DiagnosticReports for the killed process, which carries the real stack.
+        if: always()
+        run: |
+          mkdir -p crash-reports
+          find ~/Library/Logs/DiagnosticReports -type f \( -name '*.ips' -o -name '*.crash' \) -mmin -60 -exec cp {} crash-reports/ \; 2>/dev/null || true
+          ls -la crash-reports/
+      - name: Upload crash reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-reports-macos-vulkan
+          path: crash-reports/
           if-no-files-found: ignore

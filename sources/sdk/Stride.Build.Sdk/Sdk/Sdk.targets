@@ -106,6 +106,13 @@
   <Import Project="$(StrideRoot)sources/engine/Stride.Graphics/build/Stride.GraphicsApiSpecificPackages.targets" />
 
   <!-- ================================================================ -->
+  <!-- Multi-graphics-API host layout (launch-time API selection) -->
+  <!-- ================================================================ -->
+  <!-- Lay API-dependent runtime DLLs into per-API subfolders so the runtime resolver loads the
+       launch-selected one. No-op unless StrideMultiGraphicsApiHost=true. -->
+  <Import Project="Stride.MultiGraphicsApiHost.targets" Condition="'$(StrideMultiGraphicsApiHost)' == 'true'" />
+
+  <!-- ================================================================ -->
   <!-- Native dependency system (.ssdeps) -->
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />
@@ -240,11 +247,11 @@
   <!-- ================================================================ -->
   <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
        into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideAssetAssembly)' == 'true'">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true'">
     <!-- Host-loadable assembly whose types appear in assets: written into the packed sdpkg's
          AssetAssemblies so the asset compiler loads exactly it (relative to lib/<host-tfm>/). -->
     <PropertyGroup>
-      <_StridePackAssetAssembliesArg Condition="'$(StrideAssetAssembly)' == 'true'"> --pack-asset-assembly=&quot;lib/$(StrideFramework)/$(AssemblyName).dll&quot;</_StridePackAssetAssembliesArg>
+      <_StridePackAssetAssembliesArg Condition="'$(StrideContainsAssetTypes)' == 'true'"> --pack-asset-assembly=&quot;lib/$(StrideFramework)/$(AssemblyName).dll&quot;</_StridePackAssetAssembliesArg>
     </PropertyGroup>
     <Exec Command="dotnet &quot;$(StrideRoot)sources/core/Stride.Core.Tasks/bin/$(Configuration)/$(StrideFramework)/Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)stride&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
@@ -295,27 +302,10 @@
   <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
-  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
-    <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
-         skips re-extracting on consumer restore, so consumers load stale DLLs. Purge the extracted
-         dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
-    <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
-               Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
-  </Target>
-  <!-- Dev packages mode: skip packing and use redirect packages (must be before GeneratePackageOnBuild) -->
+  <!-- Dev packages mode: skip packing and use redirect packages (must set StrideSkipAutoPack
+       before Stride.AutoPackDeploy.targets evaluates its GeneratePackageOnBuild gate) -->
   <Import Project="$(StrideRoot)sources\targets\Stride.DevPackages.targets" />
-
-  <!-- Per-API inner builds of cross-targeted projects (Stride.Graphics, ...) could in theory
-       race on the same Stride.<X>.<ver>.nupkg, but NuGet's own IsInnerBuild gate
-       (NuGet.Build.Tasks.Pack.targets, TargetFramework!='' AND TargetFrameworks!='') already
-       suppresses Pack in those inner dispatches. No additional gate needed here. -->
-  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
-    <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
-  </PropertyGroup>
+  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
 
   <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->

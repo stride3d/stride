@@ -107,8 +107,13 @@
        Only affects the bin/ copy of runtime assets.  Restore still downloads
        the packages (their .nuspec deps are unchanged); we just don't ship
        the DLLs to the consumer's output directory.
+
+       Skipped for multi-API host exes (StrideMultiGraphicsApiHost=true): they pick the API at
+       launch, so every API's interop must stay. Distinct identities (unlike Stride.Graphics), so
+       keeping all flat is safe — the runtime loads what the chosen Stride.Graphics variant needs.
   -->
   <Target Name="_StrideFilterGraphicsApiSpecificPackages"
+          Condition="'$(StrideMultiGraphicsApiHost)' != 'true'"
           AfterTargets="ResolvePackageAssets"
           DependsOnTargets="_StridePackageReferenceResolveGraphicsApi">
     <PropertyGroup>

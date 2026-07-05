@@ -312,6 +312,16 @@ public class SolutionProject : PackageContainer
 
     public PlatformType Platform { get; set; }
 
+    // The msbuild property behind ContainsAssetTypes.
+    public const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
+
+    // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
+    public bool? ContainsAssetTypes { get; set; }
+
+    // Load the built assembly for type resolution (scripts, serialization, inheritable asset types) when
+    // explicitly flagged, otherwise only for libraries.
+    public bool ShouldLoadAssemblyInEditor => ContainsAssetTypes ?? (Type == ProjectType.Library);
+
     public bool IsImplicitProject { get; set; }
 
     public bool TrackDirectDependencies { get; set; }
@@ -1200,6 +1210,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             // callback snapshots the .sln only when Save actually rewrites it.
             if (packagesSaved && !string.IsNullOrEmpty(VSSolution.FullPath))
             {
+                // Mark the host/Windows exec as the startup project so the saved .slnx gets a DefaultStartup
+                // (slnx ignores project order, and SolutionPersistence can't model the attribute). ??= so a
+                // startup already read from the existing .slnx isn't overridden — it round-trips.
+                VSSolution.StartupProjectGuid ??= CurrentProject is { Type: ProjectType.Executable } exec ? exec.Id : null;
                 VSSolution.Save(path => UpgradeBackup?.Snapshot(path));
             }
             saveCompletion?.SetResult(0);

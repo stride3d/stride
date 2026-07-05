@@ -17,6 +17,7 @@ static class Program
             }
 
             const string vsixFile = "Stride.vsix";
+            const string shadersVsixFile = "StrideShaders.vsix";
 
             // Locate a VS installation with VSIXInstaller.exe.
             // Select the latest version of VS possible, in case there is some bugfixes or incompatible changes.
@@ -32,16 +33,19 @@ static class Program
                 case "/install":
                 case "/repair":
                 {
-                    // Install VSIX
-                    var exitCode = RunVsixInstaller(ideInfo.VsixInstallerPath, "\"" + vsixFile + "\"");
-                    if (exitCode != 0)
-                        throw new InvalidOperationException($"VSIX Installer didn't run properly: exit code {exitCode}");
+                    // Two separate extensions: the out-of-process package and the classic shader-grammar companion.
+                    // Install each in its own call so one already being present doesn't block the other.
+                    InstallVsix(ideInfo.VsixInstallerPath, vsixFile);
+                    InstallVsix(ideInfo.VsixInstallerPath, shadersVsixFile);
                     break;
                 }
 
                 case "/uninstall":
                 {
-                    // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific Visual Studio version)
+                    // Uninstall both current extensions, plus the legacy net472 one (id "...".2022") so upgrading
+                    // from it doesn't leave it behind. All are allowed to fail (not installed for this VS version).
+                    RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package /quiet");
+                    RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.Shaders /quiet");
                     RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022 /quiet");
                     break;
                 }
@@ -54,6 +58,18 @@ static class Program
             Console.WriteLine($"Error: {e}");
             return 1;
         }
+    }
+
+    /// <summary>
+    /// Installs a single VSIX, treating "already installed" (exit code 1001) as success so a package that is
+    /// already present doesn't fail the install of the other.
+    /// </summary>
+    private static void InstallVsix(string vsixInstallerPath, string vsixFile)
+    {
+        const int alreadyInstalled = 1001;
+        var exitCode = RunVsixInstaller(vsixInstallerPath, "\"" + vsixFile + "\"");
+        if (exitCode != 0 && exitCode != alreadyInstalled)
+            throw new InvalidOperationException($"VSIX Installer didn't run properly for {vsixFile}: exit code {exitCode}");
     }
 
     /// <summary>

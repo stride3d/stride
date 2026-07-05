@@ -190,9 +190,27 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists, skipping"
           else
+            # The CLI is a separate product from the engine. Build its changelog from the previous
+            # cli/* tag and scope it to the CLI sources, so engine commits don't leak into it (and
+            # so the two products' changelogs don't interleave, as GitHub's auto notes would do).
+            PREV=$(git describe --tags --abbrev=0 --match 'cli/*' "$TAG^" 2>/dev/null || true)
+            RANGE="$TAG"
+            [ -n "$PREV" ] && RANGE="$PREV..$TAG"
+            NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- sources/launcher/Stride.Cli)
+            [ -z "$NOTES" ] && NOTES="_No CLI-specific changes since the previous release._"
+            {
+              echo "## What's changed in the Stride CLI"
+              echo ""
+              echo "$NOTES"
+              if [ -n "$PREV" ]; then
+                echo ""
+                echo "**Full CLI changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV...$TAG"
+              fi
+            } > cli-notes.md
             gh release create "$TAG" \
               --title "Stride CLI ${{ needs.Package.outputs.version }}" \
-              --generate-notes \
+              --notes-file cli-notes.md \
+              --latest=false \
               bin/cli/*.nupkg
           fi
 

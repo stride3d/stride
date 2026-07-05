@@ -20,6 +20,21 @@
     <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
     <PackageReference Include="Microsoft.TemplateEngine.Edge" />
     <PackageReference Include="Microsoft.TemplateEngine.IDE" />
+    <!-- legacy generate-legacy-shader-code: talks to the released Stride.VisualStudio.Commands over ServiceWire.
+         System.Formats.Nrbf reads the BinaryFormatter handshake payload from pre-4.2 (ServiceWire 5.3.4) servers. -->
+    <PackageReference Include="ServiceWire" />
+    <PackageReference Include="System.Formats.Nrbf" />
+  </ItemGroup>
+  <!-- Linked from the shared/old-package sources so we can restore+locate and talk to the released Commands. -->
+  <ItemGroup>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="Legacy\Shared\GraphicsApiSelector.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Legacy\Shared\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Legacy\Shared\LoaderToolLocator.cs" />
+  </ItemGroup>
+  <!-- IStrideCommands ABI lives in an assembly named Stride.VisualStudio.Commands.Interfaces so ServiceWire's
+       assembly-qualified type keys match the released server. See that project for details. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces.Client\Stride.VisualStudio.Commands.Interfaces.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />

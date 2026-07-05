@@ -119,6 +119,23 @@ public interface IUITestContext
     Task<Guid> AddAssetFromTemplate(Guid templateId, string templateName = null);
 
     /// <summary>
+    /// Opens the asset whose <c>Url</c> equals — or ends with — <paramref name="assetUrl"/> in its
+    /// registered editor (e.g. a script source file in the RoslynPad-backed script editor), so the
+    /// document docks. Returns the asset's actual <c>Url</c> (pass it to <see cref="CapturePanel"/>,
+    /// which matches a document by its title = Url), or <c>null</c> if no such asset was found.
+    /// </summary>
+    Task<string?> OpenAssetEditor(string assetUrl);
+
+    /// <summary>
+    /// Polls the code-editor document titled <paramref name="title"/> (an AvalonEdit-based editor
+    /// opened via <see cref="OpenAssetEditor"/>) until its visible text renders in at least three
+    /// distinct foreground colors — i.e. Roslyn classification has been computed and applied, which
+    /// happens asynchronously after the document opens. Returns false on timeout (editor missing,
+    /// still monochrome, or blank).
+    /// </summary>
+    Task<bool> WaitForSyntaxHighlighting(string title, double timeoutSeconds = 60);
+
+    /// <summary>
     /// Registers a one-shot handler for the next <c>AssetPickerWindow</c>: selects the asset by
     /// <c>Name</c> and confirms. Pass <c>null</c> to cancel the picker.
     /// </summary>

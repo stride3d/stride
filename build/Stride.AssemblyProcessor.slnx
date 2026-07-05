@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../sources/core/Stride.Core.AssemblyProcessor.Tests/Stride.Core.AssemblyProcessor.Tests.csproj" />
+  <Project Path="../sources/core/Stride.Core.AssemblyProcessor/Stride.Core.AssemblyProcessor.csproj" />
+</Solution>

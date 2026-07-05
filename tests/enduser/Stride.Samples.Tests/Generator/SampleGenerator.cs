@@ -45,7 +45,7 @@ public static class SampleGenerator
             ["platforms"] = platform,
         });
 
-        session.SolutionPath = UPath.Combine<UFile>(outputPath, sampleName + ".sln");
+        session.SolutionPath = UPath.Combine<UFile>(outputPath, sampleName + ".slnx");
 
         if (Directory.Exists(outputPath))
         {

@@ -44,7 +44,7 @@
     </ReadLinesFromFile>
 
     <ItemGroup Condition="'$(_StrideStampTicks)' != ''">
-      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.sln" />
+      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.slnx" />
       <_StrideStubInputs Include="@(_StrideStubManifestCsprojs)" />
       <_StrideStaleStubInputs Include="@(_StrideStubInputs)"
                               Condition="$([System.IO.File]::GetLastWriteTime('%(_StrideStubInputs.FullPath)').Ticks) &gt; $(_StrideStampTicks)" />
@@ -55,8 +55,8 @@
   </Target>
 
   <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
-       Stamp file is a manifest of stub nupkg filenames written by GenerateDevPackages.cs,
-       so we delete only those — leaving real packages (e.g. Stride.Templates.*) intact. -->
+       Stamp file is a manifest of the nupkg filenames GenerateDevPackages.cs deployed, so we
+       delete exactly those and nothing else. -->
   <Target Name="_StrideCleanDevPackages"
           BeforeTargets="CoreCompile"
           Condition="'$(StrideDevPackages)' != 'true' And '$(DesignTimeBuild)' != 'true'">
@@ -72,6 +72,10 @@
 
     <ItemGroup>
       <_StrideDevPackagesToDelete Include="$(LocalAppData)/stride/nugetdev/%(_StrideDevPackagesStubManifest.Identity)"
+                                  Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
+      <!-- The bin/packages mirrors (GenerateDevPackages copies stubs there so the repo
+           nuget.config's stride-local mapping stays valid in dev mode). -->
+      <_StrideDevPackagesToDelete Include="$(StrideRoot)bin\packages\%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
     </ItemGroup>
 

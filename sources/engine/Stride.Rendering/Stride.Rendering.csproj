@@ -5,7 +5,7 @@
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
-    <StrideAssetAssembly>true</StrideAssetAssembly>
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

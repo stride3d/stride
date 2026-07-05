@@ -13,11 +13,16 @@
     <Project Path="../sources/core/Stride.Core.Translation/Stride.Core.Translation.csproj" />
     <Project Path="../sources/core/Stride.Core.Yaml/Stride.Core.Yaml.csproj" />
   </Folder>
+  <Folder Name="/40-Assets/">
+    <Project Path="../sources/assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
+  </Folder>
   <Folder Name="/50-Presentation/">
     <Project Path="../sources/presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
   </Folder>
-  <Project Path="../sources/assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
+  <Folder Name="/90-Tools/">
+    <Project Path="../sources/launcher/Stride.VisualStudio.Commands.Interfaces.Client/Stride.VisualStudio.Commands.Interfaces.Client.csproj" />
+  </Folder>
   <Project Path="../sources/launcher/Stride.Cli/Stride.Cli.csproj" />
   <Project Path="../sources/launcher/Stride.Launcher.Tests/Stride.Launcher.Tests.csproj" />
   <Project Path="../sources/launcher/Stride.Launcher/Stride.Launcher.csproj" />

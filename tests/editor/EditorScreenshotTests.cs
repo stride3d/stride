@@ -44,16 +44,19 @@ public class EditorScreenshotTests
 
     public static IEnumerable<object[]> Fixtures()
     {
-        // (fixtureName, optional template GUID to instantiate and upgrade before opening, timeout-minutes)
-        yield return new object?[] { "EmptyEditor",   (Guid?)null,                                                       3 };
-        yield return new object?[] { "TopDownCreate", (Guid?)null,                                                       8 };
-        yield return new object?[] { "TopDownLoad",   (Guid?)new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034"),           5 };
-        yield return new object?[] { "NewGameEditor", (Guid?)null,                                                       5 };
+        // (fixtureName, optional template GUID to instantiate and upgrade before opening, timeout-minutes,
+        //  comparison prompt — ScriptEditor ignores the script's literal text (template content can change)
+        //  and only checks it renders as syntax-highlighted C# in the editor theme)
+        yield return new object?[] { "EmptyEditor",   (Guid?)null,                                             3, EditorComparisonPrompt.Default };
+        yield return new object?[] { "TopDownCreate", (Guid?)null,                                             8, EditorComparisonPrompt.Default };
+        yield return new object?[] { "TopDownLoad",   (Guid?)new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034"), 5, EditorComparisonPrompt.Default };
+        yield return new object?[] { "ScriptEditor",  (Guid?)new Guid("81d2adea-37b1-4711-834c-0d73a05c206c"), 6, EditorComparisonPrompt.ScriptEditor };
+        yield return new object?[] { "NewGameEditor", (Guid?)null,                                             5, EditorComparisonPrompt.Default };
     }
 
     [Theory]
     [MemberData(nameof(Fixtures))]
-    public void Capture(string fixtureName, Guid? templateGuid, int timeoutMin)
+    public void Capture(string fixtureName, Guid? templateGuid, int timeoutMin, EditorComparisonPrompt prompt)
     {
         var worktree = WorktreeRoot();
         var captureRoot = Path.Combine(worktree, "ui-test-out-" + Dpi);
@@ -121,7 +124,7 @@ public class EditorScreenshotTests
         // multiple fixtures' captures across test invocations.
         var baselineDir = Path.Combine(worktree, "tests", "editor", "baselines", Dpi);
         var results = ScreenshotComparator.Compare(captureRoot, baselineDir,
-            sampleFilter: fixtureName, defaultPrompt: EditorComparisonPrompt.Default,
+            sampleFilter: fixtureName, defaultPrompt: prompt,
             deferWhenVisionUnavailable: true);
 
         foreach (var r in results)
@@ -176,7 +179,7 @@ public class EditorScreenshotTests
     /// <summary>
     /// Instantiates a template sample (by .sdtpl Id GUID) into a per-fixture temp dir via
     /// <see cref="DotNetNewTemplateGenerator"/> — the same path GS's New Project wizard takes
-    /// at runtime. Returns the absolute .sln path the AutoTesting runner should open.
+    /// at runtime. Returns the absolute .slnx path the AutoTesting runner should open.
     /// </summary>
     internal static string GenerateSampleFromTemplate(Guid templateGuid, string sampleName)
     {
@@ -204,7 +207,7 @@ public class EditorScreenshotTests
         parameters.OutputDirectory = outputDir;
         parameters.Logger = logger;
 
-        session.SolutionPath = UPath.Combine<UFile>(outputDir, sampleName + ".sln");
+        session.SolutionPath = UPath.Combine<UFile>(outputDir, sampleName + ".slnx");
 
         var generator = new DotNetNewTemplateGenerator();
         if (!generator.PrepareForRun(parameters).Result)

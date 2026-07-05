@@ -15,6 +15,10 @@ on:
         description: Capture and upload an MSBuild binlog (diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
         type: boolean
+      version-suffix:
+        description: Prerelease suffix for the NuGet package, no leading dash (e.g. "beta1" -> 4.4.0-beta1). Empty = stable. The .vsix manifest version is numeric-only, so it always ships the suffix-less 4.4.0.0.
+        default: ''
+        type: string
 
 concurrency:
   group: release-vspackage-${{ github.ref }}
@@ -39,9 +43,10 @@ jobs:
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
-          STATUS=$(gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>&1 && echo "ok" || echo "fail")
-          if [ "$STATUS" = "fail" ]; then
-            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+          # A 404 here means either the actor isn't a member OR GH_PAT can't read the team
+          # (dead/under-scoped token); the message covers both since the API can't distinguish them.
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
 
@@ -69,7 +74,8 @@ jobs:
             -t:VSIXPlugin `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
-            -p:StrideSign=${{ inputs.sign }}
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:VersionSuffix=${{ inputs.version-suffix }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
@@ -109,6 +115,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - uses: actions/checkout@v4  # full history + tags for the vspackage-scoped changelog and tagging
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}  # push the vspackage/<version> tag
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -128,3 +140,46 @@ jobs:
           }
         env:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        run: |
+          TAG="vspackage/${{ needs.Package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG="vspackage/${{ needs.Package.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+          else
+            # The VS package is a separate product from the engine. Build its changelog from the
+            # previous vspackage/* tag and scope it to the VS package sources, so engine/CLI commits
+            # don't leak in (and the products' changelogs don't interleave, as GitHub's auto notes would).
+            PREV=$(git describe --tags --abbrev=0 --match 'vspackage/*' "$TAG^" 2>/dev/null || true)
+            RANGE="$TAG"
+            [ -n "$PREV" ] && RANGE="$PREV..$TAG"
+            NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- sources/tools/Stride.VisualStudio.*)
+            [ -z "$NOTES" ] && NOTES="_No VS package-specific changes since the previous release._"
+            {
+              echo "## What's changed in the Stride Visual Studio package"
+              echo ""
+              echo "$NOTES"
+              if [ -n "$PREV" ]; then
+                echo ""
+                echo "**Full VS package changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV...$TAG"
+              fi
+            } > vspackage-notes.md
+            # Separate product: never the repository's "Latest" release (that's the engine).
+            gh release create "$TAG" \
+              --title "Stride VS Package ${{ needs.Package.outputs.version }}" \
+              --notes-file vspackage-notes.md \
+              --latest=false \
+              bin/vsix/*.nupkg
+          fi

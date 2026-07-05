@@ -97,5 +97,23 @@ namespace Stride.Core.Assets.Editor.Components.Properties
         [Category]
         [NonIdentifiableCollectionItems]
         public Dictionary<string, SettingsKeyWrapper> UserSettings => HasExecutables ? ExecutableUserSettings : NonExecutableUserSettings;
+
+        internal const string GraphicsApiProperty = "StrideGraphicsApi";
+        internal const string ContainsAssetTypesProperty = SolutionProject.ContainsAssetTypesProperty;
+
+        // Selected project file backing the build settings rows (synthesized by PackageSettingsNodeUpdater);
+        // null when the package isn't a project.
+        internal string ProjectPath { get; set; }
+
+        // True for a Windows executable head (gates GraphicsApi).
+        internal bool IsWindowsExecutable { get; set; }
+
+        // Effective ContainsAssetTypes value when the csproj doesn't set it (libraries load, other projects don't).
+        internal bool ContainsAssetTypesDefault { get; set; }
+
+        // Raw csproj value (null when not explicitly set), so explicit values can render as overrides.
+        internal string GetProjectProperty(string propertyName) => VSProjectHelper.GetProjectPropertyValue(ProjectPath, propertyName);
+
+        internal void SetProjectProperty(string propertyName, string value) => VSProjectHelper.SetProjectPropertyValue(ProjectPath, propertyName, value);
     }
 }

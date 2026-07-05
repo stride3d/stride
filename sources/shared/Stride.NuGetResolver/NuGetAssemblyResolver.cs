@@ -41,6 +41,10 @@ public static partial class NuGetAssemblyResolver
     {
         if (packagesConfigs.Count == 0) return;
 
+        // Launch-time graphics API (one live API per process); shared by both host layouts.
+        // Local build: wire the subfolder resolver before the deps.json early-return below. No-op on flat.
+        var selectedGraphicsApi = GraphicsApiHostResolver.Setup(GraphicsApiSelector.Resolve());
+
         // Make sure our nuget local store is added to nuget config
         var executingPath = Assembly.GetExecutingAssembly().Location;
         var folder = Path.GetDirectoryName(executingPath);
@@ -48,7 +52,7 @@ public static partial class NuGetAssemblyResolver
 
         while (folder != null)
         {
-            if (File.Exists(Path.Combine(folder, "build", "Stride.sln")))
+            if (File.Exists(Path.Combine(folder, "build", "Stride.slnx")))
             {
                 var settings = Settings.LoadDefaultSettings(null);
 
@@ -135,8 +139,8 @@ public static partial class NuGetAssemblyResolver
                                     $"Could not restore NuGet packages for {packageName} {packageVersion} ({targetFramework}).{Environment.NewLine}{diagnostics}");
                             }
 
-                            // Build list of assemblies
-                            var assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+                            // Deployed path: pick the selected API's subfolder per package (null -> platform default).
+                            var assemblies = RestoreHelper.ListAssemblies(result.LockFile, selectedGraphicsApi);
 
                             // Create a dictionary by assembly name
                             // note: we ignore case as filename might not be properly matching assembly name casing

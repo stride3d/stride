@@ -13,7 +13,6 @@
     <!-- Use AssemblyName for Resource class to avoid clashes between MyTemplate and MyTemplate.Android -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MyTemplate.Game\MyTemplate.Game.sdpkg</StrideCurrentPackagePath>
-    <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Android</StridePlatform>
     <AndroidApplicationIcon>@mipmap/appicon</AndroidApplicationIcon>
   </PropertyGroup>

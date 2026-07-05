@@ -175,13 +175,14 @@ partial class PackageSession
                     project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(projectPath), project.AssemblyProcessorSerializationHashFile);
                 package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
-                var outputType = msProject.GetPropertyValue("OutputType");
-                project.Type = outputType.Equals("winexe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("exe", StringComparison.InvariantCultureIgnoreCase)
-                    || outputType.Equals("appcontainerexe", StringComparison.InvariantCultureIgnoreCase) // UWP
-                    || msProject.GetPropertyValue("AndroidApplication").Equals("true", StringComparison.InvariantCultureIgnoreCase) // Android
-                    ? ProjectType.Executable
-                    : ProjectType.Library;
+                project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
+
+                // Explicit StrideContainsAssetTypes opt-in/opt-out for editor/compiler assembly loading (null = default).
+                // Imported values are ignored: the consumer default (AssetBuildManifest.targets) evaluates true
+                // for every project including exe heads, which must stay unloaded unless explicitly flagged.
+                var containsAssetTypesProperty = msProject.GetProperty(SolutionProject.ContainsAssetTypesProperty);
+                if (containsAssetTypesProperty is { IsImported: false } && bool.TryParse(containsAssetTypesProperty.EvaluatedValue, out var containsAssetTypes))
+                    project.ContainsAssetTypes = containsAssetTypes;
 
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again
