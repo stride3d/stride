@@ -346,50 +346,51 @@ namespace Stride.Profiling
                 renderTargetSize = new Size2(renderTarget.Width, renderTarget.Height);
             }
 
-            var renderContext = RenderContext.GetShared(Services);
-            var renderDrawContext = renderContext.GetThreadContext();
-
             if (fastTextRenderer == null)
             {
-                fastTextRenderer = new FastTextRenderer(renderDrawContext.GraphicsContext)
+                fastTextRenderer = new FastTextRenderer(Game.GraphicsContext)
                 {
                     DebugSpriteFont = Content.Load<Texture>("StrideDebugSpriteFont"),
                     TextColor = TextColor,
                 };
             }
 
-            using (renderDrawContext.PushRenderTargetsAndRestore())
+            // Render through the game's main GraphicsContext (as DebugTextSystem does). The per-thread
+            // RenderContext command list used previously is Close()d after the compositor renders and is never
+            // re-begun, so on Vulkan its native command buffer is null and FastTextRenderer.End() crashes when
+            // recording draw commands into it (0xC0000005 — issue #1020). The main command list is reset and
+            // begun every frame in GameBase.BeginDraw, so it is always valid here. On Direct3D11 this is
+            // equivalent (the thread context already shared the main command list).
+            var graphicsContext = Game.GraphicsContext;
+            graphicsContext.CommandList.SetRenderTargetAndViewport(null, renderTarget);
+            viewportHeight = graphicsContext.CommandList.Viewport.Height;
+            fastTextRenderer.Begin(graphicsContext);
+            lock (stringLock)
             {
-                renderDrawContext.CommandList.SetRenderTargetAndViewport(null, renderTarget);
-                viewportHeight = renderDrawContext.CommandList.Viewport.Height;
-                fastTextRenderer.Begin(renderDrawContext.GraphicsContext);
-                lock (stringLock)
+                var currentHeight = textDrawStartOffset.Y;
+                fastTextRenderer.DrawString(graphicsContext, fpsStatString, textDrawStartOffset.X, currentHeight);
+                currentHeight += TopRowHeight;
+
+                if (FilteringMode == GameProfilingResults.CpuEvents)
                 {
-                    var currentHeight = textDrawStartOffset.Y;
-                    fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, fpsStatString, textDrawStartOffset.X, currentHeight);
+                    fastTextRenderer.DrawString(graphicsContext, gcMemoryString, textDrawStartOffset.X, currentHeight);
                     currentHeight += TopRowHeight;
-
-                    if (FilteringMode == GameProfilingResults.CpuEvents)
-                    {
-                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gcMemoryString, textDrawStartOffset.X, currentHeight);
-                        currentHeight += TopRowHeight;
-                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gcCollectionsString, textDrawStartOffset.X, currentHeight);
-                        currentHeight += TopRowHeight;
-                    }
-                    else if (FilteringMode == GameProfilingResults.GpuEvents)
-                    {
-                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gpuGeneralInfoString, textDrawStartOffset.X, currentHeight);
-                        currentHeight += TopRowHeight;
-                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gpuInfoString, textDrawStartOffset.X, currentHeight);
-                        currentHeight += TopRowHeight;
-                    }
-
-                    if (FilteringMode != GameProfilingResults.Fps)
-                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, profilersString, textDrawStartOffset.X, currentHeight);
+                    fastTextRenderer.DrawString(graphicsContext, gcCollectionsString, textDrawStartOffset.X, currentHeight);
+                    currentHeight += TopRowHeight;
+                }
+                else if (FilteringMode == GameProfilingResults.GpuEvents)
+                {
+                    fastTextRenderer.DrawString(graphicsContext, gpuGeneralInfoString, textDrawStartOffset.X, currentHeight);
+                    currentHeight += TopRowHeight;
+                    fastTextRenderer.DrawString(graphicsContext, gpuInfoString, textDrawStartOffset.X, currentHeight);
+                    currentHeight += TopRowHeight;
                 }
 
-                fastTextRenderer.End(renderDrawContext.GraphicsContext);
+                if (FilteringMode != GameProfilingResults.Fps)
+                    fastTextRenderer.DrawString(graphicsContext, profilersString, textDrawStartOffset.X, currentHeight);
             }
+
+            fastTextRenderer.End(graphicsContext);
         }
 
         /// <summary>
