@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Consumer</RootNamespace>
+    <Nullable>enable</Nullable>
+    <!-- No asset types of its own; also keeps the plugin's packed sdpkg declaration the only
+         path that can load the plugin assembly, which is what the tests probe. -->
+    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="StrideAssetPlugin" Version="1.0.0" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

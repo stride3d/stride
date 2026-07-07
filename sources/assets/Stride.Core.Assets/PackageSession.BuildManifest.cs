@@ -69,30 +69,54 @@ partial class PackageSession
             // authored-package path, falling back to the first package).
             var rootManifest = manifests[rootManifestFile];
             var packagesByPath = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
+            var containersByManifest = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
             var rootContainer = ContributeManifest(session, packagesByPath, rootManifestFile, rootManifest, sessionResult);
+            containersByManifest.Add(rootManifestFile, rootContainer);
             foreach (var (file, manifest) in manifests)
             {
                 if (string.Equals(file, rootManifestFile, StringComparison.OrdinalIgnoreCase))
                     continue;
-                ContributeManifest(session, packagesByPath, file, manifest, sessionResult);
+                containersByManifest.Add(file, ContributeManifest(session, packagesByPath, file, manifest, sessionResult));
             }
 
             // NuGet package dependencies that ship a stride/<Id>.sdpkg (engine/plugin packages):
-            // read the root's lock file directly — cheap JSON, no MSBuild. Project references are
-            // already covered by the manifest chain above.
-            if (rootManifest.NuGetLockFile is not null)
+            // read each project's lock file directly — cheap JSON, no MSBuild. NuGet already flattened
+            // each project's package closure, so a project sees exactly its own lock file's sdpkg packages.
+            var sdpkgPackagesByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
+            var packagesByLockFile = new Dictionary<string, List<StandalonePackage>>(StringComparer.OrdinalIgnoreCase);
+            var packagesByManifest = new Dictionary<string, List<StandalonePackage>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (file, manifest) in manifests)
             {
-                var lockFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootManifestFile)!, rootManifest.NuGetLockFile.ToOSPath()));
-                if (File.Exists(lockFile) && rootManifest.TargetFramework is not null)
-                    session.LoadPackageDependenciesFromLockFile(lockFile, NuGetFramework.Parse(rootManifest.TargetFramework), sessionResult, loadParameters);
+                if (manifest.NuGetLockFile is null || manifest.TargetFramework is null)
+                    continue;
+                var lockFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, manifest.NuGetLockFile.ToOSPath()));
+                if (!File.Exists(lockFile))
+                    continue;
+                if (!packagesByLockFile.TryGetValue(lockFile, out var packages))
+                    packagesByLockFile[lockFile] = packages = session.LoadPackageDependenciesFromLockFile(lockFile, NuGetFramework.Parse(manifest.TargetFramework), sdpkgPackagesByName, sessionResult);
+                packagesByManifest[file] = packages;
             }
 
-            // The root depends on every other loaded package (project chain + sdpkg packages):
-            // mirror the lock file's flattened closure so the compiler reaches their assets
-            foreach (var container in session.Projects.OfType<StandalonePackage>())
+            // Package-scoped asset lookups (Package.FindAsset) only search FlattenedDependencies, so
+            // each project package gets its flattened closure: the projects it references (transitively,
+            // from the manifest chain) plus its own lock file's sdpkg packages
+            var manifestClosures = new Dictionary<string, HashSet<StandalonePackage>>(StringComparer.OrdinalIgnoreCase);
+            IEnumerable<string> ReferencedManifestFiles(string file) => manifests.TryGetValue(file, out var manifest)
+                ? manifest.ReferencedManifests.Select(reference => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, reference)))
+                : [];
+            foreach (var group in containersByManifest.GroupBy(x => x.Value, x => x.Key))
             {
-                if (container != rootContainer)
-                    rootContainer.FlattenedDependencies.Add(new Dependency(container.Package));
+                var container = group.Key;
+                var dependencies = new HashSet<StandalonePackage>();
+                foreach (var file in group)
+                {
+                    dependencies.UnionWith(CollectReachable(file, manifestClosures, ReferencedManifestFiles, containersByManifest.GetValueOrDefault));
+                    if (packagesByManifest.TryGetValue(file, out var packages))
+                        dependencies.UnionWith(packages);
+                }
+                dependencies.Remove(container);
+                foreach (var dependency in dependencies)
+                    container.FlattenedDependencies.Add(new Dependency(dependency.Package));
             }
 
             // Load + register exactly the declared assemblies, then load assets (folder scan +
@@ -184,22 +208,31 @@ partial class PackageSession
         return container;
     }
 
-    /// <summary>Reads a NuGet lock file and pulls in the dependency packages that ship a Stride <c>.sdpkg</c>.</summary>
-    private void LoadPackageDependenciesFromLockFile(string lockFilePath, NuGetFramework framework, ILogger log, PackageLoadParameters loadParameters)
+    /// <summary>
+    /// Reads a NuGet lock file and pulls in the dependency packages that ship a Stride <c>.sdpkg</c>,
+    /// each seeing the sdpkg packages reachable through the lock file's dependency graph.
+    /// Returns the sdpkg packages this lock file contains (loaded here or by a previous call).
+    /// </summary>
+    private List<StandalonePackage> LoadPackageDependenciesFromLockFile(string lockFilePath, NuGetFramework framework, Dictionary<string, StandalonePackage> sdpkgPackagesByName, ILogger log)
     {
         var lockFile = new LockFileFormat().Read(lockFilePath);
         var target = lockFile.Targets.FirstOrDefault(t => t.RuntimeIdentifier == null && Equals(t.TargetFramework, framework))
             ?? lockFile.Targets.FirstOrDefault(t => t.RuntimeIdentifier == null);
         if (target is null)
-            return;
+            return [];
 
         var libraries = lockFile.Libraries.ToDictionary(l => (l.Name, l.Version));
+        var created = new List<StandalonePackage>();
 
         foreach (var targetLibrary in target.Libraries)
         {
             if (targetLibrary.Type != "package")
                 continue;
             if (!libraries.TryGetValue((targetLibrary.Name, targetLibrary.Version), out var library))
+                continue;
+
+            // Already loaded from a previous lock file
+            if (sdpkgPackagesByName.ContainsKey(library.Name))
                 continue;
 
             var libraryPath = lockFile.PackageFolders
@@ -245,7 +278,49 @@ partial class PackageSession
                 container.Assemblies.AddRange(assemblies);
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
+            sdpkgPackagesByName.Add(library.Name, container);
+            created.Add(container);
         }
+
+        // Each new sdpkg package sees the sdpkg packages its lock-file dependency closure reaches
+        // (crossing plain code packages)
+        var targetLibrariesByName = target.Libraries.Where(l => l.Name is not null).ToDictionary(l => l.Name!, StringComparer.OrdinalIgnoreCase);
+        IEnumerable<string> LibraryDependencies(string name) => targetLibrariesByName.TryGetValue(name, out var library)
+            ? library.Dependencies.Select(d => d.Id)
+            : [];
+        var reachableByName = new Dictionary<string, HashSet<StandalonePackage>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var container in created)
+        {
+            foreach (var dependency in CollectReachable(container.Package.Meta.Name!, reachableByName, LibraryDependencies, sdpkgPackagesByName.GetValueOrDefault))
+            {
+                if (dependency != container)
+                    container.FlattenedDependencies.Add(new Dependency(dependency.Package));
+            }
+        }
+
+        // The sdpkg packages this lock file can see, whether loaded above or by a previous call
+        var result = new List<StandalonePackage>();
+        foreach (var targetLibrary in target.Libraries)
+        {
+            if (targetLibrary.Name is not null && sdpkgPackagesByName.TryGetValue(targetLibrary.Name, out var package))
+                result.Add(package);
+        }
+        return result;
+    }
+
+    /// <summary>Memoized DFS over a string-keyed graph, collecting the packages its keys resolve to.</summary>
+    private static HashSet<StandalonePackage> CollectReachable(string key, Dictionary<string, HashSet<StandalonePackage>> visited, Func<string, IEnumerable<string>> edges, Func<string, StandalonePackage?> resolve)
+    {
+        if (visited.TryGetValue(key, out var reachable))
+            return reachable;
+        visited[key] = reachable = [];
+        foreach (var next in edges(key))
+        {
+            if (resolve(next) is { } package)
+                reachable.Add(package);
+            reachable.UnionWith(CollectReachable(next, visited, edges, resolve));
+        }
+        return reachable;
     }
 
     /// <summary>

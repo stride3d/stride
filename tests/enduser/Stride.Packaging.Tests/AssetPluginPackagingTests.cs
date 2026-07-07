@@ -10,15 +10,14 @@ using Xunit.Abstractions;
 namespace Stride.Packaging.Tests;
 
 /// <summary>
-/// End-to-end of the "ship assets + a dll, consume them from another project" workflow:
-/// <c>dotnet pack</c> a user-authored asset plugin into a local feed, then <c>dotnet build</c>
-/// a consumer that PackageReferences it and attaches the plugin's script type in a scene.
+/// <c>dotnet pack</c> a user-authored asset plugin into a local feed, then <c>dotnet build</c> a
+/// consumer game (real shape: executable + .Game library carrying the sdpkg) that PackageReferences
+/// it and attaches the plugin's script type in a scene. With the plugin's asset-assembly declaration
+/// (stride/&lt;Id&gt;.sdpkg) the type resolves; without it the scene tag fails to resolve.
 ///
-/// Positive: the packed plugin declares its asset assembly (stride/&lt;Id&gt;.sdpkg), so the
-/// consumer's asset compiler loads it and resolves the scene's <c>!StrideAssetPlugin.SpinScript</c>
-/// tag. Negative: packing with <c>StrideContainsAssetTypes=false</c> ships no sdpkg, so the assembly
-/// never registers as an asset assembly and the consumer build fails to resolve the type — proving
-/// the declaration is load-bearing, not incidental.
+/// The consumer's root assets include a UI page whose default button references engine assets —
+/// regression guard for #3258 (bundle packing must resolve assets of a referenced project's package
+/// from lock-file-loaded dependencies; a single-project consumer does not reproduce it).
 /// </summary>
 [Collection("Packaging")]
 public class AssetPluginPackagingTests
@@ -26,8 +25,7 @@ public class AssetPluginPackagingTests
     private readonly ITestOutputHelper output;
     public AssetPluginPackagingTests(ITestOutputHelper output) => this.output = output;
 
-    // The asset compiler emits this (as a warning, then substitutes IUnloadable and continues) when
-    // a scene references a type whose assembly was not loaded for asset compilation.
+    // Warning emitted when a scene references a type whose assembly was not loaded for asset compilation.
     private const string UnresolvedSpinScript = "Unable to resolve tag [!StrideAssetPlugin.SpinScript,StrideAssetPlugin]";
 
     [Fact]
@@ -42,9 +40,8 @@ public class AssetPluginPackagingTests
     public void ConsumerFailsWhenAssetAssemblyNotDeclared()
     {
         var result = RunCase(declareAssetAssembly: false);
-        // No declared asset assembly → the plugin dll never registers as an asset assembly, so the
-        // scene's script type cannot resolve. (The compiler downgrades this to a warning + IUnloadable,
-        // so assert on the diagnostic rather than the exit code.)
+        // Unresolved type is only a warning (IUnloadable substituted), so assert on the diagnostic
+        // rather than the exit code.
         Assert.Contains(UnresolvedSpinScript, result.Output);
     }
 

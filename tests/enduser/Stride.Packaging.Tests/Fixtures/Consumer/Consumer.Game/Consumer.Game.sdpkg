@@ -8,3 +8,6 @@ Meta:
     Dependencies: null
 AssetFolders:
     -   Path: !dir Assets
+RootAssets:
+    - 2a7c4e10-9f3b-4c21-8d65-1e2f3a4b5c6d:MainScene
+    - a69b780a-731e-4601-820c-518a13624311:Page
