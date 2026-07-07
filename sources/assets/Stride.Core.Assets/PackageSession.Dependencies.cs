@@ -43,7 +43,8 @@ partial class PackageSession
     /// Populates <see cref="Package.PrecomputedProjectAssets"/> from a build manifest so the dev-redirect
     /// package's project assets (shaders) load from source with no MSBuild evaluation.
     /// </summary>
-    private static void LoadProjectAssetsFromManifest(Package package, string projectFile, string manifestFile)
+    /// <returns>The manifest, or null when it could not be parsed.</returns>
+    private static AssetBuildManifest? LoadProjectAssetsFromManifest(Package package, string projectFile, string manifestFile)
     {
         package.PrecomputedProjectAssets = [];
 
@@ -54,7 +55,7 @@ partial class PackageSession
         }
         catch
         {
-            return;
+            return null;
         }
 
         var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
@@ -72,6 +73,7 @@ partial class PackageSession
             var link = item.Link is not null ? UPath.Combine(projectDirectory, item.Link) : null;
             package.PrecomputedProjectAssets.Add(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
         }
+        return manifest;
     }
 
     /// <summary>
@@ -392,11 +394,16 @@ partial class PackageSession
                         if (manifestFile != null)
                         {
                             var devPackage = Package.LoadRaw(log, file);
+                            devPackage.AuthoredName ??= devPackage.Meta.Name;
                             devPackage.Meta.Name = projectDependency.Name;
                             devPackage.Meta.Version = projectDependency.Version;
-                            LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
+                            var devManifest = LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
 
                             var devContainer = new StandalonePackage(devPackage);
+                            // Same namespace surface as a real nupkg (whose packed sdpkg stores the
+                            // resolved name): the csproj-driven declarations come from the manifest,
+                            // the identity from the authored sdpkg
+                            devContainer.AssetNamespace = PackageContainer.ResolveAssetNamespace(devManifest?.AssetNamespace, devPackage.AuthoredName ?? devPackage.Meta.Name);
                             devContainer.Assemblies.AddRange(projectDependency.Assemblies);
                             // The consumer's flattened graph already covers this package's dependencies; mark it
                             // ready so we don't recurse the whole engine project tree into the session.

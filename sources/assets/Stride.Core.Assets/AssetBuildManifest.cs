@@ -46,6 +46,11 @@ public sealed class AssetBuildManifest
     public string? RootNamespace { get; set; }
 
     /// <summary>
+    /// Asset URL namespace declaration: "true" = the package name, any other value = that name. Absent = bare URLs.
+    /// </summary>
+    public string? AssetNamespace { get; set; }
+
+    /// <summary>
     /// Host-loadable assemblies whose types appear in assets; the asset compiler loads exactly these.
     /// </summary>
     public List<UFile> AssetAssemblies { get; } = [];

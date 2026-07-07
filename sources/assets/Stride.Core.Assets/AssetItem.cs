@@ -167,7 +167,11 @@ public sealed class AssetItem : IFileSynchronizable
 
             rootDirectory = rootDirectory is not null ? UPath.Combine(rootDirectory, localSourceFolder) : localSourceFolder;
 
-            var locationAndExtension = AlternativePath ?? new UFile(Location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
+            // Namespaced packages root their locations /Namespace/...; on disk the file lives at the bare path
+            var location = Location;
+            if (location.IsAbsolute && Package?.Container?.AssetNamespace is { } assetNamespace)
+                location = location.MakeRelative("/" + assetNamespace);
+            var locationAndExtension = AlternativePath ?? new UFile(location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
             return rootDirectory is not null ? UPath.Combine(rootDirectory, locationAndExtension) : locationAndExtension;
         }
     }

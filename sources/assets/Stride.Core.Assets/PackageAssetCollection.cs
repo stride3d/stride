@@ -344,9 +344,14 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
             throw new ArgumentException("Asset location [{0}] cannot contain drive information".ToFormat(location), nameof(item));
         }
 
-        if (location.IsAbsolute)
+        // Namespaced packages root their locations /Namespace/...; everything else stays relative
+        // (that reservation is what makes rooted URLs collision-free).
+        var namespaced = Package.Container?.AssetNamespace is not null;
+        if (location.IsAbsolute != namespaced)
         {
-            throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
+            throw new ArgumentException(namespaced
+                ? "Asset location [{0}] of a namespaced package must be rooted (start with '/')".ToFormat(location)
+                : "Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
         }
 
         if (location.GetDirectory()?.StartsWith("..", StringComparison.Ordinal) == true)

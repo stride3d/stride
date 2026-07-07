@@ -50,6 +50,7 @@
       <TargetFramework />
       <ProjectAssetsFile />
       <RootNamespace />
+      <AssetNamespace />
       <ProjectDirectory Required="true" />
       <ExcludeDirectory />
       <Extensions />
@@ -92,6 +93,8 @@
             sb.AppendLine("NuGetLockFile: " + q(rel(ProjectAssetsFile)));
         if (!string.IsNullOrEmpty(RootNamespace))
             sb.AppendLine("RootNamespace: " + q(RootNamespace));
+        if (!string.IsNullOrEmpty(AssetNamespace))
+            sb.AppendLine("AssetNamespace: " + q(AssetNamespace));
 
         var assemblies = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var item in AssetAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
@@ -239,6 +242,7 @@
         TargetFramework="$(TargetFramework)"
         ProjectAssetsFile="$(_StrideManifestProjectAssetsFile)"
         RootNamespace="$(RootNamespace)"
+        AssetNamespace="$(StrideAssetNamespace)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
         ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"
         Extensions="$(_StrideManifestExtensions)"
