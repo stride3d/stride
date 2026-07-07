@@ -17,7 +17,7 @@ namespace Stride.AssetCompiler.Tasks
 {
     public static class PackAssetsHelper
     {
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null, string assetNamespace = null)
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null, string assetNamespace = null, bool defaultAssetNamespace = false)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -225,7 +225,22 @@ namespace Stride.AssetCompiler.Tasks
                 newPackage.RootAssets.Add(rootAsset);
 
             // Packed sdpkg stores the resolved namespace name, never the true/false sentinels.
-            newPackage.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace ?? package.AssetNamespace, package.Meta.Name);
+            // When the caller enables defaulting, an undeclared asset-carrying package defaults to
+            // namespaced (library default), except a game (has GameSettings) where the right choice
+            // isn't obvious: demand an explicit one.
+            var assetNamespaceDeclaration = !string.IsNullOrEmpty(assetNamespace) ? assetNamespace : package.AssetNamespace;
+            if (defaultAssetNamespace && assetNamespaceDeclaration is null && assets.Count > 0)
+            {
+                // Matches GameSettingsAsset.FileExtension (engine assembly, not referenced here)
+                if (assets.Any(a => string.Equals(a.FilePath.GetFileExtension(), ".sdgamesettings", StringComparison.OrdinalIgnoreCase)))
+                    logger.Error($"Package [{package.Meta.Name}] contains assets and a GameSettings asset but does not set StrideAssetNamespace; packing a game requires an explicit choice (true = asset URLs rooted /{package.Meta.Name}/, false = keep bare URLs).");
+                else
+                {
+                    assetNamespaceDeclaration = "true";
+                    logger.Info($"Package [{package.Meta.Name}] contains assets; defaulting StrideAssetNamespace to true (asset URLs rooted /{package.Meta.Name}/). Set it explicitly to silence this message.");
+                }
+            }
+            newPackage.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespaceDeclaration, package.Meta.Name);
 
             // Host-loadable asset assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg).
             // Each path is lib/<tfm>/<name>.dll (built by the pack target); tag the entry with its TFM
