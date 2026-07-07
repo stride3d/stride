@@ -86,14 +86,7 @@ public class AssetPluginPackagingTests
             "-o", feedDir,
         };
         if (!declareAssetAssembly)
-        {
-            // Assembly-only shape: when assets are present the sdpkg packs regardless, and the
-            // loader's legacy fallback (lock-file runtime assemblies) loads the dll even without
-            // a declaration — which would hide the mechanism this case tests.
-            Directory.Delete(Path.Combine(pluginDir, "Assets"), recursive: true);
-            File.Delete(Path.Combine(pluginDir, "StrideAssetPlugin.sdpkg"));
             packArgs.Add("-p:StrideContainsAssetTypes=false");
-        }
         var pack = Dotnet.Exec(packArgs, pluginDir, output, timeoutMin: 10);
         Assert.True(pack.ExitCode == 0, $"Plugin pack failed with exit {pack.ExitCode}");
 

@@ -244,14 +244,11 @@ partial class PackageSession
                 continue;
 
             // Make every dependency assembly known to the container for later lazy resolution
-            var assemblies = new List<string>();
             foreach (var runtimeAssembly in targetLibrary.RuntimeAssemblies.Concat(targetLibrary.RuntimeTargets))
             {
                 if (runtimeAssembly.Path.EndsWith("_._", StringComparison.Ordinal) || runtimeAssembly.Path.Contains("/native/"))
                     continue;
-                var assemblyFile = Path.Combine(libraryPath, runtimeAssembly.Path.Replace('/', Path.DirectorySeparatorChar));
-                assemblies.Add(assemblyFile);
-                AssemblyContainer.RegisterDependency(assemblyFile);
+                AssemblyContainer.RegisterDependency(Path.Combine(libraryPath, runtimeAssembly.Path.Replace('/', Path.DirectorySeparatorChar)));
             }
 
             // Only packages shipping a stride/<Id>.sdpkg participate in asset compilation
@@ -270,14 +267,11 @@ partial class PackageSession
             package.Meta.Name = library.Name;
             package.Meta.Version = library.Version.ToPackageVersion();
             var container = new StandalonePackage(package);
-            // Prefer the assemblies the packed sdpkg declares (host-loadable, narrowed to asset
-            // types); fall back to the lock file's runtime assemblies when it declares none.
+            // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
+            // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
             var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies);
-            if (hostAssetAssemblies.Count > 0)
-                container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
-            else
-                container.Assemblies.AddRange(assemblies);
+            container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
             sdpkgPackagesByName.Add(library.Name, container);
