@@ -332,9 +332,12 @@
     <PropertyGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
       <_StridePackAssetAssembliesArg>@(_StrideHostAssetAssembly->' --pack-asset-assembly=&quot;%(Identity)&quot;', '')</_StridePackAssetAssembliesArg>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(StrideAssetNamespace)' != ''">
+      <_StridePackAssetNamespaceArg> --pack-asset-namespace=&quot;$(StrideAssetNamespace)&quot;</_StridePackAssetNamespaceArg>
+    </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

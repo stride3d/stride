@@ -170,6 +170,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMember(105)]
     public List<AssetAssembly> AssetAssemblies { get; } = [];
 
+    /// <summary>
+    /// Asset URL namespace declaration: null/"false" = bare URLs, "true" = the package name, any other value = that name.
+    /// </summary>
+    [DataMember(106)]
+    [DefaultValue(null)]
+    public string? AssetNamespace { get; set; }
+
     // Keep saved .sdpkg files minimal: skip empty collections (ShouldSerialize* is discovered by ObjectDescriptor).
     private bool ShouldSerializeAssetFolders() => AssetFolders.Count > 0;
     private bool ShouldSerializeResourceFolders() => ResourceFolders.Count > 0;
@@ -179,6 +186,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     private bool ShouldSerializeTemplateFolders() => TemplateFolders.Count > 0;
     private bool ShouldSerializeRootAssets() => RootAssets.Count > 0;
     private bool ShouldSerializeAssetAssemblies() => AssetAssemblies.Count > 0;
+    private bool ShouldSerializeAssetNamespace() => AssetNamespace is not null;
 
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
@@ -928,6 +936,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
             var assetPath = assetFile.AssetLocation;
+            if (Container?.AssetNamespace is { } assetNamespace)
+                assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
 
             var assetFullPath = fileUPath.ToOSPath();
             var assetContent = assetFile.AssetContent;

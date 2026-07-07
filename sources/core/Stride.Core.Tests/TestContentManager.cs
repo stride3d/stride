@@ -252,6 +252,32 @@ public class TestContentManager
     }
 
     [Fact]
+    public void RootedUrl()
+    {
+        // Namespaced packages use rooted URLs (/Package/Path); they must round-trip as plain index keys.
+        var c1 = new C { I = 16, Child = new C { I = 32 } };
+        AttachedReferenceManager.SetUrl(c1.Child, "/MyGame/Sub/child");
+
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("/MyGame/Sub/c1", c1);
+
+        Assert.True(databaseProvider.FileProvider.FileExists("/MyGame/Sub/c1"));
+
+        var c1Copy = assetManager2.Load<C>("/MyGame/Sub/c1");
+        Assert.Equal(16, c1Copy.I);
+        Assert.Equal(32, c1Copy.Child.I);
+
+        Assert.True(assetManager2.TryGetAssetUrl(c1Copy, out var url));
+        Assert.Equal("/MyGame/Sub/c1", url);
+
+        var childCopy = assetManager2.Load<C>("/MyGame/Sub/child");
+        Assert.Equal(32, childCopy.I);
+    }
+
+    [Fact]
     public void LifetimeShared()
     {
         var c1 = new C { I = 16 };

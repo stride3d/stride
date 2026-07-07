@@ -29,6 +29,7 @@ public abstract class PackageContainer
     {
         Package = package;
         Package.Container = this;
+        AssetNamespace = ResolveAssetNamespace(package.AssetNamespace, package.Meta.Name);
     }
 
     /// <summary>
@@ -37,6 +38,22 @@ public abstract class PackageContainer
     public PackageSession? Session { get; private set; }
 
     public Package Package { get; }
+
+    /// <summary>
+    /// Resolved asset URL namespace: this package's asset locations are rooted under /Namespace/; null = bare URLs.
+    /// </summary>
+    public string? AssetNamespace { get; set; }
+
+    /// <summary>
+    /// Resolves an asset namespace declaration: null/"false" = none, "true" = the package name, any other value = that name.
+    /// </summary>
+    public static string? ResolveAssetNamespace(string? declaration, string packageName) => declaration switch
+    {
+        null or "" => null,
+        _ when string.Equals(declaration, "false", StringComparison.OrdinalIgnoreCase) => null,
+        _ when string.Equals(declaration, "true", StringComparison.OrdinalIgnoreCase) => packageName,
+        _ => declaration,
+    };
 
     public ObservableCollection<DependencyRange> DirectDependencies { get; } = [];
 

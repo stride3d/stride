@@ -8,6 +8,8 @@
          automatically (out-of-tree default), so consumers load it for asset compilation.
          Override StrideContainsAssetTypes=false to exercise the negative case. -->
     <StridePackAssets>true</StridePackAssets>
+    <!-- Namespaced plugin: its asset URLs are rooted /StrideAssetPlugin/... in consumers. -->
+    <StrideAssetNamespace>true</StrideAssetNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
