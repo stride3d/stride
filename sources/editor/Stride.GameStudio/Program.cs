@@ -47,6 +47,7 @@ using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
+using MessageBoxResult = System.Windows.MessageBoxResult;
 
 namespace Stride.GameStudio;
 
@@ -59,6 +60,7 @@ public static class Program
     private static RenderDocManager renderDocManager;
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
     private static bool enableThumbnailServices = true;
+    private static bool resetGraphicsApiPreference;
 
     // Startup checkpoints; shared file with the AutoTesting runner.
     private static readonly string DiagLogPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gs-diag.log");
@@ -76,6 +78,20 @@ public static class Program
         {
             MessageBox.Show(graphicsApiError, "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
             Environment.Exit(1);
+        }
+
+        // The persisted graphics API preference isn't staged in this build: offer to fall back
+        // and reset the setting, so the user isn't stuck in a fail-at-launch loop.
+        if (GraphicsApiHostResolver.UnavailablePreference is { } unavailableApi)
+        {
+            var fallback = GraphicsApiHostResolver.FallbackApi;
+            var choice = MessageBox.Show(
+                $"Graphics API '{unavailableApi}' (from Game Studio settings) is not available in this build.\n\nContinue with '{fallback}' and reset the setting to Default?",
+                "Stride", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (choice != MessageBoxResult.Yes)
+                Environment.Exit(1);
+            GraphicsApiHostResolver.UseFallback();
+            resetGraphicsApiPreference = true;
         }
 
         Run(Environment.GetCommandLineArgs().Skip(1).ToList());
@@ -106,6 +122,11 @@ public static class Program
         mru.LoadFromSettings();
 
         EditorSettings.Initialize();
+        if (resetGraphicsApiPreference)
+        {
+            EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
+            EditorSettings.Save();
+        }
         Thread.CurrentThread.Name = "Main thread";
 
         // Install Metrics for the editor
