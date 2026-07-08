@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
@@ -74,6 +74,30 @@ namespace Stride.Core.Assets.Tests
             Assert.True(project2.AssetFolders.Count > 0);
             var sourceFolder = project.AssetFolders.First().Path;
             Assert.Equal(sourceFolder, project2.AssetFolders.First().Path);
+        }
+
+        [Fact]
+        public void TestSaveKeepsAuthoredPackageName()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            // The session renames Meta.Name to the csproj-derived identity; the authored name must
+            // survive a save (it is the package's namespace identity).
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.Game.sdpkg"), AuthoredName = "MyGame" };
+            package.Meta.Name = "MyGame.Game";
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.Game.csproj"));
+            var session = new PackageSession();
+            session.Projects.Add(project);
+            package.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors);
+            Assert.Matches(@"(?m)^\s*Name: MyGame\s*$", File.ReadAllText(package.FullPath));
+            Assert.Equal("MyGame.Game", package.Meta.Name);
         }
 
         [Fact]

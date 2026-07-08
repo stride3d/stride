@@ -199,21 +199,30 @@ namespace Stride.AssetCompiler
 
         /// <summary>
         /// Writes the bare-to-canonical URL alias table (data/db/aliases) implementing using
-        /// semantics: the root package's own namespace is implicitly in scope, other namespaces
-        /// enter via the projects' declared usings or their own global-using declaration. The root
-        /// package wins bare-name collisions; colliding imports get no alias.
+        /// semantics: the built game's own namespaces are implicitly in scope (the root package,
+        /// plus the chain package owning GameSettings when the root is a platform head), other
+        /// namespaces enter via the projects' declared usings or their own global-using
+        /// declaration. Self wins bare-name collisions; colliding imports get no alias.
         /// </summary>
         private static void WriteContentAliases(ILogger logger, PackageSession projectSession, Package rootPackage, string outputDirectory)
         {
+            var selfPackages = new HashSet<Package> { rootPackage };
+            foreach (var sessionPackage in projectSession.Packages)
+            {
+                if (sessionPackage.Container is not StandalonePackage { IsDependencyPackage: true }
+                    && sessionPackage.Assets.Any(a => a.Asset is GameSettingsAsset))
+                    selfPackages.Add(sessionPackage);
+            }
+
             var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
-            var rootAliases = new HashSet<string>(StringComparer.Ordinal);
+            var selfAliases = new HashSet<string>(StringComparer.Ordinal);
             var ambiguous = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var scopedPackage in projectSession.Packages.OrderBy(p => p == rootPackage ? 0 : 1))
+            foreach (var scopedPackage in projectSession.Packages.OrderBy(p => selfPackages.Contains(p) ? 0 : 1))
             {
                 if (scopedPackage.Container.AssetNamespace is not { } assetNamespace)
                     continue;
-                var isRoot = scopedPackage == rootPackage;
-                if (!isRoot && !projectSession.AssetNamespaceUsings.Contains(assetNamespace) && !scopedPackage.Container.AssetNamespaceGlobalUsing)
+                var isSelf = selfPackages.Contains(scopedPackage);
+                if (!isSelf && !projectSession.AssetNamespaceUsings.Contains(assetNamespace))
                     continue;
 
                 var namespaceRoot = "/" + assetNamespace;
@@ -229,9 +238,9 @@ namespace Stride.AssetCompiler
                     {
                         if (existing == canonical)
                             continue;
-                        if (rootAliases.Contains(bare))
+                        if (selfAliases.Contains(bare))
                         {
-                            logger.Warning($"Bare asset URL [{bare}] resolves to the root package's [{existing}]; qualify [{canonical}] explicitly to load it.");
+                            logger.Warning($"Bare asset URL [{bare}] resolves to the game's own [{existing}]; qualify [{canonical}] explicitly to load it.");
                         }
                         else
                         {
@@ -242,8 +251,8 @@ namespace Stride.AssetCompiler
                         continue;
                     }
                     aliases.Add(bare, canonical);
-                    if (isRoot)
-                        rootAliases.Add(bare);
+                    if (isSelf)
+                        selfAliases.Add(bare);
                 }
             }
 

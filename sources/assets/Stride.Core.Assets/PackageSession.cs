@@ -219,7 +219,18 @@ public abstract class PackageContainer
 
     protected virtual void SavePackage()
     {
-        AssetFileSerializer.Save(Package.FullPath, Package, null);
+        // The session renames Meta.Name to the csproj-derived identity; the file keeps its authored name
+        var sessionName = Package.Meta.Name;
+        if (Package.AuthoredName is not null)
+            Package.Meta.Name = Package.AuthoredName;
+        try
+        {
+            AssetFileSerializer.Save(Package.FullPath, Package, null);
+        }
+        finally
+        {
+            Package.Meta.Name = sessionName;
+        }
     }
 
     internal void SetSessionInternal(PackageSession? session)
@@ -239,6 +250,11 @@ public class StandalonePackage : PackageContainer
     /// Optional list of assemblies to load, typically filled using NuGet.
     /// </summary>
     public List<string> Assemblies { get; } = [];
+
+    /// <summary>
+    /// True for packages pulled in as NuGet dependencies, false for the built project chain.
+    /// </summary>
+    public bool IsDependencyPackage { get; set; }
 
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }

@@ -118,6 +118,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public PackageMeta Meta { get; set; } = new PackageMeta();
 
     /// <summary>
+    /// The authored name from the package file, when the session renamed <see cref="Meta"/>.Name to the
+    /// csproj-derived identity; saving writes this name back so the file keeps its authored identity.
+    /// </summary>
+    [DataMemberIgnore]
+    public string? AuthoredName { get; set; }
+
+    /// <summary>
     /// Gets the asset directories to lookup.
     /// </summary>
     /// <value>The asset directories.</value>
