@@ -499,6 +499,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public ProjectCollection Projects { get; }
 
     /// <summary>
+    /// Namespaces the loaded projects bring into scope (using semantics): their assets also resolve by bare URL.
+    /// </summary>
+    public HashSet<string> AssetNamespaceUsings { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Gets the user packages (excluding system packages).
     /// </summary>
     /// <value>The user packages.</value>

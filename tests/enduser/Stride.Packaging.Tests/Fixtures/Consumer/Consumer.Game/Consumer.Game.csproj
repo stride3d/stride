@@ -6,6 +6,8 @@
     <!-- No asset types of its own; also keeps the plugin's packed sdpkg declaration the only
          path that can load the plugin assembly, which is what the tests probe. -->
     <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
+    <!-- Bring the plugin's namespace into scope: its assets also resolve by bare URL. -->
+    <StrideAssetNamespaceUsings>StrideAssetPlugin</StrideAssetNamespaceUsings>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />

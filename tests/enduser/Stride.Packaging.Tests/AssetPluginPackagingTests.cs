@@ -45,6 +45,11 @@ public class AssetPluginPackagingTests
         var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
         Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
         Assert.Matches(@"(?m)^Page ", index);
+
+        // The consumer's StrideAssetNamespaceUsings brings the plugin namespace into scope: the
+        // deployed alias table maps its bare URL to the canonical one.
+        var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
+        Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
     }
 
     [Fact]

@@ -81,6 +81,12 @@
       </_StrideSuiteDepBundle>
       <_StrideSuiteIndex Include="$(StrideRoot)bin\Tests\%(ProjectReference.Filename)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\data\db\index"
                          Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests'))" />
+      <!-- Each suite's bare->canonical alias table, renamed to <SuiteName>.aliases (ObjectDatabase loads
+           it by bundle name) so every suite's bare URLs resolve in the merged host, which ships none of its own. -->
+      <_StrideSuiteAliases Include="$(StrideRoot)bin\Tests\%(ProjectReference.Filename)\$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\data\db\aliases"
+                           Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests'))">
+        <SuiteName>%(ProjectReference.Filename)</SuiteName>
+      </_StrideSuiteAliases>
     </ItemGroup>
     <Copy SourceFiles="@(_StrideSuiteBundle)"
           DestinationFiles="@(_StrideSuiteBundle->'$(OutputPath)data\db\bundles\%(SuiteName).bundle')"
@@ -95,6 +101,10 @@
           DestinationFiles="$(OutputPath)data\db\index"
           SkipUnchangedFiles="true"
           Condition="Exists('%(_StrideSuiteIndex.Identity)')" />
+    <Copy SourceFiles="@(_StrideSuiteAliases)"
+          DestinationFiles="@(_StrideSuiteAliases->'$(OutputPath)data\db\%(SuiteName).aliases')"
+          SkipUnchangedFiles="true"
+          Condition="Exists('%(_StrideSuiteAliases.Identity)')" />
   </Target>
 
   <!-- iOS/Android: package the collected data/db tree into the .app/APK. CompilerApp.targets'
