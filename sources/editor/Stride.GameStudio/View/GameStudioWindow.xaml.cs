@@ -363,7 +363,7 @@ namespace Stride.GameStudio.View
             if (startupPackage == null)
                 return;
 
-            var gameSettingsAsset = startupPackage.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+            var gameSettingsAsset = startupPackage.Assets.FirstOrDefault(x => x.AssetItem.UnqualifiedUrl == Assets.GameSettingsAsset.GameSettingsLocation);
             if (gameSettingsAsset == null)
             {
                 // Scan dependencies for game settings
@@ -378,7 +378,7 @@ namespace Stride.GameStudio.View
                     if (dependencyPackageViewModel == null)
                         continue;
 
-                    gameSettingsAsset = dependencyPackageViewModel.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+                    gameSettingsAsset = dependencyPackageViewModel.Assets.FirstOrDefault(x => x.AssetItem.UnqualifiedUrl == Assets.GameSettingsAsset.GameSettingsLocation);
                     if (gameSettingsAsset != null)
                         break;
                 }
