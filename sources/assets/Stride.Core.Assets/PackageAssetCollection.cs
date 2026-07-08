@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Reflection;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
 namespace Stride.Core.Assets;
 
@@ -328,7 +329,20 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         // Note: we ignore name collisions if asset is not referenceable
         var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
 
+        // Namespaced packages root their locations /Namespace/...; creation paths author
+        // package-relative locations, rooted here like the loaders do. Plain packages stay
+        // relative-only (that reservation is what makes rooted URLs collision-free).
         var location = item.Location;
+        if (Package.Container?.AssetNamespace is { } assetNamespace)
+        {
+            if (!location.IsAbsolute)
+                item.Location = location = UPath.Combine(new UDirectory("/" + assetNamespace), location);
+        }
+        else if (location.IsAbsolute)
+        {
+            throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
+        }
+
         if (referenceable && mapPathToId.ContainsKey(location))
         {
             throw new ArgumentException("An asset [{0}] with the same location [{1}] is already registered ".ToFormat(mapPathToId[location], location.GetDirectoryAndFileName()), nameof(item));
@@ -342,16 +356,6 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         if (location.HasDrive)
         {
             throw new ArgumentException("Asset location [{0}] cannot contain drive information".ToFormat(location), nameof(item));
-        }
-
-        // Namespaced packages root their locations /Namespace/...; everything else stays relative
-        // (that reservation is what makes rooted URLs collision-free).
-        var namespaced = Package.Container?.AssetNamespace is not null;
-        if (location.IsAbsolute != namespaced)
-        {
-            throw new ArgumentException(namespaced
-                ? "Asset location [{0}] of a namespaced package must be rooted (start with '/')".ToFormat(location)
-                : "Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
         }
 
         if (location.GetDirectory()?.StartsWith("..", StringComparison.Ordinal) == true)
