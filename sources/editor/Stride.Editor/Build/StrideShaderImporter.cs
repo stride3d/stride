@@ -75,7 +75,8 @@ namespace Stride.Editor.Build
 
             foreach (var package in systemPackages)
             {
-                var mapPackage = new Package { FullPath = package.PackagePath };
+                // Carry the resolved namespace so the wrapped StandalonePackage resolves rooted shader locations
+                var mapPackage = new Package { FullPath = package.PackagePath, AssetNamespace = package.Package.Container?.AssetNamespace };
                 foreach (var asset in package.Assets)
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))
@@ -110,7 +111,8 @@ namespace Stride.Editor.Build
 
             foreach (var package in packages)
             {
-                var mapPackage = new Package { FullPath = package.PackagePath };
+                // Carry the resolved namespace so the wrapped StandalonePackage resolves rooted shader locations
+                var mapPackage = new Package { FullPath = package.PackagePath, AssetNamespace = package.Package.Container?.AssetNamespace };
                 foreach (var asset in package.Assets)
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))

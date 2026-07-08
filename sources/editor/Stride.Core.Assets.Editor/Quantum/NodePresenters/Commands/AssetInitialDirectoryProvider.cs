@@ -23,7 +23,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
                 var projectPath = session.ActiveAssetView.SelectedAssetsPackage.PackagePath;
                 if (projectPath != null)
                 {
-                    var assetFullPath = UPath.Combine(projectPath.GetFullDirectory(), new UFile(asset.Url));
+                    var assetFullPath = asset.AssetItem.FullPath;
 
                     if (string.IsNullOrWhiteSpace(currentPath))
                     {
