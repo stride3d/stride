@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -206,7 +206,8 @@ partial class PackageSession
         var isOwner = projectDirectory is not null && string.Equals(projectDirectory.ToOSPath().TrimEnd(Path.DirectorySeparatorChar), Path.GetDirectoryName(packagePath), StringComparison.OrdinalIgnoreCase);
         if (isOwner || container.Package.RootNamespace is null)
             container.Package.RootNamespace = manifest.RootNamespace;
-        if ((isOwner || container.Package.Meta.Name is null) && !string.IsNullOrEmpty(manifest.PackageName))
+        // An authored sdpkg keeps its authored identity; implicit packages take the csproj-derived name
+        if (!string.IsNullOrEmpty(manifest.PackageName) && (container.Package.Meta.Name is null || (isOwner && !File.Exists(packagePath))))
             container.Package.Meta.Name = manifest.PackageName;
         if (container.Package.Meta.Version is null)
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
@@ -295,7 +296,7 @@ partial class PackageSession
             var package = Package.LoadRaw(log, sdpkgPath);
             package.Meta.Name = library.Name;
             package.Meta.Version = library.Version.ToPackageVersion();
-            var container = new StandalonePackage(package);
+            var container = new StandalonePackage(package) { IsDependencyPackage = true };
             // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
             // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;

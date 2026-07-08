@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using NuGet.Commands;
@@ -175,7 +175,9 @@ partial class PackageSession
                 project.AssemblyProcessorSerializationHashFile = msProject.GetProperty("StrideAssemblyProcessorSerializationHashFile")?.EvaluatedValue;
                 if (project.AssemblyProcessorSerializationHashFile != null)
                     project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(projectPath), project.AssemblyProcessorSerializationHashFile);
-                package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
+                // An authored sdpkg keeps its authored identity; implicit packages take the csproj-derived name
+                if (package.Meta.Name is null || package.FullPath is null || !File.Exists(package.FullPath))
+                    package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                 project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
 
