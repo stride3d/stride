@@ -1454,12 +1454,43 @@
           <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16" Margin="-1"/>
         </Button>
       </UniformGrid>
-      <sd:TextBox SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}" Margin="5"
-                    ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
-        <i:Interaction.Behaviors>
-          <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
-        </i:Interaction.Behaviors>
-      </sd:TextBox>
+      <Grid>
+        <sd:TextBox x:Name="UrlTextBox" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}" Margin="5"
+                      ToolTip="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
+                      ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
+          <i:Interaction.Behaviors>
+            <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+          </i:Interaction.Behaviors>
+        </sd:TextBox>
+        <!-- Unfocused display: left-aligned; name has priority (truncates last); the dimmed location prefix + slash
+             collapse together when space runs low, so no lone separator is left -->
+        <Grid x:Name="RefOverlay" Margin="6" IsHitTestVisible="False" Background="{Binding Background, ElementName=UrlTextBox}"
+              Visibility="{Binding IsKeyboardFocusWithin, ElementName=UrlTextBox, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal">
+              <StackPanel.Visibility>
+                <MultiBinding Converter="{cvt:ReferenceLocationVisibility}" ConverterParameter="{sd:Double 24}">
+                  <Binding ElementName="RefOverlay" Path="ActualWidth"/>
+                  <Binding ElementName="RefName" Path="ActualWidth"/>
+                  <Binding Path="NodeValue" Converter="{cvt:ContentReferenceToDisplayLocation}"/>
+                </MultiBinding>
+              </StackPanel.Visibility>
+              <TextBlock Opacity="0.6" TextTrimming="CharacterEllipsis"
+                         Text="{Binding NodeValue, Converter={cvt:ContentReferenceToDisplayLocation}}">
+                <TextBlock.MaxWidth>
+                  <MultiBinding Converter="{sd:SubtractMultiConverter}" ConverterParameter="{sd:Double 6}">
+                    <Binding ElementName="RefOverlay" Path="ActualWidth"/>
+                    <Binding ElementName="RefName" Path="ActualWidth"/>
+                  </MultiBinding>
+                </TextBlock.MaxWidth>
+              </TextBlock>
+              <TextBlock Opacity="0.6" Text="/"/>
+            </StackPanel>
+            <TextBlock x:Name="RefName" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToDisplayName}}"
+                       TextTrimming="CharacterEllipsis" MaxWidth="{Binding ActualWidth, ElementName=RefOverlay}"/>
+          </StackPanel>
+        </Grid>
+      </Grid>
     </DockPanel>
   </DataTemplate>
 
@@ -1500,13 +1531,44 @@
           </i:Interaction.Behaviors>
         </Border>
         <DockPanel>
-          <sd:TextBox DockPanel.Dock="Top" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
-                                  Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
-            <i:Interaction.Behaviors>
-              <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
-              <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
-            </i:Interaction.Behaviors>
-          </sd:TextBox>
+          <Grid DockPanel.Dock="Top">
+            <sd:TextBox x:Name="UrlTextBox" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
+                                    ToolTip="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
+                                    Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
+              <i:Interaction.Behaviors>
+                <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+                <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+              </i:Interaction.Behaviors>
+            </sd:TextBox>
+            <!-- Unfocused display: left-aligned; name has priority (truncates last); the dimmed location prefix + slash
+                 collapse together when space runs low, so no lone separator is left -->
+            <Grid x:Name="RefOverlayThumb" Margin="3,1,6,6" IsHitTestVisible="False" Background="{Binding Background, ElementName=UrlTextBox}"
+                  Visibility="{Binding IsKeyboardFocusWithin, ElementName=UrlTextBox, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                  <StackPanel.Visibility>
+                    <MultiBinding Converter="{cvt:ReferenceLocationVisibility}" ConverterParameter="{sd:Double 24}">
+                      <Binding ElementName="RefOverlayThumb" Path="ActualWidth"/>
+                      <Binding ElementName="RefNameThumb" Path="ActualWidth"/>
+                      <Binding Path="NodeValue" Converter="{cvt:ContentReferenceToDisplayLocation}"/>
+                    </MultiBinding>
+                  </StackPanel.Visibility>
+                  <TextBlock Opacity="0.6" TextTrimming="CharacterEllipsis"
+                             Text="{Binding NodeValue, Converter={cvt:ContentReferenceToDisplayLocation}}">
+                    <TextBlock.MaxWidth>
+                      <MultiBinding Converter="{sd:SubtractMultiConverter}" ConverterParameter="{sd:Double 6}">
+                        <Binding ElementName="RefOverlayThumb" Path="ActualWidth"/>
+                        <Binding ElementName="RefNameThumb" Path="ActualWidth"/>
+                      </MultiBinding>
+                    </TextBlock.MaxWidth>
+                  </TextBlock>
+                  <TextBlock Opacity="0.6" Text="/"/>
+                </StackPanel>
+                <TextBlock x:Name="RefNameThumb" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToDisplayName}}"
+                           TextTrimming="CharacterEllipsis" MaxWidth="{Binding ActualWidth, ElementName=RefOverlayThumb}"/>
+              </StackPanel>
+            </Grid>
+          </Grid>
           <UniformGrid Rows="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6,0">
             <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
                     ToolTip="{sd:Localize Select an asset, Context=ToolTip}" Visibility="{Binding HasCommand_PickupAsset, Converter={sd:VisibleOrCollapsed}}">

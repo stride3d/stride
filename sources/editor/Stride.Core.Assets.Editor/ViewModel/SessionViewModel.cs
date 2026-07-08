@@ -1048,6 +1048,24 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// True when assets under this namespace resolve by bare URL for the open game: its own
+        /// packages, explicit usings and global-using dependencies.
+        /// </summary>
+        public bool IsAssetNamespaceInScope(string assetNamespace)
+        {
+            if (session.AssetNamespaceUsings.Contains(assetNamespace))
+                return true;
+            foreach (var package in AllPackages)
+            {
+                if (package.Package.Container?.AssetNamespace is { } candidate
+                    && string.Equals(candidate, assetNamespace, StringComparison.OrdinalIgnoreCase)
+                    && !package.Package.IsReadOnly)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Creates a <see cref="IDisposable"/> object that represents a context where most of the standard mechanisms relying on property changes are disabled, such as
         /// property changes notifications, creation of <see cref="ActionItem"/>, andpropagation of properties between a base and a derived asset.
         /// </summary>

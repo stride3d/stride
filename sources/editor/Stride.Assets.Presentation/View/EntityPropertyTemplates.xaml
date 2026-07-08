@@ -194,12 +194,23 @@
           </i:Interaction.Behaviors>
         </Border>
         <DockPanel>
-          <sd:TextBox DockPanel.Dock="Top" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={sd:ContentReferenceToUrl}}"
-                        Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}">
-            <i:Interaction.Behaviors>
-              <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
-            </i:Interaction.Behaviors>
-          </sd:TextBox>
+          <Grid DockPanel.Dock="Top">
+            <sd:TextBox x:Name="UrlTextBox" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={sd:ContentReferenceToUrl}}"
+                          ToolTip="{Binding NodeValue, Converter={sd:ContentReferenceToUrl}}"
+                          Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}">
+              <i:Interaction.Behaviors>
+                <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+              </i:Interaction.Behaviors>
+            </sd:TextBox>
+            <!-- Unfocused display: asset name never truncated, location dimmed with visible ellipsis -->
+            <DockPanel Margin="3,1,6,6" IsHitTestVisible="False" Background="{Binding Background, ElementName=UrlTextBox}"
+                       Visibility="{Binding IsKeyboardFocusWithin, ElementName=UrlTextBox, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
+              <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="3,0,0,0"
+                         Text="{Binding NodeValue, Converter={sd:ContentReferenceToDisplayName}}"/>
+              <TextBlock VerticalAlignment="Center" Margin="8,0,3,0" Opacity="0.6" TextTrimming="CharacterEllipsis"
+                         Text="{Binding NodeValue, Converter={sd:ContentReferenceToDisplayLocation}}"/>
+            </DockPanel>
+          </Grid>
           <UniformGrid Rows="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6,0">
             <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding HighlightMaterial}" CommandParameter="{Binding Editor}"
                     ToolTip="{sd:Localize Highlight this material in the scene editor, Context=ToolTip}" Visibility="{Binding HasCommand_HighlightMaterial, Converter={sd:VisibleOrCollapsed}}">
