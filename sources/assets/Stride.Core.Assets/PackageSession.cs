@@ -332,6 +332,10 @@ public class SolutionProject : PackageContainer
     // The msbuild property behind ContainsAssetTypes.
     public const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
 
+    // The msbuild properties behind PackageContainer.AssetNamespace and the using declarations.
+    public const string AssetNamespaceProperty = "StrideAssetNamespace";
+    public const string AssetNamespaceUsingsProperty = "StrideAssetNamespaceUsings";
+
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
 
