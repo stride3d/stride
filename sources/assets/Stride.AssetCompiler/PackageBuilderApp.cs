@@ -394,7 +394,7 @@ namespace Stride.AssetCompiler
                     var intermediatePackagePath = options.BuildDirectory;
                     var generatedItems = new List<(string SourcePath, string PackagePath)>();
                     var logger = new LoggerResult();
-                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackAssetAssemblies, options.PackAssetNamespace, defaultAssetNamespace: true))
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackAssetAssemblies, options.PackAssetNamespace, defaultAssetNamespace: true, options.PackAssetNamespaceGlobalUsing))
                     {
                         foreach (var message in logger.Messages)
                         {
