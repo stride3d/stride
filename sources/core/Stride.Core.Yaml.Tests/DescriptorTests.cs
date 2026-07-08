@@ -197,6 +197,16 @@ public class DescriptorTests
         Assert.Equal(0, descriptor.Count);
         Assert.True(descriptor.IsPureCollection);
         Assert.Equal(typeof(string), descriptor.ElementType);
+        Assert.True(descriptor.IsKeyValid(0));
+        Assert.False(descriptor.IsKeyValid(-1));
+
+        var testObj = new List<string>();
+        testObj.Add("zero");
+        testObj.Add("one");
+        testObj.Add("two");
+
+        TestCollectionBaseDescriptorWithWrite(descriptor, testObj, [(0, "zero"), (1, "one"), (2, "two")], 0, "0");
+        Assert.False(descriptor.ContainsKey(testObj, new InvalidKeyTester()));
 
         descriptor = new ListDescriptor(factory, typeof(NonPureCollection), false,
             new DefaultNamingConvention());
@@ -229,6 +239,16 @@ public class DescriptorTests
         Assert.True(descriptor.IsPureDictionary);
         Assert.Equal(typeof(int), descriptor.KeyType);
         Assert.Equal(typeof(string), descriptor.ValueType);
+        Assert.True(descriptor.IsKeyValid(0));
+        Assert.True(descriptor.IsKeyValid(-1));
+
+        var testObj = new Dictionary<int, string>();
+        testObj.Add(0, "zero");
+        testObj.Add(1, "one");
+        testObj.Add(2, "two");
+
+        TestCollectionBaseDescriptorWithWrite(descriptor, testObj, [(0, "zero"), (1, "one"), (2, "two")], 3, "three");
+        Assert.Throws<InvalidCastException>(() => descriptor.ContainsKey(testObj, new InvalidKeyTester()));
 
         descriptor = new DictionaryDescriptor(factory, typeof(NonPureDictionary), false,
             new DefaultNamingConvention());
@@ -240,6 +260,47 @@ public class DescriptorTests
     }
 
     [Fact]
+    public void TestSetDescriptor()
+    {
+        var attributeRegistry = new AttributeRegistry();
+        var factory = new TypeDescriptorFactory(attributeRegistry);
+        var descriptor = new SetDescriptor(factory, typeof(HashSet<string>), false,
+            new DefaultNamingConvention());
+        descriptor.Initialize(new DefaultKeyComparer());
+
+        Assert.Equal(0, descriptor.Count);
+        Assert.True(descriptor.IsPureCollection);
+        Assert.Equal(typeof(string), descriptor.ValueType);
+        Assert.False(descriptor.IsKeyValid(0));
+        Assert.False(descriptor.IsKeyValid(-1));
+
+        var testObj = new HashSet<string>();
+        testObj.Add("zero");
+        testObj.Add("one");
+        testObj.Add("two");
+
+        TestCollectionBaseDescriptorWithWrite(descriptor, testObj, testObj.Select((v) => (v, v)).ToArray(), "three", "three");
+        Assert.Throws<InvalidCastException>(() => descriptor.ContainsKey(testObj, new InvalidKeyTester()));
+    }
+
+    private void TestCollectionBaseDescriptorWithWrite<TKey, TVal>(CollectionBaseDescriptor descriptor, object testObj, (TKey index, TVal value)[] content, TKey newIndex, TVal newVal)
+    {
+        Assert.False(descriptor.IsKeyValid(null));
+        Assert.False(descriptor.IsKeyValid(new object()));
+
+        Assert.Equal(content.Select(x => x.index).Order().ToArray(), descriptor.EnumerateKeys(testObj).Order().Cast<TKey>().ToArray());
+        Assert.True(descriptor.ContainsKey(testObj, content[0].index));
+        Assert.Equal(content[0].value, descriptor.GetValue(testObj, content[0].index));
+
+        Assert.False(descriptor.ContainsKey(testObj, null));
+
+        descriptor.SetValue(testObj, newIndex, newVal);
+        Assert.Equal(newVal, descriptor.GetValue(testObj, newIndex));
+    }
+
+    private struct InvalidKeyTester;
+
+    [Fact]
     public void TestArrayDescriptor()
     {
         var attributeRegistry = new AttributeRegistry();
@@ -249,6 +310,12 @@ public class DescriptorTests
 
         Assert.Equal(0, descriptor.Count);
         Assert.Equal(typeof(int), descriptor.ElementType);
+        Assert.True(descriptor.IsKeyValid(0));
+        Assert.False(descriptor.IsKeyValid(-1));
+
+        var testObj = new int[] { 2, 1, 0 };
+        TestCollectionBaseDescriptorWithWrite(descriptor, testObj, [(2, 0), (1, 1), (0, 2)], 0, 0);
+        Assert.False(descriptor.ContainsKey(testObj, new InvalidKeyTester()));
     }
 
     public enum MyEnum
