@@ -332,15 +332,19 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         // Namespaced packages root their locations /Namespace/...; creation paths author
         // package-relative locations, rooted here like the loaders do. Plain packages stay
         // relative-only (that reservation is what makes rooted URLs collision-free).
+        // Detached packages (clones, pack-time copies) have no container: locations pass through.
         var location = item.Location;
-        if (Package.Container?.AssetNamespace is { } assetNamespace)
+        if (Package.Container is { } container)
         {
-            if (!location.IsAbsolute)
-                item.Location = location = UPath.Combine(new UDirectory("/" + assetNamespace), location);
-        }
-        else if (location.IsAbsolute)
-        {
-            throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
+            if (container.AssetNamespace is { } assetNamespace)
+            {
+                if (!location.IsAbsolute)
+                    item.Location = location = UPath.Combine(new UDirectory("/" + assetNamespace), location);
+            }
+            else if (location.IsAbsolute)
+            {
+                throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
+            }
         }
 
         if (referenceable && mapPathToId.ContainsKey(location))
@@ -372,7 +376,7 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
                 {
                     if (otherPackage.Assets.ContainsById(item.Id))
                     {
-                        throw new ArgumentException("Cannot add the asset [{0}] that is already in different package [{1}] in the current session".ToFormat(item.Id, otherPackage.Meta.Name));
+                        throw new ArgumentException("Cannot add the asset [{0}] [{1}] to package [{2}] [{3}]: it is already in package [{4}] [{5}] in the current session".ToFormat(item.Id, item.Location, Package.Meta.Name, Package.FullPath, otherPackage.Meta.Name, otherPackage.FullPath));
                     }
                 }
             }

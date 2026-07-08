@@ -410,6 +410,9 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         // Clone this asset
         var package = AssetCloner.Clone(this);
         package.FullPath = FullPath;
+        // The clone is detached (no container): carry the resolved namespace so rooted
+        // locations still resolve to bare disk paths (AssetItem.FullPath).
+        package.AssetNamespace = Container?.AssetNamespace ?? AssetNamespace;
         foreach (var asset in Assets)
         {
             var newAsset = asset.Asset;
