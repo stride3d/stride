@@ -50,6 +50,22 @@ public class AssetPluginPackagingTests
         // deployed alias table maps its bare URL to the canonical one.
         var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
+
+        AssertRuntimeContentResolves(consumerDir);
+    }
+
+    /// <summary>Run the built consumer: it loads content by canonical and bare (aliased) URLs.</summary>
+    private void AssertRuntimeContentResolves(string consumerDir)
+    {
+        // On Linux the consumer's engine module initializer fails to resolve Vortice.Vulkan
+        // (consumer-packaging gap, tracked separately), so the runtime check is Windows-only.
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var binDir = Path.Combine(consumerDir, "bin", "Debug", "net10.0");
+        var run = Dotnet.Exec(["exec", Path.Combine(binDir, "Consumer.dll")], binDir, output, timeoutMin: 2);
+        Assert.True(run.ExitCode == 0, $"Consumer runtime content check failed (exit {run.ExitCode}).");
+        Assert.Contains("CONTENT OK PluginPage", run.Output);
     }
 
     [Fact]
@@ -76,6 +92,8 @@ public class AssetPluginPackagingTests
 
         var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
+
+        AssertRuntimeContentResolves(consumerDir);
     }
 
     /// <summary>

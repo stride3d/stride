@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Selectors;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
@@ -48,8 +49,27 @@ namespace Stride.AssetCompiler
                 // Prepare list of bundles gathered from all projects
                 var bundles = new List<Bundle>();
 
+                var assetNamespaces = new HashSet<string>(
+                    packageSession.Packages.Select(p => p.Container.AssetNamespace).Where(ns => ns != null),
+                    StringComparer.OrdinalIgnoreCase);
                 foreach (var project in packageSession.Packages)
                 {
+                    // Anchored selector patterns are authored package-relative; root them like the
+                    // package's URLs (unanchored gitignore patterns match at any segment already).
+                    // A pattern already qualified with a session namespace is left as-is: it anchors
+                    // at that package, and the transform stays idempotent.
+                    if (project.Container.AssetNamespace is { } assetNamespace)
+                    {
+                        foreach (var pathSelector in project.Bundles.SelectMany(b => b.Selectors).OfType<PathSelector>())
+                        {
+                            for (int i = 0; i < pathSelector.Paths.Count; i++)
+                            {
+                                var path = pathSelector.Paths[i];
+                                if (path.StartsWith('/') && !assetNamespaces.Contains(FirstSegment(path)))
+                                    pathSelector.Paths[i] = "/" + assetNamespace + path;
+                            }
+                        }
+                    }
                     bundles.AddRange(project.Bundles);
                 }
 
@@ -369,6 +389,12 @@ namespace Stride.AssetCompiler
             {
                 CollectBundle(databaseFileProvider, resolvedBundle, reference);
             }
+        }
+
+        private static string FirstSegment(string rootedPath)
+        {
+            var end = rootedPath.IndexOf('/', 1);
+            return end < 0 ? rootedPath.Substring(1) : rootedPath.Substring(1, end - 1);
         }
 
         /// <summary>
