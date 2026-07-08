@@ -186,6 +186,14 @@ partial class PackageSession
                 if (containsAssetTypesProperty is { IsImported: false } && bool.TryParse(containsAssetTypesProperty.EvaluatedValue, out var containsAssetTypes))
                     project.ContainsAssetTypes = containsAssetTypes;
 
+                // Asset URL namespace + using declarations (no SDK default exists, so imported values
+                // are deliberate authoring, e.g. Directory.Build.props)
+                var assetNamespace = msProject.GetPropertyValue(SolutionProject.AssetNamespaceProperty);
+                if (!string.IsNullOrEmpty(assetNamespace))
+                    project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, package.Meta.Name);
+                foreach (var usingName in msProject.GetPropertyValue(SolutionProject.AssetNamespaceUsingsProperty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    AssetNamespaceUsings.Add(usingName);
+
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again
                 if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
