@@ -61,17 +61,34 @@ public class AssetPluginPackagingTests
         Assert.Contains(UnresolvedSpinScript, result.Output);
     }
 
+    [Fact]
+    public void PluginUrlsIdenticalViaProjectReference()
+    {
+        // PackageReference and ProjectReference are interchangeable: consuming the plugin as a
+        // project must produce the same canonical URL and alias entry as consuming its nupkg.
+        var (result, consumerDir) = RunCase(declareAssetAssembly: true, viaProjectReference: true);
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        Assert.DoesNotContain(UnresolvedSpinScript, result.Output);
+
+        var dbDir = Path.Combine(consumerDir, "obj", "stride", "assetbuild", "data", "db");
+        var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
+        Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
+
+        var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
+        Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
+    }
+
     /// <summary>
     /// Pack the plugin into an isolated feed, then build the consumer against it. Each case runs in
     /// its own temp tree with its own NuGet cache so the fixed 1.0.0 plugin package never collides.
     /// </summary>
-    private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly)
+    private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly, bool viaProjectReference = false)
     {
         var version = TestEnvironment.ResolveStrideVersion();
         var fixtures = TestEnvironment.FixturesDir();
 
         var caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests",
-            $"plugin-{(declareAssetAssembly ? "pos" : "neg")}-{Guid.NewGuid():N}");
+            $"plugin-{(viaProjectReference ? "proj" : declareAssetAssembly ? "pos" : "neg")}-{Guid.NewGuid():N}");
         var pluginDir = Path.Combine(caseDir, "plugin");
         var consumerDir = Path.Combine(caseDir, "consumer");
         var feedDir = Path.Combine(caseDir, "feed");
@@ -82,18 +99,29 @@ public class AssetPluginPackagingTests
 
         // Plugin restores Stride.* from bin/packages.
         NuGetConsumerFeed.WriteStrictNuGetConfig(pluginDir);
-        var packArgs = new List<string>
+        if (viaProjectReference)
         {
-            "pack", Path.Combine(pluginDir, "StrideAssetPlugin.csproj"),
-            "-c", "Debug", "-v:m",
-            $"-p:StrideEngineVersion={version}",
-            $"-p:RestorePackagesPath={nugetCache}",
-            "-o", feedDir,
-        };
-        if (!declareAssetAssembly)
-            packArgs.Add("-p:StrideContainsAssetTypes=false");
-        var pack = Dotnet.Exec(packArgs, pluginDir, output, timeoutMin: 10);
-        Assert.True(pack.ExitCode == 0, $"Plugin pack failed with exit {pack.ExitCode}");
+            // Same fixture consumed as a project instead of its nupkg.
+            var gameProject = Path.Combine(consumerDir, "Consumer.Game", "Consumer.Game.csproj");
+            File.WriteAllText(gameProject, File.ReadAllText(gameProject).Replace(
+                """<PackageReference Include="StrideAssetPlugin" Version="1.0.0" />""",
+                """<ProjectReference Include="..\..\plugin\StrideAssetPlugin.csproj" />"""));
+        }
+        else
+        {
+            var packArgs = new List<string>
+            {
+                "pack", Path.Combine(pluginDir, "StrideAssetPlugin.csproj"),
+                "-c", "Debug", "-v:m",
+                $"-p:StrideEngineVersion={version}",
+                $"-p:RestorePackagesPath={nugetCache}",
+                "-o", feedDir,
+            };
+            if (!declareAssetAssembly)
+                packArgs.Add("-p:StrideContainsAssetTypes=false");
+            var pack = Dotnet.Exec(packArgs, pluginDir, output, timeoutMin: 10);
+            Assert.True(pack.ExitCode == 0, $"Plugin pack failed with exit {pack.ExitCode}");
+        }
 
         // Consumer restores Stride.* from bin/packages and StrideAssetPlugin from the fresh feed.
         NuGetConsumerFeed.WriteStrictNuGetConfig(consumerDir,
