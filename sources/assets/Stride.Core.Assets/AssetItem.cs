@@ -167,9 +167,10 @@ public sealed class AssetItem : IFileSynchronizable
 
             rootDirectory = rootDirectory is not null ? UPath.Combine(rootDirectory, localSourceFolder) : localSourceFolder;
 
-            // Namespaced packages root their locations /Namespace/...; on disk the file lives at the bare path
+            // Namespaced packages root their locations /Namespace/...; on disk the file lives at the
+            // bare path. Detached packages (clones) carry the resolved namespace on the package itself.
             var location = Location;
-            if (location.IsAbsolute && Package?.Container?.AssetNamespace is { } assetNamespace)
+            if (location.IsAbsolute && (Package?.Container?.AssetNamespace ?? Package?.AssetNamespace) is { } assetNamespace)
                 location = location.MakeRelative("/" + assetNamespace);
             var locationAndExtension = AlternativePath ?? new UFile(location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
             return rootDirectory is not null ? UPath.Combine(rootDirectory, locationAndExtension) : locationAndExtension;

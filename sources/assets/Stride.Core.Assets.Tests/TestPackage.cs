@@ -77,6 +77,45 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestNamespacedAssetMoveDeletesOldFileOnSave()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedAssetMoveDeletesOldFileOnSave");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            // A SolutionProject container (standalone packages are read-only, never saved) with a
+            // resolved namespace, like the editor loader produces.
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+            var assetItem = new AssetItem("Ground", new AssetObjectTest());
+            package.Assets.Add(assetItem);
+            assetItem.IsDirty = true;
+            Assert.Equal("/MyGame/Ground", assetItem.Location.FullPath);
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors);
+            var oldFile = Path.Combine(dirPath, "Assets", "Ground.sdtest");
+            Assert.True(File.Exists(oldFile));
+
+            // Rename + move into a subfolder: the next save must delete the previous file at its
+            // bare disk path (the previous-state snapshot is a detached clone with rooted locations).
+            package.Assets.Remove(assetItem);
+            var movedItem = assetItem.Clone(newLocation: new UFile("Sub/Ground2"));
+            package.Assets.Add(movedItem);
+            movedItem.IsDirty = true;
+            result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.False(File.Exists(oldFile));
+            Assert.True(File.Exists(Path.Combine(dirPath, "Assets", "Sub", "Ground2.sdtest")));
+        }
+
+        [Fact]
         public void TestSaveKeepsAuthoredPackageName()
         {
             var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");

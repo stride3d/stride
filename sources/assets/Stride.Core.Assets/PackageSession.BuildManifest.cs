@@ -206,13 +206,16 @@ partial class PackageSession
         var isOwner = projectDirectory is not null && string.Equals(projectDirectory.ToOSPath().TrimEnd(Path.DirectorySeparatorChar), Path.GetDirectoryName(packagePath), StringComparison.OrdinalIgnoreCase);
         if (isOwner || container.Package.RootNamespace is null)
             container.Package.RootNamespace = manifest.RootNamespace;
-        // An authored sdpkg keeps its authored identity; implicit packages take the csproj-derived name
-        if (!string.IsNullOrEmpty(manifest.PackageName) && (container.Package.Meta.Name is null || (isOwner && !File.Exists(packagePath))))
+        // The session package name stays csproj-derived (it keys dependency matching); the authored
+        // sdpkg name only serves as the namespace identity below.
+        var authoredName = File.Exists(packagePath) ? container.Package.Meta.Name : null;
+        container.Package.AuthoredName ??= authoredName;
+        if ((isOwner || container.Package.Meta.Name is null) && !string.IsNullOrEmpty(manifest.PackageName))
             container.Package.Meta.Name = manifest.PackageName;
         if (container.Package.Meta.Version is null)
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
         if (!string.IsNullOrEmpty(manifest.AssetNamespace) && (isOwner || container.AssetNamespace is null))
-            container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.Meta.Name);
+            container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.AuthoredName ?? container.Package.Meta.Name);
 
         foreach (var assembly in manifest.AssetAssemblies)
             container.Assemblies.Add(Resolve(assembly));

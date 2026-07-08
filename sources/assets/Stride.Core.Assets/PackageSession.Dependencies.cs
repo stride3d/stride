@@ -175,9 +175,11 @@ partial class PackageSession
                 project.AssemblyProcessorSerializationHashFile = msProject.GetProperty("StrideAssemblyProcessorSerializationHashFile")?.EvaluatedValue;
                 if (project.AssemblyProcessorSerializationHashFile != null)
                     project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(projectPath), project.AssemblyProcessorSerializationHashFile);
-                // An authored sdpkg keeps its authored identity; implicit packages take the csproj-derived name
-                if (package.Meta.Name is null || package.FullPath is null || !File.Exists(package.FullPath))
-                    package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
+                // The session package name stays csproj-derived (it keys dependency matching); the authored
+                // sdpkg name only serves as the namespace identity below.
+                var authoredName = package.FullPath is not null && File.Exists(package.FullPath) ? package.Meta.Name : null;
+                package.AuthoredName ??= authoredName;
+                package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                 project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
 
@@ -192,7 +194,7 @@ partial class PackageSession
                 // are deliberate authoring, e.g. Directory.Build.props)
                 var assetNamespace = msProject.GetPropertyValue(SolutionProject.AssetNamespaceProperty);
                 if (!string.IsNullOrEmpty(assetNamespace))
-                    project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, package.Meta.Name);
+                    project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, authoredName ?? package.Meta.Name);
                 foreach (var usingName in msProject.GetPropertyValue(SolutionProject.AssetNamespaceUsingsProperty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     AssetNamespaceUsings.Add(usingName);
 
