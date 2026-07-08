@@ -200,8 +200,8 @@ namespace Stride.AssetCompiler
         /// <summary>
         /// Writes the bare-to-canonical URL alias table (data/db/aliases) implementing using
         /// semantics: the root package's own namespace is implicitly in scope, other namespaces
-        /// enter via the projects' declared usings. The root package wins bare-name collisions;
-        /// colliding imports get no alias.
+        /// enter via the projects' declared usings or their own global-using declaration. The root
+        /// package wins bare-name collisions; colliding imports get no alias.
         /// </summary>
         private static void WriteContentAliases(ILogger logger, PackageSession projectSession, Package rootPackage, string outputDirectory)
         {
@@ -213,7 +213,7 @@ namespace Stride.AssetCompiler
                 if (scopedPackage.Container.AssetNamespace is not { } assetNamespace)
                     continue;
                 var isRoot = scopedPackage == rootPackage;
-                if (!isRoot && !projectSession.AssetNamespaceUsings.Contains(assetNamespace))
+                if (!isRoot && !projectSession.AssetNamespaceUsings.Contains(assetNamespace) && !scopedPackage.Container.AssetNamespaceGlobalUsing)
                     continue;
 
                 var namespaceRoot = "/" + assetNamespace;

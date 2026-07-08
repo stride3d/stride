@@ -124,6 +124,8 @@ partial class PackageSession
             // precomputed project assets); no dependency resolution, no MSBuild
             session.LoadMissingAssets(sessionResult, [.. session.Packages], loadParameters);
 
+            CheckAssetNamespaceDisjointness(session, sessionResult);
+
             // Fix relative references
             var analysis = new PackageSessionAnalysis(session, GetPackageAnalysisParametersForLoad());
             analysis.Run().CopyTo(sessionResult);
@@ -140,6 +142,32 @@ partial class PackageSession
         finally
         {
             AssetReferenceAnalysis.EnableCaching = false;
+        }
+    }
+
+    /// <summary>
+    /// Packages sharing an asset namespace present one URL surface, so their rooted URLs must be
+    /// disjoint — checked across ALL namespaced packages, independent of dependency visibility.
+    /// </summary>
+    internal static void CheckAssetNamespaceDisjointness(PackageSession session, ILogger log)
+    {
+        var packagesByLocation = new Dictionary<UFile, Package>();
+        foreach (var package in session.Packages)
+        {
+            if (package.Container.AssetNamespace is null)
+                continue;
+            foreach (var asset in package.Assets)
+            {
+                if (packagesByLocation.TryGetValue(asset.Location, out var other))
+                {
+                    if (other != package)
+                        log.Error($"Asset URL [{asset.Location}] exists in both [{other.Meta.Name}] and [{package.Meta.Name}], which share the same asset namespace; rename one of the assets.");
+                }
+                else
+                {
+                    packagesByLocation.Add(asset.Location, package);
+                }
+            }
         }
     }
 
