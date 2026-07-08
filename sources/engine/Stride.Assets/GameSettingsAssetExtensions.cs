@@ -16,10 +16,14 @@ namespace Stride.Assets
         /// <returns>The <see cref="GameSettingsAsset"/> from the given <see cref="Package"/> if available. Null otherwise.</returns>
         public static GameSettingsAsset GetGameSettingsAsset(this Package package)
         {
-            var gameSettingsAsset = package.FindAsset(GameSettingsAsset.GameSettingsLocation);
+            // Namespaced packages root their asset locations /Namespace/...
+            var location = package.Container?.AssetNamespace is { } assetNamespace
+                ? $"/{assetNamespace}/{GameSettingsAsset.GameSettingsLocation}"
+                : GameSettingsAsset.GameSettingsLocation;
+            var gameSettingsAsset = package.FindAsset(location);
             if (gameSettingsAsset == null && package.TemporaryAssets.Count > 0)
             {
-                gameSettingsAsset = package.TemporaryAssets.Find(x => x.Location == GameSettingsAsset.GameSettingsLocation);
+                gameSettingsAsset = package.TemporaryAssets.Find(x => x.Location == location);
             }
             return gameSettingsAsset?.Asset as GameSettingsAsset;
         }

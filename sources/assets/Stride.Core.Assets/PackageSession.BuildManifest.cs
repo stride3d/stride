@@ -57,6 +57,7 @@ partial class PackageSession
                 }
                 var manifest = YamlSerializer.Load<AssetBuildManifest>(file);
                 manifests.Add(file, manifest);
+                session.AssetNamespaceUsings.UnionWith(manifest.AssetNamespaceUsings);
                 var directory = Path.GetDirectoryName(file)!;
                 foreach (var reference in manifest.ReferencedManifests)
                     queue.Enqueue(Path.GetFullPath(Path.Combine(directory, reference)));

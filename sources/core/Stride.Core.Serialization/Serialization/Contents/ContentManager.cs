@@ -83,12 +83,27 @@ public sealed partial class ContentManager : IContentManager
     /// </returns>
     public bool Exists(string url)
     {
-        return FileProvider.ContentIndexMap.TryGetValue(url, out _);
+        return FileProvider.ContentIndexMap.TryGetValue(ResolveUrl(url), out _);
     }
 
     public Stream OpenAsStream(string url, StreamFlags streamFlags = StreamFlags.None)
     {
-        return FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
+        return FileProvider.OpenStream(ResolveUrl(url), VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
+    }
+
+    /// <summary>
+    /// Resolves a bare URL through the shipped alias table (using semantics for namespaced packages);
+    /// exact index hits pass through untouched. Resolution happens before any caching so a canonical
+    /// URL and its bare alias share one loaded instance.
+    /// </summary>
+    private string ResolveUrl(string url)
+    {
+        // No provider (e.g. editor game thread resolves its database per-microthread) = no aliases
+        var fileProvider = databaseFileProviderService.FileProvider;
+        if (fileProvider is null || fileProvider.ContentIndexMap.TryGetValue(url, out _))
+            return url;
+        var aliases = fileProvider.ObjectDatabase?.ContentAliases;
+        return aliases is not null && aliases.TryGetValue(url, out var canonical) ? canonical : url;
     }
 
     /// <summary>
@@ -121,6 +136,7 @@ public sealed partial class ContentManager : IContentManager
 
         lock (LoadedAssetUrls)
         {
+            url = ResolveUrl(url);
             using var profile = Profiler.Begin(ContentProfilingKeys.ContentLoad, url);
             return DeserializeObject(url, url, type, null, settings);
         }
@@ -143,7 +159,7 @@ public sealed partial class ContentManager : IContentManager
             if (!LoadedAssetReferences.TryGetValue(obj, out var reference))
                 return false; // The object is not loaded
 
-            var url = newUrl ?? reference.Url;
+            var url = newUrl is not null ? ResolveUrl(newUrl) : reference.Url;
 
             using (var profile = Profiler.Begin(ContentProfilingKeys.ContentReload, url))
             {
@@ -179,7 +195,7 @@ public sealed partial class ContentManager : IContentManager
     /// <remarks>This function does not increase the reference count on the asset.</remarks>
     public object? Get(Type type, string url)
     {
-        return FindDeserializedObject(url, type)?.Object;
+        return FindDeserializedObject(ResolveUrl(url), type)?.Object;
     }
 
     /// <summary>
@@ -190,7 +206,7 @@ public sealed partial class ContentManager : IContentManager
     /// <returns><c>True</c> if an asset with the given URL is currently loaded, <c>false</c> otherwise.</returns>
     public bool IsLoaded(string url, bool loadedManuallyOnly = false)
     {
-        return LoadedAssetUrls.TryGetValue(url, out var reference) && (!loadedManuallyOnly || reference.PublicReferenceCount > 0);
+        return LoadedAssetUrls.TryGetValue(ResolveUrl(url), out var reference) && (!loadedManuallyOnly || reference.PublicReferenceCount > 0);
     }
 
     public bool TryGetAssetUrl(object obj, [NotNullWhen(true)] out string? url)
@@ -236,7 +252,7 @@ public sealed partial class ContentManager : IContentManager
         lock (LoadedAssetUrls)
         {
             // Try to find already loaded object
-            if (!LoadedAssetUrls.TryGetValue(url, out var reference))
+            if (!LoadedAssetUrls.TryGetValue(ResolveUrl(url), out var reference))
                 throw new InvalidOperationException("Content not loaded through this ContentManager.");
 
             // Release reference

@@ -175,6 +175,8 @@ namespace Stride.AssetCompiler
                 var bundleFiles = new List<string>();
                 bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
 
+                WriteContentAliases(builderOptions.Logger, projectSession, package, outputDirectory);
+
                 // Only write the up-to-date marker on success — otherwise MSBuild's Inputs/Outputs
                 // check on StrideCompileAsset would skip re-running CompilerApp next build, leaving
                 // the partial bundle in place and silently packing it into the APK.
@@ -192,6 +194,68 @@ namespace Stride.AssetCompiler
 
                 // Make sure that MSBuild doesn't hold anything else
                 VSProjectHelper.Reset();
+            }
+        }
+
+        /// <summary>
+        /// Writes the bare-to-canonical URL alias table (data/db/aliases) implementing using
+        /// semantics: the root package's own namespace is implicitly in scope, other namespaces
+        /// enter via the projects' declared usings. The root package wins bare-name collisions;
+        /// colliding imports get no alias.
+        /// </summary>
+        private static void WriteContentAliases(ILogger logger, PackageSession projectSession, Package rootPackage, string outputDirectory)
+        {
+            var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
+            var rootAliases = new HashSet<string>(StringComparer.Ordinal);
+            var ambiguous = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var scopedPackage in projectSession.Packages.OrderBy(p => p == rootPackage ? 0 : 1))
+            {
+                if (scopedPackage.Container.AssetNamespace is not { } assetNamespace)
+                    continue;
+                var isRoot = scopedPackage == rootPackage;
+                if (!isRoot && !projectSession.AssetNamespaceUsings.Contains(assetNamespace))
+                    continue;
+
+                var namespaceRoot = "/" + assetNamespace;
+                foreach (var assetItem in scopedPackage.Assets)
+                {
+                    if (!assetItem.Location.IsAbsolute)
+                        continue;
+                    var canonical = assetItem.Location.FullPath;
+                    var bare = assetItem.Location.MakeRelative(namespaceRoot).FullPath;
+                    if (ambiguous.Contains(bare))
+                        continue;
+                    if (aliases.TryGetValue(bare, out var existing))
+                    {
+                        if (existing == canonical)
+                            continue;
+                        if (rootAliases.Contains(bare))
+                        {
+                            logger.Warning($"Bare asset URL [{bare}] resolves to the root package's [{existing}]; qualify [{canonical}] explicitly to load it.");
+                        }
+                        else
+                        {
+                            aliases.Remove(bare);
+                            ambiguous.Add(bare);
+                            logger.Warning($"Bare asset URL [{bare}] is ambiguous between [{existing}] and [{canonical}]; qualify it explicitly.");
+                        }
+                        continue;
+                    }
+                    aliases.Add(bare, canonical);
+                    if (isRoot)
+                        rootAliases.Add(bare);
+                }
+            }
+
+            var aliasesFile = Path.Combine(outputDirectory, "db", "aliases");
+            if (aliases.Count > 0)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(aliasesFile));
+                File.WriteAllLines(aliasesFile, aliases.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"{x.Key}|{x.Value}"));
+            }
+            else if (File.Exists(aliasesFile))
+            {
+                File.Delete(aliasesFile);
             }
         }
 

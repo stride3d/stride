@@ -51,6 +51,7 @@
       <ProjectAssetsFile />
       <RootNamespace />
       <AssetNamespace />
+      <AssetNamespaceUsings />
       <ProjectDirectory Required="true" />
       <ExcludeDirectory />
       <Extensions />
@@ -95,6 +96,13 @@
             sb.AppendLine("RootNamespace: " + q(RootNamespace));
         if (!string.IsNullOrEmpty(AssetNamespace))
             sb.AppendLine("AssetNamespace: " + q(AssetNamespace));
+        var usings = new SortedSet<string>((AssetNamespaceUsings ?? "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(u => u.Trim()).Where(u => u.Length > 0), StringComparer.Ordinal);
+        if (usings.Count > 0)
+        {
+            sb.AppendLine("AssetNamespaceUsings:");
+            foreach (var entry in usings)
+                sb.AppendLine("    - " + q(entry));
+        }
 
         var assemblies = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var item in AssetAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
@@ -243,6 +251,7 @@
         ProjectAssetsFile="$(_StrideManifestProjectAssetsFile)"
         RootNamespace="$(RootNamespace)"
         AssetNamespace="$(StrideAssetNamespace)"
+        AssetNamespaceUsings="$(StrideAssetNamespaceUsings)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
         ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"
         Extensions="$(_StrideManifestExtensions)"
