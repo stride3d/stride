@@ -89,6 +89,17 @@ public abstract class Asset
     [MemberCollection(NotNullItems = true)]
     public TagCollection Tags { get; private set; }
 
+    /// <summary>
+    /// Gets or sets the URL of an asset this asset replaces: at build time, the replaced asset's
+    /// content is substituted with this asset's, so everything resolving the replaced asset
+    /// (including references inside dependency packages) gets this asset instead.
+    /// </summary>
+    [DataMember(-600)]
+    [Display(Browsable = false)]
+    [NonOverridable]
+    [DefaultValue(null)]
+    public UFile? Replaces { get; set; }
+
     [DataMember(-500)]
     [Display(Browsable = false)]
     [NonOverridable]
@@ -137,6 +148,9 @@ public abstract class Asset
         
         // Write the new id into the new asset.
         newAsset.Id = newId;
+
+        // A derived asset does not inherit the replacement declaration
+        newAsset.Replaces = null;
 
         // Create the base of this asset
         newAsset.Archetype = new AssetReference(Id, baseLocation);
