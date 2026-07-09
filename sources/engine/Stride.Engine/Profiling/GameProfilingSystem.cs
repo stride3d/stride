@@ -355,12 +355,6 @@ namespace Stride.Profiling
                 };
             }
 
-            // Render through the game's main GraphicsContext (as DebugTextSystem does). The per-thread
-            // RenderContext command list used previously is Close()d after the compositor renders and is never
-            // re-begun, so on Vulkan its native command buffer is null and FastTextRenderer.End() crashes when
-            // recording draw commands into it (0xC0000005 — issue #1020). The main command list is reset and
-            // begun every frame in GameBase.BeginDraw, so it is always valid here. On Direct3D11 this is
-            // equivalent (the thread context already shared the main command list).
             var graphicsContext = Game.GraphicsContext;
             graphicsContext.CommandList.SetRenderTargetAndViewport(null, renderTarget);
             viewportHeight = graphicsContext.CommandList.Viewport.Height;
