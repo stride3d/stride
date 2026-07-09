@@ -346,16 +346,14 @@ namespace Stride.Profiling
                 renderTargetSize = new Size2(renderTarget.Width, renderTarget.Height);
             }
 
-            if (fastTextRenderer == null)
-            {
-                fastTextRenderer = new FastTextRenderer(Game.GraphicsContext)
-                {
-                    DebugSpriteFont = Content.Load<Texture>("StrideDebugSpriteFont"),
-                    TextColor = TextColor,
-                };
-            }
-
             var graphicsContext = Game.GraphicsContext;
+
+            fastTextRenderer ??= new FastTextRenderer(graphicsContext)
+            {
+                DebugSpriteFont = Content.Load<Texture>("StrideDebugSpriteFont"),
+                TextColor = TextColor,
+            };
+
             graphicsContext.CommandList.SetRenderTargetAndViewport(null, renderTarget);
             viewportHeight = graphicsContext.CommandList.Viewport.Height;
             fastTextRenderer.Begin(graphicsContext);
