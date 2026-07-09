@@ -40,7 +40,7 @@ internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFac
         return asset;
     }
 
-    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         ((SourceCodeAsset)asset).Save(stream);
     }

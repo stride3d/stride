@@ -497,7 +497,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             }
 
             // Inject a copy of the base into the current asset when saving
-            AssetFileSerializer.Save((string)assetPath, (object)asset.Asset, (AttachedYamlAssetMetadata)asset.YamlMetadata, log);
+            AssetFileSerializer.Save((string)assetPath, (object)asset.Asset, (AttachedYamlAssetMetadata)asset.YamlMetadata, log,
+                asset.Package?.Container?.AssetNamespace);
 
             // Save generated asset (if necessary)
             if (asset.Asset is IProjectFileGeneratorAsset codeGeneratorAsset)
