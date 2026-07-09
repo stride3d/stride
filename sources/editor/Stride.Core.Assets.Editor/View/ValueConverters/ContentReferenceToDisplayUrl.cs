@@ -53,14 +53,12 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
             if (asset == null)
                 return (string.Empty, ContentReferenceHelper.BrokenReference);
 
-            // In-scope namespaces resolve by bare URL for the open game; display them bare too
+            // In-scope namespaces resolve by unqualified URL for the open game; display them unqualified too
             var url = asset.Url;
-            if (url.StartsWith('/') && asset.AssetItem.Package?.Container?.AssetNamespace is { } assetNamespace
-                && url.Length > assetNamespace.Length + 2 && url[assetNamespace.Length + 1] == '/'
-                && string.Compare(url, 1, assetNamespace, 0, assetNamespace.Length, StringComparison.OrdinalIgnoreCase) == 0
+            if (asset.AssetItem.Package?.Container is { AssetNamespace: { } assetNamespace } container
                 && SessionViewModel.Instance.IsAssetNamespaceInScope(assetNamespace))
             {
-                url = url.Substring(assetNamespace.Length + 2);
+                url = container.Unqualify(url).FullPath;
             }
 
             var slash = url.LastIndexOf('/');

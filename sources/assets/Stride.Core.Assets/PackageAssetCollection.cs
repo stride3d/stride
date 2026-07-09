@@ -330,16 +330,15 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
 
         // Namespaced packages root their locations /Namespace/...; creation paths author
-        // package-relative locations, rooted here like the loaders do. Plain packages stay
+        // unqualified locations, qualified here like the loaders do. Plain packages stay
         // relative-only (that reservation is what makes rooted URLs collision-free).
         // Detached packages (clones, pack-time copies) have no container: locations pass through.
         var location = item.Location;
         if (Package.Container is { } container)
         {
-            if (container.AssetNamespace is { } assetNamespace)
+            if (container.AssetNamespace is not null)
             {
-                if (!location.IsAbsolute)
-                    item.Location = location = UPath.Combine(new UDirectory("/" + assetNamespace), location);
+                item.Location = location = container.Qualify(location);
             }
             else if (location.IsAbsolute)
             {

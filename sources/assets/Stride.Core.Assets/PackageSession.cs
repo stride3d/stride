@@ -44,6 +44,12 @@ public abstract class PackageContainer
     /// </summary>
     public string? AssetNamespace { get; set; }
 
+    /// <summary>Qualifies an unqualified asset URL under this package's namespace (no-op when bare).</summary>
+    public UFile Qualify(UFile url) => new(AssetNamespaceHelper.Qualify(url.FullPath, AssetNamespace));
+
+    /// <summary>Unqualifies an asset URL under this package's namespace (no-op when bare or not under it).</summary>
+    public UFile Unqualify(UFile url) => new(AssetNamespaceHelper.Unqualify(url.FullPath, AssetNamespace));
+
     /// <summary>
     /// Resolves an asset namespace declaration: unset = the package name (namespacing is always on
     /// for named packages; nameless packages stay bare), any other value = that custom prefix.
