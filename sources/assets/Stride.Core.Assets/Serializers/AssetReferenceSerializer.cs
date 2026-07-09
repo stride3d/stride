@@ -29,6 +29,7 @@ internal class AssetReferenceSerializer : AssetScalarSerializerBase
 
     public override string ConvertTo(ref ObjectContext objectContext)
     {
-        return objectContext.Instance.ToString()!;
+        var assetReference = (AssetReference)objectContext.Instance;
+        return ReferenceSerializationHelper.FormatReference(ref objectContext, assetReference.Id, assetReference.Location);
     }
 }

@@ -33,7 +33,7 @@ internal class UrlReferenceSerializer : AssetScalarSerializerBase
     {
         if (objectContext.Instance is UrlReferenceBase urlReference)
         {
-            return $"{urlReference.Id}:{urlReference.Url}";
+            return ReferenceSerializationHelper.FormatReference(ref objectContext, urlReference.Id, urlReference.Url);
         }
 
         throw new YamlException($"Unable to extract url reference from object [{objectContext.Instance}]");

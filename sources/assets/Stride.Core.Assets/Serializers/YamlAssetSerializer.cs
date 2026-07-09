@@ -33,9 +33,13 @@ public class YamlAssetSerializer : IAssetSerializer, IAssetSerializerFactory
         return result;
     }
 
-    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         var settings = new SerializerContextSettings(log);
+        if (assetNamespace is not null)
+        {
+            settings.Properties.Add(AssetObjectSerializerBackend.AssetNamespaceKey, assetNamespace);
+        }
         var overrides = yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
         if (overrides != null)
         {

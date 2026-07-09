@@ -116,6 +116,45 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestNamespacedSaveRelativizesSamePrefixReferences()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedSaveRelativizesSamePrefixReferences");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            // Same-prefix references save bare; foreign prefixes stay rooted
+            var source = new AssetObjectTest();
+            var sourceItem = new AssetItem("Source", source);
+            package.Assets.Add(sourceItem);
+            source.Reference = new AssetReference(target.Id, target.Location);
+            sourceItem.IsDirty = true;
+            var other = new AssetObjectTest { Reference = new AssetReference(AssetId.New(), "/OtherPkg/Thing") };
+            var otherItem = new AssetItem("Other", other);
+            package.Assets.Add(otherItem);
+            otherItem.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            var sourceYaml = File.ReadAllText(Path.Combine(dirPath, "Assets", "Source.sdtest"));
+            Assert.Contains($"{target.Id}:Target", sourceYaml);
+            Assert.DoesNotContain("/MyGame/", sourceYaml);
+            Assert.Contains(":/OtherPkg/Thing", File.ReadAllText(Path.Combine(dirPath, "Assets", "Other.sdtest")));
+            // The in-memory reference stays canonical (the transform is write-only)
+            Assert.Equal("/MyGame/Target", source.Reference.Location);
+        }
+
+        [Fact]
         public void TestSaveKeepsAuthoredPackageName()
         {
             var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");

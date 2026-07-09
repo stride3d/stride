@@ -112,7 +112,7 @@ public static class AssetFileSerializer
     /// <param name="yamlMetadata"></param>
     /// <param name="log">The logger.</param>
     /// <exception cref="System.ArgumentNullException">filePath</exception>
-    public static void Save(string filePath, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public static void Save(string filePath, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         ArgumentNullException.ThrowIfNull(filePath);
 
@@ -125,7 +125,7 @@ public static class AssetFileSerializer
         }
 
         using var stream = new MemoryStream();
-        Save(stream, asset, yamlMetadata, log);
+        Save(stream, asset, yamlMetadata, log, assetNamespace);
         File.WriteAllBytes(filePath, stream.ToArray());
     }
 
@@ -141,7 +141,7 @@ public static class AssetFileSerializer
     /// or
     /// assetFileExtension
     /// </exception>
-    public static void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public static void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         ArgumentNullException.ThrowIfNull(stream);
         if (asset == null) return;
@@ -150,6 +150,6 @@ public static class AssetFileSerializer
             ?? throw new ArgumentException("Unable to find a serializer for the specified asset. No asset file extension registered to AssetRegistry");
         var serializer = FindSerializer(assetFileExtension)
             ?? throw new InvalidOperationException($"Unable to find a serializer for [{assetFileExtension}]");
-        serializer.Save(stream, asset, yamlMetadata, log);
+        serializer.Save(stream, asset, yamlMetadata, log, assetNamespace);
     }
 }

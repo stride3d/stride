@@ -33,6 +33,6 @@ public class ContentReferenceSerializer : AssetScalarSerializerBase
     {
         var attachedReference = AttachedReferenceManager.GetAttachedReference(objectContext.Instance)
             ?? throw new YamlException($"Unable to extract asset reference from object [{objectContext.Instance}]");
-        return $"{attachedReference.Id}:{attachedReference.Url}";
+        return ReferenceSerializationHelper.FormatReference(ref objectContext, attachedReference.Id, attachedReference.Url);
     }
 }
