@@ -44,6 +44,9 @@ Temp/
 /logs/
 bin/
 Bin/
+.nuget-samples/
+.sample-macos-launchers/
+samples/.generated-macos-launchers/
 !bin/packages/
 bin/packages/*
 !bin/packages/.gitkeep
@@ -178,4 +181,3 @@ project.lock.json
 
 # Auto-generated version overlay (Stride.WorktreeVersion.targets / Stride.GitVersion.targets)
 /sources/shared/SharedAssemblyInfo.Generated.cs
-

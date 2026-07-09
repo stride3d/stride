@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))/</StrideRoot>
+    <RestoreAdditionalProjectSources>$(StrideRoot)bin/packages;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
+    <StrideContainsAssetTypes Condition="'$(StrideContainsAssetTypes)' == ''">true</StrideContainsAssetTypes>
+  </PropertyGroup>
+</Project>

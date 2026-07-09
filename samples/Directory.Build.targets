@@ -1,0 +1,12 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Update="Stride*" Version="4.4.0-dev" />
+    <PackageReference Remove="Stride.AssetCompiler" />
+  </ItemGroup>
+
+  <Import Project="$(StrideRoot)sources/assets/Stride.AssetCompiler/build/Stride.AssetCompiler.targets"
+          Condition="Exists('$(StrideRoot)sources/assets/Stride.AssetCompiler/build/Stride.AssetCompiler.targets')" />
+
+  <Import Project="$(StrideRoot)sources/core/Stride.Core/build/Stride.AssetBuildManifest.targets"
+          Condition="Exists('$(StrideRoot)sources/core/Stride.Core/build/Stride.AssetBuildManifest.targets')" />
+</Project>

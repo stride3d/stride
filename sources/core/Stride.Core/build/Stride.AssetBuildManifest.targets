@@ -201,10 +201,10 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <!-- Conventional sdpkg next to the project (.csproj -> .sdpkg). A platform-head with no sdpkg
-           of its own becomes an implicit package named after the head (e.g. MyGame.Windows), with
-           assets flowing in from the referenced game library. -->
+      <!-- Conventional sdpkg next to the project (.csproj -> .sdpkg), unless a platform-head
+           explicitly points at its authored game package. -->
       <_StrideAuthoredPackagePath>$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAuthoredPackagePath>
+      <_StrideAuthoredPackagePath Condition="'$(StrideCurrentPackagePath)' != ''">$(StrideCurrentPackagePath)</_StrideAuthoredPackagePath>
       <_StrideManifestHostFramework>$(StrideFramework)</_StrideManifestHostFramework>
       <_StrideManifestHostFramework Condition="'$(_StrideManifestHostFramework)' == ''">$(TargetFramework)</_StrideManifestHostFramework>
       <_StrideManifestProjectAssetsFile Condition="Exists('$(ProjectAssetsFile)')">$(ProjectAssetsFile)</_StrideManifestProjectAssetsFile>

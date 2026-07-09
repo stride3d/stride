@@ -2,18 +2,19 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <RootNamespace>CSharpBeginner.macOS</RootNamespace>
+    <RootNamespace>ParticlesSample</RootNamespace>
     <OutputPath>..\Bin\macOS\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <DefineConstants>STRIDE_PLATFORM_DESKTOP</DefineConstants>
   </PropertyGroup>
+
   <PropertyGroup>
-    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\CSharpBeginner.Game\CSharpBeginner.Game.sdpkg</StrideCurrentPackagePath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\ParticlesSample.Game\ParticlesSample.Game.sdpkg</StrideCurrentPackagePath>
     <StridePlatform>macOS</StridePlatform>
     <StrideGraphicsApi>Vulkan</StrideGraphicsApi>
   </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\CSharpBeginner.Game\CSharpBeginner.Game.csproj" />
+    <ProjectReference Include="..\ParticlesSample.Game\ParticlesSample.Game.csproj" />
   </ItemGroup>
 </Project>

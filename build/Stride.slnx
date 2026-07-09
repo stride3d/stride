@@ -1,4 +1,7 @@
 <Solution>
+  <Configurations>
+    <BuildType Name="Rider" />
+  </Configurations>
   <Folder Name="/00-Build/">
     <File Path="Stride.build" />
     <File Path="Stride.Local.props" />
@@ -59,172 +62,488 @@
     <File Path="../sources/localization/ja/Stride.GameStudio.ja.po" />
   </Folder>
   <Folder Name="/10-CoreRuntime/">
-    <Project Path="../sources/core/Stride.Core.CompilerServices/Stride.Core.CompilerServices.csproj" />
-    <Project Path="../sources/core/Stride.Core.IO/Stride.Core.IO.csproj" />
-    <Project Path="../sources/core/Stride.Core.Mathematics/Stride.Core.Mathematics.csproj" />
-    <Project Path="../sources/core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj" />
-    <Project Path="../sources/core/Stride.Core.Serialization/Stride.Core.Serialization.csproj" />
-    <Project Path="../sources/core/Stride.Core/Stride.Core.csproj" />
+    <Project Path="../sources/core/Stride.Core.CompilerServices/Stride.Core.CompilerServices.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.IO/Stride.Core.IO.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Mathematics/Stride.Core.Mathematics.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Serialization/Stride.Core.Serialization.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core/Stride.Core.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/11-CoreRuntime.Tests/">
-    <Project Path="../sources/core/Stride.Core.CompilerServices.Tests/Stride.Core.CompilerServices.Tests.csproj" />
-    <Project Path="../sources/core/Stride.Core.Mathematics.Tests/Stride.Core.Mathematics.Tests.csproj" />
+    <Project Path="../sources/core/Stride.Core.CompilerServices.Tests/Stride.Core.CompilerServices.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Mathematics.Tests/Stride.Core.Mathematics.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
     <Project Path="../sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj">
       <BuildType Solution="Release|Any CPU" Project="Debug" />
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
     </Project>
   </Folder>
   <Folder Name="/20-StrideRuntime/">
-    <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
-    <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
-    <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
-    <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />
-    <Project Path="../sources/engine/Stride.Graphics/Stride.Graphics.csproj" />
-    <Project Path="../sources/engine/Stride.Input/Stride.Input.csproj" />
-    <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj" />
-    <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj" />
-    <Project Path="../sources/engine/Stride.Particles/Stride.Particles.csproj" />
-    <Project Path="../sources/engine/Stride.Physics/Stride.Physics.csproj" />
-    <Project Path="../sources/engine/Stride.Rendering/Stride.Rendering.csproj" />
-    <Project Path="../sources/engine/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
-    <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj" />
-    <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj" />
-    <Project Path="../sources/engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
-    <Project Path="../sources/engine/Stride.Voxels/Stride.Voxels.csproj" />
+    <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Graphics/Stride.Graphics.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Input/Stride.Input.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Particles/Stride.Particles.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Physics/Stride.Physics.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Rendering/Stride.Rendering.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.VirtualReality/Stride.VirtualReality.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Voxels/Stride.Voxels.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Bepu/">
-    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
-    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
+    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Shared/">
-    <Project Path="../sources/shared/Stride.Core.ShellHelper/Stride.Core.ShellHelper.shproj" />
+    <Project Path="../sources/shared/Stride.Core.ShellHelper/Stride.Core.ShellHelper.shproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/22-StrideRuntime.Shaders/">
-    <Project Path="../sources/shaders/Stride.Shaders.Compilers/Stride.Shaders.Compilers.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Effects/Stride.Shaders.Effects.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Generators.Internal/Stride.Shaders.Generators.Internal.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Generators/Stride.Shaders.Generators.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Parsers/Stride.Shaders.Parsers.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Spirv/Stride.Shaders.Spirv.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders.Tests/Stride.Shaders.Tests.csproj" />
-    <Project Path="../sources/shaders/Stride.Shaders/Stride.Shaders.csproj" />
+    <Project Path="../sources/shaders/Stride.Shaders.Compilers/Stride.Shaders.Compilers.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Effects/Stride.Shaders.Effects.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Generators.Internal/Stride.Shaders.Generators.Internal.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Generators/Stride.Shaders.Generators.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Parsers/Stride.Shaders.Parsers.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Spirv/Stride.Shaders.Spirv.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders.Tests/Stride.Shaders.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/shaders/Stride.Shaders/Stride.Shaders.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/25-StrideRuntime.Tests/">
-    <Project Path="../sources/engine/Stride.Audio.Tests/Stride.Audio.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Engine.NoAssets.Tests/Stride.Engine.NoAssets.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Engine.Tests/Stride.Engine.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Graphics.Regression/Stride.Graphics.Regression.csproj" />
-    <Project Path="../sources/engine/Stride.Graphics.Tests.10_0/Stride.Graphics.Tests.10_0.csproj" />
-    <Project Path="../sources/engine/Stride.Graphics.Tests.11_0/Stride.Graphics.Tests.11_0.csproj" />
-    <Project Path="../sources/engine/Stride.Graphics.Tests/Stride.Graphics.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Input.Tests/Stride.Input.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Navigation.Tests/Stride.Navigation.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Particles.Tests/Stride.Particles.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Physics.Tests/Stride.Physics.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.UI.Tests/Stride.UI.Tests.csproj" />
+    <Project Path="../sources/engine/Stride.Audio.Tests/Stride.Audio.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Engine.NoAssets.Tests/Stride.Engine.NoAssets.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Engine.Tests/Stride.Engine.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Graphics.Regression/Stride.Graphics.Regression.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Graphics.Tests.10_0/Stride.Graphics.Tests.10_0.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Graphics.Tests.11_0/Stride.Graphics.Tests.11_0.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Graphics.Tests/Stride.Graphics.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Input.Tests/Stride.Input.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Navigation.Tests/Stride.Navigation.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Particles.Tests/Stride.Particles.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Physics.Tests/Stride.Physics.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.UI.Tests/Stride.UI.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/30-CoreDesign/">
-    <Project Path="../sources/buildengine/Stride.Core.BuildEngine.Common/Stride.Core.BuildEngine.Common.csproj" />
-    <Project Path="../sources/core/Stride.Core.Design/Stride.Core.Design.csproj" />
-    <Project Path="../sources/core/Stride.Core.Reflection/Stride.Core.Reflection.csproj" />
-    <Project Path="../sources/core/Stride.Core.Tasks/Stride.Core.Tasks.csproj" />
-    <Project Path="../sources/core/Stride.Core.Translation/Stride.Core.Translation.csproj" />
-    <Project Path="../sources/core/Stride.Core.Yaml/Stride.Core.Yaml.csproj" />
+    <Project Path="../sources/buildengine/Stride.Core.BuildEngine.Common/Stride.Core.BuildEngine.Common.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Design/Stride.Core.Design.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Reflection/Stride.Core.Reflection.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Tasks/Stride.Core.Tasks.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Translation/Stride.Core.Translation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Yaml/Stride.Core.Yaml.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/31-CoreDesign.Tests/">
-    <Project Path="../sources/buildengine/Stride.Core.BuildEngine.Tests/Stride.Core.BuildEngine.Tests.csproj" />
-    <Project Path="../sources/core/Stride.Core.Design.Tests/Stride.Core.Design.Tests.csproj" />
-    <Project Path="../sources/core/Stride.Core.Yaml.Tests/Stride.Core.Yaml.Tests.csproj" />
+    <Project Path="../sources/buildengine/Stride.Core.BuildEngine.Tests/Stride.Core.BuildEngine.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Design.Tests/Stride.Core.Design.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/core/Stride.Core.Yaml.Tests/Stride.Core.Yaml.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/40-Assets/">
-    <Project Path="../sources/assets/Stride.AssetCompiler/Stride.AssetCompiler.csproj" />
-    <Project Path="../sources/assets/Stride.Core.Assets.Quantum/Stride.Core.Assets.Quantum.csproj" />
-    <Project Path="../sources/assets/Stride.Core.Assets.Yaml/Stride.Core.Assets.Yaml.shproj" />
-    <Project Path="../sources/assets/Stride.Core.Assets/Stride.Core.Assets.csproj" />
-    <Project Path="../sources/assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
+    <Project Path="../sources/assets/Stride.AssetCompiler/Stride.AssetCompiler.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/assets/Stride.Core.Assets.Quantum/Stride.Core.Assets.Quantum.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/assets/Stride.Core.Assets.Yaml/Stride.Core.Assets.Yaml.shproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/assets/Stride.Core.Assets/Stride.Core.Assets.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
+    <Project Path="../sources/assets/Stride.Core.Packages/Stride.Core.Packages.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/41-Assets.Tests/">
-    <Project Path="../sources/assets/Stride.Core.Assets.Quantum.Tests/Stride.Core.Assets.Quantum.Tests.csproj" />
-    <Project Path="../sources/assets/Stride.Core.Assets.Tests/Stride.Core.Assets.Tests.csproj" />
+    <Project Path="../sources/assets/Stride.Core.Assets.Quantum.Tests/Stride.Core.Assets.Quantum.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/assets/Stride.Core.Assets.Tests/Stride.Core.Assets.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/50-Presentation/">
-    <Project Path="../sources/editor/Stride.Core.MostRecentlyUsedFiles/Stride.Core.MostRecentlyUsedFiles.shproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Dialogs.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Graph/Stride.Core.Presentation.Graph.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum/Stride.Core.Presentation.Quantum.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Quantum/Stride.Core.Quantum.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.csproj" />
+    <Project Path="../sources/editor/Stride.Core.MostRecentlyUsedFiles/Stride.Core.MostRecentlyUsedFiles.shproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Dialogs.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Graph/Stride.Core.Presentation.Graph.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum/Stride.Core.Presentation.Quantum.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Quantum/Stride.Core.Quantum.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/51-Presentation.Tests/">
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Tests/Stride.Core.Presentation.Tests.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Tests/Stride.Core.Presentation.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/60-Editor/">
-    <Project Path="../sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
-    <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
-    <Project Path="../sources/editor/Stride.Editor.CrashReport/Stride.Editor.CrashReport.csproj" />
-    <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />
-    <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
-    <Project Path="../sources/editor/Stride.PrivacyPolicy/Stride.PrivacyPolicy.shproj" />
-    <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
+    <Project Path="../sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.Editor.CrashReport/Stride.Editor.CrashReport.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.PrivacyPolicy/Stride.PrivacyPolicy.shproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/61-Editor.Tests/">
-    <Project Path="../sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
-    <Project Path="../sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
-    <Project Path="../sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
-    <Project Path="../tests/editor/Stride.Editor.Tests.csproj" />
+    <Project Path="../sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../tests/editor/Stride.Editor.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/70-StrideAssets/">
-    <Project Path="../sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
-    <Project Path="../sources/engine/Stride.Assets/Stride.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.SpriteStudio.Offline/Stride.SpriteStudio.Offline.csproj" />
+    <Project Path="../sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Assets/Stride.Assets.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.SpriteStudio.Offline/Stride.SpriteStudio.Offline.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/71-StrideAssets.Tests/">
-    <Project Path="../sources/engine/Stride.Assets.Tests/Stride.Assets.Tests.csproj" />
-    <Project Path="../sources/engine/Stride.Assets.Tests2/Stride.Assets.Tests2.csproj" />
+    <Project Path="../sources/engine/Stride.Assets.Tests/Stride.Assets.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/engine/Stride.Assets.Tests2/Stride.Assets.Tests2.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/72-StrideSamples.Templates/">
-    <Project Path="../sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj" />
-    <Project Path="../sources/templates/Stride.Templates.Games.Starters/Stride.Templates.Games.Starters.csproj" />
-    <Project Path="../sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj" />
-    <Project Path="../sources/templates/Stride.Templates.Samples/Stride.Templates.Samples.csproj" />
-    <Project Path="../sources/tools/Stride.TemplateGenerator/Stride.TemplateGenerator.csproj" />
-    <Project Path="../sources/tools/Stride.Templates.Tests/Stride.Templates.Tests.csproj" />
-    <Project Path="../tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj" />
+    <Project Path="../sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/templates/Stride.Templates.Games.Starters/Stride.Templates.Games.Starters.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/templates/Stride.Templates.Samples/Stride.Templates.Samples.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.TemplateGenerator/Stride.TemplateGenerator.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.Templates.Tests/Stride.Templates.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/">
-    <Project Path="../sources/tests/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
-    <Project Path="../sources/tests/xunit.runner.stride/xunit.runner.stride.csproj" />
-    <Project Path="../sources/tools/Stride.ConnectionRouter/Stride.ConnectionRouter.csproj" />
-    <Project Path="../sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj" />
-    <Project Path="../sources/tools/Stride.EffectCompilerServer/Stride.EffectCompilerServer.csproj" />
-    <Project Path="../sources/tools/Stride.PackageInstall/Stride.PackageInstall.csproj" />
-    <Project Path="../sources/tools/Stride.TestRunner/Stride.TestRunner.csproj" />
+    <Project Path="../sources/tests/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tests/xunit.runner.stride/xunit.runner.stride.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.ConnectionRouter/Stride.ConnectionRouter.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.EffectCompilerServer/Stride.EffectCompilerServer.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.PackageInstall/Stride.PackageInstall.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.TestRunner/Stride.TestRunner.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/3D-Importers/">
-    <Project Path="../sources/tools/Stride.Importer.3D/Stride.Importer.3D.csproj" />
-    <Project Path="../sources/tools/Stride.Importer.Common/Stride.Importer.Common.csproj" />
+    <Project Path="../sources/tools/Stride.Importer.3D/Stride.Importer.3D.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.Importer.Common/Stride.Importer.Common.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/Internals/">
-    <Project Path="../sources/tools/Stride.Graphics.RenderDocPlugin/Stride.Graphics.RenderDocPlugin.csproj" />
-    <Project Path="../sources/tools/Stride.StorageTool/Stride.StorageTool.csproj" />
+    <Project Path="../sources/tools/Stride.Graphics.RenderDocPlugin/Stride.Graphics.RenderDocPlugin.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.StorageTool/Stride.StorageTool.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/NuGetResolver/">
-    <Project Path="../sources/shared/Stride.NuGetResolver.Targets/Stride.NuGetResolver.Targets.shproj" />
-    <Project Path="../sources/shared/Stride.NuGetResolver.UI/Stride.NuGetResolver.UI.csproj" />
-    <Project Path="../sources/shared/Stride.NuGetResolver/Stride.NuGetResolver.csproj" />
+    <Project Path="../sources/shared/Stride.NuGetResolver.Targets/Stride.NuGetResolver.Targets.shproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/shared/Stride.NuGetResolver.UI/Stride.NuGetResolver.UI.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/shared/Stride.NuGetResolver/Stride.NuGetResolver.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/TextureConverter/">
-    <Project Path="../sources/tests/tools/Stride.TextureConverter.Tests/Stride.TextureConverter.Tests.csproj" />
-    <Project Path="../sources/tools/Stride.TextureConverter/Stride.TextureConverter.csproj" />
+    <Project Path="../sources/tests/tools/Stride.TextureConverter.Tests/Stride.TextureConverter.Tests.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.TextureConverter/Stride.TextureConverter.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/90-Tools/VisualStudio/">
-    <Project Path="../sources/tools/Stride.VisualStudio.Commands.Interfaces/Stride.VisualStudio.Commands.Interfaces.csproj" />
-    <Project Path="../sources/tools/Stride.VisualStudio.Commands/Stride.VisualStudio.Commands.csproj" />
+    <Project Path="../sources/tools/Stride.VisualStudio.Commands.Interfaces/Stride.VisualStudio.Commands.Interfaces.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
+    <Project Path="../sources/tools/Stride.VisualStudio.Commands/Stride.VisualStudio.Commands.csproj">
+      <BuildType Solution="Rider|*" Project="Debug" />
+      <Build Solution="Rider|*" Project="false" />
+    </Project>
   </Folder>
   <Properties Name="Visual Studio">
     <Property Name="MinimumVersion" Value="18.0" />
