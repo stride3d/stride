@@ -715,8 +715,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         private string GetDisplayDirectory(UFile location)
         {
-            if (Package.Container?.AssetNamespace is { } assetNamespace)
-                location = location.MakeRelative("/" + assetNamespace);
+            if (Package.Container is { } container)
+                location = container.Unqualify(location);
             return location.GetFullDirectory() ?? "";
         }
 

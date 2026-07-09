@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Yaml;
@@ -18,12 +18,9 @@ internal static class ReferenceSerializationHelper
         // A broken reference (empty id) could not restore the rooted form at load, so keep its spelling
         if (location is not null
             && id != AssetId.Empty
-            && objectContext.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.AssetNamespaceKey, out var assetNamespace)
-            && location.Length > assetNamespace.Length + 2
-            && location[0] == '/' && location[assetNamespace.Length + 1] == '/'
-            && string.Compare(location, 1, assetNamespace, 0, assetNamespace.Length, StringComparison.OrdinalIgnoreCase) == 0)
+            && objectContext.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.AssetNamespaceKey, out var assetNamespace))
         {
-            location = location.Substring(assetNamespace.Length + 2);
+            location = AssetNamespaceHelper.Unqualify(location, assetNamespace);
         }
         return $"{id}:{location}";
     }
