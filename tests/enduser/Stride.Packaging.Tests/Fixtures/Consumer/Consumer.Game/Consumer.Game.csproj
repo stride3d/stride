@@ -6,9 +6,13 @@
     <!-- No asset types of its own; also keeps the plugin's packed sdpkg declaration the only
          path that can load the plugin assembly, which is what the tests probe. -->
     <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
-    <!-- Bring the plugin's namespace into scope: its assets also resolve by bare URL. -->
-    <StrideAssetNamespaceUsings>StrideAssetPlugin</StrideAssetNamespaceUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Bring the plugin's namespace into scope, plus our own: this package owns no GameSettings,
+         so it is not implicit self scope and needs a using for bare URL access. -->
+    <StrideAssetNamespaceUsing Include="StrideAssetPlugin" />
+    <StrideAssetNamespaceUsing Include="Consumer" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
     <PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />

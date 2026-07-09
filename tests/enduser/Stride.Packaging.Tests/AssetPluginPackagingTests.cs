@@ -19,9 +19,9 @@ namespace Stride.Packaging.Tests;
 /// regression guard for #3258 (bundle packing must resolve assets of a referenced project's package
 /// from lock-file-loaded dependencies; a single-project consumer does not reproduce it).
 ///
-/// The plugin is namespaced (StrideAssetNamespace=true) and ships a root asset of its own, so the
-/// consumer build must compile it under its rooted /StrideAssetPlugin/ URL and resolve its
-/// engine-asset references through the plugin package's own dependency closure.
+/// Namespacing is on by default: the plugin ships a root asset of its own, so the consumer build
+/// must compile it under its rooted /StrideAssetPlugin/ URL and resolve its engine-asset
+/// references through the plugin package's own dependency closure.
 /// </summary>
 [Collection("Packaging")]
 public class AssetPluginPackagingTests
@@ -39,17 +39,18 @@ public class AssetPluginPackagingTests
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
         Assert.DoesNotContain(UnresolvedSpinScript, result.Output);
 
-        // The namespaced plugin's root asset compiles under its rooted URL; the consumer's own
-        // package is not namespaced, so its assets stay bare.
+        // Namespacing is on by default: both the plugin's and the consumer's own assets compile
+        // under their rooted URLs.
         var dbDir = Path.Combine(consumerDir, "obj", "stride", "assetbuild", "data", "db");
         var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
         Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
-        Assert.Matches(@"(?m)^Page ", index);
+        Assert.Matches(@"(?m)^/Consumer/Page ", index);
 
-        // The consumer's StrideAssetNamespaceUsings brings the plugin namespace into scope: the
-        // deployed alias table maps its bare URL to the canonical one.
+        // The consumer's StrideAssetNamespaceUsing items bring both namespaces into scope: the
+        // deployed alias table maps bare URLs to the canonical ones.
         var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
+        Assert.Contains("Page|/Consumer/Page", aliases);
 
         AssertRuntimeContentResolves(consumerDir);
     }
@@ -89,6 +90,7 @@ public class AssetPluginPackagingTests
         var dbDir = Path.Combine(consumerDir, "obj", "stride", "assetbuild", "data", "db");
         var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
         Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
+        Assert.Matches(@"(?m)^/Consumer/Page ", index);
 
         var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);

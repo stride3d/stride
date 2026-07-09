@@ -214,7 +214,7 @@ partial class PackageSession
             container.Package.Meta.Name = manifest.PackageName;
         if (container.Package.Meta.Version is null)
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
-        if (!string.IsNullOrEmpty(manifest.AssetNamespace) && (isOwner || container.AssetNamespace is null))
+        if (isOwner || container.AssetNamespace is null)
             container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.AuthoredName ?? container.Package.Meta.Name);
 
         foreach (var assembly in manifest.AssetAssemblies)

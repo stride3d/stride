@@ -45,15 +45,18 @@ public abstract class PackageContainer
     public string? AssetNamespace { get; set; }
 
     /// <summary>
-    /// Resolves an asset namespace declaration: null/"false" = none, "true" = the package name, any other value = that name.
+    /// Resolves an asset namespace declaration: unset = the package name (namespacing is always on
+    /// for named packages; nameless packages stay bare), any other value = that custom prefix.
+    /// Legacy true/false sentinels resolve like unset.
     /// </summary>
-    public static string? ResolveAssetNamespace(string? declaration, string packageName) => declaration switch
+    public static string? ResolveAssetNamespace(string? declaration, string? packageName)
     {
-        null or "" => null,
-        _ when string.Equals(declaration, "false", StringComparison.OrdinalIgnoreCase) => null,
-        _ when string.Equals(declaration, "true", StringComparison.OrdinalIgnoreCase) => packageName,
-        _ => declaration,
-    };
+        if (string.IsNullOrEmpty(declaration)
+            || string.Equals(declaration, "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(declaration, "false", StringComparison.OrdinalIgnoreCase))
+            return string.IsNullOrEmpty(packageName) ? null : packageName;
+        return declaration;
+    }
 
     public ObservableCollection<DependencyRange> DirectDependencies { get; } = [];
 
@@ -348,9 +351,9 @@ public class SolutionProject : PackageContainer
     // The msbuild property behind ContainsAssetTypes.
     public const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
 
-    // The msbuild properties behind PackageContainer.AssetNamespace and the using declarations.
+    // The msbuild properties/items behind PackageContainer.AssetNamespace and the using declarations.
     public const string AssetNamespaceProperty = "StrideAssetNamespace";
-    public const string AssetNamespaceUsingsProperty = "StrideAssetNamespaceUsings";
+    public const string AssetNamespaceUsingItem = "StrideAssetNamespaceUsing";
 
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
