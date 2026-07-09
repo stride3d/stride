@@ -62,6 +62,7 @@ partial class PackageSession
                 foreach (var reference in manifest.ReferencedManifests)
                     queue.Enqueue(Path.GetFullPath(Path.Combine(directory, reference)));
             }
+            session.LoadedBuildManifests = [.. manifests.Keys];
 
             // Multiple manifests can share one authored sdpkg (e.g. a platform-head exe and its
             // game library both point at the game's sdpkg via StrideCurrentPackagePath). Dedup by
@@ -120,9 +121,38 @@ partial class PackageSession
                     container.FlattenedDependencies.Add(new Dependency(dependency.Package));
             }
 
+            // Nupkg packages need a closure too (e.g. a plugin's UI page references the engine's
+            // default font by id): the packages of the lock files they came from
+            var sdpkgClosures = new Dictionary<StandalonePackage, HashSet<StandalonePackage>>();
+            foreach (var packages in packagesByLockFile.Values)
+            {
+                foreach (var package in packages)
+                {
+                    if (!sdpkgClosures.TryGetValue(package, out var closure))
+                        sdpkgClosures[package] = closure = [];
+                    closure.UnionWith(packages);
+                }
+            }
+            foreach (var (package, closure) in sdpkgClosures)
+            {
+                closure.Remove(package);
+                foreach (var dependency in closure)
+                    package.FlattenedDependencies.Add(new Dependency(dependency.Package));
+            }
+
             // Load + register exactly the declared assemblies, then load assets (folder scan +
             // precomputed project assets); no dependency resolution, no MSBuild
             session.LoadMissingAssets(sessionResult, [.. session.Packages], loadParameters);
+
+            // Read-only (nupkg) packages need the bare-to-canonical reference restamp too (their
+            // authored yaml stores same-prefix references bare); the session analysis below only
+            // covers local packages
+            var dependencyAnalysisParameters = new AssetAnalysisParameters { IsProcessingAssetReferences = true, IsLoggingAssetNotFoundAsError = false };
+            foreach (var package in session.Packages)
+            {
+                if (package.IsReadOnly)
+                    AssetAnalysis.Run(package.Assets, sessionResult, dependencyAnalysisParameters);
+            }
 
             CheckAssetNamespaceDisjointness(session, sessionResult);
 

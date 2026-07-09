@@ -78,10 +78,11 @@ public class RootPackageAssetEnumerator : IPackageCompilerSource
             CollectReferences(dependency, assetsReferenced, packagesProcessed);
         }
 
-        // 3. Some types are marked with AlwaysMarkAsRoot
+        // 3. Some types are marked with AlwaysMarkAsRoot; assets replacing another asset are
+        //    typically referenced by nothing, so they must be roots to get compiled
         foreach (var assetItem in package.Assets)
         {
-            if (AssetRegistry.IsAssetTypeAlwaysMarkAsRoot(assetItem.Asset.GetType()))
+            if (AssetRegistry.IsAssetTypeAlwaysMarkAsRoot(assetItem.Asset.GetType()) || assetItem.Asset.Replaces is not null)
             {
                 assetsReferenced.Add(assetItem);
             }

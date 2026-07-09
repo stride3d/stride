@@ -533,6 +533,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public HashSet<string> AssetNamespaceUsings { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    /// The build manifest files this session was loaded from, empty for other load paths.
+    /// </summary>
+    public IReadOnlyCollection<string> LoadedBuildManifests { get; internal set; } = [];
+
+    /// <summary>
     /// Gets the user packages (excluding system packages).
     /// </summary>
     /// <value>The user packages.</value>
