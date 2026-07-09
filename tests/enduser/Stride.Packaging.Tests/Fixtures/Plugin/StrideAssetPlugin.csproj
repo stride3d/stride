@@ -6,8 +6,7 @@
     <Version>1.0.0</Version>
     <!-- The dll is declared as an asset assembly automatically (out-of-tree default), so consumers
          load it for asset compilation. Override StrideContainsAssetTypes=false for the negative case. -->
-    <!-- Namespaced plugin: its asset URLs are rooted /StrideAssetPlugin/... in consumers. -->
-    <StrideAssetNamespace>true</StrideAssetNamespace>
+    <!-- Namespacing is on by default: asset URLs are rooted /StrideAssetPlugin/... in consumers. -->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />

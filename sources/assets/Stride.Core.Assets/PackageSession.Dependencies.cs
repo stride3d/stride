@@ -193,10 +193,9 @@ partial class PackageSession
                 // Asset URL namespace + using declarations (no SDK default exists, so imported values
                 // are deliberate authoring, e.g. Directory.Build.props)
                 var assetNamespace = msProject.GetPropertyValue(SolutionProject.AssetNamespaceProperty);
-                if (!string.IsNullOrEmpty(assetNamespace))
-                    project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, authoredName ?? package.Meta.Name);
-                foreach (var usingName in msProject.GetPropertyValue(SolutionProject.AssetNamespaceUsingsProperty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                    AssetNamespaceUsings.Add(usingName);
+                project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, authoredName ?? package.Meta.Name);
+                foreach (var usingItem in msProject.GetItems(SolutionProject.AssetNamespaceUsingItem))
+                    AssetNamespaceUsings.Add(usingItem.EvaluatedInclude);
 
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again

@@ -9,7 +9,7 @@ using Stride.Core.Storage;
 
 var content = new ContentManager(new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase())));
 
-foreach (var url in new[] { "/StrideAssetPlugin/PluginPage", "PluginPage", "Page" })
+foreach (var url in new[] { "/StrideAssetPlugin/PluginPage", "PluginPage", "/Consumer/Page", "Page" })
 {
     if (!content.Exists(url))
     {

@@ -178,7 +178,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<AssetAssembly> AssetAssemblies { get; } = [];
 
     /// <summary>
-    /// Asset URL namespace declaration: null/"false" = bare URLs, "true" = the package name, any other value = that name.
+    /// Asset URL namespace: unset = the package name (the default), any other value = that custom
+    /// prefix. Packed sdpkgs store the resolved name.
     /// </summary>
     [DataMember(106)]
     [DefaultValue(null)]

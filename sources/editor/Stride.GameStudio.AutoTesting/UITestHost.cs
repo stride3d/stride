@@ -624,11 +624,15 @@ internal sealed class UITestHost
         private static object? SearchTree(DependencyObject node, string idOrTitle, bool returnElement)
         {
             // Anchorables (panels) match by ContentId; documents (asset editors) typically have
-            // an empty ContentId and identify via Title (the asset URL).
+            // an empty ContentId and identify via Title (the asset URL). Asset URLs may carry a
+            // /Namespace/ prefix, so a bare name also matches its last path segment.
             if (node is FrameworkElement fe && fe.DataContext is LayoutContent lc
-                && (string.Equals(lc.ContentId, idOrTitle, StringComparison.Ordinal)
-                    || string.Equals(lc.Title, idOrTitle, StringComparison.Ordinal)))
+                && (Matches(lc.ContentId) || Matches(lc.Title)))
                 return returnElement ? fe : lc;
+
+            bool Matches(string? candidate)
+                => string.Equals(candidate, idOrTitle, StringComparison.Ordinal)
+                   || (candidate is not null && candidate.EndsWith("/" + idOrTitle, StringComparison.Ordinal));
             var count = VisualTreeHelper.GetChildrenCount(node);
             for (var i = 0; i < count; i++)
             {
