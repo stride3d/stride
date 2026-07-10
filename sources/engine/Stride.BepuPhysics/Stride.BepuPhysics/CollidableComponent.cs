@@ -253,6 +253,17 @@ public abstract class CollidableComponent : EntityComponent
 
     protected internal abstract CollidableReference? CollidableReference { get; }
 
+    /// <summary>
+    /// Whether this collidable needs its collider's inertia when attaching, see
+    /// <see cref="AttachInner"/>'s <c>shapeInertia</c> parameter.
+    /// </summary>
+    /// <remarks>
+    /// Inertia only affects bodies; statics discard it, and computing it is not free -
+    /// <see cref="Definitions.Colliders.MeshCollider"/>'s inertia iterates over every
+    /// triangle of the mesh. Colliders skip that work when this is false.
+    /// </remarks>
+    internal virtual bool ShouldCalculateInertia => true;
+
     public CollidableComponent()
     {
         _collider = new CompoundCollider();
@@ -277,7 +288,7 @@ public abstract class CollidableComponent : EntityComponent
 
         Debug.Assert(Processor is not null);
 
-        if (false == Collider.TryAttach(onSimulation.Simulation.Shapes, onSimulation.BufferPool, Processor.ShapeCache, out var index, out var centerOfMass, out var shapeInertia))
+        if (false == Collider.TryAttach(onSimulation.Simulation.Shapes, onSimulation.BufferPool, Processor.ShapeCache, ShouldCalculateInertia, out var index, out var centerOfMass, out var shapeInertia))
         {
             return;
         }

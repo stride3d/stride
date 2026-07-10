@@ -82,7 +82,7 @@ public sealed class MeshCollider : ICollider
         return ShapeCacheSystem.GetClosestToDecomposableScale(collidable.Entity.Transform.WorldMatrix);
     }
 
-    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
+    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
         Debug.Assert(_component is not null);
 
@@ -90,7 +90,11 @@ public sealed class MeshCollider : ICollider
         var mesh = _cache.GetBepuMesh(ComputeMeshScale(_component));
 
         index = shapes.Add(mesh);
-        inertia = Closed ? mesh.ComputeClosedInertia(Mass) : mesh.ComputeOpenInertia(Mass);
+        // Computing a mesh's inertia iterates over every one of its triangles, avoid that
+        // whenever the collidable doesn't read the result (statics)
+        inertia = shouldCalculateInertia
+            ? Closed ? mesh.ComputeClosedInertia(Mass) : mesh.ComputeOpenInertia(Mass)
+            : default;
         centerOfMass = Vector3.Zero;
         //if (_containerComponent is BodyMeshContainerComponent _b)
         //{
