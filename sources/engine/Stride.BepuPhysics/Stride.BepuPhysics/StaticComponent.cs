@@ -84,6 +84,10 @@ public class StaticComponent : CollidableComponent
         }
     }
 
+    /// <inheritdoc/>
+    /// <remarks> Statics are not affected by forces, <see cref="AttachInner"/> discards the inertia </remarks>
+    internal override bool ShouldCalculateInertia => false;
+
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Processor is not null);
