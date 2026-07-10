@@ -73,7 +73,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected readonly SessionNodeContainer NodeContainer;
         protected readonly bool Initializing;
         private readonly AnonymousCommand clearArchetypeCommand;
+        private readonly AnonymousCommand clearReplacesCommand;
         private readonly AnonymousCommand createDerivedAssetCommand;
+        private readonly AnonymousCommand createReplacingAssetCommand;
         private Package package;
         private string name;
         private DirectoryBaseViewModel directory;
@@ -107,7 +109,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             assetCommands = new ObservableList<MenuCommandInfo>();
             createDerivedAssetCommand = new AnonymousCommand(ServiceProvider, CreateDerivedAsset) { IsEnabled = CanDerive };
+            createReplacingAssetCommand = new AnonymousCommand(ServiceProvider, CreateReplacingAsset) { IsEnabled = CanReplace };
             clearArchetypeCommand = new AnonymousCommand(ServiceProvider, ClearArchetype) { IsEnabled = Asset.Archetype != null };
+            clearReplacesCommand = new AnonymousCommand(ServiceProvider, ClearReplaces) { IsEnabled = IsReplacing };
             // TODO: make the view model independent of the view (ie. MenuCommandInfo.Icon and remove this dispatcher call.
             Dispatcher.InvokeAsync(() =>
             {
@@ -116,9 +120,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     DisplayName = "Create derived asset",
                     Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
+                assetCommands.Add(new MenuCommandInfo(ServiceProvider, createReplacingAssetCommand)
+                {
+                    DisplayName = "Create replacing asset",
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
+                });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearArchetypeCommand)
                 {
                     DisplayName = "Clear archetype",
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
+                });
+                assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearReplacesCommand)
+                {
+                    DisplayName = "Clear replaces",
                     Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
             }).Forget();
@@ -220,6 +234,21 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public bool HasBeenUpgraded { get; }
 
         public bool CanDerive => AssetType.GetCustomAttribute<AssetDescriptionAttribute>()?.AllowArchetype ?? false;
+
+        /// <summary>
+        /// Gets whether a replacing asset (an asset with <see cref="Core.Assets.Asset.Replaces"/> targeting this one) can be created from this asset.
+        /// </summary>
+        public bool CanReplace => CanDerive && Asset is not SourceCodeAsset;
+
+        /// <summary>
+        /// Gets whether this asset replaces another asset in the built game.
+        /// </summary>
+        public bool IsReplacing => Asset.Replaces is not null;
+
+        /// <summary>
+        /// The URL this asset replaces, or <c>null</c>.
+        /// </summary>
+        public string ReplacesUrl => Asset.Replaces?.FullPath;
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
 
@@ -353,6 +382,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected virtual void OnAssetPropertyChanged(string propertyName, IGraphNode node, NodeIndex index, object oldValue, object newValue)
         {
             clearArchetypeCommand.IsEnabled = Asset.Archetype != null;
+            if (propertyName == nameof(Core.Assets.Asset.Replaces))
+            {
+                clearReplacesCommand.IsEnabled = IsReplacing;
+                OnPropertyChanged(nameof(IsReplacing), nameof(ReplacesUrl));
+                Session.CheckAssetReplacements(this);
+            }
         }
 
         protected virtual IObjectNode GetPropertiesRootNode()
@@ -584,6 +619,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             AssetItem.IsDeleted = IsDeleted;
             Session.SourceTracker?.UpdateAssetStatus(this);
+
+            // Replacement diagnostics cross-reference assets (duplicates, targets), so deleting or
+            // restoring one can affect others' validity
+            if (!Initializing && (Asset.Replaces != null || Session.HasAssetReplacements))
+                Session.CheckAssetReplacements(this);
         }
 
         private bool IsNewNameValid(string newName, out string error)
@@ -627,18 +667,43 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private void CreateDerivedAsset()
         {
             if (CanDerive)
+                CreateChildAsset(Name + "-Derived", replaces: false);
+        }
+
+        private void CreateReplacingAsset()
+        {
+            if (CanReplace)
+                CreateChildAsset(Name, replaces: true);
+        }
+
+        private void CreateChildAsset(string baseName, bool replaces)
+        {
+            var targetDirectory = FindValidCreationLocation(assetItem.Asset.GetType(), directory, Session.CurrentProject);
+
+            if (targetDirectory == null)
+                return;
+
+            var childName = NamingHelper.ComputeNewName(baseName, targetDirectory.Assets, x => x.Name);
+            var childUrl = UFile.Combine(targetDirectory.Path, childName);
+            var childAsset = assetItem.CreateDerivedAsset();
+            if (replaces)
+                childAsset.Replaces = assetItem.Location;
+            var childAssetItem = new AssetItem(childUrl, childAsset);
+            targetDirectory.Package.CreateAsset(targetDirectory, childAssetItem, true, null);
+            if (replaces)
+                Session.CheckAssetReplacements();
+        }
+
+        private void ClearReplaces()
+        {
+            using (var transaction = UndoRedoService.CreateTransaction())
             {
-                var targetDirectory = FindValidCreationLocation(assetItem.Asset.GetType(), directory, Session.CurrentProject);
-
-                if (targetDirectory == null)
-                    return;
-
-                var childName = NamingHelper.ComputeNewName(Name + "-Derived", targetDirectory.Assets, x => x.Name);
-                var childUrl = UFile.Combine(targetDirectory.Path, childName);
-                var childAsset = assetItem.CreateDerivedAsset();
-                var childAssetItem = new AssetItem(childUrl, childAsset);
-                targetDirectory.Package.CreateAsset(targetDirectory, childAssetItem, true, null);
+                PropertyGraph.RootNode[nameof(Core.Assets.Asset.Replaces)].Update(null);
+                UndoRedoService.SetName(transaction, "Clear replaces");
             }
+
+            // Force refreshing the property grid
+            Session.AssetViewProperties.RefreshSelectedPropertiesAsync().Forget();
         }
 
         private void ClearArchetype()
