@@ -18,4 +18,7 @@
   <ItemGroup Condition="'$(StrideRemoteEffectCompilerEnabled)' != ''">
     <RuntimeHostConfigurationOption Include="Stride.Engine.RemoteEffectCompilerEnabled" Value="$(StrideRemoteEffectCompilerEnabled)" Trim="true" />
   </ItemGroup>
+
+  <!-- Asset URL constants generator inputs (in-repo projects import this from Sdk.targets instead) -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.AssetConstants.targets" Condition="'$(StrideAssetConstantsImported)' == ''" />
 </Project>
