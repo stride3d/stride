@@ -70,10 +70,11 @@
     <Project Path="../sources/core/Stride.Core.CompilerServices.Tests/Stride.Core.CompilerServices.Tests.csproj" />
     <Project Path="../sources/core/Stride.Core.Mathematics.Tests/Stride.Core.Mathematics.Tests.csproj" />
     <Project Path="../sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj">
-      <BuildType Solution="Release|Any CPU" Project="Debug" />
+      <BuildType Project="Debug" />
     </Project>
   </Folder>
   <Folder Name="/20-StrideRuntime/">
+    <Project Path="../sources/engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
     <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
