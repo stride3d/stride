@@ -23,7 +23,11 @@ public interface ICollider
     /// You must still transform this further into worldspace by using the world position and rotation the collidable's entity.
     /// </remarks>
     public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms);
-    internal bool TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia);
+    /// <remarks>
+    /// When <paramref name="shouldCalculateInertia"/> is false the caller does not read
+    /// <paramref name="inertia"/> - implementations skip computing it and may leave it default.
+    /// </remarks>
+    internal bool TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia);
     internal void Detach(Shapes shapes, BufferPool pool, TypedIndex index);
     internal void AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache);
 

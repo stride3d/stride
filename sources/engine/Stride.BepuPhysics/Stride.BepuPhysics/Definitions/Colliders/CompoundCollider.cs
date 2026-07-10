@@ -65,7 +65,7 @@ public sealed class CompoundCollider : ICollider
         }
     }
 
-    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
+    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
         if (_colliders.Count == 0)
         {
@@ -89,7 +89,18 @@ public sealed class CompoundCollider : ICollider
 
             Buffer<CompoundChild> compoundChildren;
             System.Numerics.Vector3 shapeCenter;
-            compoundBuilder.BuildDynamicCompound(out compoundChildren, out inertia, out shapeCenter);
+
+            if (shouldCalculateInertia)
+            {
+                compoundBuilder.BuildDynamicCompound(out compoundChildren, out inertia, out shapeCenter);
+            }
+            else
+            {
+                // Same children and same weight-weighted center as BuildDynamicCompound, minus
+                // combining the children's inertia (it never reads their LocalInverseInertia)
+                compoundBuilder.BuildKinematicCompound(out compoundChildren, out shapeCenter);
+                inertia = default;
+            }
 
             index = IsBig ? shapes.Add(new BigCompound(compoundChildren, shapes, pool)) : shapes.Add(new Compound(compoundChildren));
             centerOfMass = shapeCenter.ToStride();
