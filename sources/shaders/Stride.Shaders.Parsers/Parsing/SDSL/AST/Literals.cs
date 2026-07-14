@@ -94,17 +94,16 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         // If expectedType is float, handle it:
         if (Type is ScalarType { Type: Scalar.Float })
         {
-            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, null, Info));
+            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, Info));
         }
 
         return compiler.Context.CompileConstantLiteral(this);
     }
 }
 
-public sealed partial class FloatLiteral(Suffix suffix, double value, int? exponent, TextLocation info) : NumberLiteral<double>(suffix, value, info)
+public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocation info) : NumberLiteral<double>(suffix, value, info)
 {
-    public int? Exponent { get; set; } = exponent;
-    public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
+    public static implicit operator FloatLiteral(double v) => new(new(), v, new());
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
