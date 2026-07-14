@@ -51,7 +51,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
                 if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
                 {
                     var settingsObject = PackageSettingsWrapper.SettingsKeyWrapper.Create(key, profile);
-                    settingsList.Add(key.DisplayName.GetFileName(), settingsObject);
+                    settingsList.Add(key.Name, settingsObject);
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
                 var displayName = command.DisplayName.ToString();
                 if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
                 {
-                    settingsList.Add(command.DisplayName.GetFileName(), command);
+                    settingsList.Add(command.Name, command);
                 }
             }
         }
