@@ -10,12 +10,18 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
     {
         public override void UpdateNode(INodePresenter node)
         {
-            var settingsKey = node.Value as PackageSettingsWrapper.SettingsKeyWrapper;
-            if (settingsKey != null)
+            switch (node.Value)
             {
-                var acceptableValues = settingsKey.Key.AcceptableValues.ToList();
-                node.AttachedProperties.Add(SettingsData.HasAcceptableValuesKey, acceptableValues.Count > 0);
-                node.AttachedProperties.Add(SettingsData.AcceptableValuesKey, acceptableValues);
+                case PackageSettingsWrapper.SettingsKeyWrapper settingsKey:
+                    node.DisplayName = settingsKey.Key.DisplayName.GetFileName();
+                    var acceptableValues = settingsKey.Key.AcceptableValues.ToList();
+                    node.AttachedProperties.Add(SettingsData.HasAcceptableValuesKey, acceptableValues.Count > 0);
+                    node.AttachedProperties.Add(SettingsData.AcceptableValuesKey, acceptableValues);
+                    break;
+
+                case SettingsCommand command:
+                    node.DisplayName = command.DisplayName.GetFileName();
+                    break;
             }
         }
     }
