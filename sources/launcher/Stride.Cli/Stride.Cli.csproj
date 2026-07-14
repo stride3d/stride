@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>stride</ToolCommandName>
     <PackageId>Stride.Cli</PackageId>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <Description>Command-line tool for Stride: install Stride versions and create, build, and manage Stride projects.</Description>
     <PackageTags>stride;gamedev;cli;dotnet-tool</PackageTags>
   </PropertyGroup>

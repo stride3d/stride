@@ -388,7 +388,16 @@ public sealed class StrideVersionManager
     public string? LocateAssetCompiler(PackageVersion version)
     {
         var packageId = version.Version >= new Version(4, 4, 0) ? "Stride.AssetCompiler" : "Stride.Core.Assets.CompilerApp";
-        return LocateExecutable(packageId, version, packageId + ".exe");
+        var assembly = LocateExecutable(packageId, version, packageId + ".dll");
+        // On Windows prefer the native apphost next to it (nicer process identity); elsewhere Tools.Run runs the
+        // .dll via `dotnet` (the packaged .exe is a Windows apphost, unusable off Windows).
+        if (assembly is not null && OperatingSystem.IsWindows())
+        {
+            var apphost = Path.ChangeExtension(assembly, ".exe");
+            if (File.Exists(apphost))
+                return apphost;
+        }
+        return assembly;
     }
 
     // The csproj files in the current directory, plus those referenced by any .sln/.slnx/.slnf there. Mirrors
@@ -498,7 +507,11 @@ public sealed class StrideVersionManager
 
             foreach (var executableName in executableNames)
             {
-                var match = Directory.EnumerateFiles(directory, executableName, SearchOption.AllDirectories).FirstOrDefault();
+                var match = Directory.EnumerateFiles(directory, executableName, SearchOption.AllDirectories)
+                    // Skip Windows-only TFM folders (net10.0-windows7.0) off Windows; sort for a deterministic pick.
+                    .Where(path => OperatingSystem.IsWindows() || !IsWindowsTargetFrameworkFolder(path))
+                    .OrderBy(path => path, StringComparer.Ordinal)
+                    .FirstOrDefault();
                 if (match is not null)
                     return match;
             }
@@ -506,6 +519,10 @@ public sealed class StrideVersionManager
 
         return null;
     }
+
+    // A Windows-specific TFM folder (e.g. net10.0-windows7.0), whose build only runs on Windows.
+    private static bool IsWindowsTargetFrameworkFolder(string path)
+        => path.Contains("-windows", StringComparison.OrdinalIgnoreCase);
 
     private StrideVersion ToStrideVersion(NugetLocalPackage package)
         => new(package.Id, package.Version, store.GetInstalledPath(package.Id, package.Version));
