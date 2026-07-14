@@ -88,24 +88,21 @@ public struct NumberParser : IParser<Literal>
 
 
         var value = double.Parse(scanner.Span[position..scanner.Position], CultureInfo.InvariantCulture);
-        int? exponent = null;
         if (Tokens.Char('e', ref scanner, advance: true) || Tokens.Char('E', ref scanner, advance: true))
         {
-            var signed = Tokens.AnyOf(["+", "-"], ref scanner, out var matched, advance: true);
-            var expStart = scanner.Position;
+            Tokens.AnyOf(["+", "-"], ref scanner, out _, advance: true);
             if (Tokens.Digit(ref scanner, advance: true))
             {
                 while (Tokens.Digit(ref scanner, advance: true)) ;
-                exponent = int.Parse(scanner.Span[expStart..scanner.Position], CultureInfo.InvariantCulture);
-                if (signed && matched == "-")
-                    exponent = -exponent;
+                // Re-parse the whole mantissa+exponent span so the exponent is folded into the value.
+                value = double.Parse(scanner.Span[position..scanner.Position], CultureInfo.InvariantCulture);
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
         }
         if (Tokens.FloatSuffix(ref scanner, out var suffix, advance: true) && suffix is not null)
-            parsed = new FloatLiteral(suffix.Value, value, exponent, scanner[position..scanner.Position]);
+            parsed = new FloatLiteral(suffix.Value, value, scanner[position..scanner.Position]);
         else
-            parsed = new FloatLiteral(new(32, true, true), value, exponent, scanner[position..scanner.Position]);
+            parsed = new FloatLiteral(new(32, true, true), value, scanner[position..scanner.Position]);
         return true;
     }
     public static bool Hex<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)
