@@ -1321,7 +1321,7 @@ internal class TemplatePreprocessor
                 { "condition": "(!MacOSActive)",   "exclude": [ "MyTemplate.macOS/**"   ] },
                 { "condition": "(!iOsActive)",     "exclude": [ "MyTemplate.iOS/**"     ] },
                 { "condition": "(!AndroidActive)", "exclude": [ "MyTemplate.Android/**" ] },
-                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate/**", "*.slnx" ] },
+                { "condition": "(updateOnly)",     "exclude": [ "MyTemplate.Game/**", "*.slnx" ] },
                 { "exclude": [ ".sdtpl/**" ] }
         """);
         if (Sdtpl?.HasParameter("HDR") == true && Sdtpl?.HasParameter("GraphicsProfile") == true)
@@ -1334,26 +1334,26 @@ internal class TemplatePreprocessor
                 { "condition": "(EffectiveHDR)",  "exclude": [ "**/*.LDR.*" ] },
                 { "condition": "(!EffectiveHDR)",
                   "exclude": [
-                    "MyTemplate/Assets/Sphere Material.sdmat",
-                    "MyTemplate/Assets/Ground Material.sdmat",
-                    "MyTemplate/Assets/Sphere.sdpromodel",
-                    "MyTemplate/Assets/Ground.sdpromodel",
-                    "MyTemplate/Assets/Skybox texture.sdtex",
-                    "MyTemplate/Assets/Skybox.sdsky",
-                    "MyTemplate/Assets/MainScene.sdscene",
-                    "MyTemplate/Assets/GameSettings.sdgamesettings",
-                    "MyTemplate/Assets/GraphicsCompositor.sdgfxcomp"
+                    "MyTemplate.Game/Assets/Sphere Material.sdmat",
+                    "MyTemplate.Game/Assets/Ground Material.sdmat",
+                    "MyTemplate.Game/Assets/Sphere.sdpromodel",
+                    "MyTemplate.Game/Assets/Ground.sdpromodel",
+                    "MyTemplate.Game/Assets/Skybox texture.sdtex",
+                    "MyTemplate.Game/Assets/Skybox.sdsky",
+                    "MyTemplate.Game/Assets/MainScene.sdscene",
+                    "MyTemplate.Game/Assets/GameSettings.sdgamesettings",
+                    "MyTemplate.Game/Assets/GraphicsCompositor.sdgfxcomp"
                   ],
                   "rename": {
-                    "MyTemplate/Assets/Sphere Material.LDR.sdmat":            "MyTemplate/Assets/Sphere Material.sdmat",
-                    "MyTemplate/Assets/Ground Material.LDR.sdmat":            "MyTemplate/Assets/Ground Material.sdmat",
-                    "MyTemplate/Assets/Sphere.LDR.sdpromodel":                "MyTemplate/Assets/Sphere.sdpromodel",
-                    "MyTemplate/Assets/Ground.LDR.sdpromodel":                "MyTemplate/Assets/Ground.sdpromodel",
-                    "MyTemplate/Assets/Skybox texture.LDR.sdtex":             "MyTemplate/Assets/Skybox texture.sdtex",
-                    "MyTemplate/Assets/Skybox.LDR.sdsky":                     "MyTemplate/Assets/Skybox.sdsky",
-                    "MyTemplate/Assets/MainScene.LDR.sdscene":                "MyTemplate/Assets/MainScene.sdscene",
-                    "MyTemplate/Assets/GameSettings.LDR.sdgamesettings":      "MyTemplate/Assets/GameSettings.sdgamesettings",
-                    "MyTemplate/Assets/GraphicsCompositor.LDR.sdgfxcomp":     "MyTemplate/Assets/GraphicsCompositor.sdgfxcomp"
+                    "MyTemplate.Game/Assets/Sphere Material.LDR.sdmat":            "MyTemplate.Game/Assets/Sphere Material.sdmat",
+                    "MyTemplate.Game/Assets/Ground Material.LDR.sdmat":            "MyTemplate.Game/Assets/Ground Material.sdmat",
+                    "MyTemplate.Game/Assets/Sphere.LDR.sdpromodel":                "MyTemplate.Game/Assets/Sphere.sdpromodel",
+                    "MyTemplate.Game/Assets/Ground.LDR.sdpromodel":                "MyTemplate.Game/Assets/Ground.sdpromodel",
+                    "MyTemplate.Game/Assets/Skybox texture.LDR.sdtex":             "MyTemplate.Game/Assets/Skybox texture.sdtex",
+                    "MyTemplate.Game/Assets/Skybox.LDR.sdsky":                     "MyTemplate.Game/Assets/Skybox.sdsky",
+                    "MyTemplate.Game/Assets/MainScene.LDR.sdscene":                "MyTemplate.Game/Assets/MainScene.sdscene",
+                    "MyTemplate.Game/Assets/GameSettings.LDR.sdgamesettings":      "MyTemplate.Game/Assets/GameSettings.sdgamesettings",
+                    "MyTemplate.Game/Assets/GraphicsCompositor.LDR.sdgfxcomp":     "MyTemplate.Game/Assets/GraphicsCompositor.sdgfxcomp"
                   }
                 }
             """);

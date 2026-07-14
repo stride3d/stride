@@ -92,6 +92,8 @@ public class StrideGameTemplateSmokeTests
             {
                 foreach (var (_, shortName, projectName) in packagesToPack)
                     InstantiateAndValidate(workspace, templateShortName: shortName, projectName: projectName);
+
+                InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
             }
             finally
             {
@@ -139,6 +141,27 @@ public class StrideGameTemplateSmokeTests
         var csprojText = File.ReadAllText(libraryCsproj);
         Assert.True(csprojText.Contains("<PackageReference Include=\"Stride.Engine\""),
             $"Generated {Path.GetFileName(libraryCsproj)} missing Stride.Engine PackageReference:\n{csprojText}");
+    }
+
+    /// <summary>
+    /// Regression for #3262: stride-game with <c>updateOnly=true</c> (the mode GameStudio's Update
+    /// Platforms flow drives) must emit only the requested per-platform exec project and never the
+    /// shared game library. A stale <c>MyTemplate/</c> exclude path silently matched nothing after
+    /// the library dir was renamed to <c>MyTemplate.Game/</c>, so the library got regenerated as a
+    /// spurious <c>&lt;Name&gt;.Game</c> project.
+    /// </summary>
+    private void InstantiateUpdateOnlyAndValidate(string workspace, string projectName)
+    {
+        var newResult = RunDotnet(workspace, "new", "stride-game", "-n", projectName,
+            "--updateOnly", "true", "--platforms", "windows");
+        Assert.True(newResult.exitCode == 0, $"dotnet new stride-game --updateOnly failed:\n{newResult.output}");
+
+        var instantiated = Path.Combine(workspace, projectName);
+        Assert.True(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Windows")),
+            $"updateOnly must emit the requested exec project {projectName}.Windows/ under {instantiated}");
+        Assert.False(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Game")),
+            $"updateOnly must not regenerate the shared game library {projectName}.Game/ (issue #3262)");
+        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
     }
 
     private static string? FindNupkg(string dir, string packageId)
