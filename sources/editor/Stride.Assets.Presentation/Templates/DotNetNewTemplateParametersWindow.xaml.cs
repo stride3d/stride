@@ -73,6 +73,8 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
         // Parameters surface in template.json declaration order (ITemplateInfo.ParameterDefinitions
         // preserves it). Don't sort by Precedence — it's a non-IComparable struct that breaks LINQ
         // OrderBy with 2+ params.
+        // Skip params the template's dotnetcli.host.json marks isVisible:false (e.g. updateOnly).
+        var hidden = DotNetNewTemplateBridge.GetHiddenParameterNames(template);
         var visibleParams = template.ParameterDefinitions
             // Exclude the built-in "name" parameter (auto-injected from sourceName; its IsName
             // flag isn't reliably set, so match by name too). GameStudio's outer New-Project
@@ -80,6 +82,7 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
             .Where(p => string.Equals(p.Type, "parameter", StringComparison.Ordinal)
                         && !p.IsName
                         && !string.Equals(p.Name, "name", StringComparison.Ordinal))
+            .Where(p => !hidden.Contains(p.Name))
             // Hide single-choice parameters (e.g. template.json "tags" like language/type).
             .Where(p => !(string.Equals(p.DataType, "choice", StringComparison.OrdinalIgnoreCase)
                           && p.Choices != null && p.Choices.Count <= 1))
