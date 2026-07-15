@@ -276,9 +276,11 @@
   </Target>
   <Target Name="_StrideRegisterPackageFiles" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
-      <!-- Native dependencies go to the runtimes/RID/native folder -->
+      <!-- Native dependencies go to the runtimes/RID/native folder. PackagePath is the target directory
+           (trailing slash required): NuGet reads an extensionless PackagePath as a folder and would nest
+           extensionless natives such as the linux/osx ffmpeg one level too deep. -->
       <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)"
-                              PackagePath="%(_StrideDependencyToCopy.TargetPath)" />
+                              PackagePath="$([System.IO.Path]::GetDirectoryName('%(_StrideDependencyToCopy.TargetPath)'))/" />
     </ItemGroup>
   </Target>
 
