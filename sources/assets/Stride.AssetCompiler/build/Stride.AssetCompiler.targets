@@ -56,7 +56,15 @@
     <StrideIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</StrideIsExecutable>
 
-    <!--asset BuildPath for all platforms (same as package)-->
+    <!-- Redirected = this project (a platform head) borrows the game library's DB it points at via
+         StrideCurrentPackagePath, so editor + all heads share one DB per game (the index is already
+         per-platform, so heads don't collide). Only when that game library is a *different* project:
+         a single project that is its own game (points at itself) stays an owner, resolving to its own
+         obj below so its Clean clears the cache. -->
+    <_StrideCurrentPackageDir Condition="'$(StrideCurrentPackagePath)' != ''">$([MSBuild]::NormalizeDirectory($([System.IO.Path]::GetDirectoryName('$(StrideCurrentPackagePath)'))))</_StrideCurrentPackageDir>
+    <_StrideProjectDir Condition="'$(ProjectDir)' != ''">$([MSBuild]::NormalizeDirectory('$(ProjectDir)'))</_StrideProjectDir>
+    <StrideCompileAssetBuildRedirected Condition="'$(StrideCompileAssetBuildPath)' == '' And '$(_StrideCurrentPackageDir)' != '' And '$(_StrideCurrentPackageDir)' != '$(_StrideProjectDir)'">true</StrideCompileAssetBuildRedirected>
+    <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildRedirected)' == 'true'">$([System.IO.Path]::GetFullPath($([System.IO.Path]::Combine($([System.IO.Path]::GetDirectoryName('$(StrideCurrentPackagePath)')), 'obj/stride/assetbuild/data'))))</StrideCompileAssetBuildPath>
     <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)stride\assetbuild\data</StrideCompileAssetBuildPath>
 
     <!-- Compiled-asset output path, unified across platforms. -->
@@ -202,13 +210,15 @@
   </Target>
 
   <!-- Clean assets -->
+  <!-- A head borrows the game library's shared DB, so its Clean must not wipe it; cleaning the game
+       library (the owner) still clears the shared cache for all platforms + the editor. -->
   <Target Name="StrideCleanAssetsOnClean" AfterTargets="Clean" Condition="'$(StrideSkipAssetsClean)' != 'true'">
-    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
+    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)') And '$(StrideCompileAssetBuildRedirected)' != 'true'" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>
   </Target>
 
   <Target Name="StrideCleanAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
-    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
+    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)') And '$(StrideCompileAssetBuildRedirected)' != 'true'" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>
   </Target>
 
