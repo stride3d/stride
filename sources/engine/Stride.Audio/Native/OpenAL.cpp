@@ -342,6 +342,10 @@ extern "C" {
 
 			listener->device->deviceLock.Unlock();
 
+			// Clear the current context so Apple's OpenAL stops rendering it before we free it;
+			// otherwise its audio callback can race the freed source list and abort on macOS shutdown.
+			MakeContextCurrent(NULL);
+
 			DestroyContext(listener->context);
 
 			delete listener;
