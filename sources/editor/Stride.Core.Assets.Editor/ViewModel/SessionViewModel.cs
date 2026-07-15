@@ -1318,9 +1318,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         internal void ProcessRemovedProjects()
         {
-            foreach (var package in packageMap.Where(x => !session.Projects.Contains(x.Value)))
+            foreach (var package in packageMap.Where(x => !session.Projects.Contains(x.Value)).ToList())
             {
+                // Unregister the removed package's assets (id + graph)
+                foreach (var asset in package.Key.Assets.ToList())
+                    asset.MarkAsDeleted();
                 LocalPackages.Remove(package.Key);
+                packageMap.Remove(package.Key);
             }
         }
 
