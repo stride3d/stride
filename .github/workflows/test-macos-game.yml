@@ -103,6 +103,27 @@ jobs:
           echo "Selecting $latest"
           sudo xcode-select -s "$latest"
           xcodebuild -version
+      - name: Ensure Xcode toolchain utilities resolve
+        # Xcode 26.6 on the runner image has a broken `xcodebuild -sdk … -find <tool>`, so the .NET
+        # macOS/iOS SDK can't locate the utilities it needs to build/link/package the .app
+        # (install_name_tool, mdimport, actool, …). Symlink each into the active toolchain bin from a
+        # real copy (Command Line Tools, Xcode's own bin, PATH, or the llvm-named variant); the SDK's
+        # fallback then finds it there.
+        run: |
+          set -x
+          dev="$(xcode-select -p)"
+          tcbin="$dev/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+          for tool in install_name_tool mdimport dsymutil strip lipo bitcode_strip actool ibtool; do
+            xcrun -find "$tool" >/dev/null 2>&1 && continue
+            for cand in \
+              "/Library/Developer/CommandLineTools/usr/bin/$tool" \
+              "$dev/usr/bin/$tool" \
+              "$(command -v "$tool" 2>/dev/null || true)" \
+              "$tcbin/llvm-$tool"; do
+              [ -x "$cand" ] && { sudo ln -sf "$cand" "$tcbin/$tool"; echo "linked $tool -> $cand"; break; }
+            done
+            xcrun -find "$tool" >/dev/null 2>&1 || echo "::warning::could not resolve $tool"
+          done
       - name: Install Vulkan validation layer
         # Stride loads the LunarG loader on macOS when present so the validation layer chain works;
         # its DebugReport callback routes errors+warnings to GraphicsDevice.DebugLog, which
