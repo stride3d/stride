@@ -166,6 +166,29 @@
     </ItemGroup>
   </Target>
 
+  <!-- Track deployed native libraries in the fast up-to-date check as copied outputs, each paired with its
+       source via Original metadata. Unlike a plain UpToDateCheckInput, the re-copy on rebuild makes the output
+       at least as new as the source, so the check clears instead of looping; and a changed vendored binary
+       rebuilds and re-deploys. Emitted in the design-time built collection (references are resolved there); the
+       depended-on targets only read .ssdeps and compute item paths, so there are no file-system side effects. -->
+  <PropertyGroup>
+    <CollectUpToDateCheckBuiltDesignTimeDependsOn>$(CollectUpToDateCheckBuiltDesignTimeDependsOn);_StrideCollectNativeUpToDateCheckBuilt</CollectUpToDateCheckBuiltDesignTimeDependsOn>
+  </PropertyGroup>
+  <Target Name="_StrideCollectNativeUpToDateCheckBuilt"
+          DependsOnTargets="_StrideSetupNativeLibraries;_StrideFilterTransitiveCopyToOutputDirectoryItems;_StrideTrimToolingHostRuntimeAssets">
+    <!-- This project's own StrideNativeLib, deployed to its output by _StrideGenerateDependenciesCore. -->
+    <AssignTargetPath RootFolder="$(OutputPath)" Files="@(StrideNativeLib)">
+      <Output TaskParameter="AssignedFiles" ItemName="_StrideNativeLibBuiltCheck" />
+    </AssignTargetPath>
+    <ItemGroup>
+      <UpToDateCheckBuilt Include="@(_StrideNativeLibBuiltCheck->'$(OutDir)%(TargetPath)')" Original="%(_StrideNativeLibBuiltCheck.FullPath)" />
+      <!-- Natives copied in from referenced .ssdeps, after RID filtering and tooling-host trimming. -->
+      <UpToDateCheckBuilt Include="@(_SourceItemsToCopyToOutputDirectory->'$(OutDir)%(TargetPath)')"
+                          Original="%(_SourceItemsToCopyToOutputDirectory.FullPath)"
+                          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('\','/').StartsWith('runtimes/'))" />
+    </ItemGroup>
+  </Target>
+
   <!-- Android (engine self-build only): .ssdeps points natives at deps/<Lib>/Android/<abi>/
        which Microsoft.Android.Sdk's standard NuGet runtimes/<rid>/native/ resolver doesn't
        see. NuGet PackageReference consumers don't need this — Microsoft.Android.Sdk picks
