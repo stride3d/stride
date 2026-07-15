@@ -38,7 +38,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
 
     /// <inheritdoc/>
     [MemberNotNullWhen(true, nameof(Indices))]
-    public bool IsEnumerable => Descriptor is CollectionDescriptor || Descriptor is DictionaryDescriptor || Descriptor is ArrayDescriptor;
+    public bool IsEnumerable => Descriptor is CollectionBaseDescriptor;
 
     /// <inheritdoc/>
     [MemberNotNullWhen(true, nameof(ItemReferences))]
@@ -224,17 +224,9 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
             itemArgs = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionUpdate, oldValue, newValue);
             NotifyItemChanging(itemArgs);
         }
-        if (Descriptor is CollectionDescriptor collectionDescriptor)
+        if (Descriptor is CollectionBaseDescriptor collectionDescriptor)
         {
-            collectionDescriptor.SetValue(Value, indexValue, ConvertValue(newValue, collectionDescriptor.ElementType));
-        }
-        else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
-        {
-            dictionaryDescriptor.SetValue(Value, indexValue, ConvertValue(newValue, dictionaryDescriptor.ValueType));
-        }
-        else if (Descriptor is ArrayDescriptor arrayDescriptor)
-        {
-            arrayDescriptor.SetValue(Value, (int)indexValue, ConvertValue(newValue, arrayDescriptor.ElementType));
+            collectionDescriptor.SetValue(Value, indexValue, ConvertValue(newValue, collectionDescriptor.ValueType));
         }
         else
         {
