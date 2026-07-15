@@ -134,7 +134,7 @@ jobs:
           set -x
           dev="$(xcode-select -p)"
           tcbin="$dev/Toolchains/XcodeDefault.xctoolchain/usr/bin"
-          for tool in install_name_tool mdimport dsymutil strip lipo bitcode_strip actool ibtool; do
+          for tool in install_name_tool mdimport dsymutil strip lipo bitcode_strip actool ibtool derq; do
             xcrun -find "$tool" >/dev/null 2>&1 && continue
             for cand in \
               "/Library/Developer/CommandLineTools/usr/bin/$tool" \
