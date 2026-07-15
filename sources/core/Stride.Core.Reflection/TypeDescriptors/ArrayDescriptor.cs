@@ -8,7 +8,7 @@ namespace Stride.Core.Reflection;
 /// <summary>
 /// A descriptor for an array.
 /// </summary>
-public class ArrayDescriptor : ObjectDescriptor
+public class ArrayDescriptor : CollectionBaseDescriptor
 {
     public ArrayDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         : base(factory, type, emitDefaultValues, namingConvention)
@@ -51,7 +51,7 @@ public class ArrayDescriptor : ObjectDescriptor
         return ((Array)array).GetValue(index);
     }
 
-    public void SetValue(object array, int index, object value)
+    public void SetValue(object array, int index, object? value)
     {
         ((Array)array).SetValue(value, index);
     }
@@ -64,5 +64,32 @@ public class ArrayDescriptor : ObjectDescriptor
     public int GetLength(object array)
     {
         return ((Array)array).Length;
+    }
+
+    public override object? GetValue(object collection, object index)
+    {
+        return GetValue(collection, (int)index);
+    }
+
+    public override void SetValue(object collection, object index, object? value)
+    {
+        SetValue(collection, (int)index, value);
+    }
+
+    public override Type ValueType => ElementType;
+
+    public override IEnumerable<object> EnumerateKeys(object collection)
+    {
+        return Enumerable.Range(0, GetLength(collection)).Cast<object>();
+    }
+
+    public override bool IsKeyValid(object? key)
+    {
+        return key is int i && i >= 0;
+    }
+
+    public override bool ContainsKey(object collection, object? key)
+    {
+        return key is int i && i >= 0 && i < GetLength(collection);
     }
 }

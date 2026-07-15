@@ -64,32 +64,11 @@ public abstract class GraphNodeBase : IInitializingGraphNode
 
     public static IEnumerable<NodeIndex>? GetIndices(IGraphNode node)
     {
-        if (node.Descriptor is CollectionDescriptor collectionDescriptor)
+        if (node.Descriptor is CollectionBaseDescriptor collectionDescriptor)
         {
-            if (node.Descriptor.Category == DescriptorCategory.Set)
-            {
-                var enumerator = (node.Retrieve() as IEnumerable).GetEnumerator();
-                NodeIndex[] valueArr = new NodeIndex[collectionDescriptor.GetCollectionCount(node.Retrieve())];
-                int i = 0;
-                while (enumerator.MoveNext())
-                {
-                    valueArr[i++] = new NodeIndex(enumerator.Current);
-                }
-                return valueArr;
-            }
-            else
-            {
-                return Enumerable.Range(0, collectionDescriptor.GetCollectionCount(node.Retrieve())).Select(x => new NodeIndex(x));
-            }
+            return collectionDescriptor.EnumerateKeys(node.Retrieve()).Select(x => new NodeIndex(x));
         }
-        else if (node.Descriptor is DictionaryDescriptor dictionaryDescriptor)
-        {
-            return dictionaryDescriptor.GetKeys(node.Retrieve()).Cast<object>().Select(x => new NodeIndex(x));
-        }
-        else if (node.Descriptor is ArrayDescriptor arrayDescriptor)
-        {
-            return Enumerable.Range(0, arrayDescriptor.GetLength(node.Retrieve())).Select(x => new NodeIndex(x));
-        }
+
         return null;
     }
 
