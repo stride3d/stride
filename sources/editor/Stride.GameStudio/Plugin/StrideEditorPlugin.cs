@@ -35,11 +35,15 @@ namespace Stride.GameStudio.Plugin
             var buildDirectory = fallbackDirectory;
             try
             {
-                var package = session.CurrentProject ?? session.LocalPackages.First();
-                if (package != null)
+                var currentPackage = (session.CurrentProject ?? session.LocalPackages.FirstOrDefault())?.Package;
+                if (currentPackage != null)
                 {
-                    // In package, we override editor build directory to be per-project and be shared with game build directory
-                    buildDirectory = new UFile($"{package.PackagePath.GetFullDirectory()}\\obj\\stride\\assetbuild\\data").ToOSPath();
+                    // Editor build DB lives under the shared game library (the package that owns
+                    // GameSettings), not the startup platform head — so adding/removing/regenerating a
+                    // head can't relocate or corrupt it. FindAsset resolves through dependencies, so
+                    // from a head this lands on its game library; falls back to the current package.
+                    var buildPackage = currentPackage.FindAsset(Stride.Assets.GameSettingsAsset.GameSettingsLocation)?.Package ?? currentPackage;
+                    buildDirectory = new UFile($"{buildPackage.FullPath.GetFullDirectory()}\\obj\\stride\\assetbuild\\data").ToOSPath();
                 }
 
                 // Attempt to create the directory to ensure it is valid.
