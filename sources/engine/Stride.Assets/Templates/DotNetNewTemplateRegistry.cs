@@ -46,7 +46,8 @@ public sealed class DotNetNewTemplateRegistry : IDisposable
         // global state and ours completely isolated. The Bootstrapper API doesn't accept
         // IPathInfo directly (only EngineEnvironmentSettings does); redirecting via IEnvironment
         // is the cleanest hook into DefaultPathInfo's path derivation.
-        var host = new DefaultTemplateEngineHost(HostIdentifier, hostVersion);
+        // "dotnetcli" fallback so our host reads each template's dotnetcli.host.json (isVisible etc.).
+        var host = new DefaultTemplateEngineHost(HostIdentifier, hostVersion, fallbackHostTemplateConfigNames: new[] { "dotnetcli" });
         var environment = new StrideTemplateEngineEnvironment(profileDir);
         bootstrapper = new Bootstrapper(
             host,

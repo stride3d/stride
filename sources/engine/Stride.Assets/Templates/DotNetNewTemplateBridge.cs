@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 using Microsoft.TemplateEngine.Abstractions;
+using Microsoft.TemplateEngine.Edge.Settings;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
@@ -358,6 +359,46 @@ public static class DotNetNewTemplateBridge
     /// right per-template content dir at registration time.
     /// </summary>
     private sealed record TemplateMetadataSource(SdtplMetadata Metadata, string InstallSource);
+
+    /// <summary>
+    /// Parameter names the template's <c>dotnetcli.host.json</c> marks <c>isVisible:false</c>
+    /// (e.g. <c>updateOnly</c>); empty when there's no host file or it can't be parsed.
+    /// </summary>
+    public static IReadOnlyCollection<string> GetHiddenParameterNames(ITemplateInfo template)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        if (template is not ITemplateInfoHostJsonCache { HostData: { Length: > 0 } hostData })
+            return Array.Empty<string>();
+
+        var hidden = new HashSet<string>(StringComparer.Ordinal);
+        try
+        {
+            var symbolInfo = JsonNode.Parse(hostData)?["symbolInfo"]?.AsObject();
+            if (symbolInfo != null)
+            {
+                foreach (var (name, info) in symbolInfo)
+                {
+                    var isVisible = info?["isVisible"];
+                    if (isVisible != null && !ParseHostBool(isVisible))
+                        hidden.Add(name);
+                }
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Malformed host file: hide nothing rather than block New-Project.
+        }
+        return hidden;
+    }
+
+    /// <summary>Reads a host-json bool that may be a JSON string ("false") or a raw bool.</summary>
+    private static bool ParseHostBool(JsonNode node)
+    {
+        if (node.GetValueKind() == System.Text.Json.JsonValueKind.String)
+            return bool.TryParse(node.GetValue<string>(), out var b) && b;
+        try { return node.GetValue<bool>(); }
+        catch { return true; }
+    }
 
     private static Guid TryParseGuid(string s) => Guid.TryParse(s, out var g) ? g : new Guid(GetHash16(s));
 

@@ -1174,12 +1174,32 @@ internal class TemplatePreprocessor
         sb.AppendLine("}");
 
         File.WriteAllText(Path.Combine(configDir, "template.json"), sb.ToString());
+        EmitHostJson(configDir);
+    }
+
+    /// <summary>
+    /// Emits the sibling <c>dotnetcli.host.json</c> hiding internal params: <c>updateOnly</c> is set
+    /// programmatically (Update Platforms), so <c>isVisible:false</c> keeps it out of the UI/help.
+    /// </summary>
+    private static void EmitHostJson(string configDir)
+    {
+        File.WriteAllText(Path.Combine(configDir, "dotnetcli.host.json"), """
+            {
+              "$schema": "http://json.schemastore.org/dotnetcli.host",
+              "symbolInfo": {
+                "updateOnly": {
+                  "isVisible": "false"
+                }
+              }
+            }
+            """);
     }
 
     /// <summary>
     /// Always-emitted: Platforms multichoice + env-bind / computed-bool chain turning the "Host"
     /// sentinel into per-platform Active bools used by sources/modifiers, plus the
-    /// <c>updateOnly</c> flag UpdatePlatforms uses to skip the game library + .sln.
+    /// <c>updateOnly</c> flag UpdatePlatforms uses to skip the game library + .sln (hidden from the
+    /// UI via dotnetcli.host.json).
     /// </summary>
     private static void EmitBaseParameterSymbols(StringBuilder sb)
     {
