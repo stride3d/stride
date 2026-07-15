@@ -93,9 +93,16 @@ jobs:
         uses: ./.github/actions/stride-workload
         with:
           workloads: macos
-      - name: Select Xcode 26.5
-        # Default on macos-26 is 26.4.1; the .NET macOS 26.5 SDK pack needs exactly 26.5.
-        run: sudo xcode-select -s /Applications/Xcode_26.5.app
+      - name: Select newest Xcode
+        # The .NET macOS SDK pack enforces a minimum Xcode version that advances with the workload
+        # set (the latest set now requires 26.6). Select the newest installed Xcode so the check
+        # passes, instead of pinning a version the pack later outgrows.
+        run: |
+          ls -d /Applications/Xcode_*.app
+          latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest"
+          xcodebuild -version
       - name: Install Vulkan validation layer
         # Stride loads the LunarG loader on macOS when present so the validation layer chain works;
         # its DebugReport callback routes errors+warnings to GraphicsDevice.DebugLog, which
