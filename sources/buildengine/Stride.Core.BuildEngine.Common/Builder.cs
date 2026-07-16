@@ -17,6 +17,9 @@ public class Builder : IDisposable
     public static readonly string DoNotCompressTag = "DoNotCompress";
     public static readonly string DoNotPackTag = "DoNotPack";
 
+    /// <summary>Suffix of the build-closure file written next to the index (see <see cref="WriteClosureFile"/>).</summary>
+    public const string ClosureFileExtension = ".closure";
+
     #region Public Members
 
     public const string MonitorPipeName = "Stride/BuildEngine/Monitor";
@@ -37,6 +40,12 @@ public class Builder : IDisposable
     /// Builder name
     /// </summary>
     public string BuilderName { get; set; }
+
+    /// <summary>
+    /// Raised after each build step is processed (executed or skipped), with the step. Lets consumers observe
+    /// completed commands — e.g. the editor touches a reused command's blobs to keep its GC working set warm.
+    /// </summary>
+    public event Action<BuildStep> StepProcessed;
 
     /// <summary>
     /// Indicate whether the build has been canceled
@@ -323,6 +332,42 @@ public class Builder : IDisposable
             if (outputObject.Tags.Contains(DoNotCompressTag))
                 DisableCompressionIds.Add(outputObject.ObjectId);
         }
+    }
+
+    /// <summary>
+    /// Writes the build closure next to the index file: the flat set of object ids this build references —
+    /// every command-cache entry plus every content output blob (direct and indirect). The editor's
+    /// startup GC reads it to keep a config's whole incremental cache alive, not just its final content,
+    /// so an idle config still gets a cache hit instead of a full recompute. Rewritten each build, so
+    /// superseded blobs drop out and become collectable.
+    /// </summary>
+    public void WriteClosureFile()
+    {
+        if (indexName == null)
+            return;
+
+        var closurePath = IndexFileFullPath + ClosureFileExtension;
+        VirtualFileSystem.FileDelete(closurePath);
+
+        var ids = new HashSet<ObjectId>();
+        foreach (var step in CollectCommandSteps(Root))
+        {
+            if (step.Result == null)
+                continue;
+
+            if (step.CommandHash != ObjectId.Empty)
+                ids.Add(step.CommandHash);
+            foreach (var output in step.Result.OutputObjects)
+            {
+                if (output.Key.Type == UrlType.Content)
+                    ids.Add(output.Value);
+            }
+        }
+
+        using var stream = VirtualFileSystem.OpenStream(closurePath, VirtualFileMode.Create, VirtualFileAccess.Write);
+        using var writer = new StreamWriter(stream);
+        foreach (var id in ids)
+            writer.WriteLine(id.ToString());
     }
 
     private static IEnumerable<CommandBuildStep> CollectCommandSteps(BuildStep step)
@@ -651,6 +696,7 @@ public class Builder : IDisposable
                     }
 
                     buildStep.RegisterResult(executeContext, status);
+                    StepProcessed?.Invoke(buildStep);
                     stepCounter.AddStepResult(status);
                 });
             }
