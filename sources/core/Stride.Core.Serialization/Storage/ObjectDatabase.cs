@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.IO;
 
@@ -19,6 +20,12 @@ public class ObjectDatabase : IDisposable
     private readonly IOdbBackend backendRead1;
     private readonly IOdbBackend backendRead2;
     private readonly IOdbBackend backendWrite;
+
+    // Object ids touched (build-cache hits) this session. Re-touched periodically via
+    // RetouchWorkingSet so the open working set stays warm for mtime-LRU GC even during long idle
+    // stretches with no rebuilds. The editor never populates ContentIndexMap, so this is the only
+    // reliable live set. Session-scoped: reset when the database is recreated on the next open.
+    private readonly ConcurrentDictionary<ObjectId, byte> touchedObjectIds = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectDatabase" /> class.
@@ -178,6 +185,30 @@ public class ObjectDatabase : IDisposable
             throw new InvalidOperationException("Read-only object database.");
 
         backendWrite.Delete(objectId);
+    }
+
+    /// <summary>
+    /// Refreshes an object's last-use time for mtime-LRU GC and records it in the session working set
+    /// (see <see cref="RetouchWorkingSet"/>). Best-effort and throttled; only the writable loose-file
+    /// store supports it (bundles/read-only backends are skipped).
+    /// </summary>
+    public void Touch(ObjectId objectId)
+    {
+        touchedObjectIds.TryAdd(objectId, 0);
+        (backendWrite as FileOdbBackend)?.Touch(objectId);
+    }
+
+    /// <summary>
+    /// Re-touches every object hit this session so the working set doesn't age out of the mtime-LRU
+    /// cache while the editor sits idle (no rebuilds to touch it on-hit). Throttled per file.
+    /// </summary>
+    public void RetouchWorkingSet()
+    {
+        if (backendWrite is not FileOdbBackend backend)
+            return;
+
+        foreach (var entry in touchedObjectIds)
+            backend.Touch(entry.Key);
     }
 
     public bool Exists(ObjectId objectId)
