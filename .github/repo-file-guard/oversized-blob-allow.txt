@@ -1,0 +1,11 @@
+# Paths exempt from the oversized-non-LFS-blob check (.github/workflows/pr-repo-hygiene.yml).
+# One exact repo-relative path per line. These are pre-existing large *text* files that are
+# legitimately tracked in git (not LFS). New oversized blobs must go to LFS instead of being
+# added here — only grandfather a path in after a deliberate decision that it belongs in git.
+#
+# Lines starting with # and blank lines are ignored. Keep sorted.
+sources/engine/Stride.UI.Tests/Regression/ElementTestDesigns.cs
+sources/metrics/Stride.Metrics.ServerApp/Migrations/ip2location/IP2LOCATION-LITE-DB1.CSV
+sources/metrics/Stride.Metrics.ServerApp/Scripts/angular-scenario.js
+sources/metrics/Stride.Metrics.ServerApp/Scripts/angular.js
+sources/shaders/Stride.Shaders.Spirv/Generated/Instructions.gen.cs

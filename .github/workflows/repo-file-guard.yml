@@ -1,0 +1,172 @@
+name: Repo File Guard
+
+# Blocks binary / large files from sneaking into git history. Three checks, each fixed by a
+# committed change:
+#
+#   1. Oversized non-LFS blob — a new blob over MAX_BLOB_BYTES not in oversized-blob-allow.txt.
+#      Fix: move it to LFS, or grandfather its path in that file.
+#   2. Unknown file type — an added file whose extension/basename isn't in known-extensions.txt
+#      / known-extensionless.txt. Fix: add it there (+ a filter=lfs rule if binary).
+#   3. LFS integrity — a file .gitattributes marks filter=lfs but committed as raw content.
+#      Fix: re-commit with git-lfs installed.
+#
+# Runs on PRs, and on push to master / master-* (where it also re-audits the whole tree for
+# type drift). Mark "Repo File Guard / guard" a required check in branch protection to block on it.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - master
+      - 'master-*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repo-file-guard-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history to diff base..head; head.sha (not the merge ref) so .gitattributes
+          # and blobs read consistently. No LFS content — pointers are all we inspect.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          lfs: false
+
+      - name: Scan for oversized / unknown / non-LFS files
+        env:
+          # 512 KiB (uncompressed). Non-LFS blobs are essentially source/text; anything
+          # larger is either a stray binary or belongs in .github/repo-file-guard/oversized-blob-allow.txt.
+          MAX_BLOB_BYTES: "524288"
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+
+          # Allowlist keys, prefixed to match the type-key namespace (ext:<e> / noext:<basename>).
+          ALLOWKEYS=$(mktemp)
+          grep -vE '^[[:space:]]*(#|$)' .github/repo-file-guard/known-extensions.txt    | tr 'A-Z' 'a-z' | sed 's/^/ext:/'   >  "$ALLOWKEYS"
+          grep -vE '^[[:space:]]*(#|$)' .github/repo-file-guard/known-extensionless.txt |                  sed 's/^/noext:/' >> "$ALLOWKEYS"
+          SIZE_ALLOW=$(mktemp)
+          grep -vE '^[[:space:]]*(#|$)' .github/repo-file-guard/oversized-blob-allow.txt > "$SIZE_ALLOW" || true
+
+          # ---- Resolve the range / file sets for this event ----------------------------
+          zero="0000000000000000000000000000000000000000"
+          if [ "$EVENT" = "push" ]; then
+            AUDIT=$(mktemp); git ls-files > "$AUDIT"          # whole-tree extension audit (drift guard)
+            if [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "$zero" ] && git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+              RANGE="$BEFORE_SHA..$HEAD_SHA"
+              CHANGED=$(mktemp); git diff --diff-filter=d --name-only "$BEFORE_SHA" "$HEAD_SHA" > "$CHANGED"
+            else
+              RANGE=""; CHANGED=$(mktemp)
+            fi
+          else
+            MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "$BASE_SHA")
+            RANGE="$MERGE_BASE..$HEAD_SHA"
+            AUDIT=$(mktemp);   git diff --diff-filter=A --name-only "$MERGE_BASE" "$HEAD_SHA" > "$AUDIT"
+            CHANGED=$(mktemp); git diff --diff-filter=d --name-only "$MERGE_BASE" "$HEAD_SHA" > "$CHANGED"
+          fi
+
+          fail=0
+          summary=$(mktemp)
+
+          # ---- Check 1: oversized non-LFS blobs ---------------------------------------
+          if [ -n "$RANGE" ]; then
+            objs=$(mktemp);  git rev-list --objects "$RANGE" > "$objs"
+            meta=$(mktemp);  awk '{print $1}' "$objs" \
+              | git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize)' > "$meta"
+            # Join blob sizes back to paths (path = everything after the first space; may contain spaces).
+            big=$(awk -v m="$MAX_BLOB_BYTES" '
+              NR==FNR { t[$1]=$2; s[$1]=$3; next }
+              { sha=$1; sub(/^[^ ]* ?/,""); p=$0;
+                if (t[sha]=="blob" && s[sha]+0>m && p!="") print s[sha]"\t"p }
+            ' "$meta" "$objs" | sort -u)
+            offenders=$(mktemp)
+            if [ -n "$big" ]; then
+              printf '%s\n' "$big" | while IFS=$'\t' read -r sz p; do
+                grep -qxF "$p" "$SIZE_ALLOW" && continue      # grandfathered
+                printf '%s\t%s\n' "$sz" "$p" >> "$offenders"
+              done
+            fi
+            if [ -s "$offenders" ]; then
+              fail=1
+              { echo "### ❌ Oversized non-LFS blob(s) (> $MAX_BLOB_BYTES bytes uncompressed)"; echo;
+                echo "These enter git history uncompressed forever. Track them with git-lfs and rewrite the PR — or, if a large text file genuinely belongs in git, add its path to \`.github/repo-file-guard/oversized-blob-allow.txt\`."; echo;
+                echo '| bytes | path |'; echo '|------:|------|';
+                sort -t"$(printf '\t')" -k1 -nr "$offenders" | while IFS=$'\t' read -r sz p; do echo "| $sz | \`$p\` |"; done; echo;
+              } >> "$summary"
+            fi
+          fi
+
+          # ---- Check 2: unknown file types --------------------------------------------
+          # Type-key logic MUST match how the allowlists were bootstrapped: split basename on
+          # '.', it's an extension only when the last dot has non-empty text on both sides
+          # (so dotfiles like .gitignore are extension-less), else the basename is the key.
+          unknown=$(awk -F/ '
+              # Allowlist entries may be exact keys or globs (`*`,`?`); globs become anchored regexes.
+              function g2re(s,  i,c,r,special){
+                special=".^$+(){}[]|\\"; r="^"
+                for(i=1;i<=length(s);i++){ c=substr(s,i,1)
+                  if(c=="*") r=r".*"; else if(c=="?") r=r"."
+                  else if(index(special,c)) r=r"\\" c; else r=r c }
+                return r "$"
+              }
+              NR==FNR { if ($0 ~ /[*?]/) pat[++np]=g2re($0); else allow[$0]=1; next }
+              { b=$NF; n=split(b,a,".");
+                if (n>=2 && a[1]!="" && a[n]!="") { key="ext:" tolower(a[n]); disp="." tolower(a[n]) }
+                else { key="noext:" b; disp="(no extension)" }
+                if (key in allow) next
+                for(i=1;i<=np;i++) if(key ~ pat[i]) next
+                print $0 "\t" disp }
+          ' "$ALLOWKEYS" "$AUDIT" | sort -u)
+          if [ -n "$unknown" ]; then
+            fail=1
+            { echo "### ❌ New file type(s) not in the allowlist"; echo;
+              echo "Add the extension to \`.github/repo-file-guard/known-extensions.txt\` (or the basename to \`.github/repo-file-guard/known-extensionless.txt\`) in this PR. If the type is **binary**, also add a \`filter=lfs\` rule to \`.gitattributes\`."; echo;
+              echo '| path | type |'; echo '|------|------|';
+              printf '%s\n' "$unknown" | while IFS=$'\t' read -r p t; do echo "| \`$p\` | $t |"; done; echo;
+            } >> "$summary"
+          fi
+
+          # ---- Check 3: LFS pointer integrity -----------------------------------------
+          if [ -n "$RANGE" ]; then
+            broken=$(mktemp)
+            while IFS= read -r p; do
+              [ -n "$p" ] || continue
+              attr=$(git check-attr filter -- "$p" 2>/dev/null | sed 's/.*: //')
+              [ "$attr" = "lfs" ] || continue
+              sha=$(git rev-parse "$HEAD_SHA:$p" 2>/dev/null) || continue
+              case "$(git cat-file blob "$sha" 2>/dev/null | head -c 45)" in
+                "version https://git-lfs"*) : ;;
+                *) printf '%s\n' "$p" >> "$broken";;
+              esac
+            done < "$CHANGED"
+            if [ -s "$broken" ]; then
+              fail=1
+              { echo "### ❌ File(s) marked LFS in .gitattributes but committed as raw content"; echo;
+                echo "git-lfs was not active when these were committed. Install git-lfs, re-add the files, and rewrite the PR."; echo;
+                sort -u "$broken" | while IFS= read -r p; do echo "- \`$p\`"; done; echo;
+              } >> "$summary"
+            fi
+          fi
+
+          # ---- Report ------------------------------------------------------------------
+          {
+            echo "## Repo File Guard"; echo;
+            [ "$fail" = 0 ] && echo "✅ No oversized, unknown-type, or non-LFS files detected."
+            cat "$summary"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$fail" != 0 ]; then
+            echo "::error::Repo File Guard violations found — see the job summary."
+            exit 1
+          fi
