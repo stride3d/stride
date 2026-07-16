@@ -9,6 +9,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Core.Parsing;
 
 namespace Stride.Shaders.Compilers;
 
@@ -26,6 +27,12 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
     private readonly object lockObject = new();
     private readonly ShaderCache memoryCache = new();
+
+    // Cache files are stamped in the SPIR-V header: Generator identifies our shader cache, Schema is the
+    // format version. A mismatch (including old 0/0 headers) is treated as stale and forces a recompile,
+    // which overwrites the file in place. Bump CacheFormatVersion on any incompatible .spv cache change.
+    private const int ShaderCacheGeneratorId = 0x5344534C; // 'SDSL'
+    private const int CacheFormatVersion = 1;
 
     public bool Exists(string name)
     {
@@ -87,7 +94,14 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
                 using var stream = fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read);
                 using var reader = new BinaryReader(stream);
-                buffer = Deserialize(reader, out hash);
+                if (!TryDeserialize(reader, out buffer, out hash))
+                {
+                    // Stale/incompatible cache file (old or missing version stamp): treat it like a
+                    // cache miss so the caller recompiles and overwrites it in place.
+                    buffer = default;
+                    hash = default;
+                    return false;
+                }
             }
 
             // Populate in-memory cache for subsequent lookups
@@ -142,19 +156,35 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
     private static void Serialize(BinaryWriter writer, ShaderBuffers buffers, ObjectId hash)
     {
-        var bytecode = SpirvBytecode.CreateBytecodeFromBuffers(buffers.Context.GetBuffer(), buffers.Buffer);
+        var header = new SpirvHeader("1.4", generator: ShaderCacheGeneratorId, bound: 1, schema: CacheFormatVersion);
+        var bytecode = SpirvBytecode.CreateBytecodeFromBuffers(header, computeBounds: true, buffers.Context.GetBuffer(), buffers.Buffer);
         writer.Write(bytecode);
     }
 
-    private ShaderBuffers Deserialize(BinaryReader reader, out ObjectId hash)
+    /// <summary>
+    /// Reads a cached buffer. Returns false (a plain cache miss) when the file predates the current
+    /// cache format — an old or absent version stamp is expected, not corruption. Genuinely malformed
+    /// content still throws, so callers can distinguish it.
+    /// </summary>
+    private bool TryDeserialize(BinaryReader reader, [MaybeNullWhen(false)] out ShaderBuffers result, out ObjectId hash)
     {
+        result = default;
+        hash = default;
+
         var buffer = new byte[reader.BaseStream.Length];
         reader.ReadExactly(buffer);
+        var span = buffer.AsSpan().Cast<byte, int>();
 
-        var result = ShaderBuffers.CreateFromSpan(buffer.AsSpan().Cast<byte, int>());
+        if (span.Length < SpirvHeader.IntSpanSize)
+            return false;
+
+        var header = SpirvHeader.Read(span);
+        if (header.Generator != ShaderCacheGeneratorId || header.Schema != CacheFormatVersion)
+            return false;
+
+        result = ShaderBuffers.CreateFromSpan(span);
 
         // Fetch hash from OpSourceHashSDSL
-        hash = default;
         foreach (var i in result.Context)
         {
             if (i.Op == Spirv.Specification.Op.OpSourceHashSDSL && (OpSourceHashSDSL)i is { } sourceHash)
@@ -166,7 +196,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
         ShaderClass.ProcessNameAndTypes(result.Context, ShaderImporter);
 
-        return result;
+        return true;
     }
 
     private static int GetTotalWordCount(SpirvBuffer buffer)

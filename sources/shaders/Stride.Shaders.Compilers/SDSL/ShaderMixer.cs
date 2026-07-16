@@ -1377,6 +1377,10 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
     {
         var result = inner.LoadExternalBuffer(name, defines, out bytecode, out hash, out isFromCache);
+        // A file-backed shader always carries a source hash. A zero here means it was compiled or cached
+        // without its OpSourceHashSDSL, which would make its effect obsolete (recompiled) on every run.
+        if (hash == ObjectId.Empty)
+            throw new InvalidOperationException($"Shader '{name}' was loaded without a source hash (missing OpSourceHashSDSL).");
         if (!Sources.ContainsKey(name))
             Sources.Add(name, hash);
         return result;

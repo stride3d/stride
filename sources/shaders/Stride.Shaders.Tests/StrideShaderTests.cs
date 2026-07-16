@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using CommunityToolkit.HighPerformance;
 using Silk.NET.SPIRV;
 using Silk.NET.SPIRV.Cross;
+using Stride.Core.IO;
+using Stride.Core.Storage;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using Spv = Stride.Shaders.Spirv.Tools.Spv;
@@ -14,6 +18,90 @@ namespace Stride.Shaders.Parsers.Tests;
 
 public class StrideShaderTests
 {
+    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
+    // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
+    // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
+    // A cached shader without OpSourceHashSDSL deserializes to a zero hash, which makes
+    // EffectCompilerCache.IsBytecodeObsolete return true on every run (a permanent recompile hang).
+    [Fact]
+    public void SuppressSourceHashDoesNotLeakAcrossCacheHits()
+    {
+        var loader = new ShaderLoader("./assets/Stride/SDSL");
+
+        // Warm the cache: a normally compiled shader carries its OpSourceHashSDSL.
+        Assert.True(loader.LoadExternalBuffer("Texturing", [], out var texturing, out _, out _));
+        Assert.True(HasSourceHash(texturing), "sanity: a normally compiled shader carries OpSourceHashSDSL");
+
+        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the flag, then load
+        // a shader that is already cached. The (name, filename, code) overload returns on the cache hit
+        // before LoadFromCode runs, so the flag is never cleared.
+        Assert.True(loader.LoadExternalFileContent("Texturing", out var filename, out var code, out _));
+        loader.SuppressSourceHash = true;
+        Assert.True(loader.LoadExternalBuffer("Texturing", filename, code, [], out _, out _, out var isFromCache));
+        Assert.True(isFromCache, "precondition: the second load must be a cache hit to exercise the leak");
+
+        Assert.False(loader.SuppressSourceHash,
+            "SuppressSourceHash leaked past a cache hit; the next compiled shader would be cached without " +
+            "OpSourceHashSDSL (zero hash => EffectCompilerCache recompiles every run)");
+
+        // Downstream symptom: with the flag leaked, the next freshly compiled shader loses its hash.
+        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out _, out _));
+        Assert.True(HasSourceHash(shaderBase),
+            "the next compiled shader is missing OpSourceHashSDSL — its cached hash would deserialize to zero");
+    }
+
+    private static bool HasSourceHash(ShaderBuffers buffer)
+    {
+        foreach (var i in buffer.Context)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpSourceHashSDSL)
+                return true;
+        }
+        return false;
+    }
+
+    // FileShaderCache stamps a Generator id + Schema (format version) into the SPIR-V header of each
+    // cached .spv. A cached buffer round-trips (including its OpSourceHashSDSL), and a header whose
+    // version no longer matches is rejected so the shader recompiles instead of being served stale.
+    [Fact]
+    public void FileShaderCacheRoundTripsAndRejectsStaleVersion()
+    {
+        var loader = new ShaderLoader("./assets/Stride/SDSL");
+        Assert.True(loader.LoadExternalBuffer("Texturing", [], out var buffer, out var hash, out _));
+        Assert.NotEqual(ObjectId.Empty, hash);
+
+        var tempDir = Directory.CreateTempSubdirectory("stride-shadercache-test");
+        try
+        {
+            var provider = new FileSystemProvider("/testcache", tempDir.FullName);
+            const string spvPath = "shaders/Texturing_default.spv";
+
+            // Write via one instance, read via a fresh instance so the load must come from disk.
+            new FileShaderCache(provider).RegisterShader("Texturing", null, [], buffer, hash);
+
+            Assert.True(new FileShaderCache(provider).TryLoadFromCache("Texturing", null, [], out _, out var loadedHash));
+            Assert.Equal(hash, loadedHash);
+
+            // Corrupt the Schema word (5th header word, byte offset 16) to simulate an old/incompatible cache.
+            byte[] bytes;
+            using (var s = provider.OpenStream(spvPath, VirtualFileMode.Open, VirtualFileAccess.Read))
+            {
+                bytes = new byte[s.Length];
+                s.ReadExactly(bytes);
+            }
+            BitConverter.GetBytes(0x7FFFFFFF).CopyTo(bytes, 16);
+            using (var s = provider.OpenStream(spvPath, VirtualFileMode.Create, VirtualFileAccess.Write))
+                s.Write(bytes);
+
+            Assert.False(new FileShaderCache(provider).TryLoadFromCache("Texturing", null, [], out _, out _),
+                "a cache file with a mismatched format version must be rejected (recompiled), not served stale");
+        }
+        finally
+        {
+            tempDir.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public void TextureDecorateStringWarning()
     {
