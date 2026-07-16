@@ -11,7 +11,7 @@ name: Repo File Guard
 #      Fix: re-commit with git-lfs installed.
 #
 # Runs on PRs, and on push to master / master-* (where it also re-audits the whole tree for
-# type drift). Mark "Repo File Guard / guard" a required check in branch protection to block on it.
+# type drift). Mark "Repo File Guard / file-guard-gate" a required check in branch protection.
 
 on:
   pull_request:
@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  guard:
+  file-guard-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
