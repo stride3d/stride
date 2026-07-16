@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Storage;
 using Stride.Editor;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
@@ -55,6 +56,9 @@ namespace Stride.GameStudio.Plugin
                 buildDirectory = fallbackDirectory;
             }
 
+            // Reclaim stale cache entries before the builder opens the DB (nothing holds it yet, so no coordination needed).
+            CollectBuildCache(buildDirectory);
+
             var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
             var previewFactories = new Dictionary<Type, AssetPreviewFactory>();
             foreach (var stridePlugin in pluginService.Plugins.OfType<StrideAssetsPlugin>())
@@ -96,6 +100,115 @@ namespace Stride.GameStudio.Plugin
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
+        }
+
+        /// <summary>Delete cache blobs unused longer than this (Y). Must stay above <see cref="FileOdbBackend.TouchThrottle"/> (X).</summary>
+        private static readonly TimeSpan EvictionAge = TimeSpan.FromDays(14);
+
+        /// <summary>Run the sweep at most this often across launches, tracked via the marker file's mtime.</summary>
+        private static readonly TimeSpan GcInterval = TimeSpan.FromHours(24);
+
+        /// <summary>
+        /// Startup GC for the shared asset-build cache. A blob survives if either source keeps it live:
+        /// <list type="bullet">
+        /// <item>fresh mtime — the editor touches its working set on hit and re-touches it (<see cref="ObjectDatabase.Touch"/>);</item>
+        /// <item>listed in a current config's <c>index.&lt;config&gt;.closure</c> — each CLI/head build writes its full
+        /// reachable set (command entries + output blobs), dated by the file's mtime.</item>
+        /// </list>
+        /// Everything else is deleted: content past <see cref="EvictionAge"/> unreferenced by a fresh index/closure,
+        /// and stale configs' index/closure files. Marker-gated to once per <see cref="GcInterval"/>, age-only, best-effort.
+        /// </summary>
+        private static void CollectBuildCache(string buildDirectory)
+        {
+            try
+            {
+                if (!Directory.Exists(buildDirectory))
+                    return;
+
+                var marker = Path.Combine(buildDirectory, "gc.stamp");
+                if (File.Exists(marker) && DateTime.UtcNow - File.GetLastWriteTimeUtc(marker) < GcInterval)
+                    return;
+
+                // The content store lives under db/; blobs + command entries are in its 2-hex-char subdirs.
+                // bundles/, tmp/ and the index files (all also under db/) fall outside those, so they're skipped.
+                var contentRoot = Path.Combine(buildDirectory, "db");
+                if (!Directory.Exists(contentRoot))
+                    return;
+
+                // Y >= X floor: a live file's mtime is at most X stale (touch throttle), so never evict within X.
+                var age = EvictionAge > FileOdbBackend.TouchThrottle ? EvictionAge : FileOdbBackend.TouchThrottle;
+                var cutoff = DateTime.UtcNow - age;
+
+                // Keep blobs referenced by a still-current index/closure; superseded/orphaned blobs (in
+                // none) are left to age out below.
+                var referenced = CollectReferencedBlobs(contentRoot, cutoff);
+
+                foreach (var dir in Directory.EnumerateDirectories(contentRoot))
+                {
+                    if (Path.GetFileName(dir).Length != 2)
+                        continue;
+
+                    foreach (var file in Directory.EnumerateFiles(dir))
+                    {
+                        if (referenced.Contains(file))
+                            continue;
+
+                        try
+                        {
+                            if (File.GetLastWriteTimeUtc(file) < cutoff)
+                                File.Delete(file);
+                        }
+                        catch (IOException) { }               // in use / racing another process — skip
+                        catch (UnauthorizedAccessException) { }
+                    }
+                }
+
+                File.WriteAllText(marker, string.Empty);
+            }
+            catch (Exception)
+            {
+                // Best-effort reclaim; a failure here must not stop the session from opening.
+            }
+        }
+
+        /// <summary>
+        /// Reads the index/closure files at the content-store root and returns the absolute blob paths they
+        /// reference (reconstructed via the db/&lt;id[0..1]&gt;/&lt;id[2..]&gt; layout). A per-config
+        /// <c>index.*</c> carries its build time in its mtime: once older than <paramref name="cutoff"/> the
+        /// config is stale, so its index/closure files are deleted and their blobs left to age out below.
+        /// </summary>
+        private static HashSet<string> CollectReferencedBlobs(string contentRoot, DateTime cutoff)
+        {
+            var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var indexFile in Directory.EnumerateFiles(contentRoot))
+            {
+                try
+                {
+                    if (Path.GetFileName(indexFile).StartsWith("index.", StringComparison.OrdinalIgnoreCase)
+                        && File.GetLastWriteTimeUtc(indexFile) < cutoff)
+                    {
+                        File.Delete(indexFile);
+                        continue;
+                    }
+
+                    foreach (var raw in File.ReadLines(indexFile))
+                    {
+                        var line = raw.Trim();
+                        if (line.Length == 0 || line[0] == '#')
+                            continue;
+
+                        // Each line ends with the object id (a plain closure line is just the id; an index
+                        // line is "<url> <id>"), so the trailing whitespace-delimited token is the id.
+                        var parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                        var id = parts[^1];
+                        if (id.Length == 32)
+                            referenced.Add(Path.Combine(contentRoot, id[..2], id[2..]));
+                    }
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+            return referenced;
         }
 
         public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)

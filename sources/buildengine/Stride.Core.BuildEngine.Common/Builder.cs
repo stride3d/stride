@@ -39,6 +39,12 @@ public class Builder : IDisposable
     public string BuilderName { get; set; }
 
     /// <summary>
+    /// Raised after each build step is processed (executed or skipped), with the step. Lets consumers observe
+    /// completed commands — e.g. the editor touches a reused command's blobs to keep its GC working set warm.
+    /// </summary>
+    public event Action<BuildStep> StepProcessed;
+
+    /// <summary>
     /// Indicate whether the build has been canceled
     /// </summary>
     public bool Cancelled { get; protected set; }
@@ -651,6 +657,7 @@ public class Builder : IDisposable
                     }
 
                     buildStep.RegisterResult(executeContext, status);
+                    StepProcessed?.Invoke(buildStep);
                     stepCounter.AddStepResult(status);
                 });
             }
