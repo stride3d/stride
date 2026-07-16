@@ -44,6 +44,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
+      <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
     <!-- Build-time triggers: ensure engine nupkgs that samples PackageReference end up in
          bin/packages. Stride.Assets pulls Engine/Physics/UI/Video; these three are not in
@@ -53,11 +55,15 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
+      <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
     <ProjectReference Include="..\..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
+      <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
     <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
