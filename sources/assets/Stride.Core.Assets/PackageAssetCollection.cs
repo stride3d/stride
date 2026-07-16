@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Reflection;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
 namespace Stride.Core.Assets;
 
@@ -328,7 +329,23 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         // Note: we ignore name collisions if asset is not referenceable
         var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
 
+        // Namespaced packages root their locations /Namespace/...; creation paths author
+        // unqualified locations, qualified here like the loaders do. Plain packages stay
+        // relative-only (that reservation is what makes rooted URLs collision-free).
+        // Detached packages (clones, pack-time copies) have no container: locations pass through.
         var location = item.Location;
+        if (Package.Container is { } container)
+        {
+            if (container.AssetNamespace is not null)
+            {
+                item.Location = location = container.Qualify(location);
+            }
+            else if (location.IsAbsolute)
+            {
+                throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
+            }
+        }
+
         if (referenceable && mapPathToId.ContainsKey(location))
         {
             throw new ArgumentException("An asset [{0}] with the same location [{1}] is already registered ".ToFormat(mapPathToId[location], location.GetDirectoryAndFileName()), nameof(item));
@@ -342,11 +359,6 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
         if (location.HasDrive)
         {
             throw new ArgumentException("Asset location [{0}] cannot contain drive information".ToFormat(location), nameof(item));
-        }
-
-        if (location.IsAbsolute)
-        {
-            throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), nameof(item));
         }
 
         if (location.GetDirectory()?.StartsWith("..", StringComparison.Ordinal) == true)
@@ -363,7 +375,7 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
                 {
                     if (otherPackage.Assets.ContainsById(item.Id))
                     {
-                        throw new ArgumentException("Cannot add the asset [{0}] that is already in different package [{1}] in the current session".ToFormat(item.Id, otherPackage.Meta.Name));
+                        throw new ArgumentException("Cannot add the asset [{0}] [{1}] to package [{2}] [{3}]: it is already in package [{4}] [{5}] in the current session".ToFormat(item.Id, item.Location, Package.Meta.Name, Package.FullPath, otherPackage.Meta.Name, otherPackage.FullPath));
                     }
                 }
             }

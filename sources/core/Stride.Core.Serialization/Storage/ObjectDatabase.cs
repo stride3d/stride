@@ -65,6 +65,8 @@ public class ObjectDatabase : IDisposable
 
         BundleBackend = new BundleOdbBackend(vfsMainUrl);
 
+        ContentAliases = LoadContentAliases(vfsMainUrl, defaultBundleName);
+
         // Try to open the default pack file synchronously
         if (loadDefaultBundle)
         {
@@ -81,6 +83,37 @@ public class ObjectDatabase : IDisposable
     public ObjectDatabaseContentIndexMap ContentIndexMap { get; }
 
     public BundleOdbBackend BundleBackend { get; }
+
+    /// <summary>
+    /// Bare-to-canonical URL aliases (using semantics for namespaced packages); empty when none shipped.
+    /// One "bare|canonical" entry per line ('|' cannot appear in URLs).
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ContentAliases { get; }
+
+    // Bundle-specific aliases first (a combined host packages one "<bundle>.aliases" per suite so each
+    // suite's bare names stay in scope); fall back to the shared "aliases" (the standalone single-package case).
+    private static Dictionary<string, string> LoadContentAliases(string vfsMainUrl, string bundleName)
+    {
+        var bundleAliasesUrl = $"{vfsMainUrl}/{bundleName}.aliases";
+        return LoadContentAliases(VirtualFileSystem.FileExists(bundleAliasesUrl) ? bundleAliasesUrl : vfsMainUrl + "/aliases");
+    }
+
+    private static Dictionary<string, string> LoadContentAliases(string aliasesUrl)
+    {
+        var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!VirtualFileSystem.FileExists(aliasesUrl))
+            return aliases;
+
+        using var stream = VirtualFileSystem.OpenStream(aliasesUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
+        using var reader = new StreamReader(stream);
+        while (reader.ReadLine() is { } line)
+        {
+            var separator = line.IndexOf('|');
+            if (separator > 0)
+                aliases[line[..separator]] = line[(separator + 1)..];
+        }
+        return aliases;
+    }
 
     /// <summary>
     /// Creates a new instance of the <see cref="ObjectDatabase"/> class using default database path, index name, and local database path, and loading default bundle.

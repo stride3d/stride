@@ -129,7 +129,7 @@ public static class Types
 
         public List<MyReferenceable> References { get; set; } = [];
 
-        public static int MemberCount => 4 + 3; // 4 (number of members in Asset) + 3 (number of members in Types.MyAssetWithRef2)
+        public static int MemberCount => 5 + 3; // 5 (number of members in Asset) + 3 (number of members in Types.MyAssetWithRef2)
     }
 
     [DataContract]

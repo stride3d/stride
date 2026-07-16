@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using NuGet.Commands;
@@ -43,7 +43,8 @@ partial class PackageSession
     /// Populates <see cref="Package.PrecomputedProjectAssets"/> from a build manifest so the dev-redirect
     /// package's project assets (shaders) load from source with no MSBuild evaluation.
     /// </summary>
-    private static void LoadProjectAssetsFromManifest(Package package, string projectFile, string manifestFile)
+    /// <returns>The manifest, or null when it could not be parsed.</returns>
+    private static AssetBuildManifest? LoadProjectAssetsFromManifest(Package package, string projectFile, string manifestFile)
     {
         package.PrecomputedProjectAssets = [];
 
@@ -54,7 +55,7 @@ partial class PackageSession
         }
         catch
         {
-            return;
+            return null;
         }
 
         var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
@@ -72,6 +73,7 @@ partial class PackageSession
             var link = item.Link is not null ? UPath.Combine(projectDirectory, item.Link) : null;
             package.PrecomputedProjectAssets.Add(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
         }
+        return manifest;
     }
 
     /// <summary>
@@ -173,6 +175,10 @@ partial class PackageSession
                 project.AssemblyProcessorSerializationHashFile = msProject.GetProperty("StrideAssemblyProcessorSerializationHashFile")?.EvaluatedValue;
                 if (project.AssemblyProcessorSerializationHashFile != null)
                     project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(projectPath), project.AssemblyProcessorSerializationHashFile);
+                // The session package name stays csproj-derived (it keys dependency matching); the authored
+                // sdpkg name only serves as the namespace identity below.
+                var authoredName = package.FullPath is not null && File.Exists(package.FullPath) ? package.Meta.Name : null;
+                package.AuthoredName ??= authoredName;
                 package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                 project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
@@ -183,6 +189,13 @@ partial class PackageSession
                 var containsAssetTypesProperty = msProject.GetProperty(SolutionProject.ContainsAssetTypesProperty);
                 if (containsAssetTypesProperty is { IsImported: false } && bool.TryParse(containsAssetTypesProperty.EvaluatedValue, out var containsAssetTypes))
                     project.ContainsAssetTypes = containsAssetTypes;
+
+                // Asset URL namespace + using declarations (no SDK default exists, so imported values
+                // are deliberate authoring, e.g. Directory.Build.props)
+                var assetNamespace = msProject.GetPropertyValue(SolutionProject.AssetNamespaceProperty);
+                project.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespace, authoredName ?? package.Meta.Name);
+                foreach (var usingItem in msProject.GetItems(SolutionProject.AssetNamespaceUsingItem))
+                    AssetNamespaceUsings.Add(usingItem.EvaluatedInclude);
 
                 // Note: Platform might be incorrect if Stride is not restored yet (it won't include Stride targets)
                 // Also, if already set, don't try to query it again
@@ -392,11 +405,16 @@ partial class PackageSession
                         if (manifestFile != null)
                         {
                             var devPackage = Package.LoadRaw(log, file);
+                            devPackage.AuthoredName ??= devPackage.Meta.Name;
                             devPackage.Meta.Name = projectDependency.Name;
                             devPackage.Meta.Version = projectDependency.Version;
-                            LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
+                            var devManifest = LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
 
                             var devContainer = new StandalonePackage(devPackage);
+                            // Same namespace surface as a real nupkg (whose packed sdpkg stores the
+                            // resolved name): the csproj-driven declarations come from the manifest,
+                            // the identity from the authored sdpkg
+                            devContainer.AssetNamespace = PackageContainer.ResolveAssetNamespace(devManifest?.AssetNamespace, devPackage.AuthoredName ?? devPackage.Meta.Name);
                             devContainer.Assemblies.AddRange(projectDependency.Assemblies);
                             // The consumer's flattened graph already covers this package's dependencies; mark it
                             // ready so we don't recurse the whole engine project tree into the session.

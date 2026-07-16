@@ -30,8 +30,8 @@ namespace Stride.Assets.Materials
         public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
         {
             // Note: might not be needed in all cases, but let's not bother for now (they are only 9kb)
-            yield return new ObjectUrl(UrlType.Content, "StrideEnvironmentLightingDFGLUT16");
-            yield return new ObjectUrl(UrlType.Content, "StrideEnvironmentLightingDFGLUT8");
+            yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT16");
+            yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
         }
 
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)

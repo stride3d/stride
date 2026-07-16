@@ -51,11 +51,17 @@ public sealed class AssetItem : IFileSynchronizable
     }
 
     /// <summary>
-    /// Gets the location of this asset.
+    /// Gets the qualified URL of this asset (rooted under its package's namespace, e.g. /MyGame/Ground).
     /// </summary>
     /// <value>The location.</value>
     [DataMember]
     public UFile Location { get => location; internal set => location = value ?? throw new ArgumentNullException(nameof(value)); }
+
+    /// <summary>
+    /// The asset's unqualified URL: its <see cref="Location"/> without the package namespace root
+    /// (equal to <see cref="Location"/> for a bare package).
+    /// </summary>
+    public UFile UnqualifiedUrl => new(AssetNamespaceHelper.Unqualify(Location.FullPath, Package?.Container?.AssetNamespace ?? Package?.AssetNamespace));
 
     /// <summary>
     /// Gets or sets the real location of this asset if it is overriden (similar to `Link` in C# project files).
@@ -167,7 +173,9 @@ public sealed class AssetItem : IFileSynchronizable
 
             rootDirectory = rootDirectory is not null ? UPath.Combine(rootDirectory, localSourceFolder) : localSourceFolder;
 
-            var locationAndExtension = AlternativePath ?? new UFile(Location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
+            // Namespaced packages root their locations /Namespace/...; on disk the file lives at the bare path.
+            var location = UnqualifiedUrl;
+            var locationAndExtension = AlternativePath ?? new UFile(location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
             return rootDirectory is not null ? UPath.Combine(rootDirectory, locationAndExtension) : locationAndExtension;
         }
     }

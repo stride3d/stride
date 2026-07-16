@@ -1,0 +1,141 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Exposes the project's authored assets to Roslyn components as AdditionalFiles
+       (with their asset-folder root and the resolved asset URL namespace), feeding the
+       asset URL constants generator in Stride.Assets.Generators. -->
+
+  <PropertyGroup>
+    <StrideAssetConstantsImported>true</StrideAssetConstantsImported>
+    <StrideGenerateAssetConstants Condition="'$(StrideGenerateAssetConstants)' == ''">true</StrideGenerateAssetConstants>
+    <!-- Only an existing StrideCurrentPackagePath counts; a dangling path (e.g. a platform project
+         carrying one from an older layout) falls back to the conventional sdpkg next to the project. -->
+    <_StrideAssetConstantsPackagePath Condition="'$(StrideCurrentPackagePath)' != '' And Exists('$(StrideCurrentPackagePath)')">$(StrideCurrentPackagePath)</_StrideAssetConstantsPackagePath>
+    <_StrideAssetConstantsPackagePath Condition="'$(_StrideAssetConstantsPackagePath)' == ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(StrideGenerateAssetConstants)' == 'true'">
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetFolder" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetContentTypeMap" />
+    <CompilerVisibleProperty Include="StrideAssetUrlNamespace" />
+    <CompilerVisibleProperty Include="StrideAssetConstantsClassName" />
+    <CompilerVisibleProperty Include="StrideAssetConstantsNamespace" />
+    <!-- Engine asset tag -> content type map, shipped next to this file; plugins register
+         their own the same way from their buildTransitive targets. -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)Stride.AssetContentTypeMap.txt"
+                     Condition="Exists('$(_StrideAssetConstantsPackagePath)') And Exists('$(MSBuildThisFileDirectory)Stride.AssetContentTypeMap.txt')"
+                     StrideAssetContentTypeMap="true" />
+  </ItemGroup>
+
+  <UsingTask TaskName="StrideCollectAssetConstantsInputs"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <PackagePath Required="true" />
+      <AssetNamespace />
+      <PackageName />
+      <AssetFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <ResolvedNamespace ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Func<string, string> unquote = s =>
+        {
+            s = s.Trim();
+            if (s.Length >= 2 && s[0] == '"' && s[s.Length - 1] == '"')
+                s = s.Substring(1, s.Length - 2).Replace("\\\\", "\\").Replace("\\\"", "\"");
+            return s;
+        };
+
+        // Line-based scan of the authored sdpkg: Meta.Name + AssetFolders paths.
+        var authoredName = (string)null;
+        var folderPaths = new List<string>();
+        string topLevelKey = null;
+        foreach (var rawLine in File.ReadAllLines(PackagePath))
+        {
+            if (rawLine.Length == 0)
+                continue;
+            if (!char.IsWhiteSpace(rawLine[0]) && rawLine[0] != '-')
+            {
+                var colon = rawLine.IndexOf(':');
+                topLevelKey = colon > 0 ? rawLine.Substring(0, colon).Trim() : null;
+                continue;
+            }
+            var line = rawLine.TrimStart(' ', '-');
+            if (topLevelKey == "Meta" && authoredName == null && line.StartsWith("Name:", StringComparison.Ordinal))
+                authoredName = unquote(line.Substring("Name:".Length));
+            else if (topLevelKey == "AssetFolders" && line.StartsWith("Path:", StringComparison.Ordinal))
+            {
+                var value = line.Substring("Path:".Length).Trim();
+                if (value.StartsWith("!dir", StringComparison.Ordinal))
+                    value = value.Substring("!dir".Length);
+                value = unquote(value);
+                if (value.Length > 0)
+                    folderPaths.Add(value);
+            }
+        }
+
+        // URL namespace, mirroring the session loader: explicit custom value wins;
+        // true/false/unset resolve to the authored package name, then the project's.
+        var ns = (AssetNamespace ?? "").Trim();
+        if (ns.Length == 0 || string.Equals(ns, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(ns, "false", StringComparison.OrdinalIgnoreCase))
+            ns = !string.IsNullOrEmpty(authoredName) ? authoredName : (PackageName ?? "");
+        ResolvedNamespace = ns;
+
+        var baseDir = Path.GetDirectoryName(Path.GetFullPath(PackagePath));
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var items = new List<Microsoft.Build.Framework.ITaskItem>();
+        var excludedDirectories = new HashSet<string>(new[] { "bin", "obj", ".git", ".vs" }, StringComparer.OrdinalIgnoreCase);
+        foreach (var folderPath in folderPaths)
+        {
+            var folder = Path.GetFullPath(Path.Combine(baseDir, folderPath));
+            if (!Directory.Exists(folder))
+                continue;
+            foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+            {
+                if (!seen.Add(file))
+                    continue;
+                // Skip package files and build/VCS directories (an asset folder can be '.')
+                if (string.Equals(Path.GetExtension(file), ".sdpkg", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var relativeDir = Path.GetDirectoryName(file.Substring(folder.Length + 1)) ?? "";
+                if (relativeDir.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(segment => excludedDirectories.Contains(segment)))
+                    continue;
+                var item = new Microsoft.Build.Utilities.TaskItem(file);
+                item.SetMetadata("StrideAssetFolder", folder);
+                items.Add(item);
+            }
+        }
+        AssetFiles = items.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Before GenerateMSBuildEditorConfigFileCore so both the items' metadata and the
+       resolved namespace property land in the analyzer config; runs in design-time
+       builds too, keeping IDE IntelliSense in sync with on-disk assets. -->
+  <Target Name="StrideCollectAssetConstants"
+          BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile"
+          Condition="'$(StrideGenerateAssetConstants)' == 'true' And Exists('$(_StrideAssetConstantsPackagePath)')">
+    <PropertyGroup>
+      <!-- Package identity fallback chain, same as the asset build manifest -->
+      <_StrideAssetConstantsPackageName>$(PackageId)</_StrideAssetConstantsPackageName>
+      <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(AssemblyName)</_StrideAssetConstantsPackageName>
+      <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(MSBuildProjectName)</_StrideAssetConstantsPackageName>
+    </PropertyGroup>
+    <StrideCollectAssetConstantsInputs
+        PackagePath="$(_StrideAssetConstantsPackagePath)"
+        AssetNamespace="$(StrideAssetNamespace)"
+        PackageName="$(_StrideAssetConstantsPackageName)">
+      <Output TaskParameter="AssetFiles" ItemName="_StrideAssetConstantsFile" />
+      <Output TaskParameter="ResolvedNamespace" PropertyName="StrideAssetUrlNamespace" />
+    </StrideCollectAssetConstantsInputs>
+    <ItemGroup>
+      <AdditionalFiles Include="@(_StrideAssetConstantsFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

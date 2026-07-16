@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -57,10 +57,12 @@ partial class PackageSession
                 }
                 var manifest = YamlSerializer.Load<AssetBuildManifest>(file);
                 manifests.Add(file, manifest);
+                session.AssetNamespaceUsings.UnionWith(manifest.AssetNamespaceUsings);
                 var directory = Path.GetDirectoryName(file)!;
                 foreach (var reference in manifest.ReferencedManifests)
                     queue.Enqueue(Path.GetFullPath(Path.Combine(directory, reference)));
             }
+            session.LoadedBuildManifests = [.. manifests.Keys];
 
             // Multiple manifests can share one authored sdpkg (e.g. a platform-head exe and its
             // game library both point at the game's sdpkg via StrideCurrentPackagePath). Dedup by
@@ -119,9 +121,40 @@ partial class PackageSession
                     container.FlattenedDependencies.Add(new Dependency(dependency.Package));
             }
 
+            // Nupkg packages need a closure too (e.g. a plugin's UI page references the engine's
+            // default font by id): the packages of the lock files they came from
+            var sdpkgClosures = new Dictionary<StandalonePackage, HashSet<StandalonePackage>>();
+            foreach (var packages in packagesByLockFile.Values)
+            {
+                foreach (var package in packages)
+                {
+                    if (!sdpkgClosures.TryGetValue(package, out var closure))
+                        sdpkgClosures[package] = closure = [];
+                    closure.UnionWith(packages);
+                }
+            }
+            foreach (var (package, closure) in sdpkgClosures)
+            {
+                closure.Remove(package);
+                foreach (var dependency in closure)
+                    package.FlattenedDependencies.Add(new Dependency(dependency.Package));
+            }
+
             // Load + register exactly the declared assemblies, then load assets (folder scan +
             // precomputed project assets); no dependency resolution, no MSBuild
             session.LoadMissingAssets(sessionResult, [.. session.Packages], loadParameters);
+
+            // Read-only (nupkg) packages need the bare-to-canonical reference restamp too (their
+            // authored yaml stores same-prefix references bare); the session analysis below only
+            // covers local packages
+            var dependencyAnalysisParameters = new AssetAnalysisParameters { IsProcessingAssetReferences = true, IsLoggingAssetNotFoundAsError = false };
+            foreach (var package in session.Packages)
+            {
+                if (package.IsReadOnly)
+                    AssetAnalysis.Run(package.Assets, sessionResult, dependencyAnalysisParameters);
+            }
+
+            CheckAssetNamespaceDisjointness(session, sessionResult);
 
             // Fix relative references
             var analysis = new PackageSessionAnalysis(session, GetPackageAnalysisParametersForLoad());
@@ -139,6 +172,32 @@ partial class PackageSession
         finally
         {
             AssetReferenceAnalysis.EnableCaching = false;
+        }
+    }
+
+    /// <summary>
+    /// Packages sharing an asset namespace present one URL surface, so their rooted URLs must be
+    /// disjoint — checked across ALL namespaced packages, independent of dependency visibility.
+    /// </summary>
+    internal static void CheckAssetNamespaceDisjointness(PackageSession session, ILogger log)
+    {
+        var packagesByLocation = new Dictionary<UFile, Package>();
+        foreach (var package in session.Packages)
+        {
+            if (package.Container.AssetNamespace is null)
+                continue;
+            foreach (var asset in package.Assets)
+            {
+                if (packagesByLocation.TryGetValue(asset.Location, out var other))
+                {
+                    if (other != package)
+                        log.Error($"Asset URL [{asset.Location}] exists in both [{other.Meta.Name}] and [{package.Meta.Name}], which share the same asset namespace; rename one of the assets.");
+                }
+                else
+                {
+                    packagesByLocation.Add(asset.Location, package);
+                }
+            }
         }
     }
 
@@ -177,10 +236,16 @@ partial class PackageSession
         var isOwner = projectDirectory is not null && string.Equals(projectDirectory.ToOSPath().TrimEnd(Path.DirectorySeparatorChar), Path.GetDirectoryName(packagePath), StringComparison.OrdinalIgnoreCase);
         if (isOwner || container.Package.RootNamespace is null)
             container.Package.RootNamespace = manifest.RootNamespace;
+        // The session package name stays csproj-derived (it keys dependency matching); the authored
+        // sdpkg name only serves as the namespace identity below.
+        var authoredName = File.Exists(packagePath) ? container.Package.Meta.Name : null;
+        container.Package.AuthoredName ??= authoredName;
         if ((isOwner || container.Package.Meta.Name is null) && !string.IsNullOrEmpty(manifest.PackageName))
             container.Package.Meta.Name = manifest.PackageName;
         if (container.Package.Meta.Version is null)
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
+        if (isOwner || container.AssetNamespace is null)
+            container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.AuthoredName ?? container.Package.Meta.Name);
 
         foreach (var assembly in manifest.AssetAssemblies)
             container.Assemblies.Add(Resolve(assembly));
@@ -242,14 +307,11 @@ partial class PackageSession
                 continue;
 
             // Make every dependency assembly known to the container for later lazy resolution
-            var assemblies = new List<string>();
             foreach (var runtimeAssembly in targetLibrary.RuntimeAssemblies.Concat(targetLibrary.RuntimeTargets))
             {
                 if (runtimeAssembly.Path.EndsWith("_._", StringComparison.Ordinal) || runtimeAssembly.Path.Contains("/native/"))
                     continue;
-                var assemblyFile = Path.Combine(libraryPath, runtimeAssembly.Path.Replace('/', Path.DirectorySeparatorChar));
-                assemblies.Add(assemblyFile);
-                AssemblyContainer.RegisterDependency(assemblyFile);
+                AssemblyContainer.RegisterDependency(Path.Combine(libraryPath, runtimeAssembly.Path.Replace('/', Path.DirectorySeparatorChar)));
             }
 
             // Only packages shipping a stride/<Id>.sdpkg participate in asset compilation
@@ -267,15 +329,12 @@ partial class PackageSession
             var package = Package.LoadRaw(log, sdpkgPath);
             package.Meta.Name = library.Name;
             package.Meta.Version = library.Version.ToPackageVersion();
-            var container = new StandalonePackage(package);
-            // Prefer the assemblies the packed sdpkg declares (host-loadable, narrowed to asset
-            // types); fall back to the lock file's runtime assemblies when it declares none.
+            var container = new StandalonePackage(package) { IsDependencyPackage = true };
+            // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
+            // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
             var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies);
-            if (hostAssetAssemblies.Count > 0)
-                container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
-            else
-                container.Assemblies.AddRange(assemblies);
+            container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
             sdpkgPackagesByName.Add(library.Name, container);

@@ -33,20 +33,39 @@ public class YamlAssetSerializer : IAssetSerializer, IAssetSerializerFactory
         return result;
     }
 
-    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         var settings = new SerializerContextSettings(log);
-        var overrides = yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
+        if (assetNamespace is not null)
+        {
+            settings.Properties.Add(AssetObjectSerializerBackend.AssetNamespaceKey, assetNamespace);
+        }
+        // Serialization mutates the metadata paths in place (AssetPartCollectionSerializer rewrites
+        // part collection indices between the guid keys and the serialized list indices). Work on a
+        // copy so the asset's attached metadata keeps its canonical (guid-keyed) form.
+        // A shallow copy is enough: FixupPaths builds fresh path objects rather than mutating the
+        // existing ones, so the original entries stay valid.
+        var overrides = Clone(yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey));
         if (overrides != null)
         {
             settings.Properties.Add(AssetObjectSerializerBackend.OverrideDictionaryKey, overrides);
         }
-        var objectReferences = yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey);
+        var objectReferences = Clone(yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey));
         if (objectReferences != null)
         {
             settings.Properties.Add(AssetObjectSerializerBackend.ObjectReferencesKey, objectReferences);
         }
         AssetYamlSerializer.Default.Serialize(stream, asset, null, settings);
+    }
+
+    private static YamlAssetMetadata<T>? Clone<T>(YamlAssetMetadata<T>? source)
+    {
+        if (source == null)
+            return null;
+        var copy = new YamlAssetMetadata<T>();
+        foreach (var entry in source)
+            copy.Set(entry.Key, entry.Value);
+        return copy;
     }
 
     public IAssetSerializer TryCreate(string assetFileExtension)

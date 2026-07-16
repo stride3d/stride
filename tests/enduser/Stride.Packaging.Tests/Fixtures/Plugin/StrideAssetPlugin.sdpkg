@@ -1,0 +1,12 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: StrideAssetPlugin
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+RootAssets:
+    - b7a54c3e-2f18-4d06-9a41-8c5e6d2b7f30:PluginPage

@@ -119,6 +119,7 @@
 
   <!-- Asset build manifest (engine self-build path; NuGet consumers get it via Stride.Core buildTransitive) -->
   <Import Project="$(StrideRoot)sources\core\Stride.Core\build\Stride.AssetBuildManifest.targets" Condition="'$(StrideAssetBuildManifestImported)' == '' And Exists('$(StrideRoot)sources\core\Stride.Core\build\Stride.AssetBuildManifest.targets')" />
+  <Import Project="$(StrideRoot)sources\engine\Stride.Engine\buildTransitive\Stride.AssetConstants.targets" Condition="'$(StrideAssetConstantsImported)' == '' And Exists('$(StrideRoot)sources\engine\Stride.Engine\buildTransitive\Stride.AssetConstants.targets')" />
   <PropertyGroup>
     <StrideAssetBuildManifestImported>true</StrideAssetBuildManifestImported>
   </PropertyGroup>
@@ -170,6 +171,14 @@
        outer dispatch (which has no TF global). Both then race on obj/. -->
   <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
     <ProjectReference Include="$(StrideRoot)sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Asset URL constants generator, only where its inputs exist (an authored sdpkg next to the
+       project); consumers get it from the Stride.Engine package instead. -->
+  <ItemGroup Condition="'$(StrideGenerateAssetConstants)' != 'false' And Exists('$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg')">
+    <ProjectReference Include="$(StrideRoot)sources\engine\Stride.Assets.Generators\Stride.Assets.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>

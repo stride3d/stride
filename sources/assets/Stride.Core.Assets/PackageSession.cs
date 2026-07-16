@@ -29,6 +29,7 @@ public abstract class PackageContainer
     {
         Package = package;
         Package.Container = this;
+        AssetNamespace = ResolveAssetNamespace(package.AssetNamespace, package.Meta.Name);
     }
 
     /// <summary>
@@ -37,6 +38,31 @@ public abstract class PackageContainer
     public PackageSession? Session { get; private set; }
 
     public Package Package { get; }
+
+    /// <summary>
+    /// Resolved asset URL namespace: this package's asset locations are rooted under /Namespace/; null = bare URLs.
+    /// </summary>
+    public string? AssetNamespace { get; set; }
+
+    /// <summary>Qualifies an unqualified asset URL under this package's namespace (no-op when bare).</summary>
+    public UFile Qualify(UFile url) => new(AssetNamespaceHelper.Qualify(url.FullPath, AssetNamespace));
+
+    /// <summary>Unqualifies an asset URL under this package's namespace (no-op when bare or not under it).</summary>
+    public UFile Unqualify(UFile url) => new(AssetNamespaceHelper.Unqualify(url.FullPath, AssetNamespace));
+
+    /// <summary>
+    /// Resolves an asset namespace declaration: unset = the package name (namespacing is always on
+    /// for named packages; nameless packages stay bare), any other value = that custom prefix.
+    /// Legacy true/false sentinels resolve like unset.
+    /// </summary>
+    public static string? ResolveAssetNamespace(string? declaration, string? packageName)
+    {
+        if (string.IsNullOrEmpty(declaration)
+            || string.Equals(declaration, "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(declaration, "false", StringComparison.OrdinalIgnoreCase))
+            return string.IsNullOrEmpty(packageName) ? null : packageName;
+        return declaration;
+    }
 
     public ObservableCollection<DependencyRange> DirectDependencies { get; } = [];
 
@@ -202,7 +228,18 @@ public abstract class PackageContainer
 
     protected virtual void SavePackage()
     {
-        AssetFileSerializer.Save(Package.FullPath, Package, null);
+        // The session renames Meta.Name to the csproj-derived identity; the file keeps its authored name
+        var sessionName = Package.Meta.Name;
+        if (Package.AuthoredName is not null)
+            Package.Meta.Name = Package.AuthoredName;
+        try
+        {
+            AssetFileSerializer.Save(Package.FullPath, Package, null);
+        }
+        finally
+        {
+            Package.Meta.Name = sessionName;
+        }
     }
 
     internal void SetSessionInternal(PackageSession? session)
@@ -222,6 +259,11 @@ public class StandalonePackage : PackageContainer
     /// Optional list of assemblies to load, typically filled using NuGet.
     /// </summary>
     public List<string> Assemblies { get; } = [];
+
+    /// <summary>
+    /// True for packages pulled in as NuGet dependencies, false for the built project chain.
+    /// </summary>
+    public bool IsDependencyPackage { get; set; }
 
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }
@@ -314,6 +356,10 @@ public class SolutionProject : PackageContainer
 
     // The msbuild property behind ContainsAssetTypes.
     public const string ContainsAssetTypesProperty = "StrideContainsAssetTypes";
+
+    // The msbuild properties/items behind PackageContainer.AssetNamespace and the using declarations.
+    public const string AssetNamespaceProperty = "StrideAssetNamespace";
+    public const string AssetNamespaceUsingItem = "StrideAssetNamespaceUsing";
 
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
@@ -480,6 +526,16 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// The projects referenced by the solution.
     /// </summary>
     public ProjectCollection Projects { get; }
+
+    /// <summary>
+    /// Namespaces the loaded projects bring into scope (using semantics): their assets also resolve by bare URL.
+    /// </summary>
+    public HashSet<string> AssetNamespaceUsings { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The build manifest files this session was loaded from, empty for other load paths.
+    /// </summary>
+    public IReadOnlyCollection<string> LoadedBuildManifests { get; internal set; } = [];
 
     /// <summary>
     /// Gets the user packages (excluding system packages).

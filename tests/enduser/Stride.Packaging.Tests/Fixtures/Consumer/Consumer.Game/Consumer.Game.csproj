@@ -8,6 +8,12 @@
     <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Bring the plugin's namespace into scope, plus our own: this package owns no GameSettings,
+         so it is not implicit self scope and needs a using for bare URL access. -->
+    <StrideAssetNamespaceUsing Include="StrideAssetPlugin" />
+    <StrideAssetNamespaceUsing Include="Consumer" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
     <PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />
     <PackageReference Include="StrideAssetPlugin" Version="1.0.0" />

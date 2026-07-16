@@ -9,6 +9,9 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StridePackAssets>true</StridePackAssets>
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
+    <!-- RootNamespace is Stride, so the default constants class would be the type Stride.Assets,
+         colliding with the Stride.Assets namespace in assemblies that see engine internals -->
+    <StrideAssetConstantsNamespace>Stride.Engine</StrideAssetConstantsNamespace>
     <!-- force generate Resource.designer.cs to namespace Stride.Engine to fix issue #553 -->
     <AndroidResgenNamespace>Stride.Engine</AndroidResgenNamespace>
   </PropertyGroup>
@@ -20,6 +23,10 @@
   <ItemGroup>
     <None Include="buildTransitive\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
     <None Include="buildTransitive\**\*.props" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="buildTransitive\Stride.AssetContentTypeMap.txt" PackagePath="buildTransitive\" Pack="true" />
+    <!-- Asset URL constants generator, packaged here so it reaches every asset-bearing consumer;
+         the ProjectReference only orders the build. -->
+    <None Include="..\Stride.Assets.Generators\bin\$(Configuration)\netstandard2.0\Stride.Assets.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" />

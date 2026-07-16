@@ -217,17 +217,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var message = $"Processing asset {progress + 1}/{workProgress.Maximum}...";
                 workProgress.UpdateProgressAsync(message, progress);
 
-                var url = asset.Location;
+                var url = GetDisplayDirectory(asset.Location);
                 DirectoryBaseViewModel directory;
                 var projectSourceCodeAsset = asset.Asset as IProjectAsset;
                 // TODO CSPROJ=XKPKG override rather than cast to subclass
                 if (projectSourceCodeAsset != null && this is ProjectViewModel project)
                 {
-                    directory = project.GetOrCreateProjectDirectory(url.GetFullDirectory() ?? "", false);
+                    directory = project.GetOrCreateProjectDirectory(url, false);
                 }
                 else
                 {
-                    directory = GetOrCreateAssetDirectory(url.GetFullDirectory() ?? "", false);
+                    directory = GetOrCreateAssetDirectory(url, false);
                 }
                 CreateAsset(directory, asset, false, loggerResult, true);
                 ++progress;
@@ -562,7 +562,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Create directories and view models, actually add assets to package.
                 foreach (var asset in fixedAssets)
                 {
-                    var location = asset.Location.GetFullDirectory() ?? "";
+                    var location = GetDisplayDirectory(asset.Location);
                     var assetDirectory = project == null ?
                         GetOrCreateAssetDirectory(location, true) :
                         project.GetOrCreateProjectDirectory(location, true);
@@ -707,6 +707,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public DirectoryBaseViewModel GetOrCreateAssetDirectory(string assetDirectory, bool canUndoRedoCreation)
         {
             return AssetMountPoint.GetOrCreateDirectory(assetDirectory, canUndoRedoCreation);
+        }
+
+        /// <summary>
+        /// The directory a location shows under in the tree: the package node is the namespace root,
+        /// so a namespaced package's own locations display bare.
+        /// </summary>
+        private string GetDisplayDirectory(UFile location)
+        {
+            if (Package.Container is { } container)
+                location = container.Unqualify(location);
+            return location.GetFullDirectory() ?? "";
         }
 
         /// <inheritdoc/>

@@ -20,7 +20,7 @@ namespace Stride.Assets
         {
             var asset = new GameSettingsAsset();
 
-            asset.SplashScreenTexture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("d26edb11-10bd-403c-b3c2-9c7fcccf25e5"), "StrideDefaultSplashScreen");
+            asset.SplashScreenTexture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("d26edb11-10bd-403c-b3c2-9c7fcccf25e5"), "/Stride.Engine/StrideDefaultSplashScreen");
             asset.SplashScreenColor = Color.Black;
 
             //add default filters, todo maybe a config file somewhere is better

@@ -113,6 +113,13 @@ namespace Stride.AssetCompiler
                 // Redirect ApplicationCache to the build directory so shader caches are per-project
                 ((FileSystemProvider)VirtualFileSystem.ApplicationCache).ChangeBasePath(Path.Combine(buildDirectory, "cache"));
 
+                // Swap replaced assets' content in the build session, so that id- and URL-based
+                // resolution (including compile-time content baking) use the replacement
+                var selfPackages = GetSelfPackages(projectSession, package);
+                if (!AssetReplacementAnalysis.TryCollect(package, selfPackages, builderOptions.Logger, out var assetReplacements))
+                    return BuildResultCode.BuildError;
+                AssetReplacementAnalysis.Substitute(assetReplacements);
+
                 // Process game settings asset
                 var gameSettingsAsset = package.GetGameSettingsAsset();
                 if (gameSettingsAsset == null)
@@ -175,11 +182,13 @@ namespace Stride.AssetCompiler
                 var bundleFiles = new List<string>();
                 bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
 
+                var aliasesFile = WriteContentAliases(builderOptions.Logger, projectSession, selfPackages, outputDirectory);
+
                 // Only write the up-to-date marker on success — otherwise MSBuild's Inputs/Outputs
                 // check on StrideCompileAsset would skip re-running CompilerApp next build, leaving
                 // the partial bundle in place and silently packing it into the APK.
                 if (result == BuildResultCode.Successful && builderOptions.MSBuildUpToDateCheckFileBase != null)
-                    SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles);
+                    SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles, aliasesFile);
 
                 return result;
             }
@@ -195,10 +204,88 @@ namespace Stride.AssetCompiler
             }
         }
 
-        private void SaveBuildUpToDateFile(string msbuildUpToDateCheckFileBase, string packageFile, Package rootPackage, List<string> bundleFiles)
+        /// <summary>
+        /// The built game's own packages: the root package, plus non-dependency packages owning
+        /// GameSettings (the chain package when the root is a platform head).
+        /// </summary>
+        private static HashSet<Package> GetSelfPackages(PackageSession projectSession, Package rootPackage)
+        {
+            var selfPackages = new HashSet<Package> { rootPackage };
+            foreach (var sessionPackage in projectSession.Packages)
+            {
+                if (sessionPackage.Container is not StandalonePackage { IsDependencyPackage: true }
+                    && sessionPackage.Assets.Any(a => a.Asset is GameSettingsAsset))
+                    selfPackages.Add(sessionPackage);
+            }
+            return selfPackages;
+        }
+
+        /// <summary>
+        /// Writes the bare-to-canonical URL alias table (data/db/aliases) implementing using
+        /// semantics: self namespaces are implicitly in scope, others enter via declared usings or
+        /// their own global-using declaration. Self wins bare-name collisions; colliding imports
+        /// get no alias.
+        /// </summary>
+        private static string WriteContentAliases(ILogger logger, PackageSession projectSession, HashSet<Package> selfPackages, string outputDirectory)
+        {
+            var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
+            var selfAliases = new HashSet<string>(StringComparer.Ordinal);
+            var ambiguous = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var scopedPackage in projectSession.Packages.OrderBy(p => selfPackages.Contains(p) ? 0 : 1))
+            {
+                if (scopedPackage.Container.AssetNamespace is not { } assetNamespace)
+                    continue;
+                var isSelf = selfPackages.Contains(scopedPackage);
+                if (!isSelf && !projectSession.AssetNamespaceUsings.Contains(assetNamespace))
+                    continue;
+
+                var namespaceRoot = "/" + assetNamespace;
+                foreach (var assetItem in scopedPackage.Assets)
+                {
+                    if (!assetItem.Location.IsAbsolute)
+                        continue;
+                    var canonical = assetItem.Location.FullPath;
+                    var bare = assetItem.Location.MakeRelative(namespaceRoot).FullPath;
+                    if (ambiguous.Contains(bare))
+                        continue;
+                    if (aliases.TryGetValue(bare, out var existing))
+                    {
+                        if (existing == canonical)
+                            continue;
+                        if (selfAliases.Contains(bare))
+                        {
+                            logger.Warning($"Bare asset URL [{bare}] resolves to the game's own [{existing}]; qualify [{canonical}] explicitly to load it.");
+                        }
+                        else
+                        {
+                            aliases.Remove(bare);
+                            ambiguous.Add(bare);
+                            logger.Warning($"Bare asset URL [{bare}] is ambiguous between [{existing}] and [{canonical}]; qualify it explicitly.");
+                        }
+                        continue;
+                    }
+                    aliases.Add(bare, canonical);
+                    if (isSelf)
+                        selfAliases.Add(bare);
+                }
+            }
+
+            // Always written (empty when no aliases) so it can be tracked as a build output
+            var aliasesFile = Path.Combine(outputDirectory, "db", "aliases");
+            Directory.CreateDirectory(Path.GetDirectoryName(aliasesFile));
+            File.WriteAllLines(aliasesFile, aliases.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"{x.Key}|{x.Value}"));
+            return aliasesFile;
+        }
+
+        private void SaveBuildUpToDateFile(string msbuildUpToDateCheckFileBase, string packageFile, Package rootPackage, List<string> bundleFiles, string aliasesFile)
         {
             var inputs = new List<string>();
             var outputs = new List<string>();
+
+            // Namespace and usings declarations live only in the manifests (rewritten on change only,
+            // so timestamps are stable)
+            foreach (var manifest in rootPackage.Session.LoadedBuildManifests)
+                inputs.Add(new UFile(manifest).ToOSPath());
 
             // List asset folders from projects
             foreach (var package in rootPackage.Session.Packages)
@@ -251,6 +338,7 @@ namespace Stride.AssetCompiler
             {
                 outputs.Add(bundleFile);
             }
+            outputs.Add(aliasesFile);
 
             // Generate MSBuild up-to-date check property files
             File.WriteAllLines(msbuildUpToDateCheckFileBase + ".inputs", inputs, Encoding.UTF8);

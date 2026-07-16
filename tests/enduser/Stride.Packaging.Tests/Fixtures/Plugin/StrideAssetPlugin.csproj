@@ -4,10 +4,9 @@
     <RootNamespace>StrideAssetPlugin</RootNamespace>
     <PackageId>StrideAssetPlugin</PackageId>
     <Version>1.0.0</Version>
-    <!-- Pack the project as a Stride asset package: the dll is declared as an asset assembly
-         automatically (out-of-tree default), so consumers load it for asset compilation.
-         Override StrideContainsAssetTypes=false to exercise the negative case. -->
-    <StridePackAssets>true</StridePackAssets>
+    <!-- The dll is declared as an asset assembly automatically (out-of-tree default), so consumers
+         load it for asset compilation. Override StrideContainsAssetTypes=false for the negative case. -->
+    <!-- Namespacing is on by default: asset URLs are rooted /StrideAssetPlugin/... in consumers. -->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />

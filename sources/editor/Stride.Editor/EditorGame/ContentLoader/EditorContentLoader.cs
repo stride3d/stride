@@ -15,6 +15,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.MicroThreading;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
@@ -63,6 +64,12 @@ namespace Stride.Editor.EditorGame.ContentLoader
         /// </summary>
         private readonly Dictionary<AssetItem, ReloadingAsset> assetsToReloadMapping = new Dictionary<AssetItem, ReloadingAsset>();
 
+        /// <summary>
+        /// Last known replace target per replacing asset, so clearing or retargeting a declaration
+        /// also refreshes the previously replaced URL.
+        /// </summary>
+        private readonly Dictionary<AssetId, UFile> lastKnownReplaces = new Dictionary<AssetId, UFile>();
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorContentLoader"/> class
@@ -78,6 +85,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
             Editor = editor ?? throw new ArgumentNullException(nameof(editor));
             GameDispatcher = gameDispatcher ?? throw new ArgumentNullException(nameof(gameDispatcher));
             Session = asset.Session;
+            foreach (var sessionAsset in Session.AllAssets)
+            {
+                if (sessionAsset.Asset.Replaces is { } replacedUrl)
+                    lastKnownReplaces[sessionAsset.Id] = replacedUrl;
+            }
             Session.AssetPropertiesChanged += AssetPropertiesChanged;
             Game = game ?? throw new ArgumentNullException(nameof(game));
             Manager = new LoaderReferenceManager(GameDispatcher, this);
@@ -486,6 +498,36 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
             // If GameSettingsAssets.ColorSpace was changed, rebuild the whole scene
             var assets = e.Assets.ToList();
+
+            // A change to a replacing asset must refresh the content loaded under the replaced URL;
+            // clearing or retargeting the declaration must also refresh the previous one.
+            // Lock: the session raises this event from the thread pool, so invocations can overlap.
+            foreach (var replacer in e.Assets)
+            {
+                UFile previousUrl;
+                var replacedUrl = replacer.Asset.Replaces;
+                lock (lastKnownReplaces)
+                {
+                    lastKnownReplaces.TryGetValue(replacer.Id, out previousUrl);
+                    if (replacedUrl is not null)
+                        lastKnownReplaces[replacer.Id] = replacedUrl;
+                    else
+                        lastKnownReplaces.Remove(replacer.Id);
+                }
+
+                AddReplaceTarget(replacedUrl);
+                if (previousUrl is not null && previousUrl != replacedUrl)
+                    AddReplaceTarget(previousUrl);
+            }
+
+            void AddReplaceTarget(UFile replacedUrl)
+            {
+                if (replacedUrl is null)
+                    return;
+                var target = Session.GetAssetByUrl(replacedUrl.FullPath);
+                if (target != null && !assets.Contains(target))
+                    assets.Add(target);
+            }
 
             var references = await ComputeReferences();
             var assetsToProcess = new Queue<AssetViewModel>(assets);

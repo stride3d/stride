@@ -252,6 +252,69 @@ public class TestContentManager
     }
 
     [Fact]
+    public void RootedUrl()
+    {
+        // Namespaced packages use rooted URLs (/Package/Path); they must round-trip as plain index keys.
+        var c1 = new C { I = 16, Child = new C { I = 32 } };
+        AttachedReferenceManager.SetUrl(c1.Child, "/MyGame/Sub/child");
+
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("/MyGame/Sub/c1", c1);
+
+        Assert.True(databaseProvider.FileProvider.FileExists("/MyGame/Sub/c1"));
+
+        var c1Copy = assetManager2.Load<C>("/MyGame/Sub/c1");
+        Assert.Equal(16, c1Copy.I);
+        Assert.Equal(32, c1Copy.Child.I);
+
+        Assert.True(assetManager2.TryGetAssetUrl(c1Copy, out var url));
+        Assert.Equal("/MyGame/Sub/c1", url);
+
+        var childCopy = assetManager2.Load<C>("/MyGame/Sub/child");
+        Assert.Equal(32, childCopy.I);
+    }
+
+    [Fact]
+    public void UrlAlias()
+    {
+        // Bare URL resolves through the shipped alias table to the canonical rooted URL,
+        // canonicalized before caching so both spellings share one instance.
+        var a1 = new A { I = 18 };
+
+        VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
+        var aliasesUrl = VirtualFileSystem.ApplicationDatabasePath + "/aliases";
+        using (var stream = VirtualFileSystem.OpenStream(aliasesUrl, VirtualFileMode.Create, VirtualFileAccess.Write))
+        using (var writer = new StreamWriter(stream))
+            writer.Write("Sub/a|/MyGame/Sub/a\n");
+
+        try
+        {
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager = new ContentManager(databaseProvider);
+            assetManager.Save("/MyGame/Sub/a", a1);
+
+            Assert.True(assetManager.Exists("Sub/a"));
+
+            var viaAlias = assetManager.Load<A>("Sub/a");
+            var viaCanonical = assetManager.Load<A>("/MyGame/Sub/a");
+            Assert.Same(viaCanonical, viaAlias);
+            Assert.Equal(18, viaAlias.I);
+            Assert.True(assetManager.IsLoaded("Sub/a"));
+            Assert.True(assetManager.IsLoaded("/MyGame/Sub/a"));
+
+            assetManager.Unload("Sub/a");
+            assetManager.Unload(viaCanonical);
+        }
+        finally
+        {
+            VirtualFileSystem.FileDelete(aliasesUrl);
+        }
+    }
+
+    [Fact]
     public void LifetimeShared()
     {
         var c1 = new C { I = 16 };

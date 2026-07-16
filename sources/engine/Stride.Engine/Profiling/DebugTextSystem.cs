@@ -88,7 +88,7 @@ namespace Stride.Profiling
             {
                 fastTextRenderer = new FastTextRenderer(Game.GraphicsContext)
                 {
-                    DebugSpriteFont = Content.Load<Texture>("StrideDebugSpriteFont"),
+                    DebugSpriteFont = Content.Load<Texture>("/Stride.Engine/StrideDebugSpriteFont"),
                     TextColor = TextColor,
                 };
             }

@@ -21,6 +21,10 @@ namespace Stride.Editor.Build
     public class GameStudioDatabase : IDisposable
     {
         private readonly Dictionary<ObjectUrl, OutputObject> database = new Dictionary<ObjectUrl, OutputObject>();
+        private readonly HashSet<string> pendingReplacementTargets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly object assetReplacementsLock = new object();
+        private Dictionary<string, AssetItem> cachedAssetReplacements;
+        private bool assetReplacementsValid;
         private readonly GameStudioBuilderService assetBuilderService;
         private readonly GameSettingsProviderService settingsProvider;
         internal readonly AssetCompilerContext CompilerContext = new AssetCompilerContext { CompilationContext = typeof(AssetCompilationContext) };
@@ -45,7 +49,8 @@ namespace Stride.Editor.Build
             UpdateGameSettings(settingsProvider.CurrentGameSettings);
             settingsProvider.GameSettingsChanged += OnGameSettingsChanged;
 
-            ((AssetDependencyManager)assetBuilderService.SessionViewModel.DependencyManager).AssetChanged += OnAssetChanged;          
+            ((AssetDependencyManager)assetBuilderService.SessionViewModel.DependencyManager).AssetChanged += OnAssetChanged;
+            assetBuilderService.SessionViewModel.AssetReplacementsChanged += OnAssetReplacementsChanged;
         }
 
         private void OnAssetChanged(AssetItem sender, bool oldValue, bool newValue)
@@ -56,11 +61,18 @@ namespace Stride.Editor.Build
             //}
         }
 
+        private void OnAssetReplacementsChanged(object sender, EventArgs e)
+        {
+            lock (assetReplacementsLock)
+                assetReplacementsValid = false;
+        }
+
         public void Dispose()
         {
             isDisposed = true;
             databaseLock.Dispose();
             settingsProvider.GameSettingsChanged -= OnGameSettingsChanged;
+            assetBuilderService.SessionViewModel.AssetReplacementsChanged -= OnAssetReplacementsChanged;
             ((AssetDependencyManager)assetBuilderService.SessionViewModel.DependencyManager).AssetChanged -= OnAssetChanged;
             CompilerContext.Dispose();
             database.Clear();
@@ -86,7 +98,25 @@ namespace Stride.Editor.Build
             return lockObject;
         }
 
-        public async Task Build(AssetItem asset, BuildDependencyType dependencyType = BuildDependencyType.Runtime)
+        public Task Build(AssetItem asset, BuildDependencyType dependencyType = BuildDependencyType.Runtime)
+        {
+            return Build(asset, GetAssetReplacements(asset.Package?.Session));
+        }
+
+        private Dictionary<string, AssetItem> GetAssetReplacements(PackageSession session)
+        {
+            lock (assetReplacementsLock)
+            {
+                if (!assetReplacementsValid)
+                {
+                    cachedAssetReplacements = AssetReplacementAnalysis.CollectSessionReplacements(session);
+                    assetReplacementsValid = true;
+                }
+                return cachedAssetReplacements;
+            }
+        }
+
+        private async Task Build(AssetItem asset, Dictionary<string, AssetItem> assetReplacements)
         {
             if (isDisposed)
                 throw new ObjectDisposedException(nameof(GameStudioDatabase));
@@ -123,6 +153,63 @@ namespace Stride.Editor.Build
                 foreach (var outputObject in buildUnit.OutputObjects)
                 {
                     database[outputObject.Key] = outputObject.Value;
+                }
+            }
+
+            await ApplyAssetReplacements(buildUnit, assetReplacements);
+        }
+
+        /// <summary>
+        /// Redirects the database entries of replaced URLs found among the build outputs to their
+        /// replacement's compiled content, so the editor game resolves them like the built game does.
+        /// </summary>
+        private async Task ApplyAssetReplacements(EditorGameBuildUnit buildUnit, Dictionary<string, AssetItem> assetReplacements)
+        {
+            if (assetReplacements == null || buildUnit.Failed)
+                return;
+
+            List<(ObjectUrl Target, AssetItem Replacement)> toApply = null;
+            foreach (var output in buildUnit.OutputObjects)
+            {
+                if (output.Key.Type == UrlType.Content
+                    && assetReplacements.TryGetValue(output.Key.Path, out var replacement)
+                    && !string.Equals(replacement.Location.FullPath, output.Key.Path, StringComparison.OrdinalIgnoreCase))
+                {
+                    (toApply ??= new List<(ObjectUrl, AssetItem)>()).Add((output.Key, replacement));
+                }
+            }
+            if (toApply == null)
+                return;
+
+            foreach (var (target, replacement) in toApply)
+            {
+                // Reentrancy guard on the build only: the replacement's own dependency graph can
+                // include the replaced URL. The redirect is always (re)applied, so a concurrent
+                // build merging the original content back cannot leave the target un-redirected.
+                bool buildReplacement;
+                lock (pendingReplacementTargets)
+                    buildReplacement = pendingReplacementTargets.Add(target.Path);
+                try
+                {
+                    if (buildReplacement)
+                        await Build(replacement, assetReplacements);
+
+                    using ((await databaseLock.ReserveSyncLock()).Lock())
+                    {
+                        if (isDisposed)
+                            return;
+
+                        if (database.TryGetValue(new ObjectUrl(UrlType.Content, replacement.Location), out var replacementOutput))
+                            database[target] = replacementOutput;
+                    }
+                }
+                finally
+                {
+                    if (buildReplacement)
+                    {
+                        lock (pendingReplacementTargets)
+                            pendingReplacementTargets.Remove(target.Path);
+                    }
                 }
             }
         }

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
@@ -431,6 +432,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
 
                 sessionViewModel.CheckConsistency();
+                sessionViewModel.CheckAssetReplacements();
 
                 sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
             }
@@ -1009,6 +1011,57 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// Gets whether any asset of the session declares <see cref="Asset.Replaces"/>.
+        /// </summary>
+        public bool HasAssetReplacements => AllAssets.Any(x => x.Asset.Replaces != null);
+
+        /// <summary>
+        /// Raised whenever <see cref="CheckAssetReplacements"/> runs, i.e. the session's replacement
+        /// declarations may have changed.
+        /// </summary>
+        public event EventHandler AssetReplacementsChanged;
+
+        /// <summary>
+        /// Validates every <see cref="Asset.Replaces"/> declaration of the session, reporting problems
+        /// in the asset log. Declarations cross-reference each other (duplicates, targets), so any
+        /// change re-validates them all; <paramref name="changedAsset"/> additionally gets its
+        /// messages cleared when it no longer declares anything (cleared or deleted).
+        /// </summary>
+        public void CheckAssetReplacements(AssetViewModel changedAsset = null)
+        {
+            foreach (var asset in AllAssets)
+            {
+                if (asset.Asset.Replaces != null)
+                    CheckAssetReplacement(asset);
+            }
+            if (changedAsset != null && (changedAsset.IsDeleted || changedAsset.Asset.Replaces == null))
+                AssetLog.ClearMessages(LogKey.Get(changedAsset.Id, AssetReplacementLogName));
+            AssetReplacementsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private const string AssetReplacementLogName = "AssetReplacement";
+
+        private void CheckAssetReplacement([NotNull] AssetViewModel asset)
+        {
+            var logKey = LogKey.Get(asset.Id, AssetReplacementLogName);
+            AssetLog.ClearMessages(logKey);
+            if (asset.Asset.Replaces is not { } target)
+                return;
+
+            var targetItem = asset.AssetItem.Package?.FindAsset(target);
+            var error = AssetReplacementAnalysis.ValidateDeclaration(asset.AssetItem, targetItem);
+            if (error == null)
+            {
+                var duplicate = AllAssets.FirstOrDefault(x => x != asset && x.Asset.Replaces is { } other && string.Equals(other.FullPath, target.FullPath, StringComparison.OrdinalIgnoreCase));
+                if (duplicate != null)
+                    error = $"[{duplicate.Url}] also replaces [{target}]; only one replacement per URL is allowed.";
+            }
+
+            if (error != null)
+                AssetLog.GetLogger(logKey).Log(new AssetSerializableLogMessage(asset.Id, asset.Url, LogMessageType.Warning, error));
+        }
+
+        /// <summary>
         /// Notifies the session that a property of some assets has been changed.
         /// </summary>
         /// <remarks>
@@ -1041,10 +1094,40 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return result;
         }
 
+        /// <summary>
+        /// Gets an <see cref="AssetViewModel"/> instance of the asset which has the given URL, if available.
+        /// </summary>
+        /// <param name="url">The URL of the asset to look for.</param>
+        /// <returns>An <see cref="AssetViewModel"/> that matches the given URL if available. Otherwise, <c>null</c>.</returns>
+        [CanBeNull]
+        public AssetViewModel GetAssetByUrl([NotNull] string url)
+        {
+            var assetItem = session.FindAsset(new UFile(url));
+            return assetItem != null ? GetAssetById(assetItem.Id) : null;
+        }
+
         public Type GetAssetViewModelType(AssetItem assetItem)
         {
             var assetType = assetItem.Asset.GetType();
             return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
+        }
+
+        /// <summary>
+        /// True when assets under this namespace resolve by bare URL for the open game: its own
+        /// packages, explicit usings and global-using dependencies.
+        /// </summary>
+        public bool IsAssetNamespaceInScope(string assetNamespace)
+        {
+            if (session.AssetNamespaceUsings.Contains(assetNamespace))
+                return true;
+            foreach (var package in AllPackages)
+            {
+                if (package.Package.Container?.AssetNamespace is { } candidate
+                    && string.Equals(candidate, assetNamespace, StringComparison.OrdinalIgnoreCase)
+                    && !package.Package.IsReadOnly)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
