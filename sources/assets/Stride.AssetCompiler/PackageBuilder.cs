@@ -168,6 +168,7 @@ namespace Stride.AssetCompiler
                 // Run builder
                 var result = builder.Run(Builder.Mode.Build);
                 builder.WriteIndexFile(false);
+                builder.WriteClosureFile();
 
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
