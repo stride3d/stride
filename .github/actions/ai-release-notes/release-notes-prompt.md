@@ -9,9 +9,26 @@ user-facing release notes in Markdown.
 
 Write primarily for **the people who use $PRODUCT** — game developers, not engine internals
 experts. Describe what changed for *them*: features, behavior, fixes. Say what a change lets
-them do or stops going wrong, not how it was implemented. Keep internal jargon and
-dependency name-drops out unless they genuinely affect the user. A short "Under the hood"
-section at the end can carry internal work worth a mention.
+them do or stops going wrong, not how it was implemented.
+
+Use **plain, simple English** and keep it **high level**:
+
+- Avoid internal jargon, engine-implementation terms, and dependency name-drops the reader
+  won't recognize. For example, don't write things like "quiesce", "mtime-LRU GC",
+  "platform heads", "apphost", or "NRE" — use everyday words instead ("shut down cleanly",
+  "reuses cached build results", "each platform's build", "crash").
+- Domain terms that are standard for the area a change touches are fine when they aid
+  clarity — a GPU/graphics fix may say "command buffer" or "shader"; a physics fix may say
+  "collider" or "inertia". The test is whether a developer working in that area would
+  recognize the term, not whether the text is entirely jargon-free.
+- If a change is genuinely technical, describe its **effect** in ordinary language rather
+  than naming the mechanism. When a precise term is truly unavoidable, add a few plain words
+  of explanation.
+- Prefer a short, concrete description of the user-visible benefit over an accurate but
+  opaque one. When in doubt, go simpler and higher-level.
+
+A short "Under the hood" section at the end can carry internal work worth a mention — keep
+even that readable.
 
 # Scope
 
