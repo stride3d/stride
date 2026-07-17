@@ -25,8 +25,8 @@ namespace Stride.Assets.Tests
         {
             var result = Run(
             [
-                Asset(@"Ground Textures\Skybox texture.sdtex", "!Texture"),
-                Map("Texture|Stride.Graphics.Texture"),
+                Asset(@"Ground Textures\Skybox texture.sdtex"),
+                Map(".sdtex|Stride.Graphics.Texture"),
             ]);
 
             Assert.Contains("internal static partial class Assets", result.Source);
@@ -37,9 +37,9 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void UntypedFallbackForUnknownTag()
+        public void UntypedFallbackForUnregisteredExtension()
         {
-            var result = Run([Asset("Thing.sdcustom", "!SomeUnknownCustomTag")]);
+            var result = Run([Asset("Thing.sdcustom")]);
 
             Assert.Contains("global::Stride.Core.Serialization.UrlReference Thing", result.Source);
             Assert.DoesNotContain("UrlReference<", result.Source);
@@ -49,7 +49,7 @@ namespace Stride.Assets.Tests
         [Fact]
         public void UnqualifiedUrlWhenNoNamespace()
         {
-            var result = Run([Asset("Ground.sdtex", "!Texture")], urlNamespace: "");
+            var result = Run([Asset("Ground.sdtex")], urlNamespace: "");
 
             Assert.Contains("\"Ground\"", result.Source);
             Assert.DoesNotContain("\"/", result.Source);
@@ -60,9 +60,9 @@ namespace Stride.Assets.Tests
         {
             var result = Run(
             [
-                Asset("A b.sdtex", "!UnknownTagKeepsThemUntyped"),
-                Asset("A_b.sdtex", "!UnknownTagKeepsThemUntyped"),
-                Asset("2 Cool.sdtex", "!UnknownTagKeepsThemUntyped"),
+                Asset("A b.sdcustom"),
+                Asset("A_b.sdcustom"),
+                Asset("2 Cool.sdcustom"),
             ]);
 
             Assert.Contains("UrlReference A_b ", result.Source);
@@ -75,7 +75,7 @@ namespace Stride.Assets.Tests
         [Fact]
         public void KeywordFolderIsEscaped()
         {
-            var result = Run([Asset(@"new\Ground.sdtex", "!Texture")]);
+            var result = Run([Asset(@"new\Ground.sdtex")]);
 
             Assert.Contains("internal static partial class @new", result.Source);
             Assert.Contains("\"/MyGame/new/Ground\"", result.Source);
@@ -86,7 +86,7 @@ namespace Stride.Assets.Tests
         public void NamespaceConflictSkipsGeneration()
         {
             var result = Run(
-                [Asset("Ground.sdtex", "!Texture")],
+                [Asset("Ground.sdtex")],
                 source: "namespace MyGame.Assets { public class Foo { } }");
 
             Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "STRDIAG013");
@@ -98,17 +98,16 @@ namespace Stride.Assets.Tests
         {
             var result = Run(
             [
-                Asset("Thing.sdcustom", "!CustomThing"),
-                Map("CustomThing|Stride.Graphics.Texture"),
+                Asset("Thing.sdcustom"),
+                Map(".sdcustom|Stride.Graphics.Texture"),
             ],
                 source: """
-                    using Stride.Core;
                     using Stride.Core.Assets;
                     namespace MyPlugin
                     {
                         public class CustomContent { }
 
-                        [DataContract("CustomThing")]
+                        [AssetDescription(".sdcustom")]
                         [AssetContentType(typeof(CustomContent))]
                         public class CustomThingAsset { }
                     }
@@ -119,13 +118,14 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void NonAssetFilesAreSkipped()
+        public void FilesWithoutAssetFolderMetadataAreSkipped()
         {
+            // Only files the build task tagged with StrideAssetFolder are assets; the map file and
+            // any other AdditionalFiles the generator is handed must never produce a constant.
             var result = Run(
             [
-                (Path.Combine(AssetFolder, "shader.sdsl"), "shader Foo {}", AssetFolder, false),
-                (Path.Combine(AssetFolder, "note.txt"), "hello", AssetFolder, false),
-                (Path.Combine(AssetFolder, "MyGame.Game.sdpkg"), "!Package\nId: 00000000-0000-0000-0000-000000000002\n", AssetFolder, false),
+                (@"C:\other\note.txt", "hello"),
+                Map(".sdtex|Stride.Graphics.Texture"),
             ]);
 
             Assert.Null(result.Source);
@@ -134,7 +134,7 @@ namespace Stride.Assets.Tests
         [Fact]
         public void EmitIsCachedWhenOnlyUnrelatedSourceChanges()
         {
-            var (driver, _) = TrackingDriver([Asset("Ground.sdtex", "!Texture"), Map("Texture|Stride.Graphics.Texture")]);
+            var (driver, _) = TrackingDriver([Asset("Ground.sdtex"), Map(".sdtex|Stride.Graphics.Texture")]);
 
             var result = driver.RunGenerators(CreateCompilation("public class TestDummy { }"));
             // An unrelated source edit produces a new compilation but the same assets, resolved
@@ -147,13 +147,13 @@ namespace Stride.Assets.Tests
         [Fact]
         public void EmitRefiresWhenAssetsChange()
         {
-            var (driver, texts) = TrackingDriver([Asset("Ground.sdtex", "!Texture")]);
+            var (driver, texts) = TrackingDriver([Asset("Ground.sdtex")]);
             var result = driver.RunGenerators(CreateCompilation("public class TestDummy { }"));
 
-            // Retag the asset: its entry changes, so the emit must re-run (guards against the
-            // custom array comparer over-caching) and reflect the new (untyped) constant.
-            var retagged = new TestAdditionalText(texts[0].Path, "!Sound\nId: 00000000-0000-0000-0000-000000000001\n");
-            result = result.ReplaceAdditionalText(texts[0], retagged)
+            // Rename the asset: its relative path changes, so the emit must re-run (guards against
+            // the custom array comparer over-caching) and reflect the renamed constant.
+            var renamed = new TestAdditionalText(Path.Combine(AssetFolder, "Water.sdtex"), "");
+            result = result.ReplaceAdditionalText(texts[0], renamed)
                 .RunGenerators(CreateCompilation("public class TestDummy { }"));
 
             Assert.Contains(OutputReasons(result), reason => reason != IncrementalStepRunReason.Cached);
@@ -165,30 +165,14 @@ namespace Stride.Assets.Tests
                 .SelectMany(step => step.Outputs)
                 .Select(output => output.Reason);
 
-        private static (GeneratorDriver Driver, AdditionalText[] Texts) TrackingDriver((string Path, string Content, string? Folder, bool IsMap)[] files)
+        private static (GeneratorDriver Driver, AdditionalText[] Texts) TrackingDriver((string Path, string Content)[] files)
         {
             var texts = files.Select(file => (AdditionalText)new TestAdditionalText(file.Path, file.Content)).ToArray();
-            var perFileOptions = files.ToDictionary(
-                file => file.Path,
-                file =>
-                {
-                    var options = new Dictionary<string, string>();
-                    if (file.Folder != null)
-                        options["build_metadata.AdditionalFiles.StrideAssetFolder"] = file.Folder;
-                    if (file.IsMap)
-                        options["build_metadata.AdditionalFiles.StrideAssetContentTypeMap"] = "true";
-                    return options;
-                });
-            var globalOptions = new Dictionary<string, string>
-            {
-                ["build_property.RootNamespace"] = "MyGame",
-                ["build_property.StrideAssetUrlNamespace"] = "MyGame",
-            };
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [new AssetUrlConstantsGenerator().AsSourceGenerator()],
                 additionalTexts: texts,
                 parseOptions: null,
-                optionsProvider: new TestOptionsProvider(globalOptions, perFileOptions),
+                optionsProvider: new PrefixOptionsProvider(GlobalOptions("MyGame")),
                 driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             return (driver, texts);
         }
@@ -199,16 +183,24 @@ namespace Stride.Assets.Tests
                 References.Value,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        private static (string Path, string Content, string? Folder, bool IsMap) Asset(string relativePath, string tag)
-            => (Path.Combine(AssetFolder, relativePath), $"{tag}\nId: 00000000-0000-0000-0000-000000000001\n", AssetFolder, false);
+        // The generator types and includes assets purely by extension, so the file content is
+        // irrelevant (never read); only the path and its StrideAssetFolder root matter.
+        private static (string Path, string Content) Asset(string relativePath)
+            => (Path.Combine(AssetFolder, relativePath), "");
 
-        private static (string Path, string Content, string? Folder, bool IsMap) Map(string content)
-            => (@"C:\maps\Test.AssetContentTypeMap.txt", content, null, true);
+        private static (string Path, string Content) Map(string content)
+            => (@"C:\maps\Test.AssetContentTypeMap.txt", content);
+
+        private static Dictionary<string, string> GlobalOptions(string urlNamespace) => new()
+        {
+            ["build_property.RootNamespace"] = "MyGame",
+            ["build_property.StrideAssetUrlNamespace"] = urlNamespace,
+        };
 
         private sealed record RunResult(string? Source, ImmutableArray<Diagnostic> Diagnostics, Compilation Output);
 
         private static RunResult Run(
-            (string Path, string Content, string? Folder, bool IsMap)[] files,
+            (string Path, string Content)[] files,
             string urlNamespace = "MyGame",
             string source = "public class TestDummy { }")
         {
@@ -218,27 +210,11 @@ namespace Stride.Assets.Tests
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var texts = files.Select(file => (AdditionalText)new TestAdditionalText(file.Path, file.Content)).ToArray();
-            var perFileOptions = files.ToDictionary(
-                file => file.Path,
-                file =>
-                {
-                    var options = new Dictionary<string, string>();
-                    if (file.Folder != null)
-                        options["build_metadata.AdditionalFiles.StrideAssetFolder"] = file.Folder;
-                    if (file.IsMap)
-                        options["build_metadata.AdditionalFiles.StrideAssetContentTypeMap"] = "true";
-                    return options;
-                });
-            var globalOptions = new Dictionary<string, string>
-            {
-                ["build_property.RootNamespace"] = "MyGame",
-                ["build_property.StrideAssetUrlNamespace"] = urlNamespace,
-            };
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [new AssetUrlConstantsGenerator().AsSourceGenerator()],
                 additionalTexts: texts,
-                optionsProvider: new TestOptionsProvider(globalOptions, perFileOptions));
+                optionsProvider: new PrefixOptionsProvider(GlobalOptions(urlNamespace)));
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out var diagnostics);
 
             var generated = driver.GetRunResult().Results.Single().GeneratedSources;
@@ -273,12 +249,22 @@ namespace Stride.Assets.Tests
             }
         }
 
-        private sealed class TestOptionsProvider(Dictionary<string, string> globalOptions, Dictionary<string, Dictionary<string, string>> perFileOptions)
-            : AnalyzerConfigOptionsProvider
+        // Mirrors the build task's tagging: files under an asset folder carry StrideAssetFolder,
+        // the checked-in map carries StrideAssetContentTypeMap. Prefix-based so a renamed asset
+        // still resolves its folder.
+        private sealed class PrefixOptionsProvider(Dictionary<string, string> globalOptions) : AnalyzerConfigOptionsProvider
         {
             public override AnalyzerConfigOptions GlobalOptions { get; } = new TestOptions(globalOptions);
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => new TestOptions(null);
-            public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => new TestOptions(perFileOptions.TryGetValue(textFile.Path, out var options) ? options : null);
+            public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+            {
+                var options = new Dictionary<string, string>();
+                if (textFile.Path.StartsWith(AssetFolder + @"\", StringComparison.OrdinalIgnoreCase))
+                    options["build_metadata.AdditionalFiles.StrideAssetFolder"] = AssetFolder;
+                else if (textFile.Path.EndsWith("AssetContentTypeMap.txt", StringComparison.OrdinalIgnoreCase))
+                    options["build_metadata.AdditionalFiles.StrideAssetContentTypeMap"] = "true";
+                return new TestOptions(options);
+            }
         }
     }
 }

@@ -1,30 +1,31 @@
-# Maps asset YAML tags (DataContract alias of the asset type) to the content type
-# loadable through the ContentManager ([AssetContentType] of the asset type), for the
-# asset URL constants generator. Kept in sync with the engine's [AssetContentType]
-# declarations by Stride.Assets.Tests.TestAssetContentTypeMap. Lines: <tag>|<content type>
-Animation|Stride.Animations.AnimationClip
-ColliderShapeAsset|Stride.Physics.PhysicsColliderShape
-GameSettingsAsset|Stride.Engine.Design.GameSettings
-GraphicsCompositorAsset|Stride.Rendering.Compositing.GraphicsCompositor
-HeightmapAsset|Stride.Physics.Heightmap
-HullAsset|Stride.BepuPhysics.Definitions.DecomposedHulls
-MaterialAsset|Stride.Rendering.Material
-Model|Stride.Rendering.Model
-NavigationMeshAsset|Stride.Navigation.NavigationMesh
-PrefabAsset|Stride.Engine.Prefab
-PrefabModelAsset|Stride.Rendering.Model
-PregeneratedSpriteFont|Stride.Graphics.SpriteFont
-ProceduralModelAsset|Stride.Rendering.Model
-RenderTexture|Stride.Graphics.Texture
-SceneAsset|Stride.Engine.Scene
-Skeleton|Stride.Rendering.Skeleton
-SkyboxAsset|Stride.Rendering.Skyboxes.Skybox
-Sound|Stride.Audio.Sound
-SpriteFont|Stride.Graphics.SpriteFont
-SpriteSheet|Stride.Graphics.SpriteSheet
-SpriteStudioAnimationAsset|Stride.Animations.AnimationClip
-SpriteStudioSheetAsset|Stride.SpriteStudio.Runtime.SpriteStudioSheet
-Texture|Stride.Graphics.Texture
-UILibraryAsset|Stride.Engine.UILibrary
-UIPageAsset|Stride.Engine.UIPage
-Video|Stride.Video.Video
+# Maps an authored asset's file extension(s) to the content type it loads as through the
+# ContentManager ([AssetContentType] of the asset type), for the asset URL constants generator:
+# the build task filters asset folders by these extensions, and the generator types each constant
+# from them. Kept in sync with the engine's [AssetDescription]/[AssetContentType] declarations by
+# Stride.Assets.Tests.TestAssetContentTypeMap. One line per extension: <file extension>|<content type>
+.sdanim|Stride.Animations.AnimationClip
+.sdfnt|Stride.Graphics.SpriteFont
+.sdgamesettings|Stride.Engine.Design.GameSettings
+.sdgfxcomp|Stride.Rendering.Compositing.GraphicsCompositor
+.sdhmap|Stride.Physics.Heightmap
+.sdhull|Stride.BepuPhysics.Definitions.DecomposedHulls
+.sdm3d|Stride.Rendering.Model
+.sdmat|Stride.Rendering.Material
+.sdnavmesh|Stride.Navigation.NavigationMesh
+.sdpcfnt|Stride.Graphics.SpriteFont
+.sdphy|Stride.Physics.PhysicsColliderShape
+.sdprefabmodel|Stride.Rendering.Model
+.sdprefab|Stride.Engine.Prefab
+.sdpromodel|Stride.Rendering.Model
+.sdrendertex|Stride.Graphics.Texture
+.sdscene|Stride.Engine.Scene
+.sdsheet|Stride.Graphics.SpriteSheet
+.sdskel|Stride.Rendering.Skeleton
+.sdsky|Stride.Rendering.Skyboxes.Skybox
+.sdsnd|Stride.Audio.Sound
+.sdss4a|Stride.Animations.AnimationClip
+.sdss4s|Stride.SpriteStudio.Runtime.SpriteStudioSheet
+.sdtex|Stride.Graphics.Texture
+.sduilib|Stride.Engine.UILibrary
+.sduipage|Stride.Engine.UIPage
+.sdvid|Stride.Video.Video

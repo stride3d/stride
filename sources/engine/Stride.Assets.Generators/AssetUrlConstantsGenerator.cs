@@ -22,7 +22,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private const string AssetContentTypeMapMetadataKey = "build_metadata.AdditionalFiles.StrideAssetContentTypeMap";
     private const string UrlReferenceTypeName = "global::Stride.Core.Serialization.UrlReference";
     private const string AssetContentTypeAttributeFullName = "Stride.Core.Assets.AssetContentTypeAttribute";
-    private const string DataContractAttributeFullName = "Stride.Core.DataContractAttribute";
+    private const string AssetDescriptionAttributeFullName = "Stride.Core.Assets.AssetDescriptionAttribute";
     private const string StrideCoreAssetsAssemblyName = "Stride.Core.Assets";
 
     private static readonly DiagnosticDescriptor IdentifierCollision = new(
@@ -41,13 +41,13 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    internal sealed record AssetEntry(string RelativePath, string Tag);
+    internal sealed record AssetEntry(string RelativePath, string Extension);
 
-    internal sealed record MapEntry(string Tag, string TypeName);
+    internal sealed record MapEntry(string Extension, string TypeName);
 
     internal sealed record Config(string UrlNamespace, string ClassName, string Namespace);
 
-    internal sealed record TagType(string Tag, string TypeName);
+    internal sealed record ExtensionType(string Extension, string TypeName);
 
     internal sealed record ConflictInfo(bool HasConflict, string Namespace, string ClassName, string Suggestion)
     {
@@ -78,9 +78,9 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
         var typeTable = context.CompilationProvider.Combine(mapEntries).Combine(hasAssets)
             .Select(static (data, cancellationToken) => data.Right
-                ? ResolveTagTypes(data.Left.Left, data.Left.Right, cancellationToken)
-                : ImmutableArray<TagType>.Empty)
-            .WithComparer(TagTableComparer.Instance);
+                ? ResolveExtensionTypes(data.Left.Left, data.Left.Right, cancellationToken)
+                : ImmutableArray<ExtensionType>.Empty)
+            .WithComparer(TypeTableComparer.Instance);
 
         var conflict = context.CompilationProvider.Combine(config).Combine(hasAssets)
             .Select(static (data, _) => data.Right
@@ -104,23 +104,23 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             (string.IsNullOrEmpty(constantsNamespace) ? rootNamespace : constantsNamespace) ?? "");
     }
 
-    // Resolves each asset tag to its runtime type (map files first, compilation symbols override),
-    // sorted so equal resolutions produce an equal array.
-    private static ImmutableArray<TagType> ResolveTagTypes(Compilation compilation, ImmutableArray<MapEntry> mapEntries, CancellationToken cancellationToken)
+    // Resolves each asset file extension to its runtime type (map files first, compilation symbols
+    // override), sorted so equal resolutions produce an equal array.
+    private static ImmutableArray<ExtensionType> ResolveExtensionTypes(Compilation compilation, ImmutableArray<MapEntry> mapEntries, CancellationToken cancellationToken)
     {
-        var tagTypes = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var mapEntry in mapEntries.OrderBy(entry => entry.Tag, StringComparer.Ordinal).ThenBy(entry => entry.TypeName, StringComparer.Ordinal))
+        var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var mapEntry in mapEntries.OrderBy(entry => entry.Extension, StringComparer.Ordinal).ThenBy(entry => entry.TypeName, StringComparer.Ordinal))
         {
-            if (tagTypes.ContainsKey(mapEntry.Tag))
+            if (extensionTypes.ContainsKey(mapEntry.Extension))
                 continue;
             if (compilation.GetTypeByMetadataName(mapEntry.TypeName) is { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public } type)
-                tagTypes[mapEntry.Tag] = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                extensionTypes[mapEntry.Extension] = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
         foreach (var pair in ScanCompilationForAssetTypes(compilation, cancellationToken))
-            tagTypes[pair.Key] = pair.Value;
-        return tagTypes
-            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
-            .Select(pair => new TagType(pair.Key, pair.Value))
+            extensionTypes[pair.Key] = pair.Value;
+        return extensionTypes
+            .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(pair => new ExtensionType(pair.Key, pair.Value))
             .ToImmutableArray();
     }
 
@@ -130,11 +130,11 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             : ConflictInfo.None;
 
     // ImmutableArray equality is by-reference, so compare element-wise to let equal tables cache.
-    private sealed class TagTableComparer : IEqualityComparer<ImmutableArray<TagType>>
+    private sealed class TypeTableComparer : IEqualityComparer<ImmutableArray<ExtensionType>>
     {
-        public static readonly TagTableComparer Instance = new();
+        public static readonly TypeTableComparer Instance = new();
 
-        public bool Equals(ImmutableArray<TagType> x, ImmutableArray<TagType> y)
+        public bool Equals(ImmutableArray<ExtensionType> x, ImmutableArray<ExtensionType> y)
         {
             if (x.Length != y.Length)
                 return false;
@@ -146,7 +146,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             return true;
         }
 
-        public int GetHashCode(ImmutableArray<TagType> obj)
+        public int GetHashCode(ImmutableArray<ExtensionType> obj)
         {
             var hash = 17;
             foreach (var entry in obj)
@@ -160,20 +160,14 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         if (!options.TryGetValue(AssetFolderMetadataKey, out var folder) || string.IsNullOrEmpty(folder))
             return null;
 
-        // Asset-ness is decided by content, not extension: authored assets start with a YAML tag line
-        var text = file.GetText(cancellationToken);
-        if (text is null || text.Lines.Count == 0)
-            return null;
-        var firstLine = text.Lines[0].ToString().Trim();
-        if (firstLine.Length < 2 || firstLine[0] != '!')
-            return null;
-        var tag = firstLine.Substring(1).Trim();
-        // Package files are not loadable content (an asset folder can contain the sdpkg itself)
-        if (tag.Length == 0 || tag == "Package")
+        // Asset-ness and type come from the file extension (the build task already filtered the
+        // asset folders to registered asset extensions); the file content is never read.
+        var extension = Path.GetExtension(file.Path);
+        if (string.IsNullOrEmpty(extension))
             return null;
 
         var relativePath = GetRelativeAssetPath(folder!, file.Path);
-        return relativePath is null ? null : new AssetEntry(relativePath, tag);
+        return relativePath is null ? null : new AssetEntry(relativePath, extension);
     }
 
     private static IEnumerable<MapEntry> ReadMapEntries(AdditionalText file, AnalyzerConfigOptions options, CancellationToken cancellationToken)
@@ -212,7 +206,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         return relative.Length == 0 ? null : relative;
     }
 
-    private static void Emit(SourceProductionContext context, ImmutableArray<AssetEntry> assets, ImmutableArray<TagType> typeTable, Config config, ConflictInfo conflict)
+    private static void Emit(SourceProductionContext context, ImmutableArray<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
     {
         var entries = assets
             .OrderBy(entry => entry.RelativePath, StringComparer.Ordinal)
@@ -226,10 +220,10 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             return;
         }
 
-        // Tag -> emitted runtime type text (resolved from compilation symbols and map files); else untyped
-        var tagTypes = new Dictionary<string, string>(StringComparer.Ordinal);
+        // Extension -> emitted runtime type text (resolved from compilation symbols and map files); else untyped
+        var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in typeTable)
-            tagTypes[entry.Tag] = entry.TypeName;
+            extensionTypes[entry.Extension] = entry.TypeName;
 
         var root = new Node();
         foreach (var entry in entries)
@@ -250,7 +244,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             builder.AppendLine("{");
             indent++;
         }
-        EmitClass(context, builder, root, config.ClassName, config, tagTypes, indent);
+        EmitClass(context, builder, root, config.ClassName, config, extensionTypes, indent);
         if (config.Namespace.Length > 0)
             builder.AppendLine("}");
 
@@ -280,12 +274,12 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Compilation-visible asset types (e.g. a ProjectReference'd plugin): [AssetContentType]
-    /// gives the runtime type, the [DataContract] alias is the YAML tag. Only assemblies that
+    /// gives the runtime type, [AssetDescription] its file extension(s). Only assemblies that
     /// reference Stride.Core.Assets can declare asset types, so anything else is skipped whole.
     /// </summary>
     private static Dictionary<string, string> ScanCompilationForAssetTypes(Compilation compilation, CancellationToken cancellationToken)
     {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var assembly in EnumerateAssetTypeAssemblies(compilation))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -315,18 +309,24 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
                     CollectAssetTypes(nested, result);
                     break;
                 case INamedTypeSymbol { TypeKind: TypeKind.Class } type:
-                    string? tag = null;
+                    string? fileExtensions = null;
                     INamedTypeSymbol? contentType = null;
                     foreach (var attribute in type.GetAttributes())
                     {
                         var attributeName = attribute.AttributeClass?.ToDisplayString();
                         if (attributeName == AssetContentTypeAttributeFullName)
                             contentType = attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as INamedTypeSymbol : null;
-                        else if (attributeName == DataContractAttributeFullName && attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string alias)
-                            tag = alias;
+                        else if (attributeName == AssetDescriptionAttributeFullName && attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string extensions)
+                            fileExtensions = extensions;
                     }
-                    if (contentType is { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public })
-                        result[tag ?? type.Name] = contentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    if (fileExtensions is null || contentType is not { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public })
+                        break;
+                    var typeName = contentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    foreach (var extension in fileExtensions.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (extension.StartsWith(".", StringComparison.Ordinal))
+                            result[extension] = typeName;
+                    }
                     break;
             }
         }
@@ -345,7 +345,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         }
     }
 
-    private static void EmitClass(SourceProductionContext context, StringBuilder builder, Node node, string className, Config config, Dictionary<string, string> tagTypes, int indent)
+    private static void EmitClass(SourceProductionContext context, StringBuilder builder, Node node, string className, Config config, Dictionary<string, string> extensionTypes, int indent)
     {
         var pad = new string(' ', indent * 4);
         builder.Append(pad).Append("internal static partial class ").AppendLine(className);
@@ -361,12 +361,12 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         {
             var identifier = TakeIdentifier(context, usedNames, name, entry.RelativePath);
             var url = config.UrlNamespace.Length > 0 ? $"/{config.UrlNamespace}/{entry.RelativePath}" : entry.RelativePath;
-            var type = tagTypes.TryGetValue(entry.Tag, out var contentType) ? $"{UrlReferenceTypeName}<{contentType}>" : UrlReferenceTypeName;
+            var type = extensionTypes.TryGetValue(entry.Extension, out var contentType) ? $"{UrlReferenceTypeName}<{contentType}>" : UrlReferenceTypeName;
             builder.Append(pad).Append("    public static readonly ").Append(type).Append(' ').Append(identifier)
                 .Append(" = new ").Append(type).Append("(\"").Append(url.Replace("\\", "\\\\").Replace("\"", "\\\"")).AppendLine("\");");
         }
         foreach (var (identifier, child) in children)
-            EmitClass(context, builder, child, identifier, config, tagTypes, indent + 1);
+            EmitClass(context, builder, child, identifier, config, extensionTypes, indent + 1);
 
         builder.Append(pad).AppendLine("}");
     }

@@ -36,8 +36,11 @@ namespace Stride.Assets.Tests
                     var contentType = type.GetCustomAttribute<AssetContentTypeAttribute>();
                     if (contentType == null)
                         continue;
-                    var tag = type.GetCustomAttribute<DataContractAttribute>()?.Alias ?? type.Name;
-                    expected.Add($"{tag}|{contentType.ContentType.FullName}");
+                    var description = type.GetCustomAttribute<AssetDescriptionAttribute>();
+                    if (description == null)
+                        continue;
+                    foreach (var extension in description.FileExtensions.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                        expected.Add($"{extension}|{contentType.ContentType.FullName}");
                 }
             }
 
