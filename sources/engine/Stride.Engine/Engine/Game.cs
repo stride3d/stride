@@ -263,7 +263,7 @@ namespace Stride.Engine
             {
                 PlatformConfigurations.RendererName = GraphicsAdapterFactory.DefaultAdapter?.Description ?? string.Empty;
 
-                databaseFileProvider = InitializeAssetDatabase();
+                databaseFileProvider = InitializeAssetDatabase(AssetBundleName);
                 ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
