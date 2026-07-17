@@ -604,6 +604,9 @@ public sealed class BepuSimulation : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowCollisionTesting(int pairId, int childA, int childB)
         {
+            if (Collector.Full)
+                return false;
+
             var matA = CollidableMaterials[References[pairId]];
             return CollisionMask.IsSet(matA.Layer);
         }
@@ -641,14 +644,15 @@ public sealed class BepuSimulation : IDisposable
             {
                 Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, BufferPool, ref broadPhaseEnumerator);
 
-                var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, new()
+                var batcherCallbacks = new BatcherCallbacks<TCollector>
                 {
                     CollisionMask = collisionMask,
                     References = broadPhaseEnumerator.References,
                     CollidableMaterials = CollidableMaterials,
                     Collector = collector,
                     Simulation = this
-                });
+                };
+                var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, batcherCallbacks);
 
                 int i = 0;
                 foreach (CollidableReference reference in broadPhaseEnumerator.References)
@@ -672,7 +676,6 @@ public sealed class BepuSimulation : IDisposable
                     Simulation.Shapes[shapeIndexOther.Type].GetShapeData(shapeIndexOther.Index, out var shapeData, out _);
                     //In this path, we assume that the incoming shape data is ephemeral. The collision batcher may last longer than the data pointer.
                     //To avoid undefined access, we cache the query data into the collision batcher and use a pointer to the cache instead.
-                    batcher.Callbacks.References.Add(reference, BufferPool);
                     batcher.CacheShapeB(shapeIndexOther.Type, TShape.TypeId, queryShapeData, queryShapeSize, out var cachedQueryShapeData);
                     batcher.AddDirectly(shapeIndexOther.Type, TShape.TypeId, shapeData, cachedQueryShapeData,
                         //Because we're using this as a boolean query, we use a speculative margin of 0. Don't care about negative depths.
