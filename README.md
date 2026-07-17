@@ -70,7 +70,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    - **In the 'Individual Components' Tab**
      - **MSVC Build Tools for ARM64/ARM64EC (Latest)** *(currently v14.5x in VS 2026)*
 
-> See [docs/build/README.md](docs/build/README.md) for detailed prerequisites for iOS/Android/VSIX components, specific MSVC toolset versions, command-line builds without VS, and troubleshooting.
+> See [docs/build/README.md](docs/build/README.md) for iOS/Android/VSIX prerequisites, specific MSVC toolset versions, command-line builds without VS, and troubleshooting.
 
 ### Build Stride
 
