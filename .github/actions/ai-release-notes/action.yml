@@ -1,0 +1,108 @@
+name: AI release notes
+description: >-
+  Best-effort: regenerate a GitHub release body from git history using Claude, scoped to a
+  single product's source paths. On any failure (no API key, no previous tag, error) it does
+  nothing and leaves the caller's existing notes in place.
+
+inputs:
+  tag:
+    description: Release tag to update (e.g. cli/1.0.2).
+    required: true
+  tag-match:
+    description: git tag glob used to find the previous same-product release (e.g. 'cli/*').
+    required: true
+  product:
+    description: Human-readable product name (e.g. 'Stride CLI').
+    required: true
+  scope:
+    description: Pathspec limiting commits to this product's sources. Empty = whole repo (engine).
+    required: false
+    default: ''
+  model:
+    description: Claude model id.
+    required: false
+    default: claude-sonnet-5
+  prompt-file:
+    description: Path to the prompt template. Defaults to release-notes-prompt.md beside this action.
+    required: false
+    default: ''
+  anthropic-api-key:
+    description: Anthropic API key. If empty, the action no-ops.
+    required: false
+    default: ''
+  github-token:
+    description: Token with contents:write to edit the release.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ inputs.tag }}
+        TAG_MATCH: ${{ inputs.tag-match }}
+        PRODUCT: ${{ inputs.product }}
+        SCOPE: ${{ inputs.scope }}
+        MODEL: ${{ inputs.model }}
+        PROMPT_FILE: ${{ inputs.prompt-file }}
+      run: |
+        set -euo pipefail
+
+        # Default the prompt to the copy shipped beside this action.
+        PROMPT_FILE="${PROMPT_FILE:-$GITHUB_ACTION_PATH/release-notes-prompt.md}"
+
+        if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+          echo "::notice::No ANTHROPIC_API_KEY; keeping existing notes for $TAG."; exit 0
+        fi
+
+        PREV=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TAG^" 2>/dev/null || true)
+        if [ -z "$PREV" ]; then
+          echo "::notice::No previous '$TAG_MATCH' tag; keeping existing notes for $TAG."; exit 0
+        fi
+
+        # Scope note + the starting git-log command the prompt tells Claude to run.
+        if [ -n "$SCOPE" ]; then
+          SCOPE_NOTE="This is a release of **$PRODUCT**. Base your commit list on the scoped \`git log\` below (pathspec: \`$SCOPE\`); it is already limited to the paths that belong to $PRODUCT. Ignore anything outside that scope — the other products (engine, CLI, VS package, launcher) ship their own separate releases and notes."
+          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $PREV..$TAG -- $SCOPE"
+        else
+          SCOPE_NOTE="This release covers the whole $PRODUCT; consider every commit in the range."
+          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $PREV..$TAG"
+        fi
+
+        # Literal placeholder substitution (no eval).
+        PROMPT="$(cat "$PROMPT_FILE")"
+        PROMPT="${PROMPT//\$PRODUCT/$PRODUCT}"
+        PROMPT="${PROMPT//\$REPO/$REPO}"
+        PROMPT="${PROMPT//\$PREV/$PREV}"
+        PROMPT="${PROMPT//\$TAG/$TAG}"
+        PROMPT="${PROMPT//\$SCOPE_NOTE/$SCOPE_NOTE}"
+        PROMPT="${PROMPT//\$LOG_CMD/$LOG_CMD}"
+
+        # Install the Claude Code CLI (native installer -> ~/.local/bin).
+        curl -fsSL https://claude.ai/install.sh | bash
+        export PATH="$HOME/.local/bin:$PATH"
+
+        # Headless, read-only git access; JSON output so we extract the final text exactly.
+        set +e
+        RESP=$(claude -p "$PROMPT" \
+          --model "$MODEL" \
+          --allowedTools 'Bash(git:*),Bash(gh release view:*),Read,Grep,Glob' \
+          --max-turns 60 \
+          --output-format json)
+        STATUS=$?
+        set -e
+        if [ $STATUS -ne 0 ]; then
+          echo "::warning::Claude run failed ($STATUS); keeping existing notes for $TAG."; exit 0
+        fi
+
+        NOTES=$(printf '%s' "$RESP" | jq -r '.result // empty')
+        if [ -z "$NOTES" ]; then
+          echo "::warning::Empty AI notes; keeping existing notes for $TAG."; exit 0
+        fi
+
+        printf '%s\n' "$NOTES" > ai-release-notes.md
+        gh release edit "$TAG" --notes-file ai-release-notes.md
+        echo "::notice::Regenerated release notes for $TAG from $PREV using $MODEL."

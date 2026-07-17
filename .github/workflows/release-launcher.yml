@@ -184,3 +184,15 @@ jobs:
           files: bin/launcher/*.exe
           make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
           body_path: launcher-notes.md
+
+      - name: AI release notes
+        if: ${{ needs.Package.outputs.version != '' }}
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: launcher/${{ needs.Package.outputs.version }}
+          tag-match: 'launcher/*'
+          product: the Stride Launcher
+          scope: sources/launcher/Stride.Launcher
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}

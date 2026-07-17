@@ -209,6 +209,21 @@ jobs:
             --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
             bin/packages/*.nupkg
 
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps GitHub's --generate-notes body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: releases/${{ steps.version.outputs.version }}
+          tag-match: 'releases/*'
+          product: the Stride engine
+          # Whole repo except the separately-released products.
+          scope: >-
+            . :(exclude)sources/launcher/Stride.Cli
+            :(exclude)sources/tools/Stride.VisualStudio.*
+            :(exclude)sources/launcher/Stride.Launcher
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}
+
       - name: Bump version for next cycle
         # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above
         # points at the just-released commit). Skipped for prereleases (they keep the same number) and idempotent

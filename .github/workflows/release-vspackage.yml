@@ -183,3 +183,14 @@ jobs:
               --latest=false \
               bin/vsix/*.nupkg
           fi
+
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: vspackage/${{ needs.Package.outputs.version }}
+          tag-match: 'vspackage/*'
+          product: the Stride Visual Studio package
+          scope: sources/tools/Stride.VisualStudio.*
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}

@@ -214,6 +214,17 @@ jobs:
               bin/cli/*.nupkg
           fi
 
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: cli/${{ needs.Package.outputs.version }}
+          tag-match: 'cli/*'
+          product: the Stride CLI
+          scope: sources/launcher/Stride.Cli
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}
+
       - name: Publish summary
         if: success()
         shell: bash
