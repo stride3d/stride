@@ -112,7 +112,7 @@ jobs:
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: cli-package
+          name: stride-cli-${{ steps.version.outputs.version }}
           path: bin/cli/*.nupkg
           if-no-files-found: error
 
@@ -159,7 +159,7 @@ jobs:
       - name: Download package
         uses: actions/download-artifact@v4
         with:
-          name: cli-package
+          name: stride-cli-${{ needs.Package.outputs.version }}
           path: bin/cli
 
       - name: Push to NuGet.org

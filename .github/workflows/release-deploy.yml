@@ -79,7 +79,8 @@ jobs:
       - name: Download packages
         uses: actions/download-artifact@v4
         with:
-          name: packages
+          pattern: stride-packages-*
+          merge-multiple: true
           path: bin/packages
           run-id: ${{ inputs.run-id }}
           github-token: ${{ secrets.GH_PAT }}

@@ -95,7 +95,7 @@ jobs:
       - name: Upload VSIX artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: vsix
+          name: stride-vsix-${{ steps.version.outputs.version }}
           path: bin/vsix/*.nupkg
           if-no-files-found: error
           retention-days: 30
@@ -128,7 +128,7 @@ jobs:
       - name: Download VSIX artifacts
         uses: actions/download-artifact@v4
         with:
-          name: vsix
+          name: stride-vsix-${{ needs.Package.outputs.version }}
           path: bin/vsix
 
       - name: Push to NuGet

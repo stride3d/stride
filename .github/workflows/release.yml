@@ -178,7 +178,7 @@ jobs:
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
         with:
-          name: packages
+          name: stride-packages-${{ steps.version.outputs.version }}
           path: bin/packages/*.nupkg
           if-no-files-found: error
 

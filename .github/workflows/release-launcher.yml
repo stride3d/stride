@@ -106,7 +106,7 @@ jobs:
       - name: Upload launcher artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: launcher
+          name: stride-launcher-${{ steps.version.outputs.version }}
           path: |
             bin/launcher/*.nupkg
             bin/launcher/*.exe
@@ -138,7 +138,7 @@ jobs:
       - name: Download launcher artifacts
         uses: actions/download-artifact@v4
         with:
-          name: launcher
+          name: stride-launcher-${{ needs.Package.outputs.version }}
           path: bin/launcher
 
       - name: Push to NuGet
