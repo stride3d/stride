@@ -1,0 +1,181 @@
+name: Rollback Release
+
+# Undo a mistaken release. Each action is an independent, opt-out checkbox and runs
+# best-effort (continue-on-error), so one failing part never blocks the others.
+# Defaults to a dry run — untick "Dry run" to actually make changes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to roll back (e.g. 4.4.0-beta123)
+        required: true
+        type: string
+      tag:
+        description: Release/git tag. Defaults to releases/<version>; for other products use e.g. cli/<version>.
+        required: false
+        default: ''
+        type: string
+      package-ids:
+        description: Optional explicit NuGet package ids (space/comma separated). Overrides auto-discovery.
+        required: false
+        default: ''
+        type: string
+      remove-github-release:
+        description: Delete the GitHub release
+        default: true
+        type: boolean
+      remove-git-tag:
+        description: Delete the git tag
+        default: true
+        type: boolean
+      unlist-nuget:
+        description: Unlist the NuGet packages
+        default: true
+        type: boolean
+      dry-run:
+        description: Dry run (report only, change nothing)
+        default: true
+        type: boolean
+
+jobs:
+  Validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release permissions
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::Rollback blocked: '$USER' is not a member of $ORG/$TEAM (or GH_PAT cannot read it). Requires stride-release-managers membership."
+            exit 1
+          fi
+
+  Rollback:
+    name: Rollback ${{ inputs.version }}
+    needs: Validate
+    runs-on: ubuntu-latest
+    environment: production  # requires manual approval in GitHub settings
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve tag
+        id: resolve
+        run: |
+          VERSION='${{ inputs.version }}'
+          TAG='${{ inputs.tag }}'
+          [ -n "$TAG" ] || TAG="releases/$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "::notice::Rolling back version=$VERSION tag=$TAG (dry-run=${{ inputs.dry-run }})"
+
+      # Authoritative package list = the .nupkg assets on the release (fresh, no search-index lag).
+      # Best-effort: if the release is already gone, unlisting falls back to search / explicit ids.
+      - name: Discover NuGet packages from release assets
+        id: pkgs
+        if: ${{ inputs.unlist-nuget && inputs.package-ids == '' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG='${{ steps.resolve.outputs.tag }}'
+          VERSION='${{ inputs.version }}'
+          IDS=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' 2>/dev/null \
+                | grep -E '\.nupkg$' | grep -vE '\.snupkg$' \
+                | sed -E "s/\.${VERSION}\.nupkg\$//" | sort -u | tr '\n' ' ')
+          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
+          echo "::notice::Discovered from release assets: ${IDS:-<none>}"
+
+      - name: Unlist NuGet packages
+        if: ${{ inputs.unlist-nuget }}
+        continue-on-error: true
+        shell: pwsh
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry-run }}
+          EXPLICIT_IDS: ${{ inputs.package-ids }}
+          ASSET_IDS: ${{ steps.pkgs.outputs.ids }}
+        run: |
+          $version = $env:VERSION
+          $dryRun = $env:DRY_RUN -eq 'true'
+
+          # Candidate ids: explicit input > release assets > nuget search (owner:stride).
+          $raw = if ($env:EXPLICIT_IDS) { $env:EXPLICIT_IDS } else { $env:ASSET_IDS }
+          $candidates = @()
+          if ($raw) {
+            $candidates = $raw -split '[,\s]+' | Where-Object { $_ }
+            echo "Candidate ids from input/assets: $($candidates.Count)"
+          } else {
+            echo "No explicit ids; falling back to NuGet search (may lag a fresh release)."
+            $searchUrl = "https://api-v2v3search-0.nuget.org/query?q=owner:stride&take=500&prerelease=true"
+            $candidates = (Invoke-RestMethod -Uri $searchUrl).data |
+              Where-Object { $_.id -like 'Stride*' } | Select-Object -ExpandProperty id
+            echo "Search returned $($candidates.Count) Stride packages."
+          }
+
+          # Keep only those that actually have this version (flatcontainer is fresh immediately).
+          $found = @()
+          foreach ($id in $candidates) {
+            $u = "https://api.nuget.org/v3-flatcontainer/$($id.ToLower())/index.json"
+            try {
+              $v = Invoke-RestMethod -Uri $u -ErrorAction Stop
+              if ($v.versions -contains $version.ToLower()) { $found += $id }
+            } catch { }
+          }
+
+          echo ""
+          echo "## Packages with version $version : $($found.Count)"
+          $found | ForEach-Object { echo "  - $_" }
+
+          $failed = @()
+          if ($dryRun) {
+            echo ""
+            echo "** DRY RUN - nothing unlisted. Untick 'Dry run' to unlist. **"
+          } else {
+            foreach ($id in $found) {
+              echo "Unlisting $id $version..."
+              dotnet nuget delete $id $version --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --non-interactive
+              if ($LASTEXITCODE -ne 0) { $failed += $id }
+            }
+            if ($failed.Count -gt 0) { echo "::error::Failed to unlist: $($failed -join ', ')" }
+          }
+
+          "## Unlist NuGet"                                  >> $env:GITHUB_STEP_SUMMARY
+          "**Version:** $version  |  **Mode:** $(if ($dryRun) { 'Dry run' } else { 'Live' })" >> $env:GITHUB_STEP_SUMMARY
+          "**Matched:** $($found.Count)  |  **Failed:** $($failed.Count)" >> $env:GITHUB_STEP_SUMMARY
+          if ($failed.Count -gt 0) { exit 1 }
+
+      - name: Delete GitHub release
+        if: ${{ inputs.remove-github-release }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG='${{ steps.resolve.outputs.tag }}'
+          if [ "${{ inputs.dry-run }}" = "true" ]; then
+            echo "DRY RUN: would delete GitHub release $TAG"
+          elif gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release delete "$TAG" --repo "${{ github.repository }}" --yes
+            echo "Deleted GitHub release $TAG"
+          else
+            echo "GitHub release $TAG not found (already gone)."
+          fi
+
+      - name: Delete git tag
+        if: ${{ inputs.remove-git-tag }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG='${{ steps.resolve.outputs.tag }}'
+          if [ "${{ inputs.dry-run }}" = "true" ]; then
+            echo "DRY RUN: would delete git tag $TAG"
+          elif gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Deleted git tag $TAG"
+          else
+            echo "Git tag $TAG not found (already gone)."
+          fi

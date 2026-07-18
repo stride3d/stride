@@ -88,9 +88,16 @@ jobs:
         shell: pwsh
         run: |
           $nupkg = Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | Select-Object -First 1
-          if ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$') {
-            echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          if (-not ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$')) {
+            echo "::error::Could not determine a version from the VS package nupkg name"
+            exit 1
           }
+          $version = $Matches[1]
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1)"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Upload VSIX artifacts
         uses: actions/upload-artifact@v4

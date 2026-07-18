@@ -154,9 +154,10 @@ jobs:
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-          # Guard against a malformed SharedAssemblyInfo.cs slipping a weird version into the package name.
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
-            echo "::error::Detected package version '$version' is not a valid version - check SharedAssemblyInfo.cs"
+          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview + digits suffix. This
+          # blocks typos like '-brta4' and any stray suffix from a malformed SharedAssemblyInfo.cs.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1) - check SharedAssemblyInfo.cs"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT

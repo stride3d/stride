@@ -90,8 +90,8 @@ jobs:
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Cli\.(.*?)\.nupkg','$1'
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
-            echo "::error::Detected package version '$version' is not a valid version - check Stride.Cli.csproj"
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 1.0.0, 1.0.0-beta1) - check Stride.Cli.csproj"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
