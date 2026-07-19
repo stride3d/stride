@@ -50,7 +50,9 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             // Also tolerate the brace/paren Guid forms on paste ("{...}", "(...)"): the wrapper
             // characters are dropped so the content still fits the mask.
             var raw = text.Replace("-", "").Trim('{', '}', '(', ')', ' ');
-            if (raw.Length > HexDigits || !IsHex(raw))
+            var valid = raw.Length <= HexDigits && IsHex(raw);
+            SetInvalidHint(!valid);
+            if (!valid)
                 return;
 
             var formatted = Format(raw, appendTrailingDash: grew);
@@ -71,6 +73,18 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             {
                 updating = false;
             }
+        }
+
+        /// <summary>
+        /// Live feedback while typing: non-hex content turns the text red immediately, without
+        /// blocking or rewriting the input — commit-time validation still does the hard reject.
+        /// </summary>
+        private void SetInvalidHint(bool invalid)
+        {
+            if (invalid)
+                AssociatedObject.SetCurrentValue(System.Windows.Controls.Control.ForegroundProperty, System.Windows.Media.Brushes.IndianRed);
+            else
+                AssociatedObject.InvalidateProperty(System.Windows.Controls.Control.ForegroundProperty);
         }
 
         private static bool IsHex(string s)
