@@ -1009,6 +1009,20 @@
     </DataTemplate>
   </edvw:TypeMatchTemplateProvider>
 
+  <!-- Provider for Guid editor -->
+  <edvw:TypeMatchTemplateProvider x:Key="GuidPropertyTemplateProvider" Type="{x:Type s:Guid}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <sd:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
+                    Text="{Binding NodeValue, Converter={cvt:GuidToString}}"
+                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </edvw:TypeMatchTemplateProvider>
+
   <!-- Provider for vector2 editor -->
   <edvw:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
