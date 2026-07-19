@@ -15,6 +15,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
     public class GuidInputMaskBehavior : Behavior<TextBox>
     {
         private const int HexDigits = 32;
+        private const int FullLength = 36; // 32 hex digits + 4 dashes
         private static readonly int[] GroupSizes = [8, 4, 4, 4, 12];
 
         private bool updating;
@@ -23,6 +24,9 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         protected override void OnAttached()
         {
             base.OnAttached();
+            // A formatted Guid is exactly 36 chars: once full, further typing is rejected natively
+            // (replacing a selection still works). Programmatic sets are unaffected.
+            AssociatedObject.MaxLength = FullLength;
             previousLength = AssociatedObject.Text?.Length ?? 0;
             AssociatedObject.TextChanged += OnTextChanged;
         }
@@ -43,7 +47,9 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             var grew = text.Length > previousLength;
             previousLength = text.Length;
 
-            var raw = text.Replace("-", "");
+            // Also tolerate the brace/paren Guid forms on paste ("{...}", "(...)"): the wrapper
+            // characters are dropped so the content still fits the mask.
+            var raw = text.Replace("-", "").Trim('{', '}', '(', ')', ' ');
             if (raw.Length > HexDigits || !IsHex(raw))
                 return;
 
