@@ -1012,13 +1012,24 @@
   <!-- Provider for Guid editor -->
   <edvw:TypeMatchTemplateProvider x:Key="GuidPropertyTemplateProvider" Type="{x:Type s:Guid}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sd:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
-                    Text="{Binding NodeValue, Converter={cvt:GuidToString}}"
-                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
-        <i:Interaction.Behaviors>
-          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
-        </i:Interaction.Behaviors>
-      </sd:TextBox>
+      <Grid Margin="2">
+        <sd:TextBox x:Name="TextBox" SelectAllOnFocus="True"
+                      Text="{Binding NodeValue, Converter={cvt:GuidToString}}"
+                      WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+          <i:Interaction.Behaviors>
+            <behaviors:GuidInputMaskBehavior/>
+            <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+          </i:Interaction.Behaviors>
+        </sd:TextBox>
+        <!-- Ghost template: while editing, completes the typed prefix with the remaining
+             "0000...-" pattern so the missing length/dashes are visible at a glance. The typed
+             part is rendered transparent purely to align the remainder; hit-testing stays on
+             the TextBox. Once 36 chars are reached the remainder is empty and nothing shows. -->
+        <TextBlock IsHitTestVisible="False" VerticalAlignment="Center" Margin="3,0,0,0"
+                   Visibility="{Binding IsKeyboardFocusWithin, ElementName=TextBox, Converter={sd:VisibleOrCollapsed}}"><Run
+                     Text="{Binding Text, ElementName=TextBox, Mode=OneWay}" Foreground="Transparent"/><Run
+                     Text="{Binding Text, ElementName=TextBox, Mode=OneWay, Converter={cvt:GuidTemplateRemainder}}" Foreground="#807F7F7F"/></TextBlock>
+      </Grid>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
