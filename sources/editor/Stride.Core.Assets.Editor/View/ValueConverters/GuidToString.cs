@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
-using System.Windows.Data;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 
@@ -17,8 +16,10 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
 
         public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Keep the current value when the text isn't a valid Guid, instead of resetting it.
-            return Guid.TryParse(value as string, out var guid) ? guid : Binding.DoNothing;
+            // Invalid text is passed through untouched: the strongly-typed node setter then throws
+            // InvalidCastException, which TextBoxBase turns into TextToSourceValueConversionFailed —
+            // the validation behavior shows its error adorner and the text reverts to the source value.
+            return Guid.TryParse(value as string, out var guid) ? guid : value;
         }
     }
 }

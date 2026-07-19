@@ -1014,7 +1014,11 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
                     Text="{Binding NodeValue, Converter={cvt:GuidToString}}"
-                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
+                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </sd:TextBox>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
