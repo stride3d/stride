@@ -35,9 +35,7 @@ A property in a derived asset is in one of three states:
 When a composite node (an object with children) is reset, all descendant nodes are also reset recursively.
 
 > [!NOTE]
-> **Just adding a new asset type**
-> 
-> If your asset has no base/derived relationship and you are not implementing archetypes or prefab composition, the override model is invisible to you. `IsInherited` will always be `false` and `HasBase` will always be `false`. You do not need to understand this layer to add a new asset type.
+> **When just adding a new asset type:** if your asset has no base/derived relationship and you are not implementing archetypes or prefab composition, the override model is invisible to you. `IsInherited` will always be `false` and `HasBase` will always be `false`. You do not need to understand this layer to add a new asset type.
 
 ## `AssetPropertyGraph`
 
