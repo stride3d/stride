@@ -40,7 +40,7 @@ public sealed class BepuSimulation : IDisposable
     private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
     private readonly Dictionary<Type, Elider> _simulationUpdateComponents = new();
     private readonly List<BodyComponent> _interpolatedBodies = new();
-    private readonly ThreadDispatcher _threadDispatcher;
+    private DispatcherWrapper _threadDispatcher;
     private TimeSpan _remainingUpdateTime;
     private TimeSpan _softStartRemainingDuration;
     private bool _softStartScheduled = false;
@@ -93,13 +93,22 @@ public sealed class BepuSimulation : IDisposable
     }
 
     /// <summary>
-    /// The number of threads the simulation runs on.
+    /// The number of threads the simulation may use.
     /// </summary>
     /// <remarks>
-    /// A negative value results in automatic thread selection.
+    /// <see cref="Dispatcher.MaxDegreeOfParallelism"/> is the upper bound, -1 will default to that value.
+    /// A value greater than <see cref="Dispatcher.MaxDegreeOfParallelism"/> will further split the work, potentially improving throughput depending on the context and simulation.
     /// </remarks>
     [Display(-1, "Thread Count")]
-    public int ThreadCount { get; set; } = -1;
+    public int ThreadCount
+    {
+        get;
+        set
+        {
+            field = value;
+            RefreshWorkerCount();
+        }
+    } = -1;
 
     /// <summary>
     /// Whether to update the simulation.
@@ -289,10 +298,10 @@ public sealed class BepuSimulation : IDisposable
 
     public BepuSimulation()
     {
-        var targetThreadCount = ThreadCount > -1 ? ThreadCount : Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+        var targetThreadCount = ThreadCount > -1 ? ThreadCount : Dispatcher.MaxDegreeOfParallelism;
 
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
-        _threadDispatcher = new ThreadDispatcher(targetThreadCount);
+        _threadDispatcher = new DispatcherWrapper(targetThreadCount);
         BufferPool = new BufferPool();
         ContactEvents = new ContactEventsManager(BufferPool, this, targetThreadCount);
 
@@ -307,14 +316,24 @@ public sealed class BepuSimulation : IDisposable
 
         Characters = new CharacterControllers(BufferPool);
         Characters.Initialize(Simulation);
-        //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
+
+        Dispatcher.OnMaxDegreeOfParallelismChanged += RefreshWorkerCount;
     }
 
     public void Dispose()
     {
-        Characters.Dispose();
+        Dispatcher.OnMaxDegreeOfParallelismChanged -= RefreshWorkerCount;
         _threadDispatcher.Dispose();
+        Characters.Dispose();
         BufferPool.Clear();
+    }
+
+    private void RefreshWorkerCount()
+    {
+        var targetThreadCount = ThreadCount > -1 ? ThreadCount : Dispatcher.MaxDegreeOfParallelism;
+        ContactEvents.ResizeWorkerCount(targetThreadCount);
+        _threadDispatcher.Dispose();
+        _threadDispatcher = new DispatcherWrapper(targetThreadCount);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1053,6 +1072,133 @@ public sealed class BepuSimulation : IDisposable
                     body.PreviousAngularVelocity = body.AngularVelocity;
                     body.PreviousLinearVelocity = body.LinearVelocity;
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Based on Bepu's <see cref="BepuUtilities.ThreadDispatcher"/>, does away with the orchestrator thread
+    /// and relies on <see cref="Stride.Core.Threading.Dispatcher"/> for scheduling
+    /// </summary>
+    private unsafe class DispatcherWrapper : IThreadDispatcher, IDisposable
+    {
+        private readonly int _threadCount;
+        /// <summary>
+        /// Gets the number of threads to dispatch work on.
+        /// </summary>
+        public int ThreadCount => _threadCount;
+
+        private volatile WorkerType _workerType;
+        private volatile Action<int>? _managedWorker;
+        private volatile delegate*<int, IThreadDispatcher, void> _unmanagedWorker;
+        private volatile void* _unmanagedContext;
+        private volatile object? _managedContext;
+
+        private volatile bool _disposed;
+
+        /// <inheritdoc/>
+        public WorkerBufferPools WorkerPools { get; private set; }
+        /// <inheritdoc/>
+        public void* UnmanagedContext => _unmanagedContext;
+        /// <inheritdoc/>
+        public object? ManagedContext => _managedContext;
+
+        /// <summary>
+        /// Creates a new thread dispatcher with the given number of threads.
+        /// </summary>
+        /// <param name="threadCount">Number of threads to dispatch on each invocation.</param>
+        /// <param name="threadPoolBlockAllocationSize">Size of memory blocks to allocate for thread pools.</param>
+        public DispatcherWrapper(int threadCount, int threadPoolBlockAllocationSize = 16384)
+        {
+            if (threadCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(threadCount), "Thread count must be positive.");
+            _threadCount = threadCount;
+            WorkerPools = new WorkerBufferPools(threadCount, threadPoolBlockAllocationSize);
+        }
+
+        private void DispatchThread(int workerIndex)
+        {
+            switch (_workerType)
+            {
+                case WorkerType.Managed: _managedWorker!(workerIndex); break;
+                case WorkerType.Unmanaged: _unmanagedWorker(workerIndex, this); break;
+            }
+        }
+
+        private void SignalThreads(int maximumWorkerCount)
+        {
+            int workersToSignal = maximumWorkerCount < _threadCount ? maximumWorkerCount : _threadCount;
+            Dispatcher.ForBatched(workersToSignal, new Job(this));
+        }
+
+        /// <inheritdoc/>
+        public void DispatchWorkers(delegate*<int, IThreadDispatcher, void> workerBody, int maximumWorkerCount = int.MaxValue, void* unmanagedContext = null, object? managedContext = null)
+        {
+            Debug.Assert(_managedWorker == null && _unmanagedWorker == null && _managedContext == null && _unmanagedContext == null);
+            _unmanagedContext = unmanagedContext;
+            _managedContext = managedContext;
+            if (maximumWorkerCount > 1)
+            {
+                _workerType = WorkerType.Unmanaged;
+                _unmanagedWorker = workerBody;
+                SignalThreads(maximumWorkerCount);
+                _unmanagedWorker = null;
+            }
+            else if (maximumWorkerCount == 1)
+            {
+                workerBody(0, this);
+            }
+            _unmanagedContext = null;
+            _managedContext = null;
+        }
+
+        //While we *could* pass in the IThreadDispatcher for the managed side of things, it is typically best to just expect closures. Simplifies some stuff.
+        //(The fact that we supply context at all is a bit of a shrug.)
+        /// <inheritdoc/>
+        public void DispatchWorkers(Action<int> workerBody, int maximumWorkerCount = int.MaxValue, void* unmanagedContext = null, object? managedContext = null)
+        {
+            Debug.Assert(_managedWorker == null && _unmanagedWorker == null && _managedContext == null && _unmanagedContext == null);
+            _unmanagedContext = unmanagedContext;
+            _managedContext = managedContext;
+            if (maximumWorkerCount > 1)
+            {
+                _workerType = WorkerType.Managed;
+                _managedWorker = workerBody;
+                SignalThreads(maximumWorkerCount);
+                _managedWorker = null;
+            }
+            else if (maximumWorkerCount == 1)
+            {
+                workerBody(0);
+            }
+            _unmanagedContext = null;
+            _managedContext = null;
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                if (_managedContext is not null || _unmanagedContext is not null)
+                    throw new InvalidOperationException("Cannot dispose while a job is in flight");
+
+                _disposed = true;
+                WorkerPools.Dispose();
+            }
+        }
+
+        private enum WorkerType
+        {
+            Managed,
+            Unmanaged,
+        }
+
+        private readonly struct Job(DispatcherWrapper wrapper) : Dispatcher.IBatchJob
+        {
+            public void Process(int start, int endExclusive)
+            {
+                for (int i = start; i < endExclusive; i++)
+                    wrapper.DispatchThread(i);
             }
         }
     }
