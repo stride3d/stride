@@ -49,6 +49,22 @@ internal class ContactEventsManager : IDisposable
             _staticListenerFlags.Dispose(_pool);
     }
 
+    public void ResizeWorkerCount(int newWorkerCount)
+    {
+        foreach (var workerStore in _manifoldStoresPerWorker)
+        {
+            foreach (var typeStore in workerStore)
+            {
+                if (typeStore.IsEmpty() == false)
+                    throw new InvalidOperationException("Cannot resize the manifold store, manifolds have not been flushed yet");
+            }
+        }
+
+        _manifoldStoresPerWorker = new IPerTypeManifoldStore[newWorkerCount][];
+        for (int i = 0; i < _manifoldStoresPerWorker.Length; i++)
+            _manifoldStoresPerWorker[i] = [];
+    }
+
     /// <summary>
     /// Begins listening for events related to the given collidable.
     /// </summary>
@@ -309,6 +325,8 @@ internal class ContactEventsManager : IDisposable
 
     private interface IPerTypeManifoldStore
     {
+        bool IsEmpty();
+
         void RunEvents(ContactEventsManager eventsManager);
 
         void ClearEventsOf(uint packed);
@@ -379,6 +397,8 @@ internal class ContactEventsManager : IDisposable
 
         private class ListOf<TManifold> : List<ContactGroup<TManifold>>, IPerTypeManifoldStore where TManifold : unmanaged, IContactManifold<TManifold>
         {
+            public bool IsEmpty() => Count == 0;
+
             public void RunEvents(ContactEventsManager eventsManager)
             {
                 for (int i = Count - 1; i >= 0; i--) // reverse as the scope may end up calling ClearRelatedContacts
