@@ -13,7 +13,7 @@ internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFac
 {
     public static readonly SourceCodeAssetSerializer Default = new();
 
-    public object Load(Stream stream, UFile filePath, ILogger log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata)
+    public object Load(Stream stream, UFile filePath, ILogger log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null)
     {
         aliasOccurred = false;
 

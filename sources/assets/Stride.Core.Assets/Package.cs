@@ -948,13 +948,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
             var assetPath = assetFile.AssetLocation;
-            if (Container?.AssetNamespace is { } assetNamespace)
+            var assetNamespace = Container?.AssetNamespace;
+            if (assetNamespace is not null)
                 assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
 
             var assetFullPath = fileUPath.ToOSPath();
             var assetContent = assetFile.AssetContent;
 
-            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, out var aliasOccurred, out var yamlMetadata);
+            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, assetNamespace, out var aliasOccurred, out var yamlMetadata);
 
             // Create asset item
             var assetItem = new AssetItem(assetPath, asset, this)
@@ -1008,11 +1009,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         LoadAssemblyReferencesForPackage(log, loadParameters);
     }
 
-    private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
+    private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, string? assetNamespace, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
     {
         var loadResult = assetContent is not null
-            ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log)
-            : AssetFileSerializer.Load<Asset>(assetFullPath, log);
+            ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log, assetNamespace)
+            : AssetFileSerializer.Load<Asset>(assetFullPath, log, assetNamespace);
 
         assetDirty = loadResult.AliasOccurred;
         yamlMetadata = loadResult.YamlMetadata;

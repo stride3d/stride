@@ -25,7 +25,7 @@ public class ContentReferenceSerializer : AssetScalarSerializerBase
             throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode asset reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
         }
 
-        var instance = AttachedReferenceManager.CreateProxyObject(context.Descriptor.Type, guid, location);
+        var instance = AttachedReferenceManager.CreateProxyObject(context.Descriptor.Type, guid, ReferenceSerializationHelper.RestoreLocation(ref context, location.FullPath));
         return instance;
     }
 

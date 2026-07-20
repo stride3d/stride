@@ -155,6 +155,47 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestNamespacedLoadRestoresSamePrefixReferences()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedLoadRestoresSamePrefixReferences");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            var source = new AssetObjectTest { Reference = new AssetReference(target.Id, target.Location) };
+            var sourceItem = new AssetItem("Source", source);
+            package.Assets.Add(sourceItem);
+            sourceItem.IsDirty = true;
+            var other = new AssetObjectTest { Reference = new AssetReference(AssetId.New(), "/OtherPkg/Thing") };
+            var otherItem = new AssetItem("Other", other);
+            package.Assets.Add(otherItem);
+            otherItem.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            var sourcePath = Path.Combine(dirPath, "Assets", "Source.sdtest");
+            // The same-package reference is stored bare on disk
+            Assert.Contains($"{target.Id}:Target", File.ReadAllText(sourcePath));
+
+            // Loading with the package namespace adds the /Namespace/ prefix back (mirror of save)
+            var loadedSource = (AssetObjectTest)AssetFileSerializer.Load<Asset>(sourcePath, result, "MyGame").Asset;
+            Assert.Equal("/MyGame/Target", loadedSource.Reference.Location);
+            // A reference to another package is already rooted on disk and loads unchanged
+            var loadedOther = (AssetObjectTest)AssetFileSerializer.Load<Asset>(Path.Combine(dirPath, "Assets", "Other.sdtest"), result, "MyGame").Asset;
+            Assert.Equal("/OtherPkg/Thing", loadedOther.Reference.Location);
+        }
+
+        [Fact]
         public void TestSaveKeepsAuthoredPackageName()
         {
             var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");

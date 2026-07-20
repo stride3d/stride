@@ -26,7 +26,7 @@ internal class UrlReferenceSerializer : AssetScalarSerializerBase
             throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
         }
 
-        return UrlReferenceBase.New(context.Descriptor.Type, guid, location.FullPath);
+        return UrlReferenceBase.New(context.Descriptor.Type, guid, ReferenceSerializationHelper.RestoreLocation(ref context, location.FullPath));
     }
 
     public override string ConvertTo(ref ObjectContext objectContext)

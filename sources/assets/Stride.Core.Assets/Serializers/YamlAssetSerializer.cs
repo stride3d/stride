@@ -26,9 +26,18 @@ public class YamlAssetSerializer : IAssetSerializer, IAssetSerializerFactory
         return yamlMetadata;
     }
 
-    public object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata)
+    public object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null)
     {
-        var result = AssetYamlSerializer.Default.Deserialize(stream, null, log != null ? new SerializerContextSettings { Logger = log } : null, out aliasOccurred, out var properties);
+        // Pass the namespace so the reference serializers can add the /Namespace/ prefix back to
+        // same-package URLs (which were saved bare) as each reference is read - see ReferenceSerializationHelper.
+        SerializerContextSettings? settings = null;
+        if (log != null || assetNamespace != null)
+        {
+            settings = new SerializerContextSettings { Logger = log };
+            if (assetNamespace != null)
+                settings.Properties.Add(AssetObjectSerializerBackend.AssetNamespaceKey, assetNamespace);
+        }
+        var result = AssetYamlSerializer.Default.Deserialize(stream, null, settings, out aliasOccurred, out var properties);
         yamlMetadata = CreateAndProcessMetadata(properties, result, clearBrokenObjectReferences, log);
         return result;
     }

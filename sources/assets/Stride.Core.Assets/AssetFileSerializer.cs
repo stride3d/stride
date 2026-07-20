@@ -86,21 +86,21 @@ public static class AssetFileSerializer
     /// <param name="filePath">The file path.</param>
     /// <param name="log">The logger.</param>
     /// <returns>An instance of Asset not a valid asset asset object file.</returns>
-    public static AssetLoadResult<T> Load<T>(string filePath, ILogger? log = null)
+    public static AssetLoadResult<T> Load<T>(string filePath, ILogger? log = null, string? assetNamespace = null)
     {
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var result = Load<T>(stream, filePath, log);
+        var result = Load<T>(stream, filePath, log, assetNamespace);
         return result;
     }
 
-    public static AssetLoadResult<T> Load<T>(Stream stream, UFile filePath, ILogger? log = null)
+    public static AssetLoadResult<T> Load<T>(Stream stream, UFile filePath, ILogger? log = null, string? assetNamespace = null)
     {
         ArgumentNullException.ThrowIfNull(filePath);
         var assetFileExtension = Path.GetExtension(filePath).ToLowerInvariant();
 
         var serializer = FindSerializer(assetFileExtension)
             ?? throw new InvalidOperationException("Unable to find a serializer for [{0}]".ToFormat(assetFileExtension));
-        var asset = (T)serializer.Load(stream, filePath, log, true, out var aliasOccurred, out var yamlMetadata);
+        var asset = (T)serializer.Load(stream, filePath, log, true, out var aliasOccurred, out var yamlMetadata, assetNamespace);
         return new AssetLoadResult<T>(asset, log, aliasOccurred, yamlMetadata);
     }
 
