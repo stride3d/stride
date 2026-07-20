@@ -55,5 +55,5 @@ public class %%AssetName%%
 }
 ```
 
-> [!NOTE] Game projects
-> Game-project runtime types follow the same pattern. The assembly containing them is discovered automatically because the compiler app scans all assemblies referenced by the game project. No explicit `AssemblyRegistry.Register` call is required.
+> [!NOTE]
+> **For game projects:** game-project runtime types follow the same pattern. The assembly containing them is discovered automatically because the compiler app scans all assemblies referenced by the game project. No explicit `AssemblyRegistry.Register` call is required.
