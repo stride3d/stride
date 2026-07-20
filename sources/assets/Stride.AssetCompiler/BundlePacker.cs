@@ -75,6 +75,9 @@ namespace Stride.AssetCompiler
 
                 var databaseFileProvider = new DatabaseFileProvider(objDatabase.ContentIndexMap, objDatabase);
 
+                // Fail early with a clear error if any reference was left bare instead of rooted.
+                ValidateReferenceRooting(logger, databaseFileProvider, assetNamespaces);
+
                 // Pass1: Create ResolvedBundle from user Bundle
                 var resolvedBundles = new Dictionary<string, ResolvedBundle>();
                 foreach (var bundle in bundles)
@@ -304,6 +307,56 @@ namespace Stride.AssetCompiler
         }
 
         private Dictionary<ObjectId, List<string>> referencesByObjectId = new Dictionary<ObjectId, List<string>>();
+
+        /// <summary>
+        /// Checks that every reference stored in a chunk is rooted (starts with /Namespace/). If a
+        /// reference is bare but its target is indexed under a rooted URL, it was left un-rooted by
+        /// mistake (see ReferenceSerializationHelper) and would break bundling and runtime loading.
+        /// Reports each one with the asset that holds it, then fails the build.
+        /// </summary>
+        private void ValidateReferenceRooting(Logger logger, DatabaseFileProvider databaseFileProvider, HashSet<string> assetNamespaces)
+        {
+            if (assetNamespaces.Count == 0)
+                return;
+
+            var contentIndexMap = databaseFileProvider.ContentIndexMap;
+            var mismatches = 0;
+            foreach (var entry in contentIndexMap.GetMergedIdMap())
+            {
+                var objectId = entry.Value;
+                List<string> references;
+                try
+                {
+                    references = GetChunkReferences(databaseFileProvider, ref objectId);
+                }
+                catch
+                {
+                    continue; // not a locally readable chunk (e.g. a dependency object): skip
+                }
+
+                foreach (var reference in references)
+                {
+                    // A reference that is rooted, empty, or already found in the index is fine
+                    // (a target in a bare package is meant to stay bare).
+                    if (reference.Length == 0 || reference[0] == '/' || contentIndexMap.TryGetValue(reference, out _))
+                        continue;
+
+                    // Bare and not found as-is: flag it only if the rooted version is in the index.
+                    foreach (var assetNamespace in assetNamespaces)
+                    {
+                        if (contentIndexMap.TryGetValue("/" + assetNamespace + "/" + reference, out _))
+                        {
+                            logger.Error($"Content '{entry.Key}' references '{reference}' without its /namespace/ prefix, but that target is indexed as '/{assetNamespace}/{reference}'. The reference was not rooted.");
+                            mismatches++;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (mismatches > 0)
+                throw new InvalidOperationException($"{mismatches} content reference(s) were not rooted (see errors above); this would break bundling and runtime loading.");
+        }
 
         /// <summary>
         /// Gets and cache the asset url referenced by the chunk with the given identifier.
