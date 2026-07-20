@@ -93,7 +93,7 @@ public sealed partial class ContentManager : IContentManager
 
     /// <summary>
     /// Resolves a bare URL through the shipped alias table (using semantics for namespaced packages);
-    /// exact index hits pass through untouched. Resolution happens before any caching so a canonical
+    /// exact index hits pass through untouched. Resolution happens before any caching so a rooted
     /// URL and its bare alias share one loaded instance.
     /// </summary>
     private string ResolveUrl(string url)

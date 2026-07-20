@@ -144,7 +144,7 @@ partial class PackageSession
             // precomputed project assets); no dependency resolution, no MSBuild
             session.LoadMissingAssets(sessionResult, [.. session.Packages], loadParameters);
 
-            // Read-only (nupkg) packages need the bare-to-canonical reference restamp too (their
+            // Read-only (nupkg) packages need their bare same-package references rooted too (their
             // authored yaml stores same-prefix references bare); the session analysis below only
             // covers local packages
             var dependencyAnalysisParameters = new AssetAnalysisParameters { IsProcessingAssetReferences = true, IsLoggingAssetNotFoundAsError = false };

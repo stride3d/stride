@@ -47,7 +47,7 @@ public class AssetPluginPackagingTests
         Assert.Matches(@"(?m)^/Consumer/Page ", index);
 
         // The consumer's StrideAssetNamespaceUsing items bring both namespaces into scope: the
-        // deployed alias table maps bare URLs to the canonical ones.
+        // deployed alias table maps bare URLs to the rooted ones.
         var aliases = File.ReadAllText(Path.Combine(consumerDir, "bin", "Debug", "net10.0", "data", "db", "aliases"));
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
         Assert.Contains("Page|/Consumer/Page", aliases);
@@ -55,7 +55,7 @@ public class AssetPluginPackagingTests
         AssertRuntimeContentResolves(consumerDir);
     }
 
-    /// <summary>Run the built consumer: it loads content by canonical and bare (aliased) URLs.</summary>
+    /// <summary>Run the built consumer: it loads content by rooted and bare (aliased) URLs.</summary>
     private void AssertRuntimeContentResolves(string consumerDir)
     {
         // On Linux the consumer's engine module initializer fails to resolve Vortice.Vulkan
@@ -82,7 +82,7 @@ public class AssetPluginPackagingTests
     public void PluginUrlsIdenticalViaProjectReference()
     {
         // PackageReference and ProjectReference are interchangeable: consuming the plugin as a
-        // project must produce the same canonical URL and alias entry as consuming its nupkg.
+        // project must produce the same rooted URL and alias entry as consuming its nupkg.
         var (result, consumerDir) = RunCase(declareAssetAssembly: true, viaProjectReference: true);
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
         Assert.DoesNotContain(UnresolvedSpinScript, result.Output);

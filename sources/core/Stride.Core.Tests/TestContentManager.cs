@@ -280,8 +280,8 @@ public class TestContentManager
     [Fact]
     public void UrlAlias()
     {
-        // Bare URL resolves through the shipped alias table to the canonical rooted URL,
-        // canonicalized before caching so both spellings share one instance.
+        // Bare URL resolves through the shipped alias table to the rooted URL,
+        // rooted before caching so both spellings share one instance.
         var a1 = new A { I = 18 };
 
         VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);

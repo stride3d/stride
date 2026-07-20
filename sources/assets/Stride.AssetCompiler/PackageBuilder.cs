@@ -221,7 +221,7 @@ namespace Stride.AssetCompiler
         }
 
         /// <summary>
-        /// Writes the bare-to-canonical URL alias table (data/db/aliases) implementing using
+        /// Writes the bare-to-rooted URL alias table (data/db/aliases) implementing using
         /// semantics: self namespaces are implicitly in scope, others enter via declared usings or
         /// their own global-using declaration. Self wins bare-name collisions; colliding imports
         /// get no alias.

@@ -85,8 +85,8 @@ public class ObjectDatabase : IDisposable
     public BundleOdbBackend BundleBackend { get; }
 
     /// <summary>
-    /// Bare-to-canonical URL aliases (using semantics for namespaced packages); empty when none shipped.
-    /// One "bare|canonical" entry per line ('|' cannot appear in URLs).
+    /// Bare-to-rooted URL aliases (using semantics for namespaced packages); empty when none shipped.
+    /// One "bare|rooted" entry per line ('|' cannot appear in URLs).
     /// </summary>
     public IReadOnlyDictionary<string, string> ContentAliases { get; }
 

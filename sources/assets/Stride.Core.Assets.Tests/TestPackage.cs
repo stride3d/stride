@@ -150,7 +150,7 @@ namespace Stride.Core.Assets.Tests
             Assert.Contains($"{target.Id}:Target", sourceYaml);
             Assert.DoesNotContain("/MyGame/", sourceYaml);
             Assert.Contains(":/OtherPkg/Thing", File.ReadAllText(Path.Combine(dirPath, "Assets", "Other.sdtest")));
-            // The in-memory reference stays canonical (the transform is write-only)
+            // In memory the reference is still rooted; only the saved file gets the bare form
             Assert.Equal("/MyGame/Target", source.Reference.Location);
         }
 

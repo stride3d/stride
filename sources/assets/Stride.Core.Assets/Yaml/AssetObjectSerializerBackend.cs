@@ -21,7 +21,7 @@ public class AssetObjectSerializerBackend : DefaultObjectSerializerBackend
     public static readonly PropertyKey<YamlAssetMetadata<Guid>> ObjectReferencesKey = new("ObjectReferences", typeof(AssetObjectSerializerBackend));
     /// <summary>
     /// The saving package's asset namespace: reference URLs under it serialize bare (same-prefix
-    /// references stay stable in files; ids restore the canonical rooted form at load).
+    /// references stay stable in files; ids restore the rooted form at load).
     /// </summary>
     public static readonly PropertyKey<string> AssetNamespaceKey = new("AssetNamespace", typeof(AssetObjectSerializerBackend));
 

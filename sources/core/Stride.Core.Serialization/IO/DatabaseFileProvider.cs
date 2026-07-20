@@ -29,7 +29,7 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
     public static readonly string ObjectIdUrl = "id://";
 
     /// <summary>
-    /// Index lookup with bare-to-canonical alias fallback (using semantics for namespaced packages).
+    /// Index lookup with bare-to-rooted alias fallback (using semantics for namespaced packages).
     /// </summary>
     private bool TryGetObjectId(string url, out ObjectId objectId)
     {

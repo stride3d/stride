@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Headless runtime check, run by the packaging tests after building: the compiled content must
-// resolve from the deployed database by canonical rooted URL and by bare URL through the alias table.
+// resolve from the deployed database by rooted URL and by bare URL through the alias table.
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
