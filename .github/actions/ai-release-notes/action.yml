@@ -145,20 +145,32 @@ runs:
         curl -fsSL https://claude.ai/install.sh | bash
         export PATH="$HOME/.local/bin:$PATH"
 
-        # Headless, read-only git access; JSON output so we extract the final text exactly.
+        # Stream events so the log shows live progress; tee the stream to a file and
+        # extract the final result from it.
+        STREAM="$PWD/claude-stream.jsonl"
+        echo "Running Claude to generate the notes for $FROM..$TO (large ranges can take a few minutes)..."
         set +e
-        RESP=$(claude -p "$PROMPT" \
+        claude -p "$PROMPT" \
           --model "$MODEL" \
           --allowedTools 'Bash(git:*),Bash(gh release view:*),Read,Grep,Glob' \
           --max-turns 60 \
-          --output-format json)
-        STATUS=$?
+          --verbose \
+          --output-format stream-json < /dev/null \
+          | tee "$STREAM" \
+          | jq -r --unbuffered '
+              if .type=="assistant" then (.message.content[]?
+                | if .type=="tool_use" then "  -> " + .name + ": " + ((.input.command // .input.file_path // .input.pattern // (.input|tostring))|tostring|gsub("\\s+";" "))
+                  elif (.type=="text" and (.text|length)>0) then "  .. " + ((.text|gsub("\\s+";" "))[0:220])
+                  else empty end)
+              elif .type=="result" then "  == done"
+              else empty end' 2>/dev/null
+        STATUS=${PIPESTATUS[0]}
         set -e
         if [ $STATUS -ne 0 ]; then
           echo "::warning::Claude run failed ($STATUS); no notes produced."; exit 0
         fi
 
-        NOTES=$(printf '%s' "$RESP" | jq -r '.result // empty')
+        NOTES=$(jq -rs '[.[] | select(.type=="result")] | last | .result // empty' "$STREAM")
         if [ -z "$NOTES" ]; then
           echo "::warning::Empty notes; nothing produced."; exit 0
         fi
