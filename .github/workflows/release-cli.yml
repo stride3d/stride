@@ -222,6 +222,8 @@ jobs:
           tag-match: 'cli/*'
           product: the Stride CLI
           scope: sources/launcher/Stride.Cli
+          apply: true
+          format: highlights
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GH_PAT }}
 

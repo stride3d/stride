@@ -192,6 +192,12 @@ jobs:
           make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
           body_path: launcher-notes.md
 
+      - name: Create local tag for release notes
+        if: ${{ needs.Package.outputs.version != '' }}
+        # softprops created the tag remotely; the AI-notes step derives the range from a
+        # local ref, so mirror it locally (at the built commit = HEAD).
+        run: git tag -f "launcher/${{ needs.Package.outputs.version }}"
+
       - name: AI release notes
         if: ${{ needs.Package.outputs.version != '' }}
         continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
@@ -201,5 +207,7 @@ jobs:
           tag-match: 'launcher/*'
           product: the Stride Launcher
           scope: sources/launcher/Stride.Launcher
+          apply: true
+          format: highlights
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GH_PAT }}

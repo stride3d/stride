@@ -1,29 +1,47 @@
 name: AI release notes
 description: >-
-  Best-effort: regenerate a GitHub release body from git history using Claude, scoped to a
-  single product's source paths. On any failure (no API key, no previous tag, error) it does
-  nothing and leaves the caller's existing notes in place.
+  Generate release notes from git history with Claude, scoped to a product's source paths.
+  Best-effort: on any failure (no API key, no range, error) it no-ops. Either writes the
+  release body (apply) or just emits the notes file (notes-file output) for review.
 
 inputs:
   tag:
-    description: Release tag to update (e.g. cli/1.0.2).
-    required: true
-  tag-match:
-    description: git tag glob used to find the previous same-product release (e.g. 'cli/*').
-    required: true
-  product:
-    description: Human-readable product name (e.g. 'Stride CLI').
-    required: true
-  scope:
-    description: Pathspec limiting commits to this product's sources. Empty = whole repo (engine).
+    description: Release tag to edit when apply=true, and the base for deriving the previous tag.
     required: false
     default: ''
+  to:
+    description: Range end ref (tag/SHA/branch). Defaults to `tag`, else HEAD.
+    required: false
+    default: ''
+  from:
+    description: Range start ref (tag/SHA). Defaults to the previous tag matching `tag-match`.
+    required: false
+    default: ''
+  tag-match:
+    description: git tag glob to derive `from` when not given (e.g. 'releases/*').
+    required: false
+    default: ''
+  product:
+    description: Human-readable product name (e.g. 'the Stride CLI').
+    required: true
+  scope:
+    description: Pathspec limiting commits to this product's sources. Empty = whole repo.
+    required: false
+    default: ''
+  format:
+    description: 'Output form: highlights | bullets.'
+    required: false
+    default: highlights
+  apply:
+    description: Write the generated notes to the `tag` release body.
+    required: false
+    default: 'false'
   model:
     description: Claude model id.
     required: false
     default: claude-sonnet-5
   prompt-file:
-    description: Path to the prompt template. Defaults to release-notes-prompt.md beside this action.
+    description: Prompt template path. Defaults to release-notes-prompt.md beside this action.
     required: false
     default: ''
   anthropic-api-key:
@@ -31,55 +49,97 @@ inputs:
     required: false
     default: ''
   github-token:
-    description: Token with contents:write to edit the release.
+    description: Token for gh (release view, and release edit when apply=true).
     required: true
+
+outputs:
+  notes-file:
+    description: Path to the generated release-notes markdown (empty if it no-oped).
+    value: ${{ steps.gen.outputs.notes-file }}
 
 runs:
   using: composite
   steps:
-    - shell: bash
+    - id: gen
+      shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ inputs.github-token }}
         REPO: ${{ github.repository }}
         TAG: ${{ inputs.tag }}
+        INPUT_TO: ${{ inputs.to }}
+        INPUT_FROM: ${{ inputs.from }}
         TAG_MATCH: ${{ inputs.tag-match }}
         PRODUCT: ${{ inputs.product }}
         SCOPE: ${{ inputs.scope }}
+        FORMAT: ${{ inputs.format }}
+        APPLY: ${{ inputs.apply }}
         MODEL: ${{ inputs.model }}
         PROMPT_FILE: ${{ inputs.prompt-file }}
       run: |
         set -euo pipefail
-
-        # Default the prompt to the copy shipped beside this action.
         PROMPT_FILE="${PROMPT_FILE:-$GITHUB_ACTION_PATH/release-notes-prompt.md}"
 
         if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-          echo "::notice::No ANTHROPIC_API_KEY; keeping existing notes for $TAG."; exit 0
+          echo "::notice::No ANTHROPIC_API_KEY; skipping note generation."; exit 0
         fi
 
-        PREV=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TAG^" 2>/dev/null || true)
-        if [ -z "$PREV" ]; then
-          echo "::notice::No previous '$TAG_MATCH' tag; keeping existing notes for $TAG."; exit 0
+        # Resolve the commit range: FROM..TO.
+        TO="${INPUT_TO:-${TAG:-HEAD}}"
+        FROM="$INPUT_FROM"
+        if [ -z "$FROM" ] && [ -n "$TAG_MATCH" ]; then
+          # Default 'from' baseline for the notes:
+          #  - a prerelease (4.4.0-beta5) uses the nearest previous release of any kind
+          #    (usually the previous prerelease 4.4.0-beta4; for the first prerelease of a
+          #    version, the previous stable), giving incremental "what's new" notes;
+          #  - a stable release (4.4.0) uses the previous STABLE release (4.3.0.2507),
+          #    skipping the intermediate prereleases.
+          case "${TO##*/}" in
+            *-*)
+              FROM=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TO^" 2>/dev/null || true) ;;
+            *)
+              for cand in $(git tag --list "$TAG_MATCH" --merged "$TO" --sort=-creatordate 2>/dev/null); do
+                [ "$cand" = "$TO" ] && continue
+                case "${cand##*/}" in *-*) continue ;; esac
+                FROM="$cand"; break
+              done ;;
+          esac
+          # Last resort (no stable ancestor): nearest matching tag of any kind.
+          [ -z "$FROM" ] && FROM=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TO^" 2>/dev/null || true)
         fi
+        if [ -z "$FROM" ]; then
+          echo "::notice::No 'from' ref given or derivable; nothing to generate."; exit 0
+        fi
+        echo "::notice::Generating notes for $FROM..$TO (format=$FORMAT)"
 
-        # Scope note + the starting git-log command the prompt tells Claude to run.
+        # Scope note + starting git-log command the prompt tells Claude to run.
         if [ -n "$SCOPE" ]; then
           SCOPE_NOTE="This is a release of **$PRODUCT**. Base your commit list on the scoped \`git log\` below (pathspec: \`$SCOPE\`); it is already limited to the paths that belong to $PRODUCT. Ignore anything outside that scope — the other products (engine, CLI, VS package, launcher) ship their own separate releases and notes."
-          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $PREV..$TAG -- $SCOPE"
+          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $FROM..$TO -- $SCOPE"
         else
           SCOPE_NOTE="This release covers the whole $PRODUCT; consider every commit in the range."
-          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $PREV..$TAG"
+          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $FROM..$TO"
         fi
+
+        # Output-format instruction.
+        case "$FORMAT" in
+          bullets)
+            FMT="Produce a **single complete bullet list** and no prose Highlights. It is meant to be pasted **below hand-written highlights**, so make it **exhaustive**: every user-facing change gets one concise bullet (with its PR/SHA link), grouped under short area headers."
+            ;;
+          *)
+            FMT="Produce **highlight-style** notes: lead with a **Highlights** section (1-3 standout user-facing changes, each a short paragraph on the benefit; skip Highlights for a small release), then categorized sections grouping the remaining changes by area."
+            ;;
+        esac
 
         # Literal placeholder substitution (no eval).
         PROMPT="$(cat "$PROMPT_FILE")"
         PROMPT="${PROMPT//\$PRODUCT/$PRODUCT}"
         PROMPT="${PROMPT//\$REPO/$REPO}"
-        PROMPT="${PROMPT//\$PREV/$PREV}"
-        PROMPT="${PROMPT//\$TAG/$TAG}"
+        PROMPT="${PROMPT//\$PREV/$FROM}"
+        PROMPT="${PROMPT//\$TAG/$TO}"
         PROMPT="${PROMPT//\$SCOPE_NOTE/$SCOPE_NOTE}"
         PROMPT="${PROMPT//\$LOG_CMD/$LOG_CMD}"
+        PROMPT="${PROMPT//\$FORMAT_INSTRUCTION/$FMT}"
 
         # Install the Claude Code CLI (native installer -> ~/.local/bin).
         curl -fsSL https://claude.ai/install.sh | bash
@@ -95,14 +155,24 @@ runs:
         STATUS=$?
         set -e
         if [ $STATUS -ne 0 ]; then
-          echo "::warning::Claude run failed ($STATUS); keeping existing notes for $TAG."; exit 0
+          echo "::warning::Claude run failed ($STATUS); no notes produced."; exit 0
         fi
 
         NOTES=$(printf '%s' "$RESP" | jq -r '.result // empty')
         if [ -z "$NOTES" ]; then
-          echo "::warning::Empty AI notes; keeping existing notes for $TAG."; exit 0
+          echo "::warning::Empty notes; nothing produced."; exit 0
         fi
 
-        printf '%s\n' "$NOTES" > ai-release-notes.md
-        gh release edit "$TAG" --notes-file ai-release-notes.md
-        echo "::notice::Regenerated release notes for $TAG from $PREV using $MODEL."
+        OUT="$PWD/ai-release-notes.md"
+        printf '%s\n' "$NOTES" > "$OUT"
+        echo "notes-file=$OUT" >> "$GITHUB_OUTPUT"
+
+        if [ "$APPLY" = "true" ] && [ -n "$TAG" ]; then
+          if gh release edit "$TAG" --notes-file "$OUT"; then
+            echo "::notice::Applied generated notes to release $TAG."
+          else
+            echo "::warning::Could not write notes to release $TAG (left as-is)."
+          fi
+        else
+          echo "::notice::Generated notes at $OUT (apply=$APPLY); not written to a release."
+        fi

@@ -1,0 +1,95 @@
+name: "Release Notes: Generate"
+
+# Generate release notes for any commit range with Claude, on demand, independent of a
+# release. Output goes to the run Step Summary and a downloadable artifact for review. It
+# overwrites a release body only if you tick "apply-to-release" (off by default).
+
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: Range end (tag/SHA/branch). Defaults to HEAD.
+        required: false
+        default: ''
+        type: string
+      from:
+        description: Range start (tag/SHA). Defaults to the previous release of the same product before 'to'.
+        required: false
+        default: ''
+        type: string
+      format:
+        description: Output form.
+        required: false
+        default: highlights
+        type: choice
+        options:
+          - highlights
+          - bullets
+      apply-to-release:
+        description: Also overwrite the release body ('to' must be an existing release tag). Off by default.
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  Generate:
+    name: Generate release notes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # gh release view, and edit when apply-to-release is on
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      # Detect the product from the 'to' tag prefix (releases/ cli/ vspackage/ launcher/);
+      # a SHA/branch/HEAD (no product prefix) is treated as the engine. Also validate the
+      # apply target: applying needs 'to' to be an EXISTING release tag (releases are keyed
+      # by tag, so a SHA can't be applied to); otherwise generate without applying.
+      - id: cfg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TO: ${{ inputs.to }}
+          APPLY: ${{ inputs.apply-to-release }}
+        run: |
+          case "$TO" in
+            cli/*)       P="the Stride CLI"; M="cli/*"; S="sources/launcher/Stride.Cli" ;;
+            vspackage/*) P="the Stride Visual Studio package"; M="vspackage/*"; S="sources/tools/Stride.VisualStudio.*" ;;
+            launcher/*)  P="the Stride Launcher"; M="launcher/*"; S="sources/launcher/Stride.Launcher" ;;
+            *)           P="the Stride engine"; M="releases/*"; S=". :(exclude)sources/launcher/Stride.Cli :(exclude)sources/tools/Stride.VisualStudio.* :(exclude)sources/launcher/Stride.Launcher" ;;
+          esac
+          APPLY_TAG=""
+          if [ "$APPLY" = "true" ]; then
+            if [ -n "$TO" ] && gh release view "$TO" >/dev/null 2>&1; then
+              APPLY_TAG="$TO"
+            else
+              echo "::warning::apply-to-release is on, but '$TO' is not an existing release tag; generating without applying."
+            fi
+          fi
+          { echo "product=$P"; echo "tag-match=$M"; echo "scope=$S"; echo "apply-tag=$APPLY_TAG"; } >> "$GITHUB_OUTPUT"
+
+      - id: notes
+        uses: ./.github/actions/ai-release-notes
+        with:
+          to: ${{ inputs.to }}
+          from: ${{ inputs.from }}
+          tag: ${{ steps.cfg.outputs.apply-tag }}
+          tag-match: ${{ steps.cfg.outputs.tag-match }}
+          product: ${{ steps.cfg.outputs.product }}
+          scope: ${{ steps.cfg.outputs.scope }}
+          format: ${{ inputs.format }}
+          apply: ${{ steps.cfg.outputs.apply-tag != '' }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to run summary
+        if: ${{ steps.notes.outputs.notes-file != '' }}
+        run: cat "${{ steps.notes.outputs.notes-file }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notes artifact
+        if: ${{ steps.notes.outputs.notes-file != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: ${{ steps.notes.outputs.notes-file }}

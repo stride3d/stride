@@ -199,5 +199,7 @@ jobs:
           tag-match: 'vspackage/*'
           product: the Stride Visual Studio package
           scope: sources/tools/Stride.VisualStudio.*
+          apply: true
+          format: highlights
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GH_PAT }}

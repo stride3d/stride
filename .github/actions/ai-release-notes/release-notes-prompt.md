@@ -26,6 +26,8 @@ Use **plain, simple English** and keep it **high level**:
   of explanation.
 - Prefer a short, concrete description of the user-visible benefit over an accurate but
   opaque one. When in doubt, go simpler and higher-level.
+- Punctuation: prefer commas or periods over em dashes; don't lean on `—`. An occasional
+  line break is fine, even inside a bullet.
 
 A short "Under the hood" section at the end can carry internal work worth a mention — keep
 even that readable.
@@ -62,20 +64,18 @@ Drop or collapse noise:
 Group related commits into **one** entry. A multi-commit feature is one highlight, not ten
 bullets.
 
-# Structure
+# Output format
 
-- Lead with **Highlights** only if there are standout user-facing changes (1–3, each a short
-  paragraph on the benefit). For a small release, skip Highlights and just use a categorized
-  list.
-- Categorized sections by area, using emoji headers where they fit, e.g.:
-  `🖥️ Editor / Game Studio`, `🎮 Graphics & Shaders`, `🧨 Physics`, `🔊 Audio`,
-  `🐧 Cross-platform / CLI / Build`. Use headers that match this product's actual changes.
-- A short `🔧 Under the hood` catch-all for internal work worth a mention.
-- End with exactly:
-  `**Full Changelog**: https://github.com/$REPO/compare/$PREV...$TAG`
+$FORMAT_INSTRUCTION
+
+Use emoji area headers where they fit (e.g. `🖥️ Editor / Game Studio`, `🎮 Graphics &
+Shaders`, `🧨 Physics`, `🔊 Audio`, `🐧 Cross-platform / CLI / Build`) — pick headers that
+match this product's actual changes. Fold pure-internal noise into a single
+`🔧 Under the hood` line rather than one bullet each.
 
 Match Stride's house style: crisp bullets, user-impact framing, no walls of text. If there
-are genuinely no user-facing changes in scope, say so in one line.
+are genuinely no user-facing changes in scope, say so in one line. Always end with exactly:
+`**Full Changelog**: https://github.com/$REPO/compare/$PREV...$TAG`
 
 # Prioritize by user impact
 

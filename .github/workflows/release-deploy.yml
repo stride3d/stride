@@ -221,6 +221,8 @@ jobs:
             . :(exclude)sources/launcher/Stride.Cli
             :(exclude)sources/tools/Stride.VisualStudio.*
             :(exclude)sources/launcher/Stride.Launcher
+          apply: true
+          format: highlights
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GH_PAT }}
 
