@@ -35,7 +35,7 @@ jobs:
       android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
       full: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.full || 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: github.event_name == 'pull_request'
       # Comment-only PRs skip everything (Gate stays green via skipped jobs). Conservative:
       # only whole-line comments/blanks in known file types count; anything else (inline
@@ -72,7 +72,7 @@ jobs:
               return bool(files)
           print('comment_only=' + str(comment_only()).lower())
           EOF
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         if: github.event_name == 'pull_request'
         id: filter
         with:

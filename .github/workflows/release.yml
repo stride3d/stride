@@ -88,13 +88,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0  # Full history + tags needed for tag-based versioning
           fetch-tags: true
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -177,7 +177,7 @@ jobs:
           fi
 
       - name: Upload NuGet packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stride-packages-${{ steps.version.outputs.version }}
           path: bin/packages/*.nupkg
@@ -185,7 +185,7 @@ jobs:
 
 
       - name: Upload build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log

@@ -40,7 +40,7 @@ jobs:
             isa-suffix: neon
     steps:
       - name: Checkout astc-encoder
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
           ref: ${{ github.event.inputs.astcenc-version }}
@@ -71,7 +71,7 @@ jobs:
           if (Test-Path $pdb) { Copy-Item $pdb "out/${{ matrix.rid }}/astcenc.pdb" }
 
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout astc-encoder
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
           ref: ${{ github.event.inputs.astcenc-version }}
@@ -107,7 +107,7 @@ jobs:
           cp "$(readlink -f "$so")" out/linux-x64/libastcenc.so
 
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-linux-x64
           path: out/linux-x64/
@@ -117,7 +117,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout astc-encoder
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
           ref: ${{ github.event.inputs.astcenc-version }}
@@ -142,7 +142,7 @@ jobs:
           cp "$(readlink -f "$dylib")" out/osx-arm64/libastcenc.dylib
 
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-osx-arm64
           path: out/osx-arm64/
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout astc-encoder (for version metadata + header)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
           ref: ${{ github.event.inputs.astcenc-version }}
@@ -161,7 +161,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
 
@@ -198,7 +198,7 @@ jobs:
         run: find astcenc-out -type f | sort
 
       - name: Upload combined
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-all-platforms
           path: astcenc-out/

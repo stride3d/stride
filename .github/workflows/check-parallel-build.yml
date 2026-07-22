@@ -28,7 +28,7 @@ jobs:
     name: Detect property-leak duplicate builds
     runs-on: windows-2025-vs2026
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload binlog on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: parallel-audit-binlog
           path: parallel-audit.binlog

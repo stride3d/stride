@@ -47,7 +47,7 @@ jobs:
             rid: win-arm64
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
           ref: ${{ github.event.inputs.bulletsharp-ref }}
@@ -87,7 +87,7 @@ jobs:
           Copy-Item _build/lib/Release/libbulletc.dll "out/${{ matrix.rid }}/"
           Copy-Item _build/lib/Release/libbulletc.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
           ref: ${{ github.event.inputs.bulletsharp-ref }}
@@ -125,7 +125,7 @@ jobs:
           # CMake adds 'lib' prefix on Unix to a target already named 'libbulletc' -> liblibbulletc.so
           cp _build/liblibbulletc.so out/linux-x64/libbulletc.so
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-linux-x64
           path: out/linux-x64/
@@ -135,7 +135,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
           ref: ${{ github.event.inputs.bulletsharp-ref }}
@@ -160,7 +160,7 @@ jobs:
           mkdir -p out/osx-arm64
           cp _build/liblibbulletc.dylib out/osx-arm64/libbulletc.dylib
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-osx-arm64
           path: out/osx-arm64/
@@ -178,7 +178,7 @@ jobs:
             sysroot: iphonesimulator
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
           ref: ${{ github.event.inputs.bulletsharp-ref }}
@@ -235,7 +235,7 @@ jobs:
           # CMake adds 'lib' prefix to target named 'libbulletc' → liblibbulletc.a
           cp _build/liblibbulletc.a out/${{ matrix.rid }}/libbulletc.a
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
@@ -250,7 +250,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout BulletSharpPInvoke (+ bullet submodule for hash)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
           ref: ${{ github.event.inputs.bulletsharp-ref }}
@@ -259,7 +259,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
 
@@ -286,7 +286,7 @@ jobs:
       - name: List contents
         run: find libbulletc-out -type f | sort
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-all-platforms
           path: libbulletc-out/

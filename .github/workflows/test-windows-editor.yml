@@ -48,7 +48,7 @@ jobs:
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: .github
       # Full checkout (no samples exclude): the editor build preprocesses the template source
@@ -135,7 +135,7 @@ jobs:
 
       - name: Publish test report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Editor screenshot regression'
           path: TestResults/*.trx
@@ -146,7 +146,7 @@ jobs:
       # alongside the enduser captures and re-judges any deferred frames.
       - name: Upload screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshots-editor
           path: ui-test-out-dpi*/
@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload crash dumps
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: editor-crash-dumps
           path: crash-dumps/
@@ -165,7 +165,7 @@ jobs:
       # reveals which version was materialized, independent of what assets.json claims).
       - name: Upload generated sample obj/ + materialized engine DLLs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: editor-sample-obj
           path: |

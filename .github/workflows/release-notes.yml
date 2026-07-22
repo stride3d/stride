@@ -43,7 +43,7 @@ jobs:
     permissions:
       contents: write  # gh release view, and edit when apply-to-release is on
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload notes artifact
         if: ${{ steps.notes.outputs.notes-file != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-notes
           path: ${{ steps.notes.outputs.notes-file }}

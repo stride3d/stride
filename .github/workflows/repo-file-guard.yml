@@ -32,7 +32,7 @@ jobs:
   file-guard-gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history to diff base..head; head.sha (not the merge ref) so .gitattributes
           # and blobs read consistently. No LFS content — pointers are all we inspect.

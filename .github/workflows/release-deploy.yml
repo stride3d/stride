@@ -66,18 +66,18 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "::notice::Deploying artifacts built from $SHA"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
           token: ${{ secrets.GH_PAT }}  # push the tag and the post-release version-bump commit
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: stride-packages-*
           merge-multiple: true

@@ -82,7 +82,7 @@ jobs:
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}/TestResults/dotnet_%p.dmp"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
@@ -153,7 +153,7 @@ jobs:
       - name: Upload build binlogs
         # failure() so we still get the binlog when Build dies (most useful case)
         if: failure() || inputs.upload-binlog
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-binlog-linux-game
           path: build-*.binlog
@@ -189,7 +189,7 @@ jobs:
             -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Test Report: Linux Game (Vulkan)'
           path: TestResults/*.trx
@@ -201,14 +201,14 @@ jobs:
           fail-on-error: ${{ inputs.tolerate-test-failures != true }}
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-linux-vulkan
           path: TestResults/
           if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-artifacts-linux-vulkan
           path: tests/local/

@@ -29,13 +29,13 @@ jobs:
       # image artifacts (data). Do NOT change this ref to github.event.workflow_run.head_sha/head_branch —
       # that would run fork-controlled code with the secret, and a fork mustn't be able to swap the gold
       # or comparator to pass a regression either.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
           lfs: true
 
       - name: Download screenshot artifacts from the triggering run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -96,7 +96,7 @@ jobs:
       # this gate run — where the actual re-judge log lives.
       - name: Post gate status on PR head
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const ok = '${{ steps.gate.outputs.result }}' === '0';

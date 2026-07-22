@@ -44,13 +44,13 @@ jobs:
           - arch: ARM64
             rid: win-arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
 
       - name: Checkout DirectXTex
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
           ref: ${{ github.event.inputs.directxtex-version }}
@@ -71,7 +71,7 @@ jobs:
           Copy-Item _build/Release/stride_directxtex.dll "out/${{ matrix.rid }}/"
           Copy-Item _build/Release/stride_directxtex.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
@@ -80,27 +80,27 @@ jobs:
     name: Build directxtex (Linux x64)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
 
       - name: Checkout DirectXTex
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
           ref: ${{ github.event.inputs.directxtex-version }}
           path: directxtex-src
 
       - name: Checkout DirectX-Headers
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectX-Headers
           ref: ${{ github.event.inputs.directx-headers-version }}
           path: directx-headers-src
 
       - name: Checkout DirectXMath
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXMath
           ref: ${{ github.event.inputs.directxmath-version }}
@@ -145,7 +145,7 @@ jobs:
           mkdir -p out/linux-x64
           cp _build/stride_directxtex.so out/linux-x64/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-linux-x64
           path: out/linux-x64/
@@ -154,27 +154,27 @@ jobs:
     name: Build directxtex (macOS arm64)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
 
       - name: Checkout DirectXTex
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
           ref: ${{ github.event.inputs.directxtex-version }}
           path: directxtex-src
 
       - name: Checkout DirectX-Headers
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectX-Headers
           ref: ${{ github.event.inputs.directx-headers-version }}
           path: directx-headers-src
 
       - name: Checkout DirectXMath
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXMath
           ref: ${{ github.event.inputs.directxmath-version }}
@@ -219,7 +219,7 @@ jobs:
           mkdir -p out/osx-arm64
           cp _build/stride_directxtex.dylib out/osx-arm64/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-osx-arm64
           path: out/osx-arm64/
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout DirectXTex (for commit hash)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
           ref: ${{ github.event.inputs.directxtex-version }}
@@ -238,7 +238,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
 
@@ -264,7 +264,7 @@ jobs:
       - name: List contents
         run: find stride_directxtex-out -type f | sort
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-all-platforms
           path: stride_directxtex-out/

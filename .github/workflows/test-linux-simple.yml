@@ -42,14 +42,14 @@ jobs:
     steps:
       # Full checkout: the Simple test solutions build Stride.Templates.*, which
       # preprocesses template content from samples/.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: true
           ref: ${{ github.ref }}
       # Full checkout: the Simple test solutions build Stride.Templates.*, which
       # preprocesses template content from samples/.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: true
@@ -80,7 +80,7 @@ jobs:
           done
       - name: Publish Test Report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Test Report: Linux Simple'
           path: TestResults/*.trx
@@ -89,7 +89,7 @@ jobs:
           list-tests: 'failed'
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-linux-simple
           path: TestResults/

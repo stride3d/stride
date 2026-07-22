@@ -133,10 +133,10 @@ jobs:
           ls -la out-cli/linux-x64/
           du -sh out-cli/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-libs-linux-x64, path: out-libs/ }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-cli-linux-x64, path: out-cli/ }
 
   # ====================================================================
@@ -231,10 +231,10 @@ jobs:
           ls -la out-cli/osx-arm64/
           du -sh out-cli/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-libs-osx-arm64, path: out-libs/ }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-cli-osx-arm64, path: out-cli/ }
 
   # ====================================================================
@@ -362,10 +362,10 @@ jobs:
           ls -la out-cli/win-x64/
           du -sh out-cli/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-libs-win-x64, path: out-libs/ }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-cli-win-x64, path: out-cli/ }
 
   # ====================================================================
@@ -472,8 +472,8 @@ jobs:
           ls -la out-cli/win-arm64/
           du -sh out-cli/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-libs-win-arm64, path: out-libs/ }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: ffmpeg-cli-win-arm64, path: out-cli/ }
