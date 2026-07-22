@@ -10,6 +10,8 @@ namespace Stride.BepuPhysics.Definitions.SimTests;
 
 interface IOverlapCollector
 {
+    public bool Full { get; }
+
     public void OnPairCompleted<TManifold>(BepuSimulation simulation, CollidableReference reference, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>;
 }
 
@@ -17,13 +19,14 @@ internal unsafe struct SpanManifoldCollector(OverlapInfoStack* Ptr, int Length, 
 {
     public int Head;
 
+    public bool Full => Head == Length;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnPairCompleted<TManifold>(BepuSimulation simulation, CollidableReference reference, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         if (Head >= Length)
             return;
 
-#warning should short circuit the whole overlap test in the caller as soon as head is filled
         CollidableComponent? collidable = null;
         for (int i = 0; i < manifold.Count; ++i)
         {
@@ -42,13 +45,14 @@ internal unsafe struct SpanCollidableCollector(CollidableStack* Ptr, int Length,
 {
     public int Head;
 
+    public bool Full => Head == Length;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnPairCompleted<TManifold>(BepuSimulation simulation, CollidableReference reference, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         if (Head >= Length)
             return;
 
-#warning should short circuit the whole overlap test in the caller as soon as head is filled
         for (int i = 0; i < manifold.Count; ++i)
         {
             if (manifold.GetDepth(i) < 0)
@@ -62,6 +66,8 @@ internal unsafe struct SpanCollidableCollector(CollidableStack* Ptr, int Length,
 
 internal readonly struct CollectionCollector(ICollection<OverlapInfo> Collection) : IOverlapCollector
 {
+    public bool Full => false;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnPairCompleted<TManifold>(BepuSimulation simulation, CollidableReference reference, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
