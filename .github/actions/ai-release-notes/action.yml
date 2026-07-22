@@ -36,6 +36,10 @@ inputs:
     description: Write the generated notes to the `tag` release body.
     required: false
     default: 'false'
+  add-contributors:
+    description: Append GitHub's "New Contributors" section (repo-wide; needs tag refs; best-effort).
+    required: false
+    default: 'false'
   model:
     description: Claude model id.
     required: false
@@ -74,6 +78,7 @@ runs:
         SCOPE: ${{ inputs.scope }}
         FORMAT: ${{ inputs.format }}
         APPLY: ${{ inputs.apply }}
+        ADD_CONTRIBUTORS: ${{ inputs.add-contributors }}
         MODEL: ${{ inputs.model }}
         PROMPT_FILE: ${{ inputs.prompt-file }}
       run: |
@@ -173,6 +178,23 @@ runs:
         NOTES=$(jq -rs '[.[] | select(.type=="result")] | last | .result // empty' "$STREAM")
         if [ -z "$NOTES" ]; then
           echo "::warning::Empty notes; nothing produced."; exit 0
+        fi
+
+        # Append GitHub's "New Contributors" block (repo-wide; best-effort, needs tag refs).
+        if [ "$ADD_CONTRIBUTORS" = "true" ]; then
+          CONTRIB=$(gh api --method POST "repos/$REPO/releases/generate-notes" \
+            -f tag_name="$TO" -f previous_tag_name="$FROM" --jq '.body' 2>/dev/null \
+            | awk '
+                /^## New Contributors/ { c=1 }
+                c && /^\*\*Full Changelog/ { exit }
+                c && /^## / && !/^## New Contributors/ { exit }
+                c { print }')
+          if [ -n "$CONTRIB" ]; then
+            NOTES=$(printf '%s\n\n%s' "$NOTES" "$CONTRIB")
+            echo "::notice::Appended New Contributors section."
+          else
+            echo "::notice::No New Contributors section to append."
+          fi
         fi
 
         OUT="$PWD/ai-release-notes.md"

@@ -30,6 +30,11 @@ on:
         required: false
         default: false
         type: boolean
+      add-contributors:
+        description: Append GitHub's "New Contributors" section (repo-wide for the range).
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   Generate:
@@ -80,6 +85,7 @@ jobs:
           scope: ${{ steps.cfg.outputs.scope }}
           format: ${{ inputs.format }}
           apply: ${{ steps.cfg.outputs.apply-tag != '' }}
+          add-contributors: ${{ inputs.add-contributors }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
