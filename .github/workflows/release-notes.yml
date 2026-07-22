@@ -26,7 +26,7 @@ on:
           - highlights
           - bullets
       apply-to-release:
-        description: Also overwrite the release body ('to' must be an existing release tag). Off by default.
+        description: Replace the notes on the existing release named by 'to'. Unticked, or if no such release exists, only generates a preview.
         required: false
         default: false
         type: boolean
