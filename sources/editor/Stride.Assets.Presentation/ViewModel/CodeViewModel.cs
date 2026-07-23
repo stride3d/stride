@@ -105,23 +105,21 @@ namespace Stride.Assets.Presentation.ViewModel
             }
         }
 
-            void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs<ProjectWatcher.TrackedAssembly> e)
+        private void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs<ProjectWatcher.TrackedAssembly> e)
+        {
+            if (roslynWorkspace == null)
+                return;
+
+            if (e.Item.Project is { } project)
             {
-                if ((e.Item).Project is { } project)
+                switch (e.Action)
                 {
-                    switch (e.Action)
-                    {
-                        case NotifyCollectionChangedAction.Add:
-                            {
-                                workspace.AddOrUpdateProject(project);
-                                break;
-                            }
-                        case NotifyCollectionChangedAction.Remove:
-                            {
-                                workspace.RemoveProject(project.Id);
-                                break;
-                            }
-                    }
+                    case NotifyCollectionChangedAction.Add:
+                        roslynWorkspace.AddOrUpdateProject(project);
+                        break;
+                    case NotifyCollectionChangedAction.Remove:
+                        roslynWorkspace.RemoveProject(project.Id);
+                        break;
                 }
             }
         }
