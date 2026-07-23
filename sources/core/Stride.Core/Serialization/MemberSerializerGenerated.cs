@@ -23,6 +23,9 @@ public static unsafe class MemberNullableSerializer
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -57,6 +60,9 @@ public static unsafe class MemberNullableSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -84,6 +90,9 @@ public static unsafe class MemberNullableSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -168,6 +177,9 @@ public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -202,6 +214,9 @@ public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -229,6 +244,9 @@ public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -325,6 +343,9 @@ public static unsafe class MemberNonSealedSerializer
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -366,6 +387,9 @@ public static unsafe class MemberNonSealedSerializer
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -405,6 +429,9 @@ public static unsafe class MemberNonSealedSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + expectedType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -435,6 +462,9 @@ public static unsafe class MemberNonSealedSerializer
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objectDataSerializer.PreSerialize(ref obj, mode, stream);
 
 
@@ -449,6 +479,9 @@ public static unsafe class MemberNonSealedSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -507,6 +540,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -569,6 +605,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
 
@@ -602,6 +641,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -644,6 +686,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -685,6 +730,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + expectedType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -715,6 +763,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
 
@@ -731,6 +782,9 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -798,6 +852,9 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -860,6 +917,9 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
 
@@ -896,6 +956,9 @@ public static unsafe class MemberReuseSerializer
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -967,6 +1030,9 @@ public static unsafe class MemberReuseSerializer
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -1010,6 +1076,9 @@ public static unsafe class MemberReuseSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + expectedType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -1062,6 +1131,9 @@ public static unsafe class MemberReuseSerializer
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objectDataSerializer.PreSerialize(ref obj, mode, stream);
 
                     if (reuseReferences)
@@ -1081,6 +1153,9 @@ public static unsafe class MemberReuseSerializer
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + objType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -1182,6 +1257,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -1270,6 +1348,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
 
@@ -1321,6 +1402,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 
             // Structure, no need to check for inheritance or null values.
@@ -1393,6 +1477,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -1438,6 +1525,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + expectedType.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -1490,6 +1580,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
 
@@ -1511,6 +1604,9 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
                     // Serialize object
@@ -1621,6 +1717,9 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -1708,6 +1807,9 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
