@@ -102,5 +102,5 @@ public sealed class %%AssetName%%Asset : Asset          // or AssetWithSource
 }
 ```
 
-> [!NOTE] Game projects
-> Replace `StrideConfig.PackageName` with a string literal matching your game's package name (e.g. `"MyGame"`). The rest of the pattern is identical.
+> [!NOTE]
+> **For game projects:** replace `StrideConfig.PackageName` with a string literal matching your game's package name (e.g. `"MyGame"`). The rest of the pattern is identical.

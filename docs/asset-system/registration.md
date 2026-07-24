@@ -88,8 +88,8 @@ sources/editor/Stride.Assets.Presentation/Templates/Assets/%%Group%%/%%AssetName
 
 The directory name under `Assets/` does not have to match the `Group` string exactly — the directory is just for organisation. The file is embedded automatically via the wildcard include already present in `Stride.Assets.Presentation.csproj` — no manual `.csproj` edit is needed for engine assets.
 
-> [!NOTE] Game projects
-> For game-project custom assets, place the `.sdtpl` file anywhere under the project's `Templates/` folder, then register it in the `.sdpkg` file:
+> [!NOTE]
+> **For game-project custom assets:** place the `.sdtpl` file anywhere under the project's `Templates/` folder, then register it in the `.sdpkg` file:
 >
 > ```yaml
 > TemplateFolders:

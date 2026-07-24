@@ -374,7 +374,7 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 | Windows | Direct3D11 | Direct3D11, Direct3D12,Vulkan |
 | Linux | Vulkan | Vulkan |
 | macOS | Vulkan | Vulkan |
-| Android | VUlkan | Vulkan |
+| Android | Vulkan | Vulkan |
 | iOS | Vulkan | Vulkan |
 
 **Graphics API defines** (added to `DefineConstants`):
