@@ -301,7 +301,9 @@ public abstract class CollidableComponent : EntityComponent
         Entity.Transform.UpdateWorldMatrix();
         Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
 
+        // ReSharper disable once ExplicitCallerInfoArgument
         collidableWorldTranslation.ValidateRange(Entity, "World Position");
+        // ReSharper disable once ExplicitCallerInfoArgument
         collidableWorldRotation.ValidateRange(Entity, "World Rotation");
 
         var pose = new NRigidPose((collidableWorldTranslation + collidableWorldRotation * CenterOfMass).ToNumeric(), collidableWorldRotation.ToNumeric());

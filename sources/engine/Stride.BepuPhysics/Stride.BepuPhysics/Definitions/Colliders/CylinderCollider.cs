@@ -24,7 +24,7 @@ public sealed class CylinderCollider : ColliderBase
         get => _radius;
         set
         {
-            value.ValidateGreaterThanZeroFinite(this, nameof(Radius));
+            value.ValidateGreaterThanZeroFinite(this);
             _radius = value;
             TryUpdateFeatures();
         }
@@ -38,7 +38,7 @@ public sealed class CylinderCollider : ColliderBase
         get => _length;
         set
         {
-            value.ValidateGreaterThanZeroFinite(this, nameof(Length));
+            value.ValidateGreaterThanZeroFinite(this);
             _length = value;
             TryUpdateFeatures();
         }

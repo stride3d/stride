@@ -23,7 +23,7 @@ public sealed class SphereCollider : ColliderBase
         get => _radius;
         set
         {
-            value.ValidateGreaterThanZeroFinite(this, nameof(Radius));
+            value.ValidateGreaterThanZeroFinite(this);
             _radius = value;
             TryUpdateFeatures();
         }
