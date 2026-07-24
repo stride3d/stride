@@ -28,6 +28,9 @@
                 // If we still have no serializer, throw an exception
                 if (dataSerializer is null)
                     throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
+
+                if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                    obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
             }
 <# } // supportsNullDataSerializer #>
 
@@ -119,6 +122,9 @@
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + type.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
                     // Update expected type
                     type = objectDataSerializer.SerializationType;
 
@@ -178,6 +184,9 @@
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + <# if (supportsNonSealed) { #>expectedType<# } else { #><#= typeExpr #><# } #>.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
 <# } // supportsNullDataSerializer #>
@@ -246,6 +255,9 @@
                     if (objectDataSerializer is null)
                         throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + <#= typeExpr #>.FullName);
 
+                    if (obj is not null && obj.GetType().IsAssignableTo(objectDataSerializer.SerializationType) == false)
+                        obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
+
 <# if (supportsGenerics) { #>
                     objCopy = obj;
 <# } #>
@@ -275,6 +287,9 @@
                         // If we still have no serializer, throw an exception
                         if (dataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
+
+                        if (obj is not null && obj.GetType().IsAssignableTo(dataSerializer.SerializationType) == false)
+                            obj = default; // pre-existing obj is not compatible with the serialized type; they are two distinct types deriving from the same T
                     }
 
 <# } // supportsNullDataSerializer #>
