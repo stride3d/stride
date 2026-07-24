@@ -36,23 +36,23 @@ internal static class BepuAndStrideExtensions
     public static SQuaternion ToStride(this NQuaternion qua) => Unsafe.As<NQuaternion, SQuaternion>(ref qua);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ValidateRange<T>(this SVector3 vec, T val, [CallerMemberName] string? fieldName = null)
+    public static void ValidateRange<T>(this SVector3 vec, T owner, [CallerMemberName] string? fieldName = null)
     {
         if (NVector3.AllWhereAllBitsSet(NVector3.IsFinite(vec)) == false)
-            throw new ArgumentOutOfRangeException($"{val}'s {fieldName} must be finite");
+            throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be finite");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ValidateRange<T>(this SQuaternion quat, T val, [CallerMemberName] string? fieldName = null)
+    public static void ValidateRange<T>(this SQuaternion quat, T owner, [CallerMemberName] string? fieldName = null)
     {
         if (quat.IsNormalized == false)
-            throw new ArgumentOutOfRangeException($"{val}'s {fieldName} must be normalized");
+            throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be normalized");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ValidateGreaterThanZeroFinite<T>(this float fp, T val, [CallerMemberName] string? fieldName = null)
+    public static void ValidateGreaterThanZeroFinite<T>(this float fp, T owner, [CallerMemberName] string? fieldName = null)
     {
         if (fp > 0 && float.IsFinite(fp))
-            throw new ArgumentOutOfRangeException($"{val}'s {fieldName} must be finite and greater than zero");
+            throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be finite and greater than zero");
     }
 }
