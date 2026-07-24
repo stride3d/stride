@@ -25,6 +25,7 @@ public abstract class ColliderBase
         get => _mass;
         set
         {
+            value.ValidateGreaterThanZeroFinite(this);
             _mass = value;
             TryUpdateFeatures();
         }
@@ -42,6 +43,7 @@ public abstract class ColliderBase
         get => _positionLocal;
         set
         {
+            value.ValidateRange(this);
             _positionLocal = value;
             TryUpdateFeatures();
         }
@@ -58,6 +60,7 @@ public abstract class ColliderBase
         get => _rotationLocal;
         set
         {
+            value.ValidateRange(this);
             _rotationLocal = value;
             TryUpdateFeatures();
         }
