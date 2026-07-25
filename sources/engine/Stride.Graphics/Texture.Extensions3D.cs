@@ -102,7 +102,7 @@ public partial class Texture
     ///     (<paramref name="width"/> * <paramref name="height"/> * <paramref name="depth"/>).
     ///   </para>
     ///   <para>
-    ///     See the <c>SizeInBytes</c> extension member in <see cref="PixelFormatExtensions"/> for calculating the size of a pixel format.
+    ///     See <see cref="PixelFormatExtensions.get_SizeInBytes(PixelFormat)"/> for calculating the size of a pixel format.
     ///   </para>
     ///   <para>
     ///     Each value in the data array will be a texel in the destination Texture.
