@@ -1029,15 +1029,33 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public void CheckAssetReplacements(AssetViewModel changedAsset = null)
         {
+            var newReplaced = new Dictionary<AssetId, AssetViewModel>();
             foreach (var asset in AllAssets)
             {
-                if (asset.Asset.Replaces != null)
+                if (asset.Asset.Replaces is { } target)
+                {
                     CheckAssetReplacement(asset);
+                    if (GetAssetById(target.Id) is { } targetVm)
+                        newReplaced.TryAdd(targetVm.Id, asset);
+                }
             }
+            // Refresh the reverse "Replaced by" indicator: clear targets that are no longer replaced,
+            // then set the current ones.
+            foreach (var id in replacedTargets.Keys)
+            {
+                if (!newReplaced.ContainsKey(id))
+                    GetAssetById(id)?.UpdateReplacedBy(null);
+            }
+            foreach (var (id, replacer) in newReplaced)
+                GetAssetById(id)?.UpdateReplacedBy(replacer);
+            replacedTargets = newReplaced;
+
             if (changedAsset != null && (changedAsset.IsDeleted || changedAsset.Asset.Replaces == null))
                 AssetLog.ClearMessages(LogKey.Get(changedAsset.Id, AssetReplacementLogName));
             AssetReplacementsChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        private Dictionary<AssetId, AssetViewModel> replacedTargets = new();
 
         private const string AssetReplacementLogName = "AssetReplacement";
 

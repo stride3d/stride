@@ -57,6 +57,10 @@
                           HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="{Binding IsReplacing, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
                       <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
                     </Border>
+                    <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
+                          HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
+                      <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
+                    </Border>
                     <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,3" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand, FallbackValue={x:Null}}">
                       <Button.Style>
                         <Style TargetType="Button">
@@ -104,6 +108,10 @@
                           <StackPanel Orientation="Horizontal" Visibility="{Binding IsReplacing, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetOverride}" Width="16" Height="16" Margin="0,2,0,0"/>
                             <TextBlock Text="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                            <Image Source="{StaticResource ImageAssetOverride}" Width="16" Height="16" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsRoot, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Margin="0,2,0,0"/>

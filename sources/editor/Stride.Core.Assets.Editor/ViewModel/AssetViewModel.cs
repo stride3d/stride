@@ -83,6 +83,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private ThumbnailData thumbnailData;
         private AssetItem assetItem;
         private IAssetEditorViewModel editor;
+        private AssetViewModel replacedBy;
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetViewModel"/> class.
         /// </summary>
@@ -249,6 +250,28 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// The URL this asset replaces, or <c>null</c>.
         /// </summary>
         public string ReplacesUrl => Asset.Replaces?.Location;
+
+        /// <summary>
+        /// Gets whether another asset replaces this one in the built game.
+        /// </summary>
+        public bool IsReplaced => replacedBy != null;
+
+        /// <summary>
+        /// The URL of the asset that replaces this one, or <c>null</c>.
+        /// </summary>
+        public string ReplacedByUrl => replacedBy?.Url;
+
+        /// <summary>
+        /// Sets the asset that replaces this one (the reverse of <see cref="IsReplacing"/>), driven by
+        /// <see cref="SessionViewModel.CheckAssetReplacements"/> when the session's declarations change.
+        /// </summary>
+        internal void UpdateReplacedBy(AssetViewModel replacer)
+        {
+            if (replacedBy == replacer)
+                return;
+            replacedBy = replacer;
+            OnPropertyChanged(nameof(IsReplaced), nameof(ReplacedByUrl));
+        }
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
 
