@@ -1,0 +1,22 @@
+// Compiler regression: multidimensional array dimensions must be emitted in declaration order.
+// Data3D[2][3][5] used to be reversed to [5][3][2] (see GenerateArrayType). Data1D is a rank-1 control.
+namespace Stride.Shaders.Tests;
+
+shader ArrayDims3D
+{
+    groupshared float4 Data3D[2][3][5];
+    groupshared float4 Data1D[7];
+
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        // Indices are legal only under the declared order; out of bounds if transposed.
+        Data3D[1][2][4] = float4(1, 0, 0, 0);
+        Data1D[6] = float4(1, 0, 0, 0);
+
+        // Read the arrays back so they survive into the emitted code.
+        Output[0] = Data3D[1][2][4] + Data1D[6];
+    }
+}
