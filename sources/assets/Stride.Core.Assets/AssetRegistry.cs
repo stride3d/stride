@@ -328,7 +328,7 @@ public static class AssetRegistry
     /// <remarks>
     /// The difference between this one and <see cref="CanPropertyHandleAssets"/> is that this one returns the content types,
     /// meaning the concrete types that are types that would be compiled into 'content' to be used at runtime.
-    /// The types contained in <see cref="contentTypes"/> are not guaranteed to be assignable to <paramref name="propertyType"/>
+    /// The types contained in <paramref name="contentTypes"/> are not guaranteed to be assignable to <paramref name="propertyType"/>
     /// </remarks>
     public static bool CanPropertyHandleContent(Type propertyType, [MaybeNullWhen(false)] out IReadOnlyList<Type> contentTypes)
     {

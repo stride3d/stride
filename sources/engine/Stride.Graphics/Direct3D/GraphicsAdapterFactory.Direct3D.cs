@@ -22,7 +22,7 @@ namespace Stride.Graphics
         ///   Gets the native DXGI factory object.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal static ComPtr<IDXGIFactory1> NativeFactory

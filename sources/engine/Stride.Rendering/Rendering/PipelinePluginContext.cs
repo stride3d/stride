@@ -3,7 +3,7 @@
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Context used by <see cref="PipelinePluginManager"/>.
+    /// Context used by <c>PipelinePluginManager</c>.
     /// </summary>
     public struct PipelinePluginContext
     {

@@ -10,7 +10,7 @@ namespace Stride.Graphics;
 /// </summary>
 /// <remarks>
 ///   This enum is being replaced by <see cref="BarrierLayout"/> for cross-platform barrier transitions.
-///   New code should use <see cref="CommandList.ResourceBarrierTransition(GraphicsResource, BarrierLayout)"/> instead.
+///   New code should use <see cref="CommandList.ResourceBarrierTransition(GraphicsResource, BarrierLayout, uint)"/> instead.
 /// </remarks>
 [Obsolete("Use BarrierLayout instead for cross-platform barrier transitions.")]
 [Flags]

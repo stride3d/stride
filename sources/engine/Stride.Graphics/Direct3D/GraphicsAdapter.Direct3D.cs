@@ -65,7 +65,7 @@ namespace Stride.Graphics
         ///   Gets the native DXGI adapter.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<IDXGIAdapter1> NativeAdapter => ComPtrHelpers.ToComPtr(dxgiAdapter);

@@ -81,7 +81,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Device.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         public ComPtr<ID3D12Device> NativeDevice => ToComPtr(nativeDevice);
@@ -90,7 +90,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Command Queue.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12CommandQueue> NativeCommandQueue => ToComPtr(nativeCommandQueue);
@@ -122,7 +122,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Command Queue used for copy commands.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12CommandQueue> NativeCopyCommandQueue => ToComPtr(nativeCopyCommandQueue);
@@ -133,7 +133,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Command Allocator used for copy commands.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12CommandAllocator> NativeCopyCommandAllocator => ToComPtr(nativeCopyCommandAllocator);
@@ -144,7 +144,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Command List used for copy commands.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12GraphicsCommandList7> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);

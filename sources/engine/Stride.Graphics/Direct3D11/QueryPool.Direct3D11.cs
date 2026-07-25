@@ -18,7 +18,7 @@ public unsafe partial class QueryPool
     ///   Gets the internal Direct3D 11 Queries.
     /// </summary>
     /// <remarks>
-    ///   If any of the references is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   If any of the references is going to be kept, use <c>AddRef()</c> to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     internal ReadOnlySpan<ComPtr<ID3D11Query>> NativeQueries => nativeQueries;

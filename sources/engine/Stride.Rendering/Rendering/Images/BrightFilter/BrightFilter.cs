@@ -40,7 +40,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets or sets the threshold relative to the <see cref="WhitePoint"/>.
+        /// Gets or sets the threshold relative to the white point.
         /// </summary>
         /// <value>The threshold.</value>
         /// <userdoc>The value of the intensity threshold used to identify bright areas</userdoc>
