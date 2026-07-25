@@ -29,7 +29,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     <PackageReference Include="NuGet.Configuration" />
-    <PackageReference Include="SharpDX" />
     <PackageReference Include="System.Management" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
