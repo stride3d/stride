@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 
@@ -69,6 +71,52 @@ namespace Stride.Core.Assets.Tests
             var replacementItem = game.FindAsset(new UFile("/MyGame/Overrides/Logo"));
             Assert.NotNull(replacementItem);
             Assert.Equal(replacement.Id, replacementItem.Id);
+        }
+
+        [Fact]
+        public void TestReplacementShipsWhenTargetIsRoot()
+        {
+            var (_, game, plugin) = CreateSessionWithPlugin();
+            var target = new AssetItem("Logo", new AssetObjectTest { Name = "Original" });
+            plugin.Assets.Add(target);
+            var replacer = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = target.ToReference() });
+            game.Assets.Add(replacer);
+
+            // The target is a build root, so its content is substituted and shipped.
+            game.RootAssets.Add(target.ToReference());
+
+            var logger = new LoggerResult();
+            Assert.True(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out var replacements));
+            AssetReplacementAnalysis.Substitute(replacements);
+
+            var included = new RootPackageAssetEnumerator(game).GetAssets(new AssetCompilerResult()).ToList();
+
+            // The target slot ships with the replacement content...
+            var shipped = Assert.Single(included, i => i.Id == target.Id);
+            Assert.Equal("Replacement", ((AssetObjectTest)shipped.Asset).Name);
+            // ...and the replacer is not compiled a second time (it is no longer force-rooted).
+            Assert.DoesNotContain(included, i => i.Id == replacer.Id);
+        }
+
+        [Fact]
+        public void TestReplacementDoesNotShipWhenTargetUnreachable()
+        {
+            var (_, game, plugin) = CreateSessionWithPlugin();
+            var target = new AssetItem("Logo", new AssetObjectTest { Name = "Original" });
+            plugin.Assets.Add(target);
+            var replacer = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = target.ToReference() });
+            game.Assets.Add(replacer);
+
+            // No roots: the target is unreachable, so neither it nor the replacer ships (declaring
+            // a replacement no longer force-roots the replacing asset).
+            var logger = new LoggerResult();
+            Assert.True(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out var replacements));
+            AssetReplacementAnalysis.Substitute(replacements);
+
+            var included = new RootPackageAssetEnumerator(game).GetAssets(new AssetCompilerResult()).ToList();
+
+            Assert.DoesNotContain(included, i => i.Id == target.Id);
+            Assert.DoesNotContain(included, i => i.Id == replacer.Id);
         }
 
         [Fact]
