@@ -271,6 +271,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
             replacedBy = replacer;
             OnPropertyChanged(nameof(IsReplaced), nameof(ReplacedByUrl));
+            // IsReplaced flips IsOverridden, so refresh the inclusion dot.
+            Dependencies.NotifyReplacedStateChanged();
         }
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
