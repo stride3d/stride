@@ -1760,6 +1760,18 @@ namespace Stride.Graphics
 
                 if (framebufferDirty)
                 {
+                    // A framebuffer/render-pass attachment mismatch is undefined behavior that loses the device on
+                    // strict drivers; fail loud in debug (only, to not break drivers that tolerate it) instead.
+                    if (GraphicsDevice.IsDebugMode)
+                    {
+                        var output = activePipeline.Description.Output;
+                        var expectedAttachmentCount = output.RenderTargetCount + (output.DepthStencilFormat != PixelFormat.None ? 1 : 0);
+                        if (framebufferAttachmentCount != expectedAttachmentCount)
+                            throw new InvalidOperationException(
+                                $"Bound render targets ({framebufferAttachmentCount}) do not match the active pipeline's render pass " +
+                                $"({expectedAttachmentCount} attachments). The render targets bound on the command list must match the pipeline's Output description.");
+                    }
+
                     // Create new frame buffer
                     fixed (VkImageView* attachmentsPointer = &framebufferAttachments[0])
                     {
