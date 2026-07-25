@@ -809,8 +809,10 @@ namespace Stride.Rendering.Compositing
             return depthStencilSRV;
         }
 
-        // Binds only as many targets as the transparent stage outputs; extra opaque MRT targets left bound by
-        // post-effects (e.g. SSLR) would exceed its render pass' attachment count and lose the device (#3251).
+        /// <summary>
+        /// Binds only the render targets the transparent stage outputs, dropping any surplus opaque targets left
+        /// bound by post-effects (e.g. Local Reflections) so the framebuffer matches the transparent render pass.
+        /// </summary>
         internal void SetTransparentStageRenderTargets(RenderDrawContext drawContext)
         {
             if (TransparentRenderStage == null)
