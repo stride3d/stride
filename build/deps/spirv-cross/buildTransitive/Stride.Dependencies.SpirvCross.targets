@@ -1,0 +1,13 @@
+<Project>
+  <!-- This package replaces Silk.NET.SPIRV.Cross.Native's spirv-cross.dll with the Stride fork
+       build (stride3d/SPIRV-Cross). Both packages ship runtimes/win-x64/native/spirv-cross.dll,
+       and native file conflict resolution between them is not deterministic (neither DLL has a
+       version resource). Strip Silk's native assets so the fork DLL is the only one deployed. -->
+  <Target Name="_StrideDepsSpirvCrossStripSilkNative" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" Condition="'%(RuntimeTargetsCopyLocalItems.NuGetPackageId)' == 'Silk.NET.SPIRV.Cross.Native'" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -33,6 +33,8 @@
     <PackageReference Include="Silk.NET.Direct3D11" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
+    <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
+    <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
