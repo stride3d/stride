@@ -84,7 +84,23 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets whether this asset will be compiled as a dependency of an asset that has <see cref="IsRoot"/> set to <c>true</c>.
         /// </summary>
-        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot);
+        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && (RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot) || ReplacesIncludedTarget);
+
+        /// <summary>
+        /// Gets whether this asset replaces (<see cref="Asset.Replaces"/>) an asset that is itself included.
+        /// A replacing asset ships its content through the asset it replaces, so it follows that target's
+        /// inclusion (it is never a root on its own).
+        /// </summary>
+        private bool ReplacesIncludedTarget
+        {
+            get
+            {
+                if (Asset.Asset.Replaces is not { } replaces)
+                    return false;
+                var target = Session.GetAssetById(replaces.Id);
+                return target != null && (target.Dependencies.IsRoot || target.Dependencies.IsIndirectlyIncluded);
+            }
+        }
 
         /// <summary>
         /// Gets whether this asset will be excluded from compilation.
@@ -136,6 +152,27 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     referencedAsset.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
                     referencedAsset.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
                 }
+            }
+            // A replacing asset's dot follows this asset's inclusion, so refresh it too.
+            NotifyReplacerInclusionChange();
+        }
+
+        /// <summary>
+        /// Refreshes the inclusion dot of the asset that replaces this one, if any: its state mirrors
+        /// this asset's inclusion (see <see cref="ReplacesIncludedTarget"/>).
+        /// </summary>
+        private void NotifyReplacerInclusionChange()
+        {
+            var dependencies = Session.DependencyManager.ComputeDependencies(Asset.Id, AssetDependencySearchOptions.In, ContentLinkType.Replace);
+            if (dependencies == null)
+                return;
+            foreach (var link in dependencies.LinksIn)
+            {
+                var replacer = Session.GetAssetById(link.Item.Id);
+                if (replacer == null)
+                    continue;
+                replacer.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                replacer.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
             }
         }
 
@@ -213,6 +250,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 asset.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
                 asset.Dependencies.UpdateRecursiveReferencerAssets();
                 asset.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                // A replacing asset's dot follows its target's inclusion, so refresh it when the target changes.
+                asset.Dependencies.NotifyReplacerInclusionChange();
             }
             foreach (var asset in dirtyReferencers)
             {
