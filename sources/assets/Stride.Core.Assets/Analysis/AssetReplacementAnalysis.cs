@@ -34,6 +34,7 @@ public static class AssetReplacementAnalysis
                 if (assetItem.Asset.Replaces is not { } target)
                     continue;
 
+                // Resolve by id (rename-safe) with the location as fallback (see PackageExtensions.FindAsset).
                 var targetItem = rootPackage.FindAsset(target);
                 if (ValidateDeclaration(assetItem, targetItem) is { } error)
                 {
@@ -81,11 +82,11 @@ public static class AssetReplacementAnalysis
     public static string? ValidateDeclaration(AssetItem replacer, AssetItem? target)
     {
         if (target is null)
-            return $"Asset [{replacer.Location}] replaces [{replacer.Asset.Replaces}], which does not exist in the package or its dependencies.";
+            return $"Asset [{replacer.Location}] replaces [{replacer.Asset.Replaces?.Location}], which does not exist in the package or its dependencies.";
         if (target.Id == replacer.Id)
             return $"Asset [{replacer.Location}] cannot replace itself.";
         if (target.Asset.Replaces is not null)
-            return $"Asset [{replacer.Location}] cannot replace [{target.Location}], which itself replaces [{target.Asset.Replaces}]; chained replacements are not supported.";
+            return $"Asset [{replacer.Location}] cannot replace [{target.Location}], which itself replaces [{target.Asset.Replaces.Location}]; chained replacements are not supported.";
         if (!target.Asset.GetType().IsAssignableFrom(replacer.Asset.GetType()))
             return $"Asset [{replacer.Location}] of type [{replacer.Asset.GetType().Name}] cannot replace [{target.Location}] of type [{target.Asset.GetType().Name}].";
         if (target.Asset is SourceCodeAsset)
@@ -113,7 +114,7 @@ public static class AssetReplacementAnalysis
                 if (item.Asset.Replaces is { } target)
                 {
                     replacements ??= new Dictionary<string, AssetItem>(StringComparer.OrdinalIgnoreCase);
-                    replacements.TryAdd(target.FullPath, item);
+                    replacements.TryAdd(target.Location, item);
                 }
             }
         }

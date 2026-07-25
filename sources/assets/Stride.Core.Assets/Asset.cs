@@ -90,15 +90,15 @@ public abstract class Asset
     public TagCollection Tags { get; private set; }
 
     /// <summary>
-    /// Gets or sets the URL of an asset this asset replaces: at build time, the replaced asset's
-    /// content is substituted with this asset's, so everything resolving the replaced asset
-    /// (including references inside dependency packages) gets this asset instead.
+    /// Gets or sets a reference to an asset this asset replaces: at build time, the replaced asset's
+    /// content is substituted with this asset's, so anything resolving the replaced asset gets this
+    /// one instead. Resolved by id, so it survives the target being renamed or moved.
     /// </summary>
     [DataMember(-600)]
     [Display(Browsable = false)]
     [NonOverridable]
     [DefaultValue(null)]
-    public UFile? Replaces { get; set; }
+    public AssetReference? Replaces { get; set; }
 
     [DataMember(-500)]
     [Display(Browsable = false)]

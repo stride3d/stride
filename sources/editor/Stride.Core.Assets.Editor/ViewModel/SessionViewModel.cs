@@ -1052,9 +1052,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var error = AssetReplacementAnalysis.ValidateDeclaration(asset.AssetItem, targetItem);
             if (error == null)
             {
-                var duplicate = AllAssets.FirstOrDefault(x => x != asset && x.Asset.Replaces is { } other && string.Equals(other.FullPath, target.FullPath, StringComparison.OrdinalIgnoreCase));
+                var duplicate = AllAssets.FirstOrDefault(x => x != asset && x.Asset.Replaces is { } other && string.Equals(other.Location, target.Location, StringComparison.OrdinalIgnoreCase));
                 if (duplicate != null)
-                    error = $"[{duplicate.Url}] also replaces [{target}]; only one replacement per URL is allowed.";
+                    error = $"[{duplicate.Url}] also replaces [{target.Location}]; only one replacement per URL is allowed.";
             }
 
             if (error != null)

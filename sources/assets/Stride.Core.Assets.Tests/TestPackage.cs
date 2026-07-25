@@ -196,6 +196,39 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestNamespacedSaveWithReplacesDoesNotCrash()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedSaveWithReplacesDoesNotCrash");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            // A "replacing" asset references the asset it replaces (Asset.Replaces).
+            var replacement = new AssetObjectTest { Replaces = target.ToReference() };
+            var replacementItem = new AssetItem("Replacement", replacement);
+            package.Assets.Add(replacementItem);
+            replacementItem.IsDirty = true;
+
+            // Replaces is an asset reference, not a disk path: saving must not treat it as a UPath to
+            // relativize (which threw on the drive-consistency check when it was a UFile).
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            // Same-package reference saves bare and re-qualifies on load, still resolving to the target.
+            var loaded = (AssetObjectTest)AssetFileSerializer.Load<Asset>(Path.Combine(dirPath, "Assets", "Replacement.sdtest"), result, "MyGame").Asset;
+            Assert.Equal("/MyGame/Target", loaded.Replaces?.Location);
+        }
+
+        [Fact]
         public void TestSaveKeepsAuthoredPackageName()
         {
             var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");

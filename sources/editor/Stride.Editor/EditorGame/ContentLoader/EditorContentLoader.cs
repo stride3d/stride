@@ -87,8 +87,8 @@ namespace Stride.Editor.EditorGame.ContentLoader
             Session = asset.Session;
             foreach (var sessionAsset in Session.AllAssets)
             {
-                if (sessionAsset.Asset.Replaces is { } replacedUrl)
-                    lastKnownReplaces[sessionAsset.Id] = replacedUrl;
+                if (sessionAsset.Asset.Replaces is { } replaces)
+                    lastKnownReplaces[sessionAsset.Id] = new UFile(replaces.Location);
             }
             Session.AssetPropertiesChanged += AssetPropertiesChanged;
             Game = game ?? throw new ArgumentNullException(nameof(game));
@@ -505,7 +505,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             foreach (var replacer in e.Assets)
             {
                 UFile previousUrl;
-                var replacedUrl = replacer.Asset.Replaces;
+                var replacedUrl = replacer.Asset.Replaces is { } replaces ? new UFile(replaces.Location) : null;
                 lock (lastKnownReplaces)
                 {
                     lastKnownReplaces.TryGetValue(replacer.Id, out previousUrl);

@@ -248,7 +248,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// The URL this asset replaces, or <c>null</c>.
         /// </summary>
-        public string ReplacesUrl => Asset.Replaces?.FullPath;
+        public string ReplacesUrl => Asset.Replaces?.Location;
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
 
@@ -687,7 +687,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var childUrl = UFile.Combine(targetDirectory.Path, childName);
             var childAsset = assetItem.CreateDerivedAsset();
             if (replaces)
-                childAsset.Replaces = assetItem.Location;
+                childAsset.Replaces = assetItem.ToReference();
             var childAssetItem = new AssetItem(childUrl, childAsset);
             targetDirectory.Package.CreateAsset(targetDirectory, childAssetItem, true, null);
             if (replaces)
