@@ -730,11 +730,13 @@ public sealed class AssetDependencyManager : IAssetDependencyManager, IDisposabl
                 return;
             }
 
-            // Replaces is substituted at build time (AssetReplacementAnalysis): the target is superseded,
-            // not consumed, so it must never become a build dependency. Keep it out of the graph entirely
-            // (reference fixup still runs via AssetReferenceAnalysis).
+            // Replaces is substituted at build time, not consumed. Record it as a Replace link so the
+            // editor can see it, but keep it out of the default Reference queries so it is never a build dependency.
             if (typeof(Asset).IsAssignableFrom(member.DeclaringType) && member.Name == nameof(Asset.Replaces) && value is not null)
+            {
+                dependencies!.AddBrokenLinkOut((AssetReference)value, ContentLinkType.Replace);
                 return;
+            }
 
             base.VisitObjectMember(container, containerDescriptor, member, value);
         }
