@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using CommunityToolkit.HighPerformance;
 using Silk.NET.SPIRV;
@@ -18,6 +19,35 @@ namespace Stride.Shaders.Parsers.Tests;
 
 public class StrideShaderTests
 {
+    // Regression: multidimensional array dimensions must be emitted in declaration order.
+    // GenerateArrayType used to wrap the dimensions such that the last bracket became outermost,
+    // so `float4 Data3D[2][3][5]` was emitted transposed as [5][3][2] (breaking indexing / fxc).
+    [Fact]
+    public void MultidimensionalArrayDimensionsKeepDeclarationOrder()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("ArrayDims3D", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("ArrayDims3D"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoint = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+
+        Assert.Equal("[2][3][5]", MatchArrayDimensions(hlsl, "Data3D"));
+        Assert.Equal("[7]", MatchArrayDimensions(hlsl, "Data1D")); // rank-1 control: unaffected
+    }
+
+    private static string MatchArrayDimensions(string hlsl, string arrayName)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(hlsl, $@"\b{arrayName}((?:\[\d+\])+)\s*;");
+        Assert.True(match.Success, $"'{arrayName}' declaration not found in emitted HLSL:{Environment.NewLine}{hlsl}");
+        return match.Groups[1].Value;
+    }
+
     // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
     // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
     // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.

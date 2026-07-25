@@ -41,9 +41,11 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <StrideShaderFiles Include="..\assets\SDSL\CompilerTests\**" LinkBase="assets\SDSL\CompilerTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" LinkBase="assets\SDSL\RenderTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" LinkBase="assets\SDSL\ComputeTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\StreamOutTests\**" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\assets\SDSL\CompilerTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\CompilerTests\" />
     <Content Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
     <Content Include="..\assets\SDSL\ComputeTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ComputeTests\" />
     <Content Include="..\assets\SDSL\StreamOutTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\StreamOutTests\" />
