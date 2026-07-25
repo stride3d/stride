@@ -555,6 +555,8 @@ namespace Stride.Rendering.Compositing
 
                         var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
 
+                        SetTransparentStageRenderTargets(drawContext);
+
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
 
                         Context.Allocator.ReleaseReference(renderTargetSRV);
@@ -805,6 +807,19 @@ namespace Stride.Rendering.Compositing
             commandList.SetRenderTargets(depthStencilROCached, commandList.RenderTargets);
 
             return depthStencilSRV;
+        }
+
+        // Binds only as many targets as the transparent stage outputs; extra opaque MRT targets left bound by
+        // post-effects (e.g. SSLR) would exceed its render pass' attachment count and lose the device (#3251).
+        internal void SetTransparentStageRenderTargets(RenderDrawContext drawContext)
+        {
+            if (TransparentRenderStage == null)
+                return;
+
+            var commandList = drawContext.CommandList;
+            var declaredCount = TransparentRenderStage.Output.RenderTargetCount;
+            if (declaredCount >= 1 && commandList.RenderTargetCount > declaredCount)
+                commandList.SetRenderTargets(commandList.DepthStencilBuffer, commandList.RenderTargets.Slice(0, declaredCount));
         }
 
         private Texture ResolveRenderTargetAsSRV(RenderDrawContext drawContext)
