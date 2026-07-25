@@ -787,8 +787,11 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
 
     public static SymbolType GenerateArrayType(SymbolTable table, SpirvContext context, SymbolType arraySymbolType, List<Expression> arraySizes)
     {
-        foreach (var arraySize in arraySizes)
+        // Wrap from the last declared dimension inward so the first dimension ends up outermost:
+        // for `T[a][b][c]` (arraySizes = [a, b, c]) this builds Array(a, Array(b, Array(c, T))).
+        for (var index = arraySizes.Count - 1; index >= 0; index--)
         {
+            var arraySize = arraySizes[index];
             if (!table.ResolveArraySizes || arraySize is EmptyExpression)
                 arraySymbolType = new ArrayType(arraySymbolType, -1);
             else
