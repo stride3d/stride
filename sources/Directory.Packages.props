@@ -123,7 +123,7 @@
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.26" />
+    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.7.26" />
     <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.3" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.5.30" />
     <PackageVersion Include="Stride.Dependencies.LLVM.Windows" Version="2026.6.11" />
