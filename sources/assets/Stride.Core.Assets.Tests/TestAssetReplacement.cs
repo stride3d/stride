@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 
@@ -44,7 +46,7 @@ namespace Stride.Core.Assets.Tests
             var target = new AssetItem("Logo", new AssetObjectTest { Name = "Original" });
             plugin.Assets.Add(target);
             var targetId = target.Id;
-            var replacement = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = new UFile("/Plugin/Logo") });
+            var replacement = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = target.ToReference() });
             game.Assets.Add(replacement);
 
             var logger = new LoggerResult();
@@ -72,10 +74,80 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestReplacementShipsWhenTargetIsRoot()
+        {
+            var (_, game, plugin) = CreateSessionWithPlugin();
+            var target = new AssetItem("Logo", new AssetObjectTest { Name = "Original" });
+            plugin.Assets.Add(target);
+            var replacer = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = target.ToReference() });
+            game.Assets.Add(replacer);
+
+            // The target is a build root, so its content is substituted and shipped.
+            game.RootAssets.Add(target.ToReference());
+
+            var logger = new LoggerResult();
+            Assert.True(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out var replacements));
+            AssetReplacementAnalysis.Substitute(replacements);
+
+            var included = new RootPackageAssetEnumerator(game).GetAssets(new AssetCompilerResult()).ToList();
+
+            // The target slot ships with the replacement content...
+            var shipped = Assert.Single(included, i => i.Id == target.Id);
+            Assert.Equal("Replacement", ((AssetObjectTest)shipped.Asset).Name);
+            // ...and the replacer is not compiled a second time (it is no longer force-rooted).
+            Assert.DoesNotContain(included, i => i.Id == replacer.Id);
+        }
+
+        [Fact]
+        public void TestReplacementDoesNotShipWhenTargetUnreachable()
+        {
+            var (_, game, plugin) = CreateSessionWithPlugin();
+            var target = new AssetItem("Logo", new AssetObjectTest { Name = "Original" });
+            plugin.Assets.Add(target);
+            var replacer = new AssetItem("Overrides/Logo", new AssetObjectTest { Name = "Replacement", Replaces = target.ToReference() });
+            game.Assets.Add(replacer);
+
+            // No roots: the target is unreachable, so neither it nor the replacer ships (declaring
+            // a replacement no longer force-roots the replacing asset).
+            var logger = new LoggerResult();
+            Assert.True(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out var replacements));
+            AssetReplacementAnalysis.Substitute(replacements);
+
+            var included = new RootPackageAssetEnumerator(game).GetAssets(new AssetCompilerResult()).ToList();
+
+            Assert.DoesNotContain(included, i => i.Id == target.Id);
+            Assert.DoesNotContain(included, i => i.Id == replacer.Id);
+        }
+
+        [Fact]
+        public void TestReplacesIsNotABuildDependency()
+        {
+            var (session, game, plugin) = CreateSessionWithPlugin();
+            var archetypeTarget = new AssetItem("Base", new AssetObjectTest());
+            plugin.Assets.Add(archetypeTarget);
+            var replaceTarget = new AssetItem("Logo", new AssetObjectTest());
+            plugin.Assets.Add(replaceTarget);
+
+            // The replacer derives from one asset (archetype) and replaces another.
+            var derived = archetypeTarget.CreateDerivedAsset();
+            derived.Replaces = replaceTarget.ToReference();
+            var replacer = new AssetItem("Overrides/Logo", derived);
+            game.Assets.Add(replacer);
+
+            var deps = session.DependencyManager.ComputeDependencies(replacer.Id, AssetDependencySearchOptions.Out);
+            Assert.NotNull(deps);
+            // Archetype is a real dependency link (control: proves the graph is populated)...
+            Assert.Contains(deps.LinksOut, l => l.Item.Id == archetypeTarget.Id);
+            // ...but Replaces must NOT be a dependency (it is substituted at build time, not consumed).
+            Assert.DoesNotContain(deps.LinksOut, l => l.Item.Id == replaceTarget.Id);
+        }
+
+        [Fact]
         public void TestReplacementMissingTargetFails()
         {
             var (_, game, _) = CreateSessionWithPlugin();
-            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/DoesNotExist") }));
+            // Neither the id nor the location resolves to an existing asset.
+            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = new AssetReference(AssetId.New(), "/Plugin/DoesNotExist") }));
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));
@@ -86,8 +158,9 @@ namespace Stride.Core.Assets.Tests
         public void TestReplacementTypeMismatchFails()
         {
             var (_, game, plugin) = CreateSessionWithPlugin();
-            plugin.Assets.Add(new AssetItem("Logo", new AssetObjectTest()));
-            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTestSub { Replaces = new UFile("/Plugin/Logo") }));
+            var target = new AssetItem("Logo", new AssetObjectTest());
+            plugin.Assets.Add(target);
+            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTestSub { Replaces = target.ToReference() }));
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));
@@ -98,7 +171,9 @@ namespace Stride.Core.Assets.Tests
         public void TestReplacementOfSelfFails()
         {
             var (_, game, _) = CreateSessionWithPlugin();
-            game.Assets.Add(new AssetItem("Logo", new AssetObjectTest { Replaces = new UFile("/MyGame/Logo") }));
+            var self = new AssetItem("Logo", new AssetObjectTest());
+            game.Assets.Add(self);
+            self.Asset.Replaces = self.ToReference();
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));
@@ -109,8 +184,9 @@ namespace Stride.Core.Assets.Tests
         public void TestReplacementOfSourceCodeAssetFails()
         {
             var (_, game, plugin) = CreateSessionWithPlugin();
-            plugin.Assets.Add(new AssetItem("Effect", new SourceCodeAssetTest()));
-            game.Assets.Add(new AssetItem("Overrides/Effect", new SourceCodeAssetTest { Replaces = new UFile("/Plugin/Effect") }));
+            var target = new AssetItem("Effect", new SourceCodeAssetTest());
+            plugin.Assets.Add(target);
+            game.Assets.Add(new AssetItem("Overrides/Effect", new SourceCodeAssetTest { Replaces = target.ToReference() }));
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));
@@ -126,7 +202,7 @@ namespace Stride.Core.Assets.Tests
 
             // The editor's "Create replacing asset" derives from the target (archetype -> target)
             var derived = target.CreateDerivedAsset();
-            derived.Replaces = new UFile("/Plugin/Logo");
+            derived.Replaces = target.ToReference();
             var replacement = new AssetItem("Overrides/Logo", derived);
             game.Assets.Add(replacement);
 
@@ -149,9 +225,12 @@ namespace Stride.Core.Assets.Tests
         {
             var (_, game, plugin) = CreateSessionWithPlugin();
             var plugin2 = AddPlugin(game, "Plugin2");
-            plugin.Assets.Add(new AssetItem("Logo", new AssetObjectTest()));
-            plugin2.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/Logo") }));
-            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin2/Fixups/Logo") }));
+            var pluginLogo = new AssetItem("Logo", new AssetObjectTest());
+            plugin.Assets.Add(pluginLogo);
+            var plugin2Logo = new AssetItem("Fixups/Logo", new AssetObjectTest());
+            plugin2.Assets.Add(plugin2Logo);
+            plugin2Logo.Asset.Replaces = pluginLogo.ToReference();
+            game.Assets.Add(new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = plugin2Logo.ToReference() }));
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));
@@ -163,10 +242,11 @@ namespace Stride.Core.Assets.Tests
         {
             var (_, game, plugin) = CreateSessionWithPlugin();
             var plugin2 = AddPlugin(game, "Plugin2");
-            plugin.Assets.Add(new AssetItem("Logo", new AssetObjectTest()));
-            var gameReplacement = new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/Logo") });
+            var pluginLogo = new AssetItem("Logo", new AssetObjectTest());
+            plugin.Assets.Add(pluginLogo);
+            var gameReplacement = new AssetItem("Overrides/Logo", new AssetObjectTest { Replaces = pluginLogo.ToReference() });
             game.Assets.Add(gameReplacement);
-            plugin2.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/Logo") }));
+            plugin2.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = pluginLogo.ToReference() }));
 
             var logger = new LoggerResult();
             Assert.True(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out var replacements));
@@ -180,9 +260,10 @@ namespace Stride.Core.Assets.Tests
             var (_, game, plugin) = CreateSessionWithPlugin();
             var plugin2 = AddPlugin(game, "Plugin2");
             var plugin3 = AddPlugin(game, "Plugin3");
-            plugin.Assets.Add(new AssetItem("Logo", new AssetObjectTest()));
-            plugin2.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/Logo") }));
-            plugin3.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = new UFile("/Plugin/Logo") }));
+            var pluginLogo = new AssetItem("Logo", new AssetObjectTest());
+            plugin.Assets.Add(pluginLogo);
+            plugin2.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = pluginLogo.ToReference() }));
+            plugin3.Assets.Add(new AssetItem("Fixups/Logo", new AssetObjectTest { Replaces = pluginLogo.ToReference() }));
 
             var logger = new LoggerResult();
             Assert.False(AssetReplacementAnalysis.TryCollect(game, new HashSet<Package> { game }, logger, out _));

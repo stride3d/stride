@@ -84,7 +84,23 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets whether this asset will be compiled as a dependency of an asset that has <see cref="IsRoot"/> set to <c>true</c>.
         /// </summary>
-        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot);
+        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && (RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot) || ReplacesIncludedTarget);
+
+        /// <summary>
+        /// Gets whether this asset replaces (<see cref="Asset.Replaces"/>) an asset that is itself included.
+        /// A replacing asset ships its content through the asset it replaces, so it follows that target's
+        /// inclusion (it is never a root on its own).
+        /// </summary>
+        private bool ReplacesIncludedTarget
+        {
+            get
+            {
+                if (Asset.Asset.Replaces is not { } replaces)
+                    return false;
+                var target = Session.GetAssetById(replaces.Id);
+                return target != null && (target.Dependencies.IsRoot || target.Dependencies.IsIndirectlyIncluded);
+            }
+        }
 
         /// <summary>
         /// Gets whether this asset will be excluded from compilation.
@@ -92,9 +108,46 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public bool IsExcluded => !IsRoot && !IsIndirectlyIncluded;
 
         /// <summary>
+        /// Gets whether this asset is replaced by another one while still being reachable: its slot ships,
+        /// but with the replacement's content, so its own content is not used. Shown as "overridden".
+        /// </summary>
+        public bool IsOverridden => !Asset.IsDeleted && Asset.IsReplaced && (IsRoot || IsIndirectlyIncluded);
+
+        /// <summary>
+        /// Gets whether the inclusion dot should show this asset as a build root (root and not overridden).
+        /// </summary>
+        public bool IsBuiltAsRoot => IsRoot && !IsOverridden;
+
+        /// <summary>
+        /// Gets whether the inclusion dot should show this asset as included as a dependency (and not overridden).
+        /// </summary>
+        public bool IsBuiltAsDependency => IsIndirectlyIncluded && !IsOverridden;
+
+        /// <summary>
         /// Gets whether this asset is forced to be a root asset.
         /// </summary>
         public bool ForcedRoot { get; }
+
+        // The inclusion dot and its tooltip derive from these together, so they are always notified as a set.
+        private static readonly string[] InclusionPropertyNames =
+        {
+            nameof(IsRoot), nameof(IsIndirectlyIncluded), nameof(IsExcluded),
+            nameof(IsOverridden), nameof(IsBuiltAsRoot), nameof(IsBuiltAsDependency),
+        };
+
+        private void NotifyInclusionChanging() => OnPropertyChanging(InclusionPropertyNames);
+
+        private void NotifyInclusionChanged() => OnPropertyChanged(InclusionPropertyNames);
+
+        /// <summary>
+        /// Refreshes the inclusion dot after the asset's replaced state (<see cref="AssetViewModel.IsReplaced"/>)
+        /// changed, which flips <see cref="IsOverridden"/>.
+        /// </summary>
+        internal void NotifyReplacedStateChanged()
+        {
+            NotifyInclusionChanging();
+            NotifyInclusionChanged();
+        }
 
         /// <summary>
         /// Gets a command that will toggle the <see cref="IsRoot"/> property.
@@ -127,15 +180,36 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         internal void NotifyRootAssetChange(bool notifyReferencedAssets)
         {
-            OnPropertyChanging(nameof(IsRoot), nameof(IsIndirectlyIncluded), nameof(IsExcluded));
-            OnPropertyChanged(nameof(IsRoot), nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+            NotifyInclusionChanging();
+            NotifyInclusionChanged();
             if (notifyReferencedAssets)
             {
                 foreach (var referencedAsset in RecursiveReferencedAssets)
                 {
-                    referencedAsset.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
-                    referencedAsset.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                    referencedAsset.Dependencies.NotifyInclusionChanging();
+                    referencedAsset.Dependencies.NotifyInclusionChanged();
                 }
+            }
+            // A replacing asset's dot follows this asset's inclusion, so refresh it too.
+            NotifyReplacerInclusionChange();
+        }
+
+        /// <summary>
+        /// Refreshes the inclusion dot of the asset that replaces this one, if any: its state mirrors
+        /// this asset's inclusion (see <see cref="ReplacesIncludedTarget"/>).
+        /// </summary>
+        private void NotifyReplacerInclusionChange()
+        {
+            var dependencies = Session.DependencyManager.ComputeDependencies(Asset.Id, AssetDependencySearchOptions.In, ContentLinkType.Replace);
+            if (dependencies == null)
+                return;
+            foreach (var link in dependencies.LinksIn)
+            {
+                var replacer = Session.GetAssetById(link.Item.Id);
+                if (replacer == null)
+                    continue;
+                replacer.Dependencies.NotifyInclusionChanging();
+                replacer.Dependencies.NotifyInclusionChanged();
             }
         }
 
@@ -210,9 +284,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Update recursive lists of referenced/referenced assets for assets affected by the changes
             foreach (var asset in dirtyReferenced)
             {
-                asset.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                asset.Dependencies.NotifyInclusionChanging();
                 asset.Dependencies.UpdateRecursiveReferencerAssets();
-                asset.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                asset.Dependencies.NotifyInclusionChanged();
+                // A replacing asset's dot follows its target's inclusion, so refresh it when the target changes.
+                asset.Dependencies.NotifyReplacerInclusionChange();
             }
             foreach (var asset in dirtyReferencers)
             {
@@ -220,8 +296,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             foreach (var asset in dirtyAssets)
             {
-                asset.Dependencies.OnPropertyChanging(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
-                asset.Dependencies.OnPropertyChanged(nameof(IsIndirectlyIncluded), nameof(IsExcluded));
+                asset.Dependencies.NotifyInclusionChanging();
+                asset.Dependencies.NotifyInclusionChanged();
             }
 
             // Job is completed, notify anything awaiting on it

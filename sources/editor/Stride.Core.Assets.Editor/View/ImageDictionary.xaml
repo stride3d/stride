@@ -1027,6 +1027,19 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
+  <DrawingImage x:Key="ImageAssetIsOverridden">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.861,1 15,4.14 15,8 15,11.859 11.861,15 8,15" />
+          <GeometryDrawing Brush="#F0A30A"
+                           Geometry="F1M14,8C14,11.314 11.314,14 8,14 4.687,14 2,11.314 2,8 2,4.687 4.687,2 8,2 11.314,2 14,4.687 14,8" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
   <DrawingImage x:Key="ImageAssetOverride">
     <DrawingImage.Drawing>
       <DrawingGroup>

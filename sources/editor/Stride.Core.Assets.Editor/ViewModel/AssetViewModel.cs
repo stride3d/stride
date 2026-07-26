@@ -83,6 +83,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private ThumbnailData thumbnailData;
         private AssetItem assetItem;
         private IAssetEditorViewModel editor;
+        private AssetViewModel replacedBy;
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetViewModel"/> class.
         /// </summary>
@@ -248,7 +249,31 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// The URL this asset replaces, or <c>null</c>.
         /// </summary>
-        public string ReplacesUrl => Asset.Replaces?.FullPath;
+        public string ReplacesUrl => Asset.Replaces?.Location;
+
+        /// <summary>
+        /// Gets whether another asset replaces this one in the built game.
+        /// </summary>
+        public bool IsReplaced => replacedBy != null;
+
+        /// <summary>
+        /// The URL of the asset that replaces this one, or <c>null</c>.
+        /// </summary>
+        public string ReplacedByUrl => replacedBy?.Url;
+
+        /// <summary>
+        /// Sets the asset that replaces this one (the reverse of <see cref="IsReplacing"/>), driven by
+        /// <see cref="SessionViewModel.CheckAssetReplacements"/> when the session's declarations change.
+        /// </summary>
+        internal void UpdateReplacedBy(AssetViewModel replacer)
+        {
+            if (replacedBy == replacer)
+                return;
+            replacedBy = replacer;
+            OnPropertyChanged(nameof(IsReplaced), nameof(ReplacedByUrl));
+            // IsReplaced flips IsOverridden, so refresh the inclusion dot.
+            Dependencies.NotifyReplacedStateChanged();
+        }
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
 
@@ -687,7 +712,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var childUrl = UFile.Combine(targetDirectory.Path, childName);
             var childAsset = assetItem.CreateDerivedAsset();
             if (replaces)
-                childAsset.Replaces = assetItem.Location;
+                childAsset.Replaces = assetItem.ToReference();
             var childAssetItem = new AssetItem(childUrl, childAsset);
             targetDirectory.Package.CreateAsset(targetDirectory, childAssetItem, true, null);
             if (replaces)

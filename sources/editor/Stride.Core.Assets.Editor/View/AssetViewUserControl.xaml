@@ -57,6 +57,10 @@
                           HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="{Binding IsReplacing, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
                       <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
                     </Border>
+                    <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
+                          HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
+                      <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
+                    </Border>
                     <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,3" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand, FallbackValue={x:Null}}">
                       <Button.Style>
                         <Style TargetType="Button">
@@ -70,8 +74,9 @@
                         </Style>
                       </Button.Style>
                       <Grid Background="Transparent">
-                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsDependency, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsOverridden}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsOverridden, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
                         <Image Source="{StaticResource ImageAssetIsExcluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
                       </Grid>
                     </Button>
@@ -105,13 +110,21 @@
                             <Image Source="{StaticResource ImageAssetOverride}" Width="16" Height="16" Margin="0,2,0,0"/>
                             <TextBlock Text="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
                           </StackPanel>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsRoot, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                            <Image Source="{StaticResource ImageAssetOverride}" Width="16" Height="16" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsBuiltAsRoot, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Margin="0,2,0,0"/>
                             <TextBlock Text="{sd:Localize Included in build as root}"/>
                           </StackPanel>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsBuiltAsDependency, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Margin="0,2,0,0"/>
                             <TextBlock Text="{sd:Localize Included in build as dependency}"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsOverridden, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                            <Image Source="{StaticResource ImageAssetIsOverridden}" Width="16" Height="16" Margin="0,2,0,0"/>
+                            <TextBlock Text="{sd:Localize Overridden in build (content not used)}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Margin="0,2,0,0"/>
