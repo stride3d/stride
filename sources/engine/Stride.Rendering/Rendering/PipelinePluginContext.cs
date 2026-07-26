@@ -2,9 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering
 {
-    /// <summary>
-    /// Context used by <c>PipelinePluginManager</c>.
-    /// </summary>
     public struct PipelinePluginContext
     {
         public readonly RenderContext RenderContext;

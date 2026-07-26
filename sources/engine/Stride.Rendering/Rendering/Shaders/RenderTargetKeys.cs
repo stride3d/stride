@@ -33,7 +33,7 @@ namespace Stride.Rendering
         public static readonly ObjectParameterKey<Buffer> StreamTarget = ParameterKeys.NewObject<Buffer>();
 
         /// <summary>
-        /// Used by <c>RenderTargetPlugin</c> to notify that the plugin requires support for depth stencil as shader resource
+        /// Used to notify that the plugin requires support for depth stencil as shader resource
         /// </summary>
         public static readonly PropertyKey<bool> RequireDepthStencilShaderResource = new PropertyKey<bool>("RequireDepthStencilShaderResource", typeof(RenderTargetKeys));
     }
