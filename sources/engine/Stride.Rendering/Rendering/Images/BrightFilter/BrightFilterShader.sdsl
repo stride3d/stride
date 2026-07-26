@@ -4,7 +4,11 @@
 namespace Stride.Rendering.Images
 {
     /// <summary>
-    /// A bright filter shader
+    ///   A bright filter shader:
+    ///   Builds a soft bright-pass mask from pixel luminance, then keeps only the bright contribution.
+    ///
+    ///   `ThresholdOffset` shifts the point where pixels start contributing.
+    ///   `BrightPassSteepness` makes the filter more selective by requiring stronger luminance to reach full contribution.
     /// </summary>
     internal shader BrightFilterShader : ImageEffectShader
     {
