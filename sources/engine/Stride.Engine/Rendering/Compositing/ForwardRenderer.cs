@@ -555,6 +555,8 @@ namespace Stride.Rendering.Compositing
 
                         var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
 
+                        SetTransparentStageRenderTargets(drawContext);
+
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
 
                         Context.Allocator.ReleaseReference(renderTargetSRV);
@@ -805,6 +807,21 @@ namespace Stride.Rendering.Compositing
             commandList.SetRenderTargets(depthStencilROCached, commandList.RenderTargets);
 
             return depthStencilSRV;
+        }
+
+        /// <summary>
+        /// Binds only the render targets the transparent stage outputs, dropping any surplus opaque targets left
+        /// bound by post-effects (e.g. Local Reflections) so the framebuffer matches the transparent render pass.
+        /// </summary>
+        internal void SetTransparentStageRenderTargets(RenderDrawContext drawContext)
+        {
+            if (TransparentRenderStage == null)
+                return;
+
+            var commandList = drawContext.CommandList;
+            var declaredCount = TransparentRenderStage.Output.RenderTargetCount;
+            if (declaredCount >= 1 && commandList.RenderTargetCount > declaredCount)
+                commandList.SetRenderTargets(commandList.DepthStencilBuffer, commandList.RenderTargets.Slice(0, declaredCount));
         }
 
         private Texture ResolveRenderTargetAsSRV(RenderDrawContext drawContext)
