@@ -14,7 +14,7 @@ namespace Stride.Games
     {
         /// <summary>
         /// Whether the Windows Forms windowing backend is available. Set the "Stride.Games.WinFormsBackendEnabled"
-        /// feature switch to <c>false</c> to let trimming/AOT drop <c>GameContextWinforms</c> and System.Windows.Forms.
+        /// feature switch to <c>false</c> to let trimming/AOT drop <see cref="GameContextWinforms"/> and System.Windows.Forms.
         /// </summary>
         [FeatureSwitchDefinition("Stride.Games.WinFormsBackendEnabled")]
         public static bool WinFormsBackendEnabled
