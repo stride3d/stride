@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,7 +43,7 @@ public class AssetPluginPackagingTests
         // Namespacing is on by default: both the plugin's and the consumer's own assets compile
         // under their rooted URLs.
         var dbDir = Path.Combine(consumerDir, "obj", "stride", "assetbuild", "data", "db");
-        var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
+        var index = File.ReadAllText(IndexFile(dbDir));
         Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
         Assert.Matches(@"(?m)^/Consumer/Page ", index);
 
@@ -54,6 +55,10 @@ public class AssetPluginPackagingTests
 
         AssertRuntimeContentResolves(consumerDir);
     }
+
+    /// <summary>The content index in the db dir (the glob also matches its .closure sibling).</summary>
+    private static string IndexFile(string dbDir) =>
+        Directory.GetFiles(dbDir, "index.Consumer.*").Single(f => !f.EndsWith(".closure"));
 
     /// <summary>Run the built consumer: it loads content by rooted and bare (aliased) URLs.</summary>
     private void AssertRuntimeContentResolves(string consumerDir)
@@ -88,7 +93,7 @@ public class AssetPluginPackagingTests
         Assert.DoesNotContain(UnresolvedSpinScript, result.Output);
 
         var dbDir = Path.Combine(consumerDir, "obj", "stride", "assetbuild", "data", "db");
-        var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*")[0]);
+        var index = File.ReadAllText(IndexFile(dbDir));
         Assert.Matches(@"(?m)^/StrideAssetPlugin/PluginPage ", index);
         Assert.Matches(@"(?m)^/Consumer/Page ", index);
 
