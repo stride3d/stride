@@ -35,7 +35,7 @@ public unsafe partial class GraphicsDevice
         ///   Gets the internal Direct3D 12 Fence.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         public readonly ComPtr<ID3D12Fence> Fence => ToComPtr(fence);

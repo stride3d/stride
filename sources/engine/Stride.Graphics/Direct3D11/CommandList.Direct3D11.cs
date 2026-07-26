@@ -52,7 +52,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 11 Device Context.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D11DeviceContext> NativeDeviceContext => ToComPtr(nativeDeviceContext);

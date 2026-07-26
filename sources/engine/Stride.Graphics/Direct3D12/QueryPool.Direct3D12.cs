@@ -28,7 +28,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Query Heap.
         /// </summary>
         /// <remarks>
-        ///   If any of the references is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If any of the references is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12QueryHeap> NativeQueryHeap => ToComPtr(nativeQueryHeap);

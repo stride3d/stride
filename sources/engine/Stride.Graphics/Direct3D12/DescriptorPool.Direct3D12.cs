@@ -21,7 +21,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Descriptor Heap for Shader Resource Views.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         protected internal ComPtr<ID3D12DescriptorHeap> SrvHeap => ToComPtr(nativeSrvHeap);
@@ -30,7 +30,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Descriptor Heap for Samplers.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         protected internal ComPtr<ID3D12DescriptorHeap> SamplerHeap => ToComPtr(nativeSamplerHeap);

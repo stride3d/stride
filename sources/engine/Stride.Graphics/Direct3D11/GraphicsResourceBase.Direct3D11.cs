@@ -21,7 +21,7 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   Gets the internal Direct3D 11 Resource.
     /// </summary>
     /// <remarks>
-    ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+    ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     protected internal ComPtr<ID3D11Resource> NativeResource => ToComPtr(nativeResource);
@@ -30,7 +30,7 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   Gets or sets the internal <see cref="ID3D11DeviceChild"/>.
     /// </summary>
     /// <remarks>
-    ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+    ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     protected internal ComPtr<ID3D11DeviceChild> NativeDeviceChild
@@ -125,7 +125,7 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   a <see cref="Graphics.GraphicsDevice"/>, or <see langword="null"/> if not.
     /// </summary>
     /// <remarks>
-    ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+    ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     protected ComPtr<ID3D11Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;

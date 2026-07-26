@@ -29,7 +29,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 11 Resource.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         protected internal ComPtr<ID3D12Resource> NativeResource => ToComPtr(nativeResource);
@@ -38,7 +38,7 @@ namespace Stride.Graphics
         ///   Gets the internal Direct3D 12 Device Child.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         protected internal ComPtr<ID3D12DeviceChild> NativeDeviceChild
@@ -136,7 +136,7 @@ namespace Stride.Graphics
         ///   a <see cref="Graphics.GraphicsDevice"/>, or <see langword="null"/> if not.
         /// </summary>
         /// <remarks>
-        ///   If the reference is going to be kept, use <c>AddRef()</c> to increment the internal
+        ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         protected ComPtr<ID3D12Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
