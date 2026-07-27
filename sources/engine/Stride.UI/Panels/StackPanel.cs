@@ -50,8 +50,16 @@ namespace Stride.UI.Panels
         /// <summary>
         /// The current scroll position of the left/top corner of the stack panel.
         /// </summary>
-        /// <remarks>The stack panel scroll position is expressed element index units.
-        /// For example: 0 represents the first element, 1 represents the second element, 1.33 represents a third of the second element, etc...</remarks>
+        /// <remarks>
+        /// <para>
+        /// The stack panel scroll position is expressed element index units.
+        /// For example: 0 represents the first element, 1 represents the second element, 1.33 represents a third of the second element, etc...
+        /// </para>
+        /// <para>
+        /// When the fractional part falls within an element, the offset also includes the gap to the next visible element
+        /// (if that next element exists and is not collapsed).
+        /// </para>
+        /// </remarks>
         public float ScrollPosition => scrollPosition;
 
         private bool itemVirtualizationEnabled;
@@ -155,17 +163,6 @@ namespace Stride.UI.Panels
             }
         }
 
-        /// <summary>
-        /// Calculates the total gap size based on the number of children.
-        /// </summary>
-        /// <param name="childCount">The number of children</param>
-        /// <returns>The total gap size</returns>
-        private float CalculateTotalGapSize(int childCount)
-        {
-            if (childCount <= 1) return 0f;
-            return gap * (childCount - 1);
-        }
-
         private enum ScrollRequestType
         {
             AbsolutePosition,
@@ -198,16 +195,12 @@ namespace Stride.UI.Panels
             while (indexElement > 0 && accumulatedSize < Viewport[scrollAxis])
             {
                 --indexElement;
-                accumulatedSize += GetSafeChildSize(indexElement, scrollAxis);
-                
-                // Add gap size between elements
-                if (indexElement < Children.Count - 1)
-                    accumulatedSize += gap;
+                accumulatedSize += GetSafeChildAndGapSize(indexElement, scrollAxis);
             }
 
             // calculate the size taken by all elements if proportional, including gaps
             var elementSize = accumulatedSize / (Children.Count - indexElement);
-            return elementSize * Children.Count + CalculateTotalGapSize(Children.Count);
+            return elementSize * Children.Count;
         }
 
         protected override void OnLogicalChildRemoved(UIElement oldElement, int index)
@@ -256,17 +249,14 @@ namespace Stride.UI.Panels
 
             // calculate the stack panel desired size, including gaps
             var desiredSize = Vector3.Zero;
-            var childCount = 0;
-            foreach (var child in children)
+            for (var index = 0; index < children.Count; index++)
             {
-                desiredSize[accumulatorIndex] += child.DesiredSizeWithMargins[accumulatorIndex];
+                var child = children[index];
+                var itemGap = ((index < children.Count - 1) && !children[index + 1].IsCollapsed) ? gap : 0;
+                desiredSize[accumulatorIndex] += child.DesiredSizeWithMargins[accumulatorIndex] + itemGap;
                 desiredSize[maximizeIndex1] = Math.Max(desiredSize[maximizeIndex1], child.DesiredSizeWithMargins[maximizeIndex1]);
                 desiredSize[maximizeIndex2] = Math.Max(desiredSize[maximizeIndex2], child.DesiredSizeWithMargins[maximizeIndex2]);
-                childCount++;
             }
-
-            // Add total gap size to the stacking dimension
-            desiredSize[accumulatorIndex] += CalculateTotalGapSize(childCount);
 
             return desiredSize;
         }
@@ -346,10 +336,18 @@ namespace Stride.UI.Panels
 
             // arrange all the children
             var children = ItemVirtualizationEnabled ? visibleChildren : Children;
-            var elementIndex = 0;
+            var isFirstVisibleChild = false;
             foreach (var child in children)
             {
-                var startBound = elementBounds[elementBounds.Count - 1];
+                if (child.Visibility != Visibility.Collapsed)
+                {
+                    if (!isFirstVisibleChild)
+                        isFirstVisibleChild = true;
+                    else
+                        elementBounds[^1] += gap;
+                }
+                
+                var startBound = elementBounds[^1];
 
                 // compute the child origin
                 var childOrigin = -Viewport / 2; // correspond to (left, top, back) parent corner
@@ -369,20 +367,7 @@ namespace Stride.UI.Panels
                 // add the next element bound, including gap
                 var nextBound = startBound + child.RenderSize[accumulatorIndex] + child.MarginInternal[accumulatorIndex] + child.MarginInternal[3 + accumulatorIndex];
                 
-                if (child.IsCollapsed)
-                {
-                    elementBounds.Add(startBound);
-                }
-                else
-                {
-                    // Add gap after element (except for the last element)
-                    if (elementIndex < children.Count - 1)
-                        nextBound += gap;
-                    
-                    elementBounds.Add(nextBound);
-                }
-
-                elementIndex++;
+                elementBounds.Add(child.IsCollapsed ? startBound : nextBound);
             }
         }
 
@@ -413,7 +398,7 @@ namespace Stride.UI.Panels
         {
             var currentElementIndex = (int)Math.Floor(scrollPosition);
             var currentElementRatio = scrollPosition - currentElementIndex;
-            var currentElementSize = GetSafeChildSize(currentElementIndex, axisIndex);
+            var currentElementSize = GetSafeChildAndGapSize(currentElementIndex, axisIndex);
             var elementSizeRatio = currentElementRatio * currentElementSize;
 
             distances = new Vector2(-elementSizeRatio, currentElementSize - elementSizeRatio);
@@ -467,7 +452,7 @@ namespace Stride.UI.Panels
             {
                 // perform the scrolling request is arrange (Viewport mainly) is still valid.
                 var newElementIndex = (int)Math.Floor(scrollPosition);
-                var currentPositionChildSize = GetSafeChildSize(newElementIndex, axis);
+                var currentPositionChildSize = GetSafeChildAndGapSize(newElementIndex, axis);
                 var currentOffsetInChild = (scrollPosition - newElementIndex) * currentPositionChildSize;
 
                 var scrollForward = offsetToApply > 0;
@@ -478,12 +463,7 @@ namespace Stride.UI.Panels
                 {
                     newElementIndex += Math.Sign(offsetToApply);
                     previousElementAccumulatedSize += newElementSize;
-                    
-                    // Add gap size
-                    if (gap > 0 && newElementIndex >= 0 && newElementIndex < Children.Count)
-                        previousElementAccumulatedSize += gap;
-                    
-                    newElementSize = GetSafeChildSize(newElementIndex, axis);
+                    newElementSize = GetSafeChildAndGapSize(newElementIndex, axis);
                 }
 
                 var offsetToApplyRemainder = absOffsetToApply - previousElementAccumulatedSize;
@@ -522,13 +502,9 @@ namespace Stride.UI.Panels
                     while (indexElement > 0 && accumulatedSize < Viewport[scrollAxis])
                     {
                         --indexElement;
-                        accumulatedSize += GetSafeChildSize(indexElement, scrollAxis);
-                        
-                        // Add gap size
-                        if (indexElement < Children.Count - 1)
-                            accumulatedSize += gap;
+                        accumulatedSize += GetSafeChildAndGapSize(indexElement, scrollAxis);
                     }
-                    var maxScrollPosition = Math.Max(0, indexElement + (accumulatedSize - Viewport[scrollAxis]) / GetSafeChildSize(indexElement, scrollAxis));
+                    var maxScrollPosition = Math.Max(0, indexElement + (accumulatedSize - Viewport[scrollAxis]) / GetSafeChildAndGapSize(indexElement, scrollAxis));
                     positionRatio[scrollAxis] = scrollPosition / maxScrollPosition;
                 }
                 else
@@ -693,14 +669,19 @@ namespace Stride.UI.Panels
 
                     // add the first element start bound as initial scroll offset
                     var firstElementIndex = (int)Math.Floor(scrollPosition);
+                    var firstElementRemainder = scrollPosition - firstElementIndex;
                     offset[axis] = -elementBounds[firstElementIndex];
 
+                    // the top of the viewport in content coordinates, taking into account
+                    // the partially scrolled-out portion of the first element
+                    var viewportTop = elementBounds[firstElementIndex] + firstElementRemainder * GetSafeChildAndGapSize(firstElementIndex, axis);
+                    
                     // update the visible element list for hit tests
                     visibleChildren.Clear();
                     for (var i = firstElementIndex; i < Children.Count; i++)
                     {
                         visibleChildren.Add(Children[i]);
-                        if (elementBounds[i + 1] - elementBounds[firstElementIndex + 1] > viewportSize)
+                        if (elementBounds[i + 1] - viewportTop > viewportSize)
                             break;
                     }
                 }
@@ -709,7 +690,7 @@ namespace Stride.UI.Panels
             // adjust the offset of the children
             var scrollPositionIndex = (int)Math.Floor(scrollPosition);
             var scrollPositionRemainder = scrollPosition - scrollPositionIndex;
-            offset[axis] -= scrollPositionRemainder * GetSafeChildSize(scrollPositionIndex, axis);
+            offset[axis] -= scrollPositionRemainder * GetSafeChildAndGapSize(scrollPositionIndex, axis);
 
             // force the scroll owner to update the scroll info
             ScrollOwner?.InvalidateScrollInfo();
@@ -733,18 +714,13 @@ namespace Stride.UI.Panels
 
             // determine first element index and size
             var elementIndex = (int)Math.Floor(scrollPosition);
-            var firstChildSize = GetSafeChildSize(elementIndex, axis);
+            var firstChildSize = GetSafeChildAndGapSize(elementIndex, axis);
 
             // create the next visual children collection to display
             var currentSize = -(scrollPosition - elementIndex) * firstChildSize;
             while (elementIndex < Children.Count && currentSize <= Viewport[axis])
             {
-                currentSize += GetSafeChildSize(elementIndex, axis);
-                
-                // Add gap size for next element
-                if (elementIndex < Children.Count - 1)
-                    currentSize += gap;
-
+                currentSize += GetSafeChildAndGapSize(elementIndex, axis);
                 var child = Children[elementIndex];
                 visibleChildren.Add(child);
                 SetVisualParent(child, this);
@@ -785,35 +761,26 @@ namespace Stride.UI.Panels
             // determine a valid scroll position
             var validNextScrollPosition = Math.Max(0, Math.Min(Children.Count - MathUtil.ZeroTolerance, newScrollPosition));
             var firstElementIndex = (int)Math.Floor(validNextScrollPosition);
-            var startOffset = (validNextScrollPosition - firstElementIndex) * GetSafeChildSize(firstElementIndex, axis);
+            var startOffset = (validNextScrollPosition - firstElementIndex) * GetSafeChildAndGapSize(firstElementIndex, axis);
             var currentSize = -startOffset;
 
             // check if there are enough element after to fill the viewport
             var currentElementIndex = firstElementIndex;
             while (currentElementIndex < Children.Count && currentSize < viewportSize)
             {
-                currentSize += GetSafeChildSize(currentElementIndex, axis);
-                
-                // Add gap size for next element
-                if (currentElementIndex < Children.Count - 1)
-                    currentSize += gap;
-                
+                currentSize += GetSafeChildAndGapSize(currentElementIndex, axis);
                 ++currentElementIndex;
             }
 
             // move the valid scroll position backward if not event space to fill the viewport
             if (currentSize < viewportSize)
             {
-                currentSize += startOffset - GetSafeChildSize(firstElementIndex, axis); // remove partial size of first element
+                currentSize += startOffset - GetSafeChildAndGapSize(firstElementIndex, axis); // remove partial size of first element
                 while (firstElementIndex >= 0)
                 {
-                    var elementSize = GetSafeChildSize(firstElementIndex, axis);
+                    var elementSize = GetSafeChildAndGapSize(firstElementIndex, axis);
                     currentSize += elementSize;
                     
-                    // Add gap size
-                    if (firstElementIndex > 0)
-                        currentSize += gap;
-
                     if (currentSize >= viewportSize)
                         break;
 
@@ -826,7 +793,7 @@ namespace Stride.UI.Panels
                 }
                 else
                 {
-                    var firstElementSize = GetSafeChildSize(firstElementIndex, axis);
+                    var firstElementSize = GetSafeChildAndGapSize(firstElementIndex, axis);
                     validNextScrollPosition = firstElementIndex + (currentSize - viewportSize) / firstElementSize;
                 }
             }
@@ -834,8 +801,8 @@ namespace Stride.UI.Panels
             // update the current scroll position
             scrollPosition = validNextScrollPosition;
         }
-
-        private float GetSafeChildSize(int childIndex, int dimension)
+        
+        private float GetSafeChildAndGapSize(int childIndex, int dimension)
         {
             if (childIndex >= Children.Count)
                 return 0;
@@ -843,9 +810,10 @@ namespace Stride.UI.Panels
             var child = Children[childIndex];
 
             child.LayoutingContext = LayoutingContext;
+            var itemGap = ((childIndex < Children.Count - 1) && !Children[childIndex + 1].IsCollapsed) ? gap : 0;
 
             if (child.IsCollapsed)
-                return 0f;
+                return itemGap;
 
             if (!child.IsMeasureValid)
             {
@@ -868,7 +836,7 @@ namespace Stride.UI.Panels
                 child.Arrange(childProvidedSize, Parent != null && Parent.IsCollapsed);
             }
 
-            return child.RenderSize[dimension] + child.Margin[dimension] + child.Margin[dimension + 3];
+            return child.RenderSize[dimension] + child.Margin[dimension] + child.Margin[dimension + 3] + itemGap;
         }
 
         protected internal override FastCollection<UIElement> HitableChildren => visibleChildren;
