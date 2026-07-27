@@ -234,7 +234,10 @@ namespace Stride.Games
 
         public void EndScreenDeviceChange()
         {
-            EndScreenDeviceChange(ClientBounds.Width, ClientBounds.Height);
+            var size = RawClientSize;
+            EndScreenDeviceChange(
+                size.X > 0 ? size.X : ClientBounds.Width,
+                size.Y > 0 ? size.Y : ClientBounds.Height);
         }
 
         public abstract void EndScreenDeviceChange(int clientWidth, int clientHeight);
