@@ -357,6 +357,9 @@ namespace Stride.Games
         {
             get
             {
+                if (IsMinimized)
+                    return new Int2(0, 0);
+
                 return window != null
                     ? new Int2(window.ClientSize.Width, window.ClientSize.Height)
                     : new Int2(0, 0);
