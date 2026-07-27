@@ -257,6 +257,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public bool IsReplaced => replacedBy != null;
 
         /// <summary>
+        /// The asset that replaces this one, or <c>null</c>.
+        /// </summary>
+        public AssetViewModel ReplacedBy => replacedBy;
+
+        /// <summary>
         /// The URL of the asset that replaces this one, or <c>null</c>.
         /// </summary>
         public string ReplacedByUrl => replacedBy?.Url;

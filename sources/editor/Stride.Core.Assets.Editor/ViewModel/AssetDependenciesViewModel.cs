@@ -84,22 +84,39 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets whether this asset will be compiled as a dependency of an asset that has <see cref="IsRoot"/> set to <c>true</c>.
         /// </summary>
-        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && (RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot) || ReplacesIncludedTarget);
+        public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && IsReachableFromRoot();
 
         /// <summary>
-        /// Gets whether this asset replaces (<see cref="Asset.Replaces"/>) an asset that is itself included.
-        /// A replacing asset ships its content through the asset it replaces, so it follows that target's
-        /// inclusion (it is never a root on its own).
+        /// Walks up the references that are effective at build time: a replaced asset ships its
+        /// replacer's content, so its own references are dead, and a replacing asset ships through
+        /// the asset it replaces, so it follows that target's inclusion.
         /// </summary>
-        private bool ReplacesIncludedTarget
+        private bool IsReachableFromRoot()
         {
-            get
+            var visited = new HashSet<AssetViewModel> { Asset };
+            var toProcess = new Queue<AssetViewModel>();
+            toProcess.Enqueue(Asset);
+            while (toProcess.Count > 0)
             {
-                if (Asset.Asset.Replaces is not { } replaces)
-                    return false;
-                var target = Session.GetAssetById(replaces.Id);
-                return target != null && (target.Dependencies.IsRoot || target.Dependencies.IsIndirectlyIncluded);
+                var current = toProcess.Dequeue();
+                foreach (var referencer in current.Dependencies.ReferencerAssets)
+                {
+                    // A replaced referencer ships the replacement's content, so its own references don't count
+                    if (referencer.IsReplaced || !visited.Add(referencer))
+                        continue;
+                    if (referencer.Dependencies.IsRoot)
+                        return true;
+                    toProcess.Enqueue(referencer);
+                }
+                // A replacing asset ships through the asset it replaces
+                if (current.Asset.Replaces is { } replaces && Session.GetAssetById(replaces.Id) is { } target && visited.Add(target))
+                {
+                    if (target.Dependencies.IsRoot)
+                        return true;
+                    toProcess.Enqueue(target);
+                }
             }
+            return false;
         }
 
         /// <summary>
@@ -147,6 +164,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             NotifyInclusionChanging();
             NotifyInclusionChanged();
+            // Becoming replaced (or not) kills or revives this asset's own references, and the
+            // replacer's dependencies follow the slot, so refresh both closures.
+            foreach (var referenced in RecursiveReferencedAssets)
+            {
+                referenced.Dependencies.NotifyInclusionChanging();
+                referenced.Dependencies.NotifyInclusionChanged();
+            }
+            NotifyReplacerInclusionChange();
         }
 
         /// <summary>
@@ -188,6 +213,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     referencedAsset.Dependencies.NotifyInclusionChanging();
                     referencedAsset.Dependencies.NotifyInclusionChanged();
+                    // A replaced asset in the closure drives its replacer's subtree too.
+                    referencedAsset.Dependencies.NotifyReplacerInclusionChange();
                 }
             }
             // A replacing asset's dot follows this asset's inclusion, so refresh it too.
@@ -195,8 +222,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Refreshes the inclusion dot of the asset that replaces this one, if any: its state mirrors
-        /// this asset's inclusion (see <see cref="ReplacesIncludedTarget"/>).
+        /// Refreshes the inclusion dots of the asset that replaces this one, if any, and of its
+        /// dependencies: they all follow this asset's inclusion (see <see cref="IsReachableFromRoot"/>).
         /// </summary>
         private void NotifyReplacerInclusionChange()
         {
@@ -210,6 +237,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     continue;
                 replacer.Dependencies.NotifyInclusionChanging();
                 replacer.Dependencies.NotifyInclusionChanged();
+                // The replacer's own dependencies ship through the same slot, so they follow too.
+                foreach (var referenced in replacer.Dependencies.RecursiveReferencedAssets)
+                {
+                    referenced.Dependencies.NotifyInclusionChanging();
+                    referenced.Dependencies.NotifyInclusionChanged();
+                }
             }
         }
 

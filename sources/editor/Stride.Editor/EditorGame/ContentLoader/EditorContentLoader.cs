@@ -234,23 +234,39 @@ namespace Stride.Editor.EditorGame.ContentLoader
             var dependencyManager = Session.DependencyManager;
             var references = new Dictionary<AssetId, HashSet<AssetId>>();
             var ids = (await Manager.ComputeReferencedAssets()).ToList();
+            var entryAssets = new HashSet<AssetId>();
+            var toTraverse = new Queue<AssetId>();
+
+            // A replaced asset ships its replacer's content, so the replacer and its own
+            // dependencies belong to the same entry: they refresh the same loaded slot.
+            void Include(AssetId assetId)
+            {
+                if (!entryAssets.Add(assetId))
+                    return;
+                var replacer = Session.GetAssetById(assetId)?.ReplacedBy;
+                if (replacer != null && entryAssets.Add(replacer.Id))
+                    toTraverse.Enqueue(replacer.Id);
+            }
+
             foreach (var id in ids)
             {
                 var referencedAsset = Session.GetAssetById(id);
                 if (referencedAsset == null)
                     continue;
 
-                var dependencies = dependencyManager.ComputeDependencies(referencedAsset.AssetItem.Id, AssetDependencySearchOptions.Out | AssetDependencySearchOptions.Recursive, ContentLinkType.Reference);
-                if (dependencies != null)
+                entryAssets.Clear();
+                Include(referencedAsset.Id);
+                toTraverse.Enqueue(referencedAsset.Id);
+                while (toTraverse.Count > 0)
                 {
-                    var entry = references.GetOrCreateValue(referencedAsset.Id);
-                    entry.Add(referencedAsset.Id);
+                    var dependencies = dependencyManager.ComputeDependencies(toTraverse.Dequeue(), AssetDependencySearchOptions.Out | AssetDependencySearchOptions.Recursive, ContentLinkType.Reference);
+                    if (dependencies == null)
+                        continue;
                     foreach (var dependency in dependencies.LinksOut)
-                    {
-                        entry = references.GetOrCreateValue(dependency.Item.Id);
-                        entry.Add(referencedAsset.Id);
-                    }
+                        Include(dependency.Item.Id);
                 }
+                foreach (var assetId in entryAssets)
+                    references.GetOrCreateValue(assetId).Add(referencedAsset.Id);
             }
 
             return references;
@@ -538,6 +554,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
             {
                 var assetToProcess = assetsToProcess.Dequeue();
                 HashSet<AssetId> modifiedAssetReferencers;
+
+                // A replacing asset ships through its target's slot, which is what the scene
+                // actually references, so propagate the change to the replaced asset too.
+                if (assetToProcess.Asset.Replaces is { } replaces && Session.GetAssetById(replaces.Id) is { } replacedTarget && processedAssets.Add(replacedTarget))
+                    assetsToProcess.Enqueue(replacedTarget);
 
                 // Check if the asset is referenced in the scene.
                 if (!references.TryGetValue(assetToProcess.Id, out modifiedAssetReferencers))
