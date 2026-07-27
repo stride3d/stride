@@ -48,6 +48,30 @@ public class StrideShaderTests
         return match.Groups[1].Value;
     }
 
+    // Reflection reports a multidimensional cbuffer array as a flat element count
+    // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
+    [Fact]
+    public void MultidimensionalArrayReflectionIsFlattened()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("ArrayDimsCBuffer", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("ArrayDimsCBuffer"), new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var members = reflection.ConstantBuffers.SelectMany(cb => cb.Members).ToDictionary(m => m.RawName);
+
+        var data2D = members["Data2D"];
+        Assert.Equal(6, data2D.Type.Elements);
+        Assert.Equal(96, data2D.Size); // 6 float4 elements at stride 16
+
+        var data1D = members["Data1D"]; // rank-1 control: unaffected
+        Assert.Equal(5, data1D.Type.Elements);
+        Assert.Equal(80, data1D.Size);
+    }
+
     // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
     // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
     // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.

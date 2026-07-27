@@ -1,0 +1,17 @@
+// Compiler regression: reflection of a multidimensional cbuffer array must report the flattened
+// element count (fxc and the runtime treat arrays as flat). Data1D is a rank-1 control.
+namespace Stride.Shaders.Tests;
+
+shader ArrayDimsCBuffer
+{
+    float4 Data2D[2][3];
+    float4 Data1D[5];
+
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Output[0] = Data2D[1][2] + Data1D[4];
+    }
+}
