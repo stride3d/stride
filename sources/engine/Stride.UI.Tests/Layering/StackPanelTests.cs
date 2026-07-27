@@ -83,6 +83,15 @@ namespace Stride.UI.Tests.Layering
             var expectedSize = new Vector3(60, 85, 0); // width is max, height is sum + gaps
             Assert.Equal(expectedSize, stackPanel.DesiredSizeWithMargins);
 
+            // Test measure with collapsed child
+            child3.Visibility = Visibility.Collapsed;
+            stackPanel.Measure(measureSize);
+            expectedSize = new Vector3(50, 55, 0);
+            Assert.Equal(expectedSize, stackPanel.DesiredSizeWithMargins);
+            
+            // Restore child3 visibility
+            child3.Visibility = Visibility.Visible;
+
             // Test arrange with gap
             stackPanel.Arrange(measureSize, false);
 
@@ -99,6 +108,23 @@ namespace Stride.UI.Tests.Layering
             
             // Child 3 should be at child1.height + gap + child2.height + gap
             Assert.Equal(-measureSize.Y / 2 + 30 + 5 + 20 + 5, child3Matrix.TranslationVector.Y);
+            
+            // Test arrange with collapsed child
+            child2.Visibility = Visibility.Collapsed;
+            stackPanel.Arrange(measureSize, false);
+
+            child1Matrix = child1.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+            child2Matrix = child2.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+            child3Matrix = child3.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+
+            // Child 1 should be at top
+            Assert.Equal(-measureSize.Y / 2, child1Matrix.TranslationVector.Y);
+            
+            // Child 2 should be at child1.height
+            Assert.Equal(-measureSize.Y / 2 + 30, child2Matrix.TranslationVector.Y);
+            
+            // Child 3 should be at child1.height + gap
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child3Matrix.TranslationVector.Y);
         }
 
         /// <summary>
