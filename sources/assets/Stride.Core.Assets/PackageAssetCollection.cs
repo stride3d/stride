@@ -82,6 +82,10 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
     /// <returns>AssetItem.</returns>
     public AssetItem? Find(string location)
     {
+        // Storage is keyed by qualified locations (see CheckCanAdd), so qualify to match.
+        if (Package.Container?.AssetNamespace is { } assetNamespace)
+            location = AssetNamespaceHelper.Qualify(location, assetNamespace);
+
         if (!mapPathToId.TryGetValue(location, out var id))
         {
             return null;
