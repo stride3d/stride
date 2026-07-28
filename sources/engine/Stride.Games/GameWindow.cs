@@ -143,8 +143,14 @@ namespace Stride.Games
         public abstract double Opacity { get; set; }
 
         /// <summary>
-        /// Gets or sets the position of the window on the screen.
+        /// Gets or sets the position of the window's client area origin on the screen,
+        /// in window coordinates (points; equals pixels on Windows).
         /// </summary>
+        /// <remarks>
+        /// Matches the origin of <see cref="ClientBounds"/>. On platforms where the window system
+        /// does not expose global window positions (Wayland, Android, iOS, headless), getting
+        /// returns (0,0) and setting has no effect.
+        /// </remarks>
         public virtual Int2 Position { get; set; }
 
         /// <summary>

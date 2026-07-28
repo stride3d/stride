@@ -104,6 +104,51 @@ public class GameWindowClientBoundsTest
 }
 
 /// <summary>
+/// Checks that <see cref="GameWindow.Position"/> and the <see cref="GameWindow.ClientBounds"/>
+/// origin both mean the client area origin on the screen.
+/// </summary>
+public class GameWindowPositionTest : GameTestBase
+{
+    [SkippableTheory]
+    [InlineData(AppContextType.DesktopWinForms)]
+    [InlineData(AppContextType.DesktopSDL)]
+    public void PositionIsClientAreaOrigin(AppContextType contextType)
+    {
+        Skip.If(Platform.Type != PlatformType.Windows, reason: "Window positioning needs a real window manager");
+
+        PerformTest(game =>
+        {
+            var context = GameContextFactory.NewGameContext(contextType, isUserManagingRun: true);
+            var windowRenderer = new GameWindowRenderer(game.Services, context)
+            {
+                PreferredBackBufferWidth = 320,
+                PreferredBackBufferHeight = 240,
+            };
+            windowRenderer.Initialize();
+            ((IContentable)windowRenderer).LoadContent();
+
+            var window = windowRenderer.Window;
+            var messageLoop = window.CreateUserManagedMessageLoop();
+            messageLoop.NextFrame();
+
+            var target = new Int2(160, 120);
+            window.Position = target;
+            for (int i = 0; i < 20 && window.Position != target; i++)
+            {
+                messageLoop.NextFrame();
+                Thread.Sleep(5);
+            }
+
+            Assert.Equal(target, window.Position);
+            var bounds = window.ClientBounds;
+            Assert.Equal(target, new Int2(bounds.X, bounds.Y));
+
+            windowRenderer.Dispose();
+        });
+    }
+}
+
+/// <summary>
 /// Minimizes and restores a real window, checking that the minimized state never produces
 /// a valid-looking render size and that the window comes back at its original size.
 /// </summary>

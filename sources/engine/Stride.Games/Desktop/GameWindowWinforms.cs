@@ -299,12 +299,19 @@ namespace Stride.Games
                 if (Control == null)
                     return base.Position;
 
-                return new Int2(Control.Location.X, Control.Location.Y);
+                var location = Control.PointToScreen(Point.Empty);
+                return new Int2(location.X, location.Y);
             }
             set
             {
                 if (Control != null)
-                    Control.Location = new Point(value.X, value.Y);
+                {
+                    // Move so that the client area origin lands on the given position
+                    var clientOrigin = Control.PointToScreen(Point.Empty);
+                    Control.Location = new Point(
+                        Control.Location.X + value.X - clientOrigin.X,
+                        Control.Location.Y + value.Y - clientOrigin.Y);
+                }
 
                 base.Position = value;
             }
