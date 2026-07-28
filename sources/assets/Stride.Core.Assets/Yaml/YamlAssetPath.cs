@@ -44,7 +44,7 @@ public sealed class YamlAssetPath
         /// </summary>
         public readonly ElementType Type;
         /// <summary>
-        /// The value of the element, corresonding to its <see cref="Type"/>.
+        /// The value of the element, corresponding to its <see cref="Type"/>.
         /// </summary>
         public readonly object Value;
 
@@ -161,7 +161,7 @@ public sealed class YamlAssetPath
     /// Adds an additional element to the path representing an access to an item of a collection or a value of a dictionary that does not use <see cref="ItemId"/>.
     /// </summary>
     /// <param name="index">The index of the item.</param>
-    /// <seealso cref="NonIdentifiableCollectionItemsAttribute"/>
+    /// <seealso cref="Core.Annotations.NonIdentifiableCollectionItemsAttribute"/>
     /// <seealso cref="ItemId"/>
     public void PushIndex(object index)
     {
@@ -190,7 +190,7 @@ public sealed class YamlAssetPath
     /// Appends the given <see cref="YamlAssetPath"/> to this instance.
     /// </summary>
     /// <param name="other">The <see cref="YamlAssetPath"/></param>
-    /// <returns>A new instance of <see cref="YamlAssetPath"/> corresonding to the given instance appended to this instance.</returns>
+    /// <returns>A new instance of <see cref="YamlAssetPath"/> corresponding to the given instance appended to this instance.</returns>
     [Pure]
     public YamlAssetPath Append(YamlAssetPath? other)
     {

@@ -234,7 +234,7 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     ///     <item>No multi-sampling.</item>
     ///     <item>
     ///       Assuming a linear color space (<see cref="ColorSpace.Linear"/>) and an output color space
-    ///       <see cref="ColorSpaceType.RgbFullG22NoneP709"/>, which is the default RGB output for monitors
+    ///       <see cref="ColorSpaceType.Rgb_Full_G22_None_P709"/>, which is the default RGB output for monitors
     ///       with a standard gamma of 2.2.
     ///     </item>
     ///     <item>

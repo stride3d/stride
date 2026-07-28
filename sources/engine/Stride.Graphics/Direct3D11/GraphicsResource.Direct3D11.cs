@@ -46,7 +46,7 @@ public abstract unsafe partial class GraphicsResource
     /// <remarks>
     ///   Only <see cref="Texture"/>s are using this Shader Resource View.
     ///   <para>
-    ///     If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///     If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///     reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     ///   </para>
     /// </remarks>
@@ -85,7 +85,7 @@ public abstract unsafe partial class GraphicsResource
     /// </summary>
     /// <value>The Unordered Access View associated with the Graphics Resource.</value>
     /// <remarks>
-    ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     protected internal ComPtr<ID3D11UnorderedAccessView> NativeUnorderedAccessView

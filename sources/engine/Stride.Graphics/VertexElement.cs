@@ -33,14 +33,15 @@ using Half = Stride.Core.Mathematics.Half;
 namespace Stride.Graphics;
 
 /// <summary>
-/// A description of a single element for the input-assembler stage. This structure is related to <see cref="SharpDX.Direct3D11.InputElement"/>.
+/// A description of a single element for the input-assembler stage. This structure is related to the native
+/// input element description (<c>D3D11_INPUT_ELEMENT_DESC</c> in Direct3D).
 /// </summary>
 /// <remarks>
-/// Because <see cref="SharpDX.Direct3D11.InputElement"/> requires to have the same <see cref="VertexBufferLayout.SlotIndex"/>, <see cref="VertexBufferLayout.VertexClassification"/> and <see cref="VertexBufferLayout.instanceDataStepRate"/>,
-/// the <see cref="VertexBufferLayout"/> structure encapsulates a set of <see cref="VertexElement"/> for a particular slot, classification and instance data step rate.
-/// Unlike the default <see cref="SharpDX.Direct3D11.InputElement"/>, this structure accepts a semantic name with a postfix number that will be automatically extracted to the semantic index.
+/// Because a native input element description requires to have the same slot index, vertex classification and instance data step rate,
+/// the <see cref="VertexDeclaration"/> structure encapsulates a set of <see cref="VertexElement"/> for a particular slot, classification and instance data step rate.
+/// Unlike the native input element description, this structure accepts a semantic name with a postfix number that will be automatically extracted to the semantic index.
 /// </remarks>
-/// <seealso cref="VertexBufferLayout"/>
+/// <seealso cref="VertexDeclaration"/>
 [DataContract]
 [DataSerializer(typeof(Serializer))]
 public partial struct VertexElement : IEquatable<VertexElement>

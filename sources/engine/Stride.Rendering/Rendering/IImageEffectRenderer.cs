@@ -7,7 +7,7 @@ using Stride.Rendering.Images;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Renderer interface for a end-user <see cref="ImageEffect"/> accessible from <see cref="SceneEffectRenderer"/>. See remarks.
+    /// Renderer interface for an end-user <see cref="ImageEffect"/>.
     /// </summary>
     /// <remarks>
     /// An <see cref="IImageEffectRenderer"/> expect an input texture on slot 0, possibly a depth texture on slot 1 and a single

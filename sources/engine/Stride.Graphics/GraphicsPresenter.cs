@@ -258,14 +258,14 @@ public abstract class GraphicsPresenter : ComponentBase
     ///       <item>
     ///         <term>For rendering to a SDR display with gamma 2.2</term>
     ///         <description>
-    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with a Back-Buffer format <see cref="PixelFormat.R8G8B8A8_UNorm"/>,
+    ///           Set a color space of <see cref="ColorSpaceType.Rgb_Full_G22_None_P709"/> with a Back-Buffer format <see cref="PixelFormat.R8G8B8A8_UNorm"/>,
     ///           <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, or <see cref="PixelFormat.B8G8R8A8_UNorm"/>.
     ///         </description>
     ///       </item>
     ///       <item>
     ///         <term>For rendering to a HDR display in scRGB (standard linear), and letting the Windows DWM do the color conversion</term>
     ///         <description>
-    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with a Back-Buffer format <see cref="PixelFormat.R16G16B16A16_Float"/>.
+    ///           Set a color space of <see cref="ColorSpaceType.Rgb_Full_G10_None_P709"/> with a Back-Buffer format <see cref="PixelFormat.R16G16B16A16_Float"/>.
     ///         </description>
     ///       </item>
     ///       <item>
@@ -274,7 +274,7 @@ public abstract class GraphicsPresenter : ComponentBase
     ///           same color space as the display.
     ///         </term>
     ///         <description>
-    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with a Back-Buffer format <see cref="PixelFormat.R10G10B10A2_UNorm"/>.
+    ///           Set a color space of <see cref="ColorSpaceType.Rgb_Full_G2084_None_P2020"/> with a Back-Buffer format <see cref="PixelFormat.R10G10B10A2_UNorm"/>.
     ///         </description>
     ///       </item>
     ///     </list>
