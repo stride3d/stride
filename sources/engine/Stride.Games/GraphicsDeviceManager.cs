@@ -1004,10 +1004,11 @@ namespace Stride.Games
         {
             // The client size can be zero in some cases (minimized window...)
             // We only process it when we have a valid size
-            if (game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0)
+            var clientBounds = game.Window.ClientBounds;
+            if (clientBounds.Width > 0 && clientBounds.Height > 0)
             {
-                resizedBackBufferWidth = game.Window.ClientBounds.Width;
-                resizedBackBufferHeight = game.Window.ClientBounds.Height;
+                resizedBackBufferWidth = clientBounds.Width;
+                resizedBackBufferHeight = clientBounds.Height;
                 isBackBufferToResize = true;
                 deviceSettingsChanged = true;
 
@@ -1049,11 +1050,12 @@ namespace Stride.Games
         {
             // The client size can be zero in some cases (minimized window...)
             // We only process it when we have a valid size, and the orientation actually changed
-            if ((game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0) &&
+            var clientBounds = game.Window.ClientBounds;
+            if ((clientBounds.Width > 0 && clientBounds.Height > 0) &&
                 game.Window.CurrentOrientation != currentWindowOrientation)
             {
-                if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                    (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
+                if ((clientBounds.Height > clientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
+                    (clientBounds.Width > clientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
                 {
                     // Client size and Back-Buffer size are different things
                     // In this case all we care is if orientation changed, if so we swap width and height
@@ -1167,15 +1169,17 @@ namespace Stride.Games
                 game.ConfirmRenderingSettings(GraphicsDevice is null); // If no device we assume we are still at game creation phase
 
                 isChangingDevice = true;
-                var width = game.Window.ClientBounds.Width;
-                var height = game.Window.ClientBounds.Height;
+                var clientBounds = game.Window.ClientBounds;
+                var hasClientSize = clientBounds.Width > 0 && clientBounds.Height > 0;
+                var width = hasClientSize ? clientBounds.Width : preferredBackBufferWidth;
+                var height = hasClientSize ? clientBounds.Height : preferredBackBufferHeight;
 
                 // If the orientation is free to be changed from portrait to landscape we actually need this check now,
                 // it is mostly useful only at initialization because `Window_OrientationChanged` does the same logic on runtime change
-                if (game.Window.CurrentOrientation != currentWindowOrientation)
+                if (hasClientSize && game.Window.CurrentOrientation != currentWindowOrientation)
                 {
-                    if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                        (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
+                    if ((clientBounds.Height > clientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
+                        (clientBounds.Width > clientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
                     {
                         // Client size and Back-Buffer size are different things
                         // In this case all we care is if orientation changed, if so we swap width and height

@@ -87,9 +87,16 @@ namespace Stride.Games
         public abstract bool AllowUserResizing { get; set; }
 
         /// <summary>
-        /// Gets the client bounds.
+        /// Gets the bounds of the client area, in window coordinates (points; equals pixels on Windows).
         /// </summary>
-        /// <value>The client bounds.</value>
+        /// <value>The client area bounds.</value>
+        /// <remarks>
+        /// X and Y are the client area origin in screen coordinates. On platforms where the window system
+        /// does not expose global window positions (Wayland, Android, iOS, headless), the origin is (0,0)
+        /// and coordinates are window-relative.
+        /// Returns an empty rectangle when the window is minimized or has no usable client area;
+        /// check for a positive size before using it for rendering or resize decisions.
+        /// </remarks>
         public abstract Rectangle ClientBounds { get; }
 
         /// <summary>
@@ -223,7 +230,11 @@ namespace Stride.Games
 
         public void EndScreenDeviceChange()
         {
-            EndScreenDeviceChange(ClientBounds.Width, ClientBounds.Height);
+            var bounds = ClientBounds;
+            if (bounds.Width > 0 && bounds.Height > 0)
+                EndScreenDeviceChange(bounds.Width, bounds.Height);
+            else
+                EndScreenDeviceChange(PreferredWindowedSize.X, PreferredWindowedSize.Y);
         }
 
         public abstract void EndScreenDeviceChange(int clientWidth, int clientHeight);
@@ -282,11 +293,15 @@ namespace Stride.Games
 
         protected void OnClientSizeChanged(object source, EventArgs e)
         {
+            // No usable client area (e.g. minimized): nothing to notify
+            var resizeSize = ClientBounds.Size;
+            if (resizeSize.Width <= 0 || resizeSize.Height <= 0)
+                return;
+
             if (!isFullscreen)
             {
-                // Update preferred windowed size in windowed mode 
-                var resizeSize = ClientBounds.Size;
-                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+                // Update preferred windowed size in windowed mode
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height);
             }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
