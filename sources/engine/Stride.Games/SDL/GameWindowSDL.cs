@@ -360,6 +360,24 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        /// Size of the drawable surface, in pixels.
+        /// </summary>
+        internal Size2 DrawableSize => window?.DrawableSize ?? new Size2(0, 0);
+
+        /// <inheritdoc />
+        public override float ScaleFactor
+        {
+            get
+            {
+                if (window == null)
+                    return 1.0f;
+
+                var clientSize = window.ClientSize;
+                return clientSize.Width > 0 ? window.DrawableSize.Width / (float)clientSize.Width : 1.0f;
+            }
+        }
+
         public override DisplayOrientation CurrentOrientation
         {
             get

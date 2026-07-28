@@ -367,9 +367,27 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
-        /// Size of the client area of a window.
+        /// Size of the client area of a window, in window coordinates (points; equals pixels on Windows).
         /// </summary>
         public unsafe Size2 ClientSize
+        {
+            get
+            {
+                int w, h;
+                SDL.GetWindowSize(sdlHandle, &w, &h);
+                return new Size2(w, h);
+            }
+            set
+            {
+                // From SDL documentation: Use this function to set the size of a window's client area.
+                SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
+            }
+        }
+
+        /// <summary>
+        /// Size of the drawable surface, in pixels. Can be larger than <see cref="ClientSize"/> on high-DPI displays.
+        /// </summary>
+        public unsafe Size2 DrawableSize
         {
             get
             {
@@ -382,31 +400,20 @@ namespace Stride.Graphics.SDL
                 return new Size2(surface->W, surface->H);
 #endif
             }
-            set
-            {
-                // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
-                // FIXME: On Windows you do this by using AdjustWindowRect.
-                // SDL.SDL_GetWindowBordersSize(sdlHandle, out var top, out var left, out var bottom, out var right);
-                // From SDL documentation: Use this function to set the size of a window's client area.
-                SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
-            }
         }
 
         /// <summary>
-        /// Size of client area expressed as a rectangle.
+        /// Client area expressed as a rectangle: position on screen and size, in window coordinates
+        /// (points; equals pixels on Windows).
         /// </summary>
         public unsafe Rectangle ClientRectangle
         {
             get
             {
-#if STRIDE_GRAPHICS_API_VULKAN
-                int w, h;
-                SDL.GLGetDrawableSize(sdlHandle, &w, &h);
-                return new Rectangle(0, 0, w, h);
-#else
-                var surface = SDL.GetWindowSurface(sdlHandle);
-                return new Rectangle(0, 0, surface->W, surface->H);
-#endif
+                int w, h, x, y;
+                SDL.GetWindowSize(sdlHandle, &w, &h);
+                SDL.GetWindowPosition(sdlHandle, &x, &y);
+                return new Rectangle(x, y, w, h);
             }
             set
             {
