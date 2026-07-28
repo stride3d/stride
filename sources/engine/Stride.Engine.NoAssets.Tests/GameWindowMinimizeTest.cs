@@ -107,6 +107,7 @@ public class GameWindowClientBoundsTest
 /// Checks that <see cref="GameWindow.Position"/> and the <see cref="GameWindow.ClientBounds"/>
 /// origin both mean the client area origin on the screen.
 /// </summary>
+[Collection("Windowing")] // window tests pump global SDL/Win32 events, they cannot run in parallel
 public class GameWindowPositionTest : GameTestBase
 {
     [SkippableTheory]
@@ -152,6 +153,7 @@ public class GameWindowPositionTest : GameTestBase
 /// Minimizes and restores a real window, checking that the minimized state never produces
 /// a valid-looking render size and that the window comes back at its original size.
 /// </summary>
+[Collection("Windowing")] // window tests pump global SDL/Win32 events, they cannot run in parallel
 public class GameWindowMinimizeTest : GameTestBase
 {
     [SkippableTheory]
