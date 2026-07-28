@@ -161,7 +161,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                     GraphicsProfile.Level_9_3 => "4_0_level_9_3",
                     GraphicsProfile.Level_10_0 => "4_0",
                     GraphicsProfile.Level_10_1 => "4_1",
-                    GraphicsProfile.Level_11_0 or GraphicsProfile.Level_11_1 => "5_0",
+                    // Level_11_2 shares shader model 5_0 with 11_0/11_1 (it maps to FL 11_1); listing
+                    // it here keeps it from hitting the throw below when used as the compile target.
+                    GraphicsProfile.Level_11_0 or GraphicsProfile.Level_11_1 or GraphicsProfile.Level_11_2 => "5_0",
 
                     _ => throw new ArgumentException("Graphics Profile not supported.", nameof(graphicsProfile))
                 };

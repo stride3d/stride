@@ -33,7 +33,17 @@ internal static class GraphicsProfileHelper
     /// </summary>
     /// <param name="profile">A <see cref="GraphicsProfile"/> to convert.</param>
     /// <returns>A Direct3D <see cref="D3DFeatureLevel"/>.</returns>
-    public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => (D3DFeatureLevel) profile;
+    public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => profile switch
+    {
+        // Direct3D has no feature level 11.2: D3D 11.2 was an API revision that runs on FL 11_1
+        // hardware, not a new feature level (real levels jump 11_1 (0xB100) -> 12_0 (0xC000)). Map it
+        // to its real capability tier (11_1) so device creation succeeds and the backend runs,
+        // matching Vulkan; a raw cast would emit the non-existent 0xB200 and fail CreateDevice on
+        // both D3D11 and D3D12. Every other GraphicsProfile value equals a real D3DFeatureLevel, so a
+        // direct cast is correct for them.
+        GraphicsProfile.Level_11_2 => (D3DFeatureLevel) GraphicsProfile.Level_11_1,
+        _ => (D3DFeatureLevel) profile,
+    };
 
     /// <summary>
     ///   Converts a <see cref="D3DFeatureLevel"/> to its corresponding <see cref="GraphicsProfile"/>.

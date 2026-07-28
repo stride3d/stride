@@ -269,7 +269,11 @@ namespace Stride.Graphics
             ID3D11DeviceContext* deviceContext = null;
 
             D3DFeatureLevel matchedFeatureLevel = 0;
-            var featureLevel = (D3DFeatureLevel) graphicsProfile;
+            // Use ToFeatureLevel (not a raw cast) so Level_11_2 resolves to the real FL 11_1 it maps
+            // to; a raw cast would ask CreateDevice for the non-existent 0xB200, which can never match
+            // and would wrongly report the profile as unsupported on every adapter. The exact-match
+            // check below still legitimately rejects real capability gaps (e.g. FL10-only hardware).
+            var featureLevel = graphicsProfile.ToFeatureLevel();
             var featureLevels = stackalloc D3DFeatureLevel[] { featureLevel };
 
             HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Hardware, Software: IntPtr.Zero,
