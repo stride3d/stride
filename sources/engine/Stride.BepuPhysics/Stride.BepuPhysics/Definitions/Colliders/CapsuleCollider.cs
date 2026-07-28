@@ -24,6 +24,7 @@ public sealed class CapsuleCollider : ColliderBase
         get => _radius;
         set
         {
+            value.ValidateGreaterThanZeroFinite(this);
             _radius = value;
             TryUpdateFeatures();
         }
@@ -37,6 +38,7 @@ public sealed class CapsuleCollider : ColliderBase
         get => _length;
         set
         {
+            value.ValidateGreaterThanZeroFinite(this);
             _length = value;
             TryUpdateFeatures();
         }

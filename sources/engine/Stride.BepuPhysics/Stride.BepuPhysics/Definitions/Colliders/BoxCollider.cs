@@ -25,6 +25,7 @@ public sealed class BoxCollider : ColliderBase
         get => _size;
         set
         {
+            value.ValidateRange(this);
             _size = value;
             TryUpdateFeatures();
         }

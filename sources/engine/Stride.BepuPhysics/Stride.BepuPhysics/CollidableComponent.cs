@@ -301,12 +301,10 @@ public abstract class CollidableComponent : EntityComponent
         Entity.Transform.UpdateWorldMatrix();
         Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
 
-        if (collidableWorldRotation.IsNormalized == false)
-            throw new ArgumentException($"{nameof(collidableWorldRotation)} must be normalized");
-
-        var positionNumerics = collidableWorldTranslation.ToNumeric();
-        if (System.Numerics.Vector3.AllWhereAllBitsSet(System.Numerics.Vector3.IsFinite(positionNumerics)) == false)
-            throw new ArgumentException($"{nameof(collidableWorldTranslation)} must be finite");
+        // ReSharper disable once ExplicitCallerInfoArgument
+        collidableWorldTranslation.ValidateRange(Entity, "World Position");
+        // ReSharper disable once ExplicitCallerInfoArgument
+        collidableWorldRotation.ValidateRange(Entity, "World Rotation");
 
         var pose = new NRigidPose((collidableWorldTranslation + collidableWorldRotation * CenterOfMass).ToNumeric(), collidableWorldRotation.ToNumeric());
 
