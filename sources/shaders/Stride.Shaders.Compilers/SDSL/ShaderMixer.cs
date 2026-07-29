@@ -79,6 +79,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        foreach (var warning in table.Warnings)
+            log.Warning(warning.Message);
+
         // If any semantic errors were collected during shader compilation, stop mixing
         if (table.Errors.Count > 0)
         {
