@@ -160,25 +160,47 @@ float4 main(vs_out input) : SV_TARGET {
         compiler = D3DCompiler.GetApi();
 
         // Create our D3D11 logical device.
-        SilkMarshal.ThrowHResult
-        (
-            d3d11.CreateDevice
-            (
-                default(ComPtr<IDXGIAdapter>),
-                D3DDriverType.Hardware,
-                Software: default,
-                (uint)CreateDeviceFlag.Debug,
-                null,
-                0,
-                D3D11.SdkVersion,
-                ref device,
-                null,
-                ref deviceContext
-            )
-        );
+        // WARP when software rendering is requested (the default unless STRIDE_TESTS_GPU=1, see Module),
+        // otherwise hardware with WARP as fallback. The Debug flag requires the D3D11 SDK layers
+        // which may not be installed, so retry each driver type without it.
+        var driverTypes = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
+            ? new[] { D3DDriverType.Warp }
+            : new[] { D3DDriverType.Hardware, D3DDriverType.Warp };
+        int hr = 0;
+        var created = false;
+        var debugEnabled = false;
+        foreach (var driverType in driverTypes)
+        {
+            foreach (var flags in new[] { CreateDeviceFlag.Debug, default(CreateDeviceFlag) })
+            {
+                hr = d3d11.CreateDevice
+                (
+                    default(ComPtr<IDXGIAdapter>),
+                    driverType,
+                    Software: default,
+                    (uint)flags,
+                    null,
+                    0,
+                    D3D11.SdkVersion,
+                    ref device,
+                    null,
+                    ref deviceContext
+                );
+                if (hr >= 0)
+                {
+                    created = true;
+                    debugEnabled = flags == CreateDeviceFlag.Debug;
+                    break;
+                }
+            }
+            if (created)
+                break;
+        }
+        if (!created)
+            SilkMarshal.ThrowHResult(hr);
 
         cts = new CancellationTokenSource();
-        if (OperatingSystem.IsWindows())
+        if (debugEnabled && OperatingSystem.IsWindows())
         {
             // Log debug messages for this device (given that we've enabled the debug flag). Don't do this in release code!
             infoQueueTask = device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)), cts.Token);

@@ -36,6 +36,12 @@
     <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
     <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" />
+    <!-- Pin WARP to a fixed version side-loaded next to the test host, for reproducible
+         rasterization across CI/dev (same as Stride.Graphics.Regression). -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
