@@ -233,7 +233,21 @@ namespace Stride.Shaders.Compiler
                     // `if (true)` dead code from generic-template constants and
                     // FXC's 'argument pulled into unrelated predicate' on
                     // Prepare/Compute helpers over a static stream struct.
-                    var legalizedSpirv = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(spirvBytecode));
+                    uint[] legalizedSpirv;
+                    try
+                    {
+                        legalizedSpirv = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(spirvBytecode));
+                    }
+                    catch (Exception legalizeException)
+                    {
+                        var validationResult = Spirv.Tools.Spv.ValidateBinary(spirvBytecode, targetVulkan: false);
+                        if (!validationResult.IsValid)
+                        {
+                            log.Error($"SPIR-V for effect {fullEffectName} (id: {mixinObjectId}) is invalid and cannot be legalized for HLSL: {validationResult.Output}", legalizeException);
+                            return new EffectBytecodeCompilerResult(null, log);
+                        }
+                        throw;
+                    }
                     var translator = new SpirvTranslator(legalizedSpirv.AsMemory());
                     var translatorEntryPoints = translator.GetEntryPoints();
                     foreach (var entryPoint in translatorEntryPoints)
