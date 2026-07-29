@@ -299,4 +299,42 @@ public partial class TestSerialization
     //    Assert.IsInstanceOf<S>(copy.A);
     //    Assert.Equal(((S)source.A).A, ((S)copy.A).A);
     //}
+
+    public interface IIncompatibleMember;
+
+    [DataContract]
+    public class IncompatibleMemberA : IIncompatibleMember
+    {
+        public string? S;
+    }
+
+    [DataContract]
+    public class IncompatibleMemberB : IIncompatibleMember
+    {
+        public float F;
+    }
+
+    [DataContract]
+    public class IncompatibleMemberContainer
+    {
+        public IIncompatibleMember? Member;
+    }
+
+    [Fact]
+    [Description("Test deserializing into a pre-existing member value whose type does not match the serialized type")]
+    public void TestSerializationPreexistingIncompatibleMemberValue()
+    {
+        var memoryStream = new MemoryStream();
+        var writer = new BinarySerializationWriter(memoryStream);
+        writer.Write(new IncompatibleMemberContainer { Member = new IncompatibleMemberB { F = 42.0f } });
+        writer.Flush();
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        var reader = new BinarySerializationReader(memoryStream);
+        var target = new IncompatibleMemberContainer { Member = new IncompatibleMemberA { S = "pre-existing" } };
+        reader.Serialize(ref target, ArchiveMode.Deserialize);
+
+        var member = Assert.IsType<IncompatibleMemberB>(target.Member);
+        Assert.Equal(42.0f, member.F);
+    }
 }
