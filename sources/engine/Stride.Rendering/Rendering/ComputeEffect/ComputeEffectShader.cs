@@ -43,12 +43,14 @@ namespace Stride.Rendering.ComputeEffect
         public DynamicEffectInstance EffectInstance { get; private set; }
 
         /// <summary>
-        /// Gets or sets the number of group counts the shader should be dispatched to.
+        /// Gets or sets the number of thread groups to dispatch; total threads = <see cref="ThreadGroupCounts"/> × <see cref="ThreadNumbers"/>.
         /// </summary>
         public Int3 ThreadGroupCounts { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of threads desired by thread group.
+        /// Gets or sets the compute shader's thread group size — the shader's <c>[numthreads(x, y, z)]</c>, applied via
+        /// the <c>ThreadNumberX/Y/Z</c> macros on <c>CSMain</c>. This is the supported way to set it; a literal
+        /// <c>[numthreads]</c> in the shader body is ignored. Keep consistent with <see cref="ThreadGroupCounts"/>.
         /// </summary>
         public Int3 ThreadNumbers { get; set; }
 
