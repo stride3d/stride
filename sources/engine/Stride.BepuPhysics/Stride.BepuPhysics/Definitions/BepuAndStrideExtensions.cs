@@ -52,7 +52,7 @@ internal static class BepuAndStrideExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ValidateGreaterThanZeroFinite<T>(this float fp, T owner, [CallerMemberName] string? fieldName = null)
     {
-        if (fp > 0 && float.IsFinite(fp))
+        if (fp <= 0 || float.IsFinite(fp) == false)
             throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be finite and greater than zero");
     }
 }
