@@ -710,6 +710,7 @@
               </DockPanel>
               <Grid Margin="{StaticResource BorderThicknessTile}">
                 <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
+                                   BaseUri="{Binding ActiveReleaseNotes.BaseUrl}"
                                    IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
