@@ -27,14 +27,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Silk.NET.Input" />
-    <PackageReference Include="Silk.NET.Vulkan" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" />
+    <!-- Vulkan test renderer uses Vortice, like the engine's Vulkan backend -->
+    <PackageReference Include="Vortice.Vulkan" />
     <PackageReference Include="Silk.NET.Direct3D11" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
     <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" />
+    <!-- Software Vulkan for GPU-less CI runners and reproducible rasterization (see Module) -->
+    <PackageReference Include="Stride.Dependencies.Lavapipe" />
     <!-- Pin WARP to a fixed version side-loaded next to the test host, for reproducible
          rasterization across CI/dev (same as Stride.Graphics.Regression). -->
     <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true" />
@@ -48,6 +51,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <StrideShaderFiles Include="..\assets\SDSL\Common\**" LinkBase="assets\SDSL\Common\" />
+    <Content Include="..\assets\SDSL\Common\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\Common\" />
     <StrideShaderFiles Include="..\assets\SDSL\CompilerTests\**" LinkBase="assets\SDSL\CompilerTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" LinkBase="assets\SDSL\RenderTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" LinkBase="assets\SDSL\ComputeTests\" />

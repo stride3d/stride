@@ -22,16 +22,57 @@ using Spv = Stride.Shaders.Spirv.Tools.Spv;
 
 namespace Stride.Shaders.Parsers.Tests;
 
+public enum RendererBackend
+{
+    Direct3D11,
+    Vulkan,
+}
+
 [Collection("D3D11")]
 public partial class RenderingTests
 {
     static int width = 1;
     static int height = 1;
 
+    /// <summary>
+    /// Backends testable on the current platform. D3D11 goes through SPIRV-Cross HLSL + FXC;
+    /// Vulkan consumes the mixer's SPIR-V directly (skipped at run time if no Vulkan 1.2+ device).
+    /// </summary>
+    public static RendererBackend[] SupportedBackends { get; } = OperatingSystem.IsWindows()
+        ? [RendererBackend.Direct3D11, RendererBackend.Vulkan]
+        : [RendererBackend.Vulkan];
+
+    private static ShaderMixer.Options GetMixerOptions(RendererBackend backend) => backend switch
+    {
+        // Same per-platform choices as EffectCompiler
+        RendererBackend.Direct3D11 => new ShaderMixer.Options(ResourcesRegisterSeparate: true),
+        RendererBackend.Vulkan => new ShaderMixer.Options(ResourcesRegisterSeparate: false, StripGoogleUserType: true),
+        _ => throw new NotSupportedException(),
+    };
+
+    private static void SkipUnlessBackendAvailable(RendererBackend backend)
+    {
+        if (backend == RendererBackend.Vulkan && !VulkanFrameRenderer.CheckAvailable())
+            Assert.Skip("No Vulkan 1.2+ device available");
+    }
+
+    // Passthrough vertex shader for pixel-shader-only tests on Vulkan
+    private static readonly Lazy<byte[]> quadVsSpirv = new(() =>
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/Common"));
+        shaderMixer.ShaderLoader.LoadExternalBuffer("QuadVS", [], out _, out _, out _);
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        if (!shaderMixer.MergeSDSL(new ShaderClassSource("QuadVS"), GetMixerOptions(RendererBackend.Vulkan), log, out var bytecode, out _, out _, out _))
+            throw new InvalidOperationException(string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+        return bytecode.ToArray();
+    });
+
     [Theory]
     [MemberData(nameof(GetComputeTestFiles))]
-    public void ComputeTest1(string shaderName)
+    public void ComputeTest1(string shaderName, RendererBackend backend)
     {
+        SkipUnlessBackendAvailable(backend);
+
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
         var shaderSource = ShaderMixinManager.Contains(shaderName)
@@ -43,26 +84,34 @@ public partial class RenderingTests
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
 
         var log = new Stride.Core.Diagnostics.LoggerResult();
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(shaderSource, GetMixerOptions(backend), log, out var bytecode, out var effectReflection, out _, out _);
 
-        File.WriteAllBytes($"{shaderName}.spv", bytecode);
-        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+        var outputName = backend == RendererBackend.Direct3D11 ? shaderName : $"{shaderName}.{backend}";
+        File.WriteAllBytes($"{outputName}.spv", bytecode);
+        File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{shaderName}.spv");
+        var validationResult = Spv.ValidateFile($"{outputName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        // Convert to GLSL
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
-        var entryPoints = translator.GetEntryPoints();
-        var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
-
-        Console.WriteLine(codeCS);
-
         // Execute test
-        var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
+        FrameRenderer renderer;
+        if (backend == RendererBackend.Direct3D11)
+        {
+            // Convert to HLSL
+            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            var entryPoints = translator.GetEntryPoints();
+            var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
 
-        renderer.ComputeShaderSource = codeCS;
+            Console.WriteLine(codeCS);
+
+            renderer = new D3D11FrameRenderer((uint)width, (uint)height) { ComputeShaderSource = codeCS };
+        }
+        else
+        {
+            renderer = new VulkanFrameRenderer((uint)width, (uint)height, bytecode.ToArray());
+        }
+
         renderer.EffectReflection = effectReflection;
 
         var code = File.ReadAllLines($"./assets/SDSL/ComputeTests/{shaderName}.sdsl");
@@ -157,8 +206,10 @@ public partial class RenderingTests
 
     [Theory]
     [MemberData(nameof(GetRenderTestFiles))]
-    public void RenderTest1(string shaderName)
+    public void RenderTest1(string shaderName, RendererBackend backend)
     {
+        SkipUnlessBackendAvailable(backend);
+
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/RenderTests"));
         var shaderSource = ShaderMixinManager.Contains(shaderName)
@@ -170,40 +221,49 @@ public partial class RenderingTests
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
 
         var log = new Stride.Core.Diagnostics.LoggerResult();
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(shaderSource, GetMixerOptions(backend), log, out var bytecode, out var effectReflection, out _, out _);
 
         if (log.HasErrors)
             Assert.Fail(string.Join(Environment.NewLine, log.Messages.Where(m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error).Select(m => m.Text)));
 
-        File.WriteAllBytes($"{shaderName}.spv", bytecode);
-        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+        var outputName = backend == RendererBackend.Direct3D11 ? shaderName : $"{shaderName}.{backend}";
+        File.WriteAllBytes($"{outputName}.spv", bytecode);
+        File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{shaderName}.spv");
+        var validationResult = Spv.ValidateFile($"{outputName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        // Convert to HLSL
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
-        var entryPoints = translator.GetEntryPoints();
-        var codePS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Fragment)
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment))
-            : null;
-        var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
-            : null;
-
-        if (codeVS != null)
-            Console.WriteLine(codeVS);
-        if (codePS != null)
-            Console.WriteLine(codePS);
-
         // Execute test
-        var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
+        FrameRenderer renderer;
+        if (backend == RendererBackend.Direct3D11)
+        {
+            // Convert to HLSL
+            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            var entryPoints = translator.GetEntryPoints();
+            var codePS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Fragment)
+                ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment))
+                : null;
+            var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
+                ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+                : null;
 
-        if (codeVS != null)
-            renderer.VertexShaderSource = codeVS;
-        if (codePS != null)
-            renderer.PixelShaderSource = codePS;
+            if (codeVS != null)
+                Console.WriteLine(codeVS);
+            if (codePS != null)
+                Console.WriteLine(codePS);
+
+            var d3d11Renderer = new D3D11FrameRenderer((uint)width, (uint)height);
+            if (codeVS != null)
+                d3d11Renderer.VertexShaderSource = codeVS;
+            if (codePS != null)
+                d3d11Renderer.PixelShaderSource = codePS;
+            renderer = d3d11Renderer;
+        }
+        else
+        {
+            renderer = new VulkanFrameRenderer((uint)width, (uint)height, bytecode.ToArray(), quadVsSpirv.Value);
+        }
         renderer.EffectReflection = effectReflection;
 
         var code = File.ReadAllLines($"./assets/SDSL/RenderTests/{shaderName}.sdsl");
@@ -325,7 +385,7 @@ public partial class RenderingTests
         }
     }
 
-    private static void SetupTestParameters(D3D11FrameRenderer renderer, Dictionary<string, string> parameters)
+    private static void SetupTestParameters(FrameRenderer renderer, Dictionary<string, string> parameters)
     {
         // Setup parameters
         renderer.Parameters.Clear();
@@ -339,7 +399,8 @@ public partial class RenderingTests
         {
             // Parse header
             var shadername = Path.GetFileNameWithoutExtension(filename);
-            yield return [shadername];
+            foreach (var backend in SupportedBackends)
+                yield return [shadername, backend];
         }
     }
 
@@ -358,7 +419,8 @@ public partial class RenderingTests
         {
             // Parse header
             var shadername = Path.GetFileNameWithoutExtension(filename);
-            yield return [shadername];
+            foreach (var backend in SupportedBackends)
+                yield return [shadername, backend];
         }
     }
 

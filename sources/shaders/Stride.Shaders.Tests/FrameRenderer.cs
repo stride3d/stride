@@ -2,16 +2,71 @@ using System.Globalization;
 
 namespace Stride.Shaders.Parsers.Tests;
 
-public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]? vertexSpirv = null, byte[]? fragmentSpirv = null)
+public abstract class FrameRenderer(uint width = 800, uint height = 600)
 {
-    uint width = width;
-    uint height = height;
-    byte[]? vertexSpirv = vertexSpirv;
-    byte[]? fragmentSpirv = fragmentSpirv;
+    protected uint width = width;
+    protected uint height = height;
 
     public Dictionary<string, string> Parameters { get; } = new();
 
-    protected static unsafe void FillCBufferData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
+    public EffectReflection EffectReflection { get; set; }
+
+    public abstract void SetupTest();
+
+    public abstract void RenderFrame(Span<byte> result);
+
+    public abstract void Compute();
+
+    public abstract void PresentAndFinish();
+
+    /// <summary>
+    /// Builds the byte contents of a cbuffer from a "cbuffer.Name=(Member=Value ...)" test parameter,
+    /// using the reflection layout.
+    /// </summary>
+    protected unsafe byte[] BuildCBufferData(string resourceName, string value)
+    {
+        var cbReflection = FindCBuffer(resourceName);
+        var cbufferData = new byte[cbReflection.Size];
+        foreach (var cbufferParameter in TestHeaderParser.ParseParameters(value))
+        {
+            var cbMemberReflection = cbReflection.Members.Single(x => x.KeyInfo.KeyName.EndsWith(cbufferParameter.Key));
+
+            fixed (byte* cbufferDataPtr = cbufferData)
+            {
+                FillData(cbufferParameter.Value, cbMemberReflection.Type, cbMemberReflection.Offset, cbufferDataPtr);
+            }
+        }
+        return cbufferData;
+    }
+
+    protected EffectConstantBufferDescription FindCBuffer(string name)
+    {
+        foreach (var group in EffectReflection.ResourceGroups)
+            if (group.ConstantBuffer?.Name == name)
+                return group.ConstantBuffer;
+        return EffectReflection.ConstantBuffers.Single(x => x.Name == name);
+    }
+
+    /// <summary>
+    /// Matches "cbuffer.X", "texture.X" and "buffer.X" test parameters to their reflection resource bindings.
+    /// </summary>
+    protected IEnumerable<(EffectResourceBindingDescription Binding, string ResourceType, string Value)> MatchResourceParameters()
+    {
+        foreach (var parameter in Parameters)
+        {
+            var dotIndex = parameter.Key.IndexOf('.');
+            if (dotIndex == -1)
+                continue;
+            var resourceType = parameter.Key.Substring(0, dotIndex);
+            if (resourceType is not ("cbuffer" or "texture" or "buffer"))
+                continue;
+            var resourceName = parameter.Key.Substring(dotIndex + 1);
+            var binding = EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
+            yield return (binding, resourceType, parameter.Value);
+        }
+    }
+
+    protected static unsafe void FillData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
     {
         switch (type)
         {
@@ -20,7 +75,7 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]?
                 var arrayStride = (type.ElementSize + 15) / 16 * 16;
                 foreach (var elementValue in TestHeaderParser.SplitArgs(value))
                 {
-                    FillCBufferData(elementValue, type with { Elements = 1 }, offset + arrayStride * index, cbufferDataPtr);
+                    FillData(elementValue, type with { Elements = 1 }, offset + arrayStride * index, cbufferDataPtr);
                     index++;
                 }
                 break;
@@ -29,21 +84,32 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]?
                 foreach (var member in type.Members)
                 {
                     if (structParameters.TryGetValue(member.Name, out var memberValue))
-                        FillCBufferData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
+                        FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
+                }
+                break;
+            case { Class: EffectParameterClass.Vector }:
+                int compIndex = 0;
+                foreach (var comp in TestHeaderParser.SplitArgs(value))
+                {
+                    if (type.Type == EffectParameterType.Float)
+                        *((float*)&cbufferDataPtr[offset + compIndex * sizeof(float)]) = float.Parse(comp, CultureInfo.InvariantCulture);
+                    else if (type.Type == EffectParameterType.Int)
+                        *((int*)&cbufferDataPtr[offset + compIndex * sizeof(int)]) = int.Parse(comp, CultureInfo.InvariantCulture);
+                    compIndex++;
                 }
                 break;
             case { Type: EffectParameterType.Int }:
                 *((int*)&cbufferDataPtr[offset]) = int.Parse(value);
                 break;
             case { Type: EffectParameterType.Float }:
-                *((float*)&cbufferDataPtr[offset]) = float.Parse(value);
+                *((float*)&cbufferDataPtr[offset]) = float.Parse(value, CultureInfo.InvariantCulture);
                 break;
             default:
                 throw new NotImplementedException();
         }
     }
 
-    protected static unsafe uint ParseColor(string value)
+    protected static uint ParseColor(string value)
     {
         if (!value.StartsWith("#"))
             throw new NotSupportedException();
