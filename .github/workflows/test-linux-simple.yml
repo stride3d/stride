@@ -47,13 +47,9 @@ jobs:
           lfs: true
           submodules: true
           ref: ${{ github.ref }}
-      # Full checkout: the Simple test solutions build Stride.Templates.*, which
-      # preprocesses template content from samples/.
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-          submodules: true
-          ref: ${{ github.ref }}
+      - name: Install dependencies
+        # Vulkan loader for Stride.Shaders.Tests (renders through the bundled Lavapipe ICD)
+        run: sudo apt-get update && sudo apt-get install -y libvulkan1
       - name: Build
         run: |
           dotnet build build/Stride.Tests.Simple.Linux.slnf \

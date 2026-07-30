@@ -130,6 +130,8 @@ public partial class RenderingTests
     [Fact]
     public void DuplicateCBufferNameSurvivesMixerRename()
     {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
         // Regression: when two shader classes declare a cbuffer with the same
         // source-level name (e.g. PerDraw / Settings), MergeCBuffers groups
         // them by GetCBufferRealName but for count==1 (after one is optimized
@@ -180,6 +182,8 @@ public partial class RenderingTests
     [Fact]
     public void StructuredBufferEmitsStructuredBufferHlsl()
     {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
         // Regression: StructuredBuffer<T>/RWStructuredBuffer<T> must reach HLSL as the
         // matching types, not RWByteAddressBuffer. Requires NonWritable + UserTypeGOOGLE
         // decorations to survive ShaderMixer / type-duplicate elimination.
@@ -298,6 +302,10 @@ public partial class RenderingTests
     [MemberData(nameof(GetStreamOutTestFiles))]
     public void StreamOutTest1(string shaderName)
     {
+        // D3D11-only until the Vulkan renderer implements VK_EXT_transform_feedback
+        if (!OperatingSystem.IsWindows())
+            Assert.Skip("Stream-output tests require the Direct3D11 backend");
+
         // Compile shader
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/StreamOutTests"));
         var shaderSource = ShaderMixinManager.Contains(shaderName)

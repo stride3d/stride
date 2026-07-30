@@ -2,7 +2,6 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideBuildTags>*</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -31,6 +30,10 @@
     <!-- Vulkan test renderer uses Vortice, like the engine's Vulkan backend -->
     <PackageReference Include="Vortice.Vulkan" />
     <PackageReference Include="Silk.NET.Direct3D11" />
+    <!-- Direct reference so Vulkan-only builds keep the DLL (Stride's graphics API filter strips
+         it as D3D-only otherwise); xunit v3 discovery force-loads it through GetExportedTypes
+         because FrameRenderer.D3D11 exposes DXGI types. -->
+    <PackageReference Include="Silk.NET.DXGI" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
@@ -39,8 +42,9 @@
     <!-- Software Vulkan for GPU-less CI runners and reproducible rasterization (see Module) -->
     <PackageReference Include="Stride.Dependencies.Lavapipe" />
     <!-- Pin WARP to a fixed version side-loaded next to the test host, for reproducible
-         rasterization across CI/dev (same as Stride.Graphics.Regression). -->
-    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true" />
+         rasterization across CI/dev (same as Stride.Graphics.Regression). Windows-only. -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true"
+                      Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
              Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
              Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
