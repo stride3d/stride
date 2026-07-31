@@ -5,12 +5,16 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a skybox environment light
     /// </summary>
-    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation
+    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation, PositionStream
     {
         cbuffer PerView.Lighting
         {
             float4x4 SkyMatrix;
             float Intensity;
+            float AA;
+            float AB;
+            float AC;
+            float AD;
         }
 
         compose IComputeEnvironmentColor lightDiffuseColor;
@@ -44,6 +48,41 @@ namespace Stride.Rendering.Lights
             sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
 
             streams.envLightSpecularColor = lightSpecularColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.y;
+
+            streams.envLightDistFog = Fog();
+        }
+        
+        float4 Fog()
+        {
+            float3 viewVector = streams.PositionWS.xyz - Eye.xyz;
+            viewVector = mul(viewVector, (float3x3)SkyMatrix);
+            viewVector = float3(viewVector.xy, -viewVector.z);
+
+            float dist = length(viewVector);
+            dist = Remap(0, AA, 0, 1, dist);
+
+            float curve = pow(dist, AB);
+            curve = saturate(curve);
+            float alpha = saturate(curve);
+            
+            float skyboxBlur = Remap(0, 1, 0, AC, dist);
+            skyboxBlur = saturate(skyboxBlur);
+            skyboxBlur = Remap(0, 1, AD, 0, skyboxBlur);
+            
+            float f = floor(skyboxBlur);
+            float3 colorA = lightSpecularColor.Compute(viewVector, f).rgb;
+            float3 colorB = lightSpecularColor.Compute(viewVector, f+1).rgb;
+
+            float4 fog;
+            fog.rgb = lerp(colorA, colorB, frac(skyboxBlur));
+            fog.a = alpha;
+        
+            return fog;
+        }
+
+        float Remap(float origFrom, float origTo, float targetFrom, float targetTo, float value)
+        {
+            return lerp(targetFrom, targetTo, (value - origFrom) / (origTo - origFrom));
         }
     };
 }

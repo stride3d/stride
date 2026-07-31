@@ -83,6 +83,10 @@ namespace Stride.Rendering.Lights
             private static readonly ShaderClassSource EmptyComputeEnvironmentColorSource = new ShaderClassSource("IComputeEnvironmentColor");
 
             private ValueParameterKey<float> intensityKey;
+            private ValueParameterKey<float> aaKey;
+            private ValueParameterKey<float> abKey;
+            private ValueParameterKey<float> acKey;
+            private ValueParameterKey<float> adKey;
             private ValueParameterKey<Matrix> skyMatrixKey;
             private PermutationParameterKey<ShaderSource> lightDiffuseColorKey;
             private PermutationParameterKey<ShaderSource> lightSpecularColorKey;
@@ -102,6 +106,10 @@ namespace Stride.Rendering.Lights
                 base.UpdateLayout(compositionName);
 
                 intensityKey = LightSkyboxShaderKeys.Intensity.ComposeWith(compositionName);
+                aaKey = LightSkyboxShaderKeys.AA.ComposeWith(compositionName);
+                abKey = LightSkyboxShaderKeys.AB.ComposeWith(compositionName);
+                acKey = LightSkyboxShaderKeys.AC.ComposeWith(compositionName);
+                adKey = LightSkyboxShaderKeys.AD.ComposeWith(compositionName);
                 skyMatrixKey = LightSkyboxShaderKeys.SkyMatrix.ComposeWith(compositionName);
                 lightDiffuseColorKey = LightSkyboxShaderKeys.LightDiffuseColor.ComposeWith(compositionName);
                 lightSpecularColorKey = LightSkyboxShaderKeys.LightSpecularColor.ComposeWith(compositionName);
@@ -134,6 +142,10 @@ namespace Stride.Rendering.Lights
                 var skybox = lightSkybox.Skybox;
 
                 var intensity = Light.Intensity;
+                var aa = lightSkybox.AA;
+                var ab = lightSkybox.AB;
+                var ac = lightSkybox.AC;
+                var ad = lightSkybox.AD;
 
                 var skyMatrix = Matrix.Invert(Matrix.RotationQuaternion(lightSkybox.Rotation));
 
@@ -149,6 +161,10 @@ namespace Stride.Rendering.Lights
 
                 // global parameters
                 parameters.Set(intensityKey, intensity);
+                parameters.Set(aaKey, aa);
+                parameters.Set(abKey, ab);
+                parameters.Set(acKey, ac);
+                parameters.Set(adKey, ad);
                 parameters.Set(skyMatrixKey, skyMatrix);
 
                 // This need to be working with new system
