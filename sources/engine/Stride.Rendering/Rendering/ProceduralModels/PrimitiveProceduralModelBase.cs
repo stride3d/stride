@@ -119,7 +119,8 @@ namespace Stride.Rendering.ProceduralModels
                 for (var index = 0; index < data.Vertices.Length; index++)
                 {
                     data.Vertices[index].Position *= Scale;
-                    Vector3.TransformCoordinate(ref data.Vertices[index].Normal, ref inverseMatrix, out data.Vertices[index].Normal);
+                    Vector3.TransformNormal(ref data.Vertices[index].Normal, ref inverseMatrix, out data.Vertices[index].Normal);
+                    data.Vertices[index].Normal.Normalize();
                 }
             }
 
