@@ -3,9 +3,9 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
-using Silk.NET.Core.Native;
+using System;
 
-using Stride.Core.UnsafeExtensions;
+using Silk.NET.Core.Native;
 
 namespace Stride.Graphics;
 
@@ -15,34 +15,26 @@ namespace Stride.Graphics;
 internal static class GraphicsProfileHelper
 {
     /// <summary>
-    ///   Converts an array of <see cref="GraphicsProfile"/>s to an array of corresponding <see cref="D3DFeatureLevel"/>s.
-    /// </summary>
-    /// <param name="profiles">An array of <see cref="GraphicsProfile"/>s to convert.</param>
-    /// <returns>An array of Direct3D <see cref="D3DFeatureLevel"/>s.</returns>
-    public static D3DFeatureLevel[] ToFeatureLevel(this GraphicsProfile[] profiles)
-    {
-        if (profiles is null or [])
-            return null;
-
-        var featureLevels = profiles.AsReadOnlySpan<GraphicsProfile, D3DFeatureLevel>().ToArray();
-        return featureLevels;
-    }
-
-    /// <summary>
     ///   Converts a <see cref="GraphicsProfile"/> to its corresponding <see cref="D3DFeatureLevel"/>.
     /// </summary>
     /// <param name="profile">A <see cref="GraphicsProfile"/> to convert.</param>
     /// <returns>A Direct3D <see cref="D3DFeatureLevel"/>.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="profile"/> is not a known profile.</exception>
+    /// <remarks>
+    ///   Direct3D has no feature level 11.2, as 11.2 was an API revision running on 11_1 hardware, so
+    ///   <see cref="GraphicsProfile.Level_11_2"/> maps to 11_1, its real capability tier.
+    /// </remarks>
     public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => profile switch
     {
-        // Direct3D has no feature level 11.2: D3D 11.2 was an API revision that runs on FL 11_1
-        // hardware, not a new feature level (real levels jump 11_1 (0xB100) -> 12_0 (0xC000)). Map it
-        // to its real capability tier (11_1) so device creation succeeds and the backend runs,
-        // matching Vulkan; a raw cast would emit the non-existent 0xB200 and fail CreateDevice on
-        // both D3D11 and D3D12. Every other GraphicsProfile value equals a real D3DFeatureLevel, so a
-        // direct cast is correct for them.
-        GraphicsProfile.Level_11_2 => (D3DFeatureLevel) GraphicsProfile.Level_11_1,
-        _ => (D3DFeatureLevel) profile,
+        GraphicsProfile.Level_9_1 => D3DFeatureLevel.Level91,
+        GraphicsProfile.Level_9_2 => D3DFeatureLevel.Level92,
+        GraphicsProfile.Level_9_3 => D3DFeatureLevel.Level93,
+        GraphicsProfile.Level_10_0 => D3DFeatureLevel.Level100,
+        GraphicsProfile.Level_10_1 => D3DFeatureLevel.Level101,
+        GraphicsProfile.Level_11_0 => D3DFeatureLevel.Level110,
+        GraphicsProfile.Level_11_1 or GraphicsProfile.Level_11_2 => D3DFeatureLevel.Level111,
+
+        _ => throw new ArgumentOutOfRangeException(nameof(profile), profile, "Unknown graphics profile.")
     };
 
     /// <summary>

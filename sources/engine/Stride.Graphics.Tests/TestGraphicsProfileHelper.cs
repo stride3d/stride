@@ -17,25 +17,36 @@ namespace Stride.Graphics.Tests;
 /// </summary>
 public class TestGraphicsProfileHelper
 {
-    [Fact]
-    public void Level_11_2_MapsTo_Level_11_1()
+    [Theory]
+    [InlineData(GraphicsProfile.Level_9_1, D3DFeatureLevel.Level91)]
+    [InlineData(GraphicsProfile.Level_9_2, D3DFeatureLevel.Level92)]
+    [InlineData(GraphicsProfile.Level_9_3, D3DFeatureLevel.Level93)]
+    [InlineData(GraphicsProfile.Level_10_0, D3DFeatureLevel.Level100)]
+    [InlineData(GraphicsProfile.Level_10_1, D3DFeatureLevel.Level101)]
+    [InlineData(GraphicsProfile.Level_11_0, D3DFeatureLevel.Level110)]
+    [InlineData(GraphicsProfile.Level_11_1, D3DFeatureLevel.Level111)]
+    [InlineData(GraphicsProfile.Level_11_2, D3DFeatureLevel.Level111)]
+    public void Profile_MapsToExpectedFeatureLevel(GraphicsProfile profile, D3DFeatureLevel expected)
     {
-        // 0xB200 has no native D3D feature level; it must resolve to the real 11_1 (0xB100),
-        // matching Vulkan, instead of the raw-cast 0xB200 that fails CreateDevice on D3D11/D3D12.
-        Assert.Equal(GraphicsProfile.Level_11_1.ToFeatureLevel(), GraphicsProfile.Level_11_2.ToFeatureLevel());
-        Assert.NotEqual((D3DFeatureLevel)0xB200, GraphicsProfile.Level_11_2.ToFeatureLevel());
+        Assert.Equal(expected, profile.ToFeatureLevel());
     }
 
     [Fact]
     public void EveryProfile_MapsToADefinedFeatureLevel()
     {
-        // Guards against any profile (now or future) mapping to a value with no native feature level.
+        // Guards against a profile added later without a matching entry in the mapping.
         foreach (GraphicsProfile profile in Enum.GetValues<GraphicsProfile>())
         {
             var featureLevel = profile.ToFeatureLevel();
             Assert.True(Enum.IsDefined(featureLevel),
                 $"{profile} (0x{(int)profile:X4}) maps to undefined D3DFeatureLevel 0x{(int)featureLevel:X4}");
         }
+    }
+
+    [Fact]
+    public void UnknownProfile_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ((GraphicsProfile)0x1234).ToFeatureLevel());
     }
 }
 
