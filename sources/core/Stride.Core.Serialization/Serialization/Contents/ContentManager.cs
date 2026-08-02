@@ -18,6 +18,9 @@ public sealed partial class ContentManager : IContentManager
 {
     private static readonly Logger Log = GlobalLogger.GetLogger(nameof(ContentManager));
 
+    /// <summary>Maximum number of same-name assets listed in the "asset not found" message.</summary>
+    private const int MaxSameNameCandidates = 5;
+
     public DatabaseFileProvider FileProvider => databaseFileProviderService.FileProvider;
 
     private readonly IDatabaseFileProviderService databaseFileProviderService;
@@ -668,9 +671,61 @@ public sealed partial class ContentManager : IContentManager
     /// <param name="url">The URL.</param>
     /// <exception cref="ContentManagerException">Asset could not be found.</exception>
     // TODO: Replug this when an asset is not found?
-    private static void HandleAssetNotFound(string url)
+    private void HandleAssetNotFound(string url)
     {
-        var errorMessage = $"The asset '{url}' could not be found. Asset path should be 'MyFolder/MyAssetName'. Check that the path is correct and that the asset has been included into the build.";
+        var errorMessage = $"The asset '{url}' could not be found. Asset path should be 'MyFolder/MyAssetName', or '/PackageName/MyFolder/MyAssetName' for an asset from a namespaced package. Check that the path is correct and that the asset has been included into the build.";
+
+        var contentIndexMap = FileProvider?.ContentIndexMap;
+        if (contentIndexMap != null)
+        {
+            var indexMap = contentIndexMap.GetMergedIdMap();
+
+            // First suggest assets differing from the requested URL only by the '/PackageName' root
+            var isRooted = url.StartsWith('/');
+            var candidates = new List<string>();
+            foreach (var entry in indexMap)
+            {
+                if (isRooted ? DiffersByRoot(url, entry.Key) : DiffersByRoot(entry.Key, url))
+                    candidates.Add(entry.Key);
+            }
+            if (candidates.Count > 0)
+            {
+                candidates.Sort();
+                errorMessage = $"The asset '{url}' could not be found. Did you mean:"
+                    + string.Concat(candidates.Select(c => $"{Environment.NewLine}  '{c}'"))
+                    + $"{Environment.NewLine}An asset from a namespaced package is addressed by a rooted URL: '/PackageName/MyFolder/MyAssetName'.";
+            }
+            else
+            {
+                // Otherwise fall back to assets with the same name in other folders
+                var assetName = url.Substring(url.LastIndexOf('/') + 1);
+                var sameNameCandidates = new List<string>();
+                foreach (var entry in indexMap)
+                {
+                    if (entry.Key.EndsWith(assetName, StringComparison.OrdinalIgnoreCase)
+                        && (entry.Key.Length == assetName.Length || entry.Key[entry.Key.Length - assetName.Length - 1] == '/'))
+                        sameNameCandidates.Add(entry.Key);
+                }
+                if (sameNameCandidates.Count > 0)
+                {
+                    sameNameCandidates.Sort();
+                    var more = sameNameCandidates.Count > MaxSameNameCandidates ? $"{Environment.NewLine}  (and {sameNameCandidates.Count - MaxSameNameCandidates} more)" : string.Empty;
+                    errorMessage = $"The asset '{url}' could not be found. Assets with the same name exist at:"
+                        + string.Concat(sameNameCandidates.Take(MaxSameNameCandidates).Select(c => $"{Environment.NewLine}  '{c}'"))
+                        + more;
+                }
+            }
+        }
+
+        // True when <rooted> is exactly '/PackageName' (a single segment) followed by '/<bare>'.
+        static bool DiffersByRoot(string rooted, string bare)
+        {
+            return rooted.Length > bare.Length + 2
+                && rooted.EndsWith(bare, StringComparison.OrdinalIgnoreCase)
+                && rooted[rooted.Length - bare.Length - 1] == '/'
+                && rooted.IndexOf('/', 1) == rooted.Length - bare.Length - 1
+                && rooted[0] == '/';
+        }
 
         // If a debugger is attached, throw an exception (we do that instead of Debugger.Break so that user can easily ignore this specific type of exception)
         if (Debugger.IsAttached)
