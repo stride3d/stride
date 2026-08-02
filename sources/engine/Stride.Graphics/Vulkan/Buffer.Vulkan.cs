@@ -122,14 +122,14 @@ namespace Stride.Graphics
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformBuffer;
                     NativeAccessMask |= VkAccessFlags.UniformRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
                 }
 
                 if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
-                    NativeAccessMask |= VkAccessFlags.UniformRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+                    NativeAccessMask |= VkAccessFlags.ShaderRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
 
                     if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
                     {
@@ -141,7 +141,7 @@ namespace Stride.Graphics
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
                     NativeAccessMask |= VkAccessFlags.ShaderRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
 
                     if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
                     {

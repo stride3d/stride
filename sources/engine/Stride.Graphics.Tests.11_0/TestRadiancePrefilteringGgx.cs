@@ -239,7 +239,7 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void RunTest()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
+            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan, "Lavapipe renders mip 1 of the non-compute prefilter path differently from the D3D reference");
 
             RunGameTest(new TestRadiancePrefilteringGgx());
         }

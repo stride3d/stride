@@ -508,6 +508,7 @@ namespace Stride.Graphics
                         break;
 
                     case VkDescriptorType.UniformTexelBuffer:
+                    case VkDescriptorType.StorageTexelBuffer:
                         buffer = heapObject.Value as Buffer;
                         descriptorData->BufferView = buffer?.NativeBufferView ?? (mapping.ResourceElementIsInteger ? GraphicsDevice.EmptyTexelBufferInt.NativeBufferView : GraphicsDevice.EmptyTexelBufferFloat.NativeBufferView);
                         write->pTexelBufferView = &descriptorData->BufferView;
