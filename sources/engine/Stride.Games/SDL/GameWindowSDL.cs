@@ -66,15 +66,18 @@ namespace Stride.Games
             if (window != null)
             {
                 window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
+                var canResize = clientWidth > 0 && clientHeight > 0 && window.WindowState != FormWindowState.Minimized;
                 if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
                 {
-                    window.ClientSize = new Size2(clientWidth, clientHeight);
+                    if (canResize)
+                        window.ClientSize = new Size2(clientWidth, clientHeight);
                     window.IsFullScreen = true;
                 }
                 else //fullscreen to windowed or window resize
                 {
                     window.IsFullScreen = false;
-                    window.ClientSize = new Size2(clientWidth, clientHeight);
+                    if (canResize)
+                        window.ClientSize = new Size2(clientWidth, clientHeight);
                     // Only restore the windowed position when actually leaving fullscreen. On plain
                     // resizes the get/set round-trip is not symmetric about the decoration frame on
                     // X11 reparenting WMs, so restoring it every resize walks the window up-left.
@@ -347,8 +350,31 @@ namespace Stride.Games
         {
             get
             {
-                // Ensure width and height are at least 1 to avoid divisions by 0
-                return new Rectangle(0, 0, Math.Max(window.ClientSize.Width, 1), Math.Max(window.ClientSize.Height, 1));
+                // SDL keeps reporting the pre-minimize size while minimized
+                if (window == null || IsMinimized)
+                    return Rectangle.Empty;
+
+                var location = window.Location;
+                var size = window.ClientSize;
+                return new Rectangle(location.X, location.Y, size.Width, size.Height);
+            }
+        }
+
+        /// <summary>
+        /// Size of the drawable surface, in pixels.
+        /// </summary>
+        internal Size2 DrawableSize => window?.DrawableSize ?? new Size2(0, 0);
+
+        /// <inheritdoc />
+        public override float ScaleFactor
+        {
+            get
+            {
+                if (window == null)
+                    return 1.0f;
+
+                var clientSize = window.ClientSize;
+                return clientSize.Width > 0 ? window.DrawableSize.Width / (float)clientSize.Width : 1.0f;
             }
         }
 

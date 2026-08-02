@@ -88,14 +88,14 @@ namespace Stride.Games
                     // Check if this profile is supported.
                     if (graphicsAdapter.IsProfileSupported(featureLevel))
                     {
-                        // Report the SDL window's actual size; formats stay caller-preferred (negotiated at swapchain creation).
-                        var clientBounds = gameWindowiOS.ClientBounds;
+                        // Swapchain sizes are in pixels; formats stay caller-preferred (negotiated at swapchain creation).
+                        var drawableSize = gameWindowiOS.DrawableSize;
                         var deviceInfo = new GraphicsDeviceInformation
                         {
                             Adapter = GraphicsAdapterFactory.DefaultAdapter,
                             GraphicsProfile = featureLevel,
-                            PresentationParameters = new PresentationParameters(clientBounds.Width,
-                                                                                clientBounds.Height,
+                            PresentationParameters = new PresentationParameters(drawableSize.Width,
+                                                                                drawableSize.Height,
                                                                                 gameWindowiOS.NativeWindow)
                             {
                                 BackBufferFormat = preferredParameters.PreferredBackBufferFormat,

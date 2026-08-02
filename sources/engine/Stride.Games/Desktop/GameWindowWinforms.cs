@@ -105,7 +105,10 @@ namespace Stride.Games
             if (deviceChangeChangedVisible)
                 Visible = oldVisible;
 
-            if (form != null)
+            if (form != null
+                && form.WindowState != FormWindowState.Minimized
+                && clientWidth > 0
+                && clientHeight > 0)
             {
                 form.ClientSize = new Size(clientWidth, clientHeight);
             }
@@ -296,12 +299,19 @@ namespace Stride.Games
                 if (Control == null)
                     return base.Position;
 
-                return new Int2(Control.Location.X, Control.Location.Y);
+                var location = Control.PointToScreen(Point.Empty);
+                return new Int2(location.X, location.Y);
             }
             set
             {
                 if (Control != null)
-                    Control.Location = new Point(value.X, value.Y);
+                {
+                    // Move so that the client area origin lands on the given position
+                    var clientOrigin = Control.PointToScreen(Point.Empty);
+                    Control.Location = new Point(
+                        Control.Location.X + value.X - clientOrigin.X,
+                        Control.Location.Y + value.Y - clientOrigin.Y);
+                }
 
                 base.Position = value;
             }
@@ -371,8 +381,13 @@ namespace Stride.Games
         {
             get
             {
-                // Ensure width and height are at least 1 to avoid divisions by 0
-                return new Stride.Core.Mathematics.Rectangle(0, 0, Math.Max(Control.ClientSize.Width, 1), Math.Max(Control.ClientSize.Height, 1));
+                // A minimized form reports a bogus non-zero client area
+                if (Control == null || IsMinimized)
+                    return Stride.Core.Mathematics.Rectangle.Empty;
+
+                var location = Control.PointToScreen(Point.Empty);
+                var size = Control.ClientSize;
+                return new Stride.Core.Mathematics.Rectangle(location.X, location.Y, size.Width, size.Height);
             }
         }
 

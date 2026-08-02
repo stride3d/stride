@@ -14,7 +14,8 @@ namespace Stride.Input
     public interface IPointerDevice : IInputDevice
     {
         /// <summary>
-        /// The size of the surface used by the pointer, for a mouse this is the size of the window, for a touch device, the size of the touch area, etc.
+        /// The size of the surface used by the pointer, in window coordinates (points; equals pixels on Windows).
+        /// For a mouse this is the size of the window, for a touch device, the size of the touch area, etc.
         /// </summary>
         Vector2 SurfaceSize { get; }
 

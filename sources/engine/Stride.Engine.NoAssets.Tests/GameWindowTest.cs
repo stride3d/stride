@@ -10,6 +10,7 @@ using Stride.Games;
 
 namespace Stride.Engine.Tests
 {
+    [Collection("Windowing")] // window tests pump global SDL/Win32 events, they cannot run in parallel
     public class GameWindowTest : GameTestBase
     {
         [SkippableTheory]
