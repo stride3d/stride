@@ -171,10 +171,10 @@ namespace Stride.Graphics
                     NativeAccessMask = VkAccessFlags.TransferRead;
 
                 if (NativeLayout == VkImageLayout.ColorAttachmentOptimal)
-                    NativeAccessMask = VkAccessFlags.ColorAttachmentWrite;
+                    NativeAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.ColorAttachmentRead;
 
                 if (NativeLayout == VkImageLayout.DepthStencilAttachmentOptimal)
-                    NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite;
+                    NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite | VkAccessFlags.DepthStencilAttachmentRead;
 
                 if (NativeLayout == VkImageLayout.ShaderReadOnlyOptimal)
                     NativeAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.InputAttachmentRead;
@@ -182,7 +182,7 @@ namespace Stride.Graphics
                 NativePipelineStageMask =
                     IsRenderTarget ? VkPipelineStageFlags.ColorAttachmentOutput :
                     IsDepthStencil ? VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests :
-                    IsShaderResource || IsUnorderedAccess ? VkPipelineStageFlags.VertexInput | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader :
+                    IsShaderResource || IsUnorderedAccess ? VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader :
                     VkPipelineStageFlags.None;
 
                 if (ParentTexture != null)
