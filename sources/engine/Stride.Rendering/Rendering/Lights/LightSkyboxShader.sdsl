@@ -11,10 +11,10 @@ namespace Stride.Rendering.Lights
         {
             float4x4 SkyMatrix;
             float Intensity;
-            float AA;
-            float AB;
-            float AC;
-            float AD;
+            float Distance;
+            float Curve;
+            float FarMip;
+            float NearMip;
         }
 
         compose IComputeEnvironmentColor lightDiffuseColor;
@@ -59,15 +59,12 @@ namespace Stride.Rendering.Lights
             viewVector = float3(viewVector.xy, -viewVector.z);
 
             float dist = length(viewVector);
-            dist = Remap(0, AA, 0, 1, dist);
+            dist = Remap(0, Distance, 0, 1, dist);
+            dist = saturate(dist);
 
-            float curve = pow(dist, AB);
-            curve = saturate(curve);
-            float alpha = saturate(curve);
+            float curve = pow(dist, Curve);
             
-            float skyboxBlur = Remap(0, 1, 0, AC, dist);
-            skyboxBlur = saturate(skyboxBlur);
-            skyboxBlur = Remap(0, 1, AD, 0, skyboxBlur);
+            float skyboxBlur = Remap(0, 1, NearMip, FarMip, curve);
             
             float f = floor(skyboxBlur);
             float3 colorA = lightSpecularColor.Compute(viewVector, f).rgb;
@@ -75,7 +72,7 @@ namespace Stride.Rendering.Lights
 
             float4 fog;
             fog.rgb = lerp(colorA, colorB, frac(skyboxBlur));
-            fog.a = alpha;
+            fog.a = curve;
         
             return fog;
         }
