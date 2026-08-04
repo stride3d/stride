@@ -133,7 +133,7 @@ namespace Stride.Graphics.Tests
         }
 
 
-        [SkippableFact]
+        [Fact]
         public void RunTestPass2()
         {
             RunGameTest(new TestLambertPrefilteringSHPass2());

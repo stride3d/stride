@@ -65,7 +65,7 @@ public class TestUnorderedAccessOnlyTexture : GraphicTestGameBase
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ComputeShaderCanWriteToUnorderedAccessOnlyTexture()
     {
         RunGameTest(new TestUnorderedAccessOnlyTexture());

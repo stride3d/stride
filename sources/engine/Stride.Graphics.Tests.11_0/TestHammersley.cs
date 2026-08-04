@@ -80,7 +80,7 @@ namespace Stride.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [SkippableFact]
+        [Fact]
         public void RunImageLoad()
         {
             RunGameTest(new TestHammersley());
