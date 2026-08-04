@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
@@ -346,7 +347,7 @@ public partial class SpirvContext
         {
             BoolLiteral lit => $"{lit.Type}_{lit.Value}",
             IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
-            FloatLiteral lit => $"{lit.Type}_{lit.Value}",
+            FloatLiteral lit => $"{lit.Type}_{lit.Value.ToString(CultureInfo.InvariantCulture)}",
             _ => throw new NotImplementedException()
         });
         return result;

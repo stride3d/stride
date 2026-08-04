@@ -397,7 +397,7 @@ float4 main(vs_out input) : SV_TARGET {
                     });
 
                     // Also create the vertex and bind it right away
-                    var floatValues = parameter.Value.TrimStart('(').TrimEnd(')').Split(' ', StringSplitOptions.TrimEntries).Select(x => float.Parse(x)).ToArray();
+                    var floatValues = parameter.Value.TrimStart('(').TrimEnd(')').Split(' ', StringSplitOptions.TrimEntries).Select(x => float.Parse(x, NumberStyles.Float, CultureInfo.InvariantCulture)).ToArray();
                     bufferDesc = new BufferDesc
                     {
                         ByteWidth = (uint)(sizeof(float) * floatValues.Length), // up to 4 floats
@@ -948,17 +948,17 @@ float4 main(vs_out input) : SV_TARGET {
                 foreach (var comp in TestHeaderParser.SplitArgs(value))
                 {
                     if (type.Type == EffectParameterType.Float)
-                        *((float*)&cbufferDataPtr[offset + compIndex * sizeof(float)]) = float.Parse(comp, CultureInfo.InvariantCulture);
+                        *((float*)&cbufferDataPtr[offset + compIndex * sizeof(float)]) = float.Parse(comp, NumberStyles.Float, CultureInfo.InvariantCulture);
                     else if (type.Type == EffectParameterType.Int)
-                        *((int*)&cbufferDataPtr[offset + compIndex * sizeof(int)]) = int.Parse(comp, CultureInfo.InvariantCulture);
+                        *((int*)&cbufferDataPtr[offset + compIndex * sizeof(int)]) = int.Parse(comp, NumberStyles.Integer, CultureInfo.InvariantCulture);
                     compIndex++;
                 }
                 break;
             case { Type: EffectParameterType.Int }:
-                *((int*)&cbufferDataPtr[offset]) = int.Parse(value);
+                *((int*)&cbufferDataPtr[offset]) = int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
                 break;
             case { Type: EffectParameterType.Float }:
-                *((float*)&cbufferDataPtr[offset]) = float.Parse(value);
+                *((float*)&cbufferDataPtr[offset]) = float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
                 break;
             default:
                 throw new NotImplementedException();
