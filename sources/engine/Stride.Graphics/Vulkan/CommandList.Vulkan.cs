@@ -1242,6 +1242,23 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        ///   Resolves a subresource index into the Vulkan subresource layers it addresses.
+        /// </summary>
+        /// <param name="texture">The Texture the index refers to.</param>
+        /// <param name="imageAspect">The image aspect to select.</param>
+        /// <param name="subresourceIndex">
+        ///   The subresource index, encoded as <c>arraySlice * MipLevelCount + mipLevel</c>
+        ///   (see <see cref="Texture.GetSubResourceIndex"/>).
+        /// </param>
+        private static VkImageSubresourceLayers GetSubresourceLayers(Texture texture, VkImageAspectFlags imageAspect, int subresourceIndex)
+        {
+            return new VkImageSubresourceLayers(imageAspect,
+                                                mipLevel: (uint) (subresourceIndex % texture.MipLevelCount),
+                                                baseArrayLayer: (uint) (subresourceIndex / texture.MipLevelCount),
+                                                layerCount: 1);
+        }
+
         public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
             RecordDebugCounter(DebugCounterKind.Copy);
@@ -1307,8 +1324,7 @@ namespace Stride.Graphics
                             bufferOffset = (ulong)destinationTexture.ComputeBufferOffset(destinationSubResource, 0),
                             bufferImageHeight = (uint)destinationTexture.Height,
                             bufferRowLength = (uint)destinationTexture.Width,
-                            // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
-                            imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
+                            imageSubresource = GetSubresourceLayers(sourceTexture, sourceParent.NativeImageAspect, sourceSubresource),
                             imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             imageExtent = new VkExtent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front))
                         };
@@ -1322,8 +1338,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
-                    var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint) destinationTexture.MipLevel, (uint) destinationTexture.ArraySlice, (uint) destinationTexture.ArraySize);
+                    var destinationSubresource = GetSubresourceLayers(destinationTexture, destinationParent.NativeImageAspect, destinationSubResource);
 
                     if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                     {
@@ -1346,7 +1361,7 @@ namespace Stride.Graphics
                     {
                         var copy = new VkImageCopy
                         {
-                            srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) sourceTexture.MipLevel, (uint) sourceTexture.ArraySlice, (uint) sourceTexture.ArraySize),
+                            srcSubresource = GetSubresourceLayers(sourceTexture, sourceParent.NativeImageAspect, sourceSubresource),
                             srcOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             dstSubresource = destinationSubresource,
                             dstOffset = new VkOffset3D(dstX, dstY, dstZ),
