@@ -167,9 +167,9 @@ public partial class SpirvContext
             // SampledType stores the full return type (e.g. float4, not just float) so that
             // Texture<float> and Texture<float4> produce structurally distinct OpTypeImage during merge.
             // ShaderMixer normalizes SampledType back to scalar before final SPIR-V emission.
-            // The element type must not be used to infer a storage image format: RWTexture2D<float4>
-            // binds equally to R8G8B8A8_UNorm or R32G32B32A32_Float, and the view decides. Leaving the
-            // format Unknown makes ShaderMixer request StorageImage{Read,Write}WithoutFormat instead.
+            // Do not infer a storage image format from the element type. The view decides it:
+            // RWTexture2D<float4> binds equally to R8G8B8A8_UNorm and R32G32B32A32_Float. An
+            // Unknown format makes ShaderMixer request StorageImage{Read,Write}WithoutFormat.
             Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,

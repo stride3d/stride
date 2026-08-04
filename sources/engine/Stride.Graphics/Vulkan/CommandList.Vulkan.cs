@@ -1245,8 +1245,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Resolves a subresource index into the Vulkan subresource layers it addresses.
         /// </summary>
-        /// <param name="texture">The Texture the index refers to.</param>
-        /// <param name="imageAspect">The image aspect to select.</param>
         /// <param name="subresourceIndex">
         ///   The subresource index, encoded as <c>arraySlice * MipLevelCount + mipLevel</c>
         ///   (see <see cref="Texture.GetSubResourceIndex"/>).
