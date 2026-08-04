@@ -91,15 +91,30 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
     }
 
-    // SPIR-V allows implicit-LOD sampling only in Fragment/GLCompute/Mesh/Task.
+    // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
+    // fails later, deep inside the HLSL legalizer.
     [Fact]
-    public void TextureSampleInVertexStageUsesExplicitLod()
+    public void TextureSampleOutsideFragmentStageIsReported()
     {
         var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
         var shaderMixer = new ShaderMixer(loader);
 
         var log = new Stride.Core.Diagnostics.LoggerResult();
-        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("VSTextureSample"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("VSTextureSample"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("VSTextureSample.sdsl(14,") && m.Text.Contains("implicit level of detail")
+            && m.Text.Contains("SampleLevel") && m.Text.Contains("Vertex"));
+    }
+
+    [Fact]
+    public void TextureSampleInFragmentStageCompiles()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("PSTextureSample"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
             string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
 
         var validation = Spv.ValidateBinary(bytecode);
