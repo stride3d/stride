@@ -1,0 +1,23 @@
+// PSMain is the control: the pixel stage must keep implicit LOD.
+namespace Stride.Shaders.Tests;
+
+shader VSTextureSample
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    stage Texture2D Texture0;
+    stage SamplerState Sampler0;
+
+    void VSMain()
+    {
+        float height = Texture0.Sample(Sampler0, float2(0.5, 0.5)).r;
+        streams.ShadingPosition = float4(streams.Position.x, height, streams.Position.z, streams.Position.w);
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = Texture0.Sample(Sampler0, float2(0.5, 0.5));
+    }
+}

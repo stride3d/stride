@@ -89,6 +89,21 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
     }
 
+    // SPIR-V allows implicit-LOD sampling only in Fragment/GLCompute/Mesh/Task.
+    [Fact]
+    public void TextureSampleInVertexStageUsesExplicitLod()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("VSTextureSample"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+    }
+
     // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
     // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
     // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
