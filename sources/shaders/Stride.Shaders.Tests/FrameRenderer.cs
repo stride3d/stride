@@ -33,10 +33,10 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]?
                 }
                 break;
             case { Type: EffectParameterType.Int }:
-                *((int*)&cbufferDataPtr[offset]) = int.Parse(value);
+                *((int*)&cbufferDataPtr[offset]) = int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
                 break;
             case { Type: EffectParameterType.Float }:
-                *((float*)&cbufferDataPtr[offset]) = float.Parse(value);
+                *((float*)&cbufferDataPtr[offset]) = float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
                 break;
             default:
                 throw new NotImplementedException();

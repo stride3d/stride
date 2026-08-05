@@ -1,3 +1,4 @@
+using System.Globalization;
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -27,7 +28,7 @@ internal static class BuiltinProcessor
     public static bool AddLocation(SpirvContext context, int variable, string location)
     {
         // If it fails, default is 0
-        int.TryParse(location, out var targetIndex);
+        int.TryParse(location, NumberStyles.Integer, CultureInfo.InvariantCulture, out var targetIndex);
         context.Add(new OpDecorate(variable, Decoration.Location, [targetIndex]));
         return true;
     }
