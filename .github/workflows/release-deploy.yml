@@ -137,10 +137,10 @@ jobs:
           }
 
           $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
-          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters')
-          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks')
+          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
           $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
-          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
 
           echo "::group::Pushing main packages ($($main.Count))"
           foreach ($pkg in $main) {
@@ -150,7 +150,7 @@ jobs:
           echo "::endgroup::"
 
           if ($contentVersioned) {
-            echo "::group::Pushing content-versioned template packages (Samples, Starters)"
+            echo "::group::Pushing content-versioned template packages (Samples, Starters, AssetPacks)"
             foreach ($pkg in $contentVersioned) {
               $id = $contentVersionedIds | Where-Object { $pkg.Name.StartsWith($_ + '.') } | Select-Object -First 1
               if ($id -and (Test-NuGetPublished $id $pkg.BaseName.Substring($id.Length + 1))) {

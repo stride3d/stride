@@ -118,6 +118,17 @@ public class PackageStore
     }
 
     /// <summary>
+    /// Fetches (if needed) and installs <paramref name="packageName"/> at <paramref name="version"/>
+    /// into the local package store, from the configured NuGet sources. Returns the installed
+    /// package, or null when it could not be resolved (e.g. offline and not cached).
+    /// </summary>
+    public Task<NugetLocalPackage?> InstallPackage(string packageName, PackageVersion version, ProgressReport? progress = null)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        return store.InstallPackage(packageName, version, [], progress);
+    }
+
+    /// <summary>
     /// Gets the default package manager.
     /// </summary>
     /// <value>A default instance.</value>

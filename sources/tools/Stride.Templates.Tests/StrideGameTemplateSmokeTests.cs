@@ -9,7 +9,8 @@ namespace Stride.Templates.Tests;
 
 /// <summary>
 /// End-to-end smoke for the Stride template packages: dotnet pack → dotnet new install →
-/// dotnet new <c>&lt;template&gt;</c> for each of stride-game, stride-fps, stride-csharp-beginner.
+/// dotnet new <c>&lt;template&gt;</c> for each of stride-game, stride-fps, stride-csharp-beginner,
+/// plus the stride-pack-buildingblocks asset pack instantiated into the generated blank game.
 /// Validates that the orchestrator output and the packed nupkg shape produce instantiable
 /// projects through the dotnet new template engine. A subsequent <c>dotnet restore</c> isn't
 /// run — it'd need <see cref="Stride"/>.Engine in bin/packages or on nuget.org, neither of
@@ -33,17 +34,21 @@ public class StrideGameTemplateSmokeTests
             $"Expected bin/packages/ to exist at {enginePackagesDir}. Build the engine first " +
             "(any normal test run does this transitively).");
 
-        // Covers all three preprocessor variants:
+        // Covers all preprocessor variants:
         //   - blank game (Stride.Templates.Games → stride-game): NewGame body, no sample-derived steps
         //   - starter (Stride.Templates.Games.Starters → stride-fps): full preprocessor incl. dep
         //     collapse / asset prune / source-name rename
         //   - sample (Stride.Templates.Samples → stride-csharp-beginner): same preprocessor flow as
         //     starters but smaller asset set
+        //   - asset pack (Stride.Templates.AssetPacks → stride-pack-buildingblocks): item-template
+        //     variant, validated separately by instantiating into the blank game (no project of
+        //     its own, so it's excluded from the InstantiateAndValidate loop below)
         var packagesToPack = new[]
         {
             ("Stride.Templates.Games",          "stride-game",            "SmokeBlankGame"),
             ("Stride.Templates.Games.Starters", "stride-fps",             "SmokeFps"),
             ("Stride.Templates.Samples",        "stride-csharp-beginner", "SmokeTutorial"),
+            ("Stride.Templates.AssetPacks",     "",                       ""),
         };
         var nupkgs = new List<string>();
         foreach (var (packageId, _, _) in packagesToPack)
@@ -91,9 +96,14 @@ public class StrideGameTemplateSmokeTests
             try
             {
                 foreach (var (_, shortName, projectName) in packagesToPack)
+                {
+                    if (shortName.Length == 0)
+                        continue;
                     InstantiateAndValidate(workspace, templateShortName: shortName, projectName: projectName);
+                }
 
                 InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
+                InstantiateAssetPackAndValidate(workspace, gameProjectName: "SmokeBlankGame");
             }
             finally
             {
@@ -162,6 +172,34 @@ public class StrideGameTemplateSmokeTests
         Assert.False(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Game")),
             $"updateOnly must not regenerate the shared game library {projectName}.Game/ (issue #3262)");
         Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+    }
+
+    /// <summary>
+    /// Instantiates an asset-pack item template (Building blocks) into the game library of the
+    /// blank game generated earlier, the way GameStudio / the stride CLI chain packs after
+    /// stride-game. Validates the pack's Assets/ + Resources/ landed in the project and that no
+    /// template-engine machinery (.template.config) leaked into it.
+    /// </summary>
+    private void InstantiateAssetPackAndValidate(string workspace, string gameProjectName)
+    {
+        var gameDir = Path.Combine(workspace, gameProjectName);
+        var libraryDir = Path.Combine(gameDir, gameProjectName);
+        if (!Directory.Exists(libraryDir))
+            libraryDir = Path.Combine(gameDir, $"{gameProjectName}.Game");
+        Assert.True(Directory.Exists(libraryDir), $"Game library dir missing under {gameDir}");
+
+        var newResult = RunDotnet(libraryDir, "new", "stride-pack-buildingblocks");
+        Assert.True(newResult.exitCode == 0, $"dotnet new stride-pack-buildingblocks failed:\n{newResult.output}");
+
+        Assert.True(File.Exists(Path.Combine(libraryDir, "Assets", "BlocksScene.sdscene")),
+            "Asset pack did not drop its Assets/ content into the game library");
+        Assert.True(File.Exists(Path.Combine(libraryDir, "Resources", "Models", "Box1x1x1.fbx")),
+            "Asset pack did not drop its Resources/ content into the game library");
+        // Pack content must merge with, not replace, the game's own assets.
+        Assert.True(Directory.EnumerateFiles(Path.Combine(libraryDir, "Assets"), "GameSettings.sdgamesettings").Any(),
+            "Game's own assets disappeared after adding the asset pack");
+        Assert.False(Directory.Exists(Path.Combine(libraryDir, ".template.config")),
+            "Template-engine machinery (.template.config) leaked into the game library");
     }
 
     private static string? FindNupkg(string dir, string packageId)

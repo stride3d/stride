@@ -95,6 +95,14 @@
     <ProjectReference Include="..\..\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
       <Private>false</Private>
     </ProjectReference>
+    <!-- Build-ordering only (no nuspec dependency): asset packs are fetched on demand by the New
+         Game dialog, not pulled at install time. The reference just makes a dev GameStudio build
+         produce the .nupkg so the packs show up locally. -->
+    <ProjectReference Include="..\..\templates\Stride.Templates.AssetPacks\Stride.Templates.AssetPacks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">

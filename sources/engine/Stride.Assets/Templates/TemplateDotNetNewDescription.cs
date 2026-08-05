@@ -26,4 +26,12 @@ public class TemplateDotNetNewDescription : TemplateDescription
     /// and tools that need to look up a template by a stable human-readable name.
     /// </summary>
     public string TemplateShortName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True when the template's <c>.sdtpl</c> opts into the asset-packs step (an
+    /// <c>assetPacks</c> entry in its <c>Parameters</c> list): the parameter dialog then offers
+    /// the <c>Stride.Templates.AssetPacks</c> item templates as checkboxes, and each selected
+    /// pack is instantiated into the generated game library after the main template.
+    /// </summary>
+    public bool OffersAssetPacks { get; set; }
 }

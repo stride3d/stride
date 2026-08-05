@@ -190,6 +190,7 @@
   </Folder>
   <Folder Name="/72-StrideSamples.Templates/">
     <Project Path="../sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj" />
+    <Project Path="../sources/templates/Stride.Templates.AssetPacks/Stride.Templates.AssetPacks.csproj" />
     <Project Path="../sources/templates/Stride.Templates.Games.Starters/Stride.Templates.Games.Starters.csproj" />
     <Project Path="../sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj" />
     <Project Path="../sources/templates/Stride.Templates.Samples/Stride.Templates.Samples.csproj" />
