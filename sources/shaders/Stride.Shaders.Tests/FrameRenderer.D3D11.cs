@@ -18,15 +18,12 @@ namespace Stride.Shaders.Parsers.Tests;
 
 
 
-public class D3D11FrameRenderer(uint width = 800, uint height = 600, byte[]? fragmentSpirv = null, byte[]? vertexSpirv = null) : FrameRenderer(width, height, vertexSpirv, fragmentSpirv)
+public class D3D11FrameRenderer(uint width = 800, uint height = 600) : FrameRenderer(width, height)
 {
     IWindow? window;
     DXGI dxgi = null!;
     D3D11 d3d11 = null!;
     D3DCompiler compiler = null!;
-
-    uint width = width;
-    uint height = height;
 
     ComPtr<IDXGIFactory2> factory = default;
     ComPtr<IDXGISwapChain1> swapchain = default;
@@ -41,8 +38,6 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600, byte[]? fra
     ComPtr<ID3D11PixelShader> pixelShader = default;
     ComPtr<ID3D11ComputeShader> computeShader = default;
     ComPtr<ID3D11InputLayout> inputLayout = default;
-
-    byte[]? fragmentSpirv = fragmentSpirv;
 
     //Vertex shaders are run on each vertex.
     public string VertexShaderSource = @"
@@ -104,8 +99,6 @@ float4 main(vs_out input) : SV_TARGET {
             1, 2, 3
     ];
 
-    public EffectReflection EffectReflection { get; set; }
-
     public unsafe ComPtr<ID3D10Blob> CompileShader(string shaderModel, string source)
     {
         ComPtr<ID3D10Blob> code = default;
@@ -144,7 +137,7 @@ float4 main(vs_out input) : SV_TARGET {
         return code;
     }
 
-    public unsafe void SetupTest()
+    public override unsafe void SetupTest()
     {
         var options = WindowOptions.Default;
         options.Size = new Vector2D<int>((int)width, (int)height);
@@ -160,25 +153,47 @@ float4 main(vs_out input) : SV_TARGET {
         compiler = D3DCompiler.GetApi();
 
         // Create our D3D11 logical device.
-        SilkMarshal.ThrowHResult
-        (
-            d3d11.CreateDevice
-            (
-                default(ComPtr<IDXGIAdapter>),
-                D3DDriverType.Hardware,
-                Software: default,
-                (uint)CreateDeviceFlag.Debug,
-                null,
-                0,
-                D3D11.SdkVersion,
-                ref device,
-                null,
-                ref deviceContext
-            )
-        );
+        // WARP when software rendering is requested (the default unless STRIDE_TESTS_GPU=1, see Module),
+        // otherwise hardware with WARP as fallback. The Debug flag requires the D3D11 SDK layers
+        // which may not be installed, so retry each driver type without it.
+        var driverTypes = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1"
+            ? new[] { D3DDriverType.Warp }
+            : new[] { D3DDriverType.Hardware, D3DDriverType.Warp };
+        int hr = 0;
+        var created = false;
+        var debugEnabled = false;
+        foreach (var driverType in driverTypes)
+        {
+            foreach (var flags in new[] { CreateDeviceFlag.Debug, default(CreateDeviceFlag) })
+            {
+                hr = d3d11.CreateDevice
+                (
+                    default(ComPtr<IDXGIAdapter>),
+                    driverType,
+                    Software: default,
+                    (uint)flags,
+                    null,
+                    0,
+                    D3D11.SdkVersion,
+                    ref device,
+                    null,
+                    ref deviceContext
+                );
+                if (hr >= 0)
+                {
+                    created = true;
+                    debugEnabled = flags == CreateDeviceFlag.Debug;
+                    break;
+                }
+            }
+            if (created)
+                break;
+        }
+        if (!created)
+            SilkMarshal.ThrowHResult(hr);
 
         cts = new CancellationTokenSource();
-        if (OperatingSystem.IsWindows())
+        if (debugEnabled && OperatingSystem.IsWindows())
         {
             // Log debug messages for this device (given that we've enabled the debug flag). Don't do this in release code!
             infoQueueTask = device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)), cts.Token);
@@ -248,7 +263,7 @@ float4 main(vs_out input) : SV_TARGET {
         }
     }
 
-    public void PresentAndFinish()
+    public override void PresentAndFinish()
     {
         // Present the drawn image.
         swapchain.Present(1, 0);
@@ -261,7 +276,7 @@ float4 main(vs_out input) : SV_TARGET {
         window.Dispose();
     }
 
-    public unsafe void Compute()
+    public override unsafe void Compute()
     {
         ComPtr<ID3D10Blob> computeCode = CompileShader("cs_5_0", ComputeShaderSource);
 
@@ -452,7 +467,7 @@ float4 main(vs_out input) : SV_TARGET {
             deviceContext.DSSetShader(domainShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
     }
 
-    public unsafe void RenderFrame(Span<byte> result)
+    public override unsafe void RenderFrame(Span<byte> result)
     {
         CompileAndSetupPipeline(out var vertexCode, out var geometryCode, out var hullCode, out var domainCode);
 
@@ -736,43 +751,16 @@ float4 main(vs_out input) : SV_TARGET {
     private unsafe void ApplyParameters()
     {
         BufferDesc bufferDesc;
-        foreach (var param in Parameters)
+        foreach (var (resourceReflection, resourceType, value) in MatchResourceParameters())
         {
-            var dotIndex = param.Key.IndexOf(".");
-            if (dotIndex == -1)
-                continue;
-
-            var resourceType = param.Key.Substring(0, dotIndex);
-            if (resourceType != "cbuffer" && resourceType != "texture" && resourceType != "buffer")
-                continue;
-
-            var resourceName = param.Key.Substring(dotIndex + 1);
-            var resourceReflection = EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
-
             if (resourceType == "cbuffer")
             {
-                Shaders.EffectConstantBufferDescription cbReflection = null;
-                foreach (var group in EffectReflection.ResourceGroups)
-                    if (group.ConstantBuffer?.Name == resourceName)
-                    { cbReflection = group.ConstantBuffer; break; }
-                cbReflection ??= EffectReflection.ConstantBuffers.Single(x => x.Name == resourceName);
-                var cbufferData = new byte[cbReflection.Size];
-                foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
-                {
-                    var cbMemberReflection = cbReflection.Members.Single(x => x.KeyInfo.KeyName.EndsWith(cbufferParameter.Key));
+                var cbufferData = BuildCBufferData(resourceReflection.RawName, value);
 
-                    fixed (byte* cbufferDataPtr = cbufferData)
-                    {
-                        FillData(cbufferParameter.Value, cbMemberReflection.Type, cbMemberReflection.Offset, cbufferDataPtr);
-                    }
-                }
-
-                // Create cbuffer
-                // Create our vertex buffer.
                 ComPtr<ID3D11Buffer> cbuffer = default;
                 bufferDesc = new BufferDesc
                 {
-                    ByteWidth = (uint)cbReflection.Size,
+                    ByteWidth = (uint)cbufferData.Length,
                     Usage = Usage.Default,
                     BindFlags = (uint)BindFlag.ConstantBuffer,
                 };
@@ -795,10 +783,8 @@ float4 main(vs_out input) : SV_TARGET {
             }
             else if (resourceType == "buffer")
             {
-                var color = ParseColor(param.Value);
+                var color = ParseColor(value);
 
-                // Create cbuffer
-                // Create our vertex buffer.
                 ComPtr<ID3D11Buffer> buffer = default;
                 bufferDesc = new BufferDesc
                 {
@@ -852,7 +838,7 @@ float4 main(vs_out input) : SV_TARGET {
             }
             else if (resourceType == "texture")
             {
-                var color = ParseColor(param.Value);
+                var color = ParseColor(value);
 
                 var textureDesc = new Texture2DDesc
                 {
@@ -919,49 +905,6 @@ float4 main(vs_out input) : SV_TARGET {
                 deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
             }
-        }
-    }
-
-    private static unsafe void FillData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
-    {
-        switch (type)
-        {
-            case { Elements: > 1 }:
-                int index = 0;
-                var arrayStride = (type.ElementSize + 15) / 16 * 16;
-                foreach (var elementValue in TestHeaderParser.SplitArgs(value))
-                {
-                    FillData(elementValue, type with { Elements = 1 }, offset + arrayStride * index, cbufferDataPtr);
-                    index++;
-                }
-                break;
-            case { Class: EffectParameterClass.Struct }:
-                var structParameters = TestHeaderParser.ParseParameters(value);
-                foreach (var member in type.Members)
-                {
-                    if (structParameters.TryGetValue(member.Name, out var memberValue))
-                        FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
-                }
-                break;
-            case { Class: EffectParameterClass.Vector }:
-                int compIndex = 0;
-                foreach (var comp in TestHeaderParser.SplitArgs(value))
-                {
-                    if (type.Type == EffectParameterType.Float)
-                        *((float*)&cbufferDataPtr[offset + compIndex * sizeof(float)]) = float.Parse(comp, NumberStyles.Float, CultureInfo.InvariantCulture);
-                    else if (type.Type == EffectParameterType.Int)
-                        *((int*)&cbufferDataPtr[offset + compIndex * sizeof(int)]) = int.Parse(comp, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                    compIndex++;
-                }
-                break;
-            case { Type: EffectParameterType.Int }:
-                *((int*)&cbufferDataPtr[offset]) = int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                break;
-            case { Type: EffectParameterType.Float }:
-                *((float*)&cbufferDataPtr[offset]) = float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
-                break;
-            default:
-                throw new NotImplementedException();
         }
     }
 }

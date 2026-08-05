@@ -2,7 +2,6 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideBuildTags>*</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -26,16 +25,29 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Silk.NET.Input" />
-    <PackageReference Include="Silk.NET.Vulkan" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" />
+    <!-- Vulkan test renderer uses Vortice, like the engine's Vulkan backend -->
+    <PackageReference Include="Vortice.Vulkan" />
     <PackageReference Include="Silk.NET.Direct3D11" />
+    <!-- Direct reference so Vulkan-only builds keep the DLL (Stride's graphics API filter strips
+         it as D3D-only otherwise); xunit v3 discovery force-loads it through GetExportedTypes
+         because FrameRenderer.D3D11 exposes DXGI types. -->
+    <PackageReference Include="Silk.NET.DXGI" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
     <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" />
+    <!-- Software Vulkan for GPU-less CI runners and reproducible rasterization (see Module) -->
+    <PackageReference Include="Stride.Dependencies.Lavapipe" />
+    <!-- Pin WARP to a fixed version side-loaded next to the test host, for reproducible
+         rasterization across CI/dev (same as Stride.Graphics.Regression). Windows-only. -->
+    <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true"
+                      Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <Content Include="$(PkgMicrosoft_Direct3D_WARP)\build\native\bin\x64\d3d10warp.dll"
+             Condition="'$(PkgMicrosoft_Direct3D_WARP)' != ''"
+             Link="d3d10warp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
@@ -43,6 +55,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <StrideShaderFiles Include="..\assets\SDSL\Common\**" LinkBase="assets\SDSL\Common\" />
+    <Content Include="..\assets\SDSL\Common\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\Common\" />
     <StrideShaderFiles Include="..\assets\SDSL\CompilerTests\**" LinkBase="assets\SDSL\CompilerTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" LinkBase="assets\SDSL\RenderTests\" />
     <StrideShaderFiles Include="..\assets\SDSL\ComputeTests\**" LinkBase="assets\SDSL\ComputeTests\" />

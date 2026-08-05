@@ -25,6 +25,8 @@ public class StrideShaderTests
     [Fact]
     public void MultidimensionalArrayDimensionsKeepDeclarationOrder()
     {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
         var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
         var shaderMixer = new ShaderMixer(loader);
         shaderMixer.ShaderLoader.LoadExternalBuffer("ArrayDims3D", [], out _, out _, out _);
@@ -733,12 +735,15 @@ new ShaderMacro("class", "shader"),
         var validationResult = Spv.ValidateFile($"{shaderName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
-        var entryPoints = translator.GetEntryPoints();
-        foreach (var entryPoint in entryPoints)
+        if (SpirvCrossSupport.Available)
         {
-            var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
-            Console.WriteLine(hlsl);
+            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            var entryPoints = translator.GetEntryPoints();
+            foreach (var entryPoint in entryPoints)
+            {
+                var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+                Console.WriteLine(hlsl);
+            }
         }
     }
 }
