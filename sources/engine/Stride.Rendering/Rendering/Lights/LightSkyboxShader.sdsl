@@ -13,6 +13,7 @@ namespace Stride.Rendering.Lights
             float Intensity;
             float Distance;
             float Curve;
+            float CurveMip;
             float FarMip;
             float NearMip;
         }
@@ -61,18 +62,12 @@ namespace Stride.Rendering.Lights
             float dist = length(viewVector);
             dist = Remap(0, Distance, 0, 1, dist);
             dist = saturate(dist);
-
-            float curve = pow(dist, Curve);
             
-            float skyboxBlur = Remap(0, 1, NearMip, FarMip, curve);
-            
-            float f = floor(skyboxBlur);
-            float3 colorA = lightSpecularColor.Compute(viewVector, f).rgb;
-            float3 colorB = lightSpecularColor.Compute(viewVector, f+1).rgb;
+            float skyboxMip = Remap(0, 1, NearMip, FarMip, pow(dist, CurveMip));
 
             float4 fog;
-            fog.rgb = lerp(colorA, colorB, frac(skyboxBlur));
-            fog.a = curve;
+            fog.rgb = lightSpecularColor.Compute(viewVector, skyboxMip).rgb;
+            fog.a = pow(dist, Curve);
         
             return fog;
         }

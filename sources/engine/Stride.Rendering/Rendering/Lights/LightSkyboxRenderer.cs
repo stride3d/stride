@@ -85,6 +85,7 @@ namespace Stride.Rendering.Lights
             private ValueParameterKey<float> intensityKey;
             private ValueParameterKey<float> distanceKey;
             private ValueParameterKey<float> curveKey;
+            private ValueParameterKey<float> curveMipKey;
             private ValueParameterKey<float> farMipKey;
             private ValueParameterKey<float> nearMipKey;
             private ValueParameterKey<Matrix> skyMatrixKey;
@@ -108,6 +109,7 @@ namespace Stride.Rendering.Lights
                 intensityKey = LightSkyboxShaderKeys.Intensity.ComposeWith(compositionName);
                 distanceKey = LightSkyboxShaderKeys.Distance.ComposeWith(compositionName);
                 curveKey = LightSkyboxShaderKeys.Curve.ComposeWith(compositionName);
+                curveMipKey = LightSkyboxShaderKeys.CurveMip.ComposeWith(compositionName);
                 farMipKey = LightSkyboxShaderKeys.FarMip.ComposeWith(compositionName);
                 nearMipKey = LightSkyboxShaderKeys.NearMip.ComposeWith(compositionName);
                 skyMatrixKey = LightSkyboxShaderKeys.SkyMatrix.ComposeWith(compositionName);
@@ -144,6 +146,7 @@ namespace Stride.Rendering.Lights
                 var intensity = Light.Intensity;
                 var distance = lightSkybox.Distance;
                 var curve = lightSkybox.Curve;
+                var curveMip = lightSkybox.CurveMip;
                 var nearMip = lightSkybox.NearMip;
                 var farMip = lightSkybox.FarMip;
 
@@ -163,6 +166,7 @@ namespace Stride.Rendering.Lights
                 parameters.Set(intensityKey, intensity);
                 parameters.Set(distanceKey, distance);
                 parameters.Set(curveKey, curve);
+                parameters.Set(curveMipKey, curveMip);
                 parameters.Set(nearMipKey, nearMip);
                 parameters.Set(farMipKey, farMip);
                 parameters.Set(skyMatrixKey, skyMatrix);
