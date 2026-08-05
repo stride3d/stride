@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
@@ -117,6 +116,7 @@ public sealed partial class ContentManager : IContentManager
     /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default" />.</param>
     /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
     /// <returns>The loaded content.</returns>
+    /// <exception cref="ContentManagerException">The asset or one of its referenced assets could not be found. Use <see cref="Exists"/> to check for optional content.</exception>
     public T Load<T>(string url, ContentManagerLoaderSettings? settings = null) where T : class
     {
         return (T)Load(typeof(T), url, settings);
@@ -131,6 +131,7 @@ public sealed partial class ContentManager : IContentManager
     /// <returns>The loaded content.</returns>
     /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
     /// <exception cref="ArgumentNullException">url</exception>
+    /// <exception cref="ContentManagerException">The asset or one of its referenced assets could not be found. Use <see cref="Exists"/> to check for optional content.</exception>
     public object Load(Type type, string url, ContentManagerLoaderSettings? settings = null)
     {
         settings ??= ContentManagerLoaderSettings.Default;
@@ -393,10 +394,7 @@ public sealed partial class ContentManager : IContentManager
     internal ChunkHeader? ReadChunkHeader(string url)
     {
         if (!FileProvider.FileExists(url))
-        {
-            HandleAssetNotFound(url);
-            return null;
-        }
+            ThrowAssetNotFound(url);
 
         using var stream = FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read);
         // File does not exist
@@ -433,10 +431,7 @@ public sealed partial class ContentManager : IContentManager
         }
 
         if (!FileProvider.FileExists(url))
-        {
-            HandleAssetNotFound(url);
-            return null;
-        }
+            ThrowAssetNotFound(url);
 
         ContentSerializerContext contentSerializerContext;
         object result;
@@ -666,12 +661,12 @@ public sealed partial class ContentManager : IContentManager
     }
 
     /// <summary>
-    /// Notify debugger and logging when an asset could not be found.
+    /// Logs and throws when an asset could not be found, suggesting close URL matches when any exist.
     /// </summary>
     /// <param name="url">The URL.</param>
-    /// <exception cref="ContentManagerException">Asset could not be found.</exception>
-    // TODO: Replug this when an asset is not found?
-    private void HandleAssetNotFound(string url)
+    /// <exception cref="ContentManagerException">Always thrown: the asset could not be found.</exception>
+    [DoesNotReturn]
+    private void ThrowAssetNotFound(string url)
     {
         var errorMessage = $"The asset '{url}' could not be found. Asset path should be 'MyFolder/MyAssetName', or '/PackageName/MyFolder/MyAssetName' for an asset from a namespaced package. Check that the path is correct and that the asset has been included into the build.";
 
@@ -727,19 +722,7 @@ public sealed partial class ContentManager : IContentManager
                 && rooted[0] == '/';
         }
 
-        // If a debugger is attached, throw an exception (we do that instead of Debugger.Break so that user can easily ignore this specific type of exception)
-        if (Debugger.IsAttached)
-        {
-            try
-            {
-                throw new ContentManagerException(errorMessage);
-            }
-            catch (ContentManagerException)
-            {
-            }
-        }
-
-        // Log error
         Log.Error(errorMessage);
+        throw new ContentManagerException(errorMessage);
     }
 }

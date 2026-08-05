@@ -15,10 +15,6 @@ namespace Stride.Graphics.Tests
 {
     public class TestFixedSizeUI : GraphicTestGameBase
     {
-
-        private SpriteFont arial16;
-
-
         public TestFixedSizeUI()
         {
         }
@@ -104,21 +100,20 @@ namespace Stride.Graphics.Tests
 
             Window.AllowUserResizing = true;
 
-            arial16 = Content.Load<SpriteFont>("DynamicFonts/Arial16");
-
             // Instantiate a scene with a single entity and model component
             var scene = new Scene();
 
+            // No font: the baseline images are captured with label text not rendered
             // Fixed size
-            scene.Entities.Add(GetUIEntity(arial16, true, new Vector3(0, 0, 4)));
-            scene.Entities.Add(GetUIEntity(arial16, true, new Vector3(-2, 1, 0)));
-            scene.Entities.Add(GetUIEntity(arial16, true, new Vector3(2, 2, -2)));
-            scene.Entities.Add(GetUIEntity(arial16, true, new Vector3(0, 1, 0)));
-            scene.Entities.Add(GetUIEntity(arial16, true, new Vector3(0, 2, -2)));
+            scene.Entities.Add(GetUIEntity(null, true, new Vector3(0, 0, 4)));
+            scene.Entities.Add(GetUIEntity(null, true, new Vector3(-2, 1, 0)));
+            scene.Entities.Add(GetUIEntity(null, true, new Vector3(2, 2, -2)));
+            scene.Entities.Add(GetUIEntity(null, true, new Vector3(0, 1, 0)));
+            scene.Entities.Add(GetUIEntity(null, true, new Vector3(0, 2, -2)));
 
-            scene.Entities.Add(GetUIEntity(arial16, false, new Vector3(0, -0.3f, 4)));
-            scene.Entities.Add(GetUIEntity(arial16, false, new Vector3(-2, 0, 0)));
-            scene.Entities.Add(GetUIEntity(arial16, false, new Vector3(2, 1, -2)));
+            scene.Entities.Add(GetUIEntity(null, false, new Vector3(0, -0.3f, 4)));
+            scene.Entities.Add(GetUIEntity(null, false, new Vector3(-2, 0, 0)));
+            scene.Entities.Add(GetUIEntity(null, false, new Vector3(2, 1, -2)));
 
             // Use this graphics compositor
             SceneSystem.GraphicsCompositor = GraphicsCompositorHelper.CreateDefault(false, graphicsProfile: GraphicsProfile.Level_9_1);
