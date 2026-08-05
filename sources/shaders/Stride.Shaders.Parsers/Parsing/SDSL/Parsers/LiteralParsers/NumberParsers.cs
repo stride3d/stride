@@ -34,13 +34,13 @@ public struct NumberParser : IParser<Literal>
             var numPos = scanner.Position;
             if (suffix.Match(ref scanner, null!, out Suffix suf))
             {
-                parsed = new IntegerLiteral(suf, long.Parse(scanner.Span[position..numPos]), scanner[position..scanner.Position]);
+                parsed = new IntegerLiteral(suf, long.Parse(scanner.Span[position..numPos], CultureInfo.InvariantCulture), scanner[position..scanner.Position]);
                 return true;
             }
             else
             {
                 var memory = scanner.Memory[position..scanner.Position];
-                parsed = new IntegerLiteral(new(32, false, true), long.Parse(memory.Span), new(scanner.Memory, position..scanner.Position));
+                parsed = new IntegerLiteral(new(32, false, true), long.Parse(memory.Span, CultureInfo.InvariantCulture), new(scanner.Memory, position..scanner.Position));
                 return true;
             }
         }
