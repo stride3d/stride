@@ -82,6 +82,6 @@ dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseVersion   # finaliz
 **Template package versions** ([`Stride.Templates.Common.targets`](../../sources/templates/Stride.Templates.Common.targets)):
 
 - `Stride.Templates.Games` (NewGame + Library) → **engine-versioned** (`$(StrideNuGetVersion)`), always rebuilt and pushed (small).
-- `Stride.Templates.Samples` + `Stride.Templates.Games.Starters` → **content-versioned** at the committed `StrideSamplesVersion` ([`StrideSamplesVersion.props`](../../sources/templates/StrideSamplesVersion.props)); they only change (and re-publish) when the samples are actually bumped. The GameStudio bridge resolves the highest published version `<=` the engine version for these.
+- `Stride.Templates.Samples` + `Stride.Templates.Games.Starters` + `Stride.Templates.AssetPacks` → **content-versioned** at the committed `StrideSamplesVersion` ([`StrideSamplesVersion.props`](../../sources/templates/StrideSamplesVersion.props)); they only change (and re-publish) when the samples are actually bumped. The GameStudio bridge resolves the highest published version `<=` the engine version for these.
 
 A user instantiating any template gets their installed engine version stamped in (the package upgrader rewrites `Stride.*` references on instantiation), so a lagging template package still produces a project on the user's current Stride.

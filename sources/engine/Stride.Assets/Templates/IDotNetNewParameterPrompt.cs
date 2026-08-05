@@ -10,5 +10,14 @@ namespace Stride.Assets.Templates;
 /// <summary>UI hook for collecting dotnet new template parameter values; null result = cancel.</summary>
 public interface IDotNetNewParameterPrompt
 {
-    Task<IReadOnlyDictionary<string, string>?> PromptAsync(ITemplateInfo template);
+    Task<DotNetNewPromptResult?> PromptAsync(ITemplateInfo template, TemplateDotNetNewDescription description);
 }
+
+/// <summary>
+/// What the parameter dialog collected: template parameter values, plus the identities of the
+/// asset-pack item templates the user selected (empty when the template offers none or the user
+/// selected none).
+/// </summary>
+public sealed record DotNetNewPromptResult(
+    IReadOnlyDictionary<string, string> Parameters,
+    IReadOnlyList<string> AssetPackIdentities);

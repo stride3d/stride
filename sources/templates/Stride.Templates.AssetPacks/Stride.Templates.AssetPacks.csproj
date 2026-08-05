@@ -1,0 +1,44 @@
+<!-- TreatAsLocalProperty="StrideSkipAutoPack": Pack must always run here (this is a templates
+     package, not a regular library), so an outer build context's StrideSkipAutoPack=true shouldn't
+     suppress it. Removing it from the project's global-property context also keeps MSBuild from
+     deduplicating into two distinct project instances when the property differs across the paths
+     that reach this project. -->
+<Project Sdk="Microsoft.Build.NoTargets" TreatAsLocalProperty="StrideSkipAutoPack">
+  <PropertyGroup>
+    <PackageId>Stride.Templates.AssetPacks</PackageId>
+    <Title>Stride Asset Packs</Title>
+    <Description>Optional asset packs (models, materials, particles) to add to a Stride game.</Description>
+    <PackageTags>dotnet-new;templates;stride;stride-template;assets;gamedev</PackageTags>
+    <!-- Content-versioned (StrideSamplesVersion): pack content only changes when the samples are bumped. -->
+    <StrideTemplateContentVersioned>true</StrideTemplateContentVersioned>
+  </PropertyGroup>
+
+  <Import Project="..\Stride.Templates.Common.targets" />
+
+  <ItemGroup>
+    <!-- One dotnet new item template per asset pack (see the !TemplateAssetPack .sdtpl in each
+         pack dir). Instantiating drops the pack's Assets/ + Resources/ into an existing game
+         library dir; GameStudio's New Game flow and the stride CLI drive these after stride-game. -->
+    <StrideSampleTemplate Include="stride-pack-buildingblocks">
+      <SamplePath>$(StrideRoot)samples/Templates/Packs/PrototypingBlocks</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-pack-animatedmodels">
+      <SamplePath>$(StrideRoot)samples/Templates/Packs/mannequinModel</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-pack-materials">
+      <SamplePath>$(StrideRoot)samples/Templates/Packs/MaterialPackage</SamplePath>
+    </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-pack-particles">
+      <SamplePath>$(StrideRoot)samples/Templates/Packs/VFXPackage</SamplePath>
+    </StrideSampleTemplate>
+  </ItemGroup>
+
+  <!-- Static literal-wildcard inputs so a pack edit triggers a repack (CPS needs pre-expanded paths; see
+       Common.targets). One per StrideSampleTemplate above; bin/obj aren't excluded (source packs stay clean). -->
+  <ItemGroup>
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/Packs/PrototypingBlocks/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/Packs/mannequinModel/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/Packs/MaterialPackage/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Templates/Packs/VFXPackage/**/*" />
+  </ItemGroup>
+</Project>
