@@ -90,7 +90,10 @@ namespace Stride.Assets.Presentation.Preview
             // load the created material and the model from the data base
             var model = LoadAsset<Model>(compiledModelUrl);
             var anim = LoadAsset<AnimationClip>(AssetItem.Location);
-            var animSrc = LoadAsset<AnimationClip>(AssetItem.Location + AnimationAssetCompiler.SrcClipSuffix);
+            // The source clip is only compiled for difference animations
+            var animSrc = ((AnimationAsset)AssetItem.Asset).Type.GetType() == typeof(DifferenceAnimationAssetType)
+                ? LoadAsset<AnimationClip>(AssetItem.Location + AnimationAssetCompiler.SrcClipSuffix)
+                : null;
 
             // create the entity, create and set the model component
             var entity = new Entity { Name = "Preview Entity of animation: " + AssetItem.Location };

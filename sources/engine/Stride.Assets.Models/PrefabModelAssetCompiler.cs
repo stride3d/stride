@@ -345,7 +345,7 @@ namespace Stride.Assets.Models
                     if (modelAsset == null)
                         continue;
 
-                    var model = contentManager.Load<Model>(modelAsset.Location, loadSettings);
+                    var model = contentManager.Exists(modelAsset.Location) ? contentManager.Load<Model>(modelAsset.Location, loadSettings) : null;
                     loadedModel.Add(model);
 
                     if (model == null ||

@@ -6,7 +6,7 @@ namespace Stride.Core.Serialization.Contents;
 /// <summary>
 /// A subtype of <see cref="Exception"/> thrown by the <see cref="ContentManager"/>.
 /// </summary>
-internal class ContentManagerException : Exception
+public class ContentManagerException : Exception
 {
     public ContentManagerException(string message) : base(message)
     {
