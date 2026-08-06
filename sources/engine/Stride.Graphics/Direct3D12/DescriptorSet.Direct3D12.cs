@@ -85,7 +85,7 @@ namespace Stride.Graphics
 
             nativeDevice = graphicsDevice.NativeDevice;
             Description = layout;
-            Tracking = layout.SrvCount > 0 ? new ResourceTracking(layout.SrvCount, graphicsDevice.SrvHandleIncrementSize) : null;
+            Tracking = layout.SrvCount > 0 ? pool.RentTracking(layout.SrvCount, graphicsDevice.SrvHandleIncrementSize) : null;
 
             // Store starting CpuDescriptorHandle for SRVs, UAVs, etc.
             var startHandle = layout.SrvCount > 0
@@ -246,6 +246,17 @@ namespace Stride.Graphics
             int index = bindingOffset / handleIncrementSize;
             Resources[index] = resource;
             IsUAV[index] = isUav;
+        }
+
+        internal bool CanTrack(int srvCount) => Resources.Length >= srvCount;
+
+        /// <summary>
+        ///   Drops every tracked resource, so a reused instance reports nothing from the frame before.
+        /// </summary>
+        internal void Clear()
+        {
+            Array.Clear(Resources);
+            Array.Clear(IsUAV);
         }
     }
 }
