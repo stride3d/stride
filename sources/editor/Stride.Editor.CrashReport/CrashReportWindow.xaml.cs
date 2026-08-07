@@ -30,6 +30,17 @@ public partial class CrashReportWindow : Window
         ApplicationName = applicationName;
         DataContext = this;
 
+        // Host theme may be absent (crash before the application initialized); fall back to readable colors.
+        // Checkboxes and radio buttons set their foreground from the system theme, so inheritance is not enough.
+        if (TryFindResource("BackgroundBrush") is null)
+        {
+            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x2D, 0x2D, 0x30));
+            System.Windows.Documents.TextElement.SetForeground(this, System.Windows.Media.Brushes.White);
+            checkBoxMinidump.Foreground = System.Windows.Media.Brushes.White;
+            radioDevChannel.Foreground = System.Windows.Media.Brushes.White;
+            radioCustomDsn.Foreground = System.Windows.Media.Brushes.White;
+        }
+
         if (CrashReportSender.IsDisabled)
         {
             buttonSendReport.Visibility = Visibility.Collapsed;
@@ -120,6 +131,7 @@ public partial class CrashReportWindow : Window
         RefreshReport();
         buttonSendReport.IsEnabled = false;
         panelSend.IsEnabled = false;
+        panelSendOptions.IsEnabled = false;
         try
         {
             await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn, checkBoxMinidump.IsChecked == true,
@@ -135,6 +147,7 @@ public partial class CrashReportWindow : Window
                 MessageBoxButton.OK, MessageBoxImage.Error);
             buttonSendReport.IsEnabled = true;
             panelSend.IsEnabled = true;
+            panelSendOptions.IsEnabled = true;
         }
     }
 
