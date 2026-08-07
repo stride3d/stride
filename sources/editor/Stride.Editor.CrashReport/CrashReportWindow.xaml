@@ -4,7 +4,7 @@
         Height="380" Width="580"
         Topmost="True"
         SizeToContent="Height"
-        MaxHeight="380"
+        MaxHeight="460"
         Background="{DynamicResource BackgroundBrush}" 
         Title="Report your crash"
         ResizeMode="NoResize"
@@ -117,7 +117,7 @@
         
         <TextBlock Grid.Column="1" TextWrapping="WrapWithOverflow" Margin="10,0,0,0">
           Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}"/> has crashed.
-          Please help us improve Stride by sending information about this crash through Github Issues.
+          Please help us improve Stride by sending this report, or by reporting the crash through Github Issues.
         </TextBlock>
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2"
@@ -126,10 +126,14 @@
                     HorizontalAlignment="Center"
                     Margin="0,10,0,0">
 
+          <Button x:Name="buttonSendReport" Content="Send report"
+                  Width="100" Margin="0,0,10,0"
+                  Click="ButtonSendReport_Click" />
+
           <Button x:Name="buttonViewLog" Content="View report"
                   Width="100" Margin="0,0,10,0"
                   Click="ButtonViewLog_Click" />
-          
+
           <Button Content="Copy report"
                   Width="100" Margin="0,0,10,0"
                   Click="ButtonCopyReport_Click" />
@@ -142,6 +146,20 @@
                     Width="140" Margin="0,0,10,0"
                     HorizontalAlignment="Right"
                     Click="ButtonOpenGithubIssues_Click" />
+        </StackPanel>
+
+        <StackPanel x:Name="panelSendOptions" Grid.Row="2" Grid.ColumnSpan="2"
+                    Visibility="Collapsed"
+                    Margin="0,10,0,0">
+          <RadioButton x:Name="radioDevChannel" Content="Send to the Stride development channel" IsChecked="True" />
+          <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+            <RadioButton x:Name="radioCustomDsn" Content="Send to a custom Sentry DSN:" VerticalAlignment="Center" />
+            <TextBox x:Name="textBoxCustomDsn" Width="280" Margin="5,0,0,0"
+                     GotKeyboardFocus="TextBoxCustomDsn_GotKeyboardFocus" />
+          </StackPanel>
+          <Button x:Name="buttonSendNow" Content="Send now"
+                  Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
+                  Click="ButtonSendNow_Click" />
         </StackPanel>
 
         <TextBox Grid.Row="3" Grid.ColumnSpan="2"

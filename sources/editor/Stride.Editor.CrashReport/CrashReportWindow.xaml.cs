@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
@@ -17,15 +18,27 @@ public partial class CrashReportWindow : Window
     public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
     private const string GithubIssuesUrl = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md";
     private readonly CrashReportData currentData;
+    private readonly Exception currentException;
     public string ApplicationName { get; }
 
-    public CrashReportWindow(CrashReportData crashReport, string applicationName)
+    public CrashReportWindow(CrashReportData crashReport, string applicationName, Exception exception = null)
     {
         InitializeComponent();
         currentData = crashReport;
+        currentException = exception;
         textBoxLog.Text = crashReport.ToString();
         ApplicationName = applicationName;
         DataContext = this;
+
+        if (CrashReportSender.IsDisabled)
+        {
+            buttonSendReport.Visibility = Visibility.Collapsed;
+        }
+        else if (string.IsNullOrEmpty(CrashReportSender.BuildDsn) && CrashReportSender.DevChannelDsn.Length == 0)
+        {
+            radioDevChannel.Visibility = Visibility.Collapsed;
+            radioCustomDsn.IsChecked = true;
+        }
     }
 
     private bool Expanded { get; set { field = value; RefreshSize(); } } = false;
@@ -72,6 +85,60 @@ public partial class CrashReportWindow : Window
     private void ButtonViewLog_Click(object sender, EventArgs e)
     {
         Expanded = !Expanded;
+    }
+
+    private async void ButtonSendReport_Click(object sender, RoutedEventArgs e)
+    {
+        // Official builds send straight to the baked-in DSN; source builds get a destination chooser.
+        if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
+        {
+            await SendAsync(CrashReportSender.BuildDsn);
+        }
+        else
+        {
+            panelSendOptions.Visibility = panelSendOptions.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+    }
+
+    private async void ButtonSendNow_Click(object sender, RoutedEventArgs e)
+    {
+        var dsn = radioCustomDsn.IsChecked == true ? textBoxCustomDsn.Text.Trim() : CrashReportSender.DevChannelDsn;
+        if (string.IsNullOrEmpty(dsn))
+        {
+            MessageBox.Show(this, "Please enter a Sentry DSN.", "Stride", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        await SendAsync(dsn);
+    }
+
+    private async Task SendAsync(string dsn)
+    {
+        RefreshReport();
+        buttonSendReport.IsEnabled = false;
+        panelSendOptions.IsEnabled = false;
+        try
+        {
+            await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn);
+            MessageBox.Show(this, "Crash report sent. Thank you for helping improve Stride.", "Stride",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            DialogResult = true;
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(this, "The report could not be sent: " + exception.Message + Environment.NewLine
+                + "You can still copy or save the report and open a Github issue.", "Stride",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            buttonSendReport.IsEnabled = true;
+            panelSendOptions.IsEnabled = true;
+        }
+    }
+
+    private void TextBoxCustomDsn_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        radioCustomDsn.IsChecked = true;
     }
 
     private void ButtonCopyReport_Click(object sender, EventArgs e)

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
@@ -25,7 +24,7 @@ namespace Stride.GameStudio.Helpers
     {
         private const int DebugVersion = 4;
 
-        public static void SendReport(string exceptionMessage, int crashLocation, string[] logs, string threadName)
+        public static void SendReport(Exception exception, int crashLocation, string[] logs, string threadName)
         {
             var crashReport = new CrashReportData
             {
@@ -130,7 +129,7 @@ namespace Stride.GameStudio.Helpers
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
             crashReport["OsVersion"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
-            crashReport["Exception"] = exceptionMessage;
+            crashReport["Exception"] = exception.FormatFull();
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
@@ -146,19 +145,9 @@ namespace Stride.GameStudio.Helpers
 
             crashReport["Log"] = nonFatalReport.ToString();
 
-            // Try to anonymize reports
-            // It also makes it easier to copy and paste paths
-            for (var i = 0; i < crashReport.Data.Count; i++)
-            {
-                var data = crashReport.Data[i].Item2;
+            CrashReportAnonymizer.Scrub(crashReport);
 
-                data = Regex.Replace(data, Regex.Escape(Environment.GetEnvironmentVariable("USERPROFILE")), Regex.Escape("%USERPROFILE%"), RegexOptions.IgnoreCase);
-                data = Regex.Replace(data, $@"\b{Regex.Escape(Environment.GetEnvironmentVariable("USERNAME"))}\b", Regex.Escape("%USERNAME%"), RegexOptions.IgnoreCase);
-
-                crashReport.Data[i] = (crashReport.Data[i].Item1, data);
-            }
-
-            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio");
+            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio", exception);
             var result = reporter.ShowDialog();
         }
 
