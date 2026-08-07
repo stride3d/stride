@@ -36,6 +36,10 @@ namespace Stride.Graphics
         // that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
         private readonly Dictionary<Texture, BarrierLayout> currentCbLayouts = new();
 
+        // Buffers have no Vulkan layout: this records the last access THIS CB synchronised against, so
+        // a later transition can name an accurate source instead of the buffer's static usage superset.
+        private readonly Dictionary<Buffer, BarrierLayout> currentCbBufferLayouts = new();
+
         private readonly Dictionary<FramebufferKey, VkFramebuffer> framebuffers = new();
         private readonly VkImageView[] framebufferAttachments = new VkImageView[9];
         private int framebufferAttachmentCount;
@@ -87,6 +91,7 @@ namespace Stride.Graphics
             CleanupRenderPass();
             boundDescriptorSets.Clear();
             currentCbLayouts.Clear();
+            currentCbBufferLayouts.Clear();
 
             framebuffers.Clear();
             framebufferDirty = true;
@@ -634,6 +639,45 @@ namespace Stride.Graphics
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, newAccessMask, oldLayout, newVkLayout);
                 GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            }
+            else if (resource is Buffer buffer)
+            {
+                VkAccessFlags oldAccessMask;
+                VkPipelineStageFlags sourceStages;
+                if (currentCbBufferLayouts.TryGetValue(buffer, out var fromLayout))
+                {
+                    if (fromLayout == newLayout)
+                        return; // already at target in this CB
+
+                    oldAccessMask = BarrierMapping.ToVkAccessFlags(fromLayout);
+                    sourceStages = BarrierMapping.ToVkPipelineStageFlags(fromLayout);
+                }
+                else
+                {
+                    // NativeAccessMask and NativePipelineStageMask are the buffer's static set of every
+                    // legal usage, which the copy and upload paths read to build their restore barriers.
+                    // Use them as a conservative source here, but never write to them.
+                    oldAccessMask = buffer.NativeAccessMask;
+                    sourceStages = buffer.NativePipelineStageMask;
+                }
+
+                var newAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
+                var newStages = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+
+                sourceStages = FixStagesForAccess(sourceStages, oldAccessMask);
+                newStages = FixStagesForAccess(newStages, newAccessMask);
+
+                if (sourceStages == VkPipelineStageFlags.None)
+                    sourceStages = VkPipelineStageFlags.TopOfPipe;
+                if (newStages == VkPipelineStageFlags.None)
+                    newStages = VkPipelineStageFlags.BottomOfPipe;
+
+                currentCbBufferLayouts[buffer] = newLayout;
+
+                CleanupRenderPass();
+
+                var bufferMemoryBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, oldAccessMask, newAccessMask);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 0, null);
             }
             else
             {
