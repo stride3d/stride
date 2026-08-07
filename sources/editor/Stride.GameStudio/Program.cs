@@ -229,10 +229,10 @@ public static class Program
 
     private static void GlobalLoggerOnGlobalMessageLogged(ILogMessage logMessage)
     {
-        if (logMessage.Type <= LogMessageType.Warning) return;
+        if (logMessage.Type < LogMessageType.Warning) return;
 
         LogRingbuffer.Enqueue(logMessage.ToString());
-        while (LogRingbuffer.Count > 5)
+        while (LogRingbuffer.Count > 50)
         {
             LogRingbuffer.TryDequeue(out var msg);
         }

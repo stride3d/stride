@@ -85,6 +85,46 @@ public static class AppHelper
         return result;
     }
 
+    public static string GetCpuName()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+                return (key?.GetValue("ProcessorNameString") as string)?.Trim();
+            }
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        return null;
+    }
+
+    public static Dictionary<string, string> GetMemoryInfo()
+    {
+        var result = new Dictionary<string, string>();
+        try
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            result.Add("Memory.WorkingSet", FormatMegabytes(Environment.WorkingSet));
+            result.Add("Memory.ManagedHeap", FormatMegabytes(GC.GetTotalMemory(false)));
+            result.Add("Memory.HeapCommitted", FormatMegabytes(gcInfo.TotalCommittedBytes));
+            result.Add("Memory.SystemLoad", FormatMegabytes(gcInfo.MemoryLoadBytes));
+            result.Add("Memory.SystemTotal", FormatMegabytes(gcInfo.TotalAvailableMemoryBytes));
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        return result;
+    }
+
+    private static string FormatMegabytes(long bytes) => $"{bytes / (1024 * 1024)} MB";
+
     private static IEnumerable<List<(string Name, string Value)>> QueryVideoControllers()
     {
         if (!OperatingSystem.IsWindows())

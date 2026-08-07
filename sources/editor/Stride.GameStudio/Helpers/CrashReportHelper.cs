@@ -128,12 +128,29 @@ namespace Stride.GameStudio.Helpers
             crashReport["CurrentDirectory"] = Environment.CurrentDirectory;
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
             crashReport["OsVersion"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
+            crashReport["Cpu"] = AppHelper.GetCpuName();
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
             crashReport["Exception"] = exception.FormatFull();
+
+            try
+            {
+                crashReport["GraphicsPlatform"] = GraphicsDevice.Platform.ToString();
+                crashReport["GraphicsAdapter"] = GraphicsAdapterFactory.DefaultAdapter?.Description;
+            }
+            catch (Exception e)
+            {
+                e.Ignore();
+            }
+
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
                 crashReport.Data.Add((conf.Key, conf.Value));
+            }
+
+            foreach (var info in AppHelper.GetMemoryInfo())
+            {
+                crashReport.Data.Add((info.Key, info.Value));
             }
 
             var nonFatalReport = new StringBuilder();

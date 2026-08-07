@@ -57,6 +57,7 @@ namespace Stride.LauncherApp.CrashReport
                 ["CurrentDirectory"] = Environment.CurrentDirectory,
                 ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
                 ["OSDescription"] = $"{RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
+                ["Cpu"] = AppHelper.GetCpuName(),
                 ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
                 ["Exception"] = exception.FormatFull()
             };
@@ -65,6 +66,11 @@ namespace Stride.LauncherApp.CrashReport
             foreach (var conf in videoConfig)
             {
                 crashReport.Data.Add((conf.Key, conf.Value));
+            }
+
+            foreach (var info in AppHelper.GetMemoryInfo())
+            {
+                crashReport.Data.Add((info.Key, info.Value));
             }
 
             CrashReportAnonymizer.Scrub(crashReport);
