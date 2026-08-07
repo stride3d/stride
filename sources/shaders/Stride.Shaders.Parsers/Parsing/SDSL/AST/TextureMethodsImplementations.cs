@@ -12,11 +12,11 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
     public static TextureMethodsImplementations Instance { get; } = new();
 
     /// <summary>
-    /// SPIR-V requires OpImageSample*/OpImageFetch result types to be a 4-component vector.
+    /// SPIR-V requires OpImageSample*/OpImageFetch/OpImageRead result types to be a 4-component vector.
     /// This method returns the vec4 type for sampling, and if the actual return type is smaller,
     /// extracts the needed components from the vec4 result.
     /// </summary>
-    private static (int Vec4TypeId, bool NeedsExtract) GetImageSampleResultType(SpirvContext context, FunctionType functionType, TextureType textureType)
+    internal static (int Vec4TypeId, bool NeedsExtract) GetImageSampleResultType(SpirvContext context, FunctionType functionType)
     {
         var returnType = functionType.ReturnType;
         var scalarType = returnType.GetElementType();
@@ -26,7 +26,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return (vec4TypeId, needsExtract);
     }
 
-    private static SpirvValue ExtractFromVec4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, int vec4ResultId)
+    internal static SpirvValue ExtractFromVec4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, int vec4ResultId)
     {
         var returnType = functionType.ReturnType;
         var elementCount = returnType.GetElementCount();
@@ -60,7 +60,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
 
         var textureDim = textureType.CoordinateDimension;
 
-        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType);
 
         // Extract LOD from coords if present (sampled images only, not storage)
         SpirvValue? lod = null;
@@ -94,7 +94,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
-        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
@@ -112,7 +112,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
-        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
@@ -130,7 +130,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
-        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
@@ -148,7 +148,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
-        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));

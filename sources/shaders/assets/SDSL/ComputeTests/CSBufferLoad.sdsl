@@ -1,0 +1,29 @@
+// CSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Regression: Buffer/RWBuffer loads with fewer than 4 components must emit
+// OpImageFetch/OpImageRead with a vec4 result and extract from it
+// (VUID-StandaloneSpirv-Result-04780).
+shader CSBufferLoad
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    rgroup PerDraw.Test
+    {
+        stage Buffer<float>    InScalars;
+        stage Buffer<float3>   InVectors;
+        stage RWBuffer<float>  Values;
+        stage RWBuffer<float4> Results;
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint i = streams.DispatchThreadId.x;
+        float scalar = InScalars[i] + Values[i];
+        float3 vec = InVectors[i];
+        Values[i] = scalar;
+        Results[i] = float4(vec * scalar, 1);
+    }
+};

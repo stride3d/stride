@@ -327,7 +327,7 @@ public partial class ShaderMixer
                             var resolved = effectResourceBinding with
                             {
                                 Type = bufferType.WriteAllowed ? EffectParameterType.RWBuffer : EffectParameterType.Buffer,
-                                ElementType = new EffectTypeDescription { Type = ScalarToEffectParameterType(bufferType.BaseType) },
+                                ElementType = new EffectTypeDescription { Type = ScalarToEffectParameterType(bufferType.BaseType.GetElementType()) },
                             };
                             globalContext.Reflection.ResourceBindings.Add(resolved);
                             EmitResourceEntry(globalContext, resolved);
