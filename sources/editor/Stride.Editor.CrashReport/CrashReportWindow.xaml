@@ -4,7 +4,7 @@
         Height="380" Width="580"
         Topmost="True"
         SizeToContent="Height"
-        MaxHeight="460"
+        MaxHeight="560"
         Background="{DynamicResource BackgroundBrush}" 
         Title="Report your crash"
         ResizeMode="NoResize"
@@ -149,6 +149,17 @@
         </StackPanel>
 
         <StackPanel x:Name="panelSend" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,4,0,0">
+          <TextBlock Text="What were you doing when it crashed? (optional)" Margin="0,4,0,2" />
+          <TextBox x:Name="textBoxDescription" AcceptsReturn="True" TextWrapping="Wrap"
+                   Height="48" VerticalScrollBarVisibility="Auto" />
+          <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+            <TextBlock Text="Name (optional):" VerticalAlignment="Center" />
+            <TextBox x:Name="textBoxName" Width="130" Margin="5,0,15,0" />
+            <TextBlock Text="Email (optional):" VerticalAlignment="Center"
+                       ToolTip="Only used to contact you about this crash" />
+            <TextBox x:Name="textBoxEmail" Width="180" Margin="5,0,0,0"
+                     ToolTip="Only used to contact you about this crash" />
+          </StackPanel>
           <CheckBox x:Name="checkBoxMinidump"
                     Content="Include a memory dump of the process (may contain personal data and project content)"
                     Margin="0,4,0,0" />

@@ -29,7 +29,8 @@ public static class CrashReportSender
     /// <summary>True when the build opted out of crash sending entirely (StrideSentryDsn=false).</summary>
     public static bool IsDisabled { get; } = GetMetadata("SentryDisabled") == "true";
 
-    public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false)
+    public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
+        string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
     {
         var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
@@ -59,7 +60,19 @@ public static class CrashReportSender
             : new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] } };
         sentryEvent.Level = SentryLevel.Fatal;
 
-        SentrySdk.CaptureEvent(sentryEvent);
+        var eventId = SentrySdk.CaptureEvent(sentryEvent);
+
+        // The user's own words are sent as-is: typing them is the consent
+        if (!string.IsNullOrWhiteSpace(feedbackName) || !string.IsNullOrWhiteSpace(feedbackEmail) || !string.IsNullOrWhiteSpace(feedbackMessage))
+        {
+            var feedback = new SentryFeedback(
+                string.IsNullOrWhiteSpace(feedbackMessage) ? "No description provided." : feedbackMessage.Trim(),
+                contactEmail: string.IsNullOrWhiteSpace(feedbackEmail) ? null : feedbackEmail.Trim(),
+                name: string.IsNullOrWhiteSpace(feedbackName) ? null : feedbackName.Trim(),
+                associatedEventId: eventId);
+            SentrySdk.CaptureFeedback(feedback);
+        }
+
         await SentrySdk.FlushAsync(TimeSpan.FromSeconds(15));
     }
 

@@ -122,7 +122,8 @@ public partial class CrashReportWindow : Window
         panelSend.IsEnabled = false;
         try
         {
-            await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn, checkBoxMinidump.IsChecked == true);
+            await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn, checkBoxMinidump.IsChecked == true,
+                textBoxName.Text, textBoxEmail.Text, textBoxDescription.Text);
             MessageBox.Show(this, "Crash report sent. Thank you for helping improve Stride.", "Stride",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
