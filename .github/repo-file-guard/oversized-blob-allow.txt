@@ -5,7 +5,4 @@
 #
 # Lines starting with # and blank lines are ignored. Keep sorted.
 sources/engine/Stride.UI.Tests/Regression/ElementTestDesigns.cs
-sources/metrics/Stride.Metrics.ServerApp/Migrations/ip2location/IP2LOCATION-LITE-DB1.CSV
-sources/metrics/Stride.Metrics.ServerApp/Scripts/angular-scenario.js
-sources/metrics/Stride.Metrics.ServerApp/Scripts/angular.js
 sources/shaders/Stride.Shaders.Spirv/Generated/Instructions.gen.cs
