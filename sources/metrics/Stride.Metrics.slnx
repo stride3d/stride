@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="Stride.Metrics.ServerApp/Stride.Metrics.ServerApp.csproj" />
-  <Project Path="Stride.Metrics/Stride.Metrics.csproj" />
-</Solution>
