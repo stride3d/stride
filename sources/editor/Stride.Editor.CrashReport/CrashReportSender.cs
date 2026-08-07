@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -28,10 +29,11 @@ public static class CrashReportSender
     /// <summary>True when the build opted out of crash sending entirely (StrideSentryDsn=false).</summary>
     public static bool IsDisabled { get; } = GetMetadata("SentryDisabled") == "true";
 
-    public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn)
+    public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false)
     {
         var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
+        var minidump = includeMinidump ? MinidumpWriter.TryWrite() : null;
 
         using var sdk = SentrySdk.Init(options =>
         {
@@ -46,7 +48,10 @@ public static class CrashReportSender
         SentrySdk.ConfigureScope(scope =>
         {
             scope.AddAttachment(Encoding.UTF8.GetBytes(report.ToString()), "report.txt");
+            if (minidump != null)
+                scope.AddAttachment(minidump, "minidump.dmp", AttachmentType.Minidump);
             scope.SetTag("application", applicationName);
+            MapReport(scope, report);
         });
 
         var sentryEvent = exception != null
@@ -56,6 +61,120 @@ public static class CrashReportSender
 
         SentrySdk.CaptureEvent(sentryEvent);
         await SentrySdk.FlushAsync(TimeSpan.FromSeconds(15));
+    }
+
+    /// <summary>
+    /// Maps report entries onto Sentry structures: searchable tags, GPU/memory contexts, log lines and
+    /// undo/redo actions as breadcrumbs, everything else as extra data. The full report text stays
+    /// attached as report.txt, which is exactly what the window's View report shows.
+    /// </summary>
+    private static void MapReport(Scope scope, CrashReportData report)
+    {
+        var gpus = new Dictionary<string, Dictionary<string, string>>();
+        var memory = new Dictionary<string, string>();
+        string activeAdapter = null;
+
+        foreach (var (key, value) in report.Data)
+        {
+            switch (key)
+            {
+                case "Exception":
+                    continue; // the event itself
+                case "Log":
+                    foreach (var line in value.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        scope.AddBreadcrumb(line, "log");
+                    continue;
+                case "LastActions":
+                    AddActionBreadcrumbs(scope, value);
+                    continue;
+                case "StrideVersion":
+                    scope.SetTag("stride.version", value);
+                    continue;
+                case "GraphicsPlatform":
+                    scope.SetTag("graphics.api", value);
+                    continue;
+                case "GraphicsAdapter":
+                    activeAdapter = value;
+                    continue;
+                case "OpenedAssets":
+                    scope.Contexts["Opened Assets"] = value.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    continue;
+            }
+
+            var dot = key.IndexOf('.');
+            if (dot > 0 && key.StartsWith("GPU", StringComparison.Ordinal))
+            {
+                var gpuName = key[..dot];
+                if (!gpus.TryGetValue(gpuName, out var gpu))
+                    gpus.Add(gpuName, gpu = []);
+                gpu[key[(dot + 1)..]] = value;
+                continue;
+            }
+            if (dot > 0 && key.StartsWith("Memory.", StringComparison.Ordinal))
+            {
+                memory[key[(dot + 1)..]] = value;
+                continue;
+            }
+
+            scope.SetExtra(key, value);
+        }
+
+        foreach (var (name, properties) in gpus)
+            scope.Contexts[name.ToLowerInvariant()] = properties;
+        if (memory.Count > 0)
+            scope.Contexts["memory"] = memory;
+
+        // The adapter the application actually renders with, matched against the WMI inventory for driver info
+        if (activeAdapter != null)
+        {
+            scope.SetTag("gpu.name", activeAdapter);
+            scope.Contexts.Gpu.Name = activeAdapter;
+            var wmiMatch = gpus.Values.FirstOrDefault(x => x.GetValueOrDefault("Name") == activeAdapter);
+            if (wmiMatch != null)
+            {
+                scope.Contexts.Gpu.VendorName = wmiMatch.GetValueOrDefault("AdapterCompatibility");
+                if (wmiMatch.TryGetValue("DriverVersion", out var driverVersion))
+                {
+                    scope.Contexts.Gpu.Version = driverVersion;
+                    scope.SetTag("gpu.driver", driverVersion);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Each top-level "* [Name]" line of the actions dump becomes one breadcrumb; its indented operation
+    /// lines travel in the breadcrumb data.
+    /// </summary>
+    private static void AddActionBreadcrumbs(Scope scope, string lastActions)
+    {
+        string title = null;
+        var operations = new List<string>();
+
+        void Flush()
+        {
+            if (title == null)
+                return;
+            var data = operations.Count > 0
+                ? new Dictionary<string, string> { ["operations"] = string.Join("\n", operations) }
+                : null;
+            scope.AddBreadcrumb(title, "action", data: data);
+            operations.Clear();
+        }
+
+        foreach (var line in lastActions.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (line.StartsWith("* ", StringComparison.Ordinal))
+            {
+                Flush();
+                title = line[2..].TrimEnd();
+            }
+            else if (title != null)
+            {
+                operations.Add(line.Trim());
+            }
+        }
+        Flush();
     }
 
     /// <summary>

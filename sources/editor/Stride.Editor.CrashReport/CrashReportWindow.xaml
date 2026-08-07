@@ -148,18 +148,23 @@
                     Click="ButtonOpenGithubIssues_Click" />
         </StackPanel>
 
-        <StackPanel x:Name="panelSendOptions" Grid.Row="2" Grid.ColumnSpan="2"
-                    Visibility="Collapsed"
-                    Margin="0,10,0,0">
-          <RadioButton x:Name="radioDevChannel" Content="Send to the Stride development channel" IsChecked="True" />
-          <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-            <RadioButton x:Name="radioCustomDsn" Content="Send to a custom Sentry DSN:" VerticalAlignment="Center" />
-            <TextBox x:Name="textBoxCustomDsn" Width="280" Margin="5,0,0,0"
-                     GotKeyboardFocus="TextBoxCustomDsn_GotKeyboardFocus" />
+        <StackPanel x:Name="panelSend" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,4,0,0">
+          <CheckBox x:Name="checkBoxMinidump"
+                    Content="Include a memory dump of the process (may contain personal data and project content)"
+                    Margin="0,4,0,0" />
+          <StackPanel x:Name="panelSendOptions"
+                      Visibility="Collapsed"
+                      Margin="0,10,0,0">
+            <RadioButton x:Name="radioDevChannel" Content="Send to the Stride development channel" IsChecked="True" />
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+              <RadioButton x:Name="radioCustomDsn" Content="Send to a custom Sentry DSN:" VerticalAlignment="Center" />
+              <TextBox x:Name="textBoxCustomDsn" Width="280" Margin="5,0,0,0"
+                       GotKeyboardFocus="TextBoxCustomDsn_GotKeyboardFocus" />
+            </StackPanel>
+            <Button x:Name="buttonSendNow" Content="Send now"
+                    Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
+                    Click="ButtonSendNow_Click" />
           </StackPanel>
-          <Button x:Name="buttonSendNow" Content="Send now"
-                  Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
-                  Click="ButtonSendNow_Click" />
         </StackPanel>
 
         <TextBox Grid.Row="3" Grid.ColumnSpan="2"

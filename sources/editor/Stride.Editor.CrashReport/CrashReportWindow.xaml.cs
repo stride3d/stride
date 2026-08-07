@@ -33,6 +33,7 @@ public partial class CrashReportWindow : Window
         if (CrashReportSender.IsDisabled)
         {
             buttonSendReport.Visibility = Visibility.Collapsed;
+            panelSend.Visibility = Visibility.Collapsed;
         }
         else if (string.IsNullOrEmpty(CrashReportSender.BuildDsn) && CrashReportSender.DevChannelDsn.Length == 0)
         {
@@ -118,10 +119,10 @@ public partial class CrashReportWindow : Window
     {
         RefreshReport();
         buttonSendReport.IsEnabled = false;
-        panelSendOptions.IsEnabled = false;
+        panelSend.IsEnabled = false;
         try
         {
-            await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn);
+            await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn, checkBoxMinidump.IsChecked == true);
             MessageBox.Show(this, "Crash report sent. Thank you for helping improve Stride.", "Stride",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
@@ -132,7 +133,7 @@ public partial class CrashReportWindow : Window
                 + "You can still copy or save the report and open a Github issue.", "Stride",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             buttonSendReport.IsEnabled = true;
-            panelSendOptions.IsEnabled = true;
+            panelSend.IsEnabled = true;
         }
     }
 
