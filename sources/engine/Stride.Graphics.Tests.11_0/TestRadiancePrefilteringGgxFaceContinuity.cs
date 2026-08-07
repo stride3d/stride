@@ -29,6 +29,7 @@ public class TestRadiancePrefilteringGgxFaceContinuity : GraphicTestGameBase
     private const int OutputSize = 64;
 
     private double seamRatio;
+    private double withinFaceVariation;
 
     protected override void RegisterTests()
     {
@@ -88,6 +89,7 @@ public class TestRadiancePrefilteringGgxFaceContinuity : GraphicTestGameBase
         }
         within /= faces.Length;
 
+        withinFaceVariation = within;
         seamRatio = seam / Math.Max(double.Epsilon, within);
     }
 
@@ -129,6 +131,11 @@ public class TestRadiancePrefilteringGgxFaceContinuity : GraphicTestGameBase
 
         var game = new TestRadiancePrefilteringGgxFaceContinuity();
         RunGameTest(game);
+
+        // A flat level has no seam to measure, so it would satisfy the ratio below for the wrong reason.
+        Assert.True(game.withinFaceVariation > 1.0,
+            $"Mip 0 varies by {game.withinFaceVariation:F2} between neighboring texels, so it carries no image. " +
+            "The filter returns a single averaged color when it runs at roughness 0.");
 
         Assert.True(game.seamRatio < 0.5,
             $"Mip 0 steps across cube face edges by {game.seamRatio:F2} times the variation inside a face. " +

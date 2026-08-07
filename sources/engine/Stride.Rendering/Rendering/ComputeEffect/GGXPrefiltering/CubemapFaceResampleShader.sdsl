@@ -1,0 +1,28 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Shader writing one face of a cubemap from a given mipmap level of another cubemap.
+    /// It reads by direction, so a texel on a face border takes the neighboring face into account instead
+    /// of clamping inside its own face.
+    /// </summary>
+    shader CubemapFaceResampleShader : Math, ImageEffectShader
+    {
+        TextureCube RadianceMap;
+
+        // The mipmap level to read
+        stage float MipLevel;
+
+        // The face being written
+        stage int Face;
+
+        override stage float4 Shading()
+        {
+            float3 direction = normalize(CubemapUtils.ConvertTexcoordsNoFlip(streams.TexCoord, Face));
+
+            return RadianceMap.SampleLevel(Texturing.LinearSampler, direction, MipLevel);
+        }
+    };
+}

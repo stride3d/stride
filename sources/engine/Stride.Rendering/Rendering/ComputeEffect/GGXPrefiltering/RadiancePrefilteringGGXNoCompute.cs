@@ -38,7 +38,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
         /// </summary>
         public int MipmapGenerationCount { get; set; }
 
-        private ImageScaler scaler;
+        private readonly ImageEffectShader resampleShader;
 
         /// <summary>
         /// Create a new instance of the class.
@@ -48,11 +48,9 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
             : base(context, "RadiancePrefilteringGGX")
         {
             shader = new ImageEffectShader("RadiancePrefilteringGGXNoComputeEffect");
+            resampleShader = new ImageEffectShader("CubemapFaceResampleShader");
             DoNotFilterHighestLevel = true;
             samplingsCount = 1024;
-
-            scaler = new ImageScaler(SamplingPattern.Expanded);
-            scaler.Initialize(context);
         }
 
         /// <summary>
@@ -107,13 +105,17 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                             var outputSubresource = 0 + faceIndex * output.MipLevelCount;
                             context.CommandList.CopyRegion(input, inputSubresource, null, output, outputSubresource);
                         }
-                        else // otherwise rescale the closest mipmap
+                        else // otherwise resample the closest mipmap
                         {
+                            // Reading by direction rather than from a single face view keeps the texels on a
+                            // face border continuous with the neighboring face. The filter cannot serve this
+                            // level, because at roughness 0 it collapses to the smallest mipmap.
                             var inputMipmapLevel = Math.Min(inputLevel, input.MipLevelCount - 1);
-                            using var inputView = input.ToTextureView(ViewType.Single, faceIndex, inputMipmapLevel);
-                            scaler.SetInput(inputView);
-                            scaler.SetOutput(outputView);
-                            scaler.Draw(context);
+                            resampleShader.Parameters.Set(CubemapFaceResampleShaderKeys.RadianceMap, input);
+                            resampleShader.Parameters.Set(CubemapFaceResampleShaderKeys.MipLevel, inputMipmapLevel);
+                            resampleShader.Parameters.Set(CubemapFaceResampleShaderKeys.Face, faceIndex);
+                            resampleShader.SetOutput(outputView);
+                            resampleShader.Draw(context);
                         }
                     }
                     else
