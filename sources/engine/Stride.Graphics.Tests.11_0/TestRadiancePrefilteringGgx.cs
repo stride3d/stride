@@ -133,7 +133,7 @@ namespace Stride.Graphics.Tests
             spriteBatch.Draw(displayedViews[2], new RectangleF(size.X, 0f, size.X, size.Y), Color.White);
             spriteBatch.Draw(displayedViews[4], new RectangleF(size.X, size.Y, size.X, size.Y), Color.White);
             spriteBatch.Draw(displayedViews[3], new RectangleF(size.X, 2f * size.Y, size.X, size.Y), Color.White);
-            spriteBatch.Draw(displayedViews[5], new RectangleF(size.X, 3f * size.Y, size.X, size.Y), null, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically);
+            spriteBatch.Draw(displayedViews[5], new RectangleF(size.X, 3f * size.Y, size.X, size.Y), null, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipBoth);
             spriteBatch.Draw(displayedViews[0], new RectangleF(2f * size.X, size.Y, size.X, size.Y), Color.White);
             spriteBatch.End();
         }
