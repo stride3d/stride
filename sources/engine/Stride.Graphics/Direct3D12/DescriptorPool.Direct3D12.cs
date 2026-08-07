@@ -35,6 +35,9 @@ namespace Stride.Graphics
         /// </remarks>
         protected internal ComPtr<ID3D12DescriptorHeap> SamplerHeap => ToComPtr(nativeSamplerHeap);
 
+        private readonly System.Collections.Generic.List<ResourceTracking> trackingPool = [];
+        private int trackingOffset;
+
         internal CpuDescriptorHandle SrvStart;  // CPU handle to the start of the Shader Resource View heap
         internal int SrvOffset;                 // Offset in the SRV heap from SrvStart
         internal int SrvCount;                  // Number of SRVs allocated in the pool
@@ -102,12 +105,40 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Lends a <see cref="ResourceTracking"/> to a Descriptor Set being allocated from this pool.
+        /// </summary>
+        /// <param name="srvCount">The number of Shader Resource View slots the Descriptor Set needs to track.</param>
+        /// <param name="handleIncrementSize">The size of one Shader Resource View Descriptor, in bytes.</param>
+        /// <remarks>
+        ///   A Descriptor Set lives for one frame, so its tracking can live in the pool that the
+        ///   frame already resets. Steady state reuses the same instances and allocates nothing.
+        /// </remarks>
+        internal ResourceTracking RentTracking(int srvCount, int handleIncrementSize)
+        {
+            if (trackingOffset >= trackingPool.Count)
+                trackingPool.Add(new ResourceTracking(srvCount, handleIncrementSize));
+
+            var tracking = trackingPool[trackingOffset];
+            if (!tracking.CanTrack(srvCount))
+                trackingPool[trackingOffset] = tracking = new ResourceTracking(srvCount, handleIncrementSize);
+
+            trackingOffset++;
+
+            // A slot the Descriptor Set never writes must read as empty, because a constant buffer
+            // occupies a slot without a resource the transition pass can act on.
+            tracking.Clear();
+
+            return tracking;
+        }
+
+        /// <summary>
         ///   Clears the Descriptor Pool, resetting all allocated Descriptors.
         /// </summary>
         public void Reset()
         {
             SrvOffset = 0;
             SamplerOffset = 0;
+            trackingOffset = 0;
         }
     }
 }

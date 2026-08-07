@@ -397,10 +397,77 @@ namespace Stride.Graphics
         /// </remarks>
         private void PrepareDraw(bool isDispatch = false)
         {
+            TransitionBoundResources();
+
             FlushResourceBarriers();
             SetViewportImpl();
 
             RecordDebugCounter(isDispatch ? DebugCounterKind.Dispatch : DebugCounterKind.Draw);
+        }
+
+        /// <summary>
+        ///   Transitions every Texture bound in a Descriptor Set to the state its use needs.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     The pass is idempotent. <see cref="ResourceBarrierTransition"/> returns early when the
+        ///     tracked layout already matches, so a resource an explicit transition already moved
+        ///     costs nothing here.
+        ///   </para>
+        ///   <para>
+        ///     Buffers are out of scope, which matches the Vulkan pass. A buffer barrier replaces the
+        ///     whole access mask, and nothing restores the vertex, index or constant buffer access a
+        ///     buffer may still need, because binding those emits no barrier. Covering buffers means
+        ///     combining every access a buffer is currently bound for, on both backends together.
+        ///   </para>
+        /// </remarks>
+        private void TransitionBoundResources()
+        {
+            if (boundDescriptorSets is null)
+                return;
+
+            for (int setIndex = 0; setIndex < boundDescriptorSets.Length; setIndex++)
+            {
+                var descriptorSet = boundDescriptorSets[setIndex];
+                var tracking = descriptorSet.Tracking;
+                if (tracking is null || descriptorSet.Description is null)
+                    continue;
+
+                int slotCount = descriptorSet.Description.SrvCount;
+                for (int slot = 0; slot < slotCount; slot++)
+                {
+                    if (tracking.Resources[slot] is not Texture texture)
+                        continue;
+
+                    // A render target or depth buffer the pipeline is about to write keeps the state
+                    // its producer set. Moving it here would invalidate the draw.
+                    if (IsBoundAsRenderTargetOrDepth(texture))
+                        continue;
+
+                    ResourceBarrierTransition(
+                        texture,
+                        tracking.IsUAV[slot] ? BarrierLayout.UnorderedAccess : BarrierLayout.ShaderResource);
+                }
+            }
+        }
+
+        private bool IsBoundAsRenderTargetOrDepth(Texture texture)
+        {
+            var parent = texture.ParentTexture ?? texture;
+
+            var depth = DepthStencilBuffer;
+            if (depth is not null && ReferenceEquals(depth.ParentTexture ?? depth, parent))
+                return true;
+
+            var boundTargets = RenderTargets;
+            for (int i = 0; i < boundTargets.Length; i++)
+            {
+                var target = boundTargets[i];
+                if (target is not null && ReferenceEquals(target.ParentTexture ?? target, parent))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
