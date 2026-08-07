@@ -96,19 +96,6 @@ msgctxt "Settings"
 msgid "Ask before saving new scripts"
 msgstr "Подтверждать сохранение новых скриптов"
 
-#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:72
-msgctxt "Settings"
-msgid "Usage Analytics"
-msgstr ""
-
-#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:73
-msgctxt "Settings"
-msgid ""
-"Anonymous usage analytics to help the Stride community improve the software. "
-"Statistics on installation, version-specific usage, and platform popularity. "
-"The data is open-source at https://metrics.stride3d.net"
-msgstr ""
-
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:77
 msgctxt "Settings"
 msgid "Language"

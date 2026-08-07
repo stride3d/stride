@@ -25,17 +25,6 @@ internal static class Program
         // to WARP. Must be set before any Stride code runs.
         Environment.SetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING", "1");
 
-        // Pre-accept the Stride 4.0 privacy policy: PrivacyPolicyHelper would otherwise pop a
-        // modal at startup with no one to click Accept on CI.
-        try
-        {
-            using var subkey = Microsoft.Win32.Registry.CurrentUser
-                .OpenSubKey(@"SOFTWARE\Stride\Agreements\", writable: true)
-                ?? Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Stride\Agreements\");
-            subkey?.SetValue("Stride-4.0", "True");
-        }
-        catch { /* best-effort — failure shows up as the privacy-policy hang */ }
-
         // Clear the "last startup-session load crashed" sticky flag — a previous AutoTesting run
         // that timed out / was killed leaves it on, which makes OpenInitialSession pop a "try
         // again?" MessageBox with no one to click. Always reset before launching GS.
