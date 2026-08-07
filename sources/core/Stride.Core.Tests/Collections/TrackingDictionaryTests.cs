@@ -18,7 +18,7 @@ public class TrackingDictionaryTests
     public void Add_AddsItemAndTriggersEvent()
     {
         var dict = new TrackingDictionary<string, int>();
-        TrackingCollectionChangedEventArgs? eventArgs = null;
+        TrackingKeyedCollectionChangedEventArgs<string, int>? eventArgs = null;
         dict.CollectionChanged += (sender, args) => eventArgs = args;
 
         dict.Add("key1", 10);
@@ -34,7 +34,7 @@ public class TrackingDictionaryTests
     public void Remove_RemovesItemAndTriggersEvent()
     {
         var dict = new TrackingDictionary<string, int> { { "key1", 10 } };
-        TrackingCollectionChangedEventArgs? eventArgs = null;
+        TrackingKeyedCollectionChangedEventArgs<string, int>? eventArgs = null;
         dict.CollectionChanged += (sender, args) =>
         {
             if (args.Action == NotifyCollectionChangedAction.Remove)
@@ -218,7 +218,7 @@ public class TrackingDictionaryTests
     {
         var dict = new TrackingDictionary<string, int>();
         var eventCount = 0;
-        EventHandler<TrackingCollectionChangedEventArgs> handler = (s, e) => eventCount++;
+        EventHandler<TrackingKeyedCollectionChangedEventArgs<string, int>> handler = (s, e) => eventCount++;
 
         dict.CollectionChanged += handler;
         dict.Add("key1", 10);
