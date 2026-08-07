@@ -1,0 +1,18 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes each thread's dispatch coordinates into an unordered access texture.
+    /// </summary>
+    internal shader UnorderedAccessOnlyTextureShader : ComputeShaderBase
+    {
+        stage RWTexture2D<float4> Output;
+
+        override void Compute()
+        {
+            Output[streams.DispatchThreadId.xy] = float4(streams.DispatchThreadId.x, streams.DispatchThreadId.y, 0, 1);
+        }
+    };
+}

@@ -167,14 +167,17 @@ public partial class SpirvContext
             // SampledType stores the full return type (e.g. float4, not just float) so that
             // Texture<float> and Texture<float4> produce structurally distinct OpTypeImage during merge.
             // ShaderMixer normalizes SampledType back to scalar before final SPIR-V emission.
+            // Do not infer a storage image format from the element type. The view decides it:
+            // RWTexture2D<float4> binds equally to R8G8B8A8_UNorm and R32G32B32A32_Float. An
+            // Unknown format makes ShaderMixer request StorageImage{Read,Write}WithoutFormat.
             Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                 2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
@@ -357,25 +360,4 @@ public partial class SpirvContext
         return id;
     }
 
-    // Derives the SPIR-V ImageFormat for a storage (RW) texture from its return type.
-    // Note: 3-component float/int/uint formats don't exist in SPIR-V (no Rgb32f etc.).
-    private static Specification.ImageFormat GetStorageImageFormat(SymbolType returnType)
-    {
-        var scalar = returnType.GetElementType();
-        int count = returnType.GetElementCount();
-        return (scalar.Type, count) switch
-        {
-            (Scalar.Float, 1) => Specification.ImageFormat.R32f,
-            (Scalar.Float, 2) => Specification.ImageFormat.Rg32f,
-            (Scalar.Float, 4) => Specification.ImageFormat.Rgba32f,
-            (Scalar.Float, 3) => Specification.ImageFormat.Unknown,
-            (Scalar.UInt, 1) => Specification.ImageFormat.R32ui,
-            (Scalar.UInt, 2) => Specification.ImageFormat.Rg32ui,
-            (Scalar.UInt, 4) => Specification.ImageFormat.Rgba32ui,
-            (Scalar.Int, 1) => Specification.ImageFormat.R32i,
-            (Scalar.Int, 2) => Specification.ImageFormat.Rg32i,
-            (Scalar.Int, 4) => Specification.ImageFormat.Rgba32i,
-            _ => Specification.ImageFormat.Unknown,
-        };
-    }
 }

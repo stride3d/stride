@@ -236,11 +236,9 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void RunTest()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-
             RunGameTest(new TestRadiancePrefilteringGgx());
         }
     }

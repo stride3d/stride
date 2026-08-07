@@ -732,8 +732,10 @@ namespace Stride.Graphics
                         case EffectParameterType.RWTexture2D:
                         case EffectParameterType.RWTexture2DArray:
                         case EffectParameterType.RWTexture3D:
-                        case EffectParameterType.RWBuffer:
                             return VkDescriptorType.StorageImage;
+
+                        case EffectParameterType.RWBuffer:
+                            return VkDescriptorType.StorageTexelBuffer;
 
                         case EffectParameterType.Buffer:
                         case EffectParameterType.StructuredBuffer:
