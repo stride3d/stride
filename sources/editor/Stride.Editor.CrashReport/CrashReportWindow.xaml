@@ -134,11 +134,13 @@
                      ToolTip="Only used to contact you about this crash" />
           </StackPanel>
           <CheckBox x:Name="checkBoxMinidump"
-                    ToolTip="Useful when a crash or freeze involves several threads. It does not include heap memory, so no assets or scene data. However, raw stack bytes and module paths can still contain file paths, your user name, and small fragments of data."
+                    ToolTip="Useful when a crash or freeze involves several threads. It does not include heap memory, so no assets or scene data. Your user name and profile path are masked, but raw stack bytes can still contain small fragments of data."
                     Margin="0,6,0,0">
             <TextBlock Text="Include a minidump: every thread's callstack and the list of loaded modules (not a full memory dump)"
                        TextWrapping="Wrap" />
           </CheckBox>
+          <TextBlock Text="Before sending, your Windows user name and profile path are masked in both the report and the minidump."
+                     TextWrapping="Wrap" Opacity="0.7" Margin="0,6,0,0" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2"
