@@ -140,7 +140,7 @@
                        TextWrapping="Wrap" />
           </CheckBox>
           <TextBlock x:Name="textPrivacyNote"
-                     Text="Before sending, your Windows user name and profile path are masked in both the report and the minidump."
+                     Text="Before sending, your Windows user name and profile path are masked in both the report and the minidump. Reports carry a random installation identifier, not derived from you or your hardware, so we can tell how many machines a crash affects."
                      TextWrapping="Wrap" Opacity="0.7" Margin="0,6,0,0" />
         </StackPanel>
 
