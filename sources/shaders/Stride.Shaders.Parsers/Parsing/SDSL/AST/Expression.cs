@@ -704,7 +704,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
             {
                 case (PointerType { BaseType: BufferType bufferType }, IndexerExpression indexer):
                     {
-                        var resultType = new VectorType(bufferType.BaseType, 4);
+                        var resultType = new VectorType(bufferType.BaseType.GetElementType(), 4);
                         var buffer = builder.AsValue(context, lvalueBase);
 
                         var location = indexer.Index.CompileAsValue(table, compiler);

@@ -12,17 +12,19 @@ public class BufferMethodsImplementations : BufferMethodsDeclarations
     public override SpirvValue CompileLoad(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue x, SpirvValue? status = null, TextLocation location = default)
     {
         var bufferType = (BufferType)context.ReverseTypes[buffer.TypeId];
-        var resultTypeId = context.GetOrRegister(functionType.ReturnType);
+
+        // SPIR-V requires OpImageRead/OpImageFetch result types to be a 4-component vector
+        var (vec4TypeId, needsExtract) = TextureMethodsImplementations.GetImageSampleResultType(context, functionType);
+
+        int loadResultId;
         if (bufferType.WriteAllowed)
-        {
-            var loadResult = builder.Insert(new OpImageRead(resultTypeId, context.Bound++, buffer.Id, x.Id, null, []));
-            return new(loadResult.ResultId, loadResult.ResultType);
-        }
+            loadResultId = builder.Insert(new OpImageRead(vec4TypeId, context.Bound++, buffer.Id, x.Id, null, [])).ResultId;
         else
-        {
-            var loadResult = builder.Insert(new OpImageFetch(resultTypeId, context.Bound++, buffer.Id, x.Id, null, []));
-            return new(loadResult.ResultId, loadResult.ResultType);
-        }
+            loadResultId = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, buffer.Id, x.Id, null, [])).ResultId;
+
+        if (needsExtract)
+            return TextureMethodsImplementations.ExtractFromVec4(context, builder, functionType, loadResultId);
+        return new(loadResultId, vec4TypeId);
     }
 
     public override SpirvValue CompileGetDimensions(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue width, TextLocation location = default)

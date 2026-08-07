@@ -691,7 +691,7 @@ public partial class SpirvBuilder
 
 
 
-internal static class SymbolExtensions
+public static class SymbolExtensions
 {
     public static SymbolType GetValueType(this SpirvValue value, SpirvContext context)
     {

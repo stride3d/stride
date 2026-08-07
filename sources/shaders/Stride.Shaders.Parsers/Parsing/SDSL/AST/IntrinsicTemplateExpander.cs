@@ -224,7 +224,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 parameterTypeHelper[index].BaseType = thisType switch
                                 {
                                     TextureType t => t.ReturnType.GetElementType(),
-                                    BufferType b => b.BaseType,
+                                    BufferType b => b.BaseType.GetElementType(),
                                     AppendStructuredBufferType b => b.BaseType,
                                     ConsumeStructuredBufferType b => b.BaseType,
                                     StructuredBufferType b => b.BaseType,
@@ -284,7 +284,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 {
                                     null => throw new ArgumentNullException(nameof(thisType)),
                                     TextureType t => new(t.ReturnType.GetElementType(), new(t.ReturnType.GetElementCount(), null), default),
-                                    BufferType b => new(b.BaseType, new(4, null), default),
+                                    BufferType b => new(b.BaseType.GetElementType(), new(b.BaseType.GetElementCount(), null), default),
                                     AppendStructuredBufferType b => new(b.BaseType, new(1, null), default),
                                     ConsumeStructuredBufferType b => new(b.BaseType, new(1, null), default),
                                     StructuredBufferType b => new(b.BaseType, new(1, null), default),
