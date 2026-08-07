@@ -1,7 +1,7 @@
 <Window x:Class="Stride.Editor.CrashReport.CrashReportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Height="380" Width="580"
+        Height="380" Width="700"
         Topmost="True"
         SizeToContent="Height"
         MaxHeight="560"
@@ -162,8 +162,20 @@
                   Click="ButtonCopyReport_Click" />
 
             <Button Content="Save report"
-                    Padding="12,2" Margin="0,0,8,0"
+                    Padding="12,2"
                     Click="ButtonSaveReport_Click" />
+
+            <Button x:Name="buttonSaveDump" Content="▾"
+                    Padding="6,2" Margin="0,0,8,0"
+                    ToolTip="Save a crash dump together with the report"
+                    Click="ButtonSaveDump_Click">
+              <Button.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Save minidump + report (small, anonymized)" Click="MenuSaveMinidump_Click" />
+                  <MenuItem Header="Save full memory dump + report (large, includes project data)" Click="MenuSaveFullDump_Click" />
+                </ContextMenu>
+              </Button.ContextMenu>
+            </Button>
 
             <Button Content="Open Github Issues"
                     Padding="12,2"

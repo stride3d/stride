@@ -15,7 +15,10 @@ namespace Stride.Editor.CrashReport;
 public static class MinidumpWriter
 {
     private const int MiniDumpNormal = 0x0;
+    private const int MiniDumpWithFullMemory = 0x2;
+    private const int MiniDumpWithHandleData = 0x4;
     private const int MiniDumpWithUnloadedModules = 0x20;
+    private const int MiniDumpWithFullMemoryInfo = 0x800;
     private const int MiniDumpWithThreadInfo = 0x1000;
 
     public static byte[] TryWrite()
@@ -135,6 +138,28 @@ public static class MinidumpWriter
             return;
         var byteLength = BitConverter.ToInt32(dump, rva);
         CrashReportAnonymizer.Scrub(dump, rva + 4, byteLength);
+    }
+
+    /// <summary>
+    /// Writes a dump directly to a file, for local saving. A full memory dump can be several GB and is
+    /// not scrubbed; it never leaves the machine unless the user shares it themselves.
+    /// </summary>
+    public static bool TryWriteFile(string path, bool fullMemory)
+    {
+        try
+        {
+            using var file = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            using var process = Process.GetCurrentProcess();
+            var flags = fullMemory
+                ? MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo
+                : MiniDumpNormal | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo;
+            return MiniDumpWriteDump(process.Handle, (uint)Environment.ProcessId, file.SafeFileHandle, flags,
+                IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     [DllImport("dbghelp.dll", SetLastError = true)]
