@@ -183,6 +183,26 @@ namespace Stride.Graphics
 #endif
 
         /// <summary>
+        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
+        /// </summary>
+        internal static VkSemaphoreSubmitInfo SemaphoreSubmit(VkSemaphore semaphore, ulong value = 0) => new()
+        {
+            sType = VkStructureType.SemaphoreSubmitInfo,
+            semaphore = semaphore,
+            value = value,
+            stageMask = VkPipelineStageFlags2.AllCommands,
+        };
+
+        /// <summary>
+        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="vkQueueSubmit2"/>.
+        /// </summary>
+        internal static VkCommandBufferSubmitInfo CommandBufferSubmit(VkCommandBuffer commandBuffer) => new()
+        {
+            sType = VkStructureType.CommandBufferSubmitInfo,
+            commandBuffer = commandBuffer,
+        };
+
+        /// <summary>
         ///     Marks context as active on the current thread.
         /// </summary>
         public void Begin()
@@ -207,33 +227,18 @@ namespace Stride.Graphics
             lock (QueueLock)
             {
                 // Add a dependency between command list fence and frame fence
-                var commandListFenceValue = CommandListFence.NextFenceValue;
-                var frameFenceValue = FrameFence.NextFenceValue++;
-
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var waitInfo = SemaphoreSubmit(CommandListFence.Semaphore, CommandListFence.NextFenceValue);
+                var signalInfo = SemaphoreSubmit(FrameFence.Semaphore, FrameFence.NextFenceValue++);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 1,
-                    pWaitSemaphoreValues = &commandListFenceValue,
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &frameFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    waitSemaphoreInfoCount = 1,
+                    pWaitSemaphoreInfos = &waitInfo,
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var commandListSemaphore = CommandListFence.Semaphore;
-                var frameSemaphore = FrameFence.Semaphore;
-                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    waitSemaphoreCount = 1,
-                    pWaitSemaphores = &commandListSemaphore,
-                    pWaitDstStageMask = &pipelineStageFlags,
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &frameSemaphore,
-                };
-
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
 
             // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
@@ -263,9 +268,9 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandBuffers = stackalloc VkCommandBuffer[count];
+            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count];
             for (int i = 0; i < count; i++)
-                commandBuffers[i] = commandLists[i].NativeCommandBuffer;
+                commandBufferInfos[i] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
 
             ulong nextCommandListFenceValue;
             lock (QueueLock)
@@ -274,39 +279,32 @@ namespace Stride.Graphics
                 nextCommandListFenceValue = commandListFenceValue + 1;
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
-                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                var waitInfos = stackalloc VkSemaphoreSubmitInfo[]
+                {
+                    SemaphoreSubmit(CommandListFence.Semaphore, commandListFenceValue),
+                    SemaphoreSubmit(CopyFence.Semaphore, copyFenceValue),
+                };
 
                 // Do we need to wait for CopyFence?
-                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
-                // Remember that we waited 
+                var waitSemaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
                 // Submit commands
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 2,
-                    pWaitSemaphoreValues = &waitFenceValues[0],
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = (uint)count,
+                    pCommandBufferInfos = commandBufferInfos,
+                    waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
+                    pWaitSemaphoreInfos = &waitInfos[0],
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = (uint)count,
-                    pCommandBuffers = commandBuffers,
-                    waitSemaphoreCount = 2,
-                    pWaitSemaphores = &semaphores[0],
-                    pWaitDstStageMask = &pipelineStageFlags[0],
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &semaphores[0],
-                };
-
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 if (IsDebugMode)
                 {
@@ -536,14 +534,15 @@ namespace Stride.Graphics
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
 
             // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
-            // creates no render pass objects
-            if (!supportedVulkan13Features.dynamicRendering)
-                throw new NotSupportedException("Vulkan: Dynamic rendering is not supported by this device, but is required by Stride.");
+            // creates no render pass objects. Synchronization2 is required for vkQueueSubmit2.
+            if (!supportedVulkan13Features.dynamicRendering || !supportedVulkan13Features.synchronization2)
+                throw new NotSupportedException("Vulkan: Dynamic rendering and synchronization2 are not supported by this device, but are required by Stride.");
 
             var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
                 sType = VkStructureType.PhysicalDeviceVulkan13Features,
                 dynamicRendering = VkBool32.True,
+                synchronization2 = VkBool32.True,
             };
             var enabledVulkan12Features = new VkPhysicalDeviceVulkan12Features
             {
@@ -686,24 +685,18 @@ namespace Stride.Graphics
                 var copyFenceValue = CopyFence.NextFenceValue++;
                 var nextCopyFenceValue = copyFenceValue + 1;
 
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var commandBufferInfo = CommandBufferSubmit(commandBuffer);
+                var signalInfo = SemaphoreSubmit(CopyFence.Semaphore, nextCopyFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCopyFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = 1,
+                    pCommandBufferInfos = &commandBufferInfo,
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
-                var copySemaphore = CopyFence.Semaphore;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer,
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &copySemaphore,
-                };
-                
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 return nextCopyFenceValue;
             }
@@ -825,40 +818,33 @@ namespace Stride.Graphics
                 nextCommandListFenceValue = commandListFenceValue + 1;
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
-                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                var waitInfos = stackalloc VkSemaphoreSubmitInfo[]
+                {
+                    SemaphoreSubmit(CommandListFence.Semaphore, commandListFenceValue),
+                    SemaphoreSubmit(CopyFence.Semaphore, copyFenceValue),
+                };
 
                 // Do we need to wait for CopyFence?
-                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
-                // Remember that we waited 
+                var waitSemaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
                 // Submit commands
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var commandBufferInfo = CommandBufferSubmit(commandList.NativeCommandBuffer);
+                var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 2,
-                    pWaitSemaphoreValues = &waitFenceValues[0],
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = 1,
+                    pCommandBufferInfos = &commandBufferInfo,
+                    waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
+                    pWaitSemaphoreInfos = &waitInfos[0],
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-                var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &nativeCommandBufferCopy,
-                    waitSemaphoreCount = 2,
-                    pWaitSemaphores = &semaphores[0],
-                    pWaitDstStageMask = &pipelineStageFlags[0],
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &semaphores[0],
-                };
-                
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 if (IsDebugMode)
                     DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
