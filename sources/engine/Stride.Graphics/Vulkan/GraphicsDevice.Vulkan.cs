@@ -506,10 +506,18 @@ namespace Stride.Graphics
             uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
             uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
 
+            // Dynamic rendering (core in Vulkan 1.3) is required:
+            // the backend renders with vkCmdBeginRendering and creates no render pass objects.
+            var dynamicRenderingFeatures = new VkPhysicalDeviceDynamicRenderingFeatures
+            {
+                sType = VkStructureType.PhysicalDeviceDynamicRenderingFeatures,
+            };
+
             // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
             var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
             {
                 sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
+                pNext = &dynamicRenderingFeatures,
             };
 
             // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
@@ -549,10 +557,17 @@ namespace Stride.Graphics
             if (!timelineSemaphoreFeatures.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
+
+            if (!dynamicRenderingFeatures.dynamicRendering)
+                throw new NotSupportedException("Vulkan: Dynamic rendering is not supported by this device, but is required by Stride.");
+            dynamicRenderingFeatures.dynamicRendering = VkBool32.True;
+
             // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
             shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
             timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
             shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
+            uniformBufferStandardLayoutFeature.pNext = &dynamicRenderingFeatures;
+            dynamicRenderingFeatures.pNext = null;
 
             // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
             void* pNextChainHead = &timelineSemaphoreFeatures;
@@ -1214,11 +1229,6 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.Sampler, *(ulong*)&handle);
         }
 
-        public static unsafe implicit operator NativeResource(VkFramebuffer handle)
-        {
-            return new NativeResource(VkDebugReportObjectTypeEXT.Framebuffer, *(ulong*)&handle);
-        }
-
         public static unsafe implicit operator NativeResource(VkSemaphore handle)
         {
             return new NativeResource(VkDebugReportObjectTypeEXT.Semaphore, *(ulong*)&handle);
@@ -1242,11 +1252,6 @@ namespace Stride.Graphics
         public static unsafe implicit operator NativeResource(VkPipelineLayout handle)
         {
             return new NativeResource(VkDebugReportObjectTypeEXT.PipelineLayout, *(ulong*)&handle);
-        }
-
-        public static unsafe implicit operator NativeResource(VkRenderPass handle)
-        {
-            return new NativeResource(VkDebugReportObjectTypeEXT.RenderPass, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkDescriptorSetLayout handle)
@@ -1283,9 +1288,6 @@ namespace Stride.Graphics
                 case VkDebugReportObjectTypeEXT.Sampler:
                     device.NativeDeviceApi.vkDestroySampler(device.NativeDevice, *(VkSampler*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.Framebuffer:
-                    device.NativeDeviceApi.vkDestroyFramebuffer(device.NativeDevice, *(VkFramebuffer*)&handleCopy, null);
-                    break;
                 case VkDebugReportObjectTypeEXT.Semaphore:
                     device.NativeDeviceApi.vkDestroySemaphore(device.NativeDevice, *(VkSemaphore*)&handleCopy, null);
                     break;
@@ -1300,9 +1302,6 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.PipelineLayout:
                     device.NativeDeviceApi.vkDestroyPipelineLayout(device.NativeDevice, *(VkPipelineLayout*)&handleCopy, null);
-                    break;
-                case VkDebugReportObjectTypeEXT.RenderPass:
-                    device.NativeDeviceApi.vkDestroyRenderPass(device.NativeDevice, *(VkRenderPass*)&handleCopy, null);
                     break;
                 case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
                     device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);
