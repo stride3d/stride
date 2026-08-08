@@ -277,6 +277,13 @@ namespace Stride.Graphics
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+
+            // A read-only depth view drops depth and stencil writes instead of being invalid
+            // usage, matching D3D12's read-only depth-stencil view behavior
+            var depthStencilState = activePipeline.Description.DepthStencilState;
+            bool depthWritesAllowed = depthStencilBuffer?.IsDepthStencilReadOnly != true;
+            GraphicsDevice.NativeDeviceApi.vkCmdSetDepthWriteEnable(currentCommandList.NativeCommandBuffer, depthStencilState.DepthBufferWriteEnable && depthWritesAllowed);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetStencilWriteMask(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, depthWritesAllowed ? depthStencilState.StencilWriteMask : 0u);
         }
 
         private unsafe void BindDescriptorSets()
@@ -374,7 +381,12 @@ namespace Stride.Graphics
                             // (which can be mutated by other CBs recording concurrently).
                             var parent = texture?.ParentTexture ?? texture;
                             var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
-                            var imageLayout = perCb == BarrierLayout.DepthStencilRead
+                            // Sampling the depth buffer while it is bound as a read-only attachment:
+                            // the image rides in DepthStencilReadOnlyOptimal, including on worker
+                            // command lists that did not record the transition themselves.
+                            bool sampledBoundReadOnlyDepth = depthStencilBuffer?.IsDepthStencilReadOnly == true
+                                && parent == (depthStencilBuffer.ParentTexture ?? depthStencilBuffer);
+                            var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
                                 : VkImageLayout.ShaderReadOnlyOptimal;
                             descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
