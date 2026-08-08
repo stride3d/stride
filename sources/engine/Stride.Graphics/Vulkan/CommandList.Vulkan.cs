@@ -305,15 +305,10 @@ namespace Stride.Graphics
                 }
             }
 
-            // If the pipeline disables depth+stencil writes the depth attachment can ride in
-            // DepthStencilReadOnlyOptimal — matching the attachment layout EnsureRenderPass declares
-            // and leaving the image sampleable (soft-edge particles).
-            var dss = activePipeline.Description.DepthStencilState;
-            bool depthReadOnly = !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
-            var depthAttachmentLayout = depthReadOnly
-                ? VkImageLayout.DepthStencilReadOnlyOptimal
-                : VkImageLayout.DepthStencilAttachmentOptimal;
+            // A depth buffer bound through a read-only view rides in DepthStencilReadOnlyOptimal —
+            // matching the attachment layout EnsureRenderPass declares and leaving the image
+            // sampleable (soft-edge particles).
+            bool depthReadOnly = depthStencilBuffer?.IsDepthStencilReadOnly == true;
             var depthAttachmentBarrier = depthReadOnly
                 ? BarrierLayout.DepthStencilRead
                 : BarrierLayout.DepthStencilWrite;
@@ -1727,12 +1722,9 @@ namespace Stride.Graphics
             if (activePipeline == null || activePipeline.NativePipeline == VkPipeline.Null)
                 return;
 
-            // The depth attachment layout must match what the auto-transition pass moves the depth
-            // buffer to for this pipeline (read-only when the pipeline writes neither depth nor stencil)
-            var dss = activePipeline.Description.DepthStencilState;
-            bool depthReadOnly = depthStencilBuffer != null
-                && !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
+            // The depth attachment layout follows the bound view: a read-only depth view keeps the
+            // image in DepthStencilReadOnlyOptimal so it can be sampled at the same time
+            bool depthReadOnly = depthStencilBuffer?.IsDepthStencilReadOnly == true;
 
             // The render pass instance stays active across pipeline changes as long as the
             // attachments and the depth layout stay the same
