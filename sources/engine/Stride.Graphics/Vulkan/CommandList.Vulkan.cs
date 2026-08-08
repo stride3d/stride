@@ -1733,10 +1733,6 @@ namespace Stride.Graphics
             {
                 GraphicsDevice.NativeDeviceApi.vkCmdEndRendering(currentCommandList.NativeCommandBuffer);
                 activeRendering = false;
-
-                viewportDirty = true;
-                scissorsDirty = true;
-                pipelineDirty = true;
             }
         }
 
