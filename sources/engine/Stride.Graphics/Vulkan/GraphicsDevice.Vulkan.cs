@@ -456,6 +456,10 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
+            // Stride uses Vulkan 1.3 core features and entry points
+            if (Adapter.NativeApiVersion < VkVersion.Version_1_3)
+                throw new NotSupportedException($"Vulkan: Device supports only Vulkan {Adapter.DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.");
+
             // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
             // MoltenVK is the only ICD that advertises it; conformant drivers do not.
             bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
