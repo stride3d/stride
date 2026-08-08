@@ -281,7 +281,7 @@ namespace Stride.Graphics
             // A read-only depth view drops depth and stencil writes instead of being invalid
             // usage, matching D3D12's read-only depth-stencil view behavior
             var depthStencilState = activePipeline.Description.DepthStencilState;
-            bool depthWritesAllowed = depthStencilBuffer?.IsDepthStencilReadOnly != true;
+            bool depthWritesAllowed = !(depthStencilBuffer != null && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read));
             GraphicsDevice.NativeDeviceApi.vkCmdSetDepthWriteEnable(currentCommandList.NativeCommandBuffer, depthStencilState.DepthBufferWriteEnable && depthWritesAllowed);
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilWriteMask(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, depthWritesAllowed ? depthStencilState.StencilWriteMask : 0u);
         }
@@ -384,7 +384,8 @@ namespace Stride.Graphics
                             // Sampling the depth buffer while it is bound as a read-only attachment:
                             // the image rides in DepthStencilReadOnlyOptimal, including on worker
                             // command lists that did not record the transition themselves.
-                            bool sampledBoundReadOnlyDepth = depthStencilBuffer?.IsDepthStencilReadOnly == true
+                            bool sampledBoundReadOnlyDepth = depthStencilBuffer != null
+                                && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read)
                                 && parent == (depthStencilBuffer.ParentTexture ?? depthStencilBuffer);
                             var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
@@ -1654,9 +1655,10 @@ namespace Stride.Graphics
             if (activePipeline == null || activePipeline.NativePipeline == VkPipeline.Null)
                 return;
 
-            // The depth attachment layout follows the bound view: a read-only depth view keeps the
-            // image in DepthStencilReadOnlyOptimal so it can be sampled at the same time
-            bool depthReadOnly = depthStencilBuffer?.IsDepthStencilReadOnly == true;
+            // The depth attachment layout follows the bound view and the declared stage access:
+            // a read-only depth keeps the image in DepthStencilReadOnlyOptimal so it can be
+            // sampled at the same time
+            bool depthReadOnly = depthStencilBuffer != null && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read);
 
             // The render pass instance stays active across pipeline changes as long as the
             // attachments and the depth layout stay the same

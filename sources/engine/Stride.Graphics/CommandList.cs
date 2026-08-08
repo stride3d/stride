@@ -52,6 +52,14 @@ namespace Stride.Graphics
         /// </summary>
         public int ViewportCount => boundViewportCount;
 
+        /// <summary>
+        ///   Gets how draws access the currently bound Depth-Stencil Buffer.
+        ///   Part of the binding: reset to <see cref="DepthStencilAccess.Write"/> by any
+        ///   <c>SetRenderTargets</c> call.
+        ///   Stopgap until render pass objects declare this per pass.
+        /// </summary>
+        internal DepthStencilAccess DepthStencilAccess { get; set; }
+
 
         /// <summary>
         ///   Binds a single viewport to the rasterizer stage of the pipeline.
@@ -238,6 +246,7 @@ namespace Stride.Graphics
             ResetTargetsImpl();
 
             depthStencilBuffer = null;
+            DepthStencilAccess = DepthStencilAccess.Write;
             renderTargets.AsSpan().Clear();
         }
 
@@ -260,6 +269,7 @@ namespace Stride.Graphics
         public void SetRenderTargetAndViewport(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargets[0] = renderTargetView;  // TODO: Should we clear the other entries?
             renderTargetCount = renderTargetView is not null ? 1 : 0;
@@ -286,6 +296,7 @@ namespace Stride.Graphics
         public void SetRenderTargetsAndViewport(ReadOnlySpan<Texture> renderTargetViews)
         {
             depthStencilBuffer = null;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargetCount = renderTargetViews.Length;
             renderTargetViews.CopyTo(renderTargets);
@@ -315,6 +326,7 @@ namespace Stride.Graphics
         public void SetRenderTargetsAndViewport(Texture depthStencilView, params ReadOnlySpan<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargetCount = renderTargetViews.Length;
             renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
@@ -340,6 +352,7 @@ namespace Stride.Graphics
         public void SetRenderTarget(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargetCount = renderTargetView is not null ? 1 : 0;
             renderTargets[0] = renderTargetView;  // TODO: Should we clear the other entries?
@@ -367,6 +380,7 @@ namespace Stride.Graphics
             ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViews.Length, MaxRenderTargetCount);
 
             depthStencilBuffer = null;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargetCount = renderTargetViews.Length;
             renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
@@ -397,6 +411,7 @@ namespace Stride.Graphics
             ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViews.Length, MaxRenderTargetCount);
 
             depthStencilBuffer = depthStencilView;
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             renderTargetCount = renderTargetViews.Length;
             renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
@@ -481,6 +496,8 @@ namespace Stride.Graphics
         public void ClearState()
         {
             ClearStateImpl();
+
+            DepthStencilAccess = DepthStencilAccess.Write;
 
             // Setup empty viewports
             Array.Clear(viewports);
