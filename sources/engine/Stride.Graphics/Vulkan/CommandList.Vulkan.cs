@@ -271,90 +271,12 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Draw);
 
-            // Transition resources to correct layouts before starting the render pass
-            TransitionBoundResources();
-
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
-        }
-
-        /// <summary>
-        /// Automatically transitions bound textures to the layouts expected by the pipeline:
-        /// render targets to ColorAttachmentOptimal, depth to DepthStencilAttachmentOptimal,
-        /// sampled images to ShaderReadOnlyOptimal, storage images to General.
-        /// Must be called BEFORE EnsureRenderPass since barriers cannot be issued inside a render pass.
-        /// </summary>
-        private void TransitionBoundResources()
-        {
-            if (activePipeline == null)
-                return;
-
-            // Transition render target attachments.
-            for (int i = 0; i < RenderTargetCount; i++)
-            {
-                var rt = renderTargets[i];
-                if (rt != null)
-                {
-                    var parent = rt.ParentTexture ?? rt;
-                    if (!currentCbLayouts.TryGetValue(parent, out var current) || current != BarrierLayout.RenderTarget)
-                        ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
-                }
-            }
-
-            // A depth buffer bound through a read-only view rides in DepthStencilReadOnlyOptimal —
-            // matching the attachment layout EnsureRenderPass declares and leaving the image
-            // sampleable (soft-edge particles).
-            bool depthReadOnly = depthStencilBuffer?.IsDepthStencilReadOnly == true;
-            var depthAttachmentBarrier = depthReadOnly
-                ? BarrierLayout.DepthStencilRead
-                : BarrierLayout.DepthStencilWrite;
-
-            Texture depthParent = null;
-            if (depthStencilBuffer != null)
-            {
-                depthParent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
-                if (!currentCbLayouts.TryGetValue(depthParent, out var currentDepth) || currentDepth != depthAttachmentBarrier)
-                    ResourceBarrierTransition(depthStencilBuffer, depthAttachmentBarrier);
-            }
-
-            // Transition sampled/storage textures bound in descriptors
-            var bindingCount = activePipeline.DescriptorBindingMapping.Count;
-            for (int index = 0; index < bindingCount; index++)
-            {
-                var mapping = activePipeline.DescriptorBindingMapping[index];
-                if (mapping.DescriptorType != VkDescriptorType.SampledImage &&
-                    mapping.DescriptorType != VkDescriptorType.StorageImage)
-                    continue;
-
-                var sourceSet = boundDescriptorSets[mapping.SourceSet];
-                var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
-                if (heapObject.Value is Texture texture)
-                {
-                    var parent = texture.ParentTexture ?? texture;
-
-                    // Don't transition swapchain images that are queued for presentation
-                    if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
-                        continue;
-
-                    // Skip if this sampled image is the currently bound read-only depth buffer:
-                    // DepthStencilReadOnlyOptimal is already valid for shader reads and moving it
-                    // to ShaderReadOnlyOptimal would break the render pass's attachment layout.
-                    if (depthReadOnly && depthParent != null && parent == depthParent
-                        && mapping.DescriptorType == VkDescriptorType.SampledImage)
-                        continue;
-
-                    // Always call ResourceBarrierTransition — even if the layout matches, the barrier
-                    // must be re-issued when the resource was last transitioned by a different command list.
-                    var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
-                        ? BarrierLayout.ShaderResource
-                        : BarrierLayout.UnorderedAccess;
-                    ResourceBarrierTransition(parent, layout);
-                }
-            }
         }
 
         private unsafe void BindDescriptorSets()
@@ -673,7 +595,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
@@ -688,7 +609,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
