@@ -502,81 +502,67 @@ namespace Stride.Graphics
             IsProfilingSupported = IsDebugMode && GraphicsAdapterFactory.GetInstance(IsDebugMode).HasDebugUtilsSupport;
 
             // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
-            var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();
-            uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
-            uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
-
-            // Dynamic rendering (core in Vulkan 1.3) is required:
-            // the backend renders with vkCmdBeginRendering and creates no render pass objects.
-            var dynamicRenderingFeatures = new VkPhysicalDeviceDynamicRenderingFeatures
+            // Query supported features through the aggregate per-version structs, then enable
+            // below only the features Stride uses
+            var supportedVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
-                sType = VkStructureType.PhysicalDeviceDynamicRenderingFeatures,
+                sType = VkStructureType.PhysicalDeviceVulkan13Features,
             };
-
-            // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
-            var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
+            var supportedVulkan12Features = new VkPhysicalDeviceVulkan12Features
             {
-                sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
-                pNext = &dynamicRenderingFeatures,
+                sType = VkStructureType.PhysicalDeviceVulkan12Features,
+                pNext = &supportedVulkan13Features,
             };
-
-            // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
-            // Check if the feature is supported before requesting it
-            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
+            var supportedVulkan11Features = new VkPhysicalDeviceVulkan11Features
             {
-                sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
-                pNext = &shaderFloat16Int8Features,
-            };
-            // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
-            var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
-            {
-                sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
-                pNext = &timelineSemaphoreFeatures,
-            };
-            // Queried unconditionally — the feature struct is just metadata; only the AHardwareBuffer
-            // import path on Android actually requires the feature to be enabled.
-            var samplerYcbcrConversionFeatures = new VkPhysicalDeviceSamplerYcbcrConversionFeatures
-            {
-                sType = VkStructureType.PhysicalDeviceSamplerYcbcrConversionFeatures,
-                pNext = &multiviewFeatures,
+                sType = VkStructureType.PhysicalDeviceVulkan11Features,
+                pNext = &supportedVulkan12Features,
             };
             // Portability subset features (MoltenVK only) — queried so we can forward the device-reported
             // capabilities verbatim to vkCreateDevice, which is what the portability spec requires.
             var portabilitySubsetFeatures = new VkPhysicalDevicePortabilitySubsetFeaturesKHR
             {
                 sType = VkStructureType.PhysicalDevicePortabilitySubsetFeaturesKHR,
-                pNext = &samplerYcbcrConversionFeatures,
+                pNext = &supportedVulkan11Features,
             };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &samplerYcbcrConversionFeatures,
+                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &supportedVulkan11Features,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
-            if (!timelineSemaphoreFeatures.timelineSemaphore)
+            if (!supportedVulkan12Features.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-            timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
 
-            if (!dynamicRenderingFeatures.dynamicRendering)
+            // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
+            // creates no render pass objects
+            if (!supportedVulkan13Features.dynamicRendering)
                 throw new NotSupportedException("Vulkan: Dynamic rendering is not supported by this device, but is required by Stride.");
-            dynamicRenderingFeatures.dynamicRendering = VkBool32.True;
 
-            // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
-            shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
-            timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
-            shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
-            uniformBufferStandardLayoutFeature.pNext = &dynamicRenderingFeatures;
-            dynamicRenderingFeatures.pNext = null;
-
-            // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
-            void* pNextChainHead = &timelineSemaphoreFeatures;
-            if (multiviewFeatures.multiview)
+            var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
-                multiviewFeatures.multiviewGeometryShader = VkBool32.False;
-                multiviewFeatures.multiviewTessellationShader = VkBool32.False;
-                pNextChainHead = &multiviewFeatures;
-            }
+                sType = VkStructureType.PhysicalDeviceVulkan13Features,
+                dynamicRendering = VkBool32.True,
+            };
+            var enabledVulkan12Features = new VkPhysicalDeviceVulkan12Features
+            {
+                sType = VkStructureType.PhysicalDeviceVulkan12Features,
+                pNext = &enabledVulkan13Features,
+                timelineSemaphore = VkBool32.True,
+                uniformBufferStandardLayout = VkBool32.True,
+                // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
+                shaderFloat16 = supportedVulkan12Features.shaderFloat16,
+            };
+            var enabledVulkan11Features = new VkPhysicalDeviceVulkan11Features
+            {
+                sType = VkStructureType.PhysicalDeviceVulkan11Features,
+                pNext = &enabledVulkan12Features,
+                // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
+                multiview = supportedVulkan11Features.multiview,
+            };
+
+            void* pNextChainHead = &enabledVulkan11Features;
             // Re-attach portability subset at the head of the create-info chain so MoltenVK sees the
             // feature flags it reported. The values were populated by the query above; pass them back as-is.
             if (isPortabilitySubsetDevice)
