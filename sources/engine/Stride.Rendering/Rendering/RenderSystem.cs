@@ -431,12 +431,8 @@ namespace Stride.Rendering
                 var scissor = commandList.Scissor;
 
                 // Pass-entry barriers on the main CB (single-threaded, submitted first). Worker CBs
-                // that follow see the RT/depth layouts already at their target, so per-draw
-                // TransitionBoundResources doesn't race to claim a transition from a stale
-                // "last-submitted" layout. A few redundant no-op barriers from workers are fine.
-                // Depth transition follows the stage's declared access mode; Mixed stages are
-                // skipped (workers will transition per-pipeline and may still race — those stages
-                // should be split or handled separately).
+                // that follow see the RT/depth layouts already at their target and issue no
+                // transitions of their own. Depth transition follows the stage's declared access mode.
                 for (int i = 0; i < renderTargetCount; i++)
                 {
                     if (renderTargets[i] != null)
