@@ -804,6 +804,12 @@ namespace Stride.Rendering.Compositing
                 this.depthStencilROCached?.Dispose();
                 this.depthStencilROCached = depthStencilROCached;
             }
+
+            // Move the depth buffer to the read-only layout so it can be depth-tested and sampled
+            // at the same time (no transition on the copy fallback, where the writable view stays bound)
+            if (depthStencilROCached.IsDepthStencilReadOnly)
+                commandList.ResourceBarrierTransition(depthStencil, BarrierLayout.DepthStencilRead);
+
             commandList.SetRenderTargets(depthStencilROCached, commandList.RenderTargets);
 
             return depthStencilSRV;

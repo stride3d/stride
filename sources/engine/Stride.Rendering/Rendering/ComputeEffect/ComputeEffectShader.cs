@@ -106,12 +106,48 @@ namespace Stride.Rendering.ComputeEffect
             // Apply the effect
             EffectInstance.Apply(context.GraphicsContext);
 
+            TransitionBoundTextures(context.CommandList, afterDispatch: false);
+
             // Draw a full screen quad
             context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);
+
+            TransitionBoundTextures(context.CommandList, afterDispatch: true);
 
             // Un-apply
             //throw new InvalidOperationException();
             //EffectInstance.Effect.UnbindResources(GraphicsDevice);
+        }
+
+        /// <summary>
+        /// Transitions the textures bound to the compute shader to the layout their binding needs
+        /// (shader resource or unordered access), and written textures back to shader resource
+        /// after the dispatch so they can be sampled afterwards.
+        /// </summary>
+        private void TransitionBoundTextures(CommandList commandList, bool afterDispatch)
+        {
+            foreach (var binding in EffectInstance.Effect.Bytecode.Reflection.ResourceBindings)
+            {
+                bool isUnorderedAccess = binding.Class == EffectParameterClass.UnorderedAccessView;
+                if (!isUnorderedAccess && binding.Class != EffectParameterClass.ShaderResourceView)
+                    continue;
+
+                if (binding.KeyInfo.Key is not ObjectParameterKey<Texture> textureKey)
+                    continue;
+
+                var texture = Parameters.Get(textureKey);
+                if (texture is null)
+                    continue;
+
+                if (afterDispatch)
+                {
+                    if (isUnorderedAccess && texture.IsShaderResource)
+                        commandList.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource);
+                }
+                else
+                {
+                    commandList.ResourceBarrierTransition(texture, isUnorderedAccess ? BarrierLayout.UnorderedAccess : BarrierLayout.ShaderResource);
+                }
+            }
         }
     }
 }

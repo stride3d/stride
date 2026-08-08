@@ -271,95 +271,19 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Draw);
 
-            // Transition resources to correct layouts before starting the render pass
-            TransitionBoundResources();
-
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
-        }
 
-        /// <summary>
-        /// Automatically transitions bound textures to the layouts expected by the pipeline:
-        /// render targets to ColorAttachmentOptimal, depth to DepthStencilAttachmentOptimal,
-        /// sampled images to ShaderReadOnlyOptimal, storage images to General.
-        /// Must be called BEFORE EnsureRenderPass since barriers cannot be issued inside a render pass.
-        /// </summary>
-        private void TransitionBoundResources()
-        {
-            if (activePipeline == null)
-                return;
-
-            // Transition render target attachments.
-            for (int i = 0; i < RenderTargetCount; i++)
-            {
-                var rt = renderTargets[i];
-                if (rt != null)
-                {
-                    var parent = rt.ParentTexture ?? rt;
-                    if (!currentCbLayouts.TryGetValue(parent, out var current) || current != BarrierLayout.RenderTarget)
-                        ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
-                }
-            }
-
-            // If the pipeline disables depth+stencil writes the depth attachment can ride in
-            // DepthStencilReadOnlyOptimal — matching the attachment layout EnsureRenderPass declares
-            // and leaving the image sampleable (soft-edge particles).
-            var dss = activePipeline.Description.DepthStencilState;
-            bool depthReadOnly = !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
-            var depthAttachmentLayout = depthReadOnly
-                ? VkImageLayout.DepthStencilReadOnlyOptimal
-                : VkImageLayout.DepthStencilAttachmentOptimal;
-            var depthAttachmentBarrier = depthReadOnly
-                ? BarrierLayout.DepthStencilRead
-                : BarrierLayout.DepthStencilWrite;
-
-            Texture depthParent = null;
-            if (depthStencilBuffer != null)
-            {
-                depthParent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
-                if (!currentCbLayouts.TryGetValue(depthParent, out var currentDepth) || currentDepth != depthAttachmentBarrier)
-                    ResourceBarrierTransition(depthStencilBuffer, depthAttachmentBarrier);
-            }
-
-            // Transition sampled/storage textures bound in descriptors
-            var bindingCount = activePipeline.DescriptorBindingMapping.Count;
-            for (int index = 0; index < bindingCount; index++)
-            {
-                var mapping = activePipeline.DescriptorBindingMapping[index];
-                if (mapping.DescriptorType != VkDescriptorType.SampledImage &&
-                    mapping.DescriptorType != VkDescriptorType.StorageImage)
-                    continue;
-
-                var sourceSet = boundDescriptorSets[mapping.SourceSet];
-                var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
-                if (heapObject.Value is Texture texture)
-                {
-                    var parent = texture.ParentTexture ?? texture;
-
-                    // Don't transition swapchain images that are queued for presentation
-                    if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
-                        continue;
-
-                    // Skip if this sampled image is the currently bound read-only depth buffer:
-                    // DepthStencilReadOnlyOptimal is already valid for shader reads and moving it
-                    // to ShaderReadOnlyOptimal would break the render pass's attachment layout.
-                    if (depthReadOnly && depthParent != null && parent == depthParent
-                        && mapping.DescriptorType == VkDescriptorType.SampledImage)
-                        continue;
-
-                    // Always call ResourceBarrierTransition — even if the layout matches, the barrier
-                    // must be re-issued when the resource was last transitioned by a different command list.
-                    var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
-                        ? BarrierLayout.ShaderResource
-                        : BarrierLayout.UnorderedAccess;
-                    ResourceBarrierTransition(parent, layout);
-                }
-            }
+            // A read-only depth view drops depth and stencil writes instead of being invalid
+            // usage, matching D3D12's read-only depth-stencil view behavior
+            var depthStencilState = activePipeline.Description.DepthStencilState;
+            bool depthWritesAllowed = depthStencilBuffer?.IsDepthStencilReadOnly != true;
+            GraphicsDevice.NativeDeviceApi.vkCmdSetDepthWriteEnable(currentCommandList.NativeCommandBuffer, depthStencilState.DepthBufferWriteEnable && depthWritesAllowed);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetStencilWriteMask(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, depthWritesAllowed ? depthStencilState.StencilWriteMask : 0u);
         }
 
         private unsafe void BindDescriptorSets()
@@ -457,7 +381,12 @@ namespace Stride.Graphics
                             // (which can be mutated by other CBs recording concurrently).
                             var parent = texture?.ParentTexture ?? texture;
                             var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
-                            var imageLayout = perCb == BarrierLayout.DepthStencilRead
+                            // Sampling the depth buffer while it is bound as a read-only attachment:
+                            // the image rides in DepthStencilReadOnlyOptimal, including on worker
+                            // command lists that did not record the transition themselves.
+                            bool sampledBoundReadOnlyDepth = depthStencilBuffer?.IsDepthStencilReadOnly == true
+                                && parent == (depthStencilBuffer.ParentTexture ?? depthStencilBuffer);
+                            var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
                                 : VkImageLayout.ShaderReadOnlyOptimal;
                             descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
@@ -678,7 +607,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
@@ -693,7 +621,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
@@ -876,10 +803,6 @@ namespace Stride.Graphics
         public unsafe void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
             RecordDebugCounter(DebugCounterKind.Clear);
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
-
-            var barrierRange = depthStencilBuffer.NativeResourceRange;
 
             // Adjust aspectMask to clear only the specified part (depth or stencil)
             var clearRange = depthStencilBuffer.NativeResourceRange;
@@ -891,14 +814,14 @@ namespace Stride.Graphics
             if ((options & DepthStencilClearOptions.Stencil) != 0)
                 clearRange.aspectMask |= VkImageAspectFlags.Stencil & depthStencilBuffer.NativeImageAspect;
 
-            var memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, depthStencilBuffer.NativeAccessMask, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the buffer in the depth write layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.CopyDest);
 
             var clearValue = new VkClearDepthStencilValue(depth, stencil);
             GraphicsDevice.NativeDeviceApi.vkCmdClearDepthStencilImage(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeAccessMask, VkImageLayout.TransferDstOptimal, depthStencilBuffer.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, depthStencilBuffer.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
 
             depthStencilBuffer.IsInitialized = true;
         }
@@ -913,18 +836,16 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Clear);
             // TODO VULKAN: Detect if inside render pass. If so, NativeCommandBuffer.ClearAttachments()
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
 
             var clearRange = renderTarget.NativeResourceRange;
 
-            var memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, renderTarget.NativeAccessMask, VkAccessFlags.TransferWrite, renderTarget.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, renderTarget.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the target in the render target layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(renderTarget, BarrierLayout.CopyDest);
 
             GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, renderTarget.NativeImage, VkImageLayout.TransferDstOptimal, (VkClearColorValue*) &color, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, VkAccessFlags.TransferWrite, renderTarget.NativeAccessMask, VkImageLayout.TransferDstOptimal, renderTarget.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, renderTarget.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
 
             renderTarget.IsInitialized = true;
         }
@@ -1009,16 +930,16 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(texture);
             RecordDebugCounter(DebugCounterKind.Clear);
-            CleanupRenderPass();
 
             var clearRange = texture.NativeResourceRange;
-            var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.General);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
-            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.General, &clearValue, 1, &clearRange);
+            // Clear requires TransferDstOptimal; leave the texture in the unordered access layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(texture, BarrierLayout.CopyDest);
 
-            memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.General, texture.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, 1, &clearRange);
+
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
         }
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
@@ -1733,12 +1654,9 @@ namespace Stride.Graphics
             if (activePipeline == null || activePipeline.NativePipeline == VkPipeline.Null)
                 return;
 
-            // The depth attachment layout must match what the auto-transition pass moves the depth
-            // buffer to for this pipeline (read-only when the pipeline writes neither depth nor stencil)
-            var dss = activePipeline.Description.DepthStencilState;
-            bool depthReadOnly = depthStencilBuffer != null
-                && !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
+            // The depth attachment layout follows the bound view: a read-only depth view keeps the
+            // image in DepthStencilReadOnlyOptimal so it can be sampled at the same time
+            bool depthReadOnly = depthStencilBuffer?.IsDepthStencilReadOnly == true;
 
             // The render pass instance stays active across pipeline changes as long as the
             // attachments and the depth layout stay the same
@@ -1827,10 +1745,6 @@ namespace Stride.Graphics
             {
                 GraphicsDevice.NativeDeviceApi.vkCmdEndRendering(currentCommandList.NativeCommandBuffer);
                 activeRendering = false;
-
-                viewportDirty = true;
-                scissorsDirty = true;
-                pipelineDirty = true;
             }
         }
 
