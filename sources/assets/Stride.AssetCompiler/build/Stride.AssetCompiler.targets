@@ -65,12 +65,17 @@
     <_StrideProjectDir Condition="'$(ProjectDir)' != ''">$([MSBuild]::NormalizeDirectory('$(ProjectDir)'))</_StrideProjectDir>
     <StrideCompileAssetBuildRedirected Condition="'$(StrideCompileAssetBuildPath)' == '' And '$(_StrideCurrentPackageDir)' != '' And '$(_StrideCurrentPackageDir)' != '$(_StrideProjectDir)'">true</StrideCompileAssetBuildRedirected>
     <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildRedirected)' == 'true'">$([System.IO.Path]::GetFullPath($([System.IO.Path]::Combine($([System.IO.Path]::GetDirectoryName('$(StrideCurrentPackagePath)')), 'obj/stride/assetbuild/data'))))</StrideCompileAssetBuildPath>
-    <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)stride\assetbuild\data</StrideCompileAssetBuildPath>
+    <!-- Combine rather than concatenate: BaseIntermediateOutputPath/IntermediateOutputPath are
+         relative to the project for a normal project, but absolute for a file-based app
+         (dotnet run app.cs), whose obj/bin live under the SDK's temp cache. Path.Combine returns
+         the second path unchanged when it is already rooted, so the relative case is unaffected. -->
+    <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildPath)' == ''">$([System.IO.Path]::Combine('$(ProjectDir)', '$(BaseIntermediateOutputPath)stride\assetbuild\data'))</StrideCompileAssetBuildPath>
 
     <!-- Compiled-asset output path, unified across platforms. -->
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
-    <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
+    <!-- Same rationale as above (Path.Combine handles file-based apps' rooted intermediate paths). -->
+    <StrideCompileAssetUpToDateCheckFileBase>$([System.IO.Path]::Combine('$(ProjectDir)', '$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck'))</StrideCompileAssetUpToDateCheckFileBase>
 
     <!--The AssetCompiler runs on the build host: it loads host-built engine assemblies for type
         discovery only, so it resolves project references for the host's native graphics API —
@@ -337,7 +342,7 @@
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([System.IO.Path]::Combine('$(ProjectDir)', '$(BaseIntermediateOutputPath)stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
