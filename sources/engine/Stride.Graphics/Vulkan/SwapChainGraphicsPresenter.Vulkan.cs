@@ -149,27 +149,18 @@ namespace Stride.Graphics
             {
                 // Signal semaphore (that we will wait on during present for GPU=>GPU sync, to make sure all previous command buffers have been executed)
                 var submitSemaphore = submitSemaphores[currentBufferIndex];
-                var frameFence = GraphicsDevice.FrameFence.Semaphore;
-                var frameFenceValue = GraphicsDevice.FrameFence.NextFenceValue - 1;
-                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var waitInfo = GraphicsDevice.SemaphoreSubmit(GraphicsDevice.FrameFence.Semaphore, GraphicsDevice.FrameFence.NextFenceValue - 1);
+                var signalInfo = GraphicsDevice.SemaphoreSubmit(submitSemaphore);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 1,
-                    pWaitSemaphoreValues = &frameFenceValue,
-                };
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    waitSemaphoreCount = 1,
-                    pWaitSemaphores = &frameFence,
-                    pWaitDstStageMask = &pipelineStageFlags,
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &submitSemaphore,
+                    sType = VkStructureType.SubmitInfo2,
+                    waitSemaphoreInfoCount = 1,
+                    pWaitSemaphoreInfos = &waitInfo,
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit2(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
 
                 var currentBufferIndexCopy = currentBufferIndex;
                 var swapChainCopy = swapChain;
@@ -235,33 +226,24 @@ namespace Stride.Graphics
             lock (GraphicsDevice.QueueLock)
             {
                 // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
-                var acquireSemaphore = acquireSemaphores[currentFrameIndex];
-                var commandListFence = GraphicsDevice.CommandListFence.Semaphore;
                 var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
                 var nextCommandListFenceValue = commandListFenceValue + 1;
-                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, 0 }; // second value is ignored (binary semaphore)
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var waitInfos = stackalloc VkSemaphoreSubmitInfo[]
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 2,
-                    pWaitSemaphoreValues = &waitFenceValues[0],
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                    GraphicsDevice.SemaphoreSubmit(GraphicsDevice.CommandListFence.Semaphore, commandListFenceValue),
+                    GraphicsDevice.SemaphoreSubmit(acquireSemaphores[currentFrameIndex]),
                 };
-                var semaphores = stackalloc VkSemaphore[] { commandListFence, acquireSemaphore };
-                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-                var submitInfo = new VkSubmitInfo
+                var signalInfo = GraphicsDevice.SemaphoreSubmit(GraphicsDevice.CommandListFence.Semaphore, nextCommandListFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    waitSemaphoreCount = 2,
-                    pWaitSemaphores = &semaphores[0],
-                    pWaitDstStageMask = &pipelineStageFlags[0],
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &commandListFence,
+                    sType = VkStructureType.SubmitInfo2,
+                    waitSemaphoreInfoCount = 2,
+                    pWaitSemaphoreInfos = &waitInfos[0],
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit2(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
         }
 
@@ -677,13 +659,14 @@ namespace Stride.Graphics
 
             lock (GraphicsDevice.QueueLock)
             {
-                var submitInfo = new VkSubmitInfo
+                var commandBufferInfo = GraphicsDevice.CommandBufferSubmit(commandBuffer);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.SubmitInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = 1,
+                    pCommandBufferInfos = &commandBufferInfo,
                 };
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit2(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
                 GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
             }
 
