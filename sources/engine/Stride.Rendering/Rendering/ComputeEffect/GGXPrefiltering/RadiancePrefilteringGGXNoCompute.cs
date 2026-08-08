@@ -135,6 +135,10 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     levelSize /= 2;
                 }
             }
+
+            // Draws and the CopyRegion path leave the mips in render target/copy states; settle
+            // the whole output to shader resource so it can be sampled.
+            context.CommandList.ResourceBarrierTransition(output, BarrierLayout.ShaderResource);
         }
     }
 }
