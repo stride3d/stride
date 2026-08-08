@@ -876,10 +876,6 @@ namespace Stride.Graphics
         public unsafe void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
             RecordDebugCounter(DebugCounterKind.Clear);
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
-
-            var barrierRange = depthStencilBuffer.NativeResourceRange;
 
             // Adjust aspectMask to clear only the specified part (depth or stencil)
             var clearRange = depthStencilBuffer.NativeResourceRange;
@@ -891,14 +887,14 @@ namespace Stride.Graphics
             if ((options & DepthStencilClearOptions.Stencil) != 0)
                 clearRange.aspectMask |= VkImageAspectFlags.Stencil & depthStencilBuffer.NativeImageAspect;
 
-            var memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, depthStencilBuffer.NativeAccessMask, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the buffer in the depth write layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.CopyDest);
 
             var clearValue = new VkClearDepthStencilValue(depth, stencil);
             GraphicsDevice.NativeDeviceApi.vkCmdClearDepthStencilImage(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeAccessMask, VkImageLayout.TransferDstOptimal, depthStencilBuffer.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, depthStencilBuffer.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
 
             depthStencilBuffer.IsInitialized = true;
         }
@@ -913,18 +909,16 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Clear);
             // TODO VULKAN: Detect if inside render pass. If so, NativeCommandBuffer.ClearAttachments()
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
 
             var clearRange = renderTarget.NativeResourceRange;
 
-            var memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, renderTarget.NativeAccessMask, VkAccessFlags.TransferWrite, renderTarget.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, renderTarget.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the target in the render target layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(renderTarget, BarrierLayout.CopyDest);
 
             GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, renderTarget.NativeImage, VkImageLayout.TransferDstOptimal, (VkClearColorValue*) &color, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, VkAccessFlags.TransferWrite, renderTarget.NativeAccessMask, VkImageLayout.TransferDstOptimal, renderTarget.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, renderTarget.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
 
             renderTarget.IsInitialized = true;
         }
@@ -1009,16 +1003,16 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(texture);
             RecordDebugCounter(DebugCounterKind.Clear);
-            CleanupRenderPass();
 
             var clearRange = texture.NativeResourceRange;
-            var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.General);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
-            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.General, &clearValue, 1, &clearRange);
+            // Clear requires TransferDstOptimal; leave the texture in the unordered access layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(texture, BarrierLayout.CopyDest);
 
-            memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.General, texture.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, 1, &clearRange);
+
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
         }
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
