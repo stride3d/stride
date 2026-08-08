@@ -24,5 +24,10 @@ namespace Stride.Rendering.Skyboxes
 
             return EvaluateSphericalHarmonics(SphericalColors, direction);
         }
+
+        override float4 Compute(float3 direction, float blurriness)
+        {
+            return EvaluateSphericalHarmonics(SphericalColors, direction);
+        }
     };
 }

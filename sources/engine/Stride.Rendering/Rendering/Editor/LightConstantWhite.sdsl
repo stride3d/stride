@@ -13,6 +13,7 @@ namespace Stride.Rendering.Lights
 
             streams.envLightDiffuseColor = 1;
             streams.envLightSpecularColor = 1;
+            streams.envLightDistFog = 0;
         }
     };
 }
