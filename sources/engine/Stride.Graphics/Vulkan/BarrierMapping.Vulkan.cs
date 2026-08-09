@@ -54,8 +54,8 @@ internal static class BarrierMapping
     /// </summary>
     internal static VkAccessFlags ToVkAccessFlags(BarrierLayout layout) => layout switch
     {
-        BarrierLayout.RenderTarget => VkAccessFlags.ColorAttachmentWrite,
-        BarrierLayout.DepthStencilWrite => VkAccessFlags.DepthStencilAttachmentWrite,
+        BarrierLayout.RenderTarget => VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.ColorAttachmentRead,
+        BarrierLayout.DepthStencilWrite => VkAccessFlags.DepthStencilAttachmentWrite | VkAccessFlags.DepthStencilAttachmentRead,
         BarrierLayout.DepthStencilRead => VkAccessFlags.DepthStencilAttachmentRead,
         BarrierLayout.ShaderResource => VkAccessFlags.ShaderRead,
         BarrierLayout.UnorderedAccess => VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite,
