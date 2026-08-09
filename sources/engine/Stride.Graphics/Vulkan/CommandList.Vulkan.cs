@@ -23,8 +23,6 @@ namespace Stride.Graphics
 
         internal CommandBufferPool CommandBufferPool;
 
-        private VkRenderPass activeRenderPass;
-        private VkRenderPass previousRenderPass;
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
@@ -36,11 +34,11 @@ namespace Stride.Graphics
         // that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
         private readonly Dictionary<Texture, BarrierLayout> currentCbLayouts = new();
 
-        private readonly Dictionary<FramebufferKey, VkFramebuffer> framebuffers = new();
-        private readonly VkImageView[] framebufferAttachments = new VkImageView[9];
-        private int framebufferAttachmentCount;
-        private bool framebufferDirty = true;
-        private VkFramebuffer activeFramebuffer;
+        // Dynamic rendering state: whether a render pass instance (vkCmdBeginRendering) is active,
+        // whether the bound attachments changed since it began, and which depth layout it declared.
+        private bool activeRendering;
+        private bool renderingDirty = true;
+        private bool activeDepthReadOnly;
 
         private VkDescriptorPool descriptorPool;
         private VkDescriptorSet descriptorSet;
@@ -88,8 +86,7 @@ namespace Stride.Graphics
             boundDescriptorSets.Clear();
             currentCbLayouts.Clear();
 
-            framebuffers.Clear();
-            framebufferDirty = true;
+            renderingDirty = true;
 
             currentCommandList.Builder = this;
             currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
@@ -178,28 +175,9 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">renderTargetViews</exception>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
-            var oldFramebufferAttachmentCount = framebufferAttachmentCount;
-            framebufferAttachmentCount = renderTargets.Length;
-
-            for (int i = 0; i < renderTargets.Length; i++)
-            {
-                if (renderTargets[i].NativeColorAttachmentView != framebufferAttachments[i])
-                    framebufferDirty = true;
-
-                framebufferAttachments[i] = renderTargets[i].NativeColorAttachmentView;
-            }
-
-            if (depthStencilBuffer != null)
-            {
-                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargets.Length])
-                    framebufferDirty = true;
-
-                framebufferAttachments[renderTargets.Length] = depthStencilBuffer.NativeDepthStencilView;
-                framebufferAttachmentCount++;
-            }
-
-            if (framebufferAttachmentCount != oldFramebufferAttachmentCount)
-                framebufferDirty = true;
+            // The base class updated the bound targets; the next draw restarts the render pass
+            // instance with them if they changed
+            renderingDirty = true;
         }
 
         /// <summary>
@@ -328,8 +306,8 @@ namespace Stride.Graphics
             }
 
             // If the pipeline disables depth+stencil writes the depth attachment can ride in
-            // DepthStencilReadOnlyOptimal — matching the render-pass layout picked in
-            // PipelineState.CreateRenderPass and leaving the image sampleable (soft-edge particles).
+            // DepthStencilReadOnlyOptimal — matching the attachment layout EnsureRenderPass declares
+            // and leaving the image sampleable (soft-edge particles).
             var dss = activePipeline.Description.DepthStencilState;
             bool depthReadOnly = !dss.DepthBufferWriteEnable
                 && (!dss.StencilEnable || dss.StencilWriteMask == 0);
@@ -1752,171 +1730,107 @@ namespace Stride.Graphics
 
         private unsafe void EnsureRenderPass()
         {
-            if (activePipeline == null)
+            if (activePipeline == null || activePipeline.NativePipeline == VkPipeline.Null)
                 return;
 
-            var pipelineRenderPass = activePipeline.NativeRenderPass;
+            // The depth attachment layout must match what the auto-transition pass moves the depth
+            // buffer to for this pipeline (read-only when the pipeline writes neither depth nor stencil)
+            var dss = activePipeline.Description.DepthStencilState;
+            bool depthReadOnly = depthStencilBuffer != null
+                && !dss.DepthBufferWriteEnable
+                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
 
-            // Reuse the Framebuffer if the VkRenderPass didn't change
-            if (previousRenderPass != pipelineRenderPass)
-                framebufferDirty = true;
-
-            // Nothing to do. VkRenderPass and Framebuffer are still valid
-            if (!framebufferDirty && activeRenderPass == pipelineRenderPass)
+            // The render pass instance stays active across pipeline changes as long as the
+            // attachments and the depth layout stay the same
+            if (activeRendering && !renderingDirty && activeDepthReadOnly == depthReadOnly)
                 return;
 
-            // End old render pass
+            // End old render pass instance
             CleanupRenderPass();
 
-            if (pipelineRenderPass != VkRenderPass.Null)
+            var renderTarget = RenderTargetCount > 0 ? renderTargets[0] : depthStencilBuffer;
+            if (renderTarget == null)
+                return;
+
+            // An attachment mismatch with the pipeline's declared formats is undefined behavior that
+            // loses the device on strict drivers; fail loud in debug (only, to not break drivers that
+            // tolerate it) instead.
+            if (GraphicsDevice.IsDebugMode)
             {
-                var renderTarget = RenderTargetCount > 0 ? renderTargets[0] : depthStencilBuffer;
-
-                if (framebufferDirty)
-                {
-                    // A framebuffer/render-pass attachment mismatch is undefined behavior that loses the device on
-                    // strict drivers; fail loud in debug (only, to not break drivers that tolerate it) instead.
-                    if (GraphicsDevice.IsDebugMode)
-                    {
-                        var output = activePipeline.Description.Output;
-                        var expectedAttachmentCount = output.RenderTargetCount + (output.DepthStencilFormat != PixelFormat.None ? 1 : 0);
-                        if (framebufferAttachmentCount != expectedAttachmentCount)
-                            throw new InvalidOperationException(
-                                $"Bound render targets ({framebufferAttachmentCount}) do not match the active pipeline's render pass " +
-                                $"({expectedAttachmentCount} attachments). The render targets bound on the command list must match the pipeline's Output description.");
-                    }
-
-                    // Create new frame buffer
-                    fixed (VkImageView* attachmentsPointer = &framebufferAttachments[0])
-                    {
-                        var framebufferKey = new FramebufferKey(pipelineRenderPass, framebufferAttachmentCount, attachmentsPointer);
-
-                        if (!framebuffers.TryGetValue(framebufferKey, out activeFramebuffer))
-                        {
-                            var framebufferCreateInfo = new VkFramebufferCreateInfo
-                            {
-                                sType = VkStructureType.FramebufferCreateInfo,
-                                renderPass = pipelineRenderPass,
-                                attachmentCount = (uint) framebufferAttachmentCount,
-                                pAttachments = attachmentsPointer,
-                                width = (uint) renderTarget.ViewWidth,
-                                height = (uint) renderTarget.ViewHeight,
-                                layers = 1 // TODO VULKAN: Use correct view depth/array size
-                            };
-                            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateFramebuffer(GraphicsDevice.NativeDevice, &framebufferCreateInfo, null, out activeFramebuffer));
-                            GraphicsDevice.Collect(activeFramebuffer);
-                            framebuffers.Add(framebufferKey, activeFramebuffer);
-                        }
-                    }
-                    framebufferDirty = false;
-                }
-
-                // Clear attachments if needed
-                // TODO VULKAN: Can we use a custom render pass for this?
-                for (int index = 0; index < RenderTargetCount; index++)
-                {
-                    if (!renderTarget.IsInitialized)
-                    {
-                        Clear(renderTargets[index], Color.Transparent);
-                    }
-                }
-
-                if (depthStencilBuffer != null && !depthStencilBuffer.IsInitialized)
-                {
-                    Clear(depthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
-                }
-
-                // Start new render pass
-                var renderPassBegin = new VkRenderPassBeginInfo
-                {
-                    sType = VkStructureType.RenderPassBeginInfo,
-                    renderPass = pipelineRenderPass,
-                    framebuffer = activeFramebuffer,
-                    renderArea = new VkRect2D(0, 0, (uint)renderTarget.ViewWidth, (uint)renderTarget.ViewHeight)
-                };
-                GraphicsDevice.NativeDeviceApi.vkCmdBeginRenderPass(currentCommandList.NativeCommandBuffer, &renderPassBegin, VkSubpassContents.Inline);
-
-                previousRenderPass = activeRenderPass = pipelineRenderPass;
+                var output = activePipeline.Description.Output;
+                if (RenderTargetCount != output.RenderTargetCount || (depthStencilBuffer != null) != (output.DepthStencilFormat != PixelFormat.None))
+                    throw new InvalidOperationException(
+                        $"Bound render targets ({RenderTargetCount} color, depth: {depthStencilBuffer != null}) do not match the active pipeline's output " +
+                        $"({output.RenderTargetCount} color, depth: {output.DepthStencilFormat != PixelFormat.None}). The render targets bound on the command list must match the pipeline's Output description.");
             }
+
+            // Clear attachments if needed
+            for (int index = 0; index < RenderTargetCount; index++)
+            {
+                if (!renderTarget.IsInitialized)
+                {
+                    Clear(renderTargets[index], Color.Transparent);
+                }
+            }
+
+            if (depthStencilBuffer != null && !depthStencilBuffer.IsInitialized)
+            {
+                Clear(depthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
+            }
+
+            // Start new render pass instance
+            var colorAttachments = stackalloc VkRenderingAttachmentInfo[RenderTargetCount > 0 ? RenderTargetCount : 1];
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                colorAttachments[i] = new VkRenderingAttachmentInfo
+                {
+                    sType = VkStructureType.RenderingAttachmentInfo,
+                    imageView = renderTargets[i].NativeColorAttachmentView,
+                    imageLayout = VkImageLayout.ColorAttachmentOptimal,
+                    loadOp = VkAttachmentLoadOp.Load,
+                    storeOp = VkAttachmentStoreOp.Store,
+                };
+            }
+
+            var depthAttachment = new VkRenderingAttachmentInfo
+            {
+                sType = VkStructureType.RenderingAttachmentInfo,
+                imageView = depthStencilBuffer?.NativeDepthStencilView ?? VkImageView.Null,
+                imageLayout = depthReadOnly ? VkImageLayout.DepthStencilReadOnlyOptimal : VkImageLayout.DepthStencilAttachmentOptimal,
+                loadOp = VkAttachmentLoadOp.Load,
+                storeOp = VkAttachmentStoreOp.Store,
+            };
+
+            bool hasStencil = depthStencilBuffer != null && (depthStencilBuffer.NativeImageAspect & VkImageAspectFlags.Stencil) != 0;
+
+            var renderingInfo = new VkRenderingInfo
+            {
+                sType = VkStructureType.RenderingInfo,
+                renderArea = new VkRect2D(0, 0, (uint)renderTarget.ViewWidth, (uint)renderTarget.ViewHeight),
+                layerCount = 1, // TODO VULKAN: Use correct view depth/array size
+                colorAttachmentCount = (uint)RenderTargetCount,
+                pColorAttachments = colorAttachments,
+                pDepthAttachment = depthStencilBuffer != null ? &depthAttachment : null,
+                pStencilAttachment = hasStencil ? &depthAttachment : null,
+            };
+
+            GraphicsDevice.NativeDeviceApi.vkCmdBeginRendering(currentCommandList.NativeCommandBuffer, &renderingInfo);
+
+            activeRendering = true;
+            activeDepthReadOnly = depthReadOnly;
+            renderingDirty = false;
         }
 
         private unsafe void CleanupRenderPass()
         {
-            if (activeRenderPass != VkRenderPass.Null)
+            if (activeRendering)
             {
-                GraphicsDevice.NativeDeviceApi.vkCmdEndRenderPass(currentCommandList.NativeCommandBuffer);
-                activeRenderPass = VkRenderPass.Null;
+                GraphicsDevice.NativeDeviceApi.vkCmdEndRendering(currentCommandList.NativeCommandBuffer);
+                activeRendering = false;
 
                 viewportDirty = true;
                 scissorsDirty = true;
                 pipelineDirty = true;
-            }
-        }
-
-        private readonly struct FramebufferKey : IEquatable<FramebufferKey>
-        {
-            private readonly VkRenderPass renderPass;
-            private readonly int attachmentCount;
-            private readonly VkImageView attachment0;
-            private readonly VkImageView attachment1;
-            private readonly VkImageView attachment2;
-            private readonly VkImageView attachment3;
-            private readonly VkImageView attachment4;
-            private readonly VkImageView attachment5;
-            private readonly VkImageView attachment6;
-            private readonly VkImageView attachment7;
-            private readonly VkImageView attachment8;
-            private readonly VkImageView attachment9;
-
-            public unsafe FramebufferKey(VkRenderPass renderPass, int attachmentCount, VkImageView* attachments)
-            {
-                this.renderPass = renderPass;
-                this.attachmentCount = attachmentCount;
-
-                attachment0 = attachments[0];
-                attachment1 = attachments[1];
-                attachment2 = attachments[2];
-                attachment3 = attachments[3];
-                attachment4 = attachments[4];
-                attachment5 = attachments[5];
-                attachment6 = attachments[6];
-                attachment7 = attachments[7];
-                attachment8 = attachments[8];
-                attachment9 = attachments[9];
-            }
-
-            public override unsafe int GetHashCode()
-            {
-                var hashcode = renderPass.GetHashCode();
-
-                fixed (VkImageView* attachmentsPointer = &attachment0)
-                {
-                    for (int i = 0; i < attachmentCount; i++)
-                    {
-                        hashcode = attachmentsPointer[i].GetHashCode() ^ (hashcode * 397);
-                    }
-                }
-
-                return hashcode;
-            }
-
-            public unsafe bool Equals(FramebufferKey other)
-            {
-                if (other.renderPass != renderPass || attachmentCount != other.attachmentCount)
-                    return false;
-
-                fixed (VkImageView* attachmentsPointer = &attachment0)
-                {
-                    var otherAttachmentsPointer = &other.attachment0;
-
-                    for (int i = 0; i < attachmentCount; i++)
-                    {
-                        if (attachmentsPointer[i] != otherAttachmentsPointer[i])
-                            return false;
-                    }
-                }
-
-                return true;
             }
         }
 

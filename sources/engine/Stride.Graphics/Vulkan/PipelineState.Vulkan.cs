@@ -20,7 +20,6 @@ namespace Stride.Graphics
 
         internal VkPipelineLayout NativeLayout;
         internal VkPipeline NativePipeline;
-        internal VkRenderPass NativeRenderPass;
         internal int[] ResourceGroupMapping;
         internal int ResourceGroupCount;
         internal PipelineStateDescription Description;
@@ -63,8 +62,6 @@ namespace Stride.Graphics
         {
             if (Description.RootSignature == null)
                 return;
-
-            CreateRenderPass(Description);
 
             CreatePipelineLayout(Description);
 
@@ -215,9 +212,30 @@ namespace Stride.Graphics
                         pDynamicStates = dynamicStatesPointer
                     };
 
+                    // Dynamic rendering: the pipeline declares only the attachment formats
+                    var output = Description.Output;
+                    var colorAttachmentFormats = stackalloc VkFormat[renderTargetCount > 0 ? renderTargetCount : 1];
+                    var renderTargetFormat = &output.RenderTargetFormat0;
+                    for (int i = 0; i < renderTargetCount; i++)
+                        colorAttachmentFormats[i] = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i));
+
+                    var depthAttachmentFormat = output.DepthStencilFormat != PixelFormat.None
+                        ? Texture.GetFallbackDepthStencilFormat(GraphicsDevice, VulkanConvertExtensions.ConvertPixelFormat(output.DepthStencilFormat))
+                        : VkFormat.Undefined;
+
+                    var renderingCreateInfo = new VkPipelineRenderingCreateInfo
+                    {
+                        sType = VkStructureType.PipelineRenderingCreateInfo,
+                        colorAttachmentCount = (uint)renderTargetCount,
+                        pColorAttachmentFormats = colorAttachmentFormats,
+                        depthAttachmentFormat = depthAttachmentFormat,
+                        stencilAttachmentFormat = HasStencilAspect(depthAttachmentFormat) ? depthAttachmentFormat : VkFormat.Undefined,
+                    };
+
                     var createInfo = new VkGraphicsPipelineCreateInfo
                     {
                         sType = VkStructureType.GraphicsPipelineCreateInfo,
+                        pNext = &renderingCreateInfo,
                         layout = NativeLayout,
                         stageCount = (uint)stages.Length,
                         pStages = stages.Length > 0 ? fStages : null,
@@ -230,8 +248,6 @@ namespace Stride.Graphics
                         pDynamicState = &dynamicState,
                         pViewportState = &viewportState,
                         pTessellationState = &tessellationState,
-                        renderPass = NativeRenderPass,
-                        subpass = 0,
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
                         GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
@@ -249,116 +265,21 @@ namespace Stride.Graphics
             return true;
         }
 
-        private unsafe void CreateRenderPass(PipelineStateDescription pipelineStateDescription)
-        {
-            bool hasDepthStencilAttachment = pipelineStateDescription.Output.DepthStencilFormat != PixelFormat.None;
-
-            var renderTargetCount = pipelineStateDescription.Output.RenderTargetCount;
-
-            var attachmentCount = renderTargetCount;
-            if (hasDepthStencilAttachment)
-                attachmentCount++;
-
-            var attachments = new VkAttachmentDescription[attachmentCount];
-            var colorAttachmentReferences = new VkAttachmentReference[renderTargetCount];
-
-            fixed (PixelFormat* renderTargetFormat = &pipelineStateDescription.Output.RenderTargetFormat0)
-            fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTargets[0])
-            {
-                for (int i = 0; i < renderTargetCount; i++)
-                {
-                    var currentBlendDesc = pipelineStateDescription.BlendState.IndependentBlendEnable ? (blendDescription + i) : blendDescription;
-
-                    // loadOp=Load: per-pipeline render passes restart mid-frame; DontCare drops contents of tiles a non-fullscreen draw touches (visible as block garbage on Lavapipe/MoltenVK).
-                    attachments[i] = new VkAttachmentDescription
-                    {
-                        format = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i)),
-                        samples = VkSampleCountFlags.Count1,
-                        loadOp = VkAttachmentLoadOp.Load,
-                        storeOp = VkAttachmentStoreOp.Store,
-                        stencilLoadOp = VkAttachmentLoadOp.DontCare,
-                        stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                        initialLayout = VkImageLayout.ColorAttachmentOptimal,
-                        finalLayout = VkImageLayout.ColorAttachmentOptimal
-                    };
-
-                    colorAttachmentReferences[i] = new VkAttachmentReference
-                    {
-                        attachment = (uint)i,
-                        layout = VkImageLayout.ColorAttachmentOptimal
-                    };
-                }
-            }
-
-            // A pipeline that disables depth writes AND doesn't write stencil is compatible with
-            // DepthStencilReadOnlyOptimal, which is also a valid layout for shader sampling. Using
-            // that layout here lets a depth buffer be bound simultaneously as read-only attachment
-            // and as a SampledImage (e.g. soft-edge particles sampling the scene depth) without
-            // triggering VUID-vkCmdBeginRenderPass-initialLayout-00900.
-            var dss = pipelineStateDescription.DepthStencilState;
-            bool depthReadOnly = hasDepthStencilAttachment
-                && !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
-            var depthLayout = depthReadOnly
-                ? VkImageLayout.DepthStencilReadOnlyOptimal
-                : VkImageLayout.DepthStencilAttachmentOptimal;
-
-            if (hasDepthStencilAttachment)
-            {
-                attachments[attachmentCount - 1] = new VkAttachmentDescription
-                {
-                    format = Texture.GetFallbackDepthStencilFormat(GraphicsDevice, VulkanConvertExtensions.ConvertPixelFormat(pipelineStateDescription.Output.DepthStencilFormat)),
-                    samples = VkSampleCountFlags.Count1,
-                    loadOp = VkAttachmentLoadOp.Load, // TODO VULKAN: Only if depth read enabled?
-                    storeOp = VkAttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
-                    stencilLoadOp = VkAttachmentLoadOp.Load,
-                    stencilStoreOp = VkAttachmentStoreOp.Store,
-                    initialLayout = depthLayout,
-                    finalLayout = depthLayout
-                };
-            }
-
-            // fixed yields null if array is empty or null
-            fixed (VkAttachmentReference* fColorAttachmentReferences = colorAttachmentReferences)
-            fixed (VkAttachmentDescription* fAttachments = attachments)
-            {
-                var depthAttachmentReference = new VkAttachmentReference
-                {
-                    attachment = (uint)attachments.Length - 1,
-                    layout = depthLayout
-                };
-
-                var subpass = new VkSubpassDescription
-                {
-                    pipelineBindPoint = VkPipelineBindPoint.Graphics,
-                    colorAttachmentCount = (uint)renderTargetCount,
-                    pColorAttachments = fColorAttachmentReferences,
-                    pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null
-                };
-
-                var renderPassCreateInfo = new VkRenderPassCreateInfo
-                {
-                    sType = VkStructureType.RenderPassCreateInfo,
-                    attachmentCount = (uint)attachmentCount,
-                    pAttachments = fAttachments,
-                    subpassCount = 1,
-                    pSubpasses = &subpass
-                };
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass));
-            }
-        }
+        /// <summary>
+        ///   Indicates if the given depth-stencil format contains a stencil aspect.
+        /// </summary>
+        internal static bool HasStencilAspect(VkFormat format) =>
+            format is VkFormat.D24UnormS8Uint or VkFormat.D32SfloatS8Uint or VkFormat.D16UnormS8Uint or VkFormat.S8Uint;
 
         /// <inheritdoc/>
         protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             if (NativePipeline != VkPipeline.Null)
             {
-                GraphicsDevice.Collect(NativeRenderPass);
                 GraphicsDevice.Collect(NativePipeline);
                 GraphicsDevice.Collect(NativeLayout);
                 GraphicsDevice.Collect(NativeDescriptorSetLayout);
 
-                NativeRenderPass = VkRenderPass.Null;
                 NativePipeline = VkPipeline.Null;
                 NativeLayout = VkPipelineLayout.Null;
                 NativeDescriptorSetLayout = VkDescriptorSetLayout.Null;
