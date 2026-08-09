@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
@@ -54,6 +56,22 @@ namespace Stride.Engine.Design
         /// <summary>
         /// Gets or sets configuration for the actual running platform as compiled during build
         /// </summary>
-        public PlatformConfigurations Configurations { get; set; }
+        public List<Configuration> Configurations { get; set; }
+
+        /// <summary>Retrieves a configuration of a given type.</summary>
+        /// <typeparam name="T">The type of the configuration to retrieve.</typeparam>
+        /// <returns>Returns the configuration.</returns>
+        /// <remarks>If <see cref="Configurations"/> doesn't contain the configuration, the method will return a newly created instance and add it to the list, so that future calls will keep returning the same instance.</remarks>
+        public T GetConfiguration<T>() where T : Configuration, new()
+        {
+            var config = Configurations.OfType<T>().FirstOrDefault();
+            if (config is null)
+            {
+                config = new T();
+                Configurations.Add(config);
+            }
+
+            return config;
+        }
     }
 }

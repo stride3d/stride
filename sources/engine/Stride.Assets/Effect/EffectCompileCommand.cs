@@ -167,7 +167,7 @@ namespace Stride.Assets.Effect
         {
             var compilerParameters = new CompilerParameters(effectCompileRequest.UsedParameters);
             compilerParameters.EffectParameters.Platform = context.GetGraphicsPlatform(package);
-            compilerParameters.EffectParameters.Profile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>(context.Platform).DefaultGraphicsProfile;
+            compilerParameters.EffectParameters.Profile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
             compilerParameters.EffectParameters.ApplyCompilationMode(context.GetCompilationMode());
             return new CommandBuildStep(new EffectCompileCommand(context, urlRoot, effectCompileRequest.EffectName, compilerParameters, package));
         }

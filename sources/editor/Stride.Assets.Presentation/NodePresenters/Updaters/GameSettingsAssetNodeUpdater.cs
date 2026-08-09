@@ -38,20 +38,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 node.DisplayName = DisplayAttribute.GetDisplayName(node.Value?.GetType()) ?? DisplayAttribute.GetDisplayName(typeof(Configuration));
             }
 
-            if (typeof(ConfigurationOverride).IsAssignableFrom(node.Type))
-            {
-                node.DisplayName = $"Override {node.Index}";
-                node.AttachedProperties.Add(CategoryData.Key, true);
-            }
-
-            if (node.Parent != null && typeof(ConfigurationOverride).IsAssignableFrom(node.Parent.Type) && node.Name == nameof(ConfigurationOverride.SpecificFilter))
-            {
-                if (node.Commands.All(x => x.Name != "ClearSelection"))
-                {
-                    node.Commands.Add(new SyncAnonymousNodePresenterCommand("ClearSelection", (n, x) => n.UpdateValue(-1)));
-                }
-            }
-
             if (typeof(ICollection<Configuration>).IsAssignableFrom(node.Type))
             {
                 var types = node.AttachedProperties.Get(AbstractNodeEntryData.Key);

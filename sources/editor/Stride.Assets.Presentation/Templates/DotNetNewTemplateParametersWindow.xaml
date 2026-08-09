@@ -11,7 +11,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
-                <!-- Platform DrawingImage resources keyed by ConfigPlatforms.<Platform>; used by the
+                <!-- Platform DrawingImage resources keyed by PlatformType.<Platform>; used by the
                      specialized 'platforms' row to show OS icons next to each checkbox. -->
                 <ResourceDictionary Source="../View/ImageDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>

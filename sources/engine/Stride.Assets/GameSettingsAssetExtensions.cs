@@ -71,11 +71,10 @@ namespace Stride.Assets
         /// If the current package is null, this method returns the value of <see cref="RenderingSettings.DefaultColorSpace"/>.
         /// </summary>
         /// <param name="session">The package session from which to retrieve the color space.</param>
-        /// <param name="platform">The platform for which to return the color space.</param>
         /// <returns>The color space of the current package of the session, or <see cref="RenderingSettings.DefaultColorSpace"/>.</returns>
-        public static ColorSpace GetReferenceColorSpace(this PackageSession session, PlatformType platform)
+        public static ColorSpace GetReferenceColorSpace(this PackageSession session)
         {
-            return GetGameSettingsAssetOrDefault(session).GetOrCreate<RenderingSettings>(platform).ColorSpace;
+            return GetGameSettingsAssetOrDefault(session).GetOrCreate<RenderingSettings>().ColorSpace;
         }
     }
 }

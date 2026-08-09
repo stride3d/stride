@@ -22,8 +22,8 @@ public class BepuConfiguration : Configuration, IService
         BepuConfiguration config;
         if (services.GetService<IGameSettingsService>() is { } settings)
         {
-            config = settings.Settings.Configurations.Get<BepuConfiguration>();
-            if (settings.Settings.Configurations.Configurations.Any(x => x.Configuration is BepuConfiguration) == false)
+            config = settings.Settings.GetConfiguration<BepuConfiguration>();
+            if (settings.Settings.Configurations.OfType<BepuConfiguration>().Any() == false)
                 _logger.Warning("Creating a default configuration for Bepu as none were set up in your game's settings.");
         }
         else

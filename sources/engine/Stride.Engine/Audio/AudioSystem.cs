@@ -56,7 +56,7 @@ namespace Stride.Audio
                 {
                     if (audioEngineSingleton == null)
                     {
-                        var settings = Services.GetService<IGameSettingsService>()?.Settings?.Configurations?.Get<AudioEngineSettings>();
+                        var settings = Services.GetService<IGameSettingsService>()?.Settings?.GetConfiguration<AudioEngineSettings>();
                         audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings != null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
                     }
                     else

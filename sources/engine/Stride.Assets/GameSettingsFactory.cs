@@ -23,18 +23,6 @@ namespace Stride.Assets
             asset.SplashScreenTexture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("d26edb11-10bd-403c-b3c2-9c7fcccf25e5"), "/Stride.Engine/StrideDefaultSplashScreen");
             asset.SplashScreenColor = Color.Black;
 
-            //add default filters, todo maybe a config file somewhere is better
-            asset.PlatformFilters.Add("PowerVR SGX 54[0-9]");
-            asset.PlatformFilters.Add("Adreno \\(TM\\) 2[0-9][0-9]");
-            asset.PlatformFilters.Add("Adreno (TM) 320");
-            asset.PlatformFilters.Add("Adreno (TM) 330");
-            asset.PlatformFilters.Add("Adreno \\(TM\\) 4[0-9][0-9]");
-            asset.PlatformFilters.Add("NVIDIA Tegra");
-            asset.PlatformFilters.Add("Intel(R) HD Graphics");
-            asset.PlatformFilters.Add("^Mali\\-4");
-            asset.PlatformFilters.Add("^Mali\\-T6");
-            asset.PlatformFilters.Add("^Mali\\-T7");
-
             asset.GetOrCreate<AudioEngineSettings>();
             asset.GetOrCreate<EditorSettings>();
             asset.GetOrCreate<RenderingSettings>();

@@ -1,16 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 using Stride.Data;
 using Stride.Engine;
@@ -81,14 +78,6 @@ namespace Stride.Assets
         [MemberCollection(ReadOnly = false, NotNullItems = true)]
         public List<Configuration> Defaults { get; } = new List<Configuration>();
 
-        [DataMember(3000)]
-        [Category]
-        public List<ConfigurationOverride> Overrides { get; } = new List<ConfigurationOverride>();
-
-        [DataMember(4000)]
-        [Category]
-        public List<string> PlatformFilters { get; } = new List<string>();
-
         /// <summary>
         /// Tries to get the requested <see cref="Configuration"/>, returns null if it doesn't exist
         /// </summary>
@@ -127,41 +116,6 @@ namespace Stride.Assets
         public T GetOrDefault<T>() where T : Configuration, new()
         {
             return TryGet<T>() ?? ObjectFactoryRegistry.NewInstance<T>();
-        }
-
-        public T GetOrCreate<T>(PlatformType platform) where T : Configuration, new()
-        {
-            ConfigPlatforms configPlatform;
-            switch (platform)
-            {
-                case PlatformType.Windows:
-                    configPlatform = ConfigPlatforms.Windows;
-                    break;
-                case PlatformType.Android:
-                    configPlatform = ConfigPlatforms.Android;
-                    break;
-                case PlatformType.iOS:
-                    configPlatform = ConfigPlatforms.iOS;
-                    break;
-                case PlatformType.UWP:
-                    configPlatform = ConfigPlatforms.UWP;
-                    break;
-                case PlatformType.Linux:
-                    configPlatform = ConfigPlatforms.Linux;
-                    break;
-                case PlatformType.macOS:
-                    configPlatform = ConfigPlatforms.macOS;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(platform), platform, null);
-            }
-            var platVersion = Overrides.FirstOrDefault(x => x != null && x.Platforms.HasFlag(configPlatform) && x.Configuration is T);
-            if (platVersion != null)
-            {
-                return (T)platVersion.Configuration;
-            }
-
-            return GetOrCreate<T>();
         }
 
         // In 3.1, Stride.Engine was splitted into a sub-assembly Stride.Rendering

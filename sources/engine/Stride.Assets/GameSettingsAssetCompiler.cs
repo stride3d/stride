@@ -14,11 +14,8 @@ using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Data;
-using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Graphics;
-using Stride.Rendering.Compositing;
 
 namespace Stride.Assets
 {
@@ -80,28 +77,14 @@ namespace Stride.Assets
                     DoubleViewSplashScreen = Parameters.DoubleViewSplashScreen,
                     EffectCompilation = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation),
                     RecordUsedEffects = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects),
-                    Configurations = new PlatformConfigurations(),
+                    Configurations = [],
                     CompilationMode = compilationMode
                 };
 
-                //start from the default platform and go down overriding
-
                 foreach (var configuration in Parameters.Defaults.Where(x => !x.OfflineOnly))
                 {
-                    result.Configurations.Configurations.Add(new ConfigurationOverride
-                    {
-                        Platforms = ConfigPlatforms.None,
-                        SpecificFilter = -1,
-                        Configuration = configuration
-                    });
+                    result.Configurations.Add(configuration);
                 }
-
-                foreach (var configurationOverride in Parameters.Overrides.Where(x => x.Configuration != null && !x.Configuration.OfflineOnly))
-                {
-                    result.Configurations.Configurations.Add(configurationOverride);
-                }
-
-                result.Configurations.PlatformFilters = Parameters.PlatformFilters;
 
                 //make sure we modify platform specific files to set the wanted orientation
                 if (package.Container is SolutionProject solutionProject)

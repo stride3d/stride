@@ -268,7 +268,7 @@ namespace Stride.Engine
                 {
                     Settings = Content.Load<GameSettings>(GameSettings.AssetUrl);
 
-                    renderingSettings = Settings.Configurations.Get<RenderingSettings>();
+                    renderingSettings = Settings.GetConfiguration<RenderingSettings>();
 
                     // Set ShaderProfile even if AutoLoadDefaultSettings is false (because that is what shaders in effect logs are compiled against, even if actual instantiated profile is different)
                     if (renderingSettings.DefaultGraphicsProfile > 0)
@@ -306,7 +306,7 @@ namespace Stride.Engine
         {
             if (!AutoLoadDefaultSettings) return;
 
-            var renderingSettings = Settings?.Configurations.Get<RenderingSettings>();
+            var renderingSettings = Settings?.GetConfiguration<RenderingSettings>();
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
@@ -382,7 +382,7 @@ namespace Stride.Engine
             GameSystems.Add(EffectSystem);
 
             if (Settings != null)
-                Streaming.SetStreamingSettings(Settings.Configurations.Get<StreamingSettings>());
+                Streaming.SetStreamingSettings(Settings.GetConfiguration<StreamingSettings>());
             GameSystems.Add(Streaming);
             GameSystems.Add(SceneSystem);
 

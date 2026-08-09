@@ -246,17 +246,6 @@
     </DataTemplate>
   </tp:ModelNodeNameTemplateProvider>
 
-  <tp:GameSettingsFiltersTemplateProvider x:Key="GameSettingsFiltersTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
-    <DataTemplate>
-      <DockPanel>
-        <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding ClearSelection}">
-          <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
-        </Button>
-        <ComboBox ItemsSource="{Binding Root.PlatformFilters.NodeValue}" x:Name="FilterComboBox" SelectedIndex="{Binding NodeValue}"/>
-      </DockPanel>
-    </DataTemplate>
-  </tp:GameSettingsFiltersTemplateProvider>
-
   <tp:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationTemplateProvider" OverrideRule="All"
    sd:PropertyViewHelper.TemplateCategory="PropertyHeader">
     <DataTemplate>
