@@ -124,11 +124,9 @@ public class TestRadiancePrefilteringGgxFaceContinuity : GraphicTestGameBase
         return result;
     }
 
-    [SkippableFact]
+    [Fact]
     public void HighestLevelIsContinuousAcrossFaces()
     {
-        SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-
         var game = new TestRadiancePrefilteringGgxFaceContinuity();
         RunGameTest(game);
 
