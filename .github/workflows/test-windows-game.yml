@@ -126,10 +126,20 @@ jobs:
         if: matrix.graphics-api == 'Vulkan'
         uses: jakoch/install-vulkan-sdk-action@v1
         with:
-          vulkan_version: 1.4.304.1
+          vulkan_version: 1.4.341.1
           install_runtime: true
           cache: true
           stripdown: true
+      - name: Enable Vulkan validation layers
+        if: matrix.graphics-api == 'Vulkan'
+        shell: pwsh
+        run: |
+          # Register via the registry: the loader ignores VK_LAYER_PATH for elevated processes,
+          # same as VK_DRIVER_FILES for drivers (see the Lavapipe step below)
+          $manifest = Join-Path $env:VULKAN_SDK 'Bin\VkLayer_khronos_validation.json'
+          if (-not (Test-Path $manifest)) { throw "Validation layer manifest not found: $manifest" }
+          New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Force | Out-Null
+          New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Name $manifest -Value 0 -PropertyType DWord -Force | Out-Null
       - name: Register Lavapipe ICD
         if: matrix.graphics-api == 'Vulkan'
         shell: pwsh
