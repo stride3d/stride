@@ -17,44 +17,20 @@ namespace Stride.BepuPhysics;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Two things keep a body in the plane. Rotation is locked at the source, by zeroing the X and Y
-/// terms of the inverse inertia tensor once when the body attaches, which makes the solver unable to
-/// rotate about those axes - there is nothing to correct afterwards. Position is kept on Z = 0 by a
-/// small velocity correction applied before each solve, so the solver resolves it together with
-/// every contact rather than having its result overwritten afterwards.
+/// Planar behavior is enforced in two places: X/Y rotation is locked by zeroing the corresponding
+/// inverse-inertia terms when the body attaches, and Z drift is corrected by setting linear Z velocity
+/// before each solve.
 /// </para>
 /// <para>
-/// Correcting by velocity rather than by teleporting is deliberate. Moving a body's position between
-/// steps injects energy, which shows up as jitter and creeping instability in dense piles, and it
-/// discards the contact information the solver just computed.
+/// The positional correction is velocity-based (not teleport-based) so contact resolution stays stable.
+/// Sleeping bodies are left untouched.
 /// </para>
 /// <para>
-/// Bodies are left free to fall asleep, which is what makes large 2D scenes cheap. Nothing here
-/// wakes a resting body: the correction is skipped entirely while asleep, and once settled at
-/// Z = 0 with no out-of-plane velocity there is nothing left to write.
-/// </para>
-/// <para>
-/// This mirrors how the rest of the engine, and other engines, confine a body to a plane. Stride's
-/// Bullet integration sets <c>LinearFactor = (1,1,0)</c> and <c>AngularFactor = (0,0,1)</c> for 2D
-/// shapes, and Unity, Unreal and Godot all expose the same idea as per-axis freeze flags. Zeroing the
-/// inverse inertia is the angular factor, and clearing out-of-plane velocity each step is the linear
-/// one. Bepu has no linear factor to set, and the solver can still introduce Z velocity after this
-/// runs, which is what the small positional correction cleans up - the others get it for free inside
-/// the integrator.
-/// </para>
-/// <para>
-/// Locking an axis prevents change; it does not undo what is already there. A body tilted about X or
-/// Y when it attaches keeps that tilt, frozen at that angle, exactly as a frozen rotation behaves in
-/// those other engines. Give bodies an identity or Z-only rotation if that is not wanted.
-/// </para>
-/// <para>
-/// One thing to be aware of when using hull colliders: attaching one caps
+/// For hull colliders, attach-time tuning applies conservative contact settings: it caps
 /// <see cref="CollidableComponent.MaximumRecoveryVelocity"/> and
 /// <see cref="CollidableComponent.SpringFrequency"/>, and raises
-/// <see cref="CollidableComponent.SpringDampingRatio"/> to at least one, because hulls generate
-/// energetic corrections in dense piles. These are ceilings and a floor rather than overwrites, so
-/// gentler settings survive untouched - but a deliberately stiff or bouncy hull body will come out
-/// softer than it was configured. Set the values after attaching to override.
+/// <see cref="CollidableComponent.SpringDampingRatio"/> to at least one.
+/// Set values after attach if you want stricter behavior.
 /// </para>
 /// </remarks>
 [ComponentCategory("Physics - Bepu 2D")]
@@ -73,10 +49,8 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
     /// Ceiling on the plane-restoring speed, in world units per second.
     /// </summary>
     /// <remarks>
-    /// Normal drift is measured in millimetres and never comes close to this. It exists for the
-    /// pathological cases - a body spawned or teleported far off the plane, or thrown there by a
-    /// numerical blow-up - where an unbounded correction would otherwise fling it back fast enough to
-    /// tunnel through geometry and destabilise the solver.
+    /// This mainly guards extreme cases (for example, a body spawned far from the plane) by preventing
+    /// an overly aggressive snap-back velocity.
     /// </remarks>
     private const float MaximumCorrectionSpeed = 1f;
 
@@ -96,15 +70,8 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
     /// units. Defaults to 0.001 (one millimetre at Stride's default scale).
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Out-of-plane velocity is always removed; this only governs the positional correction. A larger
-    /// value settles more readily, a smaller one holds the plane more tightly.
-    /// </para>
-    /// <para>
-    /// Values that are not finite and positive fall back to the default rather than being stored.
-    /// Zero or negative would make the correction fire on floating-point noise alone and write a
-    /// velocity every step, which can stop bodies sleeping; NaN and infinity would disable it entirely.
-    /// </para>
+    /// Out-of-plane velocity is always cleared; this value only controls when positional correction
+    /// starts. Invalid values (non-finite or non-positive) are replaced with the default.
     /// </remarks>
     [Display("Z tolerance", category: CategoryActivity)]
     public float ZTolerance
@@ -121,9 +88,8 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
 
     /// <inheritdoc />
     /// <remarks>
-    /// Keeps the shape-derived inertia so rolling about Z still works, and zeroes the inverse inertia
-    /// terms that would allow yaw and pitch. Hull colliders additionally get milder contact settings,
-    /// because they tend to generate energetic corrections in dense piles.
+    /// Preserves Z-axis rotation while locking X/Y rotation. Hull colliders also receive softer default
+    /// contact tuning.
     /// </remarks>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
@@ -144,22 +110,11 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
     /// <param name="sim">The simulation stepping this body.</param>
     /// <param name="simTimeStep">The fixed time step, in seconds.</param>
     /// <remarks>
-    /// <para>
-    /// Runs before the solve so the correction is resolved alongside contacts instead of overwriting
-    /// their result. Sleeping bodies return before the correction - they cannot move, so there is
-    /// nothing to correct, and this is dispatched for every registered body on every step whether it
-    /// is awake or not - but the rotation lock is refreshed first, so it is never stale when a body
-    /// wakes. The body reference is taken once, because every pose and velocity accessor resolves it
-    /// again.
-    /// </para>
-    /// <para>
-    /// The correction sets a velocity equal and opposite to the drift, a proportional gain of one per
-    /// second, so an error decays with a time constant of roughly a second, and is capped at
-    /// <see cref="MaximumCorrectionSpeed"/> so a badly placed body cannot be flung back. It is
-    /// deliberately gentle: a stiffer pull would fight contact resolution and reintroduce the jitter
-    /// that teleporting causes. <paramref name="simTimeStep"/> is therefore unused - expressing the
-    /// correction as a velocity already makes that time constant independent of the step size.
-    /// </para>
+    /// Runs before solve so correction participates in contact resolution. Sleeping bodies are skipped,
+    /// but the rotation lock is refreshed first so state stays valid across kinematic changes.
+    ///
+    /// Z correction uses a bounded velocity target (not teleporting), with a gentle proportional pull
+    /// toward the plane. <paramref name="simTimeStep"/> is intentionally unused.
     /// </remarks>
     public virtual void SimulationUpdate(BepuSimulation sim, float simTimeStep)
     {
@@ -241,11 +196,8 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
     /// <param name="collider">The collidable's collider, which may be <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if a convex hull is present.</returns>
     /// <remarks>
-    /// A hull can only ever be a child of a compound, never the collider itself: the property is typed
-    /// <see cref="ICollider"/>, which <see cref="ColliderBase"/> - and so <see cref="ConvexHullCollider"/>
-    /// - does not implement. Testing <c>collider is ConvexHullCollider</c> here is dead code, and the
-    /// compiler says as much with CS0184. Compounds cannot nest either, for the same reason, so a
-    /// single pass over the children covers every case.
+    /// In this collider model, hull colliders appear as children of <see cref="CompoundCollider"/>.
+    /// A single pass over direct children is therefore sufficient.
     /// </remarks>
     private static bool HasConvexHull(ICollider? collider)
     {
