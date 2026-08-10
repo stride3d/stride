@@ -26,12 +26,14 @@ namespace Stride.Graphics
             GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arrayOrDepthCount, out var mipCount);
             NativeResourceRange = new VkImageSubresourceRange(NativeImageAspect, (uint)mipLevel, (uint)mipCount, (uint)arraySlice, (uint)arrayOrDepthCount);
 
-            // Image starts Undefined per vkCreateImage; Stride will emit the transition to
-            // ShaderReadOnlyOptimal on first sampler bind (CommandList barrier path).
-            NativeLayout = VkImageLayout.Undefined;
-            NativeAccessMask = VkAccessFlags.None;
-            NativePipelineStageMask = VkPipelineStageFlags.TopOfPipe;
-            LayoutTracker.Initialize(BarrierLayout.Undefined, ArraySize * MipLevelCount);
+            // Transition to the shader-resource resting layout right away; nothing else will
+            // transition this texture before it is sampled. The Undefined source layout is safe
+            // here: MoltenVK maps layout transitions to no-ops and keeps the IOSurface contents.
+            NativeLayout = VkImageLayout.ShaderReadOnlyOptimal;
+            NativeAccessMask = VkAccessFlags.ShaderRead;
+            NativePipelineStageMask = VkPipelineStageFlags.VertexInput | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
+            LayoutTracker.Initialize(BarrierLayout.ShaderResource, ArraySize * MipLevelCount);
+            InitializeData(null);
             IsInitialized = true;
             importedImageHandled = true;
         }

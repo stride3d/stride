@@ -40,6 +40,9 @@ namespace AnimatedModel
                 drawContext.CommandList.SetRenderTargetAndViewport(depthBuffer, RenderTexture);
 
                 Child?.Draw(drawContext);
+
+                // The rendered texture is meant to be sampled by the rest of the frame
+                drawContext.CommandList.ResourceBarrierTransition(RenderTexture, BarrierLayout.ShaderResource);
             }
         }
     }

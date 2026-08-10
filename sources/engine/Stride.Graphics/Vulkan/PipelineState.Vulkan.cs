@@ -31,7 +31,10 @@ namespace Stride.Graphics
             VkDynamicState.Viewport,
             VkDynamicState.Scissor,
             VkDynamicState.BlendConstants,
-            VkDynamicState.StencilReference
+            VkDynamicState.StencilReference,
+            // Depth/stencil writes are dropped at draw time when a read-only depth view is bound
+            VkDynamicState.DepthWriteEnable,
+            VkDynamicState.StencilWriteMask,
         };
 
         // GLSL converter always outputs entry point main()
