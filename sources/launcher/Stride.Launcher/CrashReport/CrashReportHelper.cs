@@ -44,12 +44,12 @@ namespace Stride.LauncherApp.CrashReport
 
             args.Dispatcher?.InvokeAsync(() => Thread.CurrentThread.Join());
 
-            SendReport(args.Exception.FormatFull());
+            SendReport(args.Exception);
 
             Environment.Exit(0);
         }
 
-        private static void SendReport(string exceptionMessage)
+        private static void SendReport(Exception exception)
         {
             var crashReport = new CrashReportData
             {
@@ -57,8 +57,9 @@ namespace Stride.LauncherApp.CrashReport
                 ["CurrentDirectory"] = Environment.CurrentDirectory,
                 ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
                 ["OSDescription"] = $"{RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
+                ["Cpu"] = AppHelper.GetCpuName(),
                 ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
-                ["Exception"] = exceptionMessage
+                ["Exception"] = exception.FormatFull()
             };
 
             var videoConfig = AppHelper.GetVideoConfig();
@@ -67,7 +68,14 @@ namespace Stride.LauncherApp.CrashReport
                 crashReport.Data.Add((conf.Key, conf.Value));
             }
 
-            var reporter = new CrashReportWindow(crashReport, "Stride Launcher");
+            foreach (var info in AppHelper.GetMemoryInfo())
+            {
+                crashReport.Data.Add((info.Key, info.Value));
+            }
+
+            CrashReportAnonymizer.Scrub(crashReport);
+
+            var reporter = new CrashReportWindow(crashReport, "Stride Launcher", exception);
             reporter.ShowDialog();
         }
 

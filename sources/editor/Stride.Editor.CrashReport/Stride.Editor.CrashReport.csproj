@@ -5,5 +5,19 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Sentry" />
+  </ItemGroup>
+  <!-- StrideSentryDsn: a DSN sends crash reports there (official CI sets it, with StrideSentryEnvironment
+       release/nightly); 'false' removes crash sending entirely; unset lets the user pick a destination per crash -->
+  <ItemGroup Condition="'$(StrideSentryDsn)' != '' and '$(StrideSentryDsn)' != 'false'">
+    <AssemblyMetadata Include="SentryDsn" Value="$(StrideSentryDsn)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(StrideSentryDsn)' == 'false'">
+    <AssemblyMetadata Include="SentryDisabled" Value="true" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(StrideSentryEnvironment)' != ''">
+    <AssemblyMetadata Include="SentryEnvironment" Value="$(StrideSentryEnvironment)" />
+  </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

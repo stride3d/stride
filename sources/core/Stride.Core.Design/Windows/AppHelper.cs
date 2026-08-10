@@ -33,18 +33,26 @@ public static class AppHelper
         return body.ToString();
     }
 
+    /// <summary>
+    /// Only fields useful for diagnosing graphics issues; the full Win32_VideoController dump
+    /// leaks machine-identifying values such as SystemName and PNPDeviceID.
+    /// </summary>
+    private const string VideoControllerQuery =
+        "SELECT Name,AdapterCompatibility,DriverVersion,DriverDate," +
+        "CurrentHorizontalResolution,CurrentVerticalResolution,CurrentBitsPerPixel,CurrentRefreshRate " +
+        "FROM Win32_VideoController";
+
     public static void WriteVideoConfig(StringBuilder writer)
     {
         try
         {
             var i = 0;
-            var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-            foreach (var managementObject in searcher.Get().OfType<ManagementObject>())
+            foreach (var properties in QueryVideoControllers())
             {
                 writer.AppendLine($"GPU {++i}");
-                foreach (var property in managementObject.Properties)
+                foreach (var (name, value) in properties)
                 {
-                    writer.AppendLine($"  {property.Name}: {property.Value}");
+                    writer.AppendLine($"  {name}: {value}");
                 }
             }
         }
@@ -56,31 +64,15 @@ public static class AppHelper
 
     public static Dictionary<string, string> GetVideoConfig()
     {
-        return OperatingSystem.IsWindows() ? GetVideoConfigWindows() : [];
-    }
-
-    private static Dictionary<string, string> GetVideoConfigWindows()
-    {
         var result = new Dictionary<string, string>();
-        if (OperatingSystem.IsWindows())
-            GetVideoConfigWindows(result);
-
-        return result;
-    }
-
-    private static void GetVideoConfigWindows(Dictionary<string, string> result)
-    {
         try
         {
-            var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-            int deviceId = 0;
-            foreach (var managementObject in searcher.Get().OfType<ManagementObject>())
+            var deviceId = 0;
+            foreach (var properties in QueryVideoControllers())
             {
-                foreach (var property in managementObject.Properties)
+                foreach (var (name, value) in properties)
                 {
-                    if (property.Value == null) continue;
-
-                    result.Add($"GPU{deviceId}.{property.Name}", property.Value.ToString());
+                    result.Add($"GPU{deviceId}.{name}", value);
                 }
                 deviceId++;
             }
@@ -89,5 +81,95 @@ public static class AppHelper
         {
             // ignored
         }
+
+        return result;
+    }
+
+    public static string GetCpuName()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+                return (key?.GetValue("ProcessorNameString") as string)?.Trim();
+            }
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        return null;
+    }
+
+    public static Dictionary<string, string> GetMemoryInfo()
+    {
+        var result = new Dictionary<string, string>();
+        try
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            result.Add("Memory.WorkingSet", FormatMegabytes(Environment.WorkingSet));
+            result.Add("Memory.ManagedHeap", FormatMegabytes(GC.GetTotalMemory(false)));
+            result.Add("Memory.HeapCommitted", FormatMegabytes(gcInfo.TotalCommittedBytes));
+            result.Add("Memory.SystemLoad", FormatMegabytes(gcInfo.MemoryLoadBytes));
+            result.Add("Memory.SystemTotal", FormatMegabytes(gcInfo.TotalAvailableMemoryBytes));
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        return result;
+    }
+
+    private static string FormatMegabytes(long bytes) => $"{bytes / (1024 * 1024)} MB";
+
+    private static IEnumerable<List<(string Name, string Value)>> QueryVideoControllers()
+    {
+        if (!OperatingSystem.IsWindows())
+            yield break;
+
+        var searcher = new ManagementObjectSearcher(VideoControllerQuery);
+        foreach (var managementObject in searcher.Get().OfType<ManagementObject>())
+        {
+            var properties = new List<(string Name, string Value)>();
+
+            AddProperty(properties, managementObject, "Name");
+            AddProperty(properties, managementObject, "AdapterCompatibility");
+            AddProperty(properties, managementObject, "DriverVersion");
+
+            if (managementObject.GetPropertyValue("DriverDate") is string driverDate)
+            {
+                try
+                {
+                    driverDate = ManagementDateTimeConverter.ToDateTime(driverDate).ToString("yyyy-MM-dd");
+                }
+                catch (Exception)
+                {
+                    // Keep the raw DMTF string
+                }
+                properties.Add(("DriverDate", driverDate));
+            }
+
+            if (managementObject.GetPropertyValue("CurrentHorizontalResolution") is uint width
+                && managementObject.GetPropertyValue("CurrentVerticalResolution") is uint height)
+            {
+                var mode = $"{width} x {height}";
+                if (managementObject.GetPropertyValue("CurrentBitsPerPixel") is uint bitsPerPixel)
+                    mode += $", {bitsPerPixel} bpp";
+                if (managementObject.GetPropertyValue("CurrentRefreshRate") is uint refreshRate)
+                    mode += $", {refreshRate} Hz";
+                properties.Add(("DisplayMode", mode));
+            }
+
+            yield return properties;
+        }
+    }
+
+    private static void AddProperty(List<(string Name, string Value)> properties, ManagementObject managementObject, string name)
+    {
+        if (managementObject.GetPropertyValue(name) is { } value)
+            properties.Add((name, value.ToString()));
     }
 }

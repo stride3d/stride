@@ -85,6 +85,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="7.3.1" />
     <PackageVersion Include="NuGet.Protocol" Version="7.3.1" />
     <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
+    <PackageVersion Include="Sentry" Version="6.8.0" />
     <PackageVersion Include="Silk.NET.Assimp" Version="$(SilkVersion)" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="3.0.0" />
