@@ -6,6 +6,7 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.Core;
 using Stride.Engine;
 using NRigidPose = BepuPhysics.RigidPose;
 
@@ -45,6 +46,15 @@ namespace Stride.BepuPhysics;
 /// Locking an axis prevents change; it does not undo what is already there. A body tilted about X or
 /// Y when it attaches keeps that tilt, frozen at that angle, exactly as a frozen rotation behaves in
 /// those other engines. Give bodies an identity or Z-only rotation if that is not wanted.
+/// </para>
+/// <para>
+/// One thing to be aware of when using hull colliders: attaching one caps
+/// <see cref="CollidableComponent.MaximumRecoveryVelocity"/> and
+/// <see cref="CollidableComponent.SpringFrequency"/>, and raises
+/// <see cref="CollidableComponent.SpringDampingRatio"/> to at least one, because hulls generate
+/// energetic corrections in dense piles. These are ceilings and a floor rather than overwrites, so
+/// gentler settings survive untouched - but a deliberately stiff or bouncy hull body will come out
+/// softer than it was configured. Set the values after attaching to override.
 /// </para>
 /// </remarks>
 [ComponentCategory("Physics - Bepu 2D")]
@@ -96,6 +106,7 @@ public class Body2DComponent : BodyComponent, ISimulationUpdate
     /// velocity every step, which can stop bodies sleeping; NaN and infinity would disable it entirely.
     /// </para>
     /// </remarks>
+    [Display("Z tolerance", category: CategoryActivity)]
     public float ZTolerance
     {
         get => _zTolerance;
