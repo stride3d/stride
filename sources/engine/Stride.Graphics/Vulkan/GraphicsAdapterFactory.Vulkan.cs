@@ -195,6 +195,7 @@ namespace Stride.Graphics
 
                 // Reset when the layer isn't actually installed; otherwise vkCreateInstance returns ErrorLayerNotPresent.
                 enableValidation = enabledLayerNames.Count > 0;
+                Log.Info($"Vulkan validation layer {(enableValidation ? "enabled" : "not found")} for debug instance");
             }
 
             var supportedExtensionNames = stackalloc VkUtf8String[]
