@@ -205,7 +205,7 @@ internal static class Launcher
             {
                 window.Show();
             }
-            ((IClassicDesktopStyleApplicationLifetime)app.ApplicationLifetime!).MainWindow = window;
+            ((IClassicDesktopStyleApplicationLifetime?)app?.ApplicationLifetime)?.MainWindow = window;
             return cts.Token;
         }
     }
