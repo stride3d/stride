@@ -126,6 +126,9 @@ namespace Stride.Editor.Thumbnails
         public event EventHandler<ThumbnailCompletedArgs> ThumbnailCompleted;
 
         /// <inheritdoc/>
+        public int PendingThumbnailCount { get { lock (hashLock) return thumbnailQueueHash.Count; } }
+
+        /// <inheritdoc/>
         public bool HasStaticThumbnail(Type assetType)
         {
             var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetType, typeof(ThumbnailCompilationContext));
