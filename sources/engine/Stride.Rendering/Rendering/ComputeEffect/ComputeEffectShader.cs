@@ -48,10 +48,13 @@ namespace Stride.Rendering.ComputeEffect
         public Int3 ThreadGroupCounts { get; set; }
 
         /// <summary>
-        /// Gets or sets the compute shader's thread group size — the shader's <c>[numthreads(x, y, z)]</c>, applied via
-        /// the <c>ThreadNumberX/Y/Z</c> macros on <c>CSMain</c>. This is the supported way to set it; a literal
-        /// <c>[numthreads]</c> in the shader body is ignored. Keep consistent with <see cref="ThreadGroupCounts"/>.
+        /// Gets or sets the compute shader's thread group size.
         /// </summary>
+        /// <remarks>
+        /// This is the shader's <c>[numthreads(x, y, z)]</c>, applied through the <c>ThreadNumberX/Y/Z</c> macros
+        /// on <c>CSMain</c>. It is the supported way to set the thread group size; a literal <c>[numthreads]</c>
+        /// in the shader body is ignored. Keep consistent with <see cref="ThreadGroupCounts"/>.
+        /// </remarks>
         public Int3 ThreadNumbers { get; set; }
 
         /// <summary>
