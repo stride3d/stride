@@ -420,12 +420,11 @@
                                   <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                        DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                 </Interaction.Behaviors>
-                                <Image Source="/Assets/Images/list.png"
-                                       Width="20" Height="20" />
+                                <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
                               </ToggleButton>
                               <Popup x:Name="Popup"
                                      IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
-                                <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}">
+                                <Border Margin="0,0,4,4" Background="{DynamicResource SystemChromeMediumLowColor}">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
                                   </Border.Effect>
@@ -552,20 +551,33 @@
                                   <DockPanel DockPanel.Dock="Bottom">
                                     <!-- Update dropdown -->
                                     <ToggleButton DockPanel.Dock="Right" x:Name="Toggle"
-                                                  IsVisible="{Binding CompatibleVersions.Count}"/>
-                                    <Popup IsOpen="{Binding ElementName=Toggle, Path=IsChecked}"
-                                           PlacementTarget="{Binding ElementName=Toggle}">
-                                      <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                        <ItemsControl ItemsSource="{Binding CompatibleVersions}">
-                                          <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
-                                              <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                      Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
-                                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
-                                            </DataTemplate>
-                                          </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                      </ScrollViewer>
+                                                  Padding="2"
+                                                  IsVisible="{Binding CompatibleVersions.Count}"
+                                                  ToolTip.Tip="Upgrade to a more recent version">
+                                      <Interaction.Behaviors>
+                                        <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                             DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                      </Interaction.Behaviors>
+                                      <Image Width="16" Height="16" Source="/Assets/Images/upgrade.png" />
+                                    </ToggleButton>
+                                    <Popup IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                                           PlacementTarget="{Binding #Toggle}">                                           
+                                      <Border Margin="0,0,4,4" Background="{DynamicResource SystemChromeMediumLowColor}">
+                                        <Border.Effect>
+                                          <DropShadowEffect BlurRadius="5" Opacity="0.4" />
+                                        </Border.Effect>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                          <ItemsControl ItemsSource="{Binding CompatibleVersions}">
+                                            <ItemsControl.ItemTemplate>
+                                              <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
+                                                <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
+                                                        Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                                              </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                          </ItemsControl>
+                                        </ScrollViewer>
+                                      </Border>
                                     </Popup>
                                     <TextBlock DockPanel.Dock="Bottom"
                                                Text="{Binding FullPath}"
