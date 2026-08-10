@@ -2,12 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Windows;
 
 namespace Stride.Crash.ViewModels;
 
@@ -96,9 +98,10 @@ internal sealed class CrashReportViewModel : ViewModelBase
 #if DEBUG
             ["ProcessID"] = Environment.ProcessId,
             ["CurrentDirectory"] = Environment.CurrentDirectory,
+            ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
 #endif
-            ["OsArch"] = Environment.Is64BitOperatingSystem ? "x64" : "x86",
-            ["OsVersion"] = Environment.OSVersion,
+            ["OSArch"] = RuntimeInformation.OSArchitecture,
+            ["OSDescription"] = RuntimeInformation.OSDescription,
             ["ProcessorCount"] = Environment.ProcessorCount,
             ["Exception"] = args.Exception.FormatFull(),
             ["LastLogs"] = FormatLogs(args.Logs),
