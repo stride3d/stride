@@ -56,7 +56,6 @@ internal static class NuGetConsumerFeed
                   <package pattern="Stride.Mono.*" />
                   <package pattern="Stride.Dependencies.*" />
                   <package pattern="Stride.GraphX.*" />
-                  <package pattern="Stride.Metrics" />
                   <package pattern="Stride.QuickGraph" />
                 </packageSource>
                 <packageSource key="stride-local">

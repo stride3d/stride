@@ -133,11 +133,9 @@ namespace Stride.Graphics.Tests
         }
 
 
-        [SkippableFact]
+        [Fact]
         public void RunTestPass2()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-
             RunGameTest(new TestLambertPrefilteringSHPass2());
         }
     }

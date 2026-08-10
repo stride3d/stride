@@ -82,7 +82,7 @@ jobs:
       STRIDE_TESTS_CRASH_DUMPS: "1"
       STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}/crash-dumps"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: true
@@ -237,7 +237,7 @@ jobs:
 
       - name: Publish test report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Sample screenshot regression (${{ matrix.platform }}, ${{ matrix.graphics-api }})'
           path: TestResults/*.trx
@@ -247,7 +247,7 @@ jobs:
 
       - name: Upload test artifacts (captures + done.json + TRX)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshots-${{ matrix.platform }}-${{ matrix.graphics-api }}
           path: |
@@ -258,7 +258,7 @@ jobs:
 
       - name: Upload crash dumps (Windows)
         if: always() && runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: crash-dumps-${{ matrix.platform }}-${{ matrix.graphics-api }}
           path: crash-dumps/
@@ -288,7 +288,7 @@ jobs:
       # tripping on legacy BCL packages whose timestamping CAs have expired.
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           submodules: true
@@ -340,7 +340,7 @@ jobs:
 
       - name: Publish test report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Packaging + consumer (${{ matrix.platform }})'
           path: TestResults/*.trx
@@ -350,7 +350,7 @@ jobs:
 
       - name: Upload test artifacts (TRX)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packaging-${{ matrix.platform }}
           path: TestResults/

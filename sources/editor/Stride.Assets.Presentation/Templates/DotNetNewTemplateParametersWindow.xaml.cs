@@ -32,6 +32,9 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
     /// <summary>Per-parameter UI binding callback: returns the chosen value as a string (or null for "use default").</summary>
     private readonly List<(ITemplateParameter Param, Func<string?> Read)> bindings = new();
 
+    /// <summary>Asset-pack checkboxes, keyed by the pack template's identity.</summary>
+    private readonly List<(string Identity, CheckBox CheckBox)> assetPackChecks = new();
+
     /// <summary>
     /// Built-in cross-parameter coupling: HDR is meaningful only on graphics feature level 10.0+
     /// (the sample's HDR materials use shader features not available below SM4). Holds the
@@ -53,7 +56,11 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
     /// </summary>
     public Dictionary<string, string> Parameters { get; } = new();
 
-    public DotNetNewTemplateParametersWindow(ITemplateInfo template)
+    /// <summary>Identities of the asset-pack templates the user ticked (empty when none offered/selected).</summary>
+    public IReadOnlyList<string> SelectedAssetPacks =>
+        assetPackChecks.Where(t => t.CheckBox.IsChecked == true).Select(t => t.Identity).ToList();
+
+    public DotNetNewTemplateParametersWindow(ITemplateInfo template, IReadOnlyList<ITemplateInfo>? assetPacks = null)
     {
         ArgumentNullException.ThrowIfNull(template);
         TemplateName = template.Name ?? template.Identity;
@@ -66,6 +73,8 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
             DescriptionTextBlock.Visibility = Visibility.Collapsed;
 
         BuildControls(template);
+        if (assetPacks is { Count: > 0 })
+            ParametersPanel.Children.Add(BuildAssetPacksRow(assetPacks));
     }
 
     private void BuildControls(ITemplateInfo template)
@@ -73,6 +82,8 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
         // Parameters surface in template.json declaration order (ITemplateInfo.ParameterDefinitions
         // preserves it). Don't sort by Precedence — it's a non-IComparable struct that breaks LINQ
         // OrderBy with 2+ params.
+        // Skip params the template's dotnetcli.host.json marks isVisible:false (e.g. updateOnly).
+        var hidden = DotNetNewTemplateBridge.GetHiddenParameterNames(template);
         var visibleParams = template.ParameterDefinitions
             // Exclude the built-in "name" parameter (auto-injected from sourceName; its IsName
             // flag isn't reliably set, so match by name too). GameStudio's outer New-Project
@@ -80,6 +91,7 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
             .Where(p => string.Equals(p.Type, "parameter", StringComparison.Ordinal)
                         && !p.IsName
                         && !string.Equals(p.Name, "name", StringComparison.Ordinal))
+            .Where(p => !hidden.Contains(p.Name))
             // Hide single-choice parameters (e.g. template.json "tags" like language/type).
             .Where(p => !(string.Equals(p.DataType, "choice", StringComparison.OrdinalIgnoreCase)
                           && p.Choices != null && p.Choices.Count <= 1))
@@ -226,6 +238,35 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
         stack.Children.Add(img);
         stack.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
         return stack;
+    }
+
+    /// <summary>
+    /// Checkbox list for the optional asset packs (Building blocks, Materials, ...), one per
+    /// item template of the AssetPacks package. All unchecked by default; each selected pack is
+    /// instantiated into the generated game library after the main template.
+    /// </summary>
+    private UIElement BuildAssetPacksRow(IReadOnlyList<ITemplateInfo> assetPacks)
+    {
+        var row = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
+        row.Children.Add(new TextBlock
+        {
+            Text = "Asset packs — Ready-made asset collections added to your project",
+            Margin = new Thickness(0, 0, 0, 3),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        foreach (var pack in assetPacks)
+        {
+            var label = string.IsNullOrEmpty(pack.Description) ? pack.Name : $"{pack.Name} — {pack.Description}";
+            var item = new CheckBox
+            {
+                Content = label,
+                IsChecked = false,
+                Margin = new Thickness(0, 2, 0, 2),
+            };
+            row.Children.Add(item);
+            assetPackChecks.Add((pack.Identity, item));
+        }
+        return row;
     }
 
     private static bool ParseBool(string? s) => bool.TryParse(s, out var b) && b;

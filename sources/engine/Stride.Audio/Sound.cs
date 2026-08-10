@@ -67,7 +67,8 @@ namespace Stride.Audio
             if (AudioEngine == null || AudioEngine.State == AudioEngineState.Invalidated)
                 return;
 
-            if (!StreamFromDisk)
+            // Don't free a buffer that was never loaded into memory (Ptr stays null then).
+            if (!StreamFromDisk && PreloadedBuffer.Ptr != IntPtr.Zero)
             {
                 AudioLayer.BufferDestroy(PreloadedBuffer);
             }

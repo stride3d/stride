@@ -1,0 +1,24 @@
+# Known extension-less / dotfile basenames — one basename per line. Committed allowlist.
+#
+# Extension-less files are the highest-risk vector for stray binaries (e.g. a Linux
+# `ffmpeg` executable). The "PR Repo Hygiene" workflow BLOCKS any PR that ADDS an
+# extension-less file whose exact basename is not listed here. Matching is by basename
+# only, so one entry (e.g. `ffmpeg`) covers every directory. To add one on purpose, list
+# its basename here in the same PR (or a maintainer overrides with `allow-new-extension`).
+#
+# Glob patterns are allowed here too (`*` any run, `?` any single character).
+# Lines starting with # and blank lines are ignored. Keep sorted.
+.all-contributorsrc
+.editorconfig
+.gitattributes
+.gitignore
+.gitkeep
+.nupkg.metadata
+.signature.p7s
+.vsconfig
+CODEOWNERS
+LICENSE
+cstddef
+ffmpeg
+index
+new

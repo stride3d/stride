@@ -1062,7 +1062,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             foreach (var asset in assets)
             {
-                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path, StringComparison.Ordinal)))
+                // Locations in namespaced packages are rooted /Namespace/...; the directory tree is bare
+                var location = asset.AssetItem.UnqualifiedUrl;
+                if (location.HasDirectory && (directory.Parent == null || !location.FullPath.StartsWith(directory.Parent.Path, StringComparison.Ordinal)))
                 {
                     throw new InvalidOperationException("One of the asset does not match the directory hierarchy.");
                 }

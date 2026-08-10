@@ -25,7 +25,7 @@ namespace Stride.Assets.Physics
     {
         private const string CurrentVersion = "4.0.0.0";
 
-        public const string FileExtension = ".sdphy;pdxphy";
+        public const string FileExtension = ".sdphy";
 
         /// <userdoc>
         /// The collection of shapes in this asset, a collection shapes will automatically generate a compound shape.

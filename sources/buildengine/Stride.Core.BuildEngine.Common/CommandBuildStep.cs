@@ -26,6 +26,13 @@ public class CommandBuildStep : BuildStep
     /// </summary>
     public CommandResultEntry Result { get; private set; }
 
+    /// <summary>
+    /// Hash of this command, computed during <see cref="Execute"/>. Identifies the command-cache entry
+    /// (<c>db/&lt;hash&gt;</c>) so it can be recorded in the build closure. <see cref="ObjectId.Empty"/>
+    /// if the step has not run or the hash could not be computed.
+    /// </summary>
+    public ObjectId CommandHash { get; private set; }
+
     /// <inheritdoc/>
     public override string OutputLocation => Command.OutputLocation;
 
@@ -94,10 +101,12 @@ public class CommandBuildStep : BuildStep
         var status = ResultStatus.NotProcessed;
         // if any external input has changed since the last execution (or if we don't have a successful execution in cache, trigger the command
         CommandResultEntry? matchingResult;
+        var commandHash = ObjectId.Empty;
         try
         {
             // try to retrieve result from one of the object store
-            var commandHash = Command.ComputeCommandHash(executeContext);
+            commandHash = Command.ComputeCommandHash(executeContext);
+            CommandHash = commandHash;
             // Early exit if the hash of the command failed
             if (commandHash == ObjectId.Empty)
             {

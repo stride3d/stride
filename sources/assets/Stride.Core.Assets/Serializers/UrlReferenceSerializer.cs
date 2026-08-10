@@ -26,14 +26,14 @@ internal class UrlReferenceSerializer : AssetScalarSerializerBase
             throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
         }
 
-        return UrlReferenceBase.New(context.Descriptor.Type, guid, location.FullPath);
+        return UrlReferenceBase.New(context.Descriptor.Type, guid, ReferenceSerializationHelper.RestoreLocation(ref context, location.FullPath));
     }
 
     public override string ConvertTo(ref ObjectContext objectContext)
     {
         if (objectContext.Instance is UrlReferenceBase urlReference)
         {
-            return $"{urlReference.Id}:{urlReference.Url}";
+            return ReferenceSerializationHelper.FormatReference(ref objectContext, urlReference.Id, urlReference.Url);
         }
 
         throw new YamlException($"Unable to extract url reference from object [{objectContext.Instance}]");

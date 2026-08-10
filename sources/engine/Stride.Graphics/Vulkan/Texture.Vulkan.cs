@@ -182,7 +182,7 @@ namespace Stride.Graphics
                 NativePipelineStageMask =
                     IsRenderTarget ? VkPipelineStageFlags.ColorAttachmentOutput :
                     IsDepthStencil ? VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests :
-                    IsShaderResource ? VkPipelineStageFlags.VertexInput | VkPipelineStageFlags.FragmentShader :
+                    IsShaderResource || IsUnorderedAccess ? VkPipelineStageFlags.VertexInput | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader :
                     VkPipelineStageFlags.None;
 
                 if (ParentTexture != null)
@@ -501,7 +501,7 @@ namespace Stride.Graphics
 
         private unsafe VkImageView GetImageView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
-            if (!IsShaderResource)
+            if (!IsShaderResource && !IsUnorderedAccess)
                 return VkImageView.Null;
 
             if (viewType == ViewType.MipBand && IsRenderTarget)
@@ -512,7 +512,8 @@ namespace Stride.Graphics
             var layerCount = Dimension == TextureDimension.Texture3D ? 1 : arrayOrDepthCount;
 
             // Narrow view usage to what it's actually bound as (drops ColorAttachment etc.) — avoids MoltenVK's layered-render check on iOS sim.
-            var viewUsage = VkImageUsageFlags.Sampled;
+            var viewUsage = default(VkImageUsageFlags);
+            if (IsShaderResource) viewUsage |= VkImageUsageFlags.Sampled;
             if (IsUnorderedAccess) viewUsage |= VkImageUsageFlags.Storage;
             var viewUsageInfo = new VkImageViewUsageCreateInfo
             {

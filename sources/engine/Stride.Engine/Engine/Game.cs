@@ -310,17 +310,21 @@ namespace Stride.Engine
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
-            if (gameCreation && !deviceManager.SkipBackBufferClampToWindow)
+            // Skip window-based adjustments when there is no usable client area (e.g. minimized)
+            var clientBounds = Window.ClientBounds;
+            var hasClientSize = clientBounds.Width > 0 && clientBounds.Height > 0;
+
+            if (gameCreation && !deviceManager.SkipBackBufferClampToWindow && hasClientSize)
             {
                 //if our device width or height is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
-                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
+                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, clientBounds.Width);
+                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, clientBounds.Height);
             }
 
             //these might get triggered even during game runtime, resize, orientation change
-            if (!deviceManager.SkipBackBufferClampToWindow && renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
+            if (!deviceManager.SkipBackBufferClampToWindow && renderingSettings != null && renderingSettings.AdaptBackBufferToScreen && hasClientSize)
             {
-                var deviceAr = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
+                var deviceAr = clientBounds.Width / (float)clientBounds.Height;
 
                 if (deviceManager.PreferredBackBufferHeight > deviceManager.PreferredBackBufferWidth)
                 {

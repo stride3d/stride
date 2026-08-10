@@ -25,7 +25,7 @@ public class ContentReferenceSerializer : AssetScalarSerializerBase
             throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode asset reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
         }
 
-        var instance = AttachedReferenceManager.CreateProxyObject(context.Descriptor.Type, guid, location);
+        var instance = AttachedReferenceManager.CreateProxyObject(context.Descriptor.Type, guid, ReferenceSerializationHelper.RestoreLocation(ref context, location.FullPath));
         return instance;
     }
 
@@ -33,6 +33,6 @@ public class ContentReferenceSerializer : AssetScalarSerializerBase
     {
         var attachedReference = AttachedReferenceManager.GetAttachedReference(objectContext.Instance)
             ?? throw new YamlException($"Unable to extract asset reference from object [{objectContext.Instance}]");
-        return $"{attachedReference.Id}:{attachedReference.Url}";
+        return ReferenceSerializationHelper.FormatReference(ref objectContext, attachedReference.Id, attachedReference.Url);
     }
 }

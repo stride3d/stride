@@ -386,7 +386,9 @@ namespace Stride.Shaders.Compilers.SDSL
             EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
 
             var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
-            return elementType with { Elements = a.Size };
+            // EffectTypeDescription has a single flat Elements count, and both fxc reflection and the
+            // runtime treat multidimensional arrays as flattened, so nested dimensions multiply.
+            return elementType with { Elements = elementType.Elements > 0 ? elementType.Elements * a.Size : a.Size };
         }
 
         EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
@@ -458,7 +460,9 @@ namespace Stride.Shaders.Compilers.SDSL
                     };
                     if (metadata.Color)
                     {
-                        var baseType = member.Type is ArrayType arrayType ? arrayType.BaseType : member.Type;
+                        var baseType = member.Type;
+                        while (baseType is ArrayType arrayType)
+                            baseType = arrayType.BaseType;
                         if (baseType is not VectorType { BaseType: { Type: Scalar.Float }, Size: 3 or 4 })
                             throw new InvalidOperationException("[Color] attribute can only be applied on float3/float4 vector types");
                         memberInfos[index].Type.Class = EffectParameterClass.Color;

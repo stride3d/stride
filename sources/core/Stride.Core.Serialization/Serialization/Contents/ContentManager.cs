@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
@@ -17,6 +16,9 @@ namespace Stride.Core.Serialization.Contents;
 public sealed partial class ContentManager : IContentManager
 {
     private static readonly Logger Log = GlobalLogger.GetLogger(nameof(ContentManager));
+
+    /// <summary>Maximum number of same-name assets listed in the "asset not found" message.</summary>
+    private const int MaxSameNameCandidates = 5;
 
     public DatabaseFileProvider FileProvider => databaseFileProviderService.FileProvider;
 
@@ -83,12 +85,27 @@ public sealed partial class ContentManager : IContentManager
     /// </returns>
     public bool Exists(string url)
     {
-        return FileProvider.ContentIndexMap.TryGetValue(url, out _);
+        return FileProvider.ContentIndexMap.TryGetValue(ResolveUrl(url), out _);
     }
 
     public Stream OpenAsStream(string url, StreamFlags streamFlags = StreamFlags.None)
     {
-        return FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
+        return FileProvider.OpenStream(ResolveUrl(url), VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
+    }
+
+    /// <summary>
+    /// Resolves a bare URL through the shipped alias table (using semantics for namespaced packages);
+    /// exact index hits pass through untouched. Resolution happens before any caching so a rooted
+    /// URL and its bare alias share one loaded instance.
+    /// </summary>
+    private string ResolveUrl(string url)
+    {
+        // No provider (e.g. editor game thread resolves its database per-microthread) = no aliases
+        var fileProvider = databaseFileProviderService.FileProvider;
+        if (fileProvider is null || fileProvider.ContentIndexMap.TryGetValue(url, out _))
+            return url;
+        var aliases = fileProvider.ObjectDatabase?.ContentAliases;
+        return aliases is not null && aliases.TryGetValue(url, out var canonical) ? canonical : url;
     }
 
     /// <summary>
@@ -99,6 +116,7 @@ public sealed partial class ContentManager : IContentManager
     /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default" />.</param>
     /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
     /// <returns>The loaded content.</returns>
+    /// <exception cref="ContentManagerException">The asset or one of its referenced assets could not be found. Use <see cref="Exists"/> to check for optional content.</exception>
     public T Load<T>(string url, ContentManagerLoaderSettings? settings = null) where T : class
     {
         return (T)Load(typeof(T), url, settings);
@@ -113,6 +131,7 @@ public sealed partial class ContentManager : IContentManager
     /// <returns>The loaded content.</returns>
     /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
     /// <exception cref="ArgumentNullException">url</exception>
+    /// <exception cref="ContentManagerException">The asset or one of its referenced assets could not be found. Use <see cref="Exists"/> to check for optional content.</exception>
     public object Load(Type type, string url, ContentManagerLoaderSettings? settings = null)
     {
         settings ??= ContentManagerLoaderSettings.Default;
@@ -121,6 +140,7 @@ public sealed partial class ContentManager : IContentManager
 
         lock (LoadedAssetUrls)
         {
+            url = ResolveUrl(url);
             using var profile = Profiler.Begin(ContentProfilingKeys.ContentLoad, url);
             return DeserializeObject(url, url, type, null, settings);
         }
@@ -143,7 +163,7 @@ public sealed partial class ContentManager : IContentManager
             if (!LoadedAssetReferences.TryGetValue(obj, out var reference))
                 return false; // The object is not loaded
 
-            var url = newUrl ?? reference.Url;
+            var url = newUrl is not null ? ResolveUrl(newUrl) : reference.Url;
 
             using (var profile = Profiler.Begin(ContentProfilingKeys.ContentReload, url))
             {
@@ -179,7 +199,7 @@ public sealed partial class ContentManager : IContentManager
     /// <remarks>This function does not increase the reference count on the asset.</remarks>
     public object? Get(Type type, string url)
     {
-        return FindDeserializedObject(url, type)?.Object;
+        return FindDeserializedObject(ResolveUrl(url), type)?.Object;
     }
 
     /// <summary>
@@ -190,7 +210,7 @@ public sealed partial class ContentManager : IContentManager
     /// <returns><c>True</c> if an asset with the given URL is currently loaded, <c>false</c> otherwise.</returns>
     public bool IsLoaded(string url, bool loadedManuallyOnly = false)
     {
-        return LoadedAssetUrls.TryGetValue(url, out var reference) && (!loadedManuallyOnly || reference.PublicReferenceCount > 0);
+        return LoadedAssetUrls.TryGetValue(ResolveUrl(url), out var reference) && (!loadedManuallyOnly || reference.PublicReferenceCount > 0);
     }
 
     public bool TryGetAssetUrl(object obj, [NotNullWhen(true)] out string? url)
@@ -236,7 +256,7 @@ public sealed partial class ContentManager : IContentManager
         lock (LoadedAssetUrls)
         {
             // Try to find already loaded object
-            if (!LoadedAssetUrls.TryGetValue(url, out var reference))
+            if (!LoadedAssetUrls.TryGetValue(ResolveUrl(url), out var reference))
                 throw new InvalidOperationException("Content not loaded through this ContentManager.");
 
             // Release reference
@@ -374,10 +394,7 @@ public sealed partial class ContentManager : IContentManager
     internal ChunkHeader? ReadChunkHeader(string url)
     {
         if (!FileProvider.FileExists(url))
-        {
-            HandleAssetNotFound(url);
-            return null;
-        }
+            ThrowAssetNotFound(url);
 
         using var stream = FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read);
         // File does not exist
@@ -414,10 +431,7 @@ public sealed partial class ContentManager : IContentManager
         }
 
         if (!FileProvider.FileExists(url))
-        {
-            HandleAssetNotFound(url);
-            return null;
-        }
+            ThrowAssetNotFound(url);
 
         ContentSerializerContext contentSerializerContext;
         object result;
@@ -647,28 +661,68 @@ public sealed partial class ContentManager : IContentManager
     }
 
     /// <summary>
-    /// Notify debugger and logging when an asset could not be found.
+    /// Logs and throws when an asset could not be found, suggesting close URL matches when any exist.
     /// </summary>
     /// <param name="url">The URL.</param>
-    /// <exception cref="ContentManagerException">Asset could not be found.</exception>
-    // TODO: Replug this when an asset is not found?
-    private static void HandleAssetNotFound(string url)
+    /// <exception cref="ContentManagerException">Always thrown: the asset could not be found.</exception>
+    [DoesNotReturn]
+    private void ThrowAssetNotFound(string url)
     {
-        var errorMessage = $"The asset '{url}' could not be found. Asset path should be 'MyFolder/MyAssetName'. Check that the path is correct and that the asset has been included into the build.";
+        var errorMessage = $"The asset '{url}' could not be found. Asset path should be 'MyFolder/MyAssetName', or '/PackageName/MyFolder/MyAssetName' for an asset from a namespaced package. Check that the path is correct and that the asset has been included into the build.";
 
-        // If a debugger is attached, throw an exception (we do that instead of Debugger.Break so that user can easily ignore this specific type of exception)
-        if (Debugger.IsAttached)
+        var contentIndexMap = FileProvider?.ContentIndexMap;
+        if (contentIndexMap != null)
         {
-            try
+            var indexMap = contentIndexMap.GetMergedIdMap();
+
+            // First suggest assets differing from the requested URL only by the '/PackageName' root
+            var isRooted = url.StartsWith('/');
+            var candidates = new List<string>();
+            foreach (var entry in indexMap)
             {
-                throw new ContentManagerException(errorMessage);
+                if (isRooted ? DiffersByRoot(url, entry.Key) : DiffersByRoot(entry.Key, url))
+                    candidates.Add(entry.Key);
             }
-            catch (ContentManagerException)
+            if (candidates.Count > 0)
             {
+                candidates.Sort();
+                errorMessage = $"The asset '{url}' could not be found. Did you mean:"
+                    + string.Concat(candidates.Select(c => $"{Environment.NewLine}  '{c}'"))
+                    + $"{Environment.NewLine}An asset from a namespaced package is addressed by a rooted URL: '/PackageName/MyFolder/MyAssetName'.";
+            }
+            else
+            {
+                // Otherwise fall back to assets with the same name in other folders
+                var assetName = url.Substring(url.LastIndexOf('/') + 1);
+                var sameNameCandidates = new List<string>();
+                foreach (var entry in indexMap)
+                {
+                    if (entry.Key.EndsWith(assetName, StringComparison.OrdinalIgnoreCase)
+                        && (entry.Key.Length == assetName.Length || entry.Key[entry.Key.Length - assetName.Length - 1] == '/'))
+                        sameNameCandidates.Add(entry.Key);
+                }
+                if (sameNameCandidates.Count > 0)
+                {
+                    sameNameCandidates.Sort();
+                    var more = sameNameCandidates.Count > MaxSameNameCandidates ? $"{Environment.NewLine}  (and {sameNameCandidates.Count - MaxSameNameCandidates} more)" : string.Empty;
+                    errorMessage = $"The asset '{url}' could not be found. Assets with the same name exist at:"
+                        + string.Concat(sameNameCandidates.Take(MaxSameNameCandidates).Select(c => $"{Environment.NewLine}  '{c}'"))
+                        + more;
+                }
             }
         }
 
-        // Log error
+        // True when <rooted> is exactly '/PackageName' (a single segment) followed by '/<bare>'.
+        static bool DiffersByRoot(string rooted, string bare)
+        {
+            return rooted.Length > bare.Length + 2
+                && rooted.EndsWith(bare, StringComparison.OrdinalIgnoreCase)
+                && rooted[rooted.Length - bare.Length - 1] == '/'
+                && rooted.IndexOf('/', 1) == rooted.Length - bare.Length - 1
+                && rooted[0] == '/';
+        }
+
         Log.Error(errorMessage);
+        throw new ContentManagerException(errorMessage);
     }
 }

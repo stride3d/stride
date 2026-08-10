@@ -184,16 +184,6 @@ public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
     /// </summary>
     internal class Serializer : DataSerializer<VertexDeclaration>, IDataSerializerGenericInstantiation
     {
-        /// <inheritdoc/>
-        public override void PreSerialize(ref object obj, ArchiveMode mode, SerializationStream stream)
-        {
-            // We are creating object at deserialization time
-            if (mode == ArchiveMode.Serialize)
-            {
-                base.PreSerialize(ref obj, mode, stream);
-            }
-        }
-
         /// <summary>
         ///   Serializes or deserializes a <see cref="VertexDeclaration"/> object.
         /// </summary>

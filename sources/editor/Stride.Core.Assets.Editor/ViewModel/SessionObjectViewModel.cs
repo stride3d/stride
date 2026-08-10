@@ -77,6 +77,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// Marks this view model as deleted without creating an undo transaction — the delete
+        /// counterpart to the uncancellable branch of <see cref="InitialUndelete"/>.
+        /// </summary>
+        internal void MarkAsDeleted()
+        {
+            SetValueUncancellable(ref isDeleted, true, UpdateIsDeletedStatus, nameof(IsDeleted));
+        }
+
+        /// <summary>
         /// Updates related session objects when the <see cref="IsDeleted"/> property changes.
         /// </summary>
         protected abstract void UpdateIsDeletedStatus();

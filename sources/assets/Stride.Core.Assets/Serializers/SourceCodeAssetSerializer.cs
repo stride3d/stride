@@ -13,7 +13,7 @@ internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFac
 {
     public static readonly SourceCodeAssetSerializer Default = new();
 
-    public object Load(Stream stream, UFile filePath, ILogger log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata)
+    public object Load(Stream stream, UFile filePath, ILogger log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null)
     {
         aliasOccurred = false;
 
@@ -40,7 +40,7 @@ internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFac
         return asset;
     }
 
-    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         ((SourceCodeAsset)asset).Save(stream);
     }

@@ -36,11 +36,11 @@ public sealed class EmptyCollider : ICollider
         transforms[0].Scale = new Vector3(0.1f);
     }
 
-    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
+    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
         index = new();
         centerOfMass = new();
-        inertia = new Sphere(1).ComputeInertia(1);
+        inertia = shouldCalculateInertia ? new Sphere(1).ComputeInertia(1) : default;
         return true;
     }
 

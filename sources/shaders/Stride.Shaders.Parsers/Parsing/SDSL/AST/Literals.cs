@@ -94,17 +94,16 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         // If expectedType is float, handle it:
         if (Type is ScalarType { Type: Scalar.Float })
         {
-            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, null, Info));
+            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, Info));
         }
 
         return compiler.Context.CompileConstantLiteral(this);
     }
 }
 
-public sealed partial class FloatLiteral(Suffix suffix, double value, int? exponent, TextLocation info) : NumberLiteral<double>(suffix, value, info)
+public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocation info) : NumberLiteral<double>(suffix, value, info)
 {
-    public int? Exponent { get; set; } = exponent;
-    public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
+    public static implicit operator FloatLiteral(double v) => new(new(), v, new());
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -788,8 +787,11 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
 
     public static SymbolType GenerateArrayType(SymbolTable table, SpirvContext context, SymbolType arraySymbolType, List<Expression> arraySizes)
     {
-        foreach (var arraySize in arraySizes)
+        // Wrap from the last declared dimension inward so the first dimension ends up outermost:
+        // for `T[a][b][c]` (arraySizes = [a, b, c]) this builds Array(a, Array(b, Array(c, T))).
+        for (var index = arraySizes.Count - 1; index >= 0; index--)
         {
+            var arraySize = arraySizes[index];
             if (!table.ResolveArraySizes || arraySize is EmptyExpression)
                 arraySymbolType = new ArrayType(arraySymbolType, -1);
             else

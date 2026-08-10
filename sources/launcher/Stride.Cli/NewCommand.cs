@@ -89,11 +89,16 @@ internal static class NewCommand
                 }
 
                 var name = parseResult.GetValue(nameOption) ?? template.DefaultName ?? templateName;
-                var output = parseResult.GetValue(outputOption) ?? Path.Combine(Environment.CurrentDirectory, name);
+                // Item templates (e.g. the stride-pack-* asset packs) drop content into an existing
+                // project, so they default to the current directory and skip the non-empty check.
+                var isItemTemplate = template.TagsCollection.TryGetValue("type", out var templateType)
+                    && string.Equals(templateType, "item", StringComparison.OrdinalIgnoreCase);
+                var output = parseResult.GetValue(outputOption)
+                    ?? (isItemTemplate ? Environment.CurrentDirectory : Path.Combine(Environment.CurrentDirectory, name));
 
                 // Refuse to write into an existing non-empty directory unless --force (mirrors `dotnet new`),
                 // so a repeated command doesn't silently overwrite a project.
-                if (!parseResult.GetValue(forceOption) && Directory.Exists(output) && Directory.EnumerateFileSystemEntries(output).Any())
+                if (!isItemTemplate && !parseResult.GetValue(forceOption) && Directory.Exists(output) && Directory.EnumerateFileSystemEntries(output).Any())
                 {
                     Console.Error.WriteLine($"The output directory '{output}' already exists and is not empty. Choose another name with --name, a different --output, or pass --force to overwrite.");
                     return 1;

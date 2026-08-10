@@ -50,6 +50,8 @@
       <TargetFramework />
       <ProjectAssetsFile />
       <RootNamespace />
+      <AssetNamespace />
+      <AssetNamespaceUsings />
       <ProjectDirectory Required="true" />
       <ExcludeDirectory />
       <Extensions />
@@ -92,6 +94,15 @@
             sb.AppendLine("NuGetLockFile: " + q(rel(ProjectAssetsFile)));
         if (!string.IsNullOrEmpty(RootNamespace))
             sb.AppendLine("RootNamespace: " + q(RootNamespace));
+        if (!string.IsNullOrEmpty(AssetNamespace))
+            sb.AppendLine("AssetNamespace: " + q(AssetNamespace));
+        var usings = new SortedSet<string>((AssetNamespaceUsings ?? "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(u => u.Trim()).Where(u => u.Length > 0), StringComparer.Ordinal);
+        if (usings.Count > 0)
+        {
+            sb.AppendLine("AssetNamespaceUsings:");
+            foreach (var entry in usings)
+                sb.AppendLine("    - " + q(entry));
+        }
 
         var assemblies = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var item in AssetAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
@@ -201,10 +212,13 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <!-- Conventional sdpkg next to the project (.csproj -> .sdpkg). A platform-head with no sdpkg
-           of its own becomes an implicit package named after the head (e.g. MyGame.Windows), with
-           assets flowing in from the referenced game library. -->
-      <_StrideAuthoredPackagePath>$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAuthoredPackagePath>
+      <!-- StrideCurrentPackagePath points a project at its sdpkg when the name doesn't follow the
+           convention; otherwise the conventional sdpkg next to the project (.csproj -> .sdpkg). Only
+           an existing file counts: a platform project (e.g. MyGame.Windows) may carry a dangling path
+           from an older layout, and must stay an implicit package named after itself (assets flow in
+           from the referenced game library) rather than resurrect a package at the missing path. -->
+      <_StrideAuthoredPackagePath Condition="'$(StrideCurrentPackagePath)' != '' And Exists('$(StrideCurrentPackagePath)')">$(StrideCurrentPackagePath)</_StrideAuthoredPackagePath>
+      <_StrideAuthoredPackagePath Condition="'$(_StrideAuthoredPackagePath)' == ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAuthoredPackagePath>
       <_StrideManifestHostFramework>$(StrideFramework)</_StrideManifestHostFramework>
       <_StrideManifestHostFramework Condition="'$(_StrideManifestHostFramework)' == ''">$(TargetFramework)</_StrideManifestHostFramework>
       <_StrideManifestProjectAssetsFile Condition="Exists('$(ProjectAssetsFile)')">$(ProjectAssetsFile)</_StrideManifestProjectAssetsFile>
@@ -239,6 +253,8 @@
         TargetFramework="$(TargetFramework)"
         ProjectAssetsFile="$(_StrideManifestProjectAssetsFile)"
         RootNamespace="$(RootNamespace)"
+        AssetNamespace="$(StrideAssetNamespace)"
+        AssetNamespaceUsings="@(StrideAssetNamespaceUsing)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
         ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"
         Extensions="$(_StrideManifestExtensions)"

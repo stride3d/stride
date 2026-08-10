@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 
 using Stride.Core;
+using Stride.Core.Mathematics;
 
 namespace Stride.Shaders
 {
@@ -70,6 +71,14 @@ namespace Stride.Shaders
             {
                 bool b => b ? "true" : "false",
                 null => "null",
+                Vector2 v => FormattableString.Invariant($"float2({v.X}, {v.Y})"),
+                Vector3 v => FormattableString.Invariant($"float3({v.X}, {v.Y}, {v.Z})"),
+                Vector4 v => FormattableString.Invariant($"float4({v.X}, {v.Y}, {v.Z}, {v.W})"),
+                Color3 c => FormattableString.Invariant($"float3({c.R}, {c.G}, {c.B})"),
+                Color4 c => FormattableString.Invariant($"float4({c.R}, {c.G}, {c.B}, {c.A})"),
+                Int2 v => FormattableString.Invariant($"int2({v.X}, {v.Y})"),
+                Int3 v => FormattableString.Invariant($"int3({v.X}, {v.Y}, {v.Z})"),
+                Int4 v => FormattableString.Invariant($"int4({v.X}, {v.Y}, {v.Z}, {v.W})"),
                 _ => Convert.ToString(value, CultureInfo.InvariantCulture),
             };
         }

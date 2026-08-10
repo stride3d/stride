@@ -35,7 +35,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout Stride
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: build/deps/lavapipe
@@ -156,7 +156,7 @@ jobs:
           Set-Content -NoNewline -Path lavapipe-out/lvp_icd.json -Value '{"file_format_version":"1.0.0","ICD":{"library_path":".\\vulkan_lvp.dll","api_version":"1.3.0"}}'
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lavapipe-win-x64
           path: lavapipe-out/
@@ -168,7 +168,7 @@ jobs:
     runs-on: windows-11-arm
     steps:
       - name: Checkout Stride
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: build/deps/lavapipe
@@ -278,7 +278,7 @@ jobs:
           Set-Content -NoNewline -Path lavapipe-out/lvp_icd.json -Value '{"file_format_version":"1.0.0","ICD":{"library_path":".\\vulkan_lvp.dll","api_version":"1.3.0"}}'
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lavapipe-win-arm64
           path: lavapipe-out/
@@ -288,7 +288,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Stride
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: build/deps/lavapipe
@@ -341,7 +341,7 @@ jobs:
           ls -la lavapipe-out/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lavapipe-linux-x64
           path: lavapipe-out/
@@ -375,7 +375,7 @@ jobs:
           ls -la lavapipe-out-nodmabuf/
 
       - name: Upload no-dma_buf artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lavapipe-linux-x64-nodmabuf
           path: lavapipe-out-nodmabuf/
@@ -385,7 +385,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout Stride
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: build/deps/lavapipe
@@ -434,7 +434,7 @@ jobs:
           ls -la lavapipe-out/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lavapipe-osx-arm64
           path: lavapipe-out/
@@ -445,7 +445,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Clone Mesa (for commit hash)
         shell: pwsh
@@ -458,23 +458,23 @@ jobs:
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { name: lavapipe-win-x64, path: artifacts/win-x64 }
 
       - name: Download Windows ARM64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { name: lavapipe-win-arm64, path: artifacts/win-arm64 }
 
       - name: Download Linux artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { name: lavapipe-linux-x64, path: artifacts/linux-x64 }
 
       - name: Download Linux no-dma_buf artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { name: lavapipe-linux-x64-nodmabuf, path: artifacts/linux-x64-nodmabuf }
 
       - name: Download macOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { name: lavapipe-osx-arm64, path: artifacts/osx-arm64 }
 
       - name: Stage native payload into csproj
@@ -513,7 +513,7 @@ jobs:
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Stride.Dependencies.Lavapipe.nupkg
           path: nupkg/*.nupkg
@@ -528,7 +528,7 @@ jobs:
         run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Stride.Dependencies.Lavapipe.nupkg
 

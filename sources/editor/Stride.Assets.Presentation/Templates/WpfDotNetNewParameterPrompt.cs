@@ -12,10 +12,16 @@ namespace Stride.Assets.Presentation.Templates;
 /// <summary>WPF impl of <see cref="IDotNetNewParameterPrompt"/> — shows <see cref="DotNetNewTemplateParametersWindow"/> modally.</summary>
 internal sealed class WpfDotNetNewParameterPrompt : IDotNetNewParameterPrompt
 {
-    public async Task<IReadOnlyDictionary<string, string>?> PromptAsync(ITemplateInfo template)
+    public async Task<DotNetNewPromptResult?> PromptAsync(ITemplateInfo template, TemplateDotNetNewDescription description)
     {
-        var dialog = new DotNetNewTemplateParametersWindow(template);
+        // Templates that opt into asset packs get the pack checkboxes; the bridge downloads the
+        // AssetPacks package on first use. Empty list (e.g. offline) = no packs section.
+        IReadOnlyList<ITemplateInfo> assetPacks = [];
+        if (description.OffersAssetPacks)
+            assetPacks = await DotNetNewTemplateBridge.GetAssetPackTemplatesAsync().ConfigureAwait(true);
+
+        var dialog = new DotNetNewTemplateParametersWindow(template, assetPacks);
         var result = await dialog.ShowModal();
-        return result == SDDialogResult.Ok ? dialog.Parameters : null;
+        return result == SDDialogResult.Ok ? new DotNetNewPromptResult(dialog.Parameters, dialog.SelectedAssetPacks) : null;
     }
 }

@@ -30,6 +30,13 @@ public static class GraphicsApiSelector
     /// <summary>Persisted preference a host sets before <see cref="Resolve"/> runs (after arg/env, before the default).</summary>
     public static string? HostPreference { get; set; }
 
+    /// <summary>Where the selected API came from; drives how a host reacts when it isn't available
+    /// (per-launch sources are fatal, a stale persisted preference is recoverable).</summary>
+    public enum SelectionSource { None, CommandLine, EnvironmentVariable, HostPreference }
+
+    /// <summary>Source of the API <see cref="Resolve"/> selected; <see cref="SelectionSource.None"/> when it returned null.</summary>
+    public static SelectionSource Source { get; private set; }
+
     public static string? Resolve()
     {
         var args = Environment.GetCommandLineArgs();
@@ -41,13 +48,28 @@ public static class GraphicsApiSelector
             if (arg.Equals("--graphics-api", StringComparison.OrdinalIgnoreCase))
             {
                 var value = i + 1 < args.Length ? args[i + 1] : null;
-                return Normalize(value)
-                    ?? FailStartup($"Invalid --graphics-api value '{value ?? "(missing)"}'. Expected one of: {string.Join(", ", KnownApis)}.");
+                if (Normalize(value) is { } fromArg)
+                {
+                    Source = SelectionSource.CommandLine;
+                    return fromArg;
+                }
+                return FailStartup($"Invalid --graphics-api value '{value ?? "(missing)"}'. Expected one of: {string.Join(", ", KnownApis)}.");
             }
         }
 
-        var env = Normalize(Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_API"));
-        return env ?? Normalize(HostPreference);
+        if (Normalize(Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_API")) is { } fromEnv)
+        {
+            Source = SelectionSource.EnvironmentVariable;
+            return fromEnv;
+        }
+
+        if (Normalize(HostPreference) is { } fromPreference)
+        {
+            Source = SelectionSource.HostPreference;
+            return fromPreference;
+        }
+
+        return null;
     }
 
     static string? Normalize(string? value)

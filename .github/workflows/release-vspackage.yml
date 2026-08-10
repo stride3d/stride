@@ -58,12 +58,12 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -88,20 +88,27 @@ jobs:
         shell: pwsh
         run: |
           $nupkg = Get-ChildItem -Path bin/vsix -Filter "*.nupkg" | Select-Object -First 1
-          if ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$') {
-            echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          if (-not ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$')) {
+            echo "::error::Could not determine a version from the VS package nupkg name"
+            exit 1
           }
+          $version = $Matches[1]
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1)"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Upload VSIX artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: vsix
+          name: stride-vsix-${{ steps.version.outputs.version }}
           path: bin/vsix/*.nupkg
           if-no-files-found: error
           retention-days: 30
 
       - name: Upload build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log
@@ -115,20 +122,20 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4  # full history + tags for the vspackage-scoped changelog and tagging
+      - uses: actions/checkout@v7  # full history + tags for the vspackage-scoped changelog and tagging
         with:
           fetch-depth: 0
           fetch-tags: true
           token: ${{ secrets.GH_PAT }}  # push the vspackage/<version> tag
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Download VSIX artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: vsix
+          name: stride-vsix-${{ needs.Package.outputs.version }}
           path: bin/vsix
 
       - name: Push to NuGet
@@ -183,3 +190,16 @@ jobs:
               --latest=false \
               bin/vsix/*.nupkg
           fi
+
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: vspackage/${{ needs.Package.outputs.version }}
+          tag-match: 'vspackage/*'
+          product: the Stride Visual Studio package
+          scope: sources/tools/Stride.VisualStudio.*
+          apply: true
+          format: highlights
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}

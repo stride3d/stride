@@ -14,7 +14,18 @@ internal static class Tools
             return 1;
         }
 
-        var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+        // Run a managed .dll via the shared `dotnet` host (cross-platform); run a native apphost (.exe) directly.
+        ProcessStartInfo startInfo;
+        if (executable.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+        {
+            startInfo = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+            startInfo.ArgumentList.Add(executable);
+        }
+        else
+        {
+            startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+        }
+
         foreach (var argument in forwardedArgs)
             startInfo.ArgumentList.Add(argument);
 

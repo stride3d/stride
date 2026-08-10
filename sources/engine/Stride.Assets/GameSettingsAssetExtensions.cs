@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets;
 using Stride.Core;
+using Stride.Core.IO;
 using Stride.Graphics;
 
 namespace Stride.Assets
@@ -16,10 +17,23 @@ namespace Stride.Assets
         /// <returns>The <see cref="GameSettingsAsset"/> from the given <see cref="Package"/> if available. Null otherwise.</returns>
         public static GameSettingsAsset GetGameSettingsAsset(this Package package)
         {
-            var gameSettingsAsset = package.FindAsset(GameSettingsAsset.GameSettingsLocation);
-            if (gameSettingsAsset == null && package.TemporaryAssets.Count > 0)
+            // Searched per package: namespaced packages root their asset locations /Namespace/...
+            static AssetItem FindInPackage(Package candidate)
             {
-                gameSettingsAsset = package.TemporaryAssets.Find(x => x.Location == GameSettingsAsset.GameSettingsLocation);
+                var location = new UFile(candidate.Container?.AssetNamespace is { } assetNamespace
+                    ? $"/{assetNamespace}/{GameSettingsAsset.GameSettingsLocation}"
+                    : GameSettingsAsset.GameSettingsLocation);
+                return candidate.Assets.Find(location) ?? candidate.TemporaryAssets.Find(x => x.Location == location);
+            }
+
+            var gameSettingsAsset = FindInPackage(package);
+            if (gameSettingsAsset == null && package.Container != null)
+            {
+                foreach (var dependency in package.Container.FlattenedDependencies)
+                {
+                    if (dependency.Package != null && (gameSettingsAsset = FindInPackage(dependency.Package)) != null)
+                        break;
+                }
             }
             return gameSettingsAsset?.Asset as GameSettingsAsset;
         }

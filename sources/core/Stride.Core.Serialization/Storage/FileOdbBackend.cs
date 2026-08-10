@@ -221,6 +221,31 @@ public class FileOdbBackend : IOdbBackend
         return virtualFileProvider.GetAbsolutePath(BuildUrl(vfsRootUrl, objectId));
     }
 
+    /// <summary>
+    /// Touch throttle (X): a stored object's mtime is only refreshed by <see cref="Touch"/> if it is
+    /// already older than this, bounding write amplification. GC eviction age must stay above it.
+    /// </summary>
+    public static TimeSpan TouchThrottle { get; set; } = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// Refreshes an object's last-write time so mtime-LRU GC treats it as recently used. Best-effort
+    /// and throttled by <see cref="TouchThrottle"/>; no-op on read-only backends.
+    /// </summary>
+    public void Touch(ObjectId objectId)
+    {
+        if (IsReadOnly)
+            return;
+
+        try
+        {
+            var info = new FileInfo(GetFilePath(objectId));
+            if (info.Exists && DateTime.UtcNow - info.LastWriteTimeUtc > TouchThrottle)
+                File.SetLastWriteTimeUtc(info.FullName, DateTime.UtcNow);
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
     private static string ExtractPath(string url)
     {
         return url[..url.LastIndexOf('/')];

@@ -29,7 +29,7 @@
       <NuGetResolverTargetFramework Condition="'$(NuGetResolverTargetFramework)' == '$(TargetFramework)' and '$(TargetPlatformVersion)' != '' and !$(TargetFramework.EndsWith(TargetPlatformVersion))">$(TargetFramework)$(TargetPlatformVersion)</NuGetResolverTargetFramework>
       <DefineConstants Condition="'$(StrideNuGetResolverUI)' == 'true'">STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
     </PropertyGroup>
-    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs').Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;').Replace('STRIDE_NUGET_RESOLVER_UI_AVALONIA_VERSION','&quot;$(AvaloniaVersion)&quot;'))" />
+    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs').Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;').Replace('STRIDE_NUGET_RESOLVER_UI_AVALONIA_VERSION','&quot;$(AvaloniaVersion)&quot;'))" />
     <ItemGroup>
       <FileWrites Include="$(NuGetResolverModuleInitializerFile)" />
       <Compile Include="$(NuGetResolverModuleInitializerFile)" />
@@ -49,14 +49,12 @@
       <_StrideNuGetResolverFile Condition=" '$(TargetFramework)' == '$(StrideXplatEditorTargetFramework)' " Include="$(OutputPath)System.Security.Cryptography.Pkcs.dll" />
     </ItemGroup>
   </Target>
-
   <!-- Default: bootstrap set (and apphost) into the package build-output folder (lib/<tfm>/). -->
   <Target Name="_StrideIncludeNuGetResolver" DependsOnTargets="_StrideCollectNuGetResolverFiles">
     <ItemGroup>
       <BuildOutputInPackage Include="@(_StrideNuGetResolverFile)" />
     </ItemGroup>
   </Target>
-
   <!-- StridePackRunnableInTools: the full runnable app (apphost + bootstrap + entry assembly +
        runtimeconfig + app.config) under tools/<tfm>/, leaving lib/<tfm>/ with just the reference
        assembly so consumers don't inherit the bootstrap dlls. -->

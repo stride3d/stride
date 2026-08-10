@@ -160,7 +160,6 @@ namespace Stride.GameStudio.Helpers
 
             var reporter = new CrashReportWindow(crashReport, "Stride GameStudio");
             var result = reporter.ShowDialog();
-            StrideGameStudio.MetricsClient?.CrashedSession(result is true);
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

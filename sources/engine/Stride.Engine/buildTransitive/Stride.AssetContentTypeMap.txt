@@ -1,0 +1,31 @@
+# Maps an authored asset's file extension(s) to the content type it loads as through the
+# ContentManager ([AssetContentType] of the asset type), for the asset URL constants generator:
+# the build task filters asset folders by these extensions, and the generator types each constant
+# from them. Kept in sync with the engine's [AssetDescription]/[AssetContentType] declarations by
+# Stride.Assets.Tests.TestAssetContentTypeMap. One line per extension: <file extension>|<content type>
+.sdanim|Stride.Animations.AnimationClip
+.sdfnt|Stride.Graphics.SpriteFont
+.sdgamesettings|Stride.Engine.Design.GameSettings
+.sdgfxcomp|Stride.Rendering.Compositing.GraphicsCompositor
+.sdhmap|Stride.Physics.Heightmap
+.sdhull|Stride.BepuPhysics.Definitions.DecomposedHulls
+.sdm3d|Stride.Rendering.Model
+.sdmat|Stride.Rendering.Material
+.sdnavmesh|Stride.Navigation.NavigationMesh
+.sdpcfnt|Stride.Graphics.SpriteFont
+.sdphy|Stride.Physics.PhysicsColliderShape
+.sdprefabmodel|Stride.Rendering.Model
+.sdprefab|Stride.Engine.Prefab
+.sdpromodel|Stride.Rendering.Model
+.sdrendertex|Stride.Graphics.Texture
+.sdscene|Stride.Engine.Scene
+.sdsheet|Stride.Graphics.SpriteSheet
+.sdskel|Stride.Rendering.Skeleton
+.sdsky|Stride.Rendering.Skyboxes.Skybox
+.sdsnd|Stride.Audio.Sound
+.sdss4a|Stride.Animations.AnimationClip
+.sdss4s|Stride.SpriteStudio.Runtime.SpriteStudioSheet
+.sdtex|Stride.Graphics.Texture
+.sduilib|Stride.Engine.UILibrary
+.sduipage|Stride.Engine.UIPage
+.sdvid|Stride.Video.Video

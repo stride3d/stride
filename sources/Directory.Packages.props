@@ -30,18 +30,13 @@
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="ServiceWire" Version="5.6.0" />
     <PackageVersion Include="System.Formats.Nrbf" Version="9.0.11" />
-    <PackageVersion Include="SharpDX" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.Direct3D12" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageVersion Include="SharpDX.DirectInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
     <PackageVersion Include="Silk.NET.Direct3D11" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Direct3D12" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Direct3D.Compilers" Version="$(SilkVersion)" />
+    <PackageVersion Include="Silk.NET.DXGI" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Input" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.OpenXR" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="$(SilkVersion)" />
@@ -123,7 +118,7 @@
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.4.26" />
+    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.7.26" />
     <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.3" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.5.30" />
     <PackageVersion Include="Stride.Dependencies.LLVM.Windows" Version="2026.6.11" />
@@ -159,7 +154,6 @@
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
-    <PackageVersion Include="Stride.Metrics" Version="1.0.3" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="5.0.0" />

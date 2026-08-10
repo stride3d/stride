@@ -34,8 +34,8 @@ A property in a derived asset is in one of three states:
 
 When a composite node (an object with children) is reset, all descendant nodes are also reset recursively.
 
-> [!NOTE] Just adding a new asset type
-> If your asset has no base/derived relationship and you are not implementing archetypes or prefab composition, the override model is invisible to you. `IsInherited` will always be `false` and `HasBase` will always be `false`. You do not need to understand this layer to add a new asset type.
+> [!NOTE]
+> **When just adding a new asset type:** if your asset has no base/derived relationship and you are not implementing archetypes or prefab composition, the override model is invisible to you. `IsInherited` will always be `false` and `HasBase` will always be `false`. You do not need to understand this layer to add a new asset type.
 
 ## `AssetPropertyGraph`
 
@@ -89,8 +89,8 @@ public class YourAssetPropertyGraphDefinition : AssetPropertyGraphDefinition
 
 The `[AssetPropertyGraphDefinition(typeof(YourAsset))]` attribute is discovered automatically when the assembly is registered. No manual registration is needed beyond `AssetQuantumRegistry.RegisterAssembly()` in `Module.cs`.
 
-> [!NOTE] Just adding a new asset type
-> If all your asset's properties are plain data values (numbers, strings, lists of structs), you do not need an `AssetPropertyGraphDefinition`. Only provide one when your asset class has members that hold references to other content objects (Prefabs, Textures, Materials, etc.) that should remain as references rather than be embedded inline.
+> [!NOTE]
+> **When just adding a new asset type:** if all your asset's properties are plain data values (numbers, strings, lists of structs), you do not need an `AssetPropertyGraphDefinition`. Only provide one when your asset class has members that hold references to other content objects (Prefabs, Textures, Materials, etc.) that should remain as references rather than be embedded inline.
 
 ## `AssetQuantumRegistry`
 

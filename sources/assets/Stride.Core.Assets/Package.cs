@@ -118,6 +118,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public PackageMeta Meta { get; set; } = new PackageMeta();
 
     /// <summary>
+    /// The authored name from the package file, when the session renamed <see cref="Meta"/>.Name to the
+    /// csproj-derived identity; saving writes this name back so the file keeps its authored identity.
+    /// </summary>
+    [DataMemberIgnore]
+    public string? AuthoredName { get; set; }
+
+    /// <summary>
     /// Gets the asset directories to lookup.
     /// </summary>
     /// <value>The asset directories.</value>
@@ -170,6 +177,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DataMember(105)]
     public List<AssetAssembly> AssetAssemblies { get; } = [];
 
+    /// <summary>
+    /// Asset URL namespace: unset = the package name (the default), any other value = that custom
+    /// prefix. Packed sdpkgs store the resolved name.
+    /// </summary>
+    [DataMember(106)]
+    [DefaultValue(null)]
+    public string? AssetNamespace { get; set; }
+
     // Keep saved .sdpkg files minimal: skip empty collections (ShouldSerialize* is discovered by ObjectDescriptor).
     private bool ShouldSerializeAssetFolders() => AssetFolders.Count > 0;
     private bool ShouldSerializeResourceFolders() => ResourceFolders.Count > 0;
@@ -179,6 +194,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     private bool ShouldSerializeTemplateFolders() => TemplateFolders.Count > 0;
     private bool ShouldSerializeRootAssets() => RootAssets.Count > 0;
     private bool ShouldSerializeAssetAssemblies() => AssetAssemblies.Count > 0;
+    private bool ShouldSerializeAssetNamespace() => AssetNamespace is not null;
 
     /// <summary>
     /// Gets the loaded templates from the <see cref="TemplateFolders"/>
@@ -395,6 +411,9 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         // Clone this asset
         var package = AssetCloner.Clone(this);
         package.FullPath = FullPath;
+        // The clone is detached (no container): carry the resolved namespace so rooted
+        // locations still resolve to bare disk paths (AssetItem.FullPath).
+        package.AssetNamespace = Container?.AssetNamespace ?? AssetNamespace;
         foreach (var asset in Assets)
         {
             var newAsset = asset.Asset;
@@ -479,7 +498,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             }
 
             // Inject a copy of the base into the current asset when saving
-            AssetFileSerializer.Save((string)assetPath, (object)asset.Asset, (AttachedYamlAssetMetadata)asset.YamlMetadata, log);
+            AssetFileSerializer.Save((string)assetPath, (object)asset.Asset, (AttachedYamlAssetMetadata)asset.YamlMetadata, log,
+                asset.Package?.Container?.AssetNamespace);
 
             // Save generated asset (if necessary)
             if (asset.Asset is IProjectFileGeneratorAsset codeGeneratorAsset)
@@ -928,11 +948,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
             var assetPath = assetFile.AssetLocation;
+            var assetNamespace = Container?.AssetNamespace;
+            if (assetNamespace is not null)
+                assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
 
             var assetFullPath = fileUPath.ToOSPath();
             var assetContent = assetFile.AssetContent;
 
-            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, out var aliasOccurred, out var yamlMetadata);
+            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, assetNamespace, out var aliasOccurred, out var yamlMetadata);
 
             // Create asset item
             var assetItem = new AssetItem(assetPath, asset, this)
@@ -986,11 +1009,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         LoadAssemblyReferencesForPackage(log, loadParameters);
     }
 
-    private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
+    private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, string? assetNamespace, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
     {
         var loadResult = assetContent is not null
-            ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log)
-            : AssetFileSerializer.Load<Asset>(assetFullPath, log);
+            ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log, assetNamespace)
+            : AssetFileSerializer.Load<Asset>(assetFullPath, log, assetNamespace);
 
         assetDirty = loadResult.AliasOccurred;
         yamlMetadata = loadResult.YamlMetadata;

@@ -60,16 +60,16 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@v3
 
       - name: Install Advanced Installer
         shell: pwsh
@@ -99,21 +99,28 @@ jobs:
         shell: pwsh
         run: |
           $nupkg = Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | Select-Object -First 1
-          if ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$') {
-            echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          if (-not ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$')) {
+            echo "::error::Could not determine a version from the launcher nupkg name"
+            exit 1
           }
+          $version = $Matches[1]
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1)"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Upload launcher artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: launcher
+          name: stride-launcher-${{ steps.version.outputs.version }}
           path: |
             bin/launcher/*.nupkg
             bin/launcher/*.exe
           retention-days: 30
 
       - name: Upload build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log
@@ -126,19 +133,19 @@ jobs:
     needs: Package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # full history + tags for the launcher-scoped changelog
+      - uses: actions/checkout@v7  # full history + tags for the launcher-scoped changelog
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Download launcher artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: launcher
+          name: stride-launcher-${{ needs.Package.outputs.version }}
           path: bin/launcher
 
       - name: Push to NuGet
@@ -177,10 +184,30 @@ jobs:
 
       - name: Create GitHub Release
         if: ${{ needs.Package.outputs.version != '' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: launcher/${{ needs.Package.outputs.version }}
           name: Stride Launcher ${{ needs.Package.outputs.version }}
           files: bin/launcher/*.exe
           make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
           body_path: launcher-notes.md
+
+      - name: Create local tag for release notes
+        if: ${{ needs.Package.outputs.version != '' }}
+        # softprops created the tag remotely; the AI-notes step derives the range from a
+        # local ref, so mirror it locally (at the built commit = HEAD).
+        run: git tag -f "launcher/${{ needs.Package.outputs.version }}"
+
+      - name: AI release notes
+        if: ${{ needs.Package.outputs.version != '' }}
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: launcher/${{ needs.Package.outputs.version }}
+          tag-match: 'launcher/*'
+          product: the Stride Launcher
+          scope: sources/launcher/Stride.Launcher
+          apply: true
+          format: highlights
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}

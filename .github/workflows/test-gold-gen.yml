@@ -209,7 +209,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download generated images
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: test-artifacts-*
           path: gold-staging
@@ -230,7 +230,7 @@ jobs:
             exit 1
           fi
       - name: Upload combined gold images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gold-images
           path: gold-staging/
@@ -245,7 +245,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
@@ -254,7 +254,7 @@ jobs:
           # those runs always land via PR (see can_branch below).
           ref: ${{ inputs.commit-sha || github.ref }}
       - name: Download combined gold images
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: gold-images
           path: gold-staging

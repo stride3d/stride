@@ -73,8 +73,6 @@ namespace Stride.GameStudio.View
             InitializeComponent();
             Application.Current.Activated += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
             Loaded += GameStudioLoaded;
-
-            OpenMetricsProjectSession(editor);
         }
 
         private async Task ResetAllLayouts()
@@ -103,46 +101,9 @@ namespace Stride.GameStudio.View
             await ReopenAssetEditors(assets);
         }
 
-        private static void OpenMetricsProjectSession(EditorViewModel editor)
-        {
-            var projectUid = editor.Session.CurrentProject?.Project.Id ?? Guid.Empty;
-
-            var execProfiles = editor.Session.LocalPackages.OfType<ProjectViewModel>().Where(x => x.Type == ProjectType.Executable);
-            var sessionPlatforms = new HashSet<PlatformType>();
-            foreach (var execProfile in execProfiles)
-            {
-                if (execProfile.Platform != PlatformType.Shared)
-                {
-                    sessionPlatforms.Add(execProfile.Platform);
-                }
-            }
-            if (sessionPlatforms.Count > 0)
-            {
-                var metricData = new StringBuilder();
-                foreach (var sessionPlatform in sessionPlatforms)
-                {
-                    metricData.Append($"#platform:{sessionPlatform}|");
-                }
-                metricData.Remove(metricData.Length - 1, 1);
-
-                StrideGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|{metricData}");
-            }
-            else
-            {
-                StrideGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|#platform:None");
-            }
-        }
-
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-
-            CloseMetricsProjectSession();
-        }
-
-        private static void CloseMetricsProjectSession()
-        {
-            StrideGameStudio.MetricsClient?.CloseProjectSession();
         }
 
         public EditorViewModel Editor => (EditorViewModel)DataContext;
@@ -363,7 +324,7 @@ namespace Stride.GameStudio.View
             if (startupPackage == null)
                 return;
 
-            var gameSettingsAsset = startupPackage.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+            var gameSettingsAsset = startupPackage.Assets.FirstOrDefault(x => x.AssetItem.UnqualifiedUrl == Assets.GameSettingsAsset.GameSettingsLocation);
             if (gameSettingsAsset == null)
             {
                 // Scan dependencies for game settings
@@ -378,7 +339,7 @@ namespace Stride.GameStudio.View
                     if (dependencyPackageViewModel == null)
                         continue;
 
-                    gameSettingsAsset = dependencyPackageViewModel.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+                    gameSettingsAsset = dependencyPackageViewModel.Assets.FirstOrDefault(x => x.AssetItem.UnqualifiedUrl == Assets.GameSettingsAsset.GameSettingsLocation);
                     if (gameSettingsAsset != null)
                         break;
                 }

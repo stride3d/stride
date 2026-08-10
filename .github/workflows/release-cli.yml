@@ -57,13 +57,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0  # full history + tags for the re-publish guard
           fetch-tags: true
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -90,8 +90,8 @@ jobs:
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Cli\.(.*?)\.nupkg','$1'
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
-            echo "::error::Detected package version '$version' is not a valid version - check Stride.Cli.csproj"
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 1.0.0, 1.0.0-beta1) - check Stride.Cli.csproj"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
@@ -110,9 +110,9 @@ jobs:
           fi
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: cli-package
+          name: stride-cli-${{ steps.version.outputs.version }}
           path: bin/cli/*.nupkg
           if-no-files-found: error
 
@@ -146,20 +146,20 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
           token: ${{ secrets.GH_PAT }}  # push the cli/<version> tag
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
       - name: Download package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: cli-package
+          name: stride-cli-${{ needs.Package.outputs.version }}
           path: bin/cli
 
       - name: Push to NuGet.org
@@ -213,6 +213,19 @@ jobs:
               --latest=false \
               bin/cli/*.nupkg
           fi
+
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: cli/${{ needs.Package.outputs.version }}
+          tag-match: 'cli/*'
+          product: the Stride CLI
+          scope: sources/launcher/Stride.Cli
+          apply: true
+          format: highlights
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}
 
       - name: Publish summary
         if: success()

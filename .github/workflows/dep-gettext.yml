@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Gettext.NET
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: stride3d/gettextnet
           ref: ${{ github.event.inputs.branch || 'master' }}
           path: gettextnet-src
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -39,7 +39,7 @@ jobs:
           dotnet pack gettextnet-src/GNU.Gettext/GNU.Gettext/GNU.Gettext.csproj -c Release -o nupkg $versionArg
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Stride.GNU.Gettext.nupkg
           path: nupkg/*.nupkg
@@ -59,7 +59,7 @@ jobs:
         run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Stride.GNU.Gettext.nupkg
 

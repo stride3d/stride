@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
+using System.Globalization;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
@@ -269,10 +270,10 @@ public partial class SpirvBuilder
             switch (genericParameterType)
             {
                 case ScalarType { Type: Scalar.Int }:
-                    value = int.Parse(genericValue);
+                    value = int.Parse(genericValue, CultureInfo.InvariantCulture);
                     return true;
                 case ScalarType { Type: Scalar.Float }:
-                    value = float.Parse(genericValue);
+                    value = float.Parse(genericValue, NumberStyles.Float, CultureInfo.InvariantCulture);
                     return true;
                 case ScalarType { Type: Scalar.Boolean }:
                     value = bool.Parse(genericValue);
@@ -581,7 +582,7 @@ public partial class SpirvBuilder
                 if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
                 {
                     if (genericResolver.TryResolveGenericValue(genericParameterType, genericParameterName, genericParameterIndex, out var value))
-                        instantiatedGenericsMacros.Add((shaderBuffers.Context.Names[genericParameter], value.ToString()!));
+                        instantiatedGenericsMacros.Add((shaderBuffers.Context.Names[genericParameter], ShaderClassSource.ConvertGenericArgToString(value)));
                 }
                 genericParameterIndex++;
             }

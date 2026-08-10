@@ -66,20 +66,21 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "::notice::Deploying artifacts built from $SHA"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
           token: ${{ secrets.GH_PAT }}  # push the tag and the post-release version-bump commit
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: packages
+          pattern: stride-packages-*
+          merge-multiple: true
           path: bin/packages
           run-id: ${{ inputs.run-id }}
           github-token: ${{ secrets.GH_PAT }}
@@ -136,10 +137,10 @@ jobs:
           }
 
           $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
-          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters')
-          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks')
+          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
           $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
-          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters)\.' }
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
 
           echo "::group::Pushing main packages ($($main.Count))"
           foreach ($pkg in $main) {
@@ -149,7 +150,7 @@ jobs:
           echo "::endgroup::"
 
           if ($contentVersioned) {
-            echo "::group::Pushing content-versioned template packages (Samples, Starters)"
+            echo "::group::Pushing content-versioned template packages (Samples, Starters, AssetPacks)"
             foreach ($pkg in $contentVersioned) {
               $id = $contentVersionedIds | Where-Object { $pkg.Name.StartsWith($_ + '.') } | Select-Object -First 1
               if ($id -and (Test-NuGetPublished $id $pkg.BaseName.Substring($id.Length + 1))) {
@@ -207,6 +208,24 @@ jobs:
             --target "$SHA" \
             --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
             bin/packages/*.nupkg
+
+      - name: AI release notes
+        continue-on-error: true  # best-effort; keeps GitHub's --generate-notes body on failure
+        uses: ./.github/actions/ai-release-notes
+        with:
+          tag: releases/${{ steps.version.outputs.version }}
+          tag-match: 'releases/*'
+          product: the Stride engine
+          # Whole repo except the separately-released products.
+          scope: >-
+            . :(exclude)sources/launcher/Stride.Cli
+            :(exclude)sources/tools/Stride.VisualStudio.*
+            :(exclude)sources/launcher/Stride.Launcher
+          apply: true
+          format: highlights
+          add-contributors: true  # engine release only: New Contributors is repo-wide
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GH_PAT }}
 
       - name: Bump version for next cycle
         # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above

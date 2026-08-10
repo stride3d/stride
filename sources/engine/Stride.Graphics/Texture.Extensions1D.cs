@@ -104,7 +104,7 @@ public partial class Texture
     ///     It must have a size (in bytes, not elements) equal to the size of the <paramref name="format"/> times the <paramref name="width"/>.
     ///   </para>
     ///   <para>
-    ///     See <see cref="PixelFormatExtensions.SizeInBytes(PixelFormat)"/> for calculating the size of a pixel format.
+    ///     See the <c>SizeInBytes</c> extension member in <see cref="PixelFormatExtensions"/> for calculating the size of a pixel format.
     ///   </para>
     /// </param>
     /// <param name="textureFlags">

@@ -2,9 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
@@ -14,15 +17,24 @@ namespace Stride.Core.Assets.Editor.Quantum.ViewModels
     public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
     {
         private bool overrideChanging;
+        // For content reference fields, the displayed URL is resolved live from the target asset, so the
+        // field must be refreshed when the target's Url changes (e.g. its folder is renamed, or undone).
+        private readonly bool isContentReference;
+        private AssetViewModel observedReferenceTarget;
 
         public AssetNodeViewModel(GraphViewModel ownerViewModel, NodeViewModel parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
             : base(ownerViewModel, parent, baseName, nodeType, nodePresenters)
         {
+            isContentReference = AssetRegistry.CanBeAssignedToContentTypes(Type, checkIsUrlType: true);
             foreach (var nodePresenter in NodePresenters)
             {
                 nodePresenter.OverrideChanging += OverrideChanging;
                 nodePresenter.OverrideChanged += OverrideChanged;
+                if (isContentReference)
+                    nodePresenter.ValueChanged += ReferenceValueChanged;
             }
+            if (isContentReference)
+                UpdateReferenceTargetSubscription();
         }
 
         /// <inheritdoc/>
@@ -32,6 +44,13 @@ namespace Stride.Core.Assets.Editor.Quantum.ViewModels
             {
                 nodePresenter.OverrideChanging -= OverrideChanging;
                 nodePresenter.OverrideChanged -= OverrideChanged;
+                if (isContentReference)
+                    nodePresenter.ValueChanged -= ReferenceValueChanged;
+            }
+            if (observedReferenceTarget != null)
+            {
+                observedReferenceTarget.PropertyChanged -= OnReferenceTargetPropertyChanged;
+                observedReferenceTarget = null;
             }
             base.Destroy();
         }
@@ -94,6 +113,44 @@ namespace Stride.Core.Assets.Editor.Quantum.ViewModels
                 }
             }
             return false;
+        }
+
+        private void ReferenceValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            // The reference was reassigned: re-point the subscription at the new target.
+            UpdateReferenceTargetSubscription();
+        }
+
+        private void UpdateReferenceTargetSubscription()
+        {
+            var target = ResolveReferenceTarget();
+            if (ReferenceEquals(target, observedReferenceTarget))
+                return;
+
+            if (observedReferenceTarget != null)
+                observedReferenceTarget.PropertyChanged -= OnReferenceTargetPropertyChanged;
+            observedReferenceTarget = target;
+            if (observedReferenceTarget != null)
+                observedReferenceTarget.PropertyChanged += OnReferenceTargetPropertyChanged;
+        }
+
+        private AssetViewModel ResolveReferenceTarget()
+        {
+            var value = NodeValue;
+            if (value == null || value == DifferentValues)
+                return null;
+
+            var reference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
+            if (reference == null || reference.Id == AssetId.Empty)
+                return null;
+
+            return SessionViewModel.Instance?.GetAssetById(reference.Id);
+        }
+
+        private void OnReferenceTargetPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AssetViewModel.Url))
+                OnPropertyChanged(nameof(NodeValue));
         }
 
         private void OverrideChanging(object sender, EventArgs e)

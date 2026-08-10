@@ -21,7 +21,7 @@ jobs:
     name: Refresh tests/enduser/Stride.Samples.Tests baselines
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           # Need full history for the auto-generated branch name to be stable.
@@ -82,7 +82,7 @@ jobs:
           echo "Replaced $changed baseline PNG(s)."
 
       - name: Open PR with refreshed baselines
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "tests/enduser/Stride.Samples.Tests: refresh screenshot baselines from run ${{ steps.resolve.outputs.run_id }}"
           title: "Refresh sample screenshot baselines (run ${{ steps.resolve.outputs.run_id }})"

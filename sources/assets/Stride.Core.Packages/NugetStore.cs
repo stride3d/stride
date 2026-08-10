@@ -482,7 +482,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="packageId">Name of package to install.</param>
     /// <param name="version">Version of package to install.</param>
-    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport progress)
+    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress)
     {
         using (GetLocalRepositoryLock())
         {

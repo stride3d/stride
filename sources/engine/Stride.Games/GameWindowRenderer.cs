@@ -196,25 +196,31 @@ namespace Stride.Games
         /// <summary>
         ///   Determines the requested size for the Back-Buffer based on the current window bounds and user preferences.
         /// </summary>
+        /// <param name="size">
+        ///   When this method returns, contains the width and height of the requested Back-Buffer size.
+        ///   If the preferred Back-Buffer dimensions are not set or the window has been resized by the user,
+        ///   the current window dimensions are used.
+        /// </param>
         /// <param name="format">
         ///   When this method returns, contains the pixel format to be used for the Back-Buffer.
         ///   This will be the preferred Back-Buffer format if specified;
         ///   otherwise, it defaults to <see cref="PixelFormat.R8G8B8A8_UNorm"/>.
         /// </param>
         /// <returns>
-        ///   An <see cref="Int2"/> structure representing the width and height of the requested Back-Buffer size.
-        ///   If the preferred Back-Buffer dimensions are not set or the window has been resized by the user,
-        ///   the current window dimensions are used.
+        ///   <see langword="true"/> when a valid size could be determined;
+        ///   <see langword="false"/> when the window has no usable client area (e.g. it is minimized).
         /// </returns>
-        private Int2 GetRequestedSize(out PixelFormat format)
+        private bool TryGetRequestedSize(out Int2 size, out PixelFormat format)
         {
             var bounds = Window.ClientBounds;
 
             format = PreferredBackBufferFormat == PixelFormat.None ? PixelFormat.R8G8B8A8_UNorm : PreferredBackBufferFormat;
 
-            return new Int2(
+            size = new Int2(
                 PreferredBackBufferWidth == 0 || windowUserResized ? bounds.Width : PreferredBackBufferWidth,
                 PreferredBackBufferHeight == 0 || windowUserResized ? bounds.Height : PreferredBackBufferHeight);
+
+            return size.X > 0 && size.Y > 0;
         }
 
         /// <summary>
@@ -225,11 +231,16 @@ namespace Stride.Games
         ///   using the requested size and format. It configures the presentation parameters,
         ///   including Depth-Stencil format and presentation interval.
         /// </remarks>
-        protected virtual void CreateOrUpdatePresenter()
+        /// <returns>
+        ///   <see langword="true"/> when the presenter exists or could be created; otherwise, <see langword="false"/>.
+        /// </returns>
+        protected virtual bool CreateOrUpdatePresenter()
         {
             if (Presenter is null || isColorSpaceToChange)
             {
-                var size = GetRequestedSize(out PixelFormat resizeFormat);
+                if (!TryGetRequestedSize(out var size, out PixelFormat resizeFormat))
+                    return false;
+
                 var presentationParameters = new PresentationParameters(size.X, size.Y, Window.NativeWindow, resizeFormat)
                 {
                     DepthStencilFormat = PreferredDepthStencilFormat,
@@ -251,6 +262,8 @@ namespace Stride.Games
                 isBackBufferToResize = false;
                 isColorSpaceToChange = false;
             }
+
+            return true;
         }
 
         /// <inheritdoc/>
@@ -260,11 +273,20 @@ namespace Stride.Games
             {
                 savedPresenter = GraphicsDevice.Presenter;
 
-                CreateOrUpdatePresenter();
+                if (!CreateOrUpdatePresenter())
+                {
+                    beginDrawOk = false;
+                    return false;
+                }
 
                 if (isBackBufferToResize || windowUserResized)
                 {
-                    var size = GetRequestedSize(out PixelFormat resizeFormat);
+                    if (!TryGetRequestedSize(out var size, out PixelFormat resizeFormat))
+                    {
+                        beginDrawOk = false;
+                        return false;
+                    }
+
                     Presenter.Resize(size.X, size.Y, resizeFormat);
 
                     isBackBufferToResize = false;
@@ -286,6 +308,17 @@ namespace Stride.Games
         {
             if (beginDrawOk && GraphicsDevice is not null)
             {
+                // Transition the back buffer to the Present layout and submit pending work
+                // before presenting, like GameBase.EndDraw does for the main presenter.
+                // Reset reopens the command list as the frame is still being recorded.
+                var commandList = Game?.GraphicsContext.CommandList;
+                if (commandList is not null)
+                {
+                    Presenter.EndDraw(commandList, present: true);
+                    commandList.Flush();
+                    commandList.Reset();
+                }
+
                 try
                 {
                     Presenter.Present();

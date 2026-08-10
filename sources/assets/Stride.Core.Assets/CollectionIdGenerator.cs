@@ -110,6 +110,12 @@ public class CollectionIdGenerator : DataVisitorBase
 
     private bool ShouldGenerateItemIdCollection(object collection)
     {
+        // Arrays do not support Collection Ids right now;
+        // a bunch of blockers in AssetPropertyGraph.ReconcileWithBaseNode around the expectations
+        // that add/remove work on this type of collection
+        if (collection is Array)
+            return false;
+
         // Do not generate for value types (collections that are struct) or null
         if (collection?.GetType().IsValueType != false)
             return false;

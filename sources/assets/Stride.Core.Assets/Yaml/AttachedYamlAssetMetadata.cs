@@ -59,7 +59,10 @@ public class AttachedYamlAssetMetadata
         var result = new AttachedYamlAssetMetadata();
         foreach (var property in container)
         {
-            result.yamlMetadata.Add(property.Key, (IYamlAssetMetadata)property.Value);
+            // The container can also carry non-metadata serializer directives (e.g. the asset
+            // namespace used to restore reference URLs); only extract the metadata entries.
+            if (property.Value is IYamlAssetMetadata metadata)
+                result.yamlMetadata.Add(property.Key, metadata);
         }
         return result;
     }

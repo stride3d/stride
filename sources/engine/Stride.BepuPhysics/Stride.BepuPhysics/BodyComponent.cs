@@ -238,14 +238,17 @@ public class BodyComponent : CollidableComponent
     public Vector3 PreviousAngularVelocity { get; internal set; }
 
     /// <summary>
-    /// The position of this body in the physics scene, setting it will teleport this object to the position provided.
+    /// The position of this body in the physics scene, setting it will 'teleport' this object to the position provided.
     /// </summary>
     /// <remarks>
     /// Using this property to move objects around is not recommended,
     /// as it disregards any collider that may overlap with the body at this new position,
     /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
-    /// This value is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
+    /// This value is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/><br/><br/>
+    /// Writing to this property is equivalent to calling <see cref="Teleport"/>.<br/><br/>
+    /// This method overwrites this <see cref="Entity.Transform"/>'s data.
     /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be finite</exception>
     [DataMemberIgnore]
     public Vector3 Position
     {
@@ -260,8 +263,11 @@ public class BodyComponent : CollidableComponent
     /// <remarks>
     /// Using this property to move objects around is not recommended,
     /// as it disregards any collider that may overlap with the body at this new orientation,
-    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
+    /// Writing to this property is equivalent to calling <see cref="Teleport"/>.<br/><br/>
+    /// This method overwrites this <see cref="Entity.Transform"/>'s data.
     /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be normalized</exception>
     [DataMemberIgnore]
     public Quaternion Orientation
     {
@@ -439,35 +445,30 @@ public class BodyComponent : CollidableComponent
     /// Teleport this body into a new pose
     /// </summary>
     /// <remarks>
-    /// Using this function to move objects around is not recommended,
+    /// Using this method to move objects around is not recommended,
     /// as it disregards any collider that may overlap with the body at this new position,
     /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
-    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
+    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>.<br/><br/>
+    /// This method overwrites this <see cref="Entity.Transform"/>'s data.
     /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="orientation"/> must be normalized; <paramref name="position"/> must be finite</exception>
     public void Teleport(Vector3 position, Quaternion orientation)
     {
+        position.ValidateRange(nameof(Teleport), nameof(position));
+        orientation.ValidateRange(nameof(Teleport), nameof(orientation));
+
         if (BodyReference is { } bodyRef)
         {
-            bodyRef.Pose.Orientation = PreviousPose.Orientation = orientation.ToNumeric();
-            bodyRef.Pose.Position = PreviousPose.Position = position.ToNumeric();
+            bodyRef.Pose.Orientation = orientation.ToNumeric();
+            bodyRef.Pose.Position = position;
             bodyRef.UpdateBounds();
-            CurrentPose = bodyRef.Pose; // Update interpolation data as well
+            PreviousPose = CurrentPose = bodyRef.Pose; // Update interpolation data as well
         }
 
-        WorldToLocal(ref position, ref orientation);
-        Entity.Transform.Position = position;
-        Entity.Transform.Rotation = orientation;
+        UpdateTransformationComponent(position, orientation);
     }
 
-    /// <summary>
-    /// Teleport this body into a new pose
-    /// </summary>
-    /// <remarks>
-    /// Using this function to move objects around is not recommended,
-    /// as it disregards any collider that may overlap with the body at this new position,
-    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
-    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
-    /// </remarks>
+    /// <inheritdoc cref="Teleport"/>
     [Obsolete($"This method will be removed in the future, use {nameof(Teleport)} instead")]
     public void SetPose(Vector3 position, Quaternion orientation) => Teleport(position, orientation);
 
@@ -545,23 +546,6 @@ public class BodyComponent : CollidableComponent
         Parent = null;
 
         BodyReference = null;
-    }
-
-    /// <summary>
-    /// A special variant taking the center of mass into consideration
-    /// </summary>
-    internal void WorldToLocal(ref Vector3 worldPos, ref Quaternion worldRot)
-    {
-        var entityTransform = Entity.Transform;
-        if (entityTransform.Parent is { } parent)
-        {
-            parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
-            var iRotation = Quaternion.Invert(parentEntityRotation);
-            worldPos = Vector3.Transform(worldPos - parentEntityPosition, iRotation);
-            worldRot *= iRotation;
-        }
-
-        worldPos -= Vector3.Transform(CenterOfMass, worldRot);
     }
 
     private static void SetParentForChildren(BodyComponent parent, TransformComponent root, BepuSimulation simulation)

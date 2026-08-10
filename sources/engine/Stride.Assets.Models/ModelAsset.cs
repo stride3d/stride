@@ -24,7 +24,7 @@ namespace Stride.Assets.Models
         /// <summary>
         /// The default file extension used by the <see cref="ModelAsset"/>.
         /// </summary>
-        public const string FileExtension = ".sdm3d;pdxm3d";
+        public const string FileExtension = ".sdm3d";
 
         /// <summary>
         /// Gets or sets the source file of this asset.

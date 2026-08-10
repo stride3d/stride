@@ -89,6 +89,17 @@ public abstract class Asset
     [MemberCollection(NotNullItems = true)]
     public TagCollection Tags { get; private set; }
 
+    /// <summary>
+    /// Gets or sets a reference to an asset this asset replaces: at build time, the replaced asset's
+    /// content is substituted with this asset's, so anything resolving the replaced asset gets this
+    /// one instead. Resolved by id, so it survives the target being renamed or moved.
+    /// </summary>
+    [DataMember(-600)]
+    [Display(Browsable = false)]
+    [NonOverridable]
+    [DefaultValue(null)]
+    public AssetReference? Replaces { get; set; }
+
     [DataMember(-500)]
     [Display(Browsable = false)]
     [NonOverridable]
@@ -137,6 +148,9 @@ public abstract class Asset
         
         // Write the new id into the new asset.
         newAsset.Id = newId;
+
+        // A derived asset does not inherit the replacement declaration
+        newAsset.Replaces = null;
 
         // Create the base of this asset
         newAsset.Archetype = new AssetReference(Id, baseLocation);

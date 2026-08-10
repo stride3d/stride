@@ -31,7 +31,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout NativePath
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.nativepath-repo }}
           ref: ${{ github.event.inputs.nativepath-ref }}
@@ -66,7 +66,7 @@ jobs:
       - name: List contents
         run: find out -type f | sort
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nativepath-all-platforms
           path: out/

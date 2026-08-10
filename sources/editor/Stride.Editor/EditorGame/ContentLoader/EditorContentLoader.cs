@@ -15,6 +15,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.MicroThreading;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
@@ -63,6 +64,12 @@ namespace Stride.Editor.EditorGame.ContentLoader
         /// </summary>
         private readonly Dictionary<AssetItem, ReloadingAsset> assetsToReloadMapping = new Dictionary<AssetItem, ReloadingAsset>();
 
+        /// <summary>
+        /// Last known replace target per replacing asset, so clearing or retargeting a declaration
+        /// also refreshes the previously replaced URL.
+        /// </summary>
+        private readonly Dictionary<AssetId, UFile> lastKnownReplaces = new Dictionary<AssetId, UFile>();
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorContentLoader"/> class
@@ -78,6 +85,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
             Editor = editor ?? throw new ArgumentNullException(nameof(editor));
             GameDispatcher = gameDispatcher ?? throw new ArgumentNullException(nameof(gameDispatcher));
             Session = asset.Session;
+            foreach (var sessionAsset in Session.AllAssets)
+            {
+                if (sessionAsset.Asset.Replaces is { } replaces)
+                    lastKnownReplaces[sessionAsset.Id] = new UFile(replaces.Location);
+            }
             Session.AssetPropertiesChanged += AssetPropertiesChanged;
             Game = game ?? throw new ArgumentNullException(nameof(game));
             Manager = new LoaderReferenceManager(GameDispatcher, this);
@@ -222,23 +234,39 @@ namespace Stride.Editor.EditorGame.ContentLoader
             var dependencyManager = Session.DependencyManager;
             var references = new Dictionary<AssetId, HashSet<AssetId>>();
             var ids = (await Manager.ComputeReferencedAssets()).ToList();
+            var entryAssets = new HashSet<AssetId>();
+            var toTraverse = new Queue<AssetId>();
+
+            // A replaced asset ships its replacer's content, so the replacer and its own
+            // dependencies belong to the same entry: they refresh the same loaded slot.
+            void Include(AssetId assetId)
+            {
+                if (!entryAssets.Add(assetId))
+                    return;
+                var replacer = Session.GetAssetById(assetId)?.ReplacedBy;
+                if (replacer != null && entryAssets.Add(replacer.Id))
+                    toTraverse.Enqueue(replacer.Id);
+            }
+
             foreach (var id in ids)
             {
                 var referencedAsset = Session.GetAssetById(id);
                 if (referencedAsset == null)
                     continue;
 
-                var dependencies = dependencyManager.ComputeDependencies(referencedAsset.AssetItem.Id, AssetDependencySearchOptions.Out | AssetDependencySearchOptions.Recursive, ContentLinkType.Reference);
-                if (dependencies != null)
+                entryAssets.Clear();
+                Include(referencedAsset.Id);
+                toTraverse.Enqueue(referencedAsset.Id);
+                while (toTraverse.Count > 0)
                 {
-                    var entry = references.GetOrCreateValue(referencedAsset.Id);
-                    entry.Add(referencedAsset.Id);
+                    var dependencies = dependencyManager.ComputeDependencies(toTraverse.Dequeue(), AssetDependencySearchOptions.Out | AssetDependencySearchOptions.Recursive, ContentLinkType.Reference);
+                    if (dependencies == null)
+                        continue;
                     foreach (var dependency in dependencies.LinksOut)
-                    {
-                        entry = references.GetOrCreateValue(dependency.Item.Id);
-                        entry.Add(referencedAsset.Id);
-                    }
+                        Include(dependency.Item.Id);
                 }
+                foreach (var assetId in entryAssets)
+                    references.GetOrCreateValue(assetId).Add(referencedAsset.Id);
             }
 
             return references;
@@ -487,6 +515,36 @@ namespace Stride.Editor.EditorGame.ContentLoader
             // If GameSettingsAssets.ColorSpace was changed, rebuild the whole scene
             var assets = e.Assets.ToList();
 
+            // A change to a replacing asset must refresh the content loaded under the replaced URL;
+            // clearing or retargeting the declaration must also refresh the previous one.
+            // Lock: the session raises this event from the thread pool, so invocations can overlap.
+            foreach (var replacer in e.Assets)
+            {
+                UFile previousUrl;
+                var replacedUrl = replacer.Asset.Replaces is { } replaces ? new UFile(replaces.Location) : null;
+                lock (lastKnownReplaces)
+                {
+                    lastKnownReplaces.TryGetValue(replacer.Id, out previousUrl);
+                    if (replacedUrl is not null)
+                        lastKnownReplaces[replacer.Id] = replacedUrl;
+                    else
+                        lastKnownReplaces.Remove(replacer.Id);
+                }
+
+                AddReplaceTarget(replacedUrl);
+                if (previousUrl is not null && previousUrl != replacedUrl)
+                    AddReplaceTarget(previousUrl);
+            }
+
+            void AddReplaceTarget(UFile replacedUrl)
+            {
+                if (replacedUrl is null)
+                    return;
+                var target = Session.GetAssetByUrl(replacedUrl.FullPath);
+                if (target != null && !assets.Contains(target))
+                    assets.Add(target);
+            }
+
             var references = await ComputeReferences();
             var assetsToProcess = new Queue<AssetViewModel>(assets);
             var processedAssets = new HashSet<AssetViewModel>(assets);
@@ -496,6 +554,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
             {
                 var assetToProcess = assetsToProcess.Dequeue();
                 HashSet<AssetId> modifiedAssetReferencers;
+
+                // A replacing asset ships through its target's slot, which is what the scene
+                // actually references, so propagate the change to the replaced asset too.
+                if (assetToProcess.Asset.Replaces is { } replaces && Session.GetAssetById(replaces.Id) is { } replacedTarget && processedAssets.Add(replacedTarget))
+                    assetsToProcess.Enqueue(replacedTarget);
 
                 // Check if the asset is referenced in the scene.
                 if (!references.TryGetValue(assetToProcess.Id, out modifiedAssetReferencers))

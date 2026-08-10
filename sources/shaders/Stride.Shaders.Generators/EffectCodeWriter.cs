@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDFX.AST;
@@ -119,52 +120,22 @@ public class EffectCodeWriter : ShaderWriter
             }
         }
 
+        var csharpType = variableType ?? ToCSharpType(parameterType);
+
         Write($"public static readonly {parameterKeyType}ParameterKey<");
-        if (variableType == null)
-            VisitNode(new TypeName(parameterType.ToString(), default) { Type = parameterType });
-        else
-            Write(variableType);
+        Write(csharpType);
         Write("> ");
         Write(name);
         Write(" = ");
         if (variableMap == null)
         {
             Write($"ParameterKeys.New{parameterKeyType}<");
-            if (variableType == null)
-                VisitNode(new TypeName(parameterType.ToString(), default) { Type = parameterType });
-            else
-                Write(variableType);
+            Write(csharpType);
             Write(">(");
-            if (initialValue != null)
-            {
-                var initialValueString = initialValue.ToString()!;
-
-                if (initialValueString != "null")
-                {
-                    var initialValueType = type.ToId();
-
-                    if (type is ArrayType)
-                        initialValueString = initialValueType + initialValueString;
-
-                    // Rename float2/3/4 to Vector2/3/4
-                    if (initialValueString.StartsWith("float2", StringComparison.Ordinal) ||
-                        initialValueString.StartsWith("float3", StringComparison.Ordinal) ||
-                        initialValueString.StartsWith("float4", StringComparison.Ordinal))
-                    {
-                        initialValueString = initialValueString.Replace("float", "new Vector");
-                    }
-                    else if (type is ArrayType)
-                    {
-                        initialValueString = "new " + initialValueType;
-                    }
-                    if (isProcessingColor)
-                    {
-                        initialValueString = initialValueString.Replace("Vector3", "Color3");
-                        initialValueString = initialValueString.Replace("Vector4", "Color4");
-                    }
-                }
-                Write(initialValueString);
-            }
+            // Array value keys use slots and can't carry an array default (NewValue<T> takes a single
+            // struct), so only scalar/vector/matrix defaults are emitted; array initializers are dropped.
+            if (initialValue != null && type is not ArrayType && initialValue.ToString() != "null")
+                WriteInitialValue(initialValue, type);
             Write(")");
         }
         else
@@ -175,6 +146,84 @@ public class EffectCodeWriter : ShaderWriter
 
         isProcessingColor = false;
     }
+
+    // Maps a resolved shader type to the C# type used for its parameter key and default value.
+    private string ToCSharpType(SymbolType type) => type switch
+    {
+        ScalarType s => ScalarCSharpType(s.Type),
+        // half cbuffer members are unsupported (reflection rejects them); key as float so the generated C# stays valid.
+        VectorType { BaseType.Type: Scalar.Float or Scalar.Half, Size: var n } => isProcessingColor && n is 3 or 4 ? $"Color{n}" : $"Vector{n}",
+        VectorType { BaseType.Type: Scalar.Double, Size: var n } => $"Double{n}",
+        VectorType { BaseType.Type: Scalar.Int or Scalar.UInt, Size: var n } => $"Int{n}",
+        MatrixType { Rows: 4, Columns: 4, BaseType.Type: Scalar.Float } => "Matrix",
+        ArrayType a => $"{ToCSharpType(a.BaseType)}[]",
+        BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType => "Buffer",
+        TextureType => "Texture",
+        SamplerType => "SamplerState",
+        _ => type.ToString(),
+    };
+
+    private static string ScalarCSharpType(Scalar scalar) => scalar switch
+    {
+        Scalar.Boolean => "bool",
+        Scalar.Int => "int",
+        Scalar.UInt => "uint",
+        Scalar.Int64 => "long",
+        Scalar.UInt64 => "ulong",
+        Scalar.Half or Scalar.Float => "float",
+        Scalar.Double => "double",
+        _ => scalar.ToString(),
+    };
+
+    // Emits a constant default value as C#, formatting each numeric literal per its target scalar type.
+    private void WriteInitialValue(Expression value, SymbolType type)
+    {
+        switch (value)
+        {
+            case BoolLiteral b:
+                Write(b.Value ? "true" : "false");
+                break;
+            case NumberLiteral number when type is ScalarType scalar:
+                Write(FormatScalarLiteral(number, scalar.Type));
+                break;
+            case VectorLiteral vector when type is VectorType { BaseType: var element }:
+                Write("new ").Write(ToCSharpType(type)).Write("(");
+                WriteInitialValueList(vector.Values, element);
+                Write(")");
+                break;
+            case MatrixLiteral matrix when type is MatrixType { BaseType: var element }:
+                Write("new ").Write(ToCSharpType(type)).Write("(");
+                WriteInitialValueList(matrix.Values, element);
+                Write(")");
+                break;
+            default:
+                // Best-effort fallback for shapes we don't model (e.g. a named constant reference).
+                Write(value.ToString()!);
+                break;
+        }
+    }
+
+    private void WriteInitialValueList(List<Expression> values, SymbolType elementType)
+    {
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (i > 0)
+                Write(", ");
+            WriteInitialValue(values[i], elementType);
+        }
+    }
+
+    // Formats a scalar numeric default as a C# literal with the suffix matching the target scalar type.
+    private static string FormatScalarLiteral(NumberLiteral number, Scalar scalar) => scalar switch
+    {
+        Scalar.Half or Scalar.Float => ((float)number.DoubleValue).ToString(CultureInfo.InvariantCulture) + "f",
+        Scalar.Double => number.DoubleValue.ToString(CultureInfo.InvariantCulture) + "d",
+        Scalar.Int => number.LongValue.ToString(CultureInfo.InvariantCulture),
+        Scalar.UInt => number.ULongValue.ToString(CultureInfo.InvariantCulture) + "u",
+        Scalar.Int64 => number.LongValue.ToString(CultureInfo.InvariantCulture) + "L",
+        Scalar.UInt64 => number.ULongValue.ToString(CultureInfo.InvariantCulture) + "UL",
+        _ => number.DoubleValue.ToString(CultureInfo.InvariantCulture),
+    };
 
     private bool IsParameterDeclaredInContext(string parameter)
     {

@@ -87,9 +87,16 @@ namespace Stride.Games
         public abstract bool AllowUserResizing { get; set; }
 
         /// <summary>
-        /// Gets the client bounds.
+        /// Gets the bounds of the client area, in window coordinates (points; equals pixels on Windows).
         /// </summary>
-        /// <value>The client bounds.</value>
+        /// <value>The client area bounds.</value>
+        /// <remarks>
+        /// X and Y are the client area origin in screen coordinates. On platforms where the window system
+        /// does not expose global window positions (Wayland, Android, iOS, headless), the origin is (0,0)
+        /// and coordinates are window-relative.
+        /// Returns an empty rectangle when the window is minimized or has no usable client area;
+        /// check for a positive size before using it for rendering or resize decisions.
+        /// </remarks>
         public abstract Rectangle ClientBounds { get; }
 
         /// <summary>
@@ -136,9 +143,21 @@ namespace Stride.Games
         public abstract double Opacity { get; set; }
 
         /// <summary>
-        /// Gets or sets the position of the window on the screen.
+        /// Gets or sets the position of the window's client area origin on the screen,
+        /// in window coordinates (points; equals pixels on Windows).
         /// </summary>
+        /// <remarks>
+        /// Matches the origin of <see cref="ClientBounds"/>. On platforms where the window system
+        /// does not expose global window positions (Wayland, Android, iOS, headless), getting
+        /// returns (0,0) and setting has no effect.
+        /// </remarks>
         public virtual Int2 Position { get; set; }
+
+        /// <summary>
+        /// Gets the number of drawable pixels per window coordinate unit.
+        /// 1 on Windows; can be higher on high-DPI displays (e.g. 2 on macOS Retina).
+        /// </summary>
+        public virtual float ScaleFactor => 1.0f;
 
         /// <summary>
         /// Gets or sets a value indicating whether this window has a border
@@ -172,14 +191,16 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// The size the window should have when switching from fullscreen to windowed mode.
+        /// The size the window should have when switching from fullscreen to windowed mode,
+        /// in window coordinates (points; equals pixels on Windows).
         /// To get the current actual size use <see cref="ClientBounds"/>.
-        /// This gets overwritten when the user resizes the window. 
+        /// This gets overwritten when the user resizes the window.
         /// </summary>
         public Int2 PreferredWindowedSize { get; set; } = new Int2(768, 432);
 
         /// <summary>
-        /// The size the window should have when switching from windowed to fullscreen mode.
+        /// The size the window should have when switching from windowed to fullscreen mode,
+        /// in window coordinates (points; equals pixels on Windows).
         /// To get the current actual size use <see cref="ClientBounds"/>.
         /// </summary>
         public Int2 PreferredFullscreenSize { get; set; } = new Int2(1920, 1080);
@@ -221,12 +242,20 @@ namespace Stride.Games
 
         public abstract void BeginScreenDeviceChange(bool willBeFullScreen);
 
+        /// <summary>
+        /// Completes a screen device change, applying the given client size,
+        /// in window coordinates (points; equals pixels on Windows).
+        /// </summary>
+        public abstract void EndScreenDeviceChange(int clientWidth, int clientHeight);
+
         public void EndScreenDeviceChange()
         {
-            EndScreenDeviceChange(ClientBounds.Width, ClientBounds.Height);
+            var bounds = ClientBounds;
+            if (bounds.Width > 0 && bounds.Height > 0)
+                EndScreenDeviceChange(bounds.Width, bounds.Height);
+            else
+                EndScreenDeviceChange(PreferredWindowedSize.X, PreferredWindowedSize.Y);
         }
-
-        public abstract void EndScreenDeviceChange(int clientWidth, int clientHeight);
 
         #endregion
 
@@ -247,7 +276,8 @@ namespace Stride.Games
         internal abstract void Run();
 
         /// <summary>
-        /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
+        /// Sets the size of the client area, in window coordinates (points; equals pixels on Windows),
+        /// and triggers the <see cref="ClientSizeChanged"/> event.
         /// This will trigger a backbuffer resize too.
         /// </summary>
         public void SetSize(Int2 size)
@@ -282,11 +312,15 @@ namespace Stride.Games
 
         protected void OnClientSizeChanged(object source, EventArgs e)
         {
+            // No usable client area (e.g. minimized): nothing to notify
+            var resizeSize = ClientBounds.Size;
+            if (resizeSize.Width <= 0 || resizeSize.Height <= 0)
+                return;
+
             if (!isFullscreen)
             {
-                // Update preferred windowed size in windowed mode 
-                var resizeSize = ClientBounds.Size;
-                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+                // Update preferred windowed size in windowed mode
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height);
             }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);

@@ -35,13 +35,9 @@ public class BoxedNode : ObjectNode
     {
         if (index.TryGetValue(out var indexValue))
         {
-            if (Descriptor is CollectionDescriptor collectionDescriptor)
+            if (Descriptor is CollectionBaseDescriptor collectionDescriptor)
             {
                 collectionDescriptor.SetValue(Value, indexValue, newValue);
-            }
-            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
-            {
-                dictionaryDescriptor.SetValue(Value, index, newValue);
             }
             else
             {

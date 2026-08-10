@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
@@ -74,6 +74,182 @@ namespace Stride.Core.Assets.Tests
             Assert.True(project2.AssetFolders.Count > 0);
             var sourceFolder = project.AssetFolders.First().Path;
             Assert.Equal(sourceFolder, project2.AssetFolders.First().Path);
+        }
+
+        [Fact]
+        public void TestNamespacedAssetMoveDeletesOldFileOnSave()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedAssetMoveDeletesOldFileOnSave");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            // A SolutionProject container (standalone packages are read-only, never saved) with a
+            // resolved namespace, like the editor loader produces.
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+            var assetItem = new AssetItem("Ground", new AssetObjectTest());
+            package.Assets.Add(assetItem);
+            assetItem.IsDirty = true;
+            Assert.Equal("/MyGame/Ground", assetItem.Location.FullPath);
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors);
+            var oldFile = Path.Combine(dirPath, "Assets", "Ground.sdtest");
+            Assert.True(File.Exists(oldFile));
+
+            // Rename + move into a subfolder: the next save must delete the previous file at its
+            // bare disk path (the previous-state snapshot is a detached clone with rooted locations).
+            package.Assets.Remove(assetItem);
+            var movedItem = assetItem.Clone(newLocation: new UFile("Sub/Ground2"));
+            package.Assets.Add(movedItem);
+            movedItem.IsDirty = true;
+            result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.False(File.Exists(oldFile));
+            Assert.True(File.Exists(Path.Combine(dirPath, "Assets", "Sub", "Ground2.sdtest")));
+        }
+
+        [Fact]
+        public void TestNamespacedSaveRelativizesSamePrefixReferences()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedSaveRelativizesSamePrefixReferences");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            // Same-prefix references save bare; foreign prefixes stay rooted
+            var source = new AssetObjectTest();
+            var sourceItem = new AssetItem("Source", source);
+            package.Assets.Add(sourceItem);
+            source.Reference = new AssetReference(target.Id, target.Location);
+            sourceItem.IsDirty = true;
+            var other = new AssetObjectTest { Reference = new AssetReference(AssetId.New(), "/OtherPkg/Thing") };
+            var otherItem = new AssetItem("Other", other);
+            package.Assets.Add(otherItem);
+            otherItem.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            var sourceYaml = File.ReadAllText(Path.Combine(dirPath, "Assets", "Source.sdtest"));
+            Assert.Contains($"{target.Id}:Target", sourceYaml);
+            Assert.DoesNotContain("/MyGame/", sourceYaml);
+            Assert.Contains(":/OtherPkg/Thing", File.ReadAllText(Path.Combine(dirPath, "Assets", "Other.sdtest")));
+            // In memory the reference is still rooted; only the saved file gets the bare form
+            Assert.Equal("/MyGame/Target", source.Reference.Location);
+        }
+
+        [Fact]
+        public void TestNamespacedLoadRestoresSamePrefixReferences()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedLoadRestoresSamePrefixReferences");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            var source = new AssetObjectTest { Reference = new AssetReference(target.Id, target.Location) };
+            var sourceItem = new AssetItem("Source", source);
+            package.Assets.Add(sourceItem);
+            sourceItem.IsDirty = true;
+            var other = new AssetObjectTest { Reference = new AssetReference(AssetId.New(), "/OtherPkg/Thing") };
+            var otherItem = new AssetItem("Other", other);
+            package.Assets.Add(otherItem);
+            otherItem.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            var sourcePath = Path.Combine(dirPath, "Assets", "Source.sdtest");
+            // The same-package reference is stored bare on disk
+            Assert.Contains($"{target.Id}:Target", File.ReadAllText(sourcePath));
+
+            // Loading with the package namespace adds the /Namespace/ prefix back (mirror of save)
+            var loadedSource = (AssetObjectTest)AssetFileSerializer.Load<Asset>(sourcePath, result, "MyGame").Asset;
+            Assert.Equal("/MyGame/Target", loadedSource.Reference.Location);
+            // A reference to another package is already rooted on disk and loads unchanged
+            var loadedOther = (AssetObjectTest)AssetFileSerializer.Load<Asset>(Path.Combine(dirPath, "Assets", "Other.sdtest"), result, "MyGame").Asset;
+            Assert.Equal("/OtherPkg/Thing", loadedOther.Reference.Location);
+        }
+
+        [Fact]
+        public void TestNamespacedSaveWithReplacesDoesNotCrash()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestNamespacedSaveWithReplacesDoesNotCrash");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")) { AssetNamespace = "MyGame" };
+            var session = new PackageSession();
+            session.Projects.Add(project);
+
+            var target = new AssetItem("Target", new AssetObjectTest());
+            package.Assets.Add(target);
+            // A "replacing" asset references the asset it replaces (Asset.Replaces).
+            var replacement = new AssetObjectTest { Replaces = target.ToReference() };
+            var replacementItem = new AssetItem("Replacement", replacement);
+            package.Assets.Add(replacementItem);
+            replacementItem.IsDirty = true;
+
+            // Replaces is an asset reference, not a disk path: saving must not treat it as a UPath to
+            // relativize (which threw on the drive-consistency check when it was a UFile).
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+
+            // Same-package reference saves bare and re-qualifies on load, still resolving to the target.
+            var loaded = (AssetObjectTest)AssetFileSerializer.Load<Asset>(Path.Combine(dirPath, "Assets", "Replacement.sdtest"), result, "MyGame").Asset;
+            Assert.Equal("/MyGame/Target", loaded.Replaces?.Location);
+        }
+
+        [Fact]
+        public void TestSaveKeepsAuthoredPackageName()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestSaveKeepsAuthoredPackageName");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            // The session renames Meta.Name to the csproj-derived identity; the authored name must
+            // survive a save (it is the package's namespace identity).
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.Game.sdpkg"), AuthoredName = "MyGame" };
+            package.Meta.Name = "MyGame.Game";
+            var project = new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.Game.csproj"));
+            var session = new PackageSession();
+            session.Projects.Add(project);
+            package.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors);
+            Assert.Matches(@"(?m)^\s*Name: MyGame\s*$", File.ReadAllText(package.FullPath));
+            Assert.Equal("MyGame.Game", package.Meta.Name);
         }
 
         [Fact]

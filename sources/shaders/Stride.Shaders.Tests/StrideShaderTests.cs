@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using CommunityToolkit.HighPerformance;
 using Silk.NET.SPIRV;
 using Silk.NET.SPIRV.Cross;
+using Stride.Core.IO;
+using Stride.Core.Storage;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using Spv = Stride.Shaders.Spirv.Tools.Spv;
@@ -14,6 +19,145 @@ namespace Stride.Shaders.Parsers.Tests;
 
 public class StrideShaderTests
 {
+    // Regression: multidimensional array dimensions must be emitted in declaration order.
+    // GenerateArrayType used to wrap the dimensions such that the last bracket became outermost,
+    // so `float4 Data3D[2][3][5]` was emitted transposed as [5][3][2] (breaking indexing / fxc).
+    [Fact]
+    public void MultidimensionalArrayDimensionsKeepDeclarationOrder()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("ArrayDims3D", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("ArrayDims3D"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoint = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+
+        Assert.Equal("[2][3][5]", MatchArrayDimensions(hlsl, "Data3D"));
+        Assert.Equal("[7]", MatchArrayDimensions(hlsl, "Data1D")); // rank-1 control: unaffected
+    }
+
+    private static string MatchArrayDimensions(string hlsl, string arrayName)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(hlsl, $@"\b{arrayName}((?:\[\d+\])+)\s*;");
+        Assert.True(match.Success, $"'{arrayName}' declaration not found in emitted HLSL:{Environment.NewLine}{hlsl}");
+        return match.Groups[1].Value;
+    }
+
+    // Reflection reports a multidimensional cbuffer array as a flat element count
+    // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
+    [Fact]
+    public void MultidimensionalArrayReflectionIsFlattened()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("ArrayDimsCBuffer", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("ArrayDimsCBuffer"), new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var members = reflection.ConstantBuffers.SelectMany(cb => cb.Members).ToDictionary(m => m.RawName);
+
+        var data2D = members["Data2D"];
+        Assert.Equal(6, data2D.Type.Elements);
+        Assert.Equal(96, data2D.Size); // 6 float4 elements at stride 16
+
+        var data1D = members["Data1D"]; // rank-1 control: unaffected
+        Assert.Equal(5, data1D.Type.Elements);
+        Assert.Equal(80, data1D.Size);
+    }
+
+    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
+    // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
+    // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
+    // A cached shader without OpSourceHashSDSL deserializes to a zero hash, which makes
+    // EffectCompilerCache.IsBytecodeObsolete return true on every run (a permanent recompile hang).
+    [Fact]
+    public void SuppressSourceHashDoesNotLeakAcrossCacheHits()
+    {
+        var loader = new ShaderLoader("./assets/Stride/SDSL");
+
+        // Warm the cache: a normally compiled shader carries its OpSourceHashSDSL.
+        Assert.True(loader.LoadExternalBuffer("Texturing", [], out var texturing, out _, out _));
+        Assert.True(HasSourceHash(texturing), "sanity: a normally compiled shader carries OpSourceHashSDSL");
+
+        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the flag, then load
+        // a shader that is already cached. The (name, filename, code) overload returns on the cache hit
+        // before LoadFromCode runs, so the flag is never cleared.
+        Assert.True(loader.LoadExternalFileContent("Texturing", out var filename, out var code, out _));
+        loader.SuppressSourceHash = true;
+        Assert.True(loader.LoadExternalBuffer("Texturing", filename, code, [], out _, out _, out var isFromCache));
+        Assert.True(isFromCache, "precondition: the second load must be a cache hit to exercise the leak");
+
+        Assert.False(loader.SuppressSourceHash,
+            "SuppressSourceHash leaked past a cache hit; the next compiled shader would be cached without " +
+            "OpSourceHashSDSL (zero hash => EffectCompilerCache recompiles every run)");
+
+        // Downstream symptom: with the flag leaked, the next freshly compiled shader loses its hash.
+        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out _, out _));
+        Assert.True(HasSourceHash(shaderBase),
+            "the next compiled shader is missing OpSourceHashSDSL — its cached hash would deserialize to zero");
+    }
+
+    private static bool HasSourceHash(ShaderBuffers buffer)
+    {
+        foreach (var i in buffer.Context)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpSourceHashSDSL)
+                return true;
+        }
+        return false;
+    }
+
+    // FileShaderCache stamps a Generator id + Schema (format version) into the SPIR-V header of each
+    // cached .spv. A cached buffer round-trips (including its OpSourceHashSDSL), and a header whose
+    // version no longer matches is rejected so the shader recompiles instead of being served stale.
+    [Fact]
+    public void FileShaderCacheRoundTripsAndRejectsStaleVersion()
+    {
+        var loader = new ShaderLoader("./assets/Stride/SDSL");
+        Assert.True(loader.LoadExternalBuffer("Texturing", [], out var buffer, out var hash, out _));
+        Assert.NotEqual(ObjectId.Empty, hash);
+
+        var tempDir = Directory.CreateTempSubdirectory("stride-shadercache-test");
+        try
+        {
+            var provider = new FileSystemProvider("/testcache", tempDir.FullName);
+            const string spvPath = "shaders/Texturing_default.spv";
+
+            // Write via one instance, read via a fresh instance so the load must come from disk.
+            new FileShaderCache(provider).RegisterShader("Texturing", null, [], buffer, hash);
+
+            Assert.True(new FileShaderCache(provider).TryLoadFromCache("Texturing", null, [], out _, out var loadedHash));
+            Assert.Equal(hash, loadedHash);
+
+            // Corrupt the Schema word (5th header word, byte offset 16) to simulate an old/incompatible cache.
+            byte[] bytes;
+            using (var s = provider.OpenStream(spvPath, VirtualFileMode.Open, VirtualFileAccess.Read))
+            {
+                bytes = new byte[s.Length];
+                s.ReadExactly(bytes);
+            }
+            BitConverter.GetBytes(0x7FFFFFFF).CopyTo(bytes, 16);
+            using (var s = provider.OpenStream(spvPath, VirtualFileMode.Create, VirtualFileAccess.Write))
+                s.Write(bytes);
+
+            Assert.False(new FileShaderCache(provider).TryLoadFromCache("Texturing", null, [], out _, out _),
+                "a cache file with a mismatched format version must be rejected (recompiled), not served stale");
+        }
+        finally
+        {
+            tempDir.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public void TextureDecorateStringWarning()
     {
@@ -591,12 +735,15 @@ new ShaderMacro("class", "shader"),
         var validationResult = Spv.ValidateFile($"{shaderName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
-        var entryPoints = translator.GetEntryPoints();
-        foreach (var entryPoint in entryPoints)
+        if (SpirvCrossSupport.Available)
         {
-            var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
-            Console.WriteLine(hlsl);
+            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            var entryPoints = translator.GetEntryPoints();
+            foreach (var entryPoint in entryPoints)
+            {
+                var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+                Console.WriteLine(hlsl);
+            }
         }
     }
 }

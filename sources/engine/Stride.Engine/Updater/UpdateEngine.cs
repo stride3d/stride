@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable STRIDE2000 // TODO: Remove this suppression
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,8 +21,11 @@ namespace Stride.Updater
     public static unsafe class UpdateEngine
     {
         private static readonly ConcurrentPool<Stack<UpdateStackEntry>> StackPool = new ConcurrentPool<Stack<UpdateStackEntry>>(() => new Stack<UpdateStackEntry>());
-        private static readonly Dictionary<UpdateKey, UpdatableMember> UpdateKeys = new Dictionary<UpdateKey, UpdatableMember>();
-        private static readonly Dictionary<Type, UpdateMemberResolver> MemberResolvers = new Dictionary<Type, UpdateMemberResolver>();
+        // Concurrent: RegisterMember/RegisterMemberResolver write these while Compile reads them,
+        // and Compile runs in parallel (AnimationProcessor dispatches AnimationUpdater.Update across
+        // worker threads). A plain Dictionary corrupts under that concurrent access.
+        private static readonly ConcurrentDictionary<UpdateKey, UpdatableMember> UpdateKeys = new ConcurrentDictionary<UpdateKey, UpdatableMember>();
+        private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
 
         /// <summary>
         /// Registers a new member for a given type and name.

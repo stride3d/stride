@@ -7,7 +7,7 @@ using Stride.Shaders;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Defines the interface to provide an effect mixin for a <see cref="CameraRendererMode"/>.
+    /// Defines the interface to provide an effect mixin.
     /// </summary>
     public interface IEffectMixinProvider
     {

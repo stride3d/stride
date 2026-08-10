@@ -322,6 +322,51 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void StaticTriggerMoveTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                int staticEnter = 0, staticExit = 0;
+                int exitedFloor = 0;
+                var staticTrigger = new ContactEvents { NoContactResponse = true };
+                var floorTrigger = new ContactEvents { NoContactResponse = true };
+                var bodyA = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
+                var bodyB = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
+                var staticA = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() { Size = new(0.5f, 1, 0.5f) } } }, ContactEventHandler = staticTrigger } };
+                var floor = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() { Size = new(10, 1, 10) }  } }, ContactEventHandler = floorTrigger } };
+                staticTrigger.StartedTouching += (_, _) => staticEnter++;
+                staticTrigger.StoppedTouching += (_, _) => staticExit++;
+                floorTrigger.StoppedTouching += (_, _) => exitedFloor++;
+
+                floor.Transform.Position.Y = -10;
+                bodyA.Transform.Position.Y = 3;
+                bodyB.Transform.Position.X = 2;
+                bodyB.Transform.Position.Y = 3;
+
+                // Move the static component under the other entity to test that moving the static does still capture trigger events
+                staticTrigger.StartedTouching += (_, _) => staticA.Transform.Position = new Vector3(bodyB.Transform.Position.X, 0, 0);
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { bodyA, staticA, bodyB, floor });
+
+                var simulation = bodyA.GetSimulation();
+
+                while (exitedFloor == 0)
+                    await simulation.AfterUpdate();
+                await simulation.AfterUpdate();
+
+                Assert.Equal(2, staticEnter);
+
+                Assert.Equal(staticEnter, staticExit);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public void ContactImpulseTest()
         {
             var game = new GameTest();

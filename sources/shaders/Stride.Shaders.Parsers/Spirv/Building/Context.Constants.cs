@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
@@ -280,8 +281,8 @@ public partial class SpirvContext
             uint i => new IntegerLiteral(new(32, false, false), i, location),
             long i => new IntegerLiteral(new(64, false, true), i, location),
             ulong i => new IntegerLiteral(new(64, false, false), (long)i, location),
-            float i => new FloatLiteral(new(32, true, true), i, null, location),
-            double i => new FloatLiteral(new(64, true, true), i, null, location),
+            float i => new FloatLiteral(new(32, true, true), i, location),
+            double i => new FloatLiteral(new(64, true, true), i, location),
             _ => throw new NotSupportedException($"Unsupported literal type: {value.GetType()}"),
         };
     }
@@ -346,7 +347,7 @@ public partial class SpirvContext
         {
             BoolLiteral lit => $"{lit.Type}_{lit.Value}",
             IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
-            FloatLiteral lit => $"{lit.Type}_{lit.Value}",
+            FloatLiteral lit => $"{lit.Type}_{lit.Value.ToString(CultureInfo.InvariantCulture)}",
             _ => throw new NotImplementedException()
         });
         return result;

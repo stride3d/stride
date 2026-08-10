@@ -23,8 +23,6 @@ namespace Stride.Graphics
 
         internal CommandBufferPool CommandBufferPool;
 
-        private VkRenderPass activeRenderPass;
-        private VkRenderPass previousRenderPass;
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
@@ -36,11 +34,11 @@ namespace Stride.Graphics
         // that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
         private readonly Dictionary<Texture, BarrierLayout> currentCbLayouts = new();
 
-        private readonly Dictionary<FramebufferKey, VkFramebuffer> framebuffers = new();
-        private readonly VkImageView[] framebufferAttachments = new VkImageView[9];
-        private int framebufferAttachmentCount;
-        private bool framebufferDirty = true;
-        private VkFramebuffer activeFramebuffer;
+        // Dynamic rendering state: whether a render pass instance (vkCmdBeginRendering) is active,
+        // whether the bound attachments changed since it began, and which depth layout it declared.
+        private bool activeRendering;
+        private bool renderingDirty = true;
+        private bool activeDepthReadOnly;
 
         private VkDescriptorPool descriptorPool;
         private VkDescriptorSet descriptorSet;
@@ -88,8 +86,7 @@ namespace Stride.Graphics
             boundDescriptorSets.Clear();
             currentCbLayouts.Clear();
 
-            framebuffers.Clear();
-            framebufferDirty = true;
+            renderingDirty = true;
 
             currentCommandList.Builder = this;
             currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
@@ -178,28 +175,9 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">renderTargetViews</exception>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
-            var oldFramebufferAttachmentCount = framebufferAttachmentCount;
-            framebufferAttachmentCount = renderTargets.Length;
-
-            for (int i = 0; i < renderTargets.Length; i++)
-            {
-                if (renderTargets[i].NativeColorAttachmentView != framebufferAttachments[i])
-                    framebufferDirty = true;
-
-                framebufferAttachments[i] = renderTargets[i].NativeColorAttachmentView;
-            }
-
-            if (depthStencilBuffer != null)
-            {
-                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargets.Length])
-                    framebufferDirty = true;
-
-                framebufferAttachments[renderTargets.Length] = depthStencilBuffer.NativeDepthStencilView;
-                framebufferAttachmentCount++;
-            }
-
-            if (framebufferAttachmentCount != oldFramebufferAttachmentCount)
-                framebufferDirty = true;
+            // The base class updated the bound targets; the next draw restarts the render pass
+            // instance with them if they changed
+            renderingDirty = true;
         }
 
         /// <summary>
@@ -293,95 +271,19 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Draw);
 
-            // Transition resources to correct layouts before starting the render pass
-            TransitionBoundResources();
-
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
-        }
 
-        /// <summary>
-        /// Automatically transitions bound textures to the layouts expected by the pipeline:
-        /// render targets to ColorAttachmentOptimal, depth to DepthStencilAttachmentOptimal,
-        /// sampled images to ShaderReadOnlyOptimal, storage images to General.
-        /// Must be called BEFORE EnsureRenderPass since barriers cannot be issued inside a render pass.
-        /// </summary>
-        private void TransitionBoundResources()
-        {
-            if (activePipeline == null)
-                return;
-
-            // Transition render target attachments.
-            for (int i = 0; i < RenderTargetCount; i++)
-            {
-                var rt = renderTargets[i];
-                if (rt != null)
-                {
-                    var parent = rt.ParentTexture ?? rt;
-                    if (!currentCbLayouts.TryGetValue(parent, out var current) || current != BarrierLayout.RenderTarget)
-                        ResourceBarrierTransition(rt, BarrierLayout.RenderTarget);
-                }
-            }
-
-            // If the pipeline disables depth+stencil writes the depth attachment can ride in
-            // DepthStencilReadOnlyOptimal — matching the render-pass layout picked in
-            // PipelineState.CreateRenderPass and leaving the image sampleable (soft-edge particles).
-            var dss = activePipeline.Description.DepthStencilState;
-            bool depthReadOnly = !dss.DepthBufferWriteEnable
-                && (!dss.StencilEnable || dss.StencilWriteMask == 0);
-            var depthAttachmentLayout = depthReadOnly
-                ? VkImageLayout.DepthStencilReadOnlyOptimal
-                : VkImageLayout.DepthStencilAttachmentOptimal;
-            var depthAttachmentBarrier = depthReadOnly
-                ? BarrierLayout.DepthStencilRead
-                : BarrierLayout.DepthStencilWrite;
-
-            Texture depthParent = null;
-            if (depthStencilBuffer != null)
-            {
-                depthParent = depthStencilBuffer.ParentTexture ?? depthStencilBuffer;
-                if (!currentCbLayouts.TryGetValue(depthParent, out var currentDepth) || currentDepth != depthAttachmentBarrier)
-                    ResourceBarrierTransition(depthStencilBuffer, depthAttachmentBarrier);
-            }
-
-            // Transition sampled/storage textures bound in descriptors
-            var bindingCount = activePipeline.DescriptorBindingMapping.Count;
-            for (int index = 0; index < bindingCount; index++)
-            {
-                var mapping = activePipeline.DescriptorBindingMapping[index];
-                if (mapping.DescriptorType != VkDescriptorType.SampledImage &&
-                    mapping.DescriptorType != VkDescriptorType.StorageImage)
-                    continue;
-
-                var sourceSet = boundDescriptorSets[mapping.SourceSet];
-                var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
-                if (heapObject.Value is Texture texture)
-                {
-                    var parent = texture.ParentTexture ?? texture;
-
-                    // Don't transition swapchain images that are queued for presentation
-                    if (parent.NativeLayout == VkImageLayout.PresentSrcKHR)
-                        continue;
-
-                    // Skip if this sampled image is the currently bound read-only depth buffer:
-                    // DepthStencilReadOnlyOptimal is already valid for shader reads and moving it
-                    // to ShaderReadOnlyOptimal would break the render pass's attachment layout.
-                    if (depthReadOnly && depthParent != null && parent == depthParent
-                        && mapping.DescriptorType == VkDescriptorType.SampledImage)
-                        continue;
-
-                    // Always call ResourceBarrierTransition — even if the layout matches, the barrier
-                    // must be re-issued when the resource was last transitioned by a different command list.
-                    var layout = mapping.DescriptorType == VkDescriptorType.SampledImage
-                        ? BarrierLayout.ShaderResource
-                        : BarrierLayout.UnorderedAccess;
-                    ResourceBarrierTransition(parent, layout);
-                }
-            }
+            // A read-only depth view drops depth and stencil writes instead of being invalid
+            // usage, matching D3D12's read-only depth-stencil view behavior
+            var depthStencilState = activePipeline.Description.DepthStencilState;
+            bool depthWritesAllowed = !(depthStencilBuffer != null && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read));
+            GraphicsDevice.NativeDeviceApi.vkCmdSetDepthWriteEnable(currentCommandList.NativeCommandBuffer, depthStencilState.DepthBufferWriteEnable && depthWritesAllowed);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetStencilWriteMask(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, depthWritesAllowed ? depthStencilState.StencilWriteMask : 0u);
         }
 
         private unsafe void BindDescriptorSets()
@@ -479,7 +381,13 @@ namespace Stride.Graphics
                             // (which can be mutated by other CBs recording concurrently).
                             var parent = texture?.ParentTexture ?? texture;
                             var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
-                            var imageLayout = perCb == BarrierLayout.DepthStencilRead
+                            // Sampling the depth buffer while it is bound as a read-only attachment:
+                            // the image rides in DepthStencilReadOnlyOptimal, including on worker
+                            // command lists that did not record the transition themselves.
+                            bool sampledBoundReadOnlyDepth = depthStencilBuffer != null
+                                && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read)
+                                && parent == (depthStencilBuffer.ParentTexture ?? depthStencilBuffer);
+                            var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
                                 : VkImageLayout.ShaderReadOnlyOptimal;
                             descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
@@ -508,6 +416,7 @@ namespace Stride.Graphics
                         break;
 
                     case VkDescriptorType.UniformTexelBuffer:
+                    case VkDescriptorType.StorageTexelBuffer:
                         buffer = heapObject.Value as Buffer;
                         descriptorData->BufferView = buffer?.NativeBufferView ?? (mapping.ResourceElementIsInteger ? GraphicsDevice.EmptyTexelBufferInt.NativeBufferView : GraphicsDevice.EmptyTexelBufferFloat.NativeBufferView);
                         write->pTexelBufferView = &descriptorData->BufferView;
@@ -699,7 +608,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
@@ -714,7 +622,6 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
-            TransitionBoundResources();
             BindPipeline();
             BindDescriptorSets();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
@@ -897,10 +804,6 @@ namespace Stride.Graphics
         public unsafe void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
             RecordDebugCounter(DebugCounterKind.Clear);
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
-
-            var barrierRange = depthStencilBuffer.NativeResourceRange;
 
             // Adjust aspectMask to clear only the specified part (depth or stencil)
             var clearRange = depthStencilBuffer.NativeResourceRange;
@@ -912,14 +815,14 @@ namespace Stride.Graphics
             if ((options & DepthStencilClearOptions.Stencil) != 0)
                 clearRange.aspectMask |= VkImageAspectFlags.Stencil & depthStencilBuffer.NativeImageAspect;
 
-            var memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, depthStencilBuffer.NativeAccessMask, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the buffer in the depth write layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.CopyDest);
 
             var clearValue = new VkClearDepthStencilValue(depth, stencil);
             GraphicsDevice.NativeDeviceApi.vkCmdClearDepthStencilImage(currentCommandList.NativeCommandBuffer, depthStencilBuffer.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(depthStencilBuffer.NativeImage, barrierRange, VkAccessFlags.TransferWrite, depthStencilBuffer.NativeAccessMask, VkImageLayout.TransferDstOptimal, depthStencilBuffer.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, depthStencilBuffer.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(depthStencilBuffer, BarrierLayout.DepthStencilWrite);
 
             depthStencilBuffer.IsInitialized = true;
         }
@@ -934,18 +837,16 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(DebugCounterKind.Clear);
             // TODO VULKAN: Detect if inside render pass. If so, NativeCommandBuffer.ClearAttachments()
-            // Barriers need to be global to command buffer
-            CleanupRenderPass();
 
             var clearRange = renderTarget.NativeResourceRange;
 
-            var memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, renderTarget.NativeAccessMask, VkAccessFlags.TransferWrite, renderTarget.NativeLayout, VkImageLayout.TransferDstOptimal);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, renderTarget.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            // Clear requires TransferDstOptimal; leave the target in the render target layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(renderTarget, BarrierLayout.CopyDest);
 
             GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, renderTarget.NativeImage, VkImageLayout.TransferDstOptimal, (VkClearColorValue*) &color, rangeCount: 1, &clearRange);
 
-            memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, VkAccessFlags.TransferWrite, renderTarget.NativeAccessMask, VkImageLayout.TransferDstOptimal, renderTarget.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, renderTarget.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+            ResourceBarrierTransition(renderTarget, BarrierLayout.RenderTarget);
 
             renderTarget.IsInitialized = true;
         }
@@ -1030,16 +931,16 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(texture);
             RecordDebugCounter(DebugCounterKind.Clear);
-            CleanupRenderPass();
 
             var clearRange = texture.NativeResourceRange;
-            var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.General);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
-            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.General, &clearValue, 1, &clearRange);
+            // Clear requires TransferDstOptimal; leave the texture in the unordered access layout
+            // afterwards, matching the Direct3D 12 behavior.
+            ResourceBarrierTransition(texture, BarrierLayout.CopyDest);
 
-            memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, clearRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.General, texture.NativeLayout);
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            GraphicsDevice.NativeDeviceApi.vkCmdClearColorImage(currentCommandList.NativeCommandBuffer, texture.NativeImage, VkImageLayout.TransferDstOptimal, &clearValue, 1, &clearRange);
+
+            ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
         }
 
         public unsafe void Copy(GraphicsResource source, GraphicsResource destination)
@@ -1241,6 +1142,21 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        ///   Resolves a subresource index into the Vulkan subresource layers it addresses.
+        /// </summary>
+        /// <param name="subresourceIndex">
+        ///   The subresource index, encoded as <c>arraySlice * MipLevelCount + mipLevel</c>
+        ///   (see <see cref="Texture.GetSubResourceIndex"/>).
+        /// </param>
+        private static VkImageSubresourceLayers GetSubresourceLayers(Texture texture, VkImageAspectFlags imageAspect, int subresourceIndex)
+        {
+            return new VkImageSubresourceLayers(imageAspect,
+                                                mipLevel: (uint) (subresourceIndex % texture.MipLevelCount),
+                                                baseArrayLayer: (uint) (subresourceIndex / texture.MipLevelCount),
+                                                layerCount: 1);
+        }
+
         public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
             RecordDebugCounter(DebugCounterKind.Copy);
@@ -1306,8 +1222,7 @@ namespace Stride.Graphics
                             bufferOffset = (ulong)destinationTexture.ComputeBufferOffset(destinationSubResource, 0),
                             bufferImageHeight = (uint)destinationTexture.Height,
                             bufferRowLength = (uint)destinationTexture.Width,
-                            // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
-                            imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
+                            imageSubresource = GetSubresourceLayers(sourceTexture, sourceParent.NativeImageAspect, sourceSubresource),
                             imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             imageExtent = new VkExtent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front))
                         };
@@ -1321,8 +1236,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
-                    var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint) destinationTexture.MipLevel, (uint) destinationTexture.ArraySlice, (uint) destinationTexture.ArraySize);
+                    var destinationSubresource = GetSubresourceLayers(destinationTexture, destinationParent.NativeImageAspect, destinationSubResource);
 
                     if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                     {
@@ -1345,7 +1259,7 @@ namespace Stride.Graphics
                     {
                         var copy = new VkImageCopy
                         {
-                            srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) sourceTexture.MipLevel, (uint) sourceTexture.ArraySlice, (uint) sourceTexture.ArraySize),
+                            srcSubresource = GetSubresourceLayers(sourceTexture, sourceParent.NativeImageAspect, sourceSubresource),
                             srcOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             dstSubresource = destinationSubresource,
                             dstOffset = new VkOffset3D(dstX, dstY, dstZ),
@@ -1738,159 +1652,101 @@ namespace Stride.Graphics
 
         private unsafe void EnsureRenderPass()
         {
-            if (activePipeline == null)
+            if (activePipeline == null || activePipeline.NativePipeline == VkPipeline.Null)
                 return;
 
-            var pipelineRenderPass = activePipeline.NativeRenderPass;
+            // The depth attachment layout follows the bound view and the declared stage access:
+            // a read-only depth keeps the image in DepthStencilReadOnlyOptimal so it can be
+            // sampled at the same time
+            bool depthReadOnly = depthStencilBuffer != null && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read);
 
-            // Reuse the Framebuffer if the VkRenderPass didn't change
-            if (previousRenderPass != pipelineRenderPass)
-                framebufferDirty = true;
-
-            // Nothing to do. VkRenderPass and Framebuffer are still valid
-            if (!framebufferDirty && activeRenderPass == pipelineRenderPass)
+            // The render pass instance stays active across pipeline changes as long as the
+            // attachments and the depth layout stay the same
+            if (activeRendering && !renderingDirty && activeDepthReadOnly == depthReadOnly)
                 return;
 
-            // End old render pass
+            // End old render pass instance
             CleanupRenderPass();
 
-            if (pipelineRenderPass != VkRenderPass.Null)
+            var renderTarget = RenderTargetCount > 0 ? renderTargets[0] : depthStencilBuffer;
+            if (renderTarget == null)
+                return;
+
+            // An attachment mismatch with the pipeline's declared formats is undefined behavior that
+            // loses the device on strict drivers; fail loud in debug (only, to not break drivers that
+            // tolerate it) instead.
+            if (GraphicsDevice.IsDebugMode)
             {
-                var renderTarget = RenderTargetCount > 0 ? renderTargets[0] : depthStencilBuffer;
-
-                if (framebufferDirty)
-                {
-                    // Create new frame buffer
-                    fixed (VkImageView* attachmentsPointer = &framebufferAttachments[0])
-                    {
-                        var framebufferKey = new FramebufferKey(pipelineRenderPass, framebufferAttachmentCount, attachmentsPointer);
-
-                        if (!framebuffers.TryGetValue(framebufferKey, out activeFramebuffer))
-                        {
-                            var framebufferCreateInfo = new VkFramebufferCreateInfo
-                            {
-                                sType = VkStructureType.FramebufferCreateInfo,
-                                renderPass = pipelineRenderPass,
-                                attachmentCount = (uint) framebufferAttachmentCount,
-                                pAttachments = attachmentsPointer,
-                                width = (uint) renderTarget.ViewWidth,
-                                height = (uint) renderTarget.ViewHeight,
-                                layers = 1 // TODO VULKAN: Use correct view depth/array size
-                            };
-                            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateFramebuffer(GraphicsDevice.NativeDevice, &framebufferCreateInfo, null, out activeFramebuffer));
-                            GraphicsDevice.Collect(activeFramebuffer);
-                            framebuffers.Add(framebufferKey, activeFramebuffer);
-                        }
-                    }
-                    framebufferDirty = false;
-                }
-
-                // Clear attachments if needed
-                // TODO VULKAN: Can we use a custom render pass for this?
-                for (int index = 0; index < RenderTargetCount; index++)
-                {
-                    if (!renderTarget.IsInitialized)
-                    {
-                        Clear(renderTargets[index], Color.Transparent);
-                    }
-                }
-
-                if (depthStencilBuffer != null && !depthStencilBuffer.IsInitialized)
-                {
-                    Clear(depthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
-                }
-
-                // Start new render pass
-                var renderPassBegin = new VkRenderPassBeginInfo
-                {
-                    sType = VkStructureType.RenderPassBeginInfo,
-                    renderPass = pipelineRenderPass,
-                    framebuffer = activeFramebuffer,
-                    renderArea = new VkRect2D(0, 0, (uint)renderTarget.ViewWidth, (uint)renderTarget.ViewHeight)
-                };
-                GraphicsDevice.NativeDeviceApi.vkCmdBeginRenderPass(currentCommandList.NativeCommandBuffer, &renderPassBegin, VkSubpassContents.Inline);
-
-                previousRenderPass = activeRenderPass = pipelineRenderPass;
+                var output = activePipeline.Description.Output;
+                if (RenderTargetCount != output.RenderTargetCount || (depthStencilBuffer != null) != (output.DepthStencilFormat != PixelFormat.None))
+                    throw new InvalidOperationException(
+                        $"Bound render targets ({RenderTargetCount} color, depth: {depthStencilBuffer != null}) do not match the active pipeline's output " +
+                        $"({output.RenderTargetCount} color, depth: {output.DepthStencilFormat != PixelFormat.None}). The render targets bound on the command list must match the pipeline's Output description.");
             }
+
+            // Clear attachments if needed
+            for (int index = 0; index < RenderTargetCount; index++)
+            {
+                if (!renderTarget.IsInitialized)
+                {
+                    Clear(renderTargets[index], Color.Transparent);
+                }
+            }
+
+            if (depthStencilBuffer != null && !depthStencilBuffer.IsInitialized)
+            {
+                Clear(depthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
+            }
+
+            // Start new render pass instance
+            var colorAttachments = stackalloc VkRenderingAttachmentInfo[RenderTargetCount > 0 ? RenderTargetCount : 1];
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                colorAttachments[i] = new VkRenderingAttachmentInfo
+                {
+                    sType = VkStructureType.RenderingAttachmentInfo,
+                    imageView = renderTargets[i].NativeColorAttachmentView,
+                    imageLayout = VkImageLayout.ColorAttachmentOptimal,
+                    loadOp = VkAttachmentLoadOp.Load,
+                    storeOp = VkAttachmentStoreOp.Store,
+                };
+            }
+
+            var depthAttachment = new VkRenderingAttachmentInfo
+            {
+                sType = VkStructureType.RenderingAttachmentInfo,
+                imageView = depthStencilBuffer?.NativeDepthStencilView ?? VkImageView.Null,
+                imageLayout = depthReadOnly ? VkImageLayout.DepthStencilReadOnlyOptimal : VkImageLayout.DepthStencilAttachmentOptimal,
+                loadOp = VkAttachmentLoadOp.Load,
+                storeOp = VkAttachmentStoreOp.Store,
+            };
+
+            bool hasStencil = depthStencilBuffer != null && (depthStencilBuffer.NativeImageAspect & VkImageAspectFlags.Stencil) != 0;
+
+            var renderingInfo = new VkRenderingInfo
+            {
+                sType = VkStructureType.RenderingInfo,
+                renderArea = new VkRect2D(0, 0, (uint)renderTarget.ViewWidth, (uint)renderTarget.ViewHeight),
+                layerCount = 1, // TODO VULKAN: Use correct view depth/array size
+                colorAttachmentCount = (uint)RenderTargetCount,
+                pColorAttachments = colorAttachments,
+                pDepthAttachment = depthStencilBuffer != null ? &depthAttachment : null,
+                pStencilAttachment = hasStencil ? &depthAttachment : null,
+            };
+
+            GraphicsDevice.NativeDeviceApi.vkCmdBeginRendering(currentCommandList.NativeCommandBuffer, &renderingInfo);
+
+            activeRendering = true;
+            activeDepthReadOnly = depthReadOnly;
+            renderingDirty = false;
         }
 
         private unsafe void CleanupRenderPass()
         {
-            if (activeRenderPass != VkRenderPass.Null)
+            if (activeRendering)
             {
-                GraphicsDevice.NativeDeviceApi.vkCmdEndRenderPass(currentCommandList.NativeCommandBuffer);
-                activeRenderPass = VkRenderPass.Null;
-
-                viewportDirty = true;
-                scissorsDirty = true;
-                pipelineDirty = true;
-            }
-        }
-
-        private readonly struct FramebufferKey : IEquatable<FramebufferKey>
-        {
-            private readonly VkRenderPass renderPass;
-            private readonly int attachmentCount;
-            private readonly VkImageView attachment0;
-            private readonly VkImageView attachment1;
-            private readonly VkImageView attachment2;
-            private readonly VkImageView attachment3;
-            private readonly VkImageView attachment4;
-            private readonly VkImageView attachment5;
-            private readonly VkImageView attachment6;
-            private readonly VkImageView attachment7;
-            private readonly VkImageView attachment8;
-            private readonly VkImageView attachment9;
-
-            public unsafe FramebufferKey(VkRenderPass renderPass, int attachmentCount, VkImageView* attachments)
-            {
-                this.renderPass = renderPass;
-                this.attachmentCount = attachmentCount;
-
-                attachment0 = attachments[0];
-                attachment1 = attachments[1];
-                attachment2 = attachments[2];
-                attachment3 = attachments[3];
-                attachment4 = attachments[4];
-                attachment5 = attachments[5];
-                attachment6 = attachments[6];
-                attachment7 = attachments[7];
-                attachment8 = attachments[8];
-                attachment9 = attachments[9];
-            }
-
-            public override unsafe int GetHashCode()
-            {
-                var hashcode = renderPass.GetHashCode();
-
-                fixed (VkImageView* attachmentsPointer = &attachment0)
-                {
-                    for (int i = 0; i < attachmentCount; i++)
-                    {
-                        hashcode = attachmentsPointer[i].GetHashCode() ^ (hashcode * 397);
-                    }
-                }
-
-                return hashcode;
-            }
-
-            public unsafe bool Equals(FramebufferKey other)
-            {
-                if (other.renderPass != renderPass || attachmentCount != other.attachmentCount)
-                    return false;
-
-                fixed (VkImageView* attachmentsPointer = &attachment0)
-                {
-                    var otherAttachmentsPointer = &other.attachment0;
-
-                    for (int i = 0; i < attachmentCount; i++)
-                    {
-                        if (attachmentsPointer[i] != otherAttachmentsPointer[i])
-                            return false;
-                    }
-                }
-
-                return true;
+                GraphicsDevice.NativeDeviceApi.vkCmdEndRendering(currentCommandList.NativeCommandBuffer);
+                activeRendering = false;
             }
         }
 

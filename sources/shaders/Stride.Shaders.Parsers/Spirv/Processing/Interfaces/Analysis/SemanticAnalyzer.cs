@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
@@ -16,7 +17,7 @@ internal static class SemanticAnalyzer
         int value = 0;
         if (!string.IsNullOrEmpty(match.Groups[2].Value))
         {
-            value = int.Parse(match.Groups[2].Value);
+            value = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
         }
 
         return (baseName, value);

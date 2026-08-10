@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout Stride (for patch file)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: build/deps/spirv-to-dxil
@@ -123,7 +123,7 @@ jobs:
           Get-ChildItem out
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: spirv_to_dxil-win-x64
           path: out/

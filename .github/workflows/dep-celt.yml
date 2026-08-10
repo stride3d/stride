@@ -20,7 +20,7 @@ jobs:
     name: Build Celt (osx-arm64 + iOS device + simulator)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build
         run: bash deps/Celt/buildApple.sh
@@ -53,7 +53,7 @@ jobs:
       - name: List contents
         run: find out -type f | sort
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: celt-all-platforms
           path: out/

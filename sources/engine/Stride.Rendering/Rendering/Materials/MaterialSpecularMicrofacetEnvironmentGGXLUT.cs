@@ -24,8 +24,8 @@ namespace Stride.Rendering.Materials
         public ShaderSource Generate(MaterialGeneratorContext context)
         {
             var texture = context.GraphicsProfile >= GraphicsProfile.Level_10_0
-                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "StrideEnvironmentLightingDFGLUT16")
-                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "StrideEnvironmentLightingDFGLUT8");
+                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT16")
+                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
             context.Parameters.Set(MaterialSpecularMicrofacetEnvironmentGGXLUTKeys.EnvironmentLightingDFG_LUT, texture);
 
             return new ShaderClassSource("MaterialSpecularMicrofacetEnvironmentGGXLUT");

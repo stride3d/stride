@@ -1,6 +1,5 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
-  <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -41,8 +40,6 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="ServiceWire" />
-    <PackageReference Include="SharpDX" />
-    <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Mono.Cecil" />
     <PackageReference Include="SSH.NET" />
     <Reference Include="Stride.Core.AssemblyProcessor">
@@ -69,7 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Debugger\Stride.Debugger.csproj" />
-    <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" /> 
     <ProjectReference Include="..\..\tools\Stride.PackageInstall\Stride.PackageInstall.csproj">
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -95,6 +92,14 @@
     </ProjectReference>
     <ProjectReference Include="..\..\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
       <Private>false</Private>
+    </ProjectReference>
+    <!-- Build-ordering only (no nuspec dependency): asset packs are fetched on demand by the New
+         Game dialog, not pulled at install time. The reference just makes a dev GameStudio build
+         produce the .nupkg so the packs show up locally. -->
+    <ProjectReference Include="..\..\templates\Stride.Templates.AssetPacks\Stride.Templates.AssetPacks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

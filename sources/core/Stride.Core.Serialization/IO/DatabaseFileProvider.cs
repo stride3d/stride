@@ -28,6 +28,18 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
     /// </summary>
     public static readonly string ObjectIdUrl = "id://";
 
+    /// <summary>
+    /// Index lookup with bare-to-rooted alias fallback (using semantics for namespaced packages).
+    /// </summary>
+    private bool TryGetObjectId(string url, out ObjectId objectId)
+    {
+        if (ContentIndexMap.TryGetValue(url, out objectId))
+            return true;
+        return ObjectDatabase?.ContentAliases is { } aliases
+               && aliases.TryGetValue(url, out var canonical)
+               && ContentIndexMap.TryGetValue(canonical, out objectId);
+    }
+
     public IContentIndexMap ContentIndexMap { get; }
 
     public ObjectDatabase ObjectDatabase { get; }
@@ -44,7 +56,7 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
             {
                 _ = ObjectId.TryParse(url[ObjectIdUrl.Length..], out objectId);
             }
-            else if (!ContentIndexMap.TryGetValue(url, out objectId))
+            else if (!TryGetObjectId(url, out objectId))
             {
                 throw new FileNotFoundException($"Unable to find the file [{url}]");
             }
@@ -86,8 +98,6 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
 
     /// <inheritdoc />
     /// <param name="url">The url (without preceding slash).</param>
-    /// <param name="searchPattern"></param>
-    /// <param name="searchOption"></param>
     /// <remarks>
     /// Example: to get all files within a directory <c>ListFiles("path/to/folder", "*", VirtualSearchOption.TopDirectoryOnly)</c>
     /// </remarks>
@@ -100,13 +110,13 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
 
     public override bool FileExists(string url)
     {
-        return ContentIndexMap.TryGetValue(url, out var objectId)
+        return TryGetObjectId(url, out var objectId)
                && ObjectDatabase.Exists(objectId);
     }
 
     public override long FileSize(string url)
     {
-        if (!ContentIndexMap.TryGetValue(url, out var objectId))
+        if (!TryGetObjectId(url, out var objectId))
             throw new FileNotFoundException();
 
         return ObjectDatabase.GetSize(objectId);
@@ -114,7 +124,7 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
 
     public override string GetAbsolutePath(string url)
     {
-        if (!ContentIndexMap.TryGetValue(url, out var objectId))
+        if (!TryGetObjectId(url, out var objectId))
             throw new FileNotFoundException();
 
         return ObjectDatabase.GetFilePath(objectId);
@@ -134,7 +144,7 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
             objectId = ObjectId.Empty;
             return null;
         }
-        return provider.ContentIndexMap.TryGetValue(resolveProviderResult.Path, out objectId) ? provider : null;
+        return provider.TryGetObjectId(resolveProviderResult.Path, out objectId) ? provider : null;
     }
 
     public static Regex CreateRegexForFileSearch(string url, string searchPattern, VirtualSearchOption searchOption)

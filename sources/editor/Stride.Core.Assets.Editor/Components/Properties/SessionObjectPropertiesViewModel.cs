@@ -51,6 +51,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
             RegisterNodePresenterCommand(new ResetOverrideCommand());
 
             RegisterNodePresenterUpdater(new ArchetypeNodeUpdater());
+            RegisterNodePresenterUpdater(new AssetReplacesNodeUpdater());
             RegisterNodePresenterUpdater(new DocumentationNodeUpdater(documentationService));
             RegisterNodePresenterUpdater(new OwnerAssetUpdater());
             RegisterNodePresenterUpdater(new PackageSettingsNodeUpdater());

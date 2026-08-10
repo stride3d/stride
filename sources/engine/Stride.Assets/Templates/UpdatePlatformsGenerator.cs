@@ -246,6 +246,13 @@ public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemp
             return false;
         }
 
+        // Exec projects reference the library as ..\{base}.Game\{base}.Game.* (csproj + sdpkg, both
+        // sharing that base). Pre-4.4 projects use a bare library name, so repoint to the actual one.
+        var libDir = new DirectoryInfo(parameters.Package.RootDirectory!.ToOSPath()).Name;
+        var libBase = Path.GetFileNameWithoutExtension(parameters.Package.FullPath.ToOSPath());
+        var templatedRef = $@"..\{baseName}.Game\{baseName}.Game";
+        var actualRef = $@"..\{libDir}\{libBase}";
+
         foreach (var type in platforms)
         {
             var dirName = $"{baseName}.{type}";
@@ -254,6 +261,16 @@ public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemp
             {
                 log.Warning($"Expected csproj not found at {csprojPath}");
                 continue;
+            }
+            // No-op for 4.4 projects where the names already match.
+            if (templatedRef != actualRef)
+            {
+                var content = File.ReadAllText(csprojPath);
+                var rewritten = content.Replace(templatedRef, actualRef);
+                if (rewritten == content)
+                    log.Warning($"Could not repoint the game-library reference in {dirName} (expected '{templatedRef}'); it may point at a stale library path.");
+                else
+                    File.WriteAllText(csprojPath, rewritten);
             }
             var project = (SolutionProject)Package.LoadProject(log, csprojPath);
             project.Type = ProjectType.Executable;

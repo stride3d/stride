@@ -71,22 +71,21 @@ public abstract record SymbolType()
         static SymbolType ResolveReturnType(TypeName? templateTypeName)
             => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!;
 
-        // Returns only the scalar element type — required for OpTypeImage sampled type and intrinsic base-type matching.
-        static ScalarType ResolveScalarType(TypeName? templateTypeName)
+        // Typed buffers only allow scalar/vector element types.
+        static SymbolType ResolveBufferReturnType(TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.Type ?? ScalarType.Float;
+            var templateType = templateTypeName?.Type ?? new VectorType(ScalarType.Float, 4);
             return templateType switch
             {
-                VectorType v => v.BaseType,
-                ScalarType s => s,
-                _ => throw new NotSupportedException($"Unsupported template type {templateType} for scalar resolution"),
+                VectorType or ScalarType => templateType,
+                _ => throw new NotSupportedException($"Unsupported template type {templateType} for Buffer"),
             };
         }
 
         SymbolType? foundType = name switch
         {
-            "Buffer" => new BufferType(ResolveScalarType(templateTypeName)),
-            "RWBuffer" => new BufferType(ResolveScalarType(templateTypeName), true),
+            "Buffer" => new BufferType(ResolveBufferReturnType(templateTypeName)),
+            "RWBuffer" => new BufferType(ResolveBufferReturnType(templateTypeName), true),
 
             "ByteAddressBuffer" => new ByteAddressBufferType(false),
             "RWByteAddressBuffer" => new ByteAddressBufferType(true),
@@ -314,7 +313,7 @@ public sealed partial record ConsumeStructuredBufferType(SymbolType BaseType) : 
     public override string ToString() => $"ConsumeStructuredBuffer<{BaseType}>";
 }
 
-public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed = false) : SymbolType()
+public sealed partial record BufferType(SymbolType BaseType, bool WriteAllowed = false) : SymbolType()
 {
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}Buffer<{BaseType}>";
 }

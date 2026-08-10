@@ -24,7 +24,7 @@ jobs:
     # Windows runner for the preinstalled nuget.exe (nuspec-based pack, no csproj).
     runs-on: windows-2025-vs2026
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: build/deps/llvm-windows
 
@@ -65,7 +65,7 @@ jobs:
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Stride.Dependencies.LLVM.Windows.nupkg
           path: nupkg/*.nupkg
@@ -80,7 +80,7 @@ jobs:
         run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Stride.Dependencies.LLVM.Windows.nupkg
 

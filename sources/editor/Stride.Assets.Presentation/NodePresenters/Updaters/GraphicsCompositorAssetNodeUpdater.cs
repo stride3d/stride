@@ -75,7 +75,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
         {
             if (root.PropertyProvider is GraphicsCompositorViewModel)
             {
-                root.Children.Where(x => x.Name != ArchetypeNodeUpdater.ArchetypeNodeName).ForEach(x => x.IsVisible = false);
+                root.Children.Where(x => x.Name != ArchetypeNodeUpdater.ArchetypeNodeName && x.Name != AssetReplacesNodeUpdater.ReplacesNodeName).ForEach(x => x.IsVisible = false);
             }
             base.FinalizeTree(root);
         }

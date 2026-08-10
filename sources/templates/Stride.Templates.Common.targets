@@ -1,6 +1,7 @@
 <Project>
   <!--
-    Shared logic for Stride.Templates.Games / Stride.Templates.Games.Starters / Stride.Templates.Samples.
+    Shared logic for Stride.Templates.Games / Stride.Templates.Games.Starters / Stride.Templates.Samples /
+    Stride.Templates.AssetPacks.
     Imported by each per-package csproj; the csproj supplies PackageId / PackageTags /
     StrideSampleTemplate items, this file does everything else (version derivation,
     preprocess+aggregate pipeline, auto-pack-deploy, CI safeguards).

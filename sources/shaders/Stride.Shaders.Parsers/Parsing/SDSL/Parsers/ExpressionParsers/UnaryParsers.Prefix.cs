@@ -67,7 +67,7 @@ public record struct PrefixParser : IParser<Expression>
                 }
                 if (op == Operator.Minus && lit is FloatLiteral floatLit)
                 {
-                    parsed = new FloatLiteral(floatLit.Suffix, -floatLit.DoubleValue, floatLit.Exponent, scanner[position..scanner.Position]);
+                    parsed = new FloatLiteral(floatLit.Suffix, -floatLit.DoubleValue, scanner[position..scanner.Position]);
                     return true;
                 }
 

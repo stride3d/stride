@@ -313,6 +313,13 @@ namespace Stride.Games
         protected override void OnClientSizeChanged(EventArgs e)
         {
             base.OnClientSizeChanged(e);
+
+            if (ClientSize.Width <= 0 || ClientSize.Height <= 0)
+            {
+                isSizeChangedWithoutResizeBegin = true;
+                return;
+            }
+
             if (!isUserResizing && (isSizeChangedWithoutResizeBegin || cachedSize != Size))
             {
                 isSizeChangedWithoutResizeBegin = false;
@@ -344,7 +351,7 @@ namespace Stride.Games
                         Rectangle rect;
 
                         GetClientRect(m.HWnd, out rect);
-                        if (rect.Bottom - rect.Top == 0)
+                        if (rect.Right - rect.Left <= 0 || rect.Bottom - rect.Top <= 0)
                         {
                             // Rapidly clicking the task bar to minimize and restore a window
                             // can cause a WM_SIZE message with SIZE_RESTORED when 

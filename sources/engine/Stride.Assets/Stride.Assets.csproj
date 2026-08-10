@@ -72,24 +72,12 @@
     <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <!-- Asset compiler ffmpeg CLI — ship every RID under runtimes/<rid>/native/ so the package
-         is portable across hosts. ToolLocator resolves the right one at runtime via the current RID. -->
-    <Content Include="..\..\..\deps\FFmpeg\win-x64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-x64\native\">
-      <Link>runtimes\win-x64\native\ffmpeg.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\deps\FFmpeg\win-arm64\ffmpeg.exe" Pack="true" PackagePath="runtimes\win-arm64\native\">
-      <Link>runtimes\win-arm64\native\ffmpeg.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\deps\FFmpeg\linux-x64\ffmpeg" Pack="true" PackagePath="runtimes\linux-x64\native\">
-      <Link>runtimes\linux-x64\native\ffmpeg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\deps\FFmpeg\osx-arm64\ffmpeg" Pack="true" PackagePath="runtimes\osx-arm64\native\">
-      <Link>runtimes\osx-arm64\native\ffmpeg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <!-- Asset compiler ffmpeg CLI — one native per RID under runtimes/<rid>/native/, deployed through the
+         Stride native-deps (.ssdeps) mechanism like the msdfgen natives above. ToolLocator resolves the
+         host RID at runtime, and the package ships every RID for portability. -->
+    <StrideNativeLib Include="..\..\..\deps\FFmpeg\**\ffmpeg*">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
     <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />

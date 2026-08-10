@@ -26,27 +26,55 @@ public class YamlAssetSerializer : IAssetSerializer, IAssetSerializerFactory
         return yamlMetadata;
     }
 
-    public object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata)
+    public object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null)
     {
-        var result = AssetYamlSerializer.Default.Deserialize(stream, null, log != null ? new SerializerContextSettings { Logger = log } : null, out aliasOccurred, out var properties);
+        // Pass the namespace so the reference serializers can add the /Namespace/ prefix back to
+        // same-package URLs (which were saved bare) as each reference is read - see ReferenceSerializationHelper.
+        SerializerContextSettings? settings = null;
+        if (log != null || assetNamespace != null)
+        {
+            settings = new SerializerContextSettings { Logger = log };
+            if (assetNamespace != null)
+                settings.Properties.Add(AssetObjectSerializerBackend.AssetNamespaceKey, assetNamespace);
+        }
+        var result = AssetYamlSerializer.Default.Deserialize(stream, null, settings, out aliasOccurred, out var properties);
         yamlMetadata = CreateAndProcessMetadata(properties, result, clearBrokenObjectReferences, log);
         return result;
     }
 
-    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null)
+    public void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
         var settings = new SerializerContextSettings(log);
-        var overrides = yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
+        if (assetNamespace is not null)
+        {
+            settings.Properties.Add(AssetObjectSerializerBackend.AssetNamespaceKey, assetNamespace);
+        }
+        // Serialization mutates the metadata paths in place (AssetPartCollectionSerializer rewrites
+        // part collection indices between the guid keys and the serialized list indices). Work on a
+        // copy so the asset's attached metadata keeps its canonical (guid-keyed) form.
+        // A shallow copy is enough: FixupPaths builds fresh path objects rather than mutating the
+        // existing ones, so the original entries stay valid.
+        var overrides = Clone(yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey));
         if (overrides != null)
         {
             settings.Properties.Add(AssetObjectSerializerBackend.OverrideDictionaryKey, overrides);
         }
-        var objectReferences = yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey);
+        var objectReferences = Clone(yamlMetadata?.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey));
         if (objectReferences != null)
         {
             settings.Properties.Add(AssetObjectSerializerBackend.ObjectReferencesKey, objectReferences);
         }
         AssetYamlSerializer.Default.Serialize(stream, asset, null, settings);
+    }
+
+    private static YamlAssetMetadata<T>? Clone<T>(YamlAssetMetadata<T>? source)
+    {
+        if (source == null)
+            return null;
+        var copy = new YamlAssetMetadata<T>();
+        foreach (var entry in source)
+            copy.Set(entry.Key, entry.Value);
+        return copy;
     }
 
     public IAssetSerializer TryCreate(string assetFileExtension)

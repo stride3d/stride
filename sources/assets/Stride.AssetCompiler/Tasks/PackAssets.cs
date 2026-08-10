@@ -17,7 +17,7 @@ namespace Stride.AssetCompiler.Tasks
 {
     public static class PackAssetsHelper
     {
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null)
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null, string assetNamespace = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -223,6 +223,11 @@ namespace Stride.AssetCompiler.Tasks
 
             foreach (var rootAsset in package.RootAssets)
                 newPackage.RootAssets.Add(rootAsset);
+
+            // Packed sdpkg stores the resolved namespace name (default = the authored package name),
+            // never sentinels: the packed name is authoritative for consumers.
+            var assetNamespaceDeclaration = !string.IsNullOrEmpty(assetNamespace) ? assetNamespace : package.AssetNamespace;
+            newPackage.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespaceDeclaration, package.Meta.Name);
 
             // Host-loadable asset assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg).
             // Each path is lib/<tfm>/<name>.dll (built by the pack target); tag the entry with its TFM

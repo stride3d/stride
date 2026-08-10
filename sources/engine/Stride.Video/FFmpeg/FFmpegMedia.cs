@@ -18,7 +18,7 @@ namespace Stride.Video.FFmpeg
     /// <summary>
     /// Represents a media, i.e. a context with a collection of streams and associated codecs from a unique source.
     /// </summary>
-    /// <seealso cref="FFmpeg.AutoGen.AVFormatContext"/>
+    /// <seealso cref="global::FFmpeg.AutoGen.AVFormatContext"/>
     public sealed unsafe class FFmpegMedia : IDisposable
     {
         public static Logger Logger = GlobalLogger.GetLogger(nameof(FFmpegMedia));

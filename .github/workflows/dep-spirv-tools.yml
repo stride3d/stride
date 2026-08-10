@@ -41,7 +41,7 @@ jobs:
     name: Build SPIRV-Tools (Windows x64)
     runs-on: windows-2025-vs2026
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -72,7 +72,7 @@ jobs:
           mkdir spirv-tools-out
           Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-win-x64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ jobs:
     name: Build SPIRV-Tools (Windows ARM64)
     runs-on: windows-2025-vs2026
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -111,7 +111,7 @@ jobs:
           mkdir spirv-tools-out
           Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-win-arm64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ jobs:
     name: Build SPIRV-Tools (Linux x64)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -147,7 +147,7 @@ jobs:
           mkdir -p spirv-tools-out
           cp _build/libstride_spirv_tools.so spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-linux-x64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -157,7 +157,7 @@ jobs:
     name: Build SPIRV-Tools (macOS ARM64)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -181,7 +181,7 @@ jobs:
           mkdir -p spirv-tools-out
           cp _build/libstride_spirv_tools.dylib spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-osx-arm64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ jobs:
     name: Build SPIRV-Tools (iOS ARM64)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -225,7 +225,7 @@ jobs:
           mkdir -p spirv-tools-out
           cp _build/libstride_spirv_tools.dylib spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-ios-arm64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -239,7 +239,7 @@ jobs:
     name: Build SPIRV-Tools (iOS Simulator ARM64)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -266,7 +266,7 @@ jobs:
           mkdir -p spirv-tools-out
           cp _build/libstride_spirv_tools.dylib spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-iossimulator-arm64, path: spirv-tools-out/ }
 
   # ---------------------------------------------------------------------------
@@ -282,7 +282,7 @@ jobs:
           - { abi: arm64-v8a, rid: android-arm64 }
           - { abi: x86_64,    rid: android-x64   }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
@@ -311,7 +311,7 @@ jobs:
           mkdir -p spirv-tools-out
           cp _build/libstride_spirv_tools.so spirv-tools-out/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: spirv-tools-${{ matrix.rid }}
           path: spirv-tools-out/
@@ -331,7 +331,7 @@ jobs:
       - build-android
     runs-on: windows-2025-vs2026
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Clone SPIRV-Tools (for commit hash)
         shell: pwsh
@@ -342,7 +342,7 @@ jobs:
           git -C spirv-tools-src checkout FETCH_HEAD
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with: { path: artifacts, pattern: spirv-tools-* }
 
       - name: Stage native payload into csproj
@@ -368,7 +368,7 @@ jobs:
             -p:RepositoryCommit=$commitHash `
             -o nupkg
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: Stride.Dependencies.SPIRVTools.nupkg, path: nupkg/*.nupkg }
 
   publish:
@@ -380,7 +380,7 @@ jobs:
       - name: Install signing tool
         run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { name: Stride.Dependencies.SPIRVTools.nupkg }
 
       - name: Sign NuGet package

@@ -74,7 +74,7 @@ public abstract class DataSerializer<T> : DataSerializer
     public override bool IsBlittable => false;
 
     /// <inheritdoc/>
-    public override void Serialize(ref object obj, ArchiveMode mode, SerializationStream stream)
+    public sealed override void Serialize(ref object obj, ArchiveMode mode, SerializationStream stream)
     {
         var objT = obj == null ? default : (T)obj;
         Serialize(ref objT, mode, stream);
@@ -93,9 +93,11 @@ public abstract class DataSerializer<T> : DataSerializer
     }
 
     /// <inheritdoc/>
-    public override void PreSerialize(ref object obj, ArchiveMode mode, SerializationStream stream)
+    public sealed override void PreSerialize(ref object obj, ArchiveMode mode, SerializationStream stream)
     {
-        var objT = obj == null ? default : (T)obj;
+        var objT = obj is T t ? t
+            : mode == ArchiveMode.Deserialize ? default // pre-existing value incompatible with the serialized type; PreSerialize will create the right one
+            : (T)obj;
         PreSerialize(ref objT, mode, stream);
         obj = objT;
     }

@@ -96,7 +96,7 @@ jobs:
           free -h
 
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: .github
       - uses: ./.github/actions/stride-checkout
@@ -114,7 +114,7 @@ jobs:
         # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk
         # strips it from ProjectReference dispatches so the value never fragments build
         # cache keys; Stride.Native.targets enforces a minimum version at compile time).
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
@@ -229,7 +229,7 @@ jobs:
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
         if: failure() || inputs.upload-binlog
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-binlog-android-game
           path: build.binlog
@@ -277,7 +277,7 @@ jobs:
 
       - name: Publish Test Report
         if: always()
-        uses: phoenix-actions/test-reporting@v15
+        uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Test Report: Android Game (Vulkan)'
           path: TestResults/*.trx
@@ -290,7 +290,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-android-vulkan
           path: TestResults/
@@ -298,7 +298,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-artifacts-android-vulkan
           # Single path so upload-artifact uses tests/local/ as the common ancestor: per-suite

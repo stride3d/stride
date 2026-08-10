@@ -16,7 +16,13 @@ public enum ContentLinkType
     Reference = 1,
 
     /// <summary>
+    /// The source asset replaces the target (<see cref="Asset.Replaces"/>). A design-time link only:
+    /// it is excluded from the default <see cref="Reference"/> queries, so it is never a build dependency.
+    /// </summary>
+    Replace = 2,
+
+    /// <summary>
     /// All type of links.
     /// </summary>
-    All = Reference,
+    All = Reference | Replace,
 }

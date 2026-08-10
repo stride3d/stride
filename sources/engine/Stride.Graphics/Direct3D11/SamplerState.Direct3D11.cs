@@ -21,7 +21,7 @@ public unsafe partial class SamplerState
     ///   Gets the internal Direct3D 11 Sampler State object.
     /// </summary>
     /// <remarks>
-    ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   If the reference is going to be kept, use <c>AddRef()</c> on the COM pointer to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     internal ComPtr<ID3D11SamplerState> NativeSamplerState => ComPtrHelpers.ToComPtr(samplerState);

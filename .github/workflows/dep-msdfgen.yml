@@ -41,20 +41,20 @@ jobs:
           - arch: ARM64
             rid: win-arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
 
       - name: Checkout msdfgen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
           ref: ${{ github.event.inputs.msdfgen-version }}
           path: msdfgen-src
 
       - name: Checkout FreeType
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: freetype/freetype
           ref: ${{ github.event.inputs.freetype-version }}
@@ -94,7 +94,7 @@ jobs:
           Copy-Item _build/Release/stride_msdfgen.dll "out/${{ matrix.rid }}/"
           Copy-Item _build/Release/stride_msdfgen.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
@@ -103,20 +103,20 @@ jobs:
     name: Build msdfgen (Linux x64)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
 
       - name: Checkout msdfgen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
           ref: ${{ github.event.inputs.msdfgen-version }}
           path: msdfgen-src
 
       - name: Checkout FreeType
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: freetype/freetype
           ref: ${{ github.event.inputs.freetype-version }}
@@ -154,7 +154,7 @@ jobs:
           mkdir -p out/linux-x64
           cp _build/stride_msdfgen.so out/linux-x64/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-linux-x64
           path: out/linux-x64/
@@ -163,20 +163,20 @@ jobs:
     name: Build msdfgen (macOS arm64)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: stride-src
           sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
 
       - name: Checkout msdfgen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
           ref: ${{ github.event.inputs.msdfgen-version }}
           path: msdfgen-src
 
       - name: Checkout FreeType
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: freetype/freetype
           ref: ${{ github.event.inputs.freetype-version }}
@@ -213,7 +213,7 @@ jobs:
           mkdir -p out/osx-arm64
           cp _build/stride_msdfgen.dylib out/osx-arm64/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-osx-arm64
           path: out/osx-arm64/
@@ -224,7 +224,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout msdfgen (for commit hash)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
           ref: ${{ github.event.inputs.msdfgen-version }}
@@ -232,7 +232,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
 
@@ -257,7 +257,7 @@ jobs:
       - name: List contents
         run: find stride_msdfgen-out -type f | sort
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-all-platforms
           path: stride_msdfgen-out/

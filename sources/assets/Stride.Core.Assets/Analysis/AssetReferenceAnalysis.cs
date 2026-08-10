@@ -115,7 +115,8 @@ public static class AssetReferenceAnalysis
                 AddLink(attachedReference,
                     (guid, location) =>
                     {
-                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                        // Concrete content type from the item, not descriptor.ElementType (may be an interface).
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(item!.GetType(), guid.Value, location) : null;
                         array.SetValue(newValue, index);
                         return newValue;
                     });
@@ -165,7 +166,8 @@ public static class AssetReferenceAnalysis
             {
                 AddLink(attachedReference, (guid, location) =>
                 {
-                    var link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                    // Concrete content type from the item, not descriptor.ElementType (may be an interface).
+                    var link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(item!.GetType(), guid.Value, location) : null;
                     descriptor.SetValue(collection, index, link);
                     return link;
                 });
@@ -210,7 +212,8 @@ public static class AssetReferenceAnalysis
                 AddLink(attachedReference,
                     (guid, location) =>
                     {
-                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ValueType, guid.Value, location) : null;
+                        // Concrete content type from the value, not descriptor.ValueType (may be an interface).
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(value!.GetType(), guid.Value, location) : null;
                         descriptor.SetValue(dictionaryObj, key, newValue);
                         return newValue;
                     });
@@ -304,7 +307,8 @@ public static class AssetReferenceAnalysis
                 AddLink(attachedReference,
                     (guid, location) =>
                     {
-                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(member.Type, guid.Value, location) : null;
+                        // Concrete content type from the value, not member.Type (may be an interface).
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(value!.GetType(), guid.Value, location) : null;
                         member.Set(container, newValue);
                         return newValue;
                     });

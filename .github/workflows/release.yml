@@ -88,13 +88,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0  # Full history + tags needed for tag-based versioning
           fetch-tags: true
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -154,9 +154,10 @@ jobs:
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-          # Guard against a malformed SharedAssemblyInfo.cs slipping a weird version into the package name.
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
-            echo "::error::Detected package version '$version' is not a valid version - check SharedAssemblyInfo.cs"
+          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview + digits suffix. This
+          # blocks typos like '-brta4' and any stray suffix from a malformed SharedAssemblyInfo.cs.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1) - check SharedAssemblyInfo.cs"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
@@ -176,15 +177,15 @@ jobs:
           fi
 
       - name: Upload NuGet packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: packages
+          name: stride-packages-${{ steps.version.outputs.version }}
           path: bin/packages/*.nupkg
           if-no-files-found: error
 
 
       - name: Upload build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
         with:
           name: build-log

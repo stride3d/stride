@@ -36,7 +36,7 @@ namespace Stride.Assets.Presentation.Preview
         protected bool VerifyAssetConsistency()
         {
             // Get absolute path of asset source on disk
-            var assetDirectory = (string)AssetItem.Location.GetParent();
+            var assetDirectory = AssetItem.FullPath.GetParent();
             var assetSource = UPath.Combine(assetDirectory, Asset.Source ?? "");
 
             // Check that the source file exist on the disk.

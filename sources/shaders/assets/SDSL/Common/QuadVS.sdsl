@@ -1,0 +1,22 @@
+// Passthrough vertex shader used by the Vulkan test renderer for pixel-shader-only tests
+// (the D3D11 renderer uses a built-in HLSL equivalent).
+
+namespace Stride.Shaders.Tests;
+
+shader QuadVS
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    // Unused: the mixer requires a pixel shader in the program, but only the vertex stage is bound
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0, 0, 0, 0);
+    }
+}

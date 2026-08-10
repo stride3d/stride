@@ -18,9 +18,9 @@ on:
   # No paths filter here: the Gate job is a required check, so CI must report on every PR.
   # The changes job's filters skip the actual work for out-of-scope PRs.
   pull_request:
-    # labeled/unlabeled so a `ci-run-on-draft` label takes effect immediately on a draft —
-    # without them main.yml wouldn't re-evaluate its draft gate until the next push.
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    # Label changes are handled by pr-label-suites.yml, not here (to avoid restarting
+    # many workflows on label change); a `ci-run-on-draft` label takes effect on the next push.
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       ios:
