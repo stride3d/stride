@@ -201,6 +201,10 @@ public static class CrashReportSender
     /// </summary>
     private static SentryEvent Anonymize(SentryEvent sentryEvent)
     {
+        // Keep only the install id, no location. A concrete non-routable IP is used rather than null so
+        // Sentry does not fall back to the forwarded client IP for geolocation; 0.0.0.0 geolocates to nothing.
+        sentryEvent.User.IpAddress = "0.0.0.0";
+
         if (sentryEvent.Message != null)
         {
             sentryEvent.Message.Formatted = CrashReportAnonymizer.Scrub(sentryEvent.Message.Formatted);
