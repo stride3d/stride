@@ -52,7 +52,7 @@ public class RecastMeshSystem : GameSystemBase
         _shapeCache = registry.GetSafeServiceAs<ShapeCacheSystem>();
 
         var gameSettings = registry.GetSafeServiceAs<IGameSettingsService>();
-        _navSettings = gameSettings.Settings.Configurations.Get<RecastNavigationConfiguration>() ?? new();
+        _navSettings = gameSettings.Settings.GetOrCreateConfiguration<RecastNavigationConfiguration>() ?? new();
     }
 
     public override void Update(GameTime time)
