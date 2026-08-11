@@ -62,7 +62,7 @@ namespace Stride.Engine.Design
         /// <typeparam name="T">The type of the configuration to retrieve.</typeparam>
         /// <returns>Returns the configuration.</returns>
         /// <remarks>If <see cref="Configurations"/> doesn't contain the configuration, the method will return a newly created instance and add it to the list, so that future calls will keep returning the same instance.</remarks>
-        public T GetConfiguration<T>() where T : Configuration, new()
+        public T GetOrCreateConfiguration<T>() where T : Configuration, new()
         {
             var config = Configurations.OfType<T>().FirstOrDefault();
             if (config is null)

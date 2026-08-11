@@ -39,7 +39,7 @@ namespace Stride.Physics
         public override void Initialize()
         {
             var gameSettings = Services.GetService<IGameSettingsService>()?.Settings;
-            physicsConfiguration = gameSettings?.GetConfiguration<PhysicsSettings>() ?? new PhysicsSettings();
+            physicsConfiguration = gameSettings?.GetOrCreateConfiguration<PhysicsSettings>() ?? new PhysicsSettings();
         }
 
         protected override void Destroy()
