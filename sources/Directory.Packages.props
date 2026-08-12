@@ -81,6 +81,7 @@
     <!-- 7.3.1 matches what .NET 10 SDK 10.0.202 ships. -->
     <PackageVersion Include="NuGet.Commands" Version="7.3.1" />
     <PackageVersion Include="NuGet.Configuration" Version="7.3.1" />
+    <PackageVersion Include="NuGet.Frameworks" Version="7.3.1" />
     <PackageVersion Include="NuGet.PackageManagement" Version="7.3.1" />
     <PackageVersion Include="NuGet.ProjectModel" Version="7.3.1" />
     <PackageVersion Include="NuGet.Protocol" Version="7.3.1" />
