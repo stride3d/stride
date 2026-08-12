@@ -56,7 +56,7 @@ namespace Stride.Engine.Design
         /// <summary>
         /// Gets or sets configuration for the actual running platform as compiled during build
         /// </summary>
-        public List<Configuration> Configurations { get; set; }
+        public List<Configuration> Configurations { get; set; } = [];
 
         /// <summary>Retrieves a configuration of a given type.</summary>
         /// <typeparam name="T">The type of the configuration to retrieve.</typeparam>

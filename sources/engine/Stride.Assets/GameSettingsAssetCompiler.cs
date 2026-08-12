@@ -77,14 +77,9 @@ namespace Stride.Assets
                     DoubleViewSplashScreen = Parameters.DoubleViewSplashScreen,
                     EffectCompilation = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation),
                     RecordUsedEffects = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects),
-                    Configurations = [],
+                    Configurations = Parameters.Defaults.Where(x => !x.OfflineOnly).ToList(),
                     CompilationMode = compilationMode
                 };
-
-                foreach (var configuration in Parameters.Defaults.Where(x => !x.OfflineOnly))
-                {
-                    result.Configurations.Add(configuration);
-                }
 
                 //make sure we modify platform specific files to set the wanted orientation
                 if (package.Container is SolutionProject solutionProject)

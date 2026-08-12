@@ -6,12 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using TextBox = System.Windows.Controls.TextBox;
 using Microsoft.TemplateEngine.Abstractions;
 using Stride.Assets.Templates;
 using Stride.Core.Presentation.Controls;
-using Stride.Data;
 using SDDialogResult = Stride.Core.Presentation.Services.DialogResult;
 using Stride.Core;
 
