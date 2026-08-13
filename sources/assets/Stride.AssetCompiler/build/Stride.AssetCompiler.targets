@@ -28,9 +28,9 @@
 
     <Error Condition="'@(_StrideVisualCRuntimeNotInstalled)' != ''" Text="@(_StrideVisualCRuntimeNotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
   </Target>
-  <!--
+  <!-- 
   *****************************************************************************************************************************
-  Compile Asset
+  Compile Asset 
   *****************************************************************************************************************************
   -->
   <!-- Asset compile hooks directly via BeforeTargets="CopyFilesToOutputDirectory" on the
@@ -115,7 +115,7 @@
     <StrideSortItems InputItems="@(StrideAssetInputUnsorted)">
       <Output TaskParameter="OutputItems" ItemName="StrideAssetInput" />
     </StrideSortItems>
-
+      
     <!-- Write expanded list (use WriteOnlyWhenDifferent to keep timestamp if no changes) -->
     <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(StrideAssetInput)" WriteOnlyWhenDifferent="true"/>
 
@@ -144,7 +144,7 @@
       <UpToDateCheckOutput Include="@(StrideAssetOutput)" Set="StrideAssets" />-->
     </ItemGroup>
   </Target>
-
+  
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- $(StrideRoot) anchors both in-tree consumers (set by sources/Directory.Build.props)
@@ -274,7 +274,7 @@
       </BundleResource>
     </ItemGroup>
   </Target>
-
+  
   <!-- Publish: always deploy files as content -->
   <Target Name="_StrideDeployAssetsPublish" DependsOnTargets="StrideCompileAsset" AfterTargets="ComputeFilesToPublish">
     <ItemGroup>
