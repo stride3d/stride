@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Settings;
 using Stride.Core;
@@ -34,9 +35,10 @@ public static class DotNetNewTemplateBridge
     /// <summary>
     /// Package IDs the bridge tries to resolve via <see cref="PackageStore"/> on startup.
     /// Only <c>Stride.Templates.Games</c> (NewGame) ships in the GameStudio installer; the
-    /// other two are dev-only here (present in <c>%LocalAppData%\stride\nugetdev</c> when the
+    /// others are dev-only here (present in <c>%LocalAppData%\stride\nugetdev</c> when the
     /// solution has been built, absent in installer-only setups). End users reach Starters /
-    /// Samples via the editor's template store (future) or CLI <c>dotnet new install</c>; this
+    /// Samples via the editor's template store (future) or CLI <c>dotnet new install</c>, and
+    /// AssetPacks via the on-demand download in <see cref="GetAssetPackTemplatesAsync"/>; this
     /// list just controls which packages the bridge proactively probes on startup. Missing
     /// packages are tolerated (per-package warning, no error).
     /// </summary>
@@ -45,7 +47,16 @@ public static class DotNetNewTemplateBridge
         "Stride.Templates.Games",
         "Stride.Templates.Games.Starters",
         "Stride.Templates.Samples",
+        AssetPacksPackageId,
     };
+
+    /// <summary>
+    /// Package holding the asset-pack item templates offered by the New Game flow. Probed at
+    /// startup like the others; additionally fetched on demand by
+    /// <see cref="GetAssetPackTemplatesAsync"/> when a game template offering packs is
+    /// instantiated on a machine that doesn't have it yet.
+    /// </summary>
+    public const string AssetPacksPackageId = "Stride.Templates.AssetPacks";
 
     private static DotNetNewTemplateRegistry? registry;
     private static readonly object InitLock = new();
@@ -108,6 +119,12 @@ public static class DotNetNewTemplateBridge
             var synthetic = new Package { FullPath = new UFile("Stride.DotNetNewTemplates.synthetic") };
             foreach (var template in templates)
             {
+                // Item templates (asset packs) are not stand-alone projects — they surface as
+                // checkboxes inside the parameter dialog of templates that offer them, not as
+                // entries in the New-Project list.
+                if (IsItemTemplate(template))
+                    continue;
+
                 // Cross-ref by template.json identity → matches the sdtpl Id (we set
                 // `identity = sdtpl.Id` in the preprocessor) so the dict lookup hits.
                 sdtplsByIdentity.TryGetValue(template.Identity, out var source);
@@ -131,6 +148,7 @@ public static class DotNetNewTemplateBridge
                         : TemplateScope.Session,
                     TemplateIdentity = template.Identity,
                     TemplateShortName = shortName ?? string.Empty,
+                    OffersAssetPacks = sdtpl?.HasParameter("assetPacks") == true,
                     // FullPath must be non-null: TemplateDescriptionViewModel calls
                     // Template.FullPath.GetFullDirectory() unconditionally when constructing
                     // image paths. We point it at a synthetic file inside the per-template
@@ -160,13 +178,65 @@ public static class DotNetNewTemplateBridge
     }
 
     /// <summary>
+    /// The asset-pack item templates available for the New Game flow, in registry order. When
+    /// none are installed and <paramref name="allowDownload"/> is true, resolves the
+    /// <see cref="AssetPacksPackageId"/> package via <see cref="PackageStore"/> — downloading it
+    /// from the configured NuGet sources if this machine doesn't have it — and installs it into
+    /// the registry. Returns an empty list when the package can't be obtained (e.g. offline);
+    /// callers degrade by not offering packs.
+    /// </summary>
+    public static async Task<IReadOnlyList<ITemplateInfo>> GetAssetPackTemplatesAsync(bool allowDownload = true)
+    {
+        var logger = GlobalLogger.GetLogger("DotNetNewTemplateBridge");
+        if (registry == null)
+            return [];
+
+        var packs = FilterAssetPacks(await registry.GetTemplatesAsync().ConfigureAwait(false));
+        if (packs.Count > 0 || !allowDownload)
+            return packs;
+
+        var version = new PackageVersion(DesiredVersionFor(AssetPacksPackageId));
+        var versionRange = new PackageVersionRange(version, true, version, true);
+        if (PackageStore.Instance.GetPackageDirectory(AssetPacksPackageId, versionRange) is null)
+        {
+            logger.Info($"{AssetPacksPackageId} {version} not present locally; downloading...");
+            try
+            {
+                await PackageStore.Instance.InstallPackage(AssetPacksPackageId, version).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                logger.Warning($"Could not download {AssetPacksPackageId} {version}: {e.Message}. Asset packs will be unavailable.");
+                return [];
+            }
+        }
+
+        lock (InitLock)
+        {
+            // Same path as startup probing: resolves the package dir and installs it into the
+            // registry (no TemplateManager registration — item templates stay out of the
+            // New-Project list).
+            InstallBundledPackage(AssetPacksPackageId, new Dictionary<string, TemplateMetadataSource>(), logger);
+        }
+        return FilterAssetPacks(await registry.GetTemplatesAsync().ConfigureAwait(false));
+    }
+
+    /// <summary>Asset packs = item templates classified <c>AssetPacks</c> (see the preprocessor's item-template emission).</summary>
+    private static IReadOnlyList<ITemplateInfo> FilterAssetPacks(IReadOnlyList<ITemplateInfo> templates)
+        => templates.Where(t => IsItemTemplate(t) && t.Classifications.Contains("AssetPacks", StringComparer.Ordinal)).ToList();
+
+    /// <summary>True for dotnet new item templates (<c>"tags": { "type": "item" }</c>).</summary>
+    private static bool IsItemTemplate(ITemplateInfo template)
+        => template.TagsCollection.TryGetValue("type", out var type) && string.Equals(type, "item", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// The package version this build expects for <paramref name="packageId"/>: content packages
-    /// (Samples, Starters) use <see cref="StrideVersion.SamplesVersion"/> + the engine NuGet suffix;
+    /// (Samples, Starters, AssetPacks) use <see cref="StrideVersion.SamplesVersion"/> + the engine NuGet suffix;
     /// everything else tracks <see cref="StrideVersion.NuGetVersion"/>.
     /// </summary>
     private static string DesiredVersionFor(string packageId)
     {
-        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters";
+        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters" or AssetPacksPackageId;
         return contentVersioned
             ? StrideVersion.SamplesVersion + StrideVersion.NuGetVersionSuffix
             : StrideVersion.NuGetVersion;

@@ -10,12 +10,20 @@ using Stride.Core.Yaml.Serialization;
 namespace Stride.Assets.Templates;
 
 /// <summary>
-/// Subset of <c>!TemplateSample</c> / <c>!Template</c> fields the preprocessor cares about.
-/// Loaded from each sample's <c>.sdtpl</c> file; informs template.json emission and (later)
-/// the aggregated <c>templates.sdtpls</c> shipped at the package root for GameStudio.
+/// Subset of <c>!TemplateSample</c> / <c>!Template</c> / <c>!TemplateAssetPack</c> fields the
+/// preprocessor cares about. Loaded from each sample's <c>.sdtpl</c> file; informs template.json
+/// emission and (later) the aggregated <c>templates.sdtpls</c> shipped at the package root for
+/// GameStudio.
 /// </summary>
 internal sealed class SdtplMetadata
 {
+    /// <summary>
+    /// True when the .sdtpl root tag is <c>!TemplateAssetPack</c>: the input is an asset pack
+    /// (Assets/ + Resources/ dropped into an existing project) packed as a dotnet new item
+    /// template, not a full project template.
+    /// </summary>
+    public bool IsAssetPack { get; set; }
+
     public Guid? Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
@@ -30,8 +38,9 @@ internal sealed class SdtplMetadata
     /// <summary>
     /// Per-template opt-in to optional preprocessor-emitted parameters. Values are case-
     /// insensitive; currently recognized: <c>HDR</c>, <c>graphicsProfile</c>, <c>orientation</c>.
-    /// Unknown entries are kept (forward-compat for future parameter names) but ignored at
-    /// emission time.
+    /// <c>assetPacks</c> is editor-level only (offers the asset-pack checkboxes in GameStudio's
+    /// parameter dialog; no template.json parameter is emitted for it). Unknown entries are kept
+    /// (forward-compat for future parameter names) but ignored at emission time.
     /// </summary>
     public List<string> Parameters { get; } = new();
 
@@ -74,7 +83,10 @@ internal sealed class SdtplMetadata
 
     private static SdtplMetadata FromMapping(YamlMappingNode root)
     {
-        var meta = new SdtplMetadata();
+        var meta = new SdtplMetadata
+        {
+            IsAssetPack = string.Equals(root.Tag?.TrimStart('!'), "TemplateAssetPack", StringComparison.Ordinal),
+        };
         foreach (var entry in root.Children)
         {
             var key = (entry.Key as YamlScalarNode)?.Value;

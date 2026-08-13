@@ -18,9 +18,14 @@
 
   <!-- ProjectReferences trigger Build on each template project, which in turn auto-packs them
        via Stride.Templates.Common.targets' GeneratePackageOnBuild=true. Result: bin/packages
-       has all three nupkgs by the time the smoke test runs. ReferenceOutputAssembly=false
+       has all the nupkgs by the time the smoke test runs. ReferenceOutputAssembly=false
        keeps these as build-order constraints only — no compile-time assembly link. -->
   <ItemGroup>
+    <ProjectReference Include="..\..\templates\Stride.Templates.AssetPacks\Stride.Templates.AssetPacks.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>

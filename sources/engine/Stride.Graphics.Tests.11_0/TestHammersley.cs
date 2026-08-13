@@ -80,11 +80,9 @@ namespace Stride.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [SkippableFact]
+        [Fact]
         public void RunImageLoad()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-
             RunGameTest(new TestHammersley());
         }
     }

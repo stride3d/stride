@@ -159,6 +159,11 @@ internal class TemplatePreprocessor
             logger.Info($"Loaded metadata from {Path.GetFileName(sdtplPath)} (Name='{Sdtpl.Name}', Parameters=[{string.Join(", ", Sdtpl.Parameters)}])");
         }
 
+        // Asset packs (!TemplateAssetPack) are content drops, not projects — they take a reduced
+        // pipeline: stage Assets/ + Resources/, emit an item-template template.json, done.
+        if (Sdtpl?.IsAssetPack == true)
+            return RunAssetPack(sdtplPath, logger);
+
         // Stage: recursively mirror input → output. Clean output first to avoid leftover files
         // from prior runs polluting the staged tree.
         if (Directory.Exists(OutputDirectory))
@@ -266,6 +271,91 @@ internal class TemplatePreprocessor
     }
 
     /// <summary>
+    /// Reduced pipeline for <c>!TemplateAssetPack</c> inputs. An asset pack is a set of assets a
+    /// user can add to an existing game (the "Building blocks" / "Materials" checkboxes of the
+    /// New Game flow): its <c>Assets/</c> and <c>Resources/</c> subdirs are staged verbatim and
+    /// packed as a dotnet new <em>item</em> template, so instantiating into a project dir drops
+    /// the content in place. No sourceName rename (asset files keep their names/URLs), no GUID
+    /// placeholdering (every instantiation gets the same asset Ids, like the pre-dotnet-new
+    /// CopyAssetPacks flow), no prune (pack content is leaf content by design), no platform or
+    /// solution machinery.
+    /// </summary>
+    private bool RunAssetPack(string? sdtplPath, ILogger logger)
+    {
+        if (Directory.Exists(OutputDirectory))
+            Directory.Delete(OutputDirectory, recursive: true);
+        Directory.CreateDirectory(OutputDirectory!);
+
+        var staged = 0;
+        foreach (var subdir in new[] { "Assets", "Resources" })
+        {
+            var source = Path.Combine(InputPath!, subdir);
+            if (!Directory.Exists(source))
+                continue;
+            CopyDirectory(source, Path.Combine(OutputDirectory!, subdir));
+            staged++;
+        }
+        if (staged == 0)
+        {
+            logger.Error($"Asset pack input has no Assets/ or Resources/ dir: {InputPath}");
+            return false;
+        }
+        logger.Info($"Staged asset pack {InputPath} → {OutputDirectory}");
+
+        // Icon/screenshots declared in the .sdtpl (possibly outside the pack dir) land in .sdtpl/.
+        CopyExternalSdtplAssets(sdtplPath, logger);
+
+        EmitAssetPackTemplateJson();
+        logger.Info("Wrote item-template template.json");
+
+        NormalizeLineEndings(logger);
+        return true;
+    }
+
+    /// <summary>
+    /// template.json for an asset pack: a dotnet new item template with no parameters and no
+    /// symbols. Content is copied as-is into the output directory (the game library dir when
+    /// driven by GameStudio / the stride CLI).
+    /// </summary>
+    private void EmitAssetPackTemplateJson()
+    {
+        var configDir = Path.Combine(OutputDirectory!, ".template.config");
+        Directory.CreateDirectory(configDir);
+
+        var shortName = TemplateName ?? "stride-pack";
+        var identity = Sdtpl?.Id?.ToString() ?? $"Stride.Templates.{shortName}";
+        var displayName = JsonEscape(Sdtpl?.Name ?? shortName);
+        var description = JsonEscape(Sdtpl?.Description ?? string.Empty);
+        var classifications = Sdtpl?.Group is { Length: > 0 } g
+            ? string.Join(", ", g.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(p => $"\"{JsonEscape(p.Trim())}\""))
+            : "\"AssetPacks\"";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("{");
+        sb.AppendLine("  \"$schema\": \"http://json.schemastore.org/template\",");
+        sb.AppendLine("  \"author\": \"Stride\",");
+        sb.AppendLine($"  \"classifications\": [{classifications}],");
+        sb.AppendLine($"  \"identity\": \"{identity}\",");
+        sb.AppendLine($"  \"name\": \"{displayName}\",");
+        sb.AppendLine($"  \"shortName\": \"{shortName}\",");
+        if (description.Length > 0)
+            sb.AppendLine($"  \"description\": \"{description}\",");
+        sb.AppendLine("  \"tags\": { \"type\": \"item\" },");
+        sb.AppendLine("""
+          "sources": [
+            {
+              "modifiers": [
+                { "exclude": [ ".sdtpl/**" ] }
+              ]
+            }
+          ]
+        """);
+        sb.AppendLine("}");
+
+        File.WriteAllText(Path.Combine(configDir, "template.json"), sb.ToString());
+    }
+
+    /// <summary>
     /// Final-pass line-ending normalization. <c>.sln</c>/<c>.slnx</c> → CRLF (VS/dotnet write CRLF on
     /// edit; matching avoids the "Inconsistent line endings" prompt on first save). Everything
     /// else → LF (modern cross-platform convention, matches what <c>dotnet/sdk</c> templates
@@ -342,7 +432,7 @@ internal class TemplatePreprocessor
     private static readonly string[] NonEnginePackagePrefixes =
     {
         "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
-        "Stride.GraphX", "Stride.Metrics", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+        "Stride.GraphX", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
     };
 
     private static bool IsNonEnginePackage(string packageId)

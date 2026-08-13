@@ -14,6 +14,5 @@ public static class StridePackagesToSkipUpgrade
         "Stride.GraphX.WPF.Controls",
         "Stride.GNU.Gettext",
         "Stride.OpenTK",
-        "Stride.Metrics",
     ];
 }

@@ -154,7 +154,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// List of package Ids under which the main package is known. Usually just one entry, but
     /// we could have several in case there is a product name change.
     /// </summary>
-    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio", "Xenko.GameStudio", "Xenko"];
+    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio", "Stride.GameStudio.Avalonia.Desktop"];
 
     /// <summary>
     /// Package Id of the Visual Studio Integration plugin.
@@ -482,7 +482,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="packageId">Name of package to install.</param>
     /// <param name="version">Version of package to install.</param>
-    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport progress)
+    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress)
     {
         using (GetLocalRepositoryLock())
         {

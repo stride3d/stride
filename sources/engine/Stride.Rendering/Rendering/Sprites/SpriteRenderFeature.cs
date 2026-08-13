@@ -75,6 +75,11 @@ namespace Stride.Rendering.Sprites
 
             uint previousBatchState = uint.MaxValue;
 
+            // Depth writes are not possible when a read-only depth view is bound (fixed for the whole stage draw)
+            var defaultDepthStencilState = context.CommandList.DepthStencilBuffer?.IsDepthStencilReadOnly == true
+                ? DepthStencilStates.DepthRead
+                : DepthStencilStates.Default;
+
             //TODO string comparison ...?
             var isPicking = RenderSystem.RenderStages[renderViewStage.Index].Name == "Picking";
 
@@ -136,7 +141,7 @@ namespace Stride.Rendering.Sprites
                     if (renderSprite.IsAlphaCutoff)
                         currentEffect = batchContext.GetOrCreateAlphaCutoffSpriteEffect(RenderSystem.EffectSystem);
 
-                    var depthStencilState = renderSprite.IgnoreDepth ? DepthStencilStates.None : DepthStencilStates.Default;
+                    var depthStencilState = renderSprite.IgnoreDepth ? DepthStencilStates.None : defaultDepthStencilState;
 
                     var samplerState = context.GraphicsDevice.SamplerStates.LinearClamp;
                     if (renderSprite.Sampler != SpriteSampler.LinearClamp)

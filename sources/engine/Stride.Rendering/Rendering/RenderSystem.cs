@@ -431,12 +431,8 @@ namespace Stride.Rendering
                 var scissor = commandList.Scissor;
 
                 // Pass-entry barriers on the main CB (single-threaded, submitted first). Worker CBs
-                // that follow see the RT/depth layouts already at their target, so per-draw
-                // TransitionBoundResources doesn't race to claim a transition from a stale
-                // "last-submitted" layout. A few redundant no-op barriers from workers are fine.
-                // Depth transition follows the stage's declared access mode; Mixed stages are
-                // skipped (workers will transition per-pipeline and may still race — those stages
-                // should be split or handled separately).
+                // that follow see the RT/depth layouts already at their target and issue no
+                // transitions of their own. Depth transition follows the stage's declared access mode.
                 for (int i = 0; i < renderTargetCount; i++)
                 {
                     if (renderTargets[i] != null)
@@ -450,6 +446,14 @@ namespace Stride.Rendering
                             ? BarrierLayout.DepthStencilRead
                             : BarrierLayout.DepthStencilWrite);
                 }
+
+                // Let command lists know the depth buffer stays readable during this stage, so the
+                // depth attachment layout and descriptors can declare it (e.g. sampling the depth
+                // while it stays bound)
+                var depthStencilAccess = stageDepthAccess == RenderStageDepthAccess.Read
+                    ? DepthStencilAccess.Read
+                    : DepthStencilAccess.Write;
+                commandList.DepthStencilAccess = depthStencilAccess;
 
                 // Collect one command list per batch and the main one up to this point
                 if (commandLists == null || (commandLists.Length < batchCount + 1))
@@ -469,6 +473,7 @@ namespace Stride.Rendering
                     threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetsToSet);
                     threadContext.CommandList.SetViewport(viewport);
                     threadContext.CommandList.SetScissorRectangle(scissor);
+                    threadContext.CommandList.DepthStencilAccess = depthStencilAccess;
 
                     var currentStart = batchSize * batchIndex;
                     int currentEnd;

@@ -308,6 +308,17 @@ namespace Stride.Games
         {
             if (beginDrawOk && GraphicsDevice is not null)
             {
+                // Transition the back buffer to the Present layout and submit pending work
+                // before presenting, like GameBase.EndDraw does for the main presenter.
+                // Reset reopens the command list as the frame is still being recorded.
+                var commandList = Game?.GraphicsContext.CommandList;
+                if (commandList is not null)
+                {
+                    Presenter.EndDraw(commandList, present: true);
+                    commandList.Flush();
+                    commandList.Reset();
+                }
+
                 try
                 {
                     Presenter.Present();

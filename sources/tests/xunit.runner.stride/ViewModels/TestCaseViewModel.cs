@@ -50,35 +50,32 @@ public class TestCaseViewModel : TestNodeViewModel
         }
     }
 
-    string? failureMessage;
     /// <summary>Combined exception messages from the most recent run (newline-joined). Empty if the test passed or hasn't run.</summary>
     public string? FailureMessage
     {
-        get => failureMessage;
-        set => SetProperty(ref failureMessage, value);
+        get;
+        set => SetValue(ref field, value);
     }
 
-    string? failureStackTrace;
     /// <summary>Combined stack traces from the most recent run. Empty if the test passed or hasn't run.</summary>
     public string? FailureStackTrace
     {
-        get => failureStackTrace;
-        set => SetProperty(ref failureStackTrace, value);
+        get;
+        set => SetValue(ref field, value);
     }
 
-    string? output;
     /// <summary>Captured stdout/stderr produced during the most recent run.</summary>
     public string? Output
     {
-        get => output;
+        get;
         set
         {
-            SetProperty(ref output, value);
+            SetValue(ref field, value);
             OnPropertyChanged(nameof(HasOutput));
         }
     }
 
-    public bool HasOutput => !string.IsNullOrEmpty(output);
+    public bool HasOutput => !string.IsNullOrEmpty(Output);
 
     // === Image comparison (populated from ImageComparisonCompleted event in GameTestBase) ===
 

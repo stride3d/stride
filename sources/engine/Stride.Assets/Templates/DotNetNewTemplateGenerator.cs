@@ -34,6 +34,10 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     private static readonly PropertyKey<IReadOnlyDictionary<string, string>> ParameterValuesKey
         = new("ParameterValues", typeof(DotNetNewTemplateGenerator));
 
+    /// <summary>Identities of the asset-pack item templates to instantiate into the generated game library.</summary>
+    private static readonly PropertyKey<IReadOnlyList<string>> AssetPacksKey
+        = new("AssetPacks", typeof(DotNetNewTemplateGenerator));
+
     private readonly IDotNetNewParameterPrompt? prompt;
 
     /// <summary>Headless ctor (no UI). PrepareForRun returns true without collecting parameter values; callers must <see cref="SetParameters"/> on parameters.Unattended runs.</summary>
@@ -61,6 +65,16 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         parameters.SetTag(ParameterValuesKey, values);
     }
 
+    /// <summary>
+    /// Sets the asset packs (template identities) to add to the generated game for an unattended
+    /// run. Attended runs collect them from the parameter dialog.
+    /// </summary>
+    public static void SetAssetPacks(SessionTemplateGeneratorParameters parameters, IReadOnlyList<string> assetPackIdentities)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        parameters.SetTag(AssetPacksKey, assetPackIdentities);
+    }
+
     public override async Task<bool> PrepareForRun(SessionTemplateGeneratorParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters);
@@ -79,11 +93,12 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             return false;
         }
 
-        var values = await prompt.PromptAsync(template).ConfigureAwait(true);
-        if (values == null)
+        var result = await prompt.PromptAsync(template, description).ConfigureAwait(true);
+        if (result == null)
             return false;
 
-        parameters.SetTag(ParameterValuesKey, values);
+        parameters.SetTag(ParameterValuesKey, result.Parameters);
+        parameters.SetTag(AssetPacksKey, result.AssetPackIdentities);
         return true;
     }
 
@@ -92,6 +107,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         var sdpkg = InstantiateFiles(parameters);
         if (sdpkg == null)
             return false;
+        InstantiateAssetPacks(parameters, sdpkg);
         if (!UpgradeGeneratedProjects(parameters))
             return false;
         return IntegrateIntoSession(sdpkg, parameters);
@@ -104,7 +120,57 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// </summary>
     public bool GenerateFilesOnly(SessionTemplateGeneratorParameters parameters)
     {
-        return InstantiateFiles(parameters) != null && UpgradeGeneratedProjects(parameters);
+        var sdpkg = InstantiateFiles(parameters);
+        if (sdpkg == null)
+            return false;
+        InstantiateAssetPacks(parameters, sdpkg);
+        return UpgradeGeneratedProjects(parameters);
+    }
+
+    /// <summary>
+    /// Instantiates each selected asset-pack item template into the generated game library dir
+    /// (next to the .sdpkg), dropping the pack's Assets/ + Resources/ into the project — the
+    /// dotnet new equivalent of the legacy New Game asset-pack copy. A failing pack is logged
+    /// but doesn't fail generation; the game itself is intact without it.
+    /// </summary>
+    protected virtual void InstantiateAssetPacks(SessionTemplateGeneratorParameters parameters, string sdpkgPath)
+    {
+        var identities = parameters.TryGetTag(AssetPacksKey);
+        if (identities == null || identities.Count == 0)
+            return;
+
+        var log = parameters.Logger;
+        if (DotNetNewTemplateBridge.Registry == null)
+        {
+            log.Error("DotNetNewTemplateBridge is not initialized; cannot add asset packs.");
+            return;
+        }
+
+        var outputDir = Path.GetDirectoryName(sdpkgPath)!;
+        var templates = DotNetNewTemplateBridge.Registry.GetTemplatesAsync().GetAwaiter().GetResult();
+        foreach (var identity in identities)
+        {
+            var packTemplate = templates.FirstOrDefault(t => string.Equals(t.Identity, identity, StringComparison.Ordinal));
+            if (packTemplate == null)
+            {
+                log.Error($"Asset pack template '{identity}' could not be resolved; skipping.");
+                continue;
+            }
+            try
+            {
+                var creation = DotNetNewTemplateBridge.Registry
+                    .InstantiateAsync(packTemplate, packTemplate.ShortNameList.FirstOrDefault() ?? "asset-pack", outputDir, new Dictionary<string, string>())
+                    .GetAwaiter().GetResult();
+                if (creation.Status != CreationResultStatus.Success)
+                    log.Error($"Asset pack '{packTemplate.Name}' failed: {creation.Status} — {creation.ErrorMessage}");
+                else
+                    log.Info($"Added asset pack '{packTemplate.Name}'.");
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Asset pack '{packTemplate.Name}' failed: {ex.Message}", ex);
+            }
+        }
     }
 
     /// <summary>

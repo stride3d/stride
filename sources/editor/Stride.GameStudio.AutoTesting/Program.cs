@@ -17,6 +17,9 @@ namespace Stride.GameStudio.AutoTesting;
 /// </summary>
 internal static class Program
 {
+    [ThreadStatic]
+    private static bool inFirstChanceDiag;
+
     [STAThread]
     public static int Main(string[] osArgs)
     {
@@ -69,12 +72,33 @@ internal static class Program
         // capture every exception (including the swallowed ones) to a diag log.
         var diagPath = Path.Combine(Path.GetTempPath(), "autotest-diag.log");
         try { File.Delete(diagPath); } catch { }
-        void Diag(string msg) { try { File.AppendAllText(diagPath, $"{DateTime.UtcNow:HH:mm:ss.fff} {msg}\n"); } catch { } }
+        // Serialized and share-tolerant so concurrent writes don't throw inside the first-chance handler
+        var diagLock = new object();
+        void Diag(string msg)
+        {
+            try
+            {
+                lock (diagLock)
+                {
+                    using var stream = new FileStream(diagPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                    using var writer = new StreamWriter(stream);
+                    writer.WriteLine($"{DateTime.UtcNow:HH:mm:ss.fff} {msg}");
+                }
+            }
+            catch { }
+        }
         Diag($"AutoTesting.Main entered. testDll={testDll} testName={testName} gsArgs=[{string.Join(", ", gsArgs)}]");
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             Diag($"UnhandledException terminating={e.IsTerminating}: {e.ExceptionObject}");
+        // Re-entrancy guard: an exception during Diag would re-enter this handler and overflow the stack
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
-            Diag($"FirstChance: {e.Exception.GetType().Name}: {e.Exception.Message}");
+        {
+            if (inFirstChanceDiag)
+                return;
+            inFirstChanceDiag = true;
+            try { Diag($"FirstChance: {e.Exception.GetType().Name}: {e.Exception.Message}"); }
+            finally { inFirstChanceDiag = false; }
+        };
         AppDomain.CurrentDomain.ProcessExit += (_, _) => Diag("ProcessExit");
 
         UITestHost? host = null;
