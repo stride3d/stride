@@ -18,10 +18,18 @@ namespace Stride.Core.Presentation.Controls
     /// <summary>
     /// An item of the TreeView.
     /// </summary>
+    [TemplatePart(Name = HeaderPartName, Type = typeof(FrameworkElement))]
     public class TreeViewItem : ExpandableItemsControl
     {
+        /// <summary>
+        /// The name of the element that displays the header of this <see cref="TreeViewItem"/>, excluding its child items.
+        /// </summary>
+        public const string HeaderPartName = "border";
+
         internal double ItemTopInTreeSystem; // for virtualization purposes
         internal int HierachyLevel;// for virtualization purposes
+
+        private FrameworkElement headerElement;
 
         /// <summary>
         /// Identifies the <see cref="IsEditable"/> dependency property.
@@ -83,7 +91,22 @@ namespace Stride.Core.Presentation.Controls
 
         [DependsOn("Indentation")]
         public double Offset => ParentTreeViewItem?.Offset + Indentation ?? 0;
-        
+
+        /// <summary>
+        /// Gets the element that displays the header of this item, or <c>null</c> if the template has not been applied yet.
+        /// </summary>
+        [CanBeNull]
+        public FrameworkElement HeaderElement => headerElement;
+
+        /// <summary>
+        /// Gets the height of the header of this item, excluding the height of its child items.
+        /// </summary>
+        /// <remarks>
+        /// This is not <see cref="FrameworkElement.ActualHeight"/>. The control template puts the header and the items
+        /// presenter in one stack panel. Therefore the actual height of an expanded item includes its child items.
+        /// </remarks>
+        public double HeaderHeight => headerElement?.ActualHeight ?? ActualHeight;
+
         public TreeViewItem ParentTreeViewItem => ItemsControlFromItemContainer(this) as TreeViewItem;
 
         public TreeView ParentTreeView { get; internal set; }
@@ -197,6 +220,8 @@ namespace Stride.Core.Presentation.Controls
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
+
+            headerElement = DependencyObjectExtensions.CheckTemplatePart<FrameworkElement>(GetTemplateChild(HeaderPartName));
 
             if (ParentTreeView?.SelectedItems != null && ParentTreeView.SelectedItems.Contains(DataContext))
             {

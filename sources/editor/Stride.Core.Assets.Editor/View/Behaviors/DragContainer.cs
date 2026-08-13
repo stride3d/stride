@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
@@ -13,7 +14,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
     public sealed class DragContainer : ViewModelBase, ISerializable
     {
         private string message;
-        private bool isAccepted;
+        private DropAcceptance acceptance;
 
         public const string Format = "DraggedData";
         public const int PreviewItemCount = 10;
@@ -26,7 +27,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
         private DragContainer()
         {
-            DependentProperties.Add(nameof(IsAccepted), new[] { nameof(IsRejected) });
+            DependentProperties.Add(nameof(Acceptance), new[] { nameof(IsAccepted), nameof(IsRejected) });
         }
 
         [NotNull]
@@ -40,9 +41,20 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
         public string Message { get { return message; } set { SetValue(ref message, value); } }
 
-        public bool IsAccepted { get { return isAccepted; } set { SetValue(ref isAccepted, value); } }
+        /// <summary>
+        /// Gets or sets how the item currently under the pointer accepts the dragged items.
+        /// </summary>
+        public DropAcceptance Acceptance { get { return acceptance; } set { SetValue(ref acceptance, value); } }
 
-        public bool IsRejected => !isAccepted;
+        /// <summary>
+        /// Gets whether the drop is accepted. A no-op is not accepted, because it changes nothing.
+        /// </summary>
+        public bool IsAccepted => acceptance == DropAcceptance.Accepted;
+
+        /// <summary>
+        /// Gets whether the drop is refused. A no-op is not refused, because the user made no error.
+        /// </summary>
+        public bool IsRejected => acceptance == DropAcceptance.Rejected;
 
         /// <summary>
         /// The special constructor is used to deserialize values.
