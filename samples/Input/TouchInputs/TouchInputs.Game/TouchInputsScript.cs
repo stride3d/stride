@@ -81,7 +81,7 @@ namespace TouchInputs
 
         public override void Update()
         {
-            var currentTime = Game.DrawTime.Total;
+            var currentTime = Game.UpdateTime.Total;
 
             keyDown = "";
             keyEvents = "";

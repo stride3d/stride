@@ -66,7 +66,7 @@ namespace JumpyJet
             if (!isScrolling)
                 return;
 
-            var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             for (int i = 0; i < pipeSets.Count; i++)
             {

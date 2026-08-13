@@ -56,7 +56,7 @@ namespace FirstPersonShooter.Player
                 while (secondsCountdown > 0f)
                 {
                     await Script.NextFrame();
-                    secondsCountdown -= (float) Game.UpdateTime.Elapsed.TotalSeconds;
+                    secondsCountdown -= (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
                 }
 
                 remainingBullets = 9;
@@ -77,7 +77,7 @@ namespace FirstPersonShooter.Player
             bool didReload;
             reloadEvent.TryReceive(out didReload);
 
-            cooldownRemaining = (cooldownRemaining > 0) ? (cooldownRemaining - (float)this.Game.UpdateTime.Elapsed.TotalSeconds) : 0f;
+            cooldownRemaining = (cooldownRemaining > 0) ? (cooldownRemaining - (float)this.Game.UpdateTime.WarpElapsed.TotalSeconds) : 0f;
             if (cooldownRemaining > 0)
                 return; // Can't shoot yet
 

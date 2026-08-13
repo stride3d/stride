@@ -198,7 +198,7 @@ namespace GameMenu
             {
                 await Script.NextFrame();
 
-                gaugePercentage = Math.Min(1f, gaugePercentage + (float)Game.UpdateTime.Elapsed.TotalSeconds * 0.02f);
+                gaugePercentage = Math.Min(1f, gaugePercentage + (float)Game.UpdateTime.WarpElapsed.TotalSeconds * 0.02f);
 
                 var gaugeCurrentRegion = lifebarGaugeImage.Region;
                 gaugeCurrentRegion.Width = gaugePercentage * gaugeBarRegion.Width;
