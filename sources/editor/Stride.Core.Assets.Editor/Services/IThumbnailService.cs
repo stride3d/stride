@@ -34,6 +34,11 @@ namespace Stride.Core.Assets.Editor.Services
         bool HasStaticThumbnail(Type assetType);
 
         /// <summary>
+        /// Gets the number of thumbnails currently queued for compilation.
+        /// </summary>
+        int PendingThumbnailCount { get; }
+
+        /// <summary>
         /// Raised when a thumbnail is successfully compiled.
         /// </summary>
         event EventHandler<ThumbnailCompletedArgs> ThumbnailCompleted;

@@ -234,6 +234,7 @@ namespace Stride.Engine
 #if DEBUG
             // If DEBUG, default to initializing the graphics device in debug mode
             GraphicsDeviceManager.DeviceCreationFlags |= DeviceCreationFlags.Debug;
+            GlobalLogger.GetLogger("Game").Info("Debug-built engine: requesting graphics debug device");
 #endif
 
             AutoLoadDefaultSettings = true;

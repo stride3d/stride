@@ -93,6 +93,8 @@ namespace Stride.Graphics.Tests
 
             renderSHEffect.SetOutput(outputCubemap);
             renderSHEffect.Draw(context);
+
+            context.CommandList.ResourceBarrierTransition(outputCubemap, BarrierLayout.ShaderResource);
         }
 
         protected override void RegisterTests()

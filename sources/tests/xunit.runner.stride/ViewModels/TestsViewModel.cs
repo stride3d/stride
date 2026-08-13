@@ -375,24 +375,22 @@ public class TestsViewModel : ViewModelBase
 
     // === Filter ===
 
-    string filterText = string.Empty;
     public string FilterText
     {
-        get => filterText;
+        get;
         set
         {
-            if (SetProperty(ref filterText, value ?? string.Empty))
+            if (SetValue(ref field, value ?? string.Empty))
                 ApplyFilter();
         }
-    }
+    } = string.Empty;
 
-    StatusFilter statusFilter = StatusFilter.All;
     public StatusFilter StatusFilter
     {
-        get => statusFilter;
+        get;
         set
         {
-            if (SetProperty(ref statusFilter, value))
+            if (SetValue(ref field, value))
             {
                 OnPropertyChanged(nameof(StatusFilterIsAll));
                 OnPropertyChanged(nameof(StatusFilterIsPassed));
@@ -402,38 +400,38 @@ public class TestsViewModel : ViewModelBase
                 ApplyFilter();
             }
         }
-    }
+    } = StatusFilter.All;
 
     // ToggleButton bindings (one-way set true; user can't un-toggle the active one)
     public bool StatusFilterIsAll
     {
-        get => statusFilter == StatusFilter.All;
+        get => StatusFilter == StatusFilter.All;
         set { if (value) StatusFilter = StatusFilter.All; else OnPropertyChanged(nameof(StatusFilterIsAll)); }
     }
     public bool StatusFilterIsPassed
     {
-        get => statusFilter == StatusFilter.Passed;
+        get => StatusFilter == StatusFilter.Passed;
         set { if (value) StatusFilter = StatusFilter.Passed; else OnPropertyChanged(nameof(StatusFilterIsPassed)); }
     }
     public bool StatusFilterIsFailed
     {
-        get => statusFilter == StatusFilter.Failed;
+        get => StatusFilter == StatusFilter.Failed;
         set { if (value) StatusFilter = StatusFilter.Failed; else OnPropertyChanged(nameof(StatusFilterIsFailed)); }
     }
     public bool StatusFilterIsSkipped
     {
-        get => statusFilter == StatusFilter.Skipped;
+        get => StatusFilter == StatusFilter.Skipped;
         set { if (value) StatusFilter = StatusFilter.Skipped; else OnPropertyChanged(nameof(StatusFilterIsSkipped)); }
     }
     public bool StatusFilterIsNotRun
     {
-        get => statusFilter == StatusFilter.NotRun;
+        get => StatusFilter == StatusFilter.NotRun;
         set { if (value) StatusFilter = StatusFilter.NotRun; else OnPropertyChanged(nameof(StatusFilterIsNotRun)); }
     }
 
     public void ApplyFilter()
     {
-        var needle = filterText.Trim();
+        var needle = FilterText.Trim();
         foreach (var root in TestCases)
             ApplyFilter(root, needle);
     }
@@ -451,7 +449,7 @@ public class TestsViewModel : ViewModelBase
         else if (node is TestCaseViewModel testCase)
         {
             bool matchesText = needle.Length == 0 || testCase.DisplayName.Contains(needle, StringComparison.OrdinalIgnoreCase);
-            bool matchesStatus = statusFilter switch
+            bool matchesStatus = StatusFilter switch
             {
                 StatusFilter.All => true,
                 StatusFilter.Passed => testCase.Succeeded,
@@ -468,19 +466,18 @@ public class TestsViewModel : ViewModelBase
 
     // === Counts / summary ===
 
-    int passedCount, failedCount, skippedCount, notRunCount, totalCount;
-    decimal totalElapsedSeconds;
-    public int PassedCount { get => passedCount; private set => SetProperty(ref passedCount, value); }
-    public int FailedCount { get => failedCount; private set => SetProperty(ref failedCount, value); }
-    public int SkippedCount { get => skippedCount; private set => SetProperty(ref skippedCount, value); }
-    public int NotRunCount { get => notRunCount; private set => SetProperty(ref notRunCount, value); }
-    public int TotalCount { get => totalCount; private set => SetProperty(ref totalCount, value); }
+
+    public int PassedCount { get; private set => SetValue(ref field, value); }
+    public int FailedCount { get; private set => SetValue(ref field, value); }
+    public int SkippedCount { get; private set => SetValue(ref field, value); }
+    public int NotRunCount { get; private set => SetValue(ref field, value); }
+    public int TotalCount { get; private set => SetValue(ref field, value); }
     public decimal TotalElapsedSeconds
     {
-        get => totalElapsedSeconds;
+        get;
         private set
         {
-            if (SetProperty(ref totalElapsedSeconds, value))
+            if (SetValue(ref field, value))
                 OnPropertyChanged(nameof(TotalElapsedDisplay));
         }
     }
@@ -489,15 +486,15 @@ public class TestsViewModel : ViewModelBase
     {
         get
         {
-            var s = (double)totalElapsedSeconds;
+            var s = (double)TotalElapsedSeconds;
             return s < 60 ? $"{s:F2}s" : $"{(int)(s / 60)}m {s % 60:F1}s";
         }
     }
 
-    public bool HasFailures => failedCount > 0;
+    public bool HasFailures => FailedCount > 0;
 
     /// <summary>True when there's at least one failed test AND no run in progress; drives the "Re-run failed" button.</summary>
-    public bool CanRunFailed => failedCount > 0 && !runningTests;
+    public bool CanRunFailed => FailedCount > 0 && !RunningTests;
 
     void RecomputeCounts()
     {
@@ -545,20 +542,18 @@ public class TestsViewModel : ViewModelBase
 
     // === State ===
 
-    double testCompletion;
     public double TestCompletion
     {
-        get => testCompletion;
-        set => SetProperty(ref testCompletion, value);
+        get;
+        set => SetValue(ref field, value);
     }
 
-    bool runningTests;
     public bool RunningTests
     {
-        get => runningTests;
+        get;
         set
         {
-            if (SetProperty(ref runningTests, value))
+            if (SetValue(ref field, value))
                 OnPropertyChanged(nameof(CanRunFailed));
         }
     }
@@ -571,15 +566,14 @@ public class TestsViewModel : ViewModelBase
     /// (typically <c>GameTestBase.RenderDocMode</c>). Accepts <c>null</c> ("never"), "error", "always".</summary>
     public Action<string?>? SetRenderDocMode { get; set; }
 
-    bool isForceSaveImage;
     /// <summary>Persistent toggle: when on, every run sets <c>ForceSaveImageOnSuccess</c> so
     /// the rendered output is written to disk even when the gold comparison passes.</summary>
     public bool IsForceSaveImage
     {
-        get => isForceSaveImage;
+        get;
         set
         {
-            if (SetProperty(ref isForceSaveImage, value))
+            if (SetValue(ref field, value))
                 SetForceSaveImage?.Invoke(value);
         }
     }
@@ -592,7 +586,7 @@ public class TestsViewModel : ViewModelBase
         get => renderDocMode;
         set
         {
-            if (SetProperty(ref renderDocMode, value))
+            if (SetValue(ref renderDocMode, value))
             {
                 var s = value switch
                 {
@@ -617,15 +611,14 @@ public class TestsViewModel : ViewModelBase
 
     // === Mobile / narrow-viewport state ===
 
-    bool isNarrowMode;
     /// <summary>True when the main split is in stacked (phone/portrait) mode. Drives the
     /// drill-down nav (tap-to-detail / back) and hides per-row run buttons.</summary>
     public bool IsNarrowMode
     {
-        get => isNarrowMode;
+        get;
         set
         {
-            if (SetProperty(ref isNarrowMode, value))
+            if (SetValue(ref field, value))
             {
                 OnPropertyChanged(nameof(IsWideMode));
                 OnPropertyChanged(nameof(RowMinHeight));
@@ -637,18 +630,17 @@ public class TestsViewModel : ViewModelBase
 
     /// <summary>Inverse of <see cref="IsNarrowMode"/>; convenience for per-row "show on wide
     /// only" visibility bindings.</summary>
-    public bool IsWideMode => !isNarrowMode;
+    public bool IsWideMode => !IsNarrowMode;
 
     /// <summary>Minimum tree-row height; bumped in narrow mode to give touch targets enough
     /// surface to be reliably tappable.</summary>
-    public double RowMinHeight => isNarrowMode ? 44 : 0;
+    public double RowMinHeight => IsNarrowMode ? 44 : 0;
 
-    bool isDetailPageActive;
     /// <summary>In narrow mode, true means the detail pane is showing instead of the list.
     /// Ignored in wide mode.</summary>
     public bool IsDetailPageActive
     {
-        get => isDetailPageActive;
-        set => SetProperty(ref isDetailPageActive, value);
+        get;
+        set => SetValue(ref field, value);
     }
 }

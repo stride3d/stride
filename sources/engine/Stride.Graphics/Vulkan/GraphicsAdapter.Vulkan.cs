@@ -26,6 +26,11 @@ namespace Stride.Graphics
         private readonly int adapterOrdinal;
         private readonly VkPhysicalDeviceProperties properties;
 
+        /// <summary>
+        ///   The raw Vulkan API version supported by the physical device.
+        /// </summary>
+        internal VkVersion NativeApiVersion => properties.apiVersion;
+
         private static readonly Dictionary<int, string> VendorNames = new Dictionary<int, string>
         {
             [0x1002] = "AMD",

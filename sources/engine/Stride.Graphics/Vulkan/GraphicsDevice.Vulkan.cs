@@ -183,6 +183,26 @@ namespace Stride.Graphics
 #endif
 
         /// <summary>
+        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
+        /// </summary>
+        internal static VkSemaphoreSubmitInfo SemaphoreSubmit(VkSemaphore semaphore, ulong value = 0) => new()
+        {
+            sType = VkStructureType.SemaphoreSubmitInfo,
+            semaphore = semaphore,
+            value = value,
+            stageMask = VkPipelineStageFlags2.AllCommands,
+        };
+
+        /// <summary>
+        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="vkQueueSubmit2"/>.
+        /// </summary>
+        internal static VkCommandBufferSubmitInfo CommandBufferSubmit(VkCommandBuffer commandBuffer) => new()
+        {
+            sType = VkStructureType.CommandBufferSubmitInfo,
+            commandBuffer = commandBuffer,
+        };
+
+        /// <summary>
         ///     Marks context as active on the current thread.
         /// </summary>
         public void Begin()
@@ -207,33 +227,18 @@ namespace Stride.Graphics
             lock (QueueLock)
             {
                 // Add a dependency between command list fence and frame fence
-                var commandListFenceValue = CommandListFence.NextFenceValue;
-                var frameFenceValue = FrameFence.NextFenceValue++;
-
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var waitInfo = SemaphoreSubmit(CommandListFence.Semaphore, CommandListFence.NextFenceValue);
+                var signalInfo = SemaphoreSubmit(FrameFence.Semaphore, FrameFence.NextFenceValue++);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 1,
-                    pWaitSemaphoreValues = &commandListFenceValue,
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &frameFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    waitSemaphoreInfoCount = 1,
+                    pWaitSemaphoreInfos = &waitInfo,
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var commandListSemaphore = CommandListFence.Semaphore;
-                var frameSemaphore = FrameFence.Semaphore;
-                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    waitSemaphoreCount = 1,
-                    pWaitSemaphores = &commandListSemaphore,
-                    pWaitDstStageMask = &pipelineStageFlags,
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &frameSemaphore,
-                };
-
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
 
             // Throttle CPU ahead of GPU so the deferred-release queue stays bounded.
@@ -263,9 +268,9 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandBuffers = stackalloc VkCommandBuffer[count];
+            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count];
             for (int i = 0; i < count; i++)
-                commandBuffers[i] = commandLists[i].NativeCommandBuffer;
+                commandBufferInfos[i] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
 
             ulong nextCommandListFenceValue;
             lock (QueueLock)
@@ -274,39 +279,32 @@ namespace Stride.Graphics
                 nextCommandListFenceValue = commandListFenceValue + 1;
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
-                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                var waitInfos = stackalloc VkSemaphoreSubmitInfo[]
+                {
+                    SemaphoreSubmit(CommandListFence.Semaphore, commandListFenceValue),
+                    SemaphoreSubmit(CopyFence.Semaphore, copyFenceValue),
+                };
 
                 // Do we need to wait for CopyFence?
-                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
-                // Remember that we waited 
+                var waitSemaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
                 // Submit commands
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 2,
-                    pWaitSemaphoreValues = &waitFenceValues[0],
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = (uint)count,
+                    pCommandBufferInfos = commandBufferInfos,
+                    waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
+                    pWaitSemaphoreInfos = &waitInfos[0],
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = (uint)count,
-                    pCommandBuffers = commandBuffers,
-                    waitSemaphoreCount = 2,
-                    pWaitSemaphores = &semaphores[0],
-                    pWaitDstStageMask = &pipelineStageFlags[0],
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &semaphores[0],
-                };
-
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 if (IsDebugMode)
                 {
@@ -456,6 +454,10 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
+            // Stride uses Vulkan 1.3 core features and entry points
+            if (Adapter.NativeApiVersion < VkVersion.Version_1_3)
+                throw new NotSupportedException($"Vulkan: Device supports only Vulkan {Adapter.DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.");
+
             // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
             // MoltenVK is the only ICD that advertises it; conformant drivers do not.
             bool isPortabilitySubsetDevice = availableExtensionProperties.Contains(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
@@ -498,66 +500,68 @@ namespace Stride.Graphics
             IsProfilingSupported = IsDebugMode && GraphicsAdapterFactory.GetInstance(IsDebugMode).HasDebugUtilsSupport;
 
             // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
-            var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();
-            uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
-            uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
-
-            // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
-            var shaderFloat16Int8Features = new VkPhysicalDeviceShaderFloat16Int8Features
+            // Query supported features through the aggregate per-version structs, then enable
+            // below only the features Stride uses
+            var supportedVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
-                sType = VkStructureType.PhysicalDeviceShaderFloat16Int8Features,
+                sType = VkStructureType.PhysicalDeviceVulkan13Features,
             };
-
-            // Timeline semaphores (core in Vulkan 1.2+, extension in 1.1)
-            // Check if the feature is supported before requesting it
-            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures
+            var supportedVulkan12Features = new VkPhysicalDeviceVulkan12Features
             {
-                sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures,
-                pNext = &shaderFloat16Int8Features,
+                sType = VkStructureType.PhysicalDeviceVulkan12Features,
+                pNext = &supportedVulkan13Features,
             };
-            // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
-            var multiviewFeatures = new VkPhysicalDeviceMultiviewFeatures
+            var supportedVulkan11Features = new VkPhysicalDeviceVulkan11Features
             {
-                sType = VkStructureType.PhysicalDeviceMultiviewFeatures,
-                pNext = &timelineSemaphoreFeatures,
-            };
-            // Queried unconditionally — the feature struct is just metadata; only the AHardwareBuffer
-            // import path on Android actually requires the feature to be enabled.
-            var samplerYcbcrConversionFeatures = new VkPhysicalDeviceSamplerYcbcrConversionFeatures
-            {
-                sType = VkStructureType.PhysicalDeviceSamplerYcbcrConversionFeatures,
-                pNext = &multiviewFeatures,
+                sType = VkStructureType.PhysicalDeviceVulkan11Features,
+                pNext = &supportedVulkan12Features,
             };
             // Portability subset features (MoltenVK only) — queried so we can forward the device-reported
             // capabilities verbatim to vkCreateDevice, which is what the portability spec requires.
             var portabilitySubsetFeatures = new VkPhysicalDevicePortabilitySubsetFeaturesKHR
             {
                 sType = VkStructureType.PhysicalDevicePortabilitySubsetFeaturesKHR,
-                pNext = &samplerYcbcrConversionFeatures,
+                pNext = &supportedVulkan11Features,
             };
             var physicalDeviceFeatures2 = new VkPhysicalDeviceFeatures2
             {
                 sType = VkStructureType.PhysicalDeviceFeatures2,
-                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &samplerYcbcrConversionFeatures,
+                pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &supportedVulkan11Features,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
-            if (!timelineSemaphoreFeatures.timelineSemaphore)
+            if (!supportedVulkan12Features.timelineSemaphore)
                 throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-            timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
-            // Keep shaderInt8 disabled regardless; only enable shaderFloat16 if supported.
-            shaderFloat16Int8Features.shaderInt8 = VkBool32.False;
-            timelineSemaphoreFeatures.pNext = &shaderFloat16Int8Features;
-            shaderFloat16Int8Features.pNext = &uniformBufferStandardLayoutFeature;
 
-            // Only keep multiview in the chain when the device supports it; drop the geom/tess sub-features regardless.
-            void* pNextChainHead = &timelineSemaphoreFeatures;
-            if (multiviewFeatures.multiview)
+            // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
+            // creates no render pass objects. Synchronization2 is required for vkQueueSubmit2.
+            if (!supportedVulkan13Features.dynamicRendering || !supportedVulkan13Features.synchronization2)
+                throw new NotSupportedException("Vulkan: Dynamic rendering and synchronization2 are not supported by this device, but are required by Stride.");
+
+            var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
-                multiviewFeatures.multiviewGeometryShader = VkBool32.False;
-                multiviewFeatures.multiviewTessellationShader = VkBool32.False;
-                pNextChainHead = &multiviewFeatures;
-            }
+                sType = VkStructureType.PhysicalDeviceVulkan13Features,
+                dynamicRendering = VkBool32.True,
+                synchronization2 = VkBool32.True,
+            };
+            var enabledVulkan12Features = new VkPhysicalDeviceVulkan12Features
+            {
+                sType = VkStructureType.PhysicalDeviceVulkan12Features,
+                pNext = &enabledVulkan13Features,
+                timelineSemaphore = VkBool32.True,
+                uniformBufferStandardLayout = VkBool32.True,
+                // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
+                shaderFloat16 = supportedVulkan12Features.shaderFloat16,
+            };
+            var enabledVulkan11Features = new VkPhysicalDeviceVulkan11Features
+            {
+                sType = VkStructureType.PhysicalDeviceVulkan11Features,
+                pNext = &enabledVulkan12Features,
+                // Needed to keep RenderDoc happy until https://github.com/baldurk/renderdoc/pull/3831 is merged.
+                multiview = supportedVulkan11Features.multiview,
+            };
+
+            void* pNextChainHead = &enabledVulkan11Features;
             // Re-attach portability subset at the head of the create-info chain so MoltenVK sees the
             // feature flags it reported. The values were populated by the query above; pass them back as-is.
             if (isPortabilitySubsetDevice)
@@ -681,24 +685,18 @@ namespace Stride.Graphics
                 var copyFenceValue = CopyFence.NextFenceValue++;
                 var nextCopyFenceValue = copyFenceValue + 1;
 
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var commandBufferInfo = CommandBufferSubmit(commandBuffer);
+                var signalInfo = SemaphoreSubmit(CopyFence.Semaphore, nextCopyFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCopyFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = 1,
+                    pCommandBufferInfos = &commandBufferInfo,
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
-                var copySemaphore = CopyFence.Semaphore;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer,
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &copySemaphore,
-                };
-                
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 return nextCopyFenceValue;
             }
@@ -820,40 +818,33 @@ namespace Stride.Graphics
                 nextCommandListFenceValue = commandListFenceValue + 1;
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
-                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                var waitInfos = stackalloc VkSemaphoreSubmitInfo[]
+                {
+                    SemaphoreSubmit(CommandListFence.Semaphore, commandListFenceValue),
+                    SemaphoreSubmit(CopyFence.Semaphore, copyFenceValue),
+                };
 
                 // Do we need to wait for CopyFence?
-                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
-                // Remember that we waited 
+                var waitSemaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
                 // Submit commands
-                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                var commandBufferInfo = CommandBufferSubmit(commandList.NativeCommandBuffer);
+                var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
+                var submitInfo = new VkSubmitInfo2
                 {
-                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                    waitSemaphoreValueCount = 2,
-                    pWaitSemaphoreValues = &waitFenceValues[0],
-                    signalSemaphoreValueCount = 1,
-                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                    sType = VkStructureType.SubmitInfo2,
+                    commandBufferInfoCount = 1,
+                    pCommandBufferInfos = &commandBufferInfo,
+                    waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
+                    pWaitSemaphoreInfos = &waitInfos[0],
+                    signalSemaphoreInfoCount = 1,
+                    pSignalSemaphoreInfos = &signalInfo,
                 };
 
-                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-                var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    pNext = &timelineInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &nativeCommandBufferCopy,
-                    waitSemaphoreCount = 2,
-                    pWaitSemaphores = &semaphores[0],
-                    pWaitDstStageMask = &pipelineStageFlags[0],
-                    signalSemaphoreCount = 1,
-                    pSignalSemaphores = &semaphores[0],
-                };
-                
-                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit2(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 if (IsDebugMode)
                     DebugAggregateLocalCounters(commandList.Builder.DebugScopeExtractLocalCounters());
@@ -1210,11 +1201,6 @@ namespace Stride.Graphics
             return new NativeResource(VkDebugReportObjectTypeEXT.Sampler, *(ulong*)&handle);
         }
 
-        public static unsafe implicit operator NativeResource(VkFramebuffer handle)
-        {
-            return new NativeResource(VkDebugReportObjectTypeEXT.Framebuffer, *(ulong*)&handle);
-        }
-
         public static unsafe implicit operator NativeResource(VkSemaphore handle)
         {
             return new NativeResource(VkDebugReportObjectTypeEXT.Semaphore, *(ulong*)&handle);
@@ -1238,11 +1224,6 @@ namespace Stride.Graphics
         public static unsafe implicit operator NativeResource(VkPipelineLayout handle)
         {
             return new NativeResource(VkDebugReportObjectTypeEXT.PipelineLayout, *(ulong*)&handle);
-        }
-
-        public static unsafe implicit operator NativeResource(VkRenderPass handle)
-        {
-            return new NativeResource(VkDebugReportObjectTypeEXT.RenderPass, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkDescriptorSetLayout handle)
@@ -1279,9 +1260,6 @@ namespace Stride.Graphics
                 case VkDebugReportObjectTypeEXT.Sampler:
                     device.NativeDeviceApi.vkDestroySampler(device.NativeDevice, *(VkSampler*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.Framebuffer:
-                    device.NativeDeviceApi.vkDestroyFramebuffer(device.NativeDevice, *(VkFramebuffer*)&handleCopy, null);
-                    break;
                 case VkDebugReportObjectTypeEXT.Semaphore:
                     device.NativeDeviceApi.vkDestroySemaphore(device.NativeDevice, *(VkSemaphore*)&handleCopy, null);
                     break;
@@ -1296,9 +1274,6 @@ namespace Stride.Graphics
                     break;
                 case VkDebugReportObjectTypeEXT.PipelineLayout:
                     device.NativeDeviceApi.vkDestroyPipelineLayout(device.NativeDevice, *(VkPipelineLayout*)&handleCopy, null);
-                    break;
-                case VkDebugReportObjectTypeEXT.RenderPass:
-                    device.NativeDeviceApi.vkDestroyRenderPass(device.NativeDevice, *(VkRenderPass*)&handleCopy, null);
                     break;
                 case VkDebugReportObjectTypeEXT.DescriptorSetLayout:
                     device.NativeDeviceApi.vkDestroyDescriptorSetLayout(device.NativeDevice, *(VkDescriptorSetLayout*)&handleCopy, null);

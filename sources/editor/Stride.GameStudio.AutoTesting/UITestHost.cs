@@ -248,6 +248,13 @@ internal sealed class UITestHost
             return session?.ServiceProvider.TryGet<GameStudioBuilderService>()?.PendingShaderCompilationCount ?? 0;
         });
 
+        // Thumbnails build on a background queue; panel captures show blank tiles unless it is drained
+        public Task WaitForThumbnails() => WaitForQueueDrained("thumbnails", () =>
+        {
+            var session = TryGetSession();
+            return session?.ServiceProvider.TryGet<Stride.Core.Assets.Editor.Services.IThumbnailService>()?.PendingThumbnailCount ?? 0;
+        });
+
         public Task WaitDispatcherIdle()
         {
             var tcs = new TaskCompletionSource();
@@ -265,6 +272,7 @@ internal sealed class UITestHost
         {
             await WaitForAssetBuild();
             await WaitForShaders();
+            await WaitForThumbnails();
             await WaitDispatcherIdle();
             await WaitFrames(1);
             await WaitForRendering();

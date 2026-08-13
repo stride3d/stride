@@ -19,12 +19,12 @@ public class TestFramebufferAttachmentGuard : GraphicTestGameBase
     }
 
     /// <summary>
-    /// The Vulkan backend's debug guard turns a framebuffer/render-pass attachment-count mismatch into a clear
-    /// exception instead of a device loss. Verify it fires when more render targets are bound than the active
-    /// pipeline's render pass declares.
+    /// The Vulkan backend's debug guard turns an attachment mismatch with the pipeline's declared output
+    /// into a clear exception instead of a device loss. Verify it fires when more render targets are bound
+    /// than the active pipeline's output declares.
     /// </summary>
     [SkippableFact]
-    public void ThrowsWhenBoundTargetsExceedPipelineRenderPass()
+    public void ThrowsWhenBoundTargetsExceedPipelineOutput()
     {
         PerformTest(game =>
         {
@@ -54,19 +54,19 @@ public class TestFramebufferAttachmentGuard : GraphicTestGameBase
             pipelineState.State.InputElements = declaration.CreateInputElements();
             pipelineState.State.PrimitiveType = PrimitiveType.TriangleList;
 
-            // Capture the pipeline Output with a single color + depth bound: its render pass declares 2 attachments.
+            // Capture the pipeline Output with a single color + depth bound: it declares 2 attachments.
             commandList.SetRenderTargetAndViewport(depth, backBuffer);
             pipelineState.State.Output.CaptureState(commandList);
             pipelineState.Update();
 
-            // Now bind two color targets + depth: the framebuffer would have 3 attachments, mismatching the pass.
+            // Now bind two color targets + depth: 3 attachments, mismatching the pipeline output.
             commandList.SetRenderTargets(depth, backBuffer, extraTarget);
             commandList.SetPipelineState(pipelineState.CurrentState);
             commandList.SetVertexBuffer(0, vertexBuffer, 0, declaration.VertexStride);
             effect.Apply(game.GraphicsContext);
 
             var exception = Assert.Throws<InvalidOperationException>(() => commandList.Draw(3));
-            Assert.Contains("render pass", exception.Message);
+            Assert.Contains("do not match the active pipeline", exception.Message);
 
             sampledTexture.Dispose();
             extraTarget.Dispose();
