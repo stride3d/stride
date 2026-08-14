@@ -157,7 +157,7 @@ namespace ThirdPersonPlatformer
 
         private void UpdateTransform()
         {
-            var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             translation *= elapsedTime;
             yaw *= elapsedTime;

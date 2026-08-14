@@ -30,7 +30,7 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             // Keep track of elapsed time
-            var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             elapsedTime += deltaTime;
 
             // In order to make use of the lerp method, we need to calculate the 'interpolation value': a value going from 0 to 1.

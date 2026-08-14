@@ -58,8 +58,7 @@ public class ##Scriptname## : SyncScript, IBlendTreeBuilder
 
     public override void Update()
     {
-        // Use DrawTime rather than UpdateTime
-        var time = Game.DrawTime;
+        var time = Game.UpdateTime;
 
         // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
         long blendedMaxDuration = 0;
@@ -67,7 +66,7 @@ public class ##Scriptname## : SyncScript, IBlendTreeBuilder
 
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * blendedMaxDuration));
 
-        currentTicks = blendedMaxDuration == 0 ? TimeSpan.Zero : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) % blendedMaxDuration);
+        currentTicks = blendedMaxDuration == 0 ? TimeSpan.Zero : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.WarpElapsed.Ticks * TimeFactor)) % blendedMaxDuration);
 
         currentTime = (currentTicks.Ticks/(double) blendedMaxDuration);
     }

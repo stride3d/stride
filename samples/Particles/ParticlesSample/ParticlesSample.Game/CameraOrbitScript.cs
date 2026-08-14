@@ -33,7 +33,7 @@ namespace ParticlesSample
         {
             while (Game.IsRunning)
             {
-                var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 timeToProcess = Math.Max(timeToProcess + elapsedTime, 1.0f);
 
                 // determine if the user is currently touching the screen.

@@ -30,7 +30,7 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             /// We can access Delta time through the static 'Game' object.
-            var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             // We update the total time
             totalTime += deltaTime;
