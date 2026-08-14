@@ -17,17 +17,24 @@ public class BepuConfiguration : Configuration, IService
 
     private static readonly Logger _logger = GlobalLogger.GetLogger("BepuService");
 
+    private static BepuConfiguration CreateBlankConfiguration() =>
+        new() { BepuSimulations = [new BepuSimulation()] };
+
     public static IService NewInstance(IServiceRegistry services)
     {
         BepuConfiguration config;
         if (services.GetService<IGameSettingsService>() is { } settings)
         {
-            config = settings.Settings.Configurations.Get<BepuConfiguration>();
-            if (settings.Settings.Configurations.Configurations.Any(x => x.Configuration is BepuConfiguration) == false)
+            if (settings.Settings.Configurations.OfType<BepuConfiguration>().Any() == false)
+            {
                 _logger.Warning("Creating a default configuration for Bepu as none were set up in your game's settings.");
+                settings.Settings.Configurations.Add(CreateBlankConfiguration());
+            }
+
+            config = settings.Settings.GetOrCreateConfiguration<BepuConfiguration>();
         }
         else
-            config = new BepuConfiguration { BepuSimulations = [new BepuSimulation()] };
+            config = CreateBlankConfiguration();
 
         if (config.BepuSimulations.Count == 0)
         {

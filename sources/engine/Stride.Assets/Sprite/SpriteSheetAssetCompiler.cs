@@ -36,7 +36,7 @@ namespace Stride.Assets.Sprite
         {
             var asset = (SpriteSheetAsset)assetItem.Asset;
             var gameSettingsAsset = context.GetGameSettingsAsset();
-            var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>(context.Platform);
+            var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>();
 
             result.BuildSteps = new ListBuildStep();
 

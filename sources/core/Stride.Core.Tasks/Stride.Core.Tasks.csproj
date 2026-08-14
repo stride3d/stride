@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- MSBuild is loaded from the resolved SDK (MSBuildLocator), which brings its own NuGet.Frameworks.
+         Don't copy our (older) version to the output folder or project evaluation fails on newer SDKs. -->
+    <PackageReference Include="NuGet.Frameworks" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\..\assets\Stride.AssetCompiler\Tasks\PackAssets.cs" Link="PackAssets.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

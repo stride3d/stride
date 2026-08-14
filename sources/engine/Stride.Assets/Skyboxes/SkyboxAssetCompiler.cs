@@ -65,7 +65,7 @@ namespace Stride.Assets.Skyboxes
                     var textureUrl = SkyboxGenerator.BuildTextureForSkyboxGenerationLocation(dependencyItem.Location);
 
                     var gameSettingsAsset = context.GetGameSettingsAsset();
-                    var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>(context.Platform);
+                    var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>();
 
                     // Select the best graphics profile
                     var graphicsProfile = renderingSettings.DefaultGraphicsProfile >= GraphicsProfile.Level_10_0 ? renderingSettings.DefaultGraphicsProfile : GraphicsProfile.Level_10_0;

@@ -26,7 +26,7 @@ namespace Stride.SpriteStudio.Offline
         {
             var asset = (SpriteStudioModelAsset)assetItem.Asset;
             var gameSettingsAsset = context.GetGameSettingsAsset();
-            var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>(context.Platform);
+            var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>();
             var colorSpace = renderingSettings.ColorSpace;
 
             var cells = new List<SpriteStudioCell>();

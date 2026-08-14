@@ -110,7 +110,7 @@ namespace Stride.Rendering.Materials
             /*
             {
                 Game game = Services.GetSafeServiceAs<Game>();
-                SubsurfaceScatteringSettings settings = game.Settings.Configurations.Get<SubsurfaceScatteringSettings>();
+                SubsurfaceScatteringSettings settings = game.Settings.GetOrCreateConfiguration<SubsurfaceScatteringSettings>();
                 //SubsurfaceScatteringSettings settings = services.GetSafeServiceAs<SubsurfaceScatteringSettings>();  // TODO: Query the settings like this once the system is ready.
             }
             */
@@ -149,7 +149,7 @@ namespace Stride.Rendering.Materials
                 return hashCode;
             }
         }
-        
+
         public IEnumerable<MaterialStreamDescriptor> GetStreams()
         {
             yield return ScatteringStrengthStream;

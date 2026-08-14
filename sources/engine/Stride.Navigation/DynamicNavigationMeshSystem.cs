@@ -109,7 +109,7 @@ namespace Stride.Navigation
                 throw new ArgumentNullException(nameof(gameSettings));
 
             // Initialize build settings from game settings
-            var navigationSettings = gameSettings.Configurations.Get<NavigationSettings>();
+            var navigationSettings = gameSettings.GetOrCreateConfiguration<NavigationSettings>();
 
             InitializeSettingsFromNavigationSettings(navigationSettings);
         }
