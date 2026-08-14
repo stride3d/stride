@@ -58,7 +58,7 @@ namespace Stride.Assets.Materials
                 colorSpace = context.GetColorSpace();
                 assetUrl = new UFile(url);
 
-                graphicsProfile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>(context.Platform).DefaultGraphicsProfile;
+                graphicsProfile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
             }
 
             protected override void ComputeParameterHash(BinarySerializationWriter writer)

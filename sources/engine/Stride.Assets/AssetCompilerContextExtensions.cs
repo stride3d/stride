@@ -20,7 +20,7 @@ namespace Stride.Assets
 
         public static ColorSpace GetColorSpace(this AssetCompilerContext context)
         {
-            var settings = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>(context.Platform);
+            var settings = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>();
             return settings.ColorSpace;
         }
 

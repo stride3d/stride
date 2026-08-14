@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using TextBox = System.Windows.Controls.TextBox;
 using Microsoft.TemplateEngine.Abstractions;
 using Stride.Assets.Templates;
 using Stride.Core.Presentation.Controls;
-using Stride.Data;
 using SDDialogResult = Stride.Core.Presentation.Services.DialogResult;
+using Stride.Core;
 
 namespace Stride.Assets.Presentation.Templates;
 
@@ -208,7 +207,7 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
     /// <summary>
     /// Builds a CheckBox.Content payload for a multi-choice row. For the 'platforms' parameter,
     /// returns a horizontal stack with the OS icon (from the shared ImageDictionary, keyed by
-    /// <see cref="ConfigPlatforms"/> enum value) + the descriptive label. For everything else,
+    /// <see cref="PlatformType"/> enum value) + the descriptive label. For everything else,
     /// just the label string — WPF unboxes it as text.
     /// </summary>
     private object BuildChoiceContent(string paramName, string choiceKey, string? description)
@@ -216,25 +215,25 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
         var label = string.IsNullOrEmpty(description) ? Humanize(choiceKey) : description;
         if (!string.Equals(paramName, "platforms", StringComparison.Ordinal))
             return label;
-        // dotnet new's lowercase choice keys vs ConfigPlatforms PascalCase enum names — explicit
+        // dotnet new's lowercase choice keys vs PlatformType PascalCase enum names — explicit
         // map both because Enum.TryParse(ignoreCase) can't reconcile "macos" → "macOS".
-        var platform = choiceKey switch
+        PlatformType? platform = choiceKey switch
         {
-            "windows" => ConfigPlatforms.Windows,
-            "linux"   => ConfigPlatforms.Linux,
-            "macos"   => ConfigPlatforms.macOS,
-            "ios"     => ConfigPlatforms.iOS,
-            "android" => ConfigPlatforms.Android,
-            _         => ConfigPlatforms.None,
+            "windows" => PlatformType.Windows,
+            "linux"   => PlatformType.Linux,
+            "macos"   => PlatformType.macOS,
+            "ios"     => PlatformType.iOS,
+            "android" => PlatformType.Android,
+            _         => null,
         };
-        if (platform == ConfigPlatforms.None)
+        if (!platform.HasValue)
             return label;
         // SetResourceReference resolves lazily against the full merged-dictionary chain (window
         // → app → themes), so it picks up the platform DrawingImage from ImageDictionary.xaml
         // regardless of which scope owns it. Falls back gracefully (no image) if missing.
         var stack = new StackPanel { Orientation = Orientation.Horizontal };
         var img = new Image { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0) };
-        img.SetResourceReference(Image.SourceProperty, platform);
+        img.SetResourceReference(Image.SourceProperty, platform.Value);
         stack.Children.Add(img);
         stack.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
         return stack;

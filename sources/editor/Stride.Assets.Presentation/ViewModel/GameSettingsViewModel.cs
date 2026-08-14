@@ -5,9 +5,6 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Serialization;
-using Stride.Core.Transactions;
-using Stride.Core.Quantum;
-using Stride.Data;
 using Stride.Engine;
 using Stride.Graphics;
 
@@ -26,98 +23,6 @@ namespace Stride.Assets.Presentation.ViewModel
         {
             gameSettingsAsset = (GameSettingsAsset)AssetItem.Asset;
             displayOrientation = gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation;
-
-            var platformFiltersNode = AssetRootNode[nameof(GameSettingsAsset.PlatformFilters)].Target;
-            platformFiltersNode.ItemChanging += PlatformFiltersNodeChanging;
-            platformFiltersNode.ItemChanged += PlatformFiltersNodeChanged;
-        }
-
-        private void PlatformFiltersNodeChanging(object sender, ItemChangeEventArgs e)
-        {
-            if (e.ChangeType == ContentChangeType.CollectionUpdate)
-            {
-                var index = e.Index.Int;
-                using (var transaction = UndoRedoService.CreateTransaction())
-                {
-                    foreach (var platformOverride in Asset.Overrides)
-                    {
-                        var node = Session.AssetNodeContainer.GetNode(platformOverride);
-                        var filterNode = node[nameof(ConfigurationOverride.SpecificFilter)];
-
-                        if (platformOverride.SpecificFilter == index)
-                        {
-                            // This is a hack to force refreshing the display of the filter in override. We clear and reset it before and after the name change.
-                            filterNode.Update(-1);
-                            filterNode.Update(index);
-                        }
-                    }
-                    UndoRedoService.SetName(transaction, "Force filter refresh");
-                }
-            }
-        }
-
-        private void PlatformFiltersNodeChanged(object sender, ItemChangeEventArgs e)
-        {
-            var index = e.Index.Int;
-
-            ITransaction transaction = null;
-            try
-            {
-                if (e.ChangeType == ContentChangeType.CollectionUpdate)
-                    transaction = UndoRedoService.CreateTransaction();
-
-                foreach (var platformOverride in Asset.Overrides)
-                {
-                    var node = Session.AssetNodeContainer.GetNode(platformOverride);
-                    var filterNode = node[nameof(ConfigurationOverride.SpecificFilter)];
-
-                    switch (e.ChangeType)
-                    {
-                        case ContentChangeType.CollectionUpdate:
-                        {
-                            // This is a hack to force refreshing the display of the filter in override. We clear and reset it before and after the name change.
-                            if (platformOverride.SpecificFilter == index)
-                            {
-                                filterNode.Update(-1);
-                                filterNode.Update(index);
-                            }
-                            break;
-                        }
-                        case ContentChangeType.CollectionAdd:
-                        {
-                            var filterIndex = (int)filterNode.Retrieve();
-                            if (filterIndex >= index)
-                            {
-                                filterNode.Update(filterIndex + 1);
-                            }
-                            break;
-                        }
-                        case ContentChangeType.CollectionRemove:
-                        {
-                            var filterIndex = (int)filterNode.Retrieve();
-                            if (filterIndex > index)
-                            {
-                                filterNode.Update(filterIndex - 1);
-                            }
-                            else if (filterIndex == index)
-                            {
-                                filterNode.Update(-1);
-                            }
-                            break;
-                        }
-                    }
-                }
-
-
-            }
-            finally
-            {
-                if (transaction != null)
-                {
-                    UndoRedoService.SetName(transaction, "Force filter refresh");
-                    transaction.Complete();
-                }
-            }
         }
 
         protected override void OnSessionSaved()
