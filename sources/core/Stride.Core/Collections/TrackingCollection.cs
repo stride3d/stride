@@ -12,24 +12,24 @@ namespace Stride.Core.Collections;
 /// </summary>
 /// <typeparam name="T">The type of elements in the collection.</typeparam>
 [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
-public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChanged
+public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChanged<T>
 {
-    private EventHandler<TrackingCollectionChangedEventArgs>? itemAdded;
-    private EventHandler<TrackingCollectionChangedEventArgs>? itemRemoved;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemAdded;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemRemoved;
 
     /// <inheritdoc/>
-    public event EventHandler<TrackingCollectionChangedEventArgs> CollectionChanged
+    public event EventHandler<TrackingCollectionChangedEventArgs<T>> CollectionChanged
     {
         add
         {
             // We keep a list in reverse order for removal, so that we can easily have multiple handlers depending on each others
-            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs>)Delegate.Combine(itemAdded, value);
-            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs>)Delegate.Combine(value, itemRemoved);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(value, itemRemoved);
         }
         remove
         {
-            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs>?)Delegate.Remove(itemAdded, value);
-            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs>?)Delegate.Remove(itemRemoved, value);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemRemoved, value);
         }
     }
 
@@ -37,13 +37,13 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
     protected override void InsertItem(int index, T item)
     {
         base.InsertItem(index, item);
-        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, null, index, true));
+        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, default, index, true));
     }
 
     /// <inheritdoc/>
     protected override void RemoveItem(int index)
     {
-        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[index], null, index, true));
+        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, this[index], default, index, true));
         base.RemoveItem(index);
     }
 
@@ -61,7 +61,7 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
         if (collectionChanged != null)
         {
             for (var i = Count - 1; i >= 0; --i)
-                collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, this[i], null, i, true));
+                collectionChanged(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, this[i], default, i, true));
         }
     }
 
@@ -71,11 +71,11 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
         // Note: Changing CollectionChanged is not thread-safe
         var collectionChangedRemoved = itemRemoved;
 
-        object? oldItem = collectionChangedRemoved != null ? this[index] : null;
-        collectionChangedRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, oldItem, null, index, false));
+        T? oldItem = collectionChangedRemoved != null ? this[index] : default;
+        collectionChangedRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, oldItem, default, index, false));
 
         base.SetItem(index, item);
 
-        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, oldItem, index, false));
+        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, oldItem, index, false));
     }
 }
