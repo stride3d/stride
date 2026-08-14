@@ -1,7 +1,8 @@
 {
   "sdk": {
     "version": "10.0.100",
-    "rollForward": "latestMinor"
+    "rollForward": "latestMinor",
+    "allowPrerelease": false
   },
   "msbuild-sdks": {
     // Template packages (Stride.Templates.*) compile no code; NoTargets produces the nupkg
