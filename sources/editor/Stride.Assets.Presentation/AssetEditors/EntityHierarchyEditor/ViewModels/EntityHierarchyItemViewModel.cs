@@ -434,7 +434,16 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     }
                     if (checkSameParent && Children.Contains(entity))
                     {
-                        noOpMessage = $"Already a child of {parentName}";
+                        // The entity keeps its parent and its folder, but the move still changes its order. It changes
+                        // nothing only if it is already at the target index. MoveChildren corrects the index for an
+                        // entity that it removes from this item, therefore the entity goes to the index before it.
+                        if (Owner.IndexOfEntity(entity) == index - 1)
+                        {
+                            noOpMessage = $"Already the last child of {parentName}";
+                            continue;
+                        }
+                        message = $"Move to the end of {parentName}";
+                        accepted = true;
                         continue;
                     }
                     var currentParent = Parent;
