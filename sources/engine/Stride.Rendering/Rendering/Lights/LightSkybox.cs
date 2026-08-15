@@ -21,6 +21,8 @@ namespace Stride.Rendering.Lights
         [DataMember(0)]
         public Skybox Skybox { get; set; }
 
+        public float Distance = 250f, Curve = 0.5f, CurveMip = 1.0f, NearMip = 6.87f, FarMip = 0f;
+
         [DataMemberIgnore]
         internal Quaternion Rotation;
 
