@@ -29,12 +29,18 @@ Use **plain, simple English** and keep it **high level**:
 - Punctuation: prefer commas or periods over em dashes; don't lean on `—`. An occasional
   line break is fine, even inside a bullet.
 
-A short "Under the hood" section at the end can carry internal work worth a mention — keep
-even that readable.
+Pure-internal work worth a mention goes under a `### 🔧 Under the hood` subheading (alongside
+the other area subheadings, at the end) as several separate bullets, one per grouped topic
+(never one bullet per commit, never a single comma- or semicolon-joined bullet). Keep even
+that readable.
 
 # Scope
 
 $SCOPE_NOTE
+
+# Authoritative change list
+
+$GH_CHANGELOG
 
 # Input & how to investigate
 
@@ -58,8 +64,9 @@ Drop or collapse noise:
 - WIP / review-churn ("Address the review", "fix per review", "no tests yet").
 - Merge commits and "(cherry picked from …)" artifacts.
 - Pure test-coverage, CI/build plumbing, formatting, dependency bookkeeping, and internal
-  refactors with **no** user-visible effect. Omit these, or fold them into a single terse
-  "Under the hood" line — never one bullet each.
+  refactors with **no** user-visible effect. Omit these, or fold them into several separate
+  "Under the hood" bullets — never one bullet per commit, and never a single comma- or
+  semicolon-joined bullet.
 
 Group related commits into **one** entry. A multi-commit feature is one highlight, not ten
 bullets.
@@ -68,14 +75,17 @@ bullets.
 
 $FORMAT_INSTRUCTION
 
-Use emoji area headers where they fit (e.g. `🖥️ Editor / Game Studio`, `🎮 Graphics &
-Shaders`, `🧨 Physics`, `🔊 Audio`, `🐧 Cross-platform / CLI / Build`) — pick headers that
-match this product's actual changes. Fold pure-internal noise into a single
-`🔧 Under the hood` line rather than one bullet each.
+Match Stride's house style: crisp, user-impact framing, no walls of text. If there are
+genuinely no user-facing changes in scope, say so in one line. The workflow adds the top-level
+section heading and appends the "New Contributors" and "Full Changelog" parts, so do not emit
+a document title, those two sections, or any closing commentary. Follow the format instruction
+above for the internal headings and structure.
 
-Match Stride's house style: crisp bullets, user-impact framing, no walls of text. If there
-are genuinely no user-facing changes in scope, say so in one line. Always end with exactly:
-`**Full Changelog**: https://github.com/$REPO/compare/$PREV...$TAG`
+Categorize each change by the subsystem it affects, not by which tool a developer used to
+reach it: reserve `🖥️ Editor / Game Studio` for changes to the editor application itself. A
+runtime or engine change goes under its own area (Graphics, Physics, Content & Assets, etc.),
+even if a developer might first notice it inside Game Studio — for example, an asset-loading
+API change belongs with content/assets, not Editor.
 
 # Prioritize by user impact
 
@@ -87,18 +97,28 @@ unsure whether something is new *in this release*, check history before `$PREV`
 
 # References — strict
 
-- Cite `#NNNN` **only** when that exact number appears verbatim in the commit's own message
-  (subject or body) as a real PR/issue reference. The number must come from the commit text
-  itself — never derive one from a commit's position in a list, its ordering, or your own
-  enumeration. (Genuinely low numbers are fine: Stride has old references like `#1020` or
-  `#1577`; keep them when the commit cites them.)
-- For a direct commit with no PR/issue, link the **short commit SHA**:
-  `https://github.com/$REPO/commit/<sha>` — or leave it unreferenced. Never invent a number.
+- When the **authoritative change list** above is present, treat it as the source of truth
+  for PR references and author handles. In `bullets` output, end each bullet with
+  `(@handle, <url>)`, where `<url>` is the pull-request URL copied verbatim from that list (the
+  workflow shortens it to a `#NNNN` link) and `@handle` is that PR's author. Never invent,
+  renumber, or reassign a handle, and never attach another change's PR to a bullet.
+- For a change with only a direct commit (no PR), end the bullet with `(<commit-url>)` — the
+  full `https://github.com/$REPO/commit/<sha>` URL, and **no** handle (the workflow shortens
+  the URL and fills in the author). When several commits belong to one entry, list each:
+  `(<commit-url>, <commit-url>)`. Never invent a commit.
+- Any `#NNNN` you mention *inside* a bullet's wording must appear verbatim in that commit's own
+  message; never derive one from list position or invent it. (Old low numbers like `#1020` are
+  fine when the commit cites them.)
 
 # Rules
 
 - Don't fabricate. If, after checking its diff, you still can't tell what a commit does for
   the user, omit it rather than guess.
-- Be concise: fewer, well-written bullets beat an exhaustive dump.
-- Output **only** the Markdown release notes — no preamble, no description of your process.
-  Begin your response directly with the first heading.
+- Don't inflate scale. Reserve words like "new", "overhaul", "rewrite", "major", or
+  "redesign" for changes whose diff clearly shows that scope. When unsure, prefer modest
+  framing ("improved", "fixed", "extended"). A follow-up or hardening of a feature that
+  already shipped in an earlier release is a fix, not a new feature.
+- Be concise: make every line count — the bullet list is exhaustive but each bullet stays
+  tight, and the highlights are few and curated.
+- Output **only** the Markdown — no preamble, no "here are the notes", no description of your
+  process. Begin directly with the first `###` heading.

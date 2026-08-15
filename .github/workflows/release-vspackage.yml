@@ -191,15 +191,23 @@ jobs:
               bin/vsix/*.nupkg
           fi
 
-      - name: AI release notes
-        continue-on-error: true  # best-effort; keeps the scoped commit-list body on failure
-        uses: ./.github/actions/ai-release-notes
-        with:
-          tag: vspackage/${{ needs.Package.outputs.version }}
-          tag-match: 'vspackage/*'
-          product: the Stride Visual Studio package
-          scope: sources/tools/Stride.VisualStudio.*
-          apply: true
-          format: highlights
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GH_PAT }}
+  #
+  # AI release notes, off the Deploy critical path (see release-notes-apply.yml). Runs after
+  # the release exists; replaces the scoped git-log body with the AI bullet list.
+  #
+  ReleaseNotes:
+    name: Release notes vspackage/${{ needs.Package.outputs.version }}
+    needs: [Package, Deploy]
+    if: ${{ needs.Package.outputs.version != '' }}
+    permissions:
+      contents: write  # granted down to the reusable workflow (edit release when applying)
+    uses: ./.github/workflows/release-notes-apply.yml
+    with:
+      tag: vspackage/${{ needs.Package.outputs.version }}
+      tag-match: 'vspackage/*'
+      product: the Stride Visual Studio package
+      scope: sources/tools/Stride.VisualStudio.*
+      apply: true
+    secrets:
+      gh-token: ${{ secrets.GH_PAT }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
