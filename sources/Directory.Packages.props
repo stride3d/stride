@@ -20,7 +20,6 @@
     <PackageVersion Include="Microsoft.Direct3D.D3D12" Version="1.619.3" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
-    <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.TemplateEngine.IDE" Version="10.0.100" />
     <PackageVersion Include="Microsoft.TemplateEngine.Edge" Version="10.0.100" />
@@ -49,7 +48,6 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="10.0.0" />
-    <PackageVersion Include="System.ValueTuple" Version="4.6.1" />
     <PackageVersion Include="Vortice.Vulkan" Version="3.0.3" />
     <PackageVersion Include="WinPixEventRuntime" Version="1.0.240308001" />
   </ItemGroup>
