@@ -32,7 +32,7 @@ Hierarchy:
                     865675decc2b35498a08aa9df0682cec: !TransformComponent
                         Id: de755686-2bcc-4935-8a08-aa9df0682cec
                         Position: {X: 1.0, Y: 0.5, Z: 1.0}
-                        Rotation: {X: -0.16043, Y: 0.376869619, Z: 0.06645229, W: 0.9098437}
+                        Rotation: {X: -0.16043, Y: 0.37686962, Z: 0.06645229, W: 0.9098437}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     12900d5f2ca5414fb199b7d537e8e864: !CameraComponent
@@ -47,8 +47,8 @@ Hierarchy:
                 Components:
                     82be9853676be3428778fc3ef78ad295: !TransformComponent
                         Id: 5398be82-6b67-42e3-8778-fc3ef78ad295
-                        Position: {X: -0.3915618, Y: 0.712286949, Z: 0.487137645}
-                        Rotation: {X: 0.0451833233, Y: 0.911823, Z: 0.276618749, W: -0.3000324}
+                        Position: {X: -0.3915618, Y: 0.71228695, Z: 0.48713765}
+                        Rotation: {X: 0.045183323, Y: 0.911823, Z: 0.27661875, W: -0.3000324}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     4faeb0b6118f064f84b26bfa82460c93: !LightComponent
@@ -60,6 +60,7 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
         -   Entity:
                 Id: d62e02cb-f3fc-43ae-b6aa-07eccae98182
@@ -67,7 +68,7 @@ Hierarchy:
                 Components:
                     5796c922403d474e9169ce8b9c507f89: !TransformComponent
                         Id: 22c99657-3d40-4e47-9169-ce8b9c507f89
-                        Position: {X: 0.588626, Y: 0.161487773, Z: -1.1080513}
+                        Position: {X: 0.588626, Y: 0.16148777, Z: -1.1080513}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
