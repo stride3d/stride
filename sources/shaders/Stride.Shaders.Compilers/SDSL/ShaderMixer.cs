@@ -79,6 +79,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        foreach (var warning in table.Warnings)
+            log.Warning(warning.Message);
+
         // If any semantic errors were collected during shader compilation, stop mixing
         if (table.Errors.Count > 0)
         {
@@ -93,6 +96,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
         (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
+
+        if (!ValidateImplicitLodSampling(context, temp, entryPoints, log))
+            return false;
 
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);

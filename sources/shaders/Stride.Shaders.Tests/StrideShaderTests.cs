@@ -74,6 +74,53 @@ public class StrideShaderTests
         Assert.Equal(80, data1D.Size);
     }
 
+    [Fact]
+    public void NumThreadsOnNonEntryMethodIsIgnoredWithWarning()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("CSNumThreadsOnNonEntry"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Warning
+            && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
+    }
+
+    // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
+    // fails later, deep inside the HLSL legalizer.
+    [Fact]
+    public void TextureSampleOutsideFragmentStageIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("VSTextureSample"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("VSTextureSample.sdsl(14,") && m.Text.Contains("implicit level of detail")
+            && m.Text.Contains("SampleLevel") && m.Text.Contains("Vertex"));
+    }
+
+    [Fact]
+    public void TextureSampleInFragmentStageCompiles()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("PSTextureSample"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+    }
+
     // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
     // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
     // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
