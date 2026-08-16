@@ -71,5 +71,5 @@ Defaults:
                 SolverSubStep: 6
                 SoftStartDuration: 0:00:00:01.0000000
                 SoftStartSubstepFactor: 4
-SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:StrideDefaultSplashScreen
+SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen
 SplashScreenColor: {R: 0, G: 0, B: 0, A: 255}

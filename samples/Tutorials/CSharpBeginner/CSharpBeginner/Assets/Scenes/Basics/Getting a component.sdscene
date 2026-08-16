@@ -39,7 +39,7 @@ Hierarchy:
                         Children: {}
                     6d859e897c7bcb270402105f41cf3b8c: !ModelComponent
                         Id: d6bb0120-4c94-429e-add0-d7f238018dcb
-                        Model: d3f4cbe1-353f-4367-9f44-df64df144f71:Models/MagazineModel
+                        Model: d3f4cbe1-353f-4367-9f44-df64df144f71:/mannequinModel/Models/MagazineModel
                         Materials: {}
                     7cc84b4e79f3687b6fcc37a866005cde: !CSharpBeginner.Code.GettingAComponentDemo,CSharpBeginner.Game
                         Id: 90a6c833-6ef3-438d-a693-3470a6ac2b64
