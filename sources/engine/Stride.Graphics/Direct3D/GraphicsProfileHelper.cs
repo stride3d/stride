@@ -38,6 +38,28 @@ internal static class GraphicsProfileHelper
     };
 
     /// <summary>
+    ///   Converts a sequence of <see cref="GraphicsProfile"/>s to the corresponding <see cref="D3DFeatureLevel"/>s.
+    /// </summary>
+    /// <param name="profiles">The <see cref="GraphicsProfile"/>s to convert.</param>
+    /// <returns>An array of Direct3D <see cref="D3DFeatureLevel"/>s, in the same order.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">One of the <paramref name="profiles"/> is not a known profile.</exception>
+    /// <remarks>
+    ///   The profiles are mapped one by one through <see cref="ToFeatureLevel(GraphicsProfile)"/>. The two enums must
+    ///   not be reinterpreted in bulk: not every <see cref="GraphicsProfile"/> has a feature level of the same value.
+    /// </remarks>
+    public static D3DFeatureLevel[] ToFeatureLevels(this ReadOnlySpan<GraphicsProfile> profiles)
+    {
+        if (profiles.IsEmpty)
+            return [];
+
+        var featureLevels = new D3DFeatureLevel[profiles.Length];
+        for (int index = 0; index < profiles.Length; index++)
+            featureLevels[index] = profiles[index].ToFeatureLevel();
+
+        return featureLevels;
+    }
+
+    /// <summary>
     ///   Converts a <see cref="D3DFeatureLevel"/> to its corresponding <see cref="GraphicsProfile"/>.
     /// </summary>
     /// <param name="level">A <see cref="D3DFeatureLevel"/> to convert.</param>
