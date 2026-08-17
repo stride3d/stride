@@ -48,6 +48,41 @@ public class TestGraphicsProfileHelper
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => ((GraphicsProfile)0x1234).ToFeatureLevel());
     }
+
+    [Fact]
+    public void Level_11_1_And_11_2_ShareAFeatureLevel()
+    {
+        // 11.2 is an API revision on 11_1 hardware, so the two profiles are the same capability tier.
+        // Anything that probes a device with them (GraphicsAdapter.IsProfileSupported) answers alike.
+        Assert.Equal(GraphicsProfile.Level_11_1.ToFeatureLevel(), GraphicsProfile.Level_11_2.ToFeatureLevel());
+    }
+
+    [Fact]
+    public void Profiles_MapElementWise_NotByReinterpretingTheSpan()
+    {
+        GraphicsProfile[] profiles = [GraphicsProfile.Level_11_2, GraphicsProfile.Level_11_1, GraphicsProfile.Level_10_0];
+
+        var featureLevels = GraphicsProfileHelper.ToFeatureLevels(profiles);
+
+        D3DFeatureLevel[] expected = [D3DFeatureLevel.Level111, D3DFeatureLevel.Level111, D3DFeatureLevel.Level100];
+        Assert.Equal(expected, featureLevels);
+        // A bulk reinterpretation of the span would leak 0xB200 through as a feature level.
+        Assert.All(featureLevels, featureLevel => Assert.True(Enum.IsDefined(featureLevel)));
+    }
+
+    [Fact]
+    public void NoProfiles_MapToNoFeatureLevels()
+    {
+        Assert.Empty(GraphicsProfileHelper.ToFeatureLevels([]));
+    }
+
+    [Fact]
+    public void UnknownProfileInASequence_Throws()
+    {
+        GraphicsProfile[] profiles = [GraphicsProfile.Level_11_0, (GraphicsProfile)0x1234];
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => GraphicsProfileHelper.ToFeatureLevels(profiles));
+    }
 }
 
 #endif
