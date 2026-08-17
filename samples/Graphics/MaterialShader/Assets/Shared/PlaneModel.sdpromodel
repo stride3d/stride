@@ -5,9 +5,9 @@ Tags: []
 Type: !PlaneProceduralModel
     Size: {X: 1.0, Y: 1.0}
     Tessellation: {X: 32, Y: 32}
-    Normal: UpY
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}
     UvScale: {X: 1.0, Y: 1.0}
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 10
     MaterialInstance:
         Material: 46859e92-96ad-4466-a0ed-a16f85780b32:Material

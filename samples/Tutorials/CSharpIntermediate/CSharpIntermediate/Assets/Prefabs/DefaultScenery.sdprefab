@@ -44,9 +44,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: e1a68ec3-c3ff-443e-a7f3-441b753287ad
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: dfab3df5-b6c4-46a5-bab2-bece574feb9e
                         CanSleep: true
@@ -64,7 +64,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: c882e61f-c65b-4fa9-a342-4256b274fe53
         -   Folder: null
@@ -80,9 +80,9 @@ Hierarchy:
                         Children: {}
                     d2619cccd5f24041a405add501ed26e6: !ModelComponent
                         Id: fee84072-b20b-4398-ba18-22f2093652c0
-                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:/PrototypingBlocks/Models/Box2x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
                         Id: 15be8205-43bb-44b4-bc65-1d12fd822b05
                         CanSleep: true
@@ -100,7 +100,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
+                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:/PrototypingBlocks/BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: d55fbd06-a07e-4151-a137-5b60b29f0971
         -   Entity:
@@ -134,11 +134,11 @@ Hierarchy:
                         Children: {}
                     6b045f347ec870808499ca99f03a7242: !ModelComponent
                         Id: 537b5ebf-547a-4324-80e6-bdd00328d409
-                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
+                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:/SamplesAssetPackage/Models/table
                         Materials:
-                            aac48e089700b5666f7834876488d4a7~0: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
-                            052f7ac2d72b1c7dc1e7f4f61043a136~1: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:Materials/DarkStone
-                            086eef7c07d069c1f14a417bee475279~2: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+                            aac48e089700b5666f7834876488d4a7~0: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:/SamplesAssetPackage/Materials/DullSilver
+                            052f7ac2d72b1c7dc1e7f4f61043a136~1: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:/SamplesAssetPackage/Materials/DarkStone
+                            086eef7c07d069c1f14a417bee475279~2: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:/SamplesAssetPackage/Materials/DullSilver
         -   Folder: Walls
             Entity:
                 Id: 1e30b3e7-8014-4f79-af21-9d19d52dde1a
@@ -189,7 +189,7 @@ Hierarchy:
                         Children: {}
                     d26d4401654559a61beaec07aae5d27c: !ModelComponent
                         Id: a1389a9d-31ee-4afe-9244-7f0ba6b74c51
-                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:/SamplesAssetPackage/Models/BoxE
                         Materials: {}
         -   Folder: Walls
             Entity:
@@ -227,7 +227,7 @@ Hierarchy:
                         Children: {}
                     85152eea64a3af116907dc53895c5c60: !ModelComponent
                         Id: de2b89c5-34a4-480e-bdeb-9a5b8e6c10d7
-                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:/mannequinModel/Models/SwordModel
                         Materials: {}
         -   Entity:
                 Id: 45e5b999-26cb-4b1d-a795-ce9587684765
@@ -241,7 +241,7 @@ Hierarchy:
                         Children: {}
                     2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
                         Id: 5afb6b6b-44cc-4f2b-b011-1214f9eec804
-                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:/mannequinModel/Models/MachinegunModel
                         Materials: {}
         -   Folder: null
             Entity:
@@ -256,9 +256,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: a47b31b2-c7e6-4320-8c09-70a8029deb09
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 3153297a-0e06-4648-a74e-d8684307af97
                         CanSleep: true
@@ -276,7 +276,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: e394b1ca-5bb9-408f-a41c-d2890ce7248c
         -   Entity:
@@ -291,9 +291,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 6e0de7b6-3331-477d-810f-96df6618c64e
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 2cdc9d04-dddc-404f-a8de-dce5da628c96
                         CanSleep: true
@@ -311,7 +311,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: 6716a28d-11ea-4389-ba76-31d9926f5388
         -   Folder: Walls
@@ -362,7 +362,7 @@ Hierarchy:
                         Children: {}
                     dc834c63926949c8b2e854cff6c71062: !ModelComponent
                         Id: 0b5e4a34-d114-4552-9b22-280f5346c235
-                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:/SamplesAssetPackage/Models/MaterialModel
                         Materials: {}
         -   Entity:
                 Id: 6fb0f099-8844-4b0b-bb60-809fa9895243
@@ -413,9 +413,9 @@ Hierarchy:
                         Children: {}
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: 31b2ab8f-a355-41c5-9866-d80173864b67
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:/PrototypingBlocks/Models/GridBase10x10
                         Materials:
-                            7162a11adaa0d3631fa962c9b60c310a*~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
+                            7162a11adaa0d3631fa962c9b60c310a*~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:/SamplesAssetPackage/Materials/board1B
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 1cce9088-0bec-4187-b14b-284af892396d
                         CanSleep: true
@@ -433,7 +433,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
+                BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:/PrototypingBlocks/BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: cd287632-0c5e-4a73-a8eb-575efe930692
         -   Folder: Walls
@@ -504,9 +504,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: c9cee4ee-f4f6-45a4-8858-9a76e06e6890
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 5f790758-21c2-4280-a012-bd966f1980c6
                         CanSleep: true
@@ -524,7 +524,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: 1dd35b04-c9f3-4ad8-8176-37fe52de2e4b
         -   Folder: null
@@ -540,9 +540,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: c397715f-bdc5-44d8-b8f6-e060adb632e6
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: debfc72f-4bfe-4c1d-a086-689cdffd5954
                         CanSleep: true
@@ -560,7 +560,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: ffdb2b6b-3c79-4e8a-af2f-ccaba3b91131
         -   Folder: Walls
@@ -587,9 +587,9 @@ Hierarchy:
                         Children: {}
                     d2619cccd5f24041a405add501ed26e6: !ModelComponent
                         Id: d9135f46-dd64-43c0-96f6-e1c2afddafd1
-                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:/PrototypingBlocks/Models/Box2x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
                         Id: 48c43778-34cc-4fc0-8b20-5a40dcf28263
                         CanSleep: true
@@ -607,7 +607,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
+                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:/PrototypingBlocks/BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 20a91cd0-8cee-4070-b427-6ac8a47751a7
         -   Folder: null
@@ -623,9 +623,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 764ec9ef-ce4e-491b-a157-839362856b23
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 82d46a8c-8eb7-4dc9-b652-25c792624efd
                         CanSleep: true
@@ -643,7 +643,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: b8af7005-2c0b-4424-b6ff-d6d9f001cb7b
         -   Folder: null
@@ -659,9 +659,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: e5dd2569-8330-45f5-86ae-64152e253639
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: fff2b355-2e6d-4ffb-aa53-0634f3a320d7
                         CanSleep: true
@@ -679,7 +679,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: f56e7db7-3d11-4805-9b59-1062d6f3bf07
         -   Folder: null
@@ -695,9 +695,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: f4262ed5-195b-4df0-a8fe-1a10d780bdf9
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 60edb98d-f54e-4de2-9524-a44dea01099a
                         CanSleep: true
@@ -715,7 +715,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: 1a4fe410-0f2d-45eb-9474-500cf37202a7
         -   Folder: null
@@ -731,9 +731,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 9b06f80a-9ba6-43c0-b26f-3a1a87730bb9
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: e8aafaf8-8e1d-4713-9ab6-ed9e6ece241a
                         CanSleep: true
@@ -751,7 +751,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: 79075df8-5e09-401b-b9d4-d91c357d3d56
         -   Folder: Walls
@@ -779,9 +779,9 @@ Hierarchy:
                         Children: {}
                     d2619cccd5f24041a405add501ed26e6: !ModelComponent
                         Id: dc5624ff-e529-4c17-ba65-fea73df65f99
-                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:/PrototypingBlocks/Models/Box2x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
                         Id: 1f9bf447-f5e0-4eec-b887-38ad73481e93
                         CanSleep: true
@@ -799,7 +799,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
+                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:/PrototypingBlocks/BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 96121c9c-5a2d-47cc-ad1d-481a36208c75
         -   Folder: Walls
@@ -826,7 +826,7 @@ Hierarchy:
                         Children: {}
                     938e3a10e1782cd9b89dd0c4ee6b6640: !ModelComponent
                         Id: 00454e93-4b68-411f-b1ca-fbf910711f17
-                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:Models/Ladder0x2x0handle
+                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:/PrototypingBlocks/Models/Ladder0x2x0handle
                         Materials: {}
         -   Folder: Walls
             Entity:
@@ -853,9 +853,9 @@ Hierarchy:
                         Children: {}
                     d2619cccd5f24041a405add501ed26e6: !ModelComponent
                         Id: 491f40ea-e2da-4d13-8b74-6f4167cb1ba0
-                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:/PrototypingBlocks/Models/Box2x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
                         Id: 84bf4384-94ba-42b3-af9d-b1e8eb8ba6d7
                         CanSleep: true
@@ -873,7 +873,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
+                BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:/PrototypingBlocks/BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: de62640e-eab2-4713-9f1c-92b4eca8bbd2
         -   Folder: null
@@ -889,9 +889,9 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 2c494cd6-59bf-4ef3-a52d-f3ab109118d7
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:/PrototypingBlocks/Models/Box4x2x1
                         Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:/PrototypingBlocks/Materials/GridMTPlatform
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: c962963d-3680-4e28-b129-1713e93f03cd
                         CanSleep: true
@@ -909,7 +909,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
             Base:
-                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:BlocksPrefabs/Box4x2x1
+                BasePartAsset: c7730809-5eec-4b26-8750-2a8ce75992c5:/PrototypingBlocks/BlocksPrefabs/Box4x2x1
                 BasePartId: 4d6499da-edbb-4e5e-b914-03e6a89a0dcd
                 InstanceId: 262e8c15-1ff1-4dab-8c1c-3d68ff624863
         -   Folder: Walls
@@ -936,5 +936,5 @@ Hierarchy:
                         Children: {}
                     50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
                         Id: 7a7266e6-e2b0-4fbd-9c91-d46703fe0f4c
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}

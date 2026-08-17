@@ -18,8 +18,9 @@ Defaults:
         TextureQuality: Fast
     - !Stride.Physics.PhysicsSettings,Stride.Physics
         Flags: None
-        MaxSubSteps: 1
-        FixedTimeStep: 0.0166666675
+        FixedTimeStep: 0.016666668
+        MaxTickDuration: 0.008333334
+        Gravity: {X: 0.0, Y: -10.0, Z: 0.0}
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
         HrtfSupport: false
     - !Stride.Navigation.NavigationSettings,Stride.Navigation
@@ -46,5 +47,5 @@ Defaults:
     - !Stride.Streaming.StreamingSettings,Stride.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
-SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:StrideDefaultSplashScreen
+SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen
 SplashScreenColor: {R: 0, G: 0, B: 0, A: 255}

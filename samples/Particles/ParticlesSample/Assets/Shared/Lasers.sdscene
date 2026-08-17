@@ -269,7 +269,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 8e3ee98d-5b7d-4bfd-8d75-adcd3db49eea
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! c9482913-d098-4d06-bffd-72fc3916c981
@@ -302,7 +302,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: a983cbb6-45d1-40d5-b6d3-cfcecac2e7e7
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! cdadb454-a2bd-43e5-b084-aa0acf18e42b
@@ -354,7 +354,7 @@ Hierarchy:
                 Components:
                     8e3194dfc4f56948b6ffecc433a18b44: !TransformComponent
                         Id: df94318e-f5c4-4869-b6ff-ecc433a18b44
-                        Position: {X: -3.16841769, Y: 0.0, Z: 4.88647747}
+                        Position: {X: -3.1684177, Y: 0.0, Z: 4.8864775}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -424,7 +424,7 @@ Hierarchy:
                 Components:
                     1302601de45ace48bd5dec37ec0f9e0b: !TransformComponent
                         Id: 1d600213-5ae4-48ce-bd5d-ec37ec0f9e0b
-                        Position: {X: 0.0, Y: 5.48125458, Z: 0.0}
+                        Position: {X: 0.0, Y: 5.4812546, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -438,8 +438,8 @@ Hierarchy:
                 Components:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: 5a8c98e9-da25-4692-8920-27c02f3b087a
-                        Position: {X: 4.44759465E-08, Y: -8.895189E-08, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Position: {X: 4.4475946E-08, Y: -8.895189E-08, Z: 0.0}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -447,7 +447,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 0.0
                             Control: Play
-                        Color: {R: 0.954687536, G: 1.0, B: 0.09375, A: 1.0}
+                        Color: {R: 0.95468754, G: 1.0, B: 0.09375, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}
@@ -517,8 +517,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -560,12 +560,12 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.2661668
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
                                                             Key: 0.6691068
-                                                            Value: 0.345208526
+                                                            Value: 0.34520853
                                                             TangentType: Linear
                                                         c119d3a700495c44bdf737234b885335:
                                                             Key: 1.0
@@ -598,7 +598,7 @@ Hierarchy:
                 Components:
                     04f3169c76c30a45870d07b220f13c59: !TransformComponent
                         Id: c711e0dd-94ac-4b69-b9d3-a7da6723c6d3
-                        Position: {X: 4.0, Y: 2.31988645, Z: -4.0}
+                        Position: {X: 4.0, Y: 2.3198864, Z: -4.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -616,7 +616,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 23660f9b-7770-42c4-bed6-213afccb8f79
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 79bde072-fe19-4cf8-8e7a-dc838a6e37aa
@@ -667,7 +667,7 @@ Hierarchy:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: db59b4f8-cfb3-4469-9338-b9d5add28e54
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -675,7 +675,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 0.0
                             Control: Play
-                        Color: {R: 0.954687536, G: 1.0, B: 0.09375, A: 1.0}
+                        Color: {R: 0.95468754, G: 1.0, B: 0.09375, A: 1.0}
                         Speed: 0.1
                         ParticleSystem:
                             Settings: {}
@@ -747,12 +747,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! e574779f-f5b0-4272-8b43-f67704512191
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 2.0
                                             Sequential: true
                                             FixedLength: 50
@@ -792,12 +792,12 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.2661668
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
                                                             Key: 0.6691068
-                                                            Value: 0.345208526
+                                                            Value: 0.34520853
                                                             TangentType: Linear
                                                         c119d3a700495c44bdf737234b885335:
                                                             Key: 1.0
@@ -932,8 +932,8 @@ Hierarchy:
                 Components:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: 240bdabf-6cbf-4478-b4ed-5a520314cfc0
-                        Position: {X: 4.44759465E-08, Y: -8.895189E-08, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Position: {X: 4.4475946E-08, Y: -8.895189E-08, Z: 0.0}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -1012,8 +1012,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -1055,12 +1055,12 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.2661668
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
                                                             Key: 0.6691068
-                                                            Value: 0.345208526
+                                                            Value: 0.34520853
                                                             TangentType: Linear
                                                         c119d3a700495c44bdf737234b885335:
                                                             Key: 1.0
@@ -1075,7 +1075,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 2f065a2c-af53-406f-b909-da2dadbc2e74
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! b24ee20d-73f1-43b2-9299-5c558c2f2ec9
@@ -1130,8 +1130,8 @@ Hierarchy:
                 Components:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: 3953ebe6-85ba-4a81-8f5b-ee593a4c4279
-                        Position: {X: 2.37225883E-08, Y: -4.74451767E-08, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Position: {X: 2.3722588E-08, Y: -4.7445177E-08, Z: 0.0}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -1139,7 +1139,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 0.0
                             Control: Play
-                        Color: {R: 0.200000048, G: 1.0, B: 0.0, A: 1.0}
+                        Color: {R: 0.20000005, G: 1.0, B: 0.0, A: 1.0}
                         Speed: 0.3
                         ParticleSystem:
                             Settings: {}
@@ -1217,12 +1217,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! e574779f-f5b0-4272-8b43-f67704512191
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 2.0
                                             Sequential: true
                                             FixedLength: 100
@@ -1262,7 +1262,7 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.5
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
@@ -1296,7 +1296,7 @@ Hierarchy:
                     e219b27977b6a64882008816798b86ea: !TransformComponent
                         Id: 79b219e2-b677-48a6-8200-8816798b86ea
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 0.05, Y: 1.0, Z: 0.05}
                         Children:
                             b4c7d3dca1907f4cabf72f4479f19ffe: ref!! dcd3c7b4-90a1-4c7f-abf7-2f4479f19ffe
@@ -1307,7 +1307,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 968448c5-e6f3-4323-81c7-620bea800bdb
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! e6b803b5-b0ea-4934-a284-78261f36ba56
@@ -1357,7 +1357,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: a56847d4-f514-41d5-b77c-bf9fa019fc2b
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 0b4a23ee-b2ec-4bf0-ba86-439e1fadb7ac
@@ -1433,7 +1433,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.9815, G: 0.429406255, B: 0.429406255, A: 1.0}
+                        Color: {R: 0.9815, G: 0.42940626, B: 0.42940626, A: 1.0}
                         Speed: 5.0
                         ParticleSystem:
                             Settings: {}
@@ -1499,12 +1499,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! b7e9b90d-58a9-40ef-adb4-9ece9c77deff
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 0.0
                                             Sequential: true
                                             FixedLength: 0
@@ -1531,7 +1531,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: f02e6bfb-984a-4404-a6a1-f9e03b15bdfc
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 9014d17f-32ca-4486-b6ec-067ca90ed8e4
@@ -1588,7 +1588,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 30512ffc-da72-4219-9627-de8a29ca393f
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 1f012dd2-d8a6-424f-8382-438c0322c1f7
@@ -1679,7 +1679,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: ee65a44e-c328-4c17-adc4-d84ff4a1eba4
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 70b116c9-f2f4-4284-a382-f110a7d730a8
@@ -1695,7 +1695,7 @@ Hierarchy:
                         Id: 210f7859-6f86-4d10-8f1f-080994a2a10a
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.58581316, Y: 1.58581316, Z: 1.58581316}
+                        Scale: {X: 1.5858132, Y: 1.5858132, Z: 1.5858132}
                         Children:
                             b40cc5b14d224c4b933e0e8a376bc8a7: ref!! 8da31877-4254-4d29-be22-fe55aba92b7f
         -   Entity:
@@ -1705,7 +1705,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 2d2da1b9-0742-4a0c-8949-917d62f9cd65
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 21954746-c515-41aa-9437-1115b9adf15c
@@ -1727,7 +1727,7 @@ Hierarchy:
                         Id: 93cbf39c-32ad-402a-9e00-4926cc8038a3
                         Type: !LightAmbient
                             Color: !ColorRgbProvider
-                                Value: {R: 0.768627465, G: 0.843137264, B: 1.0}
+                                Value: {R: 0.76862746, G: 0.84313726, B: 1.0}
                         Intensity: 0.05
         -   Entity:
                 Id: 7962a5a3-95fe-4a09-9c87-3bd2e8cc6c60
@@ -1755,8 +1755,8 @@ Hierarchy:
                 Components:
                     779b75bea59bfe49818d2885cb29b306: !TransformComponent
                         Id: be759b77-9ba5-49fe-818d-2885cb29b306
-                        Position: {X: 0.0, Y: 5.59565067, Z: -1.07158741E-07}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Position: {X: 0.0, Y: 5.5956507, Z: -1.0715874E-07}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     8d9e6c9095ca4f439f621a07b0dc40fd: !LightComponent
@@ -1782,7 +1782,7 @@ Hierarchy:
                         Id: ddbb3798-e908-42d2-bce4-8b521635ebde
                         Position: {X: 4.0, Y: 0.0, Z: -4.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.16842544, Y: 1.16842544, Z: 1.16842544}
+                        Scale: {X: 1.1684254, Y: 1.1684254, Z: 1.1684254}
                         Children:
                             b40cc5b14d224c4b933e0e8a376bc8a7: ref!! 09f63ff7-acaf-4a85-b900-878aa409f030
         -   Entity:
@@ -1792,7 +1792,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 23b58937-5f53-4940-8e18-9ed1b0af76ed
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! a0be7f30-8f1c-4591-bab7-511afcb75986
@@ -1882,8 +1882,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -1996,12 +1996,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! b0addb48-a0ea-4718-936a-9a6c82618717
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 1.0
                                             Sequential: true
                                             FixedLength: 0
@@ -2088,7 +2088,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0, G: 0.924999952, B: 1.0, A: 1.0}
+                        Color: {R: 0.0, G: 0.92499995, B: 1.0, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings:
@@ -2314,7 +2314,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: cfe6dd7a-31f6-4e9b-8a1c-e3927535fa54
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 1019b1b5-7853-4532-8a6e-8b9640b37549
@@ -2329,7 +2329,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 6fc022d3-38d6-4d10-ab7d-3a39b15e0598
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! dc365ef1-501d-40ba-8a79-20a7f5e8d720
@@ -2492,7 +2492,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 65a1abae-2fba-4868-879a-125f980494c6
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 7a1df29f-a218-4214-a2a4-c8cd95da01a6
@@ -2542,7 +2542,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 803d6590-b230-4d22-b6f9-bcd0d5ba2f9c
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 140ed55a-0d1b-46a4-a30d-2516501ef932
@@ -2556,8 +2556,8 @@ Hierarchy:
                 Components:
                     64c22050efd4d642964566fbef44efc0: !TransformComponent
                         Id: 5020c264-d4ef-42d6-9645-66fbef44efc0
-                        Position: {X: -4.0, Y: 4.67437165E-14, Z: 4.0}
-                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.09086161E-08, W: -3.090862E-08}
+                        Position: {X: -4.0, Y: 4.6743716E-14, Z: 4.0}
+                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.0908616E-08, W: -3.090862E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db2be7497d3d0a4fae069beb813d3f31: ref!! 199c9049-249b-47e8-b912-ecb9406e3075
@@ -2567,8 +2567,8 @@ Hierarchy:
                 Components:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: d082fdc7-8f90-4d46-a216-a03e23a76740
-                        Position: {X: 4.44759465E-08, Y: -8.895189E-08, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Position: {X: 4.4475946E-08, Y: -8.895189E-08, Z: 0.0}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -2646,8 +2646,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -2689,12 +2689,12 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.2661668
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
                                                             Key: 0.6691068
-                                                            Value: 0.345208526
+                                                            Value: 0.34520853
                                                             TangentType: Linear
                                                         c119d3a700495c44bdf737234b885335:
                                                             Key: 1.0
@@ -2766,7 +2766,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 0ebbfea5-1830-4f26-bac7-bb92ace7eb4f
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! de2d221b-110a-4489-a950-48d663914a6d
@@ -2816,7 +2816,7 @@ Hierarchy:
                     64c22050efd4d642964566fbef44efc0: !TransformComponent
                         Id: acb29edf-1b12-4758-afd7-df302cb40790
                         Position: {X: 4.0, Y: -6.575368E-07, Z: 4.0}
-                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.09086161E-08, W: -3.090862E-08}
+                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.0908616E-08, W: -3.090862E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db2be7497d3d0a4fae069beb813d3f31: ref!! 140b9ddd-6b34-449e-af42-eb809dd91c1f
@@ -2862,7 +2862,7 @@ Hierarchy:
                 Components:
                     092a34e892b5934698ae6dcf769c6893: !TransformComponent
                         Id: e8342a09-b592-4693-98ae-6dcf769c6893
-                        Position: {X: -4.85450459, Y: 2.29543543, Z: -1.59187317}
+                        Position: {X: -4.8545046, Y: 2.2954354, Z: -1.5918732}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -2964,12 +2964,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! 8da31877-4254-4d29-be22-fe55aba92b7f
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 0.0
                                             Sequential: true
                                             FixedLength: 0
@@ -3255,7 +3255,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 95fadc42-9ff6-4a7e-a95c-42e5834c72a9
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! 43b508db-ff94-4071-ba0c-543be75dbef8
@@ -3456,12 +3456,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! b91fc2ae-b090-49d7-8873-54ccadb7a3b8
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 1.0
                                             Sequential: true
                                             FixedLength: 0
@@ -3488,7 +3488,7 @@ Hierarchy:
                     64c22050efd4d642964566fbef44efc0: !TransformComponent
                         Id: 390ce3c7-8d64-4b48-8b19-b9acbbcfa772
                         Position: {X: 4.0, Y: -1.8660657E-07, Z: -4.0}
-                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.09086161E-08, W: -3.090862E-08}
+                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.0908616E-08, W: -3.090862E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db2be7497d3d0a4fae069beb813d3f31: ref!! 49e72bdb-3d7d-4f0a-ae06-9beb813d3f31
@@ -3498,8 +3498,8 @@ Hierarchy:
                 Components:
                     e9988c5a25da9246892027c02f3b087a: !TransformComponent
                         Id: d60d00fb-6e66-4d21-901a-e35842aebb8b
-                        Position: {X: 4.44759465E-08, Y: -8.895189E-08, Z: 0.0}
-                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.284363359, W: -0.958242834}
+                        Position: {X: 4.4475946E-08, Y: -8.895189E-08, Z: 0.0}
+                        Rotation: {X: 0.028891461, Y: 0.008573685, Z: -0.28436336, W: -0.95824283}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     838e2300af4e9b4c919f78aeae944ac1: !ParticleSystemComponent
@@ -3507,7 +3507,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 0.0
                             Control: Play
-                        Color: {R: 0.954687536, G: 1.0, B: 0.09375, A: 1.0}
+                        Color: {R: 0.95468754, G: 1.0, B: 0.09375, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}
@@ -3577,8 +3577,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -3620,12 +3620,12 @@ Hierarchy:
                                                             Value: 0.0
                                                             TangentType: Linear
                                                         dbcaec4e9d41c649a273697771caa3f5:
-                                                            Key: 0.224714547
+                                                            Key: 0.22471455
                                                             Value: 0.2661668
                                                             TangentType: Linear
                                                         1886f327b470f3409c4e10dfdcfd0d38:
                                                             Key: 0.6691068
-                                                            Value: 0.345208526
+                                                            Value: 0.34520853
                                                             TangentType: Linear
                                                         c119d3a700495c44bdf737234b885335:
                                                             Key: 1.0
@@ -3742,12 +3742,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: null
-                                            DisplayParticleScaleUniform: true
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -0.95}
+                                            DisplayParticleScaleUniform: true
                                             ArcHeight: 0.0
                                             Sequential: true
                                             FixedLength: 20
@@ -3798,15 +3798,15 @@ Hierarchy:
                                                             Value: 0.02
                                                             TangentType: Linear
                                                         e609b6c3b9e47346ab200773046ec973:
-                                                            Key: 0.114156887
+                                                            Key: 0.11415689
                                                             Value: 0.04063032
                                                             TangentType: Linear
                                                         71e3f236f010354ca9dd99ac0a64bed3:
-                                                            Key: 0.496882349
-                                                            Value: 0.0147041753
+                                                            Key: 0.49688235
+                                                            Value: 0.014704175
                                                             TangentType: Linear
                                                         e2587bf4f2436c4bb863e8b56a75f249:
-                                                            Key: 0.876097858
+                                                            Key: 0.87609786
                                                             Value: 0.02840874
                                                             TangentType: Linear
                                                         cfb8e1713985ef4692952c572f653455:
@@ -3820,8 +3820,8 @@ Hierarchy:
                 Components:
                     64c22050efd4d642964566fbef44efc0: !TransformComponent
                         Id: c7d233e6-8b89-492a-a252-59b9946d0876
-                        Position: {X: -4.0, Y: 8.88334545E-14, Z: -4.0}
-                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.09086161E-08, W: -3.090862E-08}
+                        Position: {X: -4.0, Y: 8.8833454E-14, Z: -4.0}
+                        Rotation: {X: 0.7071068, Y: 0.7071067, Z: 3.0908616E-08, W: -3.090862E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db2be7497d3d0a4fae069beb813d3f31: ref!! 1efc9ab9-909d-4ba8-b856-d54982046b7b
@@ -3846,7 +3846,7 @@ Hierarchy:
                 Components:
                     b71a0c329561524b9ca9e2a19b55ff42: !TransformComponent
                         Id: 320c1ab7-6195-4b52-9ca9-e2a19b55ff42
-                        Position: {X: 10.6373873, Y: -4.76837158E-07, Z: 10.1080351}
+                        Position: {X: 10.637387, Y: -4.7683716E-07, Z: 10.108035}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -3856,9 +3856,9 @@ Hierarchy:
                 Components:
                     c61b21955706734ebfe87f9cd3b47afd: !TransformComponent
                         Id: 95211bc6-0657-4e73-bfe8-7f9cd3b47afd
-                        Position: {X: -4.0, Y: -4.76837158E-07, Z: -4.0}
+                        Position: {X: -4.0, Y: -4.7683716E-07, Z: -4.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.24641252, Y: 1.24641252, Z: 1.24641252}
+                        Scale: {X: 1.2464125, Y: 1.2464125, Z: 1.2464125}
                         Children:
                             b40cc5b14d224c4b933e0e8a376bc8a7: ref!! cbf23e42-cd30-4882-9ef2-50b43813b7a2
         -   Entity:
@@ -3927,8 +3927,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -4033,7 +4033,7 @@ Hierarchy:
                         Id: 3c24a288-89f6-45bf-b7ff-414ec41a8d02
                         Position: {X: -4.0, Y: 0.0, Z: 4.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.734638035, Y: 0.734638035, Z: 0.734638035}
+                        Scale: {X: 0.73463804, Y: 0.73463804, Z: 0.73463804}
                         Children:
                             b40cc5b14d224c4b933e0e8a376bc8a7: ref!! b1c50cb4-224d-4b4c-933e-0e8a376bc8a7
         -   Entity:
@@ -4043,7 +4043,7 @@ Hierarchy:
                     c5488496f3e6234381c7620bea800bdb: !TransformComponent
                         Id: 2e79317f-a74f-4e97-84d3-4bedcd3cefd5
                         Position: {X: 0.0, Y: 10.0, Z: 0.0}
-                        Rotation: {X: 0.442723542, Y: -0.0456308872, Z: -0.09181118, W: 0.890777349}
+                        Rotation: {X: 0.44272354, Y: -0.045630887, Z: -0.09181118, W: 0.89077735}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10db886720bc454393b4832b921c743c: ref!! c2257b9c-43d5-4acb-9ee6-76d50f364202
@@ -4117,8 +4117,8 @@ Hierarchy:
                                             InheritRotation: false
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -4158,7 +4158,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0, G: 0.924999952, B: 1.0, A: 1.0}
+                        Color: {R: 0.0, G: 0.92499995, B: 1.0, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings:
