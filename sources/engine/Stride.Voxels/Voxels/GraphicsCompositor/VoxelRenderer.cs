@@ -19,8 +19,26 @@ using System.Linq;
 namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
-    public class VoxelRenderer : IVoxelRenderer
+    public class VoxelRenderer : IVoxelRenderer, IGraphicsRequirementSource
     {
+        /// <summary>
+        /// Whether the device can voxelize. DeclareRequirements sets this before the first Collect.
+        /// </summary>
+        [DataMemberIgnore]
+        private bool canVoxelize;
+
+        /// <inheritdoc/>
+        public void DeclareRequirements(GraphicsRequirementCollector collector)
+        {
+            canVoxelize = collector.GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_11_0;
+
+            collector.Require(this,
+                capability: "graphics profile 11.0 or above",
+                isMet: canVoxelize,
+                reason: "voxelization writes volume textures from the geometry and compute stages. " +
+                        "The profile comparison stands in for a capability query that does not exist yet");
+        }
+
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
         [DataMemberIgnore]
@@ -48,10 +66,8 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (Context.RenderSystem.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
-            {
-                throw new ArgumentOutOfRangeException("Graphics Profile Level 11 or higher required for Voxelization.");
-            }
+            if (!canVoxelize)
+                return;
 
             //Setup per volume passes and texture allocations
             foreach ( var pair in renderVoxelVolumes )
@@ -200,7 +216,7 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (drawContext.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
+            if (!canVoxelize)
                 return;
 
             var context = drawContext;

@@ -23,7 +23,7 @@ namespace Stride.Rendering.Compositing
     /// Renders your game. It should use current <see cref="RenderContext.RenderView"/> and <see cref="CameraComponentRendererExtensions.GetCurrentCamera"/>.
     /// </summary>
     [Display("Forward renderer")]
-    public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer
+    public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer, IGraphicsRequirementSource
     {
         private static readonly ProfilingKey CollectCoreKey = new ProfilingKey("ForwardRenderer.CollectCore");
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
@@ -217,6 +217,22 @@ namespace Stride.Rendering.Compositing
                     }
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public virtual void DeclareRequirements(GraphicsRequirementCollector collector)
+        {
+            if (MSAALevel == MultisampleCount.None)
+                return;
+
+            // InitializeCore has already resolved actualMultisampleCount against the device
+            collector.Prefer(this,
+                capability: $"multisampling at {(int) MSAALevel} samples",
+                isMet: actualMultisampleCount == MSAALevel,
+                reason: "the compositor requests multisampled rendering",
+                fallback: actualMultisampleCount == MultisampleCount.None
+                    ? "no multisampling"
+                    : $"{(int) actualMultisampleCount} samples");
         }
 
         protected virtual void CollectStages(RenderContext context)
