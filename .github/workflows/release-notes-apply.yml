@@ -50,7 +50,10 @@ on:
         type: boolean
     secrets:
       gh-token:
-        description: Token for gh (release view/edit) and checkout.
+        description: >-
+          Write-capable token (a PAT) for checkout, the changelog fetch, author resolution, and
+          editing the release body on apply. Must be able to write contents; the job's built-in
+          GITHUB_TOKEN is read-only and cannot apply. Never exposed to the model's tool calls.
         required: true
       anthropic-api-key:
         description: Anthropic API key. If empty, note generation no-ops.
@@ -59,8 +62,10 @@ on:
 jobs:
   Generate:
     runs-on: ubuntu-latest
+    # The built-in GITHUB_TOKEN is read-only and goes to the model; the write-capable `gh-token`
+    # PAT applies the notes and never reaches it.
     permissions:
-      contents: write      # apply notes to the release
+      contents: read
       pull-requests: read  # let the model trace commits to their PRs (gh api / gh pr)
     steps:
       - uses: actions/checkout@v7
@@ -83,7 +88,8 @@ jobs:
           apply: ${{ inputs.apply }}
           add-contributors: ${{ inputs.add-contributors }}
           anthropic-api-key: ${{ secrets.anthropic-api-key }}
-          github-token: ${{ secrets.gh-token }}
+          github-token: ${{ secrets.gh-token }}      # write-capable: shell reads + apply
+          readonly-token: ${{ github.token }}         # read-only: the model's own tool calls
 
       # always(): when applying failed, this artifact is the copy a maintainer needs.
       - name: Upload bullet notes artifact
