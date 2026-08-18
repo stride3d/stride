@@ -55,6 +55,8 @@ namespace Stride.Rendering.Compositing
         // Top-level present-pass scope. SceneCameraRenderer folds presenter rotation here only.
         internal static readonly PropertyKey<bool> IsPresenterPass = new PropertyKey<bool>("GraphicsCompositor.IsPresenterPass", typeof(GraphicsCompositor));
 
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsCompositor));
+
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
         private static readonly ProfilingKey RenderSystemCollectKey = new ProfilingKey("RenderSystem.Collect");
         private static readonly ProfilingKey GameCollectKey = new ProfilingKey("Game.Collect");
@@ -64,6 +66,9 @@ namespace Stride.Rendering.Compositing
         private static readonly ProfilingKey RenderSystemFlushKey = new ProfilingKey("RenderSystem.Flush");
         private static readonly ProfilingKey RenderSystemResetKey = new ProfilingKey("RenderSystem.Reset");
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("GraphicsCompositor.DrawCore");
+
+        private GraphicsRequirementCollector requirements;
+        private bool requirementsReported;
 
         /// <summary>
         /// Gets the render system used with this graphics compositor.
@@ -117,7 +122,36 @@ namespace Stride.Rendering.Compositing
         {
             base.InitializeCore();
 
+            requirements = new GraphicsRequirementCollector(GraphicsDevice);
+            requirementsReported = false;
+            Context.RendererInitialized += CollectRequirements;
+
             RenderSystem.Initialize(Context);
+        }
+
+        /// <inheritdoc/>
+        protected override void Unload()
+        {
+            // Before base.Unload, which clears Context
+            if (Context is not null)
+                Context.RendererInitialized -= CollectRequirements;
+
+            base.Unload();
+        }
+
+        private void CollectRequirements(IGraphicsRendererCore renderer)
+        {
+            if (renderer is IGraphicsRequirementSource source)
+                source.DeclareRequirements(requirements);
+        }
+
+        private void ReportRequirements()
+        {
+            requirementsReported = true;
+            Context.RendererInitialized -= CollectRequirements;
+
+            Log.Info(requirements.BuildReport());
+            requirements.ThrowIfUnmet();
         }
 
         /// <inheritdoc/>
@@ -251,6 +285,10 @@ namespace Stride.Rendering.Compositing
                         }
                     }
                 }
+
+                // Image effects initialize when they first draw, so the set is complete only now
+                if (!requirementsReported)
+                    ReportRequirements();
             }
         }
     }
