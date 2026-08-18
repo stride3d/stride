@@ -50,7 +50,10 @@ on:
         type: boolean
     secrets:
       gh-token:
-        description: Token for gh (release view/edit) and checkout.
+        description: >-
+          Write-capable token (a PAT) for checkout, the changelog fetch, author resolution, and
+          editing the release body on apply. Must be able to write contents; the job's built-in
+          GITHUB_TOKEN is read-only and cannot apply. Never exposed to the model's tool calls.
         required: true
       anthropic-api-key:
         description: Anthropic API key. If empty, note generation no-ops.
@@ -59,8 +62,11 @@ on:
 jobs:
   Generate:
     runs-on: ubuntu-latest
+    # Read-only for the built-in GITHUB_TOKEN: it is handed to the model as its read-only token,
+    # so a prompt-injected model cannot mutate the repo. The write (applying notes to the release)
+    # is done with the separate write-capable `gh-token` (a PAT), which is never in the model's env.
     permissions:
-      contents: write      # apply notes to the release
+      contents: read
       pull-requests: read  # let the model trace commits to their PRs (gh api / gh pr)
     steps:
       - uses: actions/checkout@v7
@@ -84,7 +90,8 @@ jobs:
           apply: ${{ inputs.apply }}
           add-contributors: ${{ inputs.add-contributors }}
           anthropic-api-key: ${{ secrets.anthropic-api-key }}
-          github-token: ${{ secrets.gh-token }}
+          github-token: ${{ secrets.gh-token }}      # write-capable: shell reads + apply
+          readonly-token: ${{ github.token }}         # read-only: the model's own tool calls
 
       # always(): if notes were generated but applying them failed, the artifact is the copy a
       # maintainer needs, so upload it even though the step above went red.

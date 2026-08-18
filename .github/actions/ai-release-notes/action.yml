@@ -50,8 +50,17 @@ inputs:
     required: false
     default: ''
   github-token:
-    description: Token for gh (release view, and release edit when apply=true).
+    description: >-
+      Write-capable token for the shell side: fetching the changelog, resolving commit authors,
+      and editing the release body when apply=true. Never exposed to the model's own tool calls.
     required: true
+  readonly-token:
+    description: >-
+      Read-only token used ONLY for the model's own gh/git tool calls, so a prompt-injected model
+      cannot mutate anything. Defaults to github-token (no isolation) when empty; pass a token with
+      no write scopes (e.g. a GITHUB_TOKEN minted with contents:read) to get the isolation.
+    required: false
+    default: ''
 
 outputs:
   notes-file:
@@ -69,6 +78,7 @@ runs:
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ inputs.github-token }}
+        READONLY_TOKEN: ${{ inputs.readonly-token }}
         REPO: ${{ github.repository }}
         TAG: ${{ inputs.tag }}
         INPUT_TO: ${{ inputs.to }}
@@ -281,12 +291,28 @@ runs:
           PROMPT="${PROMPT//\$FORMAT_INSTRUCTION/$FMT}"
           PROMPT="${PROMPT//\$GH_CHANGELOG/$GH_CHANGELOG}"
 
-          ALLOWED_TOOLS="Bash(git:*),Bash(gh release view:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Read,Grep,Glob"
+          # Read-only tool allowlist. Enumerate git's read subcommands instead of `git:*` so the
+          # arbitrary-command vectors (`git -c core.pager=…`, aliases, hooks — all of which start
+          # `git -c`/`git <other>` and no longer match) are denied. `gh pr view|list` and
+          # `gh release view` are already read-only subcommands.
+          # `gh api` stays unscoped: these patterns match on whitespace boundaries, so a prefix
+          # ending mid-token (`.../commits/` before a sha) never matches and blocks every call —
+          # it broke a whole run that way. Path scoping is therefore not expressible here, and
+          # prefix matching could not have made `gh api` read-only anyway (a trailing
+          # `--method POST`, or `-f` fields, still writes). The READ-ONLY TOKEN the model runs
+          # with is the real boundary: with no write scopes, any mutation attempt just 403s.
+          ALLOWED_TOOLS="Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git rev-list:*),Bash(git rev-parse:*),Bash(gh release view:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Read,Grep,Glob"
           # Stream events so the log shows live progress; tee the stream to a file and
           # extract the final result from it.
           STREAM="$PWD/claude-$fmt.jsonl"
           echo "Running Claude ($fmt) for $FROM..$TO (large ranges can take a few minutes)..."
           set +e
+          # Run the model with the read-only token in ITS environment only (a command-scoped
+          # GH_TOKEN override). The surrounding shell keeps the write-capable GH_TOKEN for the
+          # changelog fetch, author resolution, and apply; the model's gh/git tools never see it,
+          # so an injected model is confined to read access. Falls back to the write token (no
+          # isolation) when no read-only token was supplied.
+          GH_TOKEN="${READONLY_TOKEN:-$GH_TOKEN}" \
           claude -p "$PROMPT" \
             --model "$MODEL" \
             --allowedTools "$ALLOWED_TOOLS" \

@@ -70,7 +70,7 @@ jobs:
   Notes:
     needs: Config
     permissions:
-      contents: write      # granted down to the reusable workflow (edit release when applying)
+      contents: read       # passed down only as the model's read-only token; apply uses the PAT
       pull-requests: read  # let the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -83,5 +83,5 @@ jobs:
       apply: ${{ needs.Config.outputs.apply-tag != '' }}
       add-contributors: ${{ inputs.add-contributors }}
     secrets:
-      gh-token: ${{ secrets.GITHUB_TOKEN }}
+      gh-token: ${{ secrets.GH_PAT }}      # write-capable PAT: shell reads + apply (model uses the read-only GITHUB_TOKEN)
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
