@@ -40,6 +40,8 @@ jobs:
     environment: production  # Requires manual approval in GitHub settings
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check release permissions
         env:
@@ -209,24 +211,6 @@ jobs:
             --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
             bin/packages/*.nupkg
 
-      - name: AI release notes
-        continue-on-error: true  # best-effort; keeps GitHub's --generate-notes body on failure
-        uses: ./.github/actions/ai-release-notes
-        with:
-          tag: releases/${{ steps.version.outputs.version }}
-          tag-match: 'releases/*'
-          product: the Stride engine
-          # Whole repo except the separately-released products.
-          scope: >-
-            . :(exclude)sources/launcher/Stride.Cli
-            :(exclude)sources/tools/Stride.VisualStudio.*
-            :(exclude)sources/launcher/Stride.Launcher
-          apply: true
-          format: highlights
-          add-contributors: true  # engine release only: New Contributors is repo-wide
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GH_PAT }}
-
       - name: Bump version for next cycle
         # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above
         # points at the just-released commit). Skipped for prereleases (they keep the same number) and idempotent
@@ -275,3 +259,32 @@ jobs:
             $id = $_.Name -replace "\.$([regex]::Escape($v))\.nupkg$", ''
             echo "| $id | https://www.nuget.org/packages/$id/$v |" >> $env:GITHUB_STEP_SUMMARY
           }
+
+  #
+  # Generate and apply the AI release notes. A separate job so the 5-15 min generation runs
+  # off the Deploy critical path: the release (packages + GitHub release with the default
+  # --generate-notes body) is already live when Deploy finishes; this replaces the body with
+  # the bullet list a few minutes later. No 'production' environment, so it needs no second
+  # approval. Runs for both a direct release-deploy dispatch and release.yml's Deploy stage.
+  #
+  ReleaseNotes:
+    name: Release notes ${{ needs.Deploy.outputs.version }}
+    needs: Deploy
+    if: ${{ needs.Deploy.outputs.version != '' }}
+    permissions:
+      contents: write  # granted down to the reusable workflow (edit release when applying)
+    uses: ./.github/workflows/release-notes-apply.yml
+    with:
+      tag: releases/${{ needs.Deploy.outputs.version }}
+      tag-match: 'releases/*'
+      product: the Stride engine
+      # Whole repo except the separately-released products.
+      scope: >-
+        . :(exclude)sources/launcher/Stride.Cli
+        :(exclude)sources/tools/Stride.VisualStudio.*
+        :(exclude)sources/launcher/Stride.Launcher
+      apply: true
+      add-contributors: true    # engine release only: New Contributors is repo-wide
+    secrets:
+      gh-token: ${{ secrets.GH_PAT }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
