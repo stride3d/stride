@@ -29,27 +29,54 @@ Use **plain, simple English** and keep it **high level**:
 - Punctuation: prefer commas or periods over em dashes; don't lean on `—`. An occasional
   line break is fine, even inside a bullet.
 
-A short "Under the hood" section at the end can carry internal work worth a mention — keep
-even that readable.
-
 # Scope
 
 $SCOPE_NOTE
 
+# Authoritative change list
+
+$GH_CHANGELOG
+
 # Input & how to investigate
 
-This release covers the commit range `$PREV..$TAG`. Begin with:
+This release covers the commit range `$PREV..$TAG`. Start from the **first-parent** view of the
+mainline, where each entry is one merged unit (a squash-merge commit, a merge commit, or a
+direct commit):
 
     $LOG_CMD
 
-Then dig in **selectively**:
+Then investigate each notable entry to understand and attribute it:
 
-- `git show <sha>` or `git diff <sha>^ <sha>` for any commit whose subject is too vague to
-  summarize confidently.
-- `grep` / read source to confirm which subsystem a change touches, or what a symbol is.
+- **Find its pull request** — works for squash-, merge-, and rebase-merged changes:
+  `gh api repos/$REPO/commits/<sha>/pulls --jq '.[].number'`. If it has one, read the story with
+  `gh pr view <n> --json title,body,author,commits` — the PR title, description, and individual
+  commit messages tell you what the change is and why it matters.
+- **For a merge commit**, `git show <sha>^2` or `git log <sha>^1..<sha>^2` shows the branch's own
+  commits (the work it brought in).
+- **For a change with no PR**, read the commit itself (`git show <sha>`); `grep` / read source
+  to confirm which subsystem it touches.
 
-Only open diffs for commits you can't already summarize from the message — don't ingest
-every diff. Reading a handful of ambiguous ones is expected; dumping all of them is not.
+Prefer the PR/branch story over a bare commit subject when writing an entry. Investigate
+**selectively** — notable changes deserve a look, trivial ones don't; don't ingest every diff.
+Cross-check the authoritative change list above for the exact pull-request URL.
+
+**Anchor each entry on the merged unit (the PR), never on a leaf commit inside it.** When a change
+has a pull request, the bullet describes what that whole PR delivers, and its credit cites the PR.
+A small follow-up commit *inside* a PR is never the headline and never the primary reference: do
+not let a detail like "clearer error message for X" stand in for the feature it belongs to. A large
+rewrite stays described as the rewrite, at the scale its PR shows. Cite a commit URL only for work
+that genuinely has no PR.
+
+Investigation is how you write each entry well, **not** a filter for which entries to keep. The
+authoritative change list enumerates every merged PR in this range; the `bullets` output must
+stay **exhaustive** — cover every user-facing entry in that list (grouping related ones into a
+single bullet), including small fixes and lesser PRs you didn't read deeply, not just the large
+merges you investigated. Deep reading is for wording and grouping; curating down to a few
+important changes is the job of the highlights draft, never the bullet list.
+
+Exhaustive means **every PR is accounted for**, not that every commit becomes a bullet. The unit of
+a bullet is the merged PR, so a PR with twenty commits is still one bullet at the PR's scale. Never
+split one PR into several commit-sized bullets to raise coverage.
 
 # Filter — keep only what a user cares about
 
@@ -58,8 +85,9 @@ Drop or collapse noise:
 - WIP / review-churn ("Address the review", "fix per review", "no tests yet").
 - Merge commits and "(cherry picked from …)" artifacts.
 - Pure test-coverage, CI/build plumbing, formatting, dependency bookkeeping, and internal
-  refactors with **no** user-visible effect. Omit these, or fold them into a single terse
-  "Under the hood" line — never one bullet each.
+  refactors with **no** user-visible effect. Fold these into several separate "Under the
+  hood" bullets rather than dropping them: they still need a reference. Never one bullet per
+  commit, and never a single comma- or semicolon-joined bullet.
 
 Group related commits into **one** entry. A multi-commit feature is one highlight, not ten
 bullets.
@@ -68,14 +96,17 @@ bullets.
 
 $FORMAT_INSTRUCTION
 
-Use emoji area headers where they fit (e.g. `🖥️ Editor / Game Studio`, `🎮 Graphics &
-Shaders`, `🧨 Physics`, `🔊 Audio`, `🐧 Cross-platform / CLI / Build`) — pick headers that
-match this product's actual changes. Fold pure-internal noise into a single
-`🔧 Under the hood` line rather than one bullet each.
+Match Stride's house style: crisp, user-impact framing, no walls of text. If there are
+genuinely no user-facing changes in scope, say so in one line. The workflow adds the top-level
+section heading and appends the "New Contributors" and "Full Changelog" parts, so do not emit
+a document title, those two sections, or any closing commentary. Follow the format instruction
+above for the internal headings and structure.
 
-Match Stride's house style: crisp bullets, user-impact framing, no walls of text. If there
-are genuinely no user-facing changes in scope, say so in one line. Always end with exactly:
-`**Full Changelog**: https://github.com/$REPO/compare/$PREV...$TAG`
+Categorize each change by the subsystem it affects, not by which tool a developer used to
+reach it: reserve `🖥️ Editor / Game Studio` for changes to the editor application itself. A
+runtime or engine change goes under its own area (Graphics, Physics, Content & Assets, etc.),
+even if a developer might first notice it inside Game Studio — for example, an asset-loading
+API change belongs with content/assets, not Editor.
 
 # Prioritize by user impact
 
@@ -87,18 +118,34 @@ unsure whether something is new *in this release*, check history before `$PREV`
 
 # References — strict
 
-- Cite `#NNNN` **only** when that exact number appears verbatim in the commit's own message
-  (subject or body) as a real PR/issue reference. The number must come from the commit text
-  itself — never derive one from a commit's position in a list, its ordering, or your own
-  enumeration. (Genuinely low numbers are fine: Stride has old references like `#1020` or
-  `#1577`; keep them when the commit cites them.)
-- For a direct commit with no PR/issue, link the **short commit SHA**:
-  `https://github.com/$REPO/commit/<sha>` — or leave it unreferenced. Never invent a number.
+- End each `bullets` entry with a parenthesized list of the **bare URLs** it is based on, and
+  nothing else: `(<url>)`, or `(<url>, <url>)` when several belong to one entry. Use the
+  pull-request URL for work that has a PR (from the **authoritative change list** above, or from
+  `gh api repos/$REPO/commits/<sha>/pulls`, which returns the PR for any commit including
+  rebase-merged), and the full `https://github.com/$REPO/commit/<sha>` URL for work with no PR.
+- **Write no attribution yourself.** Never put an `@handle`, a `#number`, or any word inside those
+  parentheses, and do not look an author up. The workflow resolves every URL's author, groups the
+  references by contributor and renders the finished credit; anything you add there is discarded
+  or, worse, contradicts what it resolved. Copy each `<sha>` **verbatim** from `git log`/`git show`
+  (the full 40-hex id, exactly), never retype, truncate, or extend it. Never invent a reference.
+- **Cite every source you fold in.** When one bullet groups work from more than one PR or commit,
+  list **all** of them. Never describe a change while omitting its reference, and never reduce a
+  grouped bullet to a single PR when it actually covers several. The same applies to
+  `### 🔧 Under the hood`, where each bullet still lists every PR it folds in. Every PR in the
+  authoritative change list must be referenced somewhere — in its own bullet or a grouped one.
+- Any `#NNNN` you mention *inside* a bullet's wording must appear verbatim in that commit's own
+  message; never derive one from list position or invent it. (Old low numbers like `#1020` are
+  fine when the commit cites them.)
 
 # Rules
 
 - Don't fabricate. If, after checking its diff, you still can't tell what a commit does for
   the user, omit it rather than guess.
-- Be concise: fewer, well-written bullets beat an exhaustive dump.
-- Output **only** the Markdown release notes — no preamble, no description of your process.
-  Begin your response directly with the first heading.
+- Don't inflate scale. Reserve words like "new", "overhaul", "rewrite", "major", or
+  "redesign" for changes whose diff clearly shows that scope. When unsure, prefer modest
+  framing ("improved", "fixed", "extended"). A follow-up or hardening of a feature that
+  already shipped in an earlier release is a fix, not a new feature.
+- Be concise: make every line count — the bullet list is exhaustive but each bullet stays
+  tight, and the highlights are few and curated.
+- Output **only** the Markdown — no preamble, no "here are the notes", no description of your
+  process. Begin directly with the first `###` heading.
