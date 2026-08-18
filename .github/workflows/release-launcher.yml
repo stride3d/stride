@@ -202,7 +202,8 @@ jobs:
     needs: [Package, Deploy]
     if: ${{ needs.Package.outputs.version != '' }}
     permissions:
-      contents: write  # granted down to the reusable workflow (edit release when applying)
+      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      pull-requests: read  # lets the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
       tag: launcher/${{ needs.Package.outputs.version }}
