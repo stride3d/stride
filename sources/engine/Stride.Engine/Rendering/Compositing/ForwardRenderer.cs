@@ -225,14 +225,20 @@ namespace Stride.Rendering.Compositing
             if (MSAALevel == MultisampleCount.None)
                 return;
 
-            // InitializeCore has already resolved actualMultisampleCount against the device
-            collector.Prefer(this,
-                capability: $"multisampling at {(int) MSAALevel} samples",
-                isMet: actualMultisampleCount == MSAALevel,
-                reason: "the compositor requests multisampled rendering",
-                fallback: actualMultisampleCount == MultisampleCount.None
-                    ? "no multisampling"
-                    : $"{(int) actualMultisampleCount} samples");
+            var fallback = actualMultisampleCount == MultisampleCount.None
+                ? "no multisampling"
+                : $"{(int) actualMultisampleCount} samples";
+
+            // Both formats are rendered multisampled, so both have to support the count
+            collector.Prefer(this, GraphicsCapability.Multisampling(PixelFormat.R16G16B16A16_Float, MSAALevel),
+                             reason: "the compositor requests multisampled rendering", fallback: fallback);
+
+            collector.Prefer(this, GraphicsCapability.Multisampling(DepthBufferFormat, MSAALevel),
+                             reason: "multisampled rendering needs a matching depth buffer", fallback: fallback);
+
+            collector.Prefer(this, GraphicsCapability.MultisampleDepthAsShaderResource,
+                             reason: "the depth buffer is read as a shader resource while multisampling",
+                             fallback: fallback);
         }
 
         protected virtual void CollectStages(RenderContext context)

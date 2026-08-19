@@ -35,6 +35,34 @@ public partial struct GraphicsDeviceFeatures
     private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
 
     /// <summary>
+    ///   The capability kinds this backend has not implemented, whatever the device provides.
+    /// </summary>
+    /// <remarks>
+    ///   Each backend fills this in its own constructor. A backend with no gaps leaves it empty.
+    /// </remarks>
+    private readonly GraphicsCapabilityKind[] unimplementedCapabilities;
+
+    /// <summary>
+    ///   Whether this backend has implemented a capability kind at all.
+    /// </summary>
+    /// <param name="kind">The capability kind to look for.</param>
+    /// <remarks>
+    ///   This is a fact about Stride, not about the device. A renderer needs both this and
+    ///   <see cref="GraphicsCapability.IsProvidedByDevice"/> before it can use a capability.
+    /// </remarks>
+    public readonly bool IsImplementedByBackend(GraphicsCapabilityKind kind)
+    {
+        if (unimplementedCapabilities is null)
+            return true;
+
+        foreach (var unimplemented in unimplementedCapabilities)
+            if (unimplemented == kind)
+                return false;
+
+        return true;
+    }
+
+    /// <summary>
     ///   The requested profile when the <see cref="GraphicsDevice"/> was created.
     /// </summary>
     /// <seealso cref="GraphicsProfile"/>

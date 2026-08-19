@@ -30,13 +30,9 @@ namespace Stride.Rendering.Voxels
         /// <inheritdoc/>
         public void DeclareRequirements(GraphicsRequirementCollector collector)
         {
-            canVoxelize = collector.GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_11_0;
-
-            collector.Require(this,
-                capability: "graphics profile 11.0 or above",
-                isMet: canVoxelize,
-                reason: "voxelization writes volume textures from the geometry and compute stages. " +
-                        "The profile comparison stands in for a capability query that does not exist yet");
+            canVoxelize = collector.Require(this, GraphicsCapability.ComputeShaders,
+                                            reason: "voxelization writes volume textures from the compute stage")
+                                   .IsMet;
         }
 
         [DataMemberIgnore]
