@@ -55,8 +55,6 @@ namespace Stride.Rendering.Compositing
         // Top-level present-pass scope. SceneCameraRenderer folds presenter rotation here only.
         internal static readonly PropertyKey<bool> IsPresenterPass = new PropertyKey<bool>("GraphicsCompositor.IsPresenterPass", typeof(GraphicsCompositor));
 
-        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsCompositor));
-
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
         private static readonly ProfilingKey RenderSystemCollectKey = new ProfilingKey("RenderSystem.Collect");
         private static readonly ProfilingKey GameCollectKey = new ProfilingKey("Game.Collect");
@@ -66,7 +64,6 @@ namespace Stride.Rendering.Compositing
         private static readonly ProfilingKey RenderSystemFlushKey = new ProfilingKey("RenderSystem.Flush");
         private static readonly ProfilingKey RenderSystemResetKey = new ProfilingKey("RenderSystem.Reset");
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("GraphicsCompositor.DrawCore");
-
 
         /// <summary>
         /// Gets the render system used with this graphics compositor.
@@ -119,11 +116,6 @@ namespace Stride.Rendering.Compositing
         protected override void InitializeCore()
         {
             base.InitializeCore();
-
-            // Nothing else logs the device or its capabilities, and a renderer that degrades is much
-            // easier to read against them.
-            Log.Info($"Graphics device: {GraphicsDevice.Adapter?.Description ?? "unknown adapter"} " +
-                     $"({GraphicsDevice.Platform})\n  {GraphicsDevice.Features}");
 
             RenderSystem.Initialize(Context);
         }
