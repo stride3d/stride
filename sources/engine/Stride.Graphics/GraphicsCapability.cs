@@ -74,7 +74,7 @@ public abstract class GraphicsCapability
     /// <remarks>
     ///   This answers for the hardware and the driver alone. A backend that has not implemented
     ///   <see cref="Kind"/> cannot use the capability whatever this returns, so read
-    ///   <see cref="GraphicsDeviceFeatures.IsImplementedByBackend"/> as well.
+    ///   <see cref="GraphicsDeviceFeatures.Supports"/> to ask both questions at once.
     /// </remarks>
     public abstract bool IsProvidedByDevice(in GraphicsDeviceFeatures features);
 

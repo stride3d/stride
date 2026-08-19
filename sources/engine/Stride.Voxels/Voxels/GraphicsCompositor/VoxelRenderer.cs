@@ -19,21 +19,14 @@ using System.Linq;
 namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
-    public class VoxelRenderer : IVoxelRenderer, IGraphicsRequirementSource
+    public class VoxelRenderer : IVoxelRenderer
     {
         /// <summary>
-        /// Whether the device can voxelize. DeclareRequirements sets this before the first Collect.
+        /// Whether voxelization can run here. Collect sets this, and Draw reads it, so the two agree.
         /// </summary>
         [DataMemberIgnore]
         private bool canVoxelize;
 
-        /// <inheritdoc/>
-        public void DeclareRequirements(GraphicsRequirementCollector collector)
-        {
-            canVoxelize = collector.Require(this, GraphicsCapability.ComputeShaders,
-                                            reason: "voxelization writes volume textures from the compute stage")
-                                   .IsMet;
-        }
 
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
@@ -62,6 +55,8 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
+            canVoxelize = Context.RenderSystem.GraphicsDevice.Features
+                                 .Supports(GraphicsCapability.ComputeShaders) == GraphicsCapabilitySupport.Available;
             if (!canVoxelize)
                 return;
 

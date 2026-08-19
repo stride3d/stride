@@ -39,15 +39,6 @@ namespace Stride.Rendering.Voxels
             ShadowMapRenderer_notPrivate = Context.RenderSystem.RenderFeatures.OfType<MeshRenderFeature>().FirstOrDefault()?.RenderFeatures.OfType<ForwardLightingRenderFeature>().FirstOrDefault()?.ShadowMapRenderer;
             base.InitializeCore();
         }
-        /// <inheritdoc/>
-        public override void DeclareRequirements(GraphicsRequirementCollector collector)
-        {
-            base.DeclareRequirements(collector);
-
-            // VoxelRenderer is not a RendererCoreBase, so RendererInitialized never fires for it
-            if (VoxelRenderer is IGraphicsRequirementSource voxelRequirements)
-                voxelRequirements.DeclareRequirements(collector);
-        }
 
         protected override void CollectCore(RenderContext context)
         {

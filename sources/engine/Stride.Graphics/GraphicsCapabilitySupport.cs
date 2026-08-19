@@ -4,9 +4,9 @@
 namespace Stride.Graphics;
 
 /// <summary>
-///   Why a renderer does or does not get the capability it declared.
+///   Whether a renderer can use a capability, and if not, why not.
 /// </summary>
-public enum GraphicsRequirementOutcome
+public enum GraphicsCapabilitySupport
 {
     /// <summary>
     ///   The backend implements the capability and the device provides it.

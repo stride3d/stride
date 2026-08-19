@@ -23,7 +23,7 @@ namespace Stride.Rendering.Compositing
     /// Renders your game. It should use current <see cref="RenderContext.RenderView"/> and <see cref="CameraComponentRendererExtensions.GetCurrentCamera"/>.
     /// </summary>
     [Display("Forward renderer")]
-    public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer, IGraphicsRequirementSource
+    public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer
     {
         private static readonly ProfilingKey CollectCoreKey = new ProfilingKey("ForwardRenderer.CollectCore");
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
@@ -148,7 +148,16 @@ namespace Stride.Rendering.Compositing
 
                 if (actualMultisampleCount != MSAALevel)
                 {
-                    logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
+                    // Naming the backend matters: another device fixes one of these and nothing fixes the other
+                    var support = GraphicsDevice.Features.Supports(
+                        GraphicsCapability.Multisampling(PixelFormat.R16G16B16A16_Float, MSAALevel));
+
+                    var because = support == GraphicsCapabilitySupport.NotImplementedByBackend
+                        ? $"the {GraphicsDevice.Platform} backend does not implement multisampling"
+                        : "the device does not support that sample count";
+
+                    logger.Warning($"Multisample count of {(int) MSAALevel} samples not available, because " +
+                                   $"{because}. Falling back to {(int) actualMultisampleCount} samples.");
                 }
 
                 if (Platform.Type == PlatformType.iOS)
@@ -219,27 +228,6 @@ namespace Stride.Rendering.Compositing
             }
         }
 
-        /// <inheritdoc/>
-        public virtual void DeclareRequirements(GraphicsRequirementCollector collector)
-        {
-            if (MSAALevel == MultisampleCount.None)
-                return;
-
-            var fallback = actualMultisampleCount == MultisampleCount.None
-                ? "no multisampling"
-                : $"{(int) actualMultisampleCount} samples";
-
-            // Both formats are rendered multisampled, so both have to support the count
-            collector.Prefer(this, GraphicsCapability.Multisampling(PixelFormat.R16G16B16A16_Float, MSAALevel),
-                             reason: "the compositor requests multisampled rendering", fallback: fallback);
-
-            collector.Prefer(this, GraphicsCapability.Multisampling(DepthBufferFormat, MSAALevel),
-                             reason: "multisampled rendering needs a matching depth buffer", fallback: fallback);
-
-            collector.Prefer(this, GraphicsCapability.MultisampleDepthAsShaderResource,
-                             reason: "the depth buffer is read as a shader resource while multisampling",
-                             fallback: fallback);
-        }
 
         protected virtual void CollectStages(RenderContext context)
         {

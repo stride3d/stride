@@ -35,31 +35,28 @@ public partial struct GraphicsDeviceFeatures
     private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
 
     /// <summary>
-    ///   The capability kinds this backend has not implemented, whatever the device provides.
+    ///   Whether the device provides a capability, ignoring whether this backend can drive it.
     /// </summary>
-    /// <remarks>
-    ///   Each backend fills this in its own constructor. A backend with no gaps leaves it empty.
-    /// </remarks>
-    private readonly GraphicsCapabilityKind[] unimplementedCapabilities;
+    /// <param name="capability">The capability to ask the device about.</param>
+    public readonly bool Provides(GraphicsCapability capability) => capability.IsProvidedByDevice(this);
 
     /// <summary>
-    ///   Whether this backend has implemented a capability kind at all.
+    ///   Whether a renderer can use a capability here, and if not, why not.
     /// </summary>
-    /// <param name="kind">The capability kind to look for.</param>
+    /// <param name="capability">The capability the renderer needs.</param>
     /// <remarks>
-    ///   This is a fact about Stride, not about the device. A renderer needs both this and
-    ///   <see cref="GraphicsCapability.IsProvidedByDevice"/> before it can use a capability.
+    ///   The backend is asked first. What the device provides does not matter when the backend cannot
+    ///   drive it, and the two answers have different remedies. Another device fixes one. Only a change
+    ///   to Stride fixes the other.
     /// </remarks>
-    public readonly bool IsImplementedByBackend(GraphicsCapabilityKind kind)
+    public readonly GraphicsCapabilitySupport Supports(GraphicsCapability capability)
     {
-        if (unimplementedCapabilities is null)
-            return true;
+        if (!GraphicsBackend.Implements(capability.Kind))
+            return GraphicsCapabilitySupport.NotImplementedByBackend;
 
-        foreach (var unimplemented in unimplementedCapabilities)
-            if (unimplemented == kind)
-                return false;
-
-        return true;
+        return Provides(capability)
+            ? GraphicsCapabilitySupport.Available
+            : GraphicsCapabilitySupport.NotProvidedByDevice;
     }
 
     /// <summary>

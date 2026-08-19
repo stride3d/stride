@@ -22,10 +22,6 @@ namespace Stride.Graphics
 
             HasSRgb = true;
 
-            // Texture.Vulkan.cs and PipelineState.Vulkan.cs hardcode VkSampleCountFlags.Count1, and no
-            // MultisampleCount conversion exists, so this backend cannot render multisampled whatever
-            // the device reports.
-            unimplementedCapabilities = [GraphicsCapabilityKind.Multisampling];
 
             mapFeaturesPerFormat = new FeaturesPerFormat[256];
 
