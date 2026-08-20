@@ -1113,7 +1113,7 @@ namespace Stride.Graphics
         private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
         {
             if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
+                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
             {
                 description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }
