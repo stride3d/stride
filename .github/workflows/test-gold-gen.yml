@@ -274,9 +274,21 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           DETACHED: ${{ inputs.commit-sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
+          ACTOR: ${{ github.actor }}
         run: |
+          # The id prefix is what links the author to the bot's profile.
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Record who promoted, and from which run, so an odd reference image can be traced back.
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          ASSIGNEE=()
+          case "$ACTOR" in
+            ''|*'[bot]') TRAILER="Promoted by test-gold-gen run $RUN_URL" ;;
+            *)           TRAILER="Promoted by @$ACTOR from test-gold-gen run $RUN_URL"
+                         ASSIGNEE=(--assignee "$ACTOR") ;;
+          esac
+          MSG=$(printf 'Update gold images\n\n%s' "$TRAILER")
           git add tests/
           if git diff --cached --quiet; then
             echo "No gold changes to land."
@@ -315,18 +327,20 @@ jobs:
                 git push --force-with-lease origin "HEAD:$BRANCH"
                 echo "Amended last commit on $BRANCH."
               else
-                git commit -m "Update gold images"
+                git commit -m "$MSG"
                 git push origin "HEAD:$BRANCH"
                 echo "Committed gold to $BRANCH."
               fi
               ;;
             pr)
-              git commit -m "Update gold images"
+              git commit -m "$MSG"
               PR_BRANCH="gold-update/${{ github.run_id }}"
               git push origin "HEAD:$PR_BRANCH"
+              # Actions can't open a PR as the dispatcher, so name and assign them instead.
               gh pr create --base "${BRANCH:-$DEFAULT}" --head "$PR_BRANCH" \
                 --title "Update gold images" \
-                --body "Automated gold update from test-gold-gen run ${{ github.run_id }}."
+                --body "Automated gold update from test-gold-gen run ${{ github.run_id }}, triggered by @$ACTOR." \
+                "${ASSIGNEE[@]}"
               echo "Opened PR from $PR_BRANCH."
               ;;
           esac
