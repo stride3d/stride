@@ -134,36 +134,43 @@ namespace Stride.Rendering.Compositing
 
             if (MSAALevel != MultisampleCount.None)
             {
-                actualMultisampleCount = (MultisampleCount)Math.Min((int)MSAALevel, (int)GraphicsDevice.Features[PixelFormat.R16G16B16A16_Float].MultisampleCountMax);
-                actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax);
+                var colorMax = GraphicsDevice.Features[PixelFormat.R16G16B16A16_Float].MultisampleCountMax;
+                var depthMax = GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax;
 
-                // Note: we cannot support MSAA on DX10 now
-                if (GraphicsDevice.Features.HasMultiSampleDepthAsSRV == false)
-                {
-                    // Direct3D has MSAA support starting from version 11 because it requires multisample depth buffers as shader resource views.
-                    // Therefore we force-disable MSAA on any platform that doesn't support MSAA.
+                actualMultisampleCount = (MultisampleCount)Math.Min((int)MSAALevel, (int)colorMax);
+                actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)depthMax);
 
+                // Direct3D has MSAA support starting from version 11 because it requires multisample depth
+                // buffers as shader resource views.
+                var hasMultisampleDepthAsSRV = GraphicsDevice.Features.HasMultiSampleDepthAsSRV;
+                if (!hasMultisampleDepthAsSRV)
                     actualMultisampleCount = MultisampleCount.None;
-                }
 
+                // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
+                var isIOS = Platform.Type == PlatformType.iOS;
+                if (isIOS)
+                    actualMultisampleCount = MultisampleCount.None;
+
+                // Every clamp above has run, so the reason named here is the one that actually bit. The
+                // remedies differ: another device fixes some of these and nothing fixes the others.
                 if (actualMultisampleCount != MSAALevel)
                 {
-                    // Naming the backend matters: another device fixes one of these and nothing fixes the other
-                    var support = GraphicsDevice.Features.Supports(
+                    var backendSupport = GraphicsDevice.Features.Supports(
                         GraphicsCapability.Multisampling(PixelFormat.R16G16B16A16_Float, MSAALevel));
 
-                    var because = support == GraphicsCapabilitySupport.NotImplementedByBackend
-                        ? $"the {GraphicsDevice.Platform} backend does not implement multisampling"
-                        : "the device does not support that sample count";
+                    var because =
+                        backendSupport == GraphicsCapabilitySupport.NotImplementedByBackend
+                            ? $"the {GraphicsDevice.Platform} backend does not implement multisampling"
+                        : isIOS
+                            ? "multisampling is not implemented on iOS"
+                        : !hasMultisampleDepthAsSRV
+                            ? "this device cannot read a multisampled depth buffer as a shader resource"
+                        : depthMax < MSAALevel
+                            ? $"this device supports at most {(int) depthMax} samples for {DepthBufferFormat}"
+                            : $"this device supports at most {(int) colorMax} samples for {PixelFormat.R16G16B16A16_Float}";
 
                     logger.Warning($"Multisample count of {(int) MSAALevel} samples not available, because " +
                                    $"{because}. Falling back to {(int) actualMultisampleCount} samples.");
-                }
-
-                if (Platform.Type == PlatformType.iOS)
-                {
-                    // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                    actualMultisampleCount = MultisampleCount.None;
                 }
             }
 

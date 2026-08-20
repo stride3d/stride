@@ -230,8 +230,18 @@ public partial struct GraphicsDeviceFeatures
         }
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    ///   Every flag that makes a renderer quietly do something else is named here. Leaving one out means
+    ///   the degrade it causes cannot be diagnosed from the log.
+    /// </remarks>
     public override readonly string ToString()
     {
-        return $"Level: {RequestedProfile}, HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, HasDriverCommandLists: {HasDriverCommandLists}";
+        return $"Requested: {RequestedProfile}, Current: {CurrentProfile}, " +
+               $"HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, " +
+               $"HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, " +
+               $"HasDriverCommandLists: {HasDriverCommandLists}, HasSRgb: {HasSRgb}, " +
+               $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
+               $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}";
     }
 }
