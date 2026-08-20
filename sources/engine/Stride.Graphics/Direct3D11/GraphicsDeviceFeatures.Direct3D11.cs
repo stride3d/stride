@@ -66,6 +66,7 @@ namespace Stride.Graphics
             HasDepthAsSRV = CurrentProfile >= Level_10_0;
             HasDepthAsReadOnlyRT = CurrentProfile >= Level_11_0;
             HasMultiSampleDepthAsSRV = CurrentProfile >= Level_11_0;
+            HasIndex32Bits = CurrentProfile > Level_9_3;
 
             // Check features for each DXGI.Format
             foreach (var format in Enum.GetValues<Format>())

@@ -179,6 +179,12 @@ public partial struct GraphicsDeviceFeatures
     /// </summary>
     public readonly bool HasResourceRenaming;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports index buffers of 32-bit indices.
+    /// </summary>
+    /// <seealso cref="Buffer.Index"/>
+    public readonly bool HasIndex32Bits;
+
 
     /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.

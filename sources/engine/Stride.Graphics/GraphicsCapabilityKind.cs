@@ -45,5 +45,10 @@ public enum GraphicsCapabilityKind
     /// <summary>
     ///   Multisampled rendering.
     /// </summary>
-    Multisampling
+    Multisampling,
+
+    /// <summary>
+    ///   Index buffers holding 32-bit indices.
+    /// </summary>
+    Index32Bits
 }

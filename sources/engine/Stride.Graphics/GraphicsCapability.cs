@@ -50,6 +50,12 @@ public abstract class GraphicsCapability
         new DeviceFeatureCapability(GraphicsCapabilityKind.SRgb, "sRGB textures and render targets");
 
     /// <summary>
+    ///   Index buffers holding 32-bit indices, rather than 16-bit only.
+    /// </summary>
+    public static GraphicsCapability Index32Bits { get; } =
+        new DeviceFeatureCapability(GraphicsCapabilityKind.Index32Bits, "32-bit index buffers");
+
+    /// <summary>
     ///   Multisampled rendering of <paramref name="format"/> at <paramref name="count"/> samples.
     /// </summary>
     /// <param name="format">The pixel format to render multisampled.</param>

@@ -31,6 +31,7 @@ internal sealed class DeviceFeatureCapability : GraphicsCapability
         GraphicsCapabilityKind.MultisampleDepthAsShaderResource => features.HasMultiSampleDepthAsSRV,
         GraphicsCapabilityKind.ResourceRenaming => features.HasResourceRenaming,
         GraphicsCapabilityKind.SRgb => features.HasSRgb,
+        GraphicsCapabilityKind.Index32Bits => features.HasIndex32Bits,
 
         _ => throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "Not a device feature flag.")
     };

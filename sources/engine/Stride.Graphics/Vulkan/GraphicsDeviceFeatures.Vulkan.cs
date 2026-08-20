@@ -39,6 +39,9 @@ namespace Stride.Graphics
             HasDepthAsReadOnlyRT = true;
             HasMultiSampleDepthAsSRV = true;
 
+            // VK_INDEX_TYPE_UINT32 is core Vulkan.
+            HasIndex32Bits = true;
+
             HasResourceRenaming = false;
 
             // TODO D3D12
