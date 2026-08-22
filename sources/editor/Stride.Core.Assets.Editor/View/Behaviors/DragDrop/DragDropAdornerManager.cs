@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using Microsoft.Xaml.Behaviors;
 using System.Windows.Media;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Adorners;
 using Stride.Core.Presentation.Core;
@@ -22,12 +23,21 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
     /// </summary>
     internal static class DragDropAdornerManager
     {
+        /// <summary>
+        /// The resource key of the brush that highlights an item which the dragged items do not change.
+        /// </summary>
+        internal const string NeutralBrushKey = "NormalBorderBrush";
+
+        private static readonly Brush FallbackNeutralBrush = CreateFallbackNeutralBrush();
+
         private static readonly Dictionary<Visual, Tuple<AdornerLayer, HighlightBorderAdorner>> DropAdorners = new Dictionary<Visual, Tuple<AdornerLayer, HighlightBorderAdorner>>();
         private static readonly TimeoutDispatcherTimer DragLeaveTimer = new TimeoutDispatcherTimer(100);
         private static readonly DependencyProperty BehaviorsProperty;
         private static bool dropAdornersCreated;
         private static InsertAdorner insertAdorner;
         private static AdornerLayer currentLayer;
+        private static HighlightBorderAdorner dropTargetAdorner;
+        private static AdornerLayer dropTargetLayer;
         private static DisplayDropAdorner dataType;
 
         private static readonly Dictionary<FrameworkElement, Window> ElementToWindowLookup = new Dictionary<FrameworkElement, Window>();
@@ -86,9 +96,100 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         {
             if (currentLayer != null && insertAdorner != null)
                 currentLayer.Remove(insertAdorner);
+
+            insertAdorner = null;
+            currentLayer = null;
         }
 
-        internal static void UpdateInsertAdorner([NotNull] UIElement container, InsertPosition position)
+        /// <summary>
+        /// Removes the adorner highlighting the item into which the dragged items would be dropped.
+        /// </summary>
+        internal static void ClearDropTargetAdorner()
+        {
+            if (dropTargetLayer != null && dropTargetAdorner != null)
+                dropTargetLayer.Remove(dropTargetAdorner);
+
+            dropTargetAdorner = null;
+            dropTargetLayer = null;
+        }
+
+        [NotNull]
+        private static Brush CreateFallbackNeutralBrush()
+        {
+            var brush = new SolidColorBrush(Color.FromArgb(255, 148, 148, 148));
+            brush.Freeze();
+            return brush;
+        }
+
+        /// <summary>
+        /// Gets the adorner state that shows the given acceptance.
+        /// </summary>
+        /// <param name="acceptance">The acceptance to show.</param>
+        /// <returns>The matching adorner state.</returns>
+        internal static HighlightAdornerState ToAdornerState(DropAcceptance acceptance)
+        {
+            switch (acceptance)
+            {
+                case DropAcceptance.Accepted:
+                    return HighlightAdornerState.HighlightAccept;
+                case DropAcceptance.NoOp:
+                    return HighlightAdornerState.Visible;
+                default:
+                    return HighlightAdornerState.HighlightRefuse;
+            }
+        }
+
+        /// <summary>
+        /// Highlights the given element to indicate how it accepts the dragged items.
+        /// </summary>
+        /// <param name="adornedElement">The element to highlight, or <c>null</c> to remove the highlight.</param>
+        /// <param name="acceptance">How the element accepts the dragged items.</param>
+        /// <remarks>
+        /// While the same element stays adorned, the adorner is kept and only its state changes, because drag over
+        /// occurs approximately one time per frame.
+        /// </remarks>
+        internal static void UpdateDropTargetAdorner([CanBeNull] FrameworkElement adornedElement, DropAcceptance acceptance)
+        {
+            if (adornedElement == null)
+            {
+                ClearDropTargetAdorner();
+                return;
+            }
+
+            var state = ToAdornerState(acceptance);
+            if (dropTargetAdorner != null && Equals(dropTargetAdorner.AdornedElement, adornedElement))
+            {
+                dropTargetAdorner.State = state;
+                return;
+            }
+
+            ClearDropTargetAdorner();
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(adornedElement);
+            if (adornerLayer == null)
+                return;
+
+            adornerLayer.IsHitTestVisible = false;
+            dropTargetAdorner = new HighlightBorderAdorner(adornedElement) { State = state };
+            // The neutral colours of the adorner are made for a light background, but the rows here are dark. A muted
+            // grey also keeps the accent colour for the insert line only.
+            var neutralBrush = adornedElement.TryFindResource(NeutralBrushKey) as Brush ?? FallbackNeutralBrush;
+            dropTargetAdorner.BorderBrush = neutralBrush;
+            dropTargetAdorner.BackgroundBrush = neutralBrush;
+            adornerLayer.Add(dropTargetAdorner);
+            dropTargetLayer = adornerLayer;
+        }
+
+        /// <summary>
+        /// Shows the line at which the dragged items would be inserted.
+        /// </summary>
+        /// <param name="container">The container that the pointer is over.</param>
+        /// <param name="position">The position of the line, before or after the container.</param>
+        /// <param name="indent">
+        /// The horizontal position at which the line starts, or <see cref="double.NaN"/> to use the indentation of the
+        /// container.
+        /// </param>
+        internal static void UpdateInsertAdorner([NotNull] UIElement container, InsertPosition position, double indent = double.NaN)
         {
             var adornerLayer = AdornerLayer.GetAdornerLayer(container);
             if (adornerLayer != null)
@@ -97,6 +198,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
                 if (insertAdorner == null || !Equals(insertAdorner.AdornedElement, container))
                     insertAdorner = new InsertAdorner(container);
                 insertAdorner.Position = position;
+                insertAdorner.Indent = indent;
                 adornerLayer.Add(insertAdorner);
                 currentLayer = adornerLayer;
             }
