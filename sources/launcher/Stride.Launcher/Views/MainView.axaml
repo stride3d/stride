@@ -736,10 +736,11 @@
                            Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
                            FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
-              <Grid Margin="{StaticResource BorderThicknessTile}">
+              <Grid Margin="8">
                 <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
                                    BaseUri="{Binding ActiveReleaseNotes.BaseUrl}"
-                                   IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
+                                   IsVisible="{Binding ActiveReleaseNotes.IsLoaded}"
+                                   ScrollViewer.AllowAutoHide="False" Padding="4" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
                            IsVisible="{Binding ActiveReleaseNotes.IsUnavailable}" />
