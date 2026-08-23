@@ -9,6 +9,7 @@
                     xmlns:behaviors="clr-namespace:Stride.Core.Presentation.Behaviors"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib"
                     mc:Ignorable="d">
 
   <!--<Style TargetType="{x:Type ctrl:PropertyGrid}">
@@ -29,6 +30,10 @@
   <SolidColorBrush x:Key="GreenBrush" Color="#FF65C36A" />
   <SolidColorBrush x:Key="BlueBrush" Color="#FF3F74D1" />
   <SolidColorBrush x:Key="AlphaBrush" Color="#FFBCBCBC" />
+
+    <!-- Drag and drop feedback. The colours live in the theme files. -->
+    <s:Double x:Key="DropInsertLineThickness">2</s:Double>
+    <s:Double x:Key="DropInsertMarkerRadius">3</s:Double>
 
   <!-- ### EditableListBox ################################################################################################################################################# -->
   <SolidColorBrush x:Key="GlyphBrush" Color="Black" />

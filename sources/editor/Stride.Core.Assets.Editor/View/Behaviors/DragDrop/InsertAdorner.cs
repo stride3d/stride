@@ -18,12 +18,6 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
     /// </remarks>
     public class InsertAdorner : Adorner
     {
-        private const string LineBrushKey = "SelectedBackgroundBrush";
-        private const double LineThickness = 2.0;
-        private const double MarkerRadius = 3.0;
-
-        private static readonly Brush FallbackBrush = CreateFallbackBrush();
-
         public InsertAdorner([NotNull] UIElement adornedElement)
             : base(adornedElement)
         {
@@ -60,28 +54,24 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
                     throw new ArgumentOutOfRangeException();
             }
 
-            var brush = (AdornedElement as FrameworkElement)?.TryFindResource(LineBrushKey) as Brush ?? FallbackBrush;
+            var brush = DropFeedbackResources.GetInsertLineBrush(AdornedElement);
+            var markerRadius = DropFeedbackResources.GetInsertMarkerRadius(AdornedElement);
             var lineStart = 0.0;
 
             if (item != null)
             {
                 lineStart = double.IsNaN(Indent) ? item.Offset : Indent;
-                drawingContext.DrawEllipse(brush, null, new Point(lineStart + MarkerRadius, y), MarkerRadius, MarkerRadius);
-                lineStart += MarkerRadius * 2;
+                drawingContext.DrawEllipse(brush, null, new Point(lineStart + markerRadius, y), markerRadius, markerRadius);
+                lineStart += markerRadius * 2;
             }
 
             if (lineStart < width)
-                drawingContext.DrawLine(new Pen(brush, LineThickness), new Point(lineStart, y), new Point(width, y));
+            {
+                var pen = new Pen(brush, DropFeedbackResources.GetInsertLineThickness(AdornedElement));
+                drawingContext.DrawLine(pen, new Point(lineStart, y), new Point(width, y));
+            }
 
             base.OnRender(drawingContext);
-        }
-
-        [NotNull]
-        private static Brush CreateFallbackBrush()
-        {
-            var brush = new SolidColorBrush(Color.FromArgb(255, 173, 173, 173));
-            brush.Freeze();
-            return brush;
         }
     }
 }

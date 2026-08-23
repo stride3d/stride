@@ -26,9 +26,6 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         /// <summary>
         /// The resource key of the brush that highlights an item which the dragged items do not change.
         /// </summary>
-        internal const string NeutralBrushKey = "NormalBorderBrush";
-
-        private static readonly Brush FallbackNeutralBrush = CreateFallbackNeutralBrush();
 
         private static readonly Dictionary<Visual, Tuple<AdornerLayer, HighlightBorderAdorner>> DropAdorners = new Dictionary<Visual, Tuple<AdornerLayer, HighlightBorderAdorner>>();
         private static readonly TimeoutDispatcherTimer DragLeaveTimer = new TimeoutDispatcherTimer(100);
@@ -113,12 +110,37 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             dropTargetLayer = null;
         }
 
-        [NotNull]
-        private static Brush CreateFallbackNeutralBrush()
+        /// <summary>
+        /// Applies the colours of the theme to an adorner that highlights the header of an item.
+        /// </summary>
+        /// <param name="adorner">The adorner to change.</param>
+        /// <param name="adornedElement">The element that the adorner covers.</param>
+        /// <remarks>
+        /// The default colours of <see cref="HighlightBorderAdorner"/> are made for a light background, but these rows
+        /// follow the theme. A colour that the theme does not give keeps the default of the adorner.
+        /// </remarks>
+        private static void ApplyTheme([NotNull] HighlightBorderAdorner adorner, [NotNull] FrameworkElement adornedElement)
         {
-            var brush = new SolidColorBrush(Color.FromArgb(255, 148, 148, 148));
-            brush.Freeze();
-            return brush;
+            var neutral = DropFeedbackResources.GetTargetNeutralBrush(adornedElement);
+            if (neutral != null)
+            {
+                adorner.BorderBrush = neutral;
+                adorner.BackgroundBrush = neutral;
+            }
+
+            var accept = DropFeedbackResources.GetTargetAcceptBrush(adornedElement);
+            if (accept != null)
+            {
+                adorner.AcceptBorderBrush = accept;
+                adorner.AcceptBackgroundBrush = accept;
+            }
+
+            var refuse = DropFeedbackResources.GetTargetRefuseBrush(adornedElement);
+            if (refuse != null)
+            {
+                adorner.RefuseBorderBrush = refuse;
+                adorner.RefuseBackgroundBrush = refuse;
+            }
         }
 
         /// <summary>
@@ -171,11 +193,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
             adornerLayer.IsHitTestVisible = false;
             dropTargetAdorner = new HighlightBorderAdorner(adornedElement) { State = state };
-            // The neutral colours of the adorner are made for a light background, but the rows here are dark. A muted
-            // grey also keeps the accent colour for the insert line only.
-            var neutralBrush = adornedElement.TryFindResource(NeutralBrushKey) as Brush ?? FallbackNeutralBrush;
-            dropTargetAdorner.BorderBrush = neutralBrush;
-            dropTargetAdorner.BackgroundBrush = neutralBrush;
+            ApplyTheme(dropTargetAdorner, adornedElement);
             adornerLayer.Add(dropTargetAdorner);
             dropTargetLayer = adornerLayer;
         }
