@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Graphics.Regression;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -24,11 +23,12 @@ namespace Stride.Graphics.Tests
     /// proxy. Only a content load turns such a proxy into a loaded object, and <see cref="Material.New"/>
     /// runs the generator outside that path, so it must resolve the references itself.
     /// <para>
-    /// This lives here rather than in Stride.Graphics.Tests because the lookup table reaches a build only
-    /// when an asset references it. This project has material assets that do; that one has none.
+    /// This project holds no material asset that references the lookup table, so the table reaches the
+    /// build only because <c>Stride.Engine</c> declares it as a root asset. That makes this the place
+    /// where both halves have to hold: the table is packaged, and the material resolves it.
     /// </para>
     /// </remarks>
-    public class TestMaterialProxyResolution : GameTestBase
+    public class TestMaterialProxyResolution : GraphicTestGameBase
     {
         [Fact]
         public static void EnvironmentLookupTableIsARealTexture()
