@@ -3,6 +3,8 @@
 
 #if STRIDE_GRAPHICS_API_VULKAN
 
+using Vortice.Vulkan;
+
 namespace Stride.Graphics
 {
     /// <summary>
@@ -44,9 +46,26 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // TODO D3D12
+            // Ask the device about each format. MultisampleCountMax deliberately stays None below:
+            // this backend does not implement multisampling, GraphicsBackend.Vulkan says so, and
+            // ForwardRenderer and Texture.InitializeFrom read that field raw rather than through
+            // Supports, so an honest value there would let them create images this backend cannot make.
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, MultisampleCount.None, ComputeShaderFormatSupport.None, FormatSupport.None);
+            {
+                var pixelFormat = (PixelFormat) i;
+                var formatSupport = FormatSupport.None;
+
+                if (VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var vulkanFormat) &&
+                    vulkanFormat != VkFormat.Undefined)
+                {
+                    deviceRoot.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(
+                        deviceRoot.NativePhysicalDevice, vulkanFormat, out var formatProperties);
+
+                    formatSupport = ConvertFormatSupport(formatProperties);
+                }
+
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat(pixelFormat, MultisampleCount.None, ComputeShaderFormatSupport.None, formatSupport);
+            }
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
             //{
@@ -67,6 +86,55 @@ namespace Stride.Graphics
             //    //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             //    mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             //}
+        }
+
+        /// <summary>
+        ///   Maps what Vulkan reports for a format onto the flags Stride uses.
+        /// </summary>
+        /// <remarks>
+        ///   <see cref="FormatSupport"/> mirrors D3D11_FORMAT_SUPPORT, so the two do not line up. Only
+        ///   flags this query answers precisely are set.
+        ///   <para>
+        ///     Left unset on purpose: Texture1D, Texture3D and TextureCube, which need
+        ///     vkGetPhysicalDeviceImageFormatProperties rather than this call, and would over-claim if
+        ///     taken from SampledImage alone — a block-compressed format samples in 2D but not in 3D.
+        ///     Also unset are every multisample flag, CpuLockable, Display, MipAutogen and the video
+        ///     flags, none of which this query reports.
+        ///   </para>
+        /// </remarks>
+        private static FormatSupport ConvertFormatSupport(VkFormatProperties formatProperties)
+        {
+            var imageFeatures = formatProperties.optimalTilingFeatures;
+            var bufferFeatures = formatProperties.bufferFeatures;
+
+            var formatSupport = FormatSupport.None;
+
+            if ((imageFeatures & VkFormatFeatureFlags.SampledImage) != 0)
+                formatSupport |= FormatSupport.ShaderLoad | FormatSupport.Texture2D;
+
+            // D3D separates a filtered sample from an unfiltered load, and so does Vulkan.
+            if ((imageFeatures & VkFormatFeatureFlags.SampledImageFilterLinear) != 0)
+                formatSupport |= FormatSupport.ShaderSample;
+
+            if ((imageFeatures & VkFormatFeatureFlags.ColorAttachment) != 0)
+                formatSupport |= FormatSupport.RenderTarget;
+
+            if ((imageFeatures & VkFormatFeatureFlags.ColorAttachmentBlend) != 0)
+                formatSupport |= FormatSupport.Blendable;
+
+            if ((imageFeatures & VkFormatFeatureFlags.DepthStencilAttachment) != 0)
+                formatSupport |= FormatSupport.DepthStencil;
+
+            if ((imageFeatures & VkFormatFeatureFlags.StorageImage) != 0)
+                formatSupport |= FormatSupport.TypedUnorderedAccessView;
+
+            if ((bufferFeatures & VkFormatFeatureFlags.VertexBuffer) != 0)
+                formatSupport |= FormatSupport.InputAssemblyVertexBuffer;
+
+            if ((bufferFeatures & (VkFormatFeatureFlags.UniformTexelBuffer | VkFormatFeatureFlags.StorageTexelBuffer)) != 0)
+                formatSupport |= FormatSupport.Buffer;
+
+            return formatSupport;
         }
     }
 }

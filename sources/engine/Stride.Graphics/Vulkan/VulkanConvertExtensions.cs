@@ -281,6 +281,30 @@ namespace Stride.Graphics
             return format;
         }
 
+        /// <summary>
+        ///   Converts a <see cref="PixelFormat"/> without throwing when it has no Vulkan equivalent.
+        /// </summary>
+        /// <param name="inputFormat">The format to convert.</param>
+        /// <param name="format">The Vulkan format, or <see cref="VkFormat.Undefined"/> when there is none.</param>
+        /// <returns><see langword="true"/> if <paramref name="inputFormat"/> has a Vulkan equivalent.</returns>
+        /// <remarks>
+        ///   ConvertPixelFormat covers only the formats Stride uses, so enumerating every PixelFormat
+        ///   through it would throw. Callers that walk the whole enum want this instead.
+        /// </remarks>
+        public static bool TryConvertPixelFormat(PixelFormat inputFormat, out VkFormat format)
+        {
+            try
+            {
+                ConvertPixelFormat(inputFormat, out format, out _, out _);
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                format = VkFormat.Undefined;
+                return false;
+            }
+        }
+
         public static void ConvertPixelFormat(PixelFormat inputFormat, out VkFormat format, out int pixelSize, out bool compressed)
         {
             compressed = false;
