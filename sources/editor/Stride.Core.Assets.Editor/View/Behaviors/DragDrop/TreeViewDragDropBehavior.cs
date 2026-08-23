@@ -65,7 +65,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         {
             insertPosition = InsertPosition.Before;
 
-            if (!(container is TreeViewItem item))
+            if (container is not TreeViewItem item)
             {
                 if (mousePosition.Y >= 0 && mousePosition.Y <= InsertThreshold)
                 {
