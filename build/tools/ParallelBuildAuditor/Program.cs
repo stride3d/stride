@@ -38,7 +38,8 @@ var contextToProject = new Dictionary<int, string>();
 var evaluationToOutputPath = new Dictionary<int, string>();
 var observed = 0;
 
-var src = new BinaryLogReplayEventSource();
+// Skip unknown records from newer binlog formats instead of failing.
+var src = new BinaryLogReplayEventSource { AllowForwardCompatibility = true };
 src.AnyEventRaised += (_, e) =>
 {
     if (e is ProjectEvaluationFinishedEventArgs pef && pef.BuildEventContext != null && pef.Properties != null)
