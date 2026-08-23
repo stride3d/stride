@@ -248,6 +248,7 @@ public partial struct GraphicsDeviceFeatures
                $"HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, " +
                $"HasDriverCommandLists: {HasDriverCommandLists}, HasSRgb: {HasSRgb}, " +
                $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
-               $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}";
+               $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}, " +
+               $"HasIndex32Bits: {HasIndex32Bits}";
     }
 }
