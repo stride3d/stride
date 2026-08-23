@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Core.Yaml;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
@@ -913,6 +914,49 @@ Compositions:
             AssertShaderSourceEqual(expected, pixelShaders);
         }
 
+
+        /// <summary>
+        /// The generator on its own leaves texture references as proxies.
+        /// </summary>
+        /// <remarks>
+        /// This is what the asset compiler serializes: the proxy carries the reference, and a content
+        /// load turns it back into the texture. A caller that generates a material at run time is outside
+        /// that path and has to resolve the references itself, which is what <c>Material.New</c> does.
+        /// Pinning it here keeps a change made for the run-time path from breaking the build-time one.
+        /// </remarks>
+        [Fact]
+        public void TestGeneratorLeavesTextureReferencesAsProxies()
+        {
+            var context = new MaterialGeneratorContextExtended();
+            var materialDesc = new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(Color.White)),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    Specular = new MaterialMetalnessMapFeature(new ComputeFloat(1.0f)),
+                    MicroSurface = new MaterialGlossinessMapFeature(new ComputeFloat(0.9f)),
+
+                    // Defaults its environment function to MaterialSpecularMicrofacetEnvironmentGGXLUT,
+                    // which attaches a reference to a lookup table texture.
+                    SpecularModel = new MaterialSpecularMicrofacetModelFeature(),
+                },
+            };
+
+            var result = MaterialGenerator.Generate(materialDesc, context, "test_material");
+            Assert.False(result.HasErrors, result.ToText());
+
+            var lookupTable = result.Material.Passes[0].Parameters
+                .Get(MaterialSpecularMicrofacetEnvironmentGGXLUTKeys.EnvironmentLightingDFG_LUT);
+
+            Assert.NotNull(lookupTable);
+
+            var reference = AttachedReferenceManager.GetAttachedReference(lookupTable);
+
+            Assert.NotNull(reference);
+            Assert.True(reference.IsProxy, "The generator resolved the reference, which the asset compiler relies on staying a proxy.");
+            Assert.Equal("/Stride.Engine/StrideEnvironmentLightingDFGLUT16", reference.Url);
+        }
 
         private class MaterialGeneratorContextExtended : MaterialGeneratorContext
         {
