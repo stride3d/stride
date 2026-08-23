@@ -6,6 +6,7 @@
              xmlns:mv="using:MarkView.Avalonia"
              xmlns:p="using:Stride.Core.Presentation.Avalonia.Services"
              xmlns:l="using:Stride.Launcher.Assets.Localization"
+             xmlns:cvt="using:Stride.Launcher.Converters"
              xmlns:srv="using:Stride.Launcher.Services"
              xmlns:vm="using:Stride.Launcher.ViewModels"
              xmlns:vw="using:Stride.Launcher.Views"
@@ -515,7 +516,12 @@
                 <Setter Property="RenderTransform" Value="translateX(0)"/>
               </Style>
               <Style Selector="Grid.rn-slide:not(.visible)">
-                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+                <!--
+                  This moves the panel beyond the rightmost side of the window.
+                  The value here is based on the MaxWidth of the Launcher window (2560) - widfth of the first column (400).
+                  It should be in sync with the same animation for the release note panel below.
+                -->
+                <Setter Property="RenderTransform" Value="translateX(2160px)"/>
               </Style>
             </Grid.Styles>
             <Grid.Transitions>
@@ -717,7 +723,7 @@
                 <Setter Property="RenderTransform" Value="translateX(0)"/>
               </Style>
               <Style Selector="Grid.rn-slide:not(.visible)">
-                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+                <Setter Property="RenderTransform" Value="translateX(2160px)"/>
               </Style>
             </Grid.Styles>
             <Grid.Transitions>
@@ -732,12 +738,41 @@
                         Margin="8"
                         Command="{Binding ActiveReleaseNotes.ToggleCommand}"
                         Content="×" FontSize="20" />
+                <ToggleButton DockPanel.Dock="Left" x:Name="OutlineToggle"
+                              Margin="12 0 0 0">
+                  <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
+                </ToggleButton>
+                <Popup x:Name="OutlinePopup"
+                       IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                       PlacementTarget="{Binding #OutlineToggle}"
+                       Placement="BottomEdgeAlignedLeft">
+                  <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
+                          BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
+                          BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
+                          CornerRadius="{DynamicResource OverlayCornerRadius}"
+                          Padding="8" Width="360" MaxHeight="420">
+                    <ScrollViewer>
+                      <ListBox x:Name="OutlineList"
+                              Background="Transparent"
+                              SelectionChanged="OnOutlineSelectionChanged"
+                              ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
+                        <ListBox.ItemTemplate>
+                          <DataTemplate DataType="cvt:OutlineRow">
+                            <TextBlock Text="{Binding Entry.Text}" Margin="{Binding Indent}"
+                                        TextTrimming="CharacterEllipsis" />
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </ScrollViewer>
+                  </Border>
+                </Popup>
                 <TextBlock Margin="15,8"
                            Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
                            FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
               <Grid Margin="8">
-                <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
+                <mv:MarkdownViewer x:Name="ReleaseNotesView"
+                                   Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
                                    BaseUri="{Binding ActiveReleaseNotes.BaseUrl}"
                                    IsVisible="{Binding ActiveReleaseNotes.IsLoaded}"
                                    ScrollViewer.AllowAutoHide="False" Padding="4" />

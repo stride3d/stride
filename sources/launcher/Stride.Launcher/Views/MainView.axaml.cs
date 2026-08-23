@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Stride.Core.CodeEditorSupport.VisualStudio;
+using Stride.Launcher.Converters;
 using Stride.Launcher.ViewModels;
 
 namespace Stride.Launcher.Views;
@@ -33,6 +34,18 @@ public partial class MainView : UserControl
         {
             vm.PreferredEditor = editor;
         }
+    }
+
+    private void OnOutlineSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems is [OutlineRow row])
+        {
+            ReleaseNotesView.ScrollToAnchor(row.Entry.Slug);
+            OutlineToggle.IsChecked = false;
+        }
+
+        // Clear selection so re-clicking the same heading still raises this handler.
+        OutlineList.SelectedItem = null;
     }
 
     private void VisualStudioDownloadPage_Button_Loaded(object? sender, RoutedEventArgs e)
