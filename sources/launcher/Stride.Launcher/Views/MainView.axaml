@@ -505,8 +505,24 @@
           </DockPanel>
 
           <Grid Grid.Column="1"
+                Classes="rn-slide"
+                Classes.visible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
+                IsHitTestVisible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
                 ColumnDefinitions="*, *"
                 IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+            <Grid.Styles>
+              <Style Selector="Grid.rn-slide.visible">
+                <Setter Property="RenderTransform" Value="translateX(0)"/>
+              </Style>
+              <Style Selector="Grid.rn-slide:not(.visible)">
+                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+              </Style>
+            </Grid.Styles>
+            <Grid.Transitions>
+              <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseInOut"/>
+              </Transitions>
+            </Grid.Transitions>
             <!-- SECOND COLUMN -->
             <Border Grid.Column="0">
               <!-- Recent projects  -->
@@ -706,7 +722,7 @@
             </Grid.Styles>
             <Grid.Transitions>
               <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseInOut"/>
               </Transitions>
             </Grid.Transitions>
             <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
