@@ -10,6 +10,7 @@ namespace CSharpIntermediate.Code
     public class AsyncCollisionTriggerDemo : AsyncScript
     {
         private Material yellowMaterial;
+        private Material redMaterial;
 
         public override async Task Execute()
         {
@@ -46,6 +47,7 @@ namespace CSharpIntermediate.Code
         public override void Cancel()
         {
             Content.Unload(yellowMaterial);
+            Content.Unload(redMaterial);
         }
     }
 }
