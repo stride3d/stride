@@ -30,6 +30,10 @@ Hierarchy:
                     4540bd72b652fc49af82c4ac79ccf1f0: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: 72bd4045-52b6-49fc-af82-c4ac79ccf1f0
                         MaxNbObstacles: 1
+                        Holes:
+                            a8881c518ebd284baf7b4a3c4e67fea4:
+                                Area: {X: -7.5, Y: 15.0, Width: 5.0, Height: 30.0}
+                                Height: -2.0
                     2d6848c6e1f2544fa5391aea5ebb194e: !ModelComponent
                         Id: c648682d-f2e1-4f54-a539-1aea5ebb194e
                         Model: c8901469-88c0-43e1-bffe-f1fe2dc02aea:bg_b02
@@ -47,6 +51,7 @@ Hierarchy:
                     2d0b2ca988b56449b6b96d997ba46c75: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: a92c0b2d-b588-4964-b6b9-6d997ba46c75
                         MaxNbObstacles: 1
+                        Holes: {}
                     662cbdd81ade2647a3000f466a57be4f: !ModelComponent
                         Id: d8bd2c66-de1a-4726-a300-0f466a57be4f
                         Model: 82360e61-196c-4c07-9fae-af7ee4f265a1:bg_b00
@@ -81,6 +86,10 @@ Hierarchy:
                     4288f628c471974193fed2f2b8ef29fb: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: 28f68842-71c4-4197-93fe-d2f2b8ef29fb
                         MaxNbObstacles: 1
+                        Holes:
+                            d39ae8d682e2d5408d752b27a61e7794:
+                                Area: {X: -2.5, Y: 15.0, Width: 5.0, Height: 30.0}
+                                Height: -2.0
                     c3aea1c7bdb9134c9e74a68360b9d3d9: !ModelComponent
                         Id: c7a1aec3-b9bd-4c13-9e74-a68360b9d3d9
                         Model: f0088b04-5990-4dd4-9824-77fcf8a8a62c:bg_b01
@@ -118,6 +127,13 @@ Hierarchy:
                     a12d1404104cf54fa399f616448b3c16: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: 04142da1-4c10-4ff5-a399-f616448b3c16
                         MaxNbObstacles: 0
+                        Holes:
+                            105a5bf414f0294689ce0eba325f3d0a:
+                                Area: {X: -7.5, Y: 15.0, Width: 5.0, Height: 30.0}
+                                Height: -2.0
+                            d08c0c327f706b4981b8ab91e0d5a97c:
+                                Area: {X: 2.5, Y: 15.0, Width: 5.0, Height: 30.0}
+                                Height: -2.0
                     445aa2431d5ed648b78f81a1ea4a3af4: !ModelComponent
                         Id: 43a25a44-5e1d-48d6-b78f-81a1ea4a3af4
                         Model: a966e37f-0bb7-4a02-9630-d871321a615d:bg_b03
@@ -150,6 +166,10 @@ Hierarchy:
                     326685b3bd9034468e275a06033a8660: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: b3856632-90bd-4634-8e27-5a06033a8660
                         MaxNbObstacles: 0
+                        Holes:
+                            51019ca0ce03f742b50a76cd849fe16d:
+                                Area: {X: -7.5, Y: 15.0, Width: 10.0, Height: 30.0}
+                                Height: -2.0
                     f0139009701da04ca5ec13ca1c1fe3eb: !ModelComponent
                         Id: 099013f0-1d70-4ca0-a5ec-13ca1c1fe3eb
                         Model: b731fd7d-df09-4059-9cc5-57ba50d0f3f6:bg_b04
@@ -167,6 +187,7 @@ Hierarchy:
                     d0a08a0af8181847bb41026c96e89fad: !SpaceEscape.Background.BackgroundInfo,SpaceEscape.Game
                         Id: 0a8aa0d0-18f8-4718-bb41-026c96e89fad
                         MaxNbObstacles: 3
+                        Holes: {}
                     d060acdcd2b2f343b50af03c4aa5e47e: !ModelComponent
                         Id: dcac60d0-b2d2-43f3-b50a-f03c4aa5e47e
                         Model: 3047da8a-bf85-4cdd-99ef-89c2b19c3c04:bg_a00
