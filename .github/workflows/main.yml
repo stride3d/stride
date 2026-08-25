@@ -134,7 +134,7 @@ jobs:
     uses: ./.github/workflows/build-windows-runtime.yml
     with:
       build-type: Release
-      graphics-api: Null
+      graphics-api: "Null"
 
   ### Full Windows build (engine + editor + assets + samples) ###
   Windows-Full:
