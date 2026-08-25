@@ -356,16 +356,29 @@ runs:
         # count would be nonsense. A PR cited only in New Contributors does not count as covered.
         case "$SCOPE" in ""|.*) coverage_ok=1 ;; *) coverage_ok=0 ;; esac
         COVERAGE_NOTE=""
-        if [ "$coverage_ok" = 1 ] && printf '%s\n' "$WHATS_CHANGED" | grep -q '^\* '; then
+        total=0
+        if [ "$coverage_ok" = 1 ]; then
           # No-match greps exit 1, which set -e would turn into a failed run; an empty result is a
           # legitimate outcome here (notes citing no PR at all).
-          all_prs=$(printf '%s\n' "$WHATS_CHANGED" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' | sort -un || true)
+          gn_prs=$(printf '%s\n' "$WHATS_CHANGED" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || true)
+          # generate-notes drops PRs whose merge commit it cannot match, so the range's own merge
+          # and squash subjects are unioned in; without them the denominator understates the range
+          # and bullets get no credit for citing what the list missed.
+          git_prs=$(git log --pretty=%s "$FROM..$TO" -- $SCOPE \
+            | grep -oE '(Merge pull request #[0-9]+|\(#[0-9]+\)$)' | grep -oE '[0-9]+' || true)
+          all_prs=$(printf '%s\n%s\n' "$gn_prs" "$git_prs" | grep -E '^[0-9]+$' | sort -un || true)
           cited_prs=$(grep -oE 'pull/[0-9]+' "$BULLETS" | grep -oE '[0-9]+' | sort -un || true)
-          missing=$(comm -23 <(printf '%s\n' "$all_prs") <(printf '%s\n' "$cited_prs"))
+          # Set difference by lookup, not comm: comm needs lexicographic input, and these lists are
+          # sorted numerically, so it misreports as soon as PR numbers differ in width.
+          missing=$(awk 'NR==FNR{c[$0];next} !($0 in c)' \
+            <(printf '%s\n' "$cited_prs") <(printf '%s\n' "$all_prs"))
           # `grep -c` exits 1 on a zero count, which under `set -e` would abort the whole action
           # exactly when coverage is perfect and nothing is missing.
           total=$(printf '%s\n' "$all_prs" | grep -c . || true)
           miss_count=$(printf '%s\n' "$missing" | grep -c . || true)
+        fi
+        # A range with no PR at all (raw SHAs, no merge subjects) gets no note rather than "0/0".
+        if [ "$total" -gt 0 ]; then
           if [ "$miss_count" -gt 0 ]; then
             miss_list=$(printf '%s\n' "$missing" | sed 's/^/#/' | paste -sd' ' -)
             COVERAGE_NOTE="<!-- Coverage: $((total - miss_count))/$total PRs referenced. Not referenced (folded into a grouped bullet, minor, out of this product's scope, or genuinely missed; review before publishing): $miss_list -->"
