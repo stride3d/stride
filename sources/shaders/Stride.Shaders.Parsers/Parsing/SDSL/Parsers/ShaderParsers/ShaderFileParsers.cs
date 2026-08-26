@@ -27,7 +27,8 @@ public record struct ShaderFileParser : IParser<ShaderFile>
             }
             else if (
                 (
-                    Tokens.Literal("class", ref scanner)
+                    Tokens.Char('[', ref scanner)
+                    || Tokens.Literal("class", ref scanner)
                     || Tokens.Literal("shader", ref scanner)
                     || Parsers.SequenceOf(ref scanner, ["internal", "shader"])
                 )

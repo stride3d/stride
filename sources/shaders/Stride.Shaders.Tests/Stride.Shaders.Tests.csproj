@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -65,6 +65,7 @@
     <Content Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
     <Content Include="..\assets\SDSL\ComputeTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ComputeTests\" />
     <Content Include="..\assets\SDSL\StreamOutTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\StreamOutTests\" />
+    <Content Include="..\assets\SDSL\ParserTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\ParserTests\" />
     <Content Include="..\..\engine\Stride.Graphics\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
     <Content Include="..\..\engine\Stride.Graphics\**\*.sdfx" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
     <Content Include="..\..\engine\Stride.Rendering\**\*.sdsl" Exclude="**\obj\**;**\bin\**" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />

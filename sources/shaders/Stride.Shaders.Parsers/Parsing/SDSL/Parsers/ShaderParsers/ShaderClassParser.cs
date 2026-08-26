@@ -66,6 +66,9 @@ public record struct ShaderClassParser : IParser<ShaderClass>
         var position = scanner.Position;
         var tmp = position;
         var @internal = false;
+        var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes) && Parsers.Spaces0(ref scanner, result, out _);
+        if (hasAttributes)
+            tmp = scanner.Position;
         if (Tokens.Literal("internal", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {
             @internal = true;
@@ -87,6 +90,8 @@ public record struct ShaderClassParser : IParser<ShaderClass>
             {
                 parsed = new ShaderClass(identifier, scanner[..]);
                 parsed.Internal = @internal;
+                if (hasAttributes)
+                    parsed.Attributes = attributes;
                 if (Tokens.Char('<', ref scanner, advance: true))
                 {
                     ParameterParsers.Declarations(ref scanner, result, out var generics);
