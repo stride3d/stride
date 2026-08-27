@@ -50,6 +50,20 @@ public class StrideShaderTests
         return match.Groups[1].Value;
     }
 
+    // Regression: a shader field whose name matches an intrinsic method name (e.g. `float SampleLevel;`
+    // alongside `Tex.SampleLevel(...)`) must not confuse method-call resolution with the field symbol.
+    [Fact]
+    public void FieldNameMatchingIntrinsicMethodNameDoesNotCrashCompiler()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("FieldNameShadowsIntrinsicMethod", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("FieldNameShadowsIntrinsicMethod"), new ShaderMixer.Options(true), log, out _, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
