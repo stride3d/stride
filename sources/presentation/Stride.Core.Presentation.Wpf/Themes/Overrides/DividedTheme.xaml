@@ -52,6 +52,12 @@
   <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF46607C"/>
   <SolidColorBrush x:Key="SelectedTextBrush" Color="#FFEBEBEB"/>
 
+  <!-- Drag and drop feedback. These live in the theme so that a theme can restyle them. -->
+  <SolidColorBrush x:Key="DropInsertLineBrush" Color="#FF46607C"/>
+  <SolidColorBrush x:Key="DropTargetNeutralBrush" Color="#FF212121"/>
+  <SolidColorBrush x:Key="DropTargetAcceptBrush" Color="#FF65C36A"/>
+  <SolidColorBrush x:Key="DropTargetRefuseBrush" Color="#FFDC4E4E"/>
+
   <SolidColorBrush x:Key="EmphasisColorBrush" Color="#FF3E5F96" />
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>

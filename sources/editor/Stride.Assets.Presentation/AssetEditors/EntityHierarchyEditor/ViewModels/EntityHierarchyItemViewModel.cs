@@ -108,6 +108,15 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         public virtual bool IsEditing { get => isEditing; set => SetValue(ref isEditing, value); }
 
+        /// <summary>
+        /// Gets whether items can be inserted before or after this item.
+        /// </summary>
+        /// <remarks>
+        /// An item that has no position in the asset cannot accept an insertion. The drop then applies to the item
+        /// itself. Therefore the caller adds the items as children of this item.
+        /// </remarks>
+        protected virtual bool SupportsInsertion => true;
+
         public bool IsExpanded { get => isExpanded; set => SetValue(ref isExpanded, value); }
 
         /// <summary>
@@ -369,17 +378,32 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             }
         }
 
-        protected virtual bool CanAddOrInsertChildren([NotNull] IReadOnlyCollection<object> children, bool checkSameParent, AddChildModifiers modifiers, int index, [NotNull] out string message)
+        /// <summary>
+        /// Gets how this item accepts the given children.
+        /// </summary>
+        /// <param name="children">The children to add or to insert.</param>
+        /// <param name="checkSameParent">True to give a no-op when a child is already a child of this item.</param>
+        /// <param name="modifiers">The modifier keys currently active.</param>
+        /// <param name="index">The index at which the children go.</param>
+        /// <param name="message">The feedback message that can be used in the user interface.</param>
+        /// <remarks>
+        /// A rejected child stops the check immediately. If no child is rejected and no child is accepted, but a child
+        /// changes nothing, the result is <see cref="DropAcceptance.NoOp"/>. Therefore a selection that mixes items
+        /// which are already here with items which are not stays accepted, and it moves only the second group.
+        /// </remarks>
+        protected virtual DropAcceptance CanAddOrInsertChildren([NotNull] IReadOnlyCollection<object> children, bool checkSameParent, AddChildModifiers modifiers, int index, [NotNull] out string message)
         {
             var root = Owner as EntityHierarchyRootViewModel ?? EntityHierarchyEditorViewModel.GetRoot((EntityViewModel)Owner);
             if (root.IsLoading)
             {
                 message = "Loading. Please wait";
-                return false;
+                return DropAcceptance.Rejected;
             }
 
             message = "Empty selection";
             var parentName = this is EntityHierarchyRootViewModel ? "root level" : (!string.IsNullOrWhiteSpace(Name) ? Name : "this location");
+            string noOpMessage = null;
+            var accepted = false;
 
             foreach (var child in children)
             {
@@ -389,28 +413,38 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     if (policy != null)
                     {
                         if (!policy.CanAddOrInsert(this, asset, modifiers, index, out message, parentName))
-                            return false;
+                            return DropAcceptance.Rejected;
+                        accepted = true;
                         continue;
                     }
                     message = $"Can't add {asset.AssetType.Name}s here";
-                    return false;
+                    return DropAcceptance.Rejected;
                 }
                 if (index > Owner.EntityCount)
                 {
                     message = "Index out of range";
-                    return false;
+                    return DropAcceptance.Rejected;
                 }
                 if (child is EntityViewModel entity)
                 {
                     if (entity == this)
                     {
-                        message = "Can't drop an entity on itself or its children";
-                        return false;
+                        noOpMessage = "Nothing to move";
+                        continue;
                     }
                     if (checkSameParent && Children.Contains(entity))
                     {
-                        message = "Entity already has this parent";
-                        return false;
+                        // The entity keeps its parent and its folder, but the move still changes its order. It changes
+                        // nothing only if it is already at the target index. MoveChildren corrects the index for an
+                        // entity that it removes from this item, therefore the entity goes to the index before it.
+                        if (Owner.IndexOfEntity(entity) == index - 1)
+                        {
+                            noOpMessage = $"Already the last child of {parentName}";
+                            continue;
+                        }
+                        message = $"Move to the end of {parentName}";
+                        accepted = true;
+                        continue;
                     }
                     var currentParent = Parent;
                     while (currentParent != null)
@@ -418,7 +452,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                         if (currentParent == entity)
                         {
                             message = "Can't drop an entity on itself or its children";
-                            return false;
+                            return DropAcceptance.Rejected;
                         }
                         currentParent = currentParent.Parent;
                     }
@@ -426,31 +460,33 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     if (Editor.GatherAllBasePartAssets(entity, true).Contains(Asset.Id))
                     {
                         message = "Entity depends on this asset";
-                        return false;
+                        return DropAcceptance.Rejected;
                     }
 
                     // Accepting entities
                     message = (modifiers & AddChildModifiers.Alt) != AddChildModifiers.Alt
                         ? $"Add as a child to {parentName}\r\n(Hold Alt to maintain world position)"
                         : $"Add as a child to {parentName}\r\n(Release Alt to maintain local position)";
+                    accepted = true;
                     continue;
                 }
                 if (child is EntityFolderViewModel folder)
                 {
-                    if (Folders.Any(x => string.Equals(x.Name, folder.Name, EntityFolderViewModel.FolderCase)))
-                    {
-                        message = "A folder with the same name already exists";
-                        return false;
-                    }
+                    // A folder that is already here matches its own name. Therefore the no-op cases come first.
                     if (folder == this)
                     {
-                        message = "Can't drop a folder on itself or its children";
-                        return false;
+                        noOpMessage = "Nothing to move";
+                        continue;
                     }
                     if (Children.Contains(folder))
                     {
-                        message = "Folder already has this parent";
-                        return false;
+                        noOpMessage = $"Already a child of {parentName}";
+                        continue;
+                    }
+                    if (Folders.Any(x => string.Equals(x.Name, folder.Name, EntityFolderViewModel.FolderCase)))
+                    {
+                        message = "A folder with the same name already exists";
+                        return DropAcceptance.Rejected;
                     }
                     var currentParent = Parent;
                     while (currentParent != null)
@@ -458,7 +494,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                         if (currentParent == folder)
                         {
                             message = "Can't drop a folder on itself or its children";
-                            return false;
+                            return DropAcceptance.Rejected;
                         }
                         currentParent = currentParent.Parent;
                     }
@@ -466,17 +502,24 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     if (folder.TransformChildren.SelectMany(e => Editor.GatherAllBasePartAssets(e, true)).Contains(Asset.Id))
                     {
                         message = "Folder depends on this asset";
-                        return false;
+                        return DropAcceptance.Rejected;
                     }
 
                     // Accepting folders
                     message = $"Move the selection to {parentName}";
+                    accepted = true;
                     continue;
                 }
                 message = DragDropBehavior.InvalidDropAreaMessage;
-                return false;
+                return DropAcceptance.Rejected;
             }
-            return true;
+
+            if (!accepted && noOpMessage != null)
+            {
+                message = noOpMessage;
+                return DropAcceptance.NoOp;
+            }
+            return DropAcceptance.Accepted;
         }
 
         private static Vector3 CalculateSceneOffset([NotNull] EntityHierarchyElementViewModel element)
@@ -734,16 +777,28 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             return 0;
         }
 
-        /// <inheritdoc/>
-        bool IAddChildViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
+        private DropAcceptance CheckAddChildren([NotNull] IReadOnlyCollection<object> children, AddChildModifiers modifiers, [NotNull] out string message)
         {
             var addIndex = GetAddIndex(children);
             if (addIndex < -1)
             {
                 message = DragDropBehavior.InvalidDropAreaMessage;
-                return false;
+                return DropAcceptance.Rejected;
             }
             return CanAddOrInsertChildren(children, true, modifiers, addIndex, out message);
+        }
+
+        /// <inheritdoc/>
+        bool IAddChildViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
+        {
+            // A no-op gives false here, because the caller of this method then does the operation.
+            return CheckAddChildren(children, modifiers, out message) == DropAcceptance.Accepted;
+        }
+
+        /// <inheritdoc/>
+        DropAcceptance IAddChildViewModel.GetAddChildrenAcceptance(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
+        {
+            return CheckAddChildren(children, modifiers, out message);
         }
 
         /// <inheritdoc/>
@@ -752,33 +807,55 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             MoveChildren(children, modifiers, GetAddIndex(children));
         }
 
-        /// <inheritdoc/>
-        bool IInsertChildViewModel.CanInsertChildren(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, out string message)
+        private DropAcceptance CheckInsertChildren([NotNull] IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, [NotNull] out string message)
         {
+            if (!SupportsInsertion)
+            {
+                // The caller then adds the items as children of this item instead, and it replaces this message.
+                message = DragDropBehavior.InvalidDropAreaMessage;
+                return DropAcceptance.Rejected;
+            }
+
             var parentName = Parent is SceneRootViewModel ? "root level" : (!string.IsNullOrWhiteSpace(Parent?.Name) ? Parent.Name : "this location");
 
             message = "This entity has no parent.";
-            var canAdd = Parent != null && Parent.CanAddOrInsertChildren(children, false, modifiers, GetInsertionIndex(position), out message);
-            // TODO: try to move all evaluation into CheckAddOrInsertChildren so everything is at the same place
-            if (canAdd)
-            {
-                if (children.Any(x => x == this))
-                {
-                    message = "Can't insert before or after selected entity";
-                    return false;
-                }
-                message = children.All(x => x is EntityFolderViewModel)
-                    ? $"Move the selection to {parentName}"
-                    : $"Insert {(position == InsertPosition.Before ? "before" : "after")} {Name}";
+            if (Parent == null)
+                return DropAcceptance.Rejected;
 
-                if (children.OfType<EntityHierarchyItemViewModel>().Any())
-                {
-                    message = (modifiers & AddChildModifiers.Alt) != AddChildModifiers.Alt
-                        ? $"{message}\r\n(Hold Alt to maintain world position)"
-                        : $"{message}\r\n(Release Alt to maintain local position)";
-                }
+            // TODO: try to move all evaluation into CheckAddOrInsertChildren so everything is at the same place
+            var acceptance = Parent.CanAddOrInsertChildren(children, false, modifiers, GetInsertionIndex(position), out message);
+            if (acceptance != DropAcceptance.Accepted)
+                return acceptance;
+
+            if (children.Any(x => x == this))
+            {
+                message = "Nothing to move";
+                return DropAcceptance.NoOp;
             }
-            return canAdd;
+            message = children.All(x => x is EntityFolderViewModel)
+                ? $"Move the selection to {parentName}"
+                : $"Insert {(position == InsertPosition.Before ? "before" : "after")} {Name}";
+
+            if (children.OfType<EntityHierarchyItemViewModel>().Any())
+            {
+                message = (modifiers & AddChildModifiers.Alt) != AddChildModifiers.Alt
+                    ? $"{message}\r\n(Hold Alt to maintain world position)"
+                    : $"{message}\r\n(Release Alt to maintain local position)";
+            }
+            return DropAcceptance.Accepted;
+        }
+
+        /// <inheritdoc/>
+        bool IInsertChildViewModel.CanInsertChildren(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, out string message)
+        {
+            // A no-op gives false here, because the caller of this method then does the operation.
+            return CheckInsertChildren(children, position, modifiers, out message) == DropAcceptance.Accepted;
+        }
+
+        /// <inheritdoc/>
+        DropAcceptance IInsertChildViewModel.GetInsertChildrenAcceptance(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, out string message)
+        {
+            return CheckInsertChildren(children, position, modifiers, out message);
         }
 
         /// <inheritdoc/>

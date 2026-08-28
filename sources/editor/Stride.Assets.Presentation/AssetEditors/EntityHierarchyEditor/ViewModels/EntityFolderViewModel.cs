@@ -60,6 +60,14 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <inheritdoc/>
         public override IEnumerable<EntityViewModel> InnerSubEntities => Children.SelectMany(x => x.InnerSubEntities);
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// A folder has no index in the asset, because <see cref="EntityDesign.Folder"/> holds a path only. Folders are
+        /// also sorted by name, and they always come before the entities. Therefore an item cannot be put before or
+        /// after a folder.
+        /// </remarks>
+        protected override bool SupportsInsertion => false;
+
         [NotNull]
         public ICommandBase RenameCommand { get; }
 

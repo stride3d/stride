@@ -130,6 +130,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         protected override void OnDetaching()
         {
             base.OnDetaching();
+            ClearDropTargetVisual();
             DragDropAdornerManager.UnregisterElement(AssociatedObject);
             UnsubscribeFromDragEvents();
             UnsubscribeFromDropEvents();
@@ -278,6 +279,8 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             finally
             {
                 IsDragging = false;
+                DragDropAdornerManager.ClearInsertAdorner();
+                ClearDropTargetVisual();
                 if (DragWindow != null)
                 {
                     DragWindow.Close();
@@ -311,6 +314,33 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             return null;
         }
 
+        /// <summary>
+        /// Updates the visual indicating where the dragged items would be inserted.
+        /// </summary>
+        /// <param name="container">The container that the pointer is over.</param>
+        /// <param name="position">The pointer position, relative to the container.</param>
+        /// <param name="insertPosition">The insert position, before or after.</param>
+        protected virtual void UpdateInsertVisual([NotNull] TContainer container, Point position, InsertPosition insertPosition)
+        {
+            DragDropAdornerManager.UpdateInsertAdorner(container, insertPosition);
+        }
+
+        /// <summary>
+        /// Updates the visual indicating the container into which the dragged items would be dropped.
+        /// </summary>
+        /// <param name="container">The container currently hovered.</param>
+        /// <param name="acceptance">How the container accepts the dragged items.</param>
+        protected virtual void UpdateDropTargetVisual([NotNull] TContainer container, DropAcceptance acceptance)
+        {
+        }
+
+        /// <summary>
+        /// Clears the visual set by <see cref="UpdateDropTargetVisual"/>.
+        /// </summary>
+        protected virtual void ClearDropTargetVisual()
+        {
+        }
+
         [NotNull]
         protected abstract IEnumerable<object> GetItemsToDrag(TContainer container);
 
@@ -340,11 +370,14 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
         protected bool OnDragLeave(IDataObject data)
         {
+            DragDropAdornerManager.ClearInsertAdorner();
+            ClearDropTargetVisual();
+
             // Invalidate current drag status
             var dragContainer = DragDropHelper.GetDragContainer(data);
             if (dragContainer != null)
             {
-                dragContainer.IsAccepted = false;
+                dragContainer.Acceptance = DropAcceptance.Rejected;
                 dragContainer.Message = DragDropBehavior.InvalidDropAreaMessage;
             }
 
@@ -369,11 +402,12 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         {
             var dragContainer = DragDropHelper.GetDragContainer(data);
             DragDropAdornerManager.ClearInsertAdorner();
+            ClearDropTargetVisual();
 
             // Invalidate current drag status
             if (dragContainer != null)
             {
-                dragContainer.IsAccepted = false;
+                dragContainer.Acceptance = DropAcceptance.Rejected;
                 dragContainer.Message = DragDropBehavior.InvalidDropAreaMessage;
             }
 
@@ -393,16 +427,25 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             {
                 InsertPosition insertPosition;
                 var target = GetInsertTargetItem(container, position, out insertPosition);
-                if (target != null && target.CanInsertChildren(itemsToDrop, insertPosition, ComputeModifiers(), out message))
+                // A rejected insertion falls through to the add path, so that the item itself becomes the target.
+                // A no-op stops here, otherwise the row below would answer a gesture that points at this one.
+                var acceptance = DropAcceptance.Rejected;
+                message = DragDropBehavior.InvalidDropAreaMessage;
+                if (target != null)
+                    acceptance = target.GetInsertChildrenAcceptance(itemsToDrop, insertPosition, ComputeModifiers(), out message);
+                if (acceptance != DropAcceptance.Rejected)
                 {
                     if (dragContainer != null)
                     {
-                        dragContainer.IsAccepted = true;
+                        dragContainer.Acceptance = acceptance;
                         dragContainer.Message = message;
                     }
                     // The event must be handled otherwise OnDrop won't be invoked
                     e.Handled = true;
-                    DragDropAdornerManager.UpdateInsertAdorner(container, insertPosition);
+                    if (acceptance == DropAcceptance.Accepted)
+                        UpdateInsertVisual(container, position, insertPosition);
+                    else
+                        UpdateDropTargetVisual(container, acceptance);
                     return true;
                 }
             }
@@ -413,23 +456,24 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
                 if (target == null)
                     return false;
 
-                var isAccepted = target.CanAddChildren(itemsToDrop, ComputeModifiers(), out message);
+                var acceptance = target.GetAddChildrenAcceptance(itemsToDrop, ComputeModifiers(), out message);
                 if (dragContainer != null)
                 {
-                    dragContainer.IsAccepted = isAccepted;
+                    dragContainer.Acceptance = acceptance;
                     dragContainer.Message = message;
                 }
 
                 // The event must be handled otherwise OnDrop won't be invoked
-                if (isAccepted)
+                if (acceptance != DropAcceptance.Rejected)
                     e.Handled = true;
+
+                UpdateDropTargetVisual(container, acceptance);
 
                 if (DragDropHelper.ShouldDisplayDropAdorner(DisplayDropAdorner, itemsToDrop))
                 {
-                    var adornerState = isAccepted ? HighlightAdornerState.HighlightAccept : HighlightAdornerState.HighlightRefuse;
-                    DragDropAdornerManager.SetAdornerState(AssociatedObject, adornerState);
+                    DragDropAdornerManager.SetAdornerState(AssociatedObject, DragDropAdornerManager.ToAdornerState(acceptance));
                 }
-                return isAccepted;
+                return acceptance != DropAcceptance.Rejected;
             }
 
             return false;
@@ -438,6 +482,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
         protected bool OnDrop(TContainer container, Point position, IDataObject data, RoutedEventArgs e)
         {
             DragDropAdornerManager.ClearInsertAdorner();
+            ClearDropTargetVisual();
 
             if (DragWindow != null)
             {
@@ -457,11 +502,19 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
                 {
                     var dragContainer = DragDropHelper.GetDragContainer(data);
                     var itemsToDrop = DragDropHelper.GetItemsToDrop(dragContainer, data as DataObject);
-                    string message;
 
-                    if (itemsToDrop != null && target.CanInsertChildren(itemsToDrop, insertPosition, ComputeModifiers(), out message))
+                    var acceptance = itemsToDrop != null
+                        ? target.GetInsertChildrenAcceptance(itemsToDrop, insertPosition, ComputeModifiers(), out _)
+                        : DropAcceptance.Rejected;
+                    if (acceptance == DropAcceptance.Accepted)
                     {
                         target.InsertChildren(itemsToDrop, insertPosition, ComputeModifiers());
+                        if (e != null) e.Handled = true;
+                        return true;
+                    }
+                    if (acceptance == DropAcceptance.NoOp)
+                    {
+                        // The gesture points at the dragged items themselves. Do nothing, and do not add them as children.
                         if (e != null) e.Handled = true;
                         return true;
                     }
@@ -477,9 +530,9 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
                 var dragContainer = DragDropHelper.GetDragContainer(data);
                 var itemsToDrop = DragDropHelper.GetItemsToDrop(dragContainer, data as DataObject);
-                string message;
 
-                if (itemsToDrop != null && target.CanAddChildren(itemsToDrop, ComputeModifiers(), out message))
+                // Only an accepted drop changes the asset. A no-op leaves it untouched and creates no undo entry.
+                if (itemsToDrop != null && target.GetAddChildrenAcceptance(itemsToDrop, ComputeModifiers(), out _) == DropAcceptance.Accepted)
                 {
                     target.AddChildren(itemsToDrop, ComputeModifiers());
                     if (e != null) e.Handled = true;
@@ -534,7 +587,11 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             // Check if we can drop and if we have a valid target.
             var container = GetContainer(e.OriginalSource);
             if (container == null)
+            {
+                DragDropAdornerManager.ClearInsertAdorner();
+                ClearDropTargetVisual();
                 return;
+            }
 
             if (OnDragOver(container, e.GetPosition(container), e.Data, e))
             {
