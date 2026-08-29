@@ -1,0 +1,22 @@
+// PSMain(ExpectedResult=#01010101)
+
+// A shader file that opens with a `using` declaration. The compiler used to reject the whole file
+// with "Compiling declaration [UsingShaderNamespace] is not implemented", because it handled
+// ShaderClass and ShaderEffect and errored on anything else. Shader classes resolve by name across
+// namespaces, so the declaration carries nothing and is ignored.
+//
+// Stride.Voxels' LightVoxelShader.sdsl is one such file, and it took voxel GI down with it.
+
+using Stride.Shaders.Tests.SomeNamespace;
+
+namespace Stride.Shaders.Tests;
+
+shader UsingNamespace
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}

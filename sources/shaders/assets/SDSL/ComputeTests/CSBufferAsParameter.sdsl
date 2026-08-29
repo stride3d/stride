@@ -1,0 +1,31 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A typed buffer handed to another method.
+//
+// RWBuffer<uint> is an OpTypeImage, so it is an opaque resource: it must live in UniformConstant
+// storage and be passed as the caller's pointer. Both rules existed for textures and samplers and
+// had forgotten typed buffers, so the argument was copied into a Function-storage temporary -
+// an OpStore to an image, which Vulkan forbids (VUID-StandaloneSpirv-OpTypeImage-06924) - and the
+// call's argument storage class no longer matched the parameter's.
+//
+// Stride.Voxels passes RWBuffer<uint> through its whole write path (VoxelBufferWriter and friends).
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferAsParameter
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWBuffer<uint> Output;
+
+    void WriteAt(RWBuffer<uint> target, uint index, uint value)
+    {
+        target[index] = value;
+    }
+
+    [numthreads(32, 32, 1)]
+    void CSMain()
+    {
+        WriteAt(Output, streams.DispatchThreadId.x, 1);
+    }
+}

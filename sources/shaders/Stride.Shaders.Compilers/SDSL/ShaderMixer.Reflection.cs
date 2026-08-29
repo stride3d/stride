@@ -211,6 +211,51 @@ public partial class ShaderMixer
     }
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
+    /// <summary>
+    /// The first unordered access register a Direct3D11 pixel shader may use.
+    /// <para>
+    /// D3D11 puts UAVs and render targets in one register space, so a pixel shader's UAVs have to
+    /// start past its render targets - FXC otherwise rejects the shader with X4509. The engine
+    /// already assumes this: CommandList.OMSetSingleUnorderedAccessView binds with
+    /// <c>UAVStartSlot: currentRenderTargetViewsActiveCount</c> and indexes
+    /// <c>slot - currentRenderTargetViewsActiveCount</c>, which is negative if a UAV took u0.
+    /// </para>
+    /// <para>
+    /// Counted as the highest output Location plus one, so multiple render targets are handled,
+    /// and left at 0 when the module has no pixel shader - a compute shader keeps u0.
+    /// </para>
+    /// </summary>
+    private static int FirstUnorderedAccessSlot(SpirvContext context)
+    {
+        var outputVariables = new HashSet<int>();
+        var locations = new Dictionary<int, int>();
+        var fragmentInterface = new HashSet<int>();
+
+        foreach (var i in context)
+        {
+            if (i.Op == Specification.Op.OpVariable && (OpVariable)i is { StorageClass: Specification.StorageClass.Output } variable)
+                outputVariables.Add(variable.ResultId);
+            else if (i.Op == Specification.Op.OpDecorate
+                && (OpDecorate)i is { Decoration: Specification.Decoration.Location, DecorationParameters: { } location } decorate)
+                locations[decorate.Target] = location.Span[0];
+            else if (i.Op == Specification.Op.OpEntryPoint
+                && (OpEntryPoint)i is { ExecutionModel: Specification.ExecutionModel.Fragment } entryPoint)
+            {
+                foreach (var interfaceId in entryPoint.InterfaceIds.Elements.Span)
+                    fragmentInterface.Add(interfaceId);
+            }
+        }
+
+        var firstSlot = 0;
+        foreach (var variableId in fragmentInterface)
+        {
+            if (outputVariables.Contains(variableId) && locations.TryGetValue(variableId, out var location))
+                firstSlot = Math.Max(firstSlot, location + 1);
+        }
+
+        return firstSlot;
+    }
+
     private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, Options options)
     {
         Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 4 : 1];
@@ -221,6 +266,12 @@ public partial class ShaderMixer
         ref var samplerSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 1 : 0];
         ref var cbufferSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 2 : 0];
         ref var uavSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 3 : 0];
+
+        // Only in the separate (Direct3D11) register space: a pixel shader's UAVs start past its
+        // render targets. Vulkan and D3D12 share one counter and one descriptor set, where the
+        // rule does not exist. See FirstUnorderedAccessSlot.
+        if (options.ResourcesRegisterSeparate)
+            uavSlot = FirstUnorderedAccessSlot(context);
 
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();

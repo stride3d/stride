@@ -91,7 +91,7 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: true);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test
@@ -175,7 +175,7 @@ public partial class RenderingTests
             string.Join(Environment.NewLine, log3.Messages.Select(m => m.Text)));
 
         File.WriteAllBytes($"{shaderName3}.spv", bytecode3);
-        var validation = Spv.ValidateFile($"{shaderName3}.spv");
+        var validation = Spv.ValidateFile($"{shaderName3}.spv", targetVulkan: true);
         Assert.True(validation.IsValid, validation.Output);
     }
 
@@ -235,7 +235,7 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: true);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test
