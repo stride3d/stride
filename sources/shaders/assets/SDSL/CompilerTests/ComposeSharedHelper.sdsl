@@ -1,0 +1,11 @@
+// A composition that happens to derive from the same base as the shader it is composed into,
+// and so inherits an empty Compute() it never meant to contribute.
+namespace Stride.Shaders.Tests;
+
+shader ComposeSharedHelper : ComposeSharedBase
+{
+    float4 Value()
+    {
+        return float4(1, 2, 3, 4);
+    }
+};

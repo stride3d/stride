@@ -1,4 +1,4 @@
-using Stride.Shaders.Core;
+﻿using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -55,20 +55,67 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
         public record Result(List<EntryPointInfo> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
 
+        /// <summary>
+        /// Collects the functions declared inside a composition, which are only ever reachable
+        /// through their composition variable and so can never be the shader's entry point.
+        /// </summary>
+        /// <remarks>
+        /// A composition that happens to inherit the same base as the shader it is composed into
+        /// inherits that base's entry point too, and lands in the same method group. Picking the
+        /// group's last member then picks the composition's copy: Stride.Voxels' Voxel2x2x2Mipmap
+        /// composes a Voxel2x2x2Mipmapper and both derive from ComputeShaderBase, so CSMain
+        /// resolved to the composition's, which calls the empty base Compute(). The real body -
+        /// and, once dead code was removed, the mipmap textures with it - disappeared, and voxel
+        /// GI silently contributed nothing.
+        /// </remarks>
+        static HashSet<int> CollectCompositionFunctions(SpirvBuffer buffer)
+        {
+            var result = new HashSet<int>();
+            var depth = 0;
+
+            foreach (var i in buffer)
+            {
+                switch (i.Op)
+                {
+                    case Op.OpCompositionSDSL:
+                        depth++;
+                        break;
+                    case Op.OpCompositionEndSDSL:
+                        depth--;
+                        break;
+                    case Op.OpFunction when depth > 0:
+                        result.Add(((OpFunction)i).ResultId);
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private HashSet<int> compositionFunctions = [];
+
         Symbol? ResolveEntryPoint(SymbolTable table, string name)
         {
             table.TryResolveSymbol(name, out var entryPoint);
-            return entryPoint?.Type switch
+            if (entryPoint?.Type is not FunctionGroupType)
+                return entryPoint;
+
+            // Last one wins, so that a shader's override beats the base it overrides.
+            for (var i = entryPoint.GroupMembers.Length - 1; i >= 0; i--)
             {
-                FunctionGroupType => entryPoint.GroupMembers[^1],
-                _ => entryPoint
-            };
+                if (!compositionFunctions.Contains(entryPoint.GroupMembers[i].IdRef))
+                    return entryPoint.GroupMembers[i];
+            }
+
+            return null;
         }
 
         public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
             // OpEntryPoint emission is deferred to allow fixups (e.g. adding dummy DS inputs for HS-internal outputs)
             var entryPoints = new List<EntryPointInfo>();
+
+            compositionFunctions = CollectCompositionFunctions(buffer);
 
             var entryPointVS = ResolveEntryPoint(table, "VSMain");
             var entryPointHS = ResolveEntryPoint(table, "HSMain");

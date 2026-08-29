@@ -1,0 +1,14 @@
+// Control for ComposeSharedRoot: identical, but the composition does not share the base.
+namespace Stride.Shaders.Tests;
+
+shader ComposePlainRoot : ComposeSharedBase
+{
+    RWTexture3D<float4> WriteTex;
+
+    compose ComposePlainHelper helper;
+
+    override void Compute()
+    {
+        WriteTex[streams.DispatchThreadId] = helper.Value();
+    }
+};
