@@ -1,0 +1,78 @@
+// PSMain(ExpectedResult=#05000000)
+
+// A `stage compose` array whose value is supplied by a *nested* effect, and read back through a
+// constant index rather than a foreach. Both halves were broken, and both are what Stride.Voxels
+// needs: MarchAttributes declares `stage compose IVoxelSampler AttributeSamplers[]`, LightVoxelEffect
+// supplies it while being itself the root's environmentLights[0], and VoxelMarchCone reads
+// AttributeSamplers[AttributeID] with AttributeID a macro (so, a literal).
+//
+// CompositionArray1 covers stage arrays supplied at the root, CompositionArrayNested covers nested
+// supply of a non-stage array. The combination of the two had no coverage.
+
+namespace Stride.Shaders.Tests;
+
+shader StageArrayBase
+{
+	float Compute()
+	{
+		return 3.0 / 255.0;
+	}
+};
+
+shader StageArrayImpl : StageArrayBase
+{
+	override float Compute()
+	{
+		return 5.0 / 255.0;
+	}
+};
+
+// Declares the stage slot. Having a stage member is what gets this shader promoted to the root,
+// which is where the value has to be waiting for it.
+shader StageArrayDeclarer
+{
+	stage compose StageArrayBase Samplers[];
+};
+
+// Reads the slot by constant index. Inherits the declarer, so it is promoted alongside it.
+shader StageArrayConsumer : StageArrayDeclarer
+{
+	float ConsumeIndexed()
+	{
+		return Samplers[0].Compute();
+	}
+};
+
+shader StageArrayNestedSupplier : StageArrayConsumer
+{
+	float Get()
+	{
+		return ConsumeIndexed();
+	}
+};
+
+shader StageArrayRoot
+{
+	stream float4 ColorTarget : SV_Target0;
+
+	compose StageArrayNestedSupplier nested;
+
+	void PSMain()
+	{
+		streams.ColorTarget = 0.0;
+		streams.ColorTarget.x = nested.Get();
+	}
+};
+
+// The nested effect supplies the stage composition — one level below the root.
+effect StageArrayNestedEffect
+{
+	mixin StageArrayNestedSupplier;
+	mixin compose Samplers += StageArrayImpl;
+}
+
+effect CompositionArrayStageFromNested
+{
+	mixin StageArrayRoot;
+	mixin compose nested = StageArrayNestedEffect;
+}
