@@ -69,18 +69,33 @@ public abstract record SymbolType()
 
         // Preserves the full vector/scalar type (e.g. float2 stays float2). Defaults to float4 when no template given (HLSL default).
         static SymbolType ResolveReturnType(TypeName? templateTypeName)
-            => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!;
+            => WidenImageElementType(templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!);
 
         // Typed buffers only allow scalar/vector element types.
         static SymbolType ResolveBufferReturnType(TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.Type ?? new VectorType(ScalarType.Float, 4);
+            var templateType = WidenImageElementType(templateTypeName?.Type ?? new VectorType(ScalarType.Float, 4));
             return templateType switch
             {
                 VectorType or ScalarType => templateType,
                 _ => throw new NotSupportedException($"Unsupported template type {templateType} for Buffer"),
             };
         }
+
+        // An image - texture or typed buffer alike - cannot deliver 16-bit values: Vulkan requires
+        // its sampled type to be a 32-bit int, 64-bit int or 32-bit float
+        // (VUID-StandaloneSpirv-OpTypeImage-04656), and there is no extension that lifts it.
+        //
+        // Nothing is lost. The 16 bits live in the resource's pixel format, not in the shader's
+        // declaration: the texture unit decodes the stored halfs and delivers 32-bit floats to the
+        // registers, for free. `half` is already an alias of `float` in shader model 5 anyway, and
+        // code that wants native 16-bit registers converts after the read.
+        static SymbolType WidenImageElementType(SymbolType elementType) => elementType switch
+        {
+            ScalarType { Type: Scalar.Half } => ScalarType.Float,
+            VectorType { BaseType: ScalarType { Type: Scalar.Half }, Size: var size } => new VectorType(ScalarType.Float, size),
+            _ => elementType,
+        };
 
         SymbolType? foundType = name switch
         {
