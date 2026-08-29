@@ -1,0 +1,17 @@
+// Regression: Stride.Voxels' Voxel2x2x2Mipmap composes a Voxel2x2x2Mipmapper, and both derive
+// from ComputeShaderBase. The composition's inherited empty Compute() used to win over the
+// root's override, so the whole shader body vanished - it compiled to a bare `ret`, the mipmap
+// textures were dead-code-removed with it, and voxel GI silently contributed nothing.
+namespace Stride.Shaders.Tests;
+
+shader ComposeSharedRoot : ComposeSharedBase
+{
+    RWTexture3D<float4> WriteTex;
+
+    compose ComposeSharedHelper helper;
+
+    override void Compute()
+    {
+        WriteTex[streams.DispatchThreadId] = helper.Value();
+    }
+};

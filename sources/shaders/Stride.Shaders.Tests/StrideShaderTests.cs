@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -745,5 +745,60 @@ new ShaderMacro("class", "shader"),
                 Console.WriteLine(hlsl);
             }
         }
+    }
+
+    // Regression: a composition whose shader derives from the same base as the shader it is
+    // composed into used to contribute that base's empty virtual method, overriding the root's
+    // own override. Stride.Voxels' Voxel2x2x2Mipmap composes a Voxel2x2x2Mipmapper and both
+    // derive from ComputeShaderBase, so Compute() resolved to the empty base: the shader
+    // compiled to a bare `ret`, its textures were dead-code-removed along with the body, and
+    // voxel GI contributed exactly nothing.
+    [Fact]
+    public void CompositionSharingABaseDoesNotOverrideTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposeSharedHelper", "ComposeSharedRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposeSharedRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposeSharedHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        // The body survived, so its texture is still live and reflected.
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
+    }
+
+    // Control for the above: the very same shader, composing a helper that does not derive from
+    // ComposeSharedBase. This one has always worked, and pins the difference to the shared base.
+    [Fact]
+    public void CompositionWithoutASharedBaseKeepsTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposePlainHelper", "ComposePlainRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposePlainRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposePlainHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
     }
 }
