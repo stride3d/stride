@@ -180,7 +180,7 @@ public partial class SpirvContext
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
-                2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
+                2, 0, 0, b.WriteAllowed ? 2 : 1, GetStorageImageFormat(b), null)).IdResult,
             AppendStructuredBufferType ab => RegisterAppendOrConsumeStructuredBufferType("Append", ab.BaseType),
             ConsumeStructuredBufferType cb => RegisterAppendOrConsumeStructuredBufferType("Consume", cb.BaseType),
             StructuredBufferType b => RegisterStructuredBufferType(b),
@@ -223,6 +223,26 @@ public partial class SpirvContext
 
         return bufferType;
     }
+
+    /// <summary>
+    /// The Image Format an <c>RWBuffer&lt;T&gt;</c> declares.
+    /// <para>
+    /// Unknown is fine for everything except <c>OpImageTexelPointer</c>, which the spec forbids on
+    /// an image of unknown format - and that instruction is the only way to get a pointer to a
+    /// texel, which is what an atomic needs. Image atomics are in turn only defined on 32-bit
+    /// integer texels, so a concrete format is declared exactly there and Unknown is kept
+    /// everywhere else, leaving float buffers byte-for-byte as they were.
+    /// </para>
+    /// </summary>
+    private static Specification.ImageFormat GetStorageImageFormat(BufferType bufferType)
+        => bufferType.WriteAllowed
+            ? bufferType.BaseType switch
+            {
+                ScalarType { Type: Scalar.UInt } => Specification.ImageFormat.R32ui,
+                ScalarType { Type: Scalar.Int } => Specification.ImageFormat.R32i,
+                _ => Specification.ImageFormat.Unknown,
+            }
+            : Specification.ImageFormat.Unknown;
 
     private int RegisterByteAddressBufferType(ByteAddressBufferType byteAddressBufferType)
     {

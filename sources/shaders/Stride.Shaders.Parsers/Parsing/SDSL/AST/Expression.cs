@@ -295,6 +295,17 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 if (paramDefinition.Modifiers == ParameterModifiers.Ref
                     || pointerParamType.BaseType is TextureType or SamplerType)
                 {
+                    // `InterlockedMax(buffer[i], ...)`: indexing a typed buffer yields the texel's
+                    // value, never a pointer to it, so the atomic has nothing to operate on. Ask
+                    // for the texel pointer instead - the one instruction that produces one.
+                    if (paramDefinition.Modifiers == ParameterModifiers.Ref
+                        && Arguments.Values[i] is AccessorChainExpression accessorChain
+                        && accessorChain.TryCompileAsTexelPointer(table, compiler, out var texelPointer))
+                    {
+                        compiledParams[i] = texelPointer.Id;
+                        continue;
+                    }
+
                     var paramPointer = Arguments.Values[i].Compile(table, compiler);
                     if (context.ReverseTypes[paramPointer.TypeId] is not PointerType)
                         table.AddError(new(Arguments.Values[i].Info,
@@ -669,6 +680,53 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     public List<Expression> Accessors { get; set; } = [];
 
     private SpirvValue[]? intermediateValues;
+
+    /// <summary>
+    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c> - a pointer to that
+    /// one texel - rather than the image read indexing normally produces. Returns false when the
+    /// chain is not an atomic-capable buffer index, leaving the caller to compile it normally.
+    /// <para>
+    /// A typed buffer is not memory the shader can point into: it is a storage image, so SDSL
+    /// compiles <c>buffer[i]</c> to an OpImageRead and <c>buffer[i] = x</c> to an OpImageWrite,
+    /// both of which deal in values. An atomic needs the memory itself, and OpImageTexelPointer is
+    /// the only instruction that hands it over. Its result may only be consumed by atomics, which
+    /// is why this is offered to the `ref` argument path instead of being how every index compiles.
+    /// </para>
+    /// </summary>
+    public bool TryCompileAsTexelPointer(SymbolTable table, CompilerUnit compiler, out SpirvValue texelPointer)
+    {
+        texelPointer = default;
+
+        if (Accessors.Count == 0 || Accessors[^1] is not IndexerExpression indexer)
+            return false;
+
+        var lastIndex = Accessors.Count - 1;
+        var baseType = lastIndex > 0 ? Accessors[lastIndex - 1].Type : Source.Type;
+        if (baseType is not PointerType { BaseType: BufferType bufferType })
+            return false;
+
+        // Image atomics are only defined on 32-bit integer texels, which is also the only case
+        // where the image declares a format - see SpirvContext.GetStorageImageFormat.
+        if (bufferType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
+            return false;
+
+        var (builder, context) = compiler;
+
+        // Fills intermediateValues, and is cached, so this is the walk the caller would have done.
+        CompileHelper(table, compiler);
+
+        // The image operand stays a pointer to the image; it must not be loaded into a value.
+        var image = intermediateValues![lastIndex];
+        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
+        var pointerType = new PointerType(bufferType.BaseType, Specification.StorageClass.Image);
+
+        var instruction = builder.Insert(new OpImageTexelPointer(
+            context.GetOrRegister(pointerType), context.Bound++,
+            image.Id, coordinate.Id, context.CompileConstant((int)0).Id));
+
+        texelPointer = new SpirvValue(instruction.ResultId, instruction.ResultType);
+        return true;
+    }
 
     public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue)
     {
