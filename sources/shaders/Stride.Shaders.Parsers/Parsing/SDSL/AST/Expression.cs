@@ -375,8 +375,8 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     /// <list type="bullet">
     /// <item>ref: atomic intrinsics (InterlockedAdd, etc.) need the actual memory pointer
     /// (Workgroup, StorageBuffer, ...).</item>
-    /// <item>Opaque types: Vulkan forbids OpStore to them
-    /// (VUID-StandaloneSpirv-OpTypeImage-06924), so they cannot live in a Function variable.</item>
+    /// <item>Opaque resources (see <see cref="SymbolTypeExtensions.IsOpaqueResource"/>): Vulkan
+    /// forbids OpStore to them, so they cannot live in a Function variable.</item>
     /// <item>Geometry streams: appending goes through OpEmitVertexSDSL and the stage's output
     /// variables, so the object holds nothing to copy - and the copy outlived the parameter, which
     /// the interface processor removes from the signature, leaving SPIR-V reading an id that no
@@ -388,7 +388,8 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     private static bool IsPassedByPointer(FunctionParameter parameter)
         => parameter.Type is PointerType pointerType
             && (parameter.Modifiers == ParameterModifiers.Ref
-                || pointerType.BaseType is TextureType or SamplerType or GeometryStreamType);
+                || pointerType.BaseType.IsOpaqueResource()
+                || pointerType.BaseType is GeometryStreamType);
 
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
     {
