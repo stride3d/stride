@@ -1,0 +1,34 @@
+// PSMain(ExpectedResult=#01010101)
+
+// A pixel shader that writes a UAV while also writing a render target.
+//
+// Direct3D11 puts UAVs and render targets in one register space, so the UAV cannot take u0 - FXC
+// rejects that with X4509. The engine already assumed the offset (CommandList binds with
+// UAVStartSlot: currentRenderTargetViewsActiveCount) but the compiler numbered UAVs from 0.
+//
+// Vulkan shares one counter for every resource class and has no such rule, so this only bites on
+// the Direct3D11 backend - which is why it is a render test rather than a compute one.
+
+namespace Stride.Shaders.Tests;
+
+shader PixelShaderUav
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    RWBuffer<uint> Counter;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        uint previous;
+        InterlockedAdd(Counter[0], 1, previous);
+
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}
