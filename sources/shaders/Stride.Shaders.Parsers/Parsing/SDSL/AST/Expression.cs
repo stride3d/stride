@@ -287,13 +287,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 
             if (paramDefinition.Type is PointerType pointerParamType)
             {
-                // For ref params or opaque types (image/sampler), pass the original pointer directly.
-                // - ref: required for atomic intrinsics (InterlockedAdd, etc.) that need
-                //   the actual memory pointer (Workgroup, StorageBuffer, etc.).
-                // - opaque types: Vulkan forbids OpStore to these types (VUID-StandaloneSpirv-OpTypeImage-06924),
-                //   so they cannot be copied into Function-storage variables.
-                if (paramDefinition.Modifiers == ParameterModifiers.Ref
-                    || pointerParamType.BaseType is TextureType or SamplerType)
+                if (IsPassedByPointer(paramDefinition))
                 {
                     // `InterlockedMax(buffer[i], ...)`: indexing a typed buffer yields the texel's
                     // value, never a pointer to it, so the atomic has nothing to operate on. Ask
@@ -375,6 +369,27 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             throw new InvalidOperationException($"Function {Name} was called with {Arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected (methodDefaultParameters={(methodDefaultParameters == null ? "null" : $"[{string.Join(",", methodDefaultParameters.Value.DefaultValues)}]({methodDefaultParameters.Value.DefaultValues.Length} values)")}, missing={missingParameters})");
     }
 
+    /// <summary>
+    /// Whether an argument is handed to the callee as the caller's own pointer instead of being
+    /// copied into a function-local temporary.
+    /// <list type="bullet">
+    /// <item>ref: atomic intrinsics (InterlockedAdd, etc.) need the actual memory pointer
+    /// (Workgroup, StorageBuffer, ...).</item>
+    /// <item>Opaque types: Vulkan forbids OpStore to them
+    /// (VUID-StandaloneSpirv-OpTypeImage-06924), so they cannot live in a Function variable.</item>
+    /// <item>Geometry streams: appending goes through OpEmitVertexSDSL and the stage's output
+    /// variables, so the object holds nothing to copy - and the copy outlived the parameter, which
+    /// the interface processor removes from the signature, leaving SPIR-V reading an id that no
+    /// longer exists.</item>
+    /// </list>
+    /// The input and output sides both consult this: copying a result back out of something that
+    /// was never copied in would write through a pointer the callee already holds.
+    /// </summary>
+    private static bool IsPassedByPointer(FunctionParameter parameter)
+        => parameter.Type is PointerType pointerType
+            && (parameter.Modifiers == ParameterModifiers.Ref
+                || pointerType.BaseType is TextureType or SamplerType or GeometryStreamType);
+
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
     {
         var (builder, context) = compiler;
@@ -382,7 +397,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         for (int i = 0; i < Arguments.Values.Count; i++)
         {
             var paramDefinition = functionType.ParameterTypes[i];
-            if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out))
+            if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out) && !IsPassedByPointer(paramDefinition))
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];

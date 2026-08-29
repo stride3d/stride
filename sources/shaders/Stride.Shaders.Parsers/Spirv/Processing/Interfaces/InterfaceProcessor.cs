@@ -285,6 +285,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             foreach (var ep in entryPoints)
                 context.Add(new OpEntryPoint(ep.Model, ep.Id, ep.Name, [.. ep.InterfaceVariables]));
 
+            // Entry points had their geometry stream parameter removed as their wrapper was
+            // generated; any other method carrying one has to lose it too.
+            RemoveGeometryStreamParameters(buffer, context);
+
             // This will remove a lot of unused methods, resources and variables
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
             DeadCodeRemover.RemoveUnreferencedCode(buffer, context, analysisResult, liveAnalysis);
@@ -292,6 +296,91 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             return new(entryPoints, inputAttributes);
         }
 
+
+        /// <summary>
+        /// Drops geometry stream output parameters from every method that still has one, and the
+        /// matching argument from every call to them.
+        /// <para>
+        /// A <c>TriangleStream&lt;Output&gt;</c> parameter carries no data - appending goes through
+        /// OpEmitVertexSDSL and the stage's output variables - but it cannot be dropped earlier:
+        /// EntryPointWrapperGenerator reads the output topology off it to emit the OutputPoints /
+        /// OutputLineStrip / OutputTriangleStrip execution mode. So it survives until here, where
+        /// the entry point has already been stripped of it and everything else still has to be.
+        /// </para>
+        /// <para>
+        /// The function type is rewritten through GetOrRegister rather than in place: a method and
+        /// the entry point calling it share one OpTypeFunction when their signatures match, and
+        /// mutating it for one silently rewrites the other - which is how the entry point's own
+        /// removal left such a method with more parameters than its type declared.
+        /// </para>
+        /// </summary>
+        private static void RemoveGeometryStreamParameters(SpirvBuffer buffer, SpirvContext context)
+        {
+            // Which parameter index each function loses.
+            var removedParameters = new Dictionary<int, int>();
+
+            var currentFunction = 0;
+            var currentFunctionIndex = 0;
+            var parameterIndex = 0;
+            for (var index = 0; index < buffer.Count; index++)
+            {
+                var i = buffer[index];
+                if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
+                {
+                    currentFunction = function.ResultId;
+                    currentFunctionIndex = index;
+                    parameterIndex = 0;
+                }
+                else if (i.Data.Op == Op.OpFunctionParameter && (OpFunctionParameter)i is { } parameter)
+                {
+                    if (context.ReverseTypes.TryGetValue(parameter.ResultType, out var parameterType)
+                        && parameterType is PointerType { BaseType: GeometryStreamType })
+                    {
+                        removedParameters[currentFunction] = parameterIndex;
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+
+                        // Drop it from the function's own type too, unless a shared type already
+                        // lost it when the entry point sharing that signature was rewritten.
+                        var declaringFunction = (OpFunction)buffer[currentFunctionIndex];
+                        if (context.ReverseTypes.TryGetValue(declaringFunction.FunctionType, out var declaredType)
+                            && declaredType is FunctionType functionType
+                            && parameterIndex < functionType.ParameterTypes.Count)
+                        {
+                            var remainingParameters = new List<FunctionParameter>(functionType.ParameterTypes);
+                            remainingParameters.RemoveAt(parameterIndex);
+                            declaringFunction.FunctionType = context.GetOrRegister(functionType with { ParameterTypes = remainingParameters });
+                        }
+                    }
+                    parameterIndex++;
+                }
+            }
+
+            if (removedParameters.Count == 0)
+                return;
+
+            // Rebuild the calls: an argument cannot be dropped in place, the instruction is shorter.
+            for (var index = 0; index < buffer.Count; index++)
+            {
+                if (buffer[index].Data.Op != Op.OpFunctionCall)
+                    continue;
+
+                var call = (OpFunctionCall)buffer[index];
+                if (!removedParameters.TryGetValue(call.Function, out var removedIndex))
+                    continue;
+
+                var arguments = call.Arguments.Elements.Span;
+                if (removedIndex >= arguments.Length)
+                    continue;
+
+                Span<int> remaining = new int[arguments.Length - 1];
+                arguments[..removedIndex].CopyTo(remaining);
+                arguments[(removedIndex + 1)..].CopyTo(remaining[removedIndex..]);
+
+                var (resultType, resultId, function) = (call.ResultType, call.ResultId, call.Function);
+                buffer.RemoveRange(index, 1);
+                buffer.Insert(index, new OpFunctionCall(resultType, resultId, function, new(remaining)));
+            }
+        }
 
         static int FindOutputPatchSize(SpirvContext context, Symbol entryPoint)
         {
