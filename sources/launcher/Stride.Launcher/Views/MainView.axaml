@@ -513,20 +513,15 @@
                 IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
             <Grid.Styles>
               <Style Selector="Grid.rn-slide.visible">
-                <Setter Property="RenderTransform" Value="translateX(0)"/>
+                <Setter Property="Opacity" Value="1.0"/>
               </Style>
               <Style Selector="Grid.rn-slide:not(.visible)">
-                <!--
-                  This moves the panel beyond the rightmost side of the window.
-                  The value here is based on the MaxWidth of the Launcher window (2560) - widfth of the first column (400).
-                  It should be in sync with the same animation for the release note panel below.
-                -->
-                <Setter Property="RenderTransform" Value="translateX(2160px)"/>
+                <Setter Property="Opacity" Value="0.0"/>
               </Style>
             </Grid.Styles>
             <Grid.Transitions>
               <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseInOut"/>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
               </Transitions>
             </Grid.Transitions>
             <!-- SECOND COLUMN -->
@@ -723,12 +718,17 @@
                 <Setter Property="RenderTransform" Value="translateX(0)"/>
               </Style>
               <Style Selector="Grid.rn-slide:not(.visible)">
+                <!--
+                  This moves the panel beyond the rightmost side of the window.
+                  The value here is based on the MaxWidth of the Launcher window (2560) - widfth of the first column (400).
+                  It should be in sync with the same animation for the release note panel below.
+                -->
                 <Setter Property="RenderTransform" Value="translateX(2160px)"/>
               </Style>
             </Grid.Styles>
             <Grid.Transitions>
               <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseInOut"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
               </Transitions>
             </Grid.Transitions>
             <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
@@ -797,12 +797,12 @@
           <Setter Property="RenderTransform" Value="translateX(0)"/>
         </Style>
         <Style Selector="Border.ann-slide:not(.visible)">
-          <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+          <Setter Property="RenderTransform" Value="translateX(2160px)"/>
         </Style>
       </Border.Styles>
       <Border.Transitions>
         <Transitions>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
         </Transitions>
       </Border.Transitions>
       <vw:Announcement DataContext="{Binding Announcement}" />
