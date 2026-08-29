@@ -326,7 +326,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                 {
-                    var compositionMixins = mixinSource.Compositions[variable.Key];
+                    // Every piece of context needed to act on this is in scope, and the dictionary
+                    // indexer would throw a bare "The given key was not present" instead.
+                    if (!mixinSource.Compositions.TryGetValue(variable.Key, out var compositionMixins))
+                        throw new InvalidOperationException(
+                            $"No composition was supplied for '{variable.Key}', declared as '{variable.Value.Type}' by shader '{shader.ShaderName}', "
+                            + $"while merging the mixin node '{currentCompositionPath ?? "<root>"}' (root: {mixinNode.IsRoot}). "
+                            + $"That node only has [{string.Join(", ", mixinSource.Compositions.Keys)}]. "
+                            + $"A `stage compose` is the usual cause: the shader declaring it was promoted to this node, "
+                            + $"but its value was supplied at a nested composition path and nothing carried it up.");
+
                     var isCompositionArray = pointer.BaseType is ArrayType { BaseType: ShaderSymbol };
 
                     if (!isCompositionArray && compositionMixins.Length != 1)
