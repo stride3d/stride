@@ -3,6 +3,8 @@
 
 #if STRIDE_GRAPHICS_API_VULKAN
 
+using Vortice.Vulkan;
+
 namespace Stride.Graphics
 {
     /// <summary>
@@ -40,9 +42,39 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // TODO D3D12
+            // Multisample support was never queried here: every format was reported as
+            // MultisampleCount.None, so Texture.New threw "the maximum supported level is None" for
+            // any multisampled render target - MSAA was simply unusable on Vulkan. Stride.Voxels'
+            // dominant-axis voxelization allocates an 8x target and died on it.
+            //
+            // Only the framebuffer masks are read, not per-format image properties: this runs for
+            // all 256 PixelFormat values at device creation, and the framebuffer limits are what
+            // actually bound a render target's sample count.
+            var physicalDevice = deviceRoot.NativePhysicalDevice;
+            deviceRoot.NativeInstanceApi.vkGetPhysicalDeviceProperties(physicalDevice, out var physicalDeviceProperties);
+            var colorSampleCounts = physicalDeviceProperties.limits.framebufferColorSampleCounts;
+            var depthSampleCounts = physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+            static MultisampleCount MaximumSampleCount(VkSampleCountFlags supported)
+            {
+                if ((supported & VkSampleCountFlags.Count8) != 0)
+                    return MultisampleCount.X8;
+                if ((supported & VkSampleCountFlags.Count4) != 0)
+                    return MultisampleCount.X4;
+                if ((supported & VkSampleCountFlags.Count2) != 0)
+                    return MultisampleCount.X2;
+                return MultisampleCount.None;
+            }
+
+            // Reported per format, but computed from the intersection of the colour and depth masks
+            // rather than per format: telling colour and depth formats apart here would need a
+            // predicate Stride does not have on this side, and the two masks are identical on every
+            // driver worth supporting. Erring low only costs a sample count; erring high would hand
+            // out a count the device cannot attach.
+            var maximumMultisampleCount = MaximumSampleCount(colorSampleCounts & depthSampleCounts);
+
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, MultisampleCount.None, ComputeShaderFormatSupport.None, FormatSupport.None);
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, maximumMultisampleCount, ComputeShaderFormatSupport.None, FormatSupport.None);
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
             //{
