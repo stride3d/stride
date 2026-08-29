@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A texture declared with a 16-bit element type.
+//
+// An image cannot deliver 16-bit values: Vulkan requires its sampled type to be a 32-bit int,
+// 64-bit int or 32-bit float (VUID-StandaloneSpirv-OpTypeImage-04656), with no extension lifting
+// it. The declaration used to emit `OpTypeImage %half`, which no optimizer would even load.
+//
+// Nothing is lost by widening it - the 16 bits live in the resource's pixel format, and the
+// texture unit decodes them into 32-bit registers for free. Stride.Voxels stores its clipmaps as
+// R16G16B16A16_Float and reads them through `Texture3D<half4>`, which is what found this.
+
+namespace Stride.Shaders.Tests;
+
+shader CSHalfTexture
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    Texture3D<half4> ReadTex;
+    RWTexture3D<half4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    void CSMain()
+    {
+        half4 value = ReadTex.Load(int4(streams.DispatchThreadId, 0));
+        WriteTex[streams.DispatchThreadId] = value;
+    }
+}
