@@ -417,7 +417,7 @@ namespace Stride.Graphics
 
                 CopyRootParameters(rootSignatureParameters, rootParamsBuffer, rootParamsBufferSize);
 
-                var staticSamplersBufferSize = rootSignatureParameters.Count * sizeof(StaticSamplerDesc);
+                var staticSamplersBufferSize = immutableSamplers.Count * sizeof(StaticSamplerDesc);
                 var staticSamplersBuffer = AllocateTempMemory(staticSamplersBufferSize);
 
                 CopyStaticSamplers(immutableSamplers, staticSamplersBuffer, staticSamplersBufferSize);
