@@ -552,7 +552,7 @@ namespace Stride.UI.Controls
             ScrollOfInternal(ref scrollTranslation, stopScrolling);
         }
 
-        public void ScrollOfInternal(ref Vector3 scrollTranslation, bool stopScrolling)
+        private void ScrollOfInternal(ref Vector3 scrollTranslation, bool stopScrolling)
         {
             if (stopScrolling)
             {

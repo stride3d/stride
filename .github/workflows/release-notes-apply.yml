@@ -1,0 +1,107 @@
+name: "Release Notes: Apply (reusable)"
+
+# Shared release-notes step used by every release workflow (engine/cli/launcher/vspackage)
+# and by the on-demand "Release Notes: Generate" workflow. It checks out the repo, runs the
+# ai-release-notes action (bullets -> release body, highlights draft -> run summary), and
+# uploads each output as a downloadable artifact. Keeping it here avoids repeating the same
+# job in five places.
+
+on:
+  workflow_call:
+    inputs:
+      to:
+        description: Range end (tag/SHA/branch). Defaults to `tag`, else HEAD.
+        required: false
+        default: ''
+        type: string
+      from:
+        description: Range start (tag/SHA). Defaults to the previous tag matching `tag-match`.
+        required: false
+        default: ''
+        type: string
+      tag:
+        description: Release tag to apply to (when apply=true) and the base for deriving `from`.
+        required: false
+        default: ''
+        type: string
+      tag-match:
+        description: git tag glob to derive `from` when not given (e.g. 'releases/*').
+        required: false
+        default: ''
+        type: string
+      product:
+        description: Human-readable product name (e.g. 'the Stride CLI').
+        required: true
+        type: string
+      scope:
+        description: Pathspec limiting commits to this product's sources. Empty = whole repo.
+        required: false
+        default: ''
+        type: string
+      apply:
+        description: Write the generated bullet notes to the `tag` release body.
+        required: false
+        default: false
+        type: boolean
+      add-contributors:
+        description: Append GitHub's "New Contributors" section (engine release only).
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      gh-token:
+        description: >-
+          Write-capable token (a PAT) for checkout, the changelog fetch, author resolution, and
+          editing the release body on apply. Must be able to write contents; the job's built-in
+          GITHUB_TOKEN is read-only and cannot apply. Never exposed to the model's tool calls.
+        required: true
+      anthropic-api-key:
+        description: Anthropic API key. If empty, note generation no-ops.
+        required: false
+
+jobs:
+  Generate:
+    runs-on: ubuntu-latest
+    # The built-in GITHUB_TOKEN is read-only and goes to the model; the write-capable `gh-token`
+    # PAT applies the notes and never reaches it.
+    permissions:
+      contents: read
+      pull-requests: read  # let the model trace commits to their PRs (gh api / gh pr)
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.gh-token }}
+
+      # Failures go red rather than passing silently; this job runs after the deploy, so that
+      # never rolls back a release.
+      - id: notes
+        uses: ./.github/actions/ai-release-notes
+        with:
+          to: ${{ inputs.to }}
+          from: ${{ inputs.from }}
+          tag: ${{ inputs.tag }}
+          tag-match: ${{ inputs.tag-match }}
+          product: ${{ inputs.product }}
+          scope: ${{ inputs.scope }}
+          apply: ${{ inputs.apply }}
+          add-contributors: ${{ inputs.add-contributors }}
+          anthropic-api-key: ${{ secrets.anthropic-api-key }}
+          github-token: ${{ secrets.gh-token }}      # write-capable: shell reads + apply
+          readonly-token: ${{ github.token }}         # read-only: the model's own tool calls
+
+      # always(): when applying failed, this artifact is the copy a maintainer needs.
+      - name: Upload bullet notes artifact
+        if: ${{ always() && steps.notes.outputs.notes-file != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-notes-bullets
+          path: ${{ steps.notes.outputs.notes-file }}
+
+      - name: Upload highlights draft artifact
+        if: ${{ always() && steps.notes.outputs.highlights-file != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-notes-highlights
+          path: ${{ steps.notes.outputs.highlights-file }}

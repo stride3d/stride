@@ -262,7 +262,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         }
 
         /// <inheritdoc />
-        protected override bool CanAddOrInsertChildren(IReadOnlyCollection<object> children, bool checkSameParent, AddChildModifiers modifiers, int index, out string message)
+        protected override DropAcceptance CanAddOrInsertChildren(IReadOnlyCollection<object> children, bool checkSameParent, AddChildModifiers modifiers, int index, out string message)
         {
             message = "Selection is empty";
             var roots = children.OfType<SceneRootViewModel>().ToList();
@@ -273,19 +273,19 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
             if (index < EntityCount)
             {
                 message = "Can only add a scene to another scene";
-                return false;
+                return DropAcceptance.Rejected;
             }
             var parentName = !string.IsNullOrWhiteSpace(Name) ? Name : "this location";
             foreach (var root in roots)
             {
                 if (!SceneAsset.CanBeParentOf(root.SceneAsset, out message, checkSameParent))
                 {
-                    return false;
+                    return DropAcceptance.Rejected;
                 }
                 // Accepting child scenes
                 message = $"Add as a child to {parentName}";
             }
-            return true;
+            return DropAcceptance.Accepted;
         }
 
         /// <inheritdoc />

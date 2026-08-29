@@ -1,8 +1,9 @@
 name: AI release notes
 description: >-
   Generate release notes from git history with Claude, scoped to a product's source paths.
-  Best-effort: on any failure (no API key, no range, error) it no-ops. Either writes the
-  release body (apply) or just emits the notes file (notes-file output) for review.
+  Either writes the release body (apply) or just emits the notes file (notes-file output) for
+  review. Fails (non-zero) whenever it cannot produce notes or cannot apply them, so a silent
+  no-notes run is never mistaken for a good one; run it in its own job so that stays harmless.
 
 inputs:
   tag:
@@ -28,12 +29,8 @@ inputs:
     description: Pathspec limiting commits to this product's sources. Empty = whole repo.
     required: false
     default: ''
-  format:
-    description: 'Output form: highlights | bullets.'
-    required: false
-    default: highlights
   apply:
-    description: Write the generated notes to the `tag` release body.
+    description: Write the generated bullet notes to the `tag` release body.
     required: false
     default: 'false'
   add-contributors:
@@ -53,13 +50,25 @@ inputs:
     required: false
     default: ''
   github-token:
-    description: Token for gh (release view, and release edit when apply=true).
+    description: >-
+      Write-capable token for the shell side: fetching the changelog, resolving commit authors,
+      and editing the release body when apply=true. Never exposed to the model's own tool calls.
     required: true
+  readonly-token:
+    description: >-
+      Read-only token used ONLY for the model's own gh/git tool calls, so a prompt-injected model
+      cannot mutate anything. Defaults to github-token (no isolation) when empty; pass a token with
+      no write scopes (e.g. a GITHUB_TOKEN minted with contents:read) to get the isolation.
+    required: false
+    default: ''
 
 outputs:
   notes-file:
-    description: Path to the generated release-notes markdown (empty if it no-oped).
+    description: Path to the generated bullet-list release notes (empty if it no-oped).
     value: ${{ steps.gen.outputs.notes-file }}
+  highlights-file:
+    description: Path to the generated highlights draft (empty if none was produced).
+    value: ${{ steps.gen.outputs.highlights-file }}
 
 runs:
   using: composite
@@ -69,6 +78,7 @@ runs:
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ inputs.github-token }}
+        READONLY_TOKEN: ${{ inputs.readonly-token }}
         REPO: ${{ github.repository }}
         TAG: ${{ inputs.tag }}
         INPUT_TO: ${{ inputs.to }}
@@ -76,7 +86,6 @@ runs:
         TAG_MATCH: ${{ inputs.tag-match }}
         PRODUCT: ${{ inputs.product }}
         SCOPE: ${{ inputs.scope }}
-        FORMAT: ${{ inputs.format }}
         APPLY: ${{ inputs.apply }}
         ADD_CONTRIBUTORS: ${{ inputs.add-contributors }}
         MODEL: ${{ inputs.model }}
@@ -85,8 +94,10 @@ runs:
         set -euo pipefail
         PROMPT_FILE="${PROMPT_FILE:-$GITHUB_ACTION_PATH/release-notes-prompt.md}"
 
+        # Ending without notes is an error, not a silent no-op. Safe to fail: notes run in their
+        # own job after the deploy, so the release just keeps its existing body.
         if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-          echo "::notice::No ANTHROPIC_API_KEY; skipping note generation."; exit 0
+          echo "::error::No ANTHROPIC_API_KEY; cannot generate release notes."; exit 1
         fi
 
         # Resolve the commit range: FROM..TO.
@@ -113,100 +124,376 @@ runs:
           [ -z "$FROM" ] && FROM=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TO^" 2>/dev/null || true)
         fi
         if [ -z "$FROM" ]; then
-          echo "::notice::No 'from' ref given or derivable; nothing to generate."; exit 0
+          echo "::error::No 'from' ref given or derivable (tag-match '$TAG_MATCH'); cannot generate release notes."; exit 1
         fi
-        echo "::notice::Generating notes for $FROM..$TO (format=$FORMAT)"
+        echo "::notice::Generating notes for $FROM..$TO"
+
+        # GitHub's own generated changelog for this range. It is the authoritative source of
+        # each change's PR link and author handle, and of the "New Contributors" section.
+        # Best-effort: it needs resolvable tag refs, so it is empty for arbitrary SHA ranges.
+        GN_BODY=$(gh api --method POST "repos/$REPO/releases/generate-notes" \
+          -f tag_name="$TO" -f previous_tag_name="$FROM" --jq '.body' 2>/dev/null || true)
+
+        # Pull the "What's Changed" list (title + @handle + PR link per line) as the ground
+        # truth for bullet attribution.
+        WHATS_CHANGED=$(printf '%s\n' "$GN_BODY" | awk '
+            /^## What.s Changed/ { c=1; next }
+            c && /^\*\*Full Changelog/ { exit }
+            c && /^## / { exit }
+            c { print }')
+        if printf '%s\n' "$WHATS_CHANGED" | grep -q '^\* '; then
+          # generate-notes is repo-wide. For a scoped product it is only an attribution
+          # lookup (the scoped git log stays the inclusion list); unscoped, it is the
+          # authoritative source of what shipped and its attribution.
+          if [ -n "$SCOPE" ]; then
+            INTRO="GitHub's repo-wide list of merged pull requests for this range is below. It is NOT your inclusion list (the scoped git log decides what to include). Use it only to look up the correct pull-request URL for a change you have already selected, matching by title. If a selected change isn't in this list, cite its own commit URL instead. Ignore the \`by @handle\` part of each line: the workflow resolves authors itself."
+          else
+            INTRO="GitHub already generated the authoritative list of merged pull requests for this range below. Treat it as the source of truth for every change's title and pull-request URL, and cite that URL rather than a commit whenever a change is listed here. Ignore the \`by @handle\` part of each line: the workflow resolves every author itself, so you never write one. Still read the git log to understand, group, and filter the changes."
+          fi
+          GH_CHANGELOG=$(printf '%s\n\n%s' "$INTRO" "$WHATS_CHANGED")
+        else
+          GH_CHANGELOG="(No pre-built pull-request list is available for this range. Derive the changes from the git log below and cite commit URLs; the workflow resolves each one's author and pull request.)"
+        fi
 
         # Scope note + starting git-log command the prompt tells Claude to run.
         if [ -n "$SCOPE" ]; then
           SCOPE_NOTE="This is a release of **$PRODUCT**. Base your commit list on the scoped \`git log\` below (pathspec: \`$SCOPE\`); it is already limited to the paths that belong to $PRODUCT. Ignore anything outside that scope — the other products (engine, CLI, VS package, launcher) ship their own separate releases and notes."
-          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $FROM..$TO -- $SCOPE"
+          LOG_CMD="git log --first-parent --pretty=format:'%H%x09%s' $FROM..$TO -- $SCOPE"
         else
           SCOPE_NOTE="This release covers the whole $PRODUCT; consider every commit in the range."
-          LOG_CMD="git log --no-merges --pretty=format:'%H%x09%s' $FROM..$TO"
+          LOG_CMD="git log --first-parent --pretty=format:'%H%x09%s' $FROM..$TO"
         fi
 
-        # Output-format instruction.
-        case "$FORMAT" in
-          bullets)
-            FMT="Produce a **single complete bullet list** and no prose Highlights. It is meant to be pasted **below hand-written highlights**, so make it **exhaustive**: every user-facing change gets one concise bullet (with its PR/SHA link), grouped under short area headers."
-            ;;
-          *)
-            FMT="Produce **highlight-style** notes: lead with a **Highlights** section (1-3 standout user-facing changes, each a short paragraph on the benefit; skip Highlights for a small release), then categorized sections grouping the remaining changes by area."
-            ;;
-        esac
+        # Convert bare GitHub PR/commit URLs to portable markdown links ([#NNNN](url),
+        # [shortsha](url)) so refs render as links in any viewer, not only GitHub's release
+        # UI. Skips URLs already inside a markdown link; leaves compare/other URLs alone.
+        linkify() {
+          # Only bare URLs are left to shorten by the time this runs: build_credits already emits
+          # finished markdown for every credit, and the "(?<!\]\()" guard skips those. In practice
+          # this now serves the New Contributors block, whose lines carry raw pull URLs.
+          perl -pe 's{(?<!\]\()https://github\.com/([\w.-]+/[\w.-]+)/pull/(\d+)}{[#$2](https://github.com/$1/pull/$2)}g; s{(?<!\]\()https://github\.com/([\w.-]+/[\w.-]+)/commit/([0-9a-f]{7,40})}{"[".substr($2,0,7)."](https://github.com/$1/commit/$2)"}ge'
+        }
 
-        # Literal placeholder substitution (no eval).
-        PROMPT="$(cat "$PROMPT_FILE")"
-        PROMPT="${PROMPT//\$PRODUCT/$PRODUCT}"
-        PROMPT="${PROMPT//\$REPO/$REPO}"
-        PROMPT="${PROMPT//\$PREV/$FROM}"
-        PROMPT="${PROMPT//\$TAG/$TO}"
-        PROMPT="${PROMPT//\$SCOPE_NOTE/$SCOPE_NOTE}"
-        PROMPT="${PROMPT//\$LOG_CMD/$LOG_CMD}"
-        PROMPT="${PROMPT//\$FORMAT_INSTRUCTION/$FMT}"
+        # Build each bullet's credit from the bare URLs the model emitted, so invented handles and
+        # mis-grouped contributors are not expressible. Emits finished markdown, which linkify then
+        # skips. Rules:
+        #   - PR URL                       -> "#N", the PR's author
+        #   - >=2 commits of one merged PR -> one "#N", the PR's author
+        #   - a lone commit of a merged PR -> "<sha> in #N", the commit's author
+        #   - a commit with no merged PR   -> "<sha>", the commit's author
+        # Duplicates collapse; an unresolved author leaves the reference without a handle.
+        build_credits() {
+          local file="$1" sha n login prinfo map="$PWD/refs.tsv"
+          : > "$map"
+          # PR -> author, straight from GitHub's own changelog ("* Title by @user in .../pull/N").
+          printf '%s\n' "$WHATS_CHANGED" \
+            | perl -ne 'print "P\t$2\t$1\n" if m{\@([\w-]+)\s+in\s+\S*?/pull/(\d+)}' >> "$map"
+          # Any PR cited but absent from that list (out-of-range, or a scoped product's release).
+          for n in $(grep -oE '/pull/[0-9]+' "$file" | grep -oE '[0-9]+$' | sort -un); do
+            awk -F'\t' -v n="$n" '$1=="P" && $2==n {f=1} END{exit !f}' "$map" && continue
+            login=$(gh api "repos/$REPO/pulls/$n" --jq '.user.login // empty' 2>/dev/null || true)
+            [ -n "$login" ] && printf 'P\t%s\t%s\n' "$n" "$login" >> "$map"
+          done
+          # commit -> author, plus the merged PR it belongs to (works for squash, merge and rebase
+          # merges). Open PRs that merely reference the commit are ignored.
+          for sha in $(grep -oE '/commit/[0-9a-f]{7,40}' "$file" | grep -oE '[0-9a-f]{7,40}$' | sort -u); do
+            login=$(gh api "repos/$REPO/commits/$sha" --jq '.author.login // empty' 2>/dev/null || true)
+            prinfo=$(gh api "repos/$REPO/commits/$sha/pulls" \
+              --jq '[.[] | select(.merged_at != null)] | first | select(.) | "\(.number)\t\(.user.login)"' 2>/dev/null || true)
+            printf 'C\t%s\t%s\t%s\n' "$sha" "$login" "$prinfo" >> "$map"
+          done
+          REFMAP="$map" REPO="$REPO" perl -i -pe '
+            BEGIN {
+              our (%CA, %CP, %CPA, %PA, $R);
+              if (open my $f, "<", $ENV{REFMAP}) {
+                while (<$f>) { chomp; my @F = split /\t/, $_, -1; next unless @F;
+                  if ($F[0] eq "P") { $PA{$F[1]} = $F[2] if defined $F[2] && length $F[2]; }
+                  elsif ($F[0] eq "C") {
+                    my ($s,$l,$p,$pa) = @F[1..4];
+                    $CA{$s}  = $l  if defined $l  && length $l;
+                    $CP{$s}  = $p  if defined $p  && length $p;
+                    $CPA{$s} = $pa if defined $pa && length $pa;
+                  } }
+              }
+              $R = quotemeta $ENV{REPO};
+            }
+            our (%CA, %CP, %CPA, %PA, $R);
+            # Only a trailing parenthetical holding at least one reference to this repo.
+            if (/^(.*?)\(([^()]*https:\/\/github\.com\/$R\/[^()]*)\)\s*$/) {
+              my ($head, $body) = ($1, $2);
+              my @raw;
+              while ($body =~ m{https://github\.com/$R/(?:pull/(\d+)|commit/([0-9a-f]{7,40}))}g) {
+                push @raw, defined $1 ? ["pr", $1] : ["c", $2];
+              }
+              my %cnt;
+              for my $r (@raw) { next unless $r->[0] eq "c"; my $p = $CP{$r->[1]}; $cnt{$p}++ if defined $p; }
+              my (@refs, %seen);
+              for my $r (@raw) {
+                my ($a, $l, $u);
+                if ($r->[0] eq "pr") {
+                  $a = $PA{$r->[1]}; $l = "#$r->[1]"; $u = "https://github.com/$ENV{REPO}/pull/$r->[1]";
+                } else {
+                  my $s = $r->[1]; my $p = $CP{$s};
+                  if (defined $p && $cnt{$p} >= 2) {
+                    $a = $CPA{$s} // $CA{$s}; $l = "#$p"; $u = "https://github.com/$ENV{REPO}/pull/$p";
+                  } elsif (defined $p) {
+                    $a = $CA{$s}; $l = substr($s,0,7) . " in #$p"; $u = "https://github.com/$ENV{REPO}/pull/$p/commits/$s";
+                  } else {
+                    $a = $CA{$s}; $l = substr($s,0,7); $u = "https://github.com/$ENV{REPO}/commit/$s";
+                  }
+                }
+                next if $seen{$u}++;
+                push @refs, [defined $a ? $a : "", "[$l]($u)"];
+              }
+              if (@refs) {
+                my (@order, %by);
+                for my $x (@refs) { push @order, $x->[0] unless exists $by{$x->[0]}; push @{$by{$x->[0]}}, $x->[1]; }
+                my @groups = map { my $j = join ", ", @{$by{$_}}; length($_) ? "\@$_, $j" : $j } @order;
+                $_ = $head . "(" . join("; ", @groups) . ")\n";
+              }
+            }
+          ' "$file"
+        }
 
-        # Install the Claude Code CLI (native installer -> ~/.local/bin).
+        # generate <format> <output-file>: build the prompt for that format, run Claude, and
+        # write the model's markdown (chatty preamble stripped) to <output-file>. The caller
+        # wraps it with the section scaffolding. Returns non-zero (no file) on failure.
+        generate() {
+          local fmt="$1" out="$2" FMT PROMPT STREAM status NOTES
+          case "$fmt" in
+            bullets)
+              FMT="Output an **exhaustive bullet list** of every user-facing change, grouped under \`###\` area subheadings each led by an emoji (for example \`### 🎮 Graphics & Shaders\`, \`### 🧨 Physics\`, \`### 🖥️ Editor / Game Studio\`, \`### 🐧 Cross-platform / CLI / Build\`); pick subheadings that fit the actual changes. Put pure-internal work in a final \`### 🔧 Under the hood\` subheading (alongside the other area subheadings) with **several separate \`-\` bullets**, one per grouped topic — never join items into one comma- or semicolon-separated bullet. Do not emit a \`## What's Changed\` heading, a document title, an intro sentence, or a footer: start directly with the first \`###\` subheading. End each bullet with a parenthesized list of the **bare URLs** it is based on, and **no trailing period**: \`(<url>)\`, or \`(<url>, <url>)\` when several belong to one entry — a pull-request URL for work that has a PR, a commit URL for work that has none. Write **nothing else inside those parentheses**: no \`@handle\`, no \`#number\`, no words. The workflow resolves each URL's author and renders the finished credit, so a handle you add would be discarded or wrong. Never invent a reference."
+              ;;
+            *)
+              FMT="Output a **draft of the release highlights** for a human editor to refine, in the style of Stride's published release notes (https://github.com/stride3d/stride-docs). Cover only a **small, curated set** of the most significant user-facing changes: major features, significant reworks, notable new capabilities. **Skip routine bug fixes and minor changes.** Write each highlight as a \`### Short descriptive title\` (no emoji) followed by one to three short prose **paragraphs** on what it is and why it matters to a developer. Do **not** use bullet points, and do **not** add attribution, PR links, or an \"Under the hood\" section. Start directly with the first \`###\` title. If the release has nothing significant (only small fixes), say so in one sentence."
+              ;;
+          esac
+
+          # Literal placeholder substitution (no eval).
+          PROMPT="$(cat "$PROMPT_FILE")"
+          PROMPT="${PROMPT//\$PRODUCT/$PRODUCT}"
+          PROMPT="${PROMPT//\$REPO/$REPO}"
+          PROMPT="${PROMPT//\$PREV/$FROM}"
+          PROMPT="${PROMPT//\$TAG/$TO}"
+          PROMPT="${PROMPT//\$SCOPE_NOTE/$SCOPE_NOTE}"
+          PROMPT="${PROMPT//\$LOG_CMD/$LOG_CMD}"
+          PROMPT="${PROMPT//\$FORMAT_INSTRUCTION/$FMT}"
+          PROMPT="${PROMPT//\$GH_CHANGELOG/$GH_CHANGELOG}"
+
+          # Read-only tool allowlist. git is listed per read subcommand, so `git -c core.pager=…`,
+          # aliases and hooks no longer match. `gh api` stays unscoped: patterns match on
+          # whitespace boundaries, so a path prefix never matches a real call, and prefix matching
+          # cannot block a trailing `--method POST` anyway. The read-only token is the boundary.
+          ALLOWED_TOOLS="Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git rev-list:*),Bash(git rev-parse:*),Bash(gh release view:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Read,Grep,Glob"
+          # Stream events so the log shows live progress; tee the stream to a file and
+          # extract the final result from it.
+          STREAM="$PWD/claude-$fmt.jsonl"
+          echo "Running Claude ($fmt) for $FROM..$TO (large ranges can take a few minutes)..."
+          set +e
+          # Give the model the read-only token in its environment only; the shell keeps the
+          # write-capable one for the changelog, author lookups and apply. Falls back to it when
+          # no read-only token was supplied.
+          GH_TOKEN="${READONLY_TOKEN:-$GH_TOKEN}" \
+          claude -p "$PROMPT" \
+            --model "$MODEL" \
+            --allowedTools "$ALLOWED_TOOLS" \
+            --max-turns 60 \
+            --verbose \
+            --output-format stream-json < /dev/null \
+            | tee "$STREAM" \
+            | jq -r --unbuffered '
+                if .type=="assistant" then (.message.content[]?
+                  | if .type=="tool_use" then "  -> " + .name + ": " + ((.input.command // .input.file_path // .input.pattern // (.input|tostring))|tostring|gsub("\\s+";" "))
+                    elif (.type=="text" and (.text|length)>0) then "  .. " + ((.text|gsub("\\s+";" "))[0:220])
+                    else empty end)
+                elif .type=="result" then "  == done"
+                else empty end' 2>/dev/null
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            # The exit code alone does not say whether it ran out of turns, hit an API error or
+            # something else; the result event carries that, so report it rather than guess.
+            echo "::warning::Claude run ($fmt) failed ($status). $(jq -rs '[.[] | select(.type=="result")] | last | "subtype=\(.subtype // "?") turns=\(.num_turns // "?") error=\((.error // .result // "") | tostring | .[0:200])"' "$STREAM" 2>/dev/null || echo 'no result event')"
+            return 1
+          fi
+          # A truncated or malformed stream makes jq exit non-zero; treat that as "no notes" and
+          # report it, rather than letting set -e kill the action with no explanation.
+          NOTES=$(jq -rs '[.[] | select(.type=="result")] | last | .result // empty' "$STREAM" || true)
+          if [ -z "$NOTES" ]; then
+            echo "::warning::Empty $fmt notes."; return 1
+          fi
+          # Drop any chatty preamble the model emitted before the first markdown-structural
+          # line (heading, bullet, numbered item, or HTML comment).
+          printf '%s\n' "$NOTES" | awk 'p{print;next} /^(#|[-*] |[0-9]+\. |<!--)/{p=1;print}' > "$out"
+          [ -s "$out" ] || { echo "::warning::Empty $fmt notes after cleanup."; return 1; }
+        }
+
+        # Install the Claude Code CLI once (native installer -> ~/.local/bin).
         curl -fsSL https://claude.ai/install.sh | bash
         export PATH="$HOME/.local/bin:$PATH"
 
-        # Stream events so the log shows live progress; tee the stream to a file and
-        # extract the final result from it.
-        STREAM="$PWD/claude-stream.jsonl"
-        echo "Running Claude to generate the notes for $FROM..$TO (large ranges can take a few minutes)..."
-        set +e
-        claude -p "$PROMPT" \
-          --model "$MODEL" \
-          --allowedTools 'Bash(git:*),Bash(gh release view:*),Read,Grep,Glob' \
-          --max-turns 60 \
-          --verbose \
-          --output-format stream-json < /dev/null \
-          | tee "$STREAM" \
-          | jq -r --unbuffered '
-              if .type=="assistant" then (.message.content[]?
-                | if .type=="tool_use" then "  -> " + .name + ": " + ((.input.command // .input.file_path // .input.pattern // (.input|tostring))|tostring|gsub("\\s+";" "))
-                  elif (.type=="text" and (.text|length)>0) then "  .. " + ((.text|gsub("\\s+";" "))[0:220])
-                  else empty end)
-              elif .type=="result" then "  == done"
-              else empty end' 2>/dev/null
-        STATUS=${PIPESTATUS[0]}
-        set -e
-        if [ $STATUS -ne 0 ]; then
-          echo "::warning::Claude run failed ($STATUS); no notes produced."; exit 0
+        # --- Bullet list ("## What's Changed"): the release body that gets applied. ---
+        BULLETS="$PWD/bullets-raw.md"
+        if ! generate bullets "$BULLETS"; then
+          echo "::error::No release notes produced (see the warning above for which stage failed)."; exit 1
         fi
+        build_credits "$BULLETS"  # resolve the model's bare references into finished credits
 
-        NOTES=$(jq -rs '[.[] | select(.type=="result")] | last | .result // empty' "$STREAM")
-        if [ -z "$NOTES" ]; then
-          echo "::warning::Empty notes; nothing produced."; exit 0
-        fi
-
-        # Append GitHub's "New Contributors" block (repo-wide; best-effort, needs tag refs).
+        # New Contributors block (repo-wide; from the changelog fetched above).
+        CONTRIB=""
         if [ "$ADD_CONTRIBUTORS" = "true" ]; then
-          CONTRIB=$(gh api --method POST "repos/$REPO/releases/generate-notes" \
-            -f tag_name="$TO" -f previous_tag_name="$FROM" --jq '.body' 2>/dev/null \
-            | awk '
+          CONTRIB=$(printf '%s\n' "$GN_BODY" | awk '
                 /^## New Contributors/ { c=1 }
                 c && /^\*\*Full Changelog/ { exit }
                 c && /^## / && !/^## New Contributors/ { exit }
                 c { print }')
-          if [ -n "$CONTRIB" ]; then
-            NOTES=$(printf '%s\n\n%s' "$NOTES" "$CONTRIB")
-            echo "::notice::Appended New Contributors section."
-          else
-            echo "::notice::No New Contributors section to append."
-          fi
+          [ -n "$CONTRIB" ] && echo "::notice::Appended New Contributors section." || echo "::notice::No New Contributors section to append."
         fi
 
+        # Which authoritative PRs no bullet references, as a hidden comment for whoever edits the
+        # raw body. Only meaningful where that list is the inclusion list — the engine (scope "."
+        # with excludes) or unscoped; for one scoped product it is an attribution lookup, so the
+        # count would be nonsense. A PR cited only in New Contributors does not count as covered.
+        case "$SCOPE" in ""|.*) coverage_ok=1 ;; *) coverage_ok=0 ;; esac
+        COVERAGE_NOTE=""
+        total=0
+        if [ "$coverage_ok" = 1 ]; then
+          # No-match greps exit 1, which set -e would turn into a failed run; an empty result is a
+          # legitimate outcome here (notes citing no PR at all).
+          gn_prs=$(printf '%s\n' "$WHATS_CHANGED" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || true)
+          # generate-notes drops PRs whose merge commit it cannot match, so the range's own merge
+          # and squash subjects are unioned in; without them the denominator understates the range
+          # and bullets get no credit for citing what the list missed.
+          git_prs=$(git log --pretty=%s "$FROM..$TO" -- $SCOPE \
+            | grep -oE '(Merge pull request #[0-9]+|\(#[0-9]+\)$)' | grep -oE '[0-9]+' || true)
+          all_prs=$(printf '%s\n%s\n' "$gn_prs" "$git_prs" | grep -E '^[0-9]+$' | sort -un || true)
+          cited_prs=$(grep -oE 'pull/[0-9]+' "$BULLETS" | grep -oE '[0-9]+' | sort -un || true)
+          # Set difference by lookup, not comm: comm needs lexicographic input, and these lists are
+          # sorted numerically, so it misreports as soon as PR numbers differ in width.
+          missing=$(awk 'NR==FNR{c[$0];next} !($0 in c)' \
+            <(printf '%s\n' "$cited_prs") <(printf '%s\n' "$all_prs"))
+          # `grep -c` exits 1 on a zero count, which under `set -e` would abort the whole action
+          # exactly when coverage is perfect and nothing is missing.
+          total=$(printf '%s\n' "$all_prs" | grep -c . || true)
+          miss_count=$(printf '%s\n' "$missing" | grep -c . || true)
+        fi
+        # A range with no PR at all (raw SHAs, no merge subjects) gets no note rather than "0/0".
+        if [ "$total" -gt 0 ]; then
+          if [ "$miss_count" -gt 0 ]; then
+            miss_list=$(printf '%s\n' "$missing" | sed 's/^/#/' | paste -sd' ' -)
+            COVERAGE_NOTE="<!-- Coverage: $((total - miss_count))/$total PRs referenced. Not referenced (folded into a grouped bullet, minor, out of this product's scope, or genuinely missed; review before publishing): $miss_list -->"
+          else
+            COVERAGE_NOTE="<!-- Coverage: $total/$total PRs referenced. -->"
+          fi
+          echo "::notice::PR coverage: $((total - miss_count))/$total referenced."
+        fi
+
+        # Assemble the body: one "What's Changed" section (auto note + provenance comment, the
+        # grouped bullets), then New Contributors and the Full Changelog link. linkify rewrites
+        # PR/commit URLs to portable [#NNNN](url) links (the compare link is left as-is).
         OUT="$PWD/ai-release-notes.md"
-        printf '%s\n' "$NOTES" > "$OUT"
+        {
+          echo "## What's Changed"
+          echo
+          echo "_Auto-generated; a maintainer may hand-edit._"
+          echo "<!-- Generated by the ai-release-notes action from $FROM..$TO. -->"
+          [ -n "$COVERAGE_NOTE" ] && echo "$COVERAGE_NOTE"
+          echo
+          cat "$BULLETS"
+          if [ -n "$CONTRIB" ]; then
+            echo
+            printf '%s\n' "$CONTRIB"
+          fi
+          echo
+          echo "**Full Changelog**: https://github.com/$REPO/compare/$FROM...$TO"
+        } | linkify > "$OUT"
+
         echo "notes-file=$OUT" >> "$GITHUB_OUTPUT"
 
+        APPLY_FAILED=0
+        PREV_BODY_FILE=""
         if [ "$APPLY" = "true" ] && [ -n "$TAG" ]; then
+          # Replaces the whole body, which suits the automated path where the release was just
+          # created. To refresh an already-edited release, leave apply off and copy the raw
+          # markdown from the summary. GitHub keeps no history of a release body, so snapshot it
+          # first: the summary then holds the only copy of whatever this overwrites.
+          PREV=$(gh release view "$TAG" --json body --jq '.body' 2>/dev/null || true)
+          if [ -n "$(printf '%s' "$PREV" | tr -d '[:space:]')" ]; then
+            PREV_BODY_FILE="$PWD/release-body-before-apply.md"
+            printf '%s\n' "$PREV" > "$PREV_BODY_FILE"
+            echo "::notice::Snapshotted the previous release body ($(wc -c < "$PREV_BODY_FILE") bytes) into the run summary before overwriting it."
+          fi
           if gh release edit "$TAG" --notes-file "$OUT"; then
             echo "::notice::Applied generated notes to release $TAG."
           else
-            echo "::warning::Could not write notes to release $TAG (left as-is)."
+            # The notes exist (and are still uploaded as an artifact), but the release kept its
+            # old body — a maintainer has to act, so fail rather than bury it in a warning.
+            # Deferred to the end of the step: exiting here would skip the highlights draft and
+            # the step summary, which are exactly what that maintainer needs to recover by hand.
+            APPLY_FAILED=1
+            echo "::error::Could not write notes to release $TAG (left as-is); the generated notes are in the run artifacts."
           fi
         else
           echo "::notice::Generated notes at $OUT (apply=$APPLY); not written to a release."
         fi
+
+        # --- Highlights draft ("## Highlights"): candidate highlights, never applied. ---
+        HLRAW="$PWD/highlights-raw.md"
+        HL=""
+        if generate highlights "$HLRAW"; then
+          HL="$PWD/ai-highlights-draft.md"
+          {
+            echo "## Highlights"
+            echo
+            echo "<!-- Auto-generated draft; cherry-pick and rewrite, then place above What's Changed. -->"
+            echo
+            cat "$HLRAW"
+          } | linkify > "$HL"
+          echo "highlights-file=$HL" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice::No highlights draft produced."
+        fi
+
+        # Keep both outputs in the step summary, so they survive a later hand-edit of the release
+        # body. The rendered copy reads well but hides the HTML comments and cannot be copied out,
+        # so each is repeated as raw source in a collapsed block, fenced with 4 backticks so a
+        # fence inside the notes cannot close it early.
+        {
+          echo "_Preserved snapshot of this run's auto-generated notes (kept even if the release body is later edited)._"
+          echo
+          if [ -n "$HL" ]; then cat "$HL"; else echo "## Highlights"; echo; echo "_(none generated)_"; fi
+          echo
+          echo "---"
+          echo
+          cat "$OUT"
+          echo
+          echo "---"
+          echo
+          echo "<details><summary>Raw markdown (copy-paste source, includes the hidden coverage comment)</summary>"
+          echo
+          if [ -n "$HL" ]; then
+            echo '````markdown'
+            cat "$HL"
+            echo '````'
+            echo
+          fi
+          echo '````markdown'
+          cat "$OUT"
+          echo '````'
+          echo
+          echo "</details>"
+          if [ -n "$PREV_BODY_FILE" ]; then
+            echo
+            echo "<details><summary>Release body before this run overwrote it (recovery copy)</summary>"
+            echo
+            echo '````markdown'
+            cat "$PREV_BODY_FILE"
+            echo '````'
+            echo
+            echo "</details>"
+          fi
+        } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+        # Deferred failure: everything a maintainer needs (artifacts, summary, highlights) has
+        # been written, so it is safe to report the apply failure now.
+        [ "$APPLY_FAILED" = 0 ] || exit 1

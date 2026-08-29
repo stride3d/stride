@@ -22,6 +22,27 @@ namespace Stride.Core.Assets.Editor.ViewModel
         bool CanInsertChildren([NotNull] IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, [NotNull] out string message);
 
         /// <summary>
+        /// Gets how this instance accepts the given children before or after itself.
+        /// </summary>
+        /// <param name="children">The children to insert.</param>
+        /// <param name="position">The position to insert, before or after.</param>
+        /// <param name="modifiers">The modifier keys currently active.</param>
+        /// <param name="message">The feedback message that can be used in the user interface.</param>
+        /// <returns>
+        /// <see cref="DropAcceptance.Accepted"/> if this instance can insert the given children,
+        /// <see cref="DropAcceptance.NoOp"/> if the children are already there,
+        /// <see cref="DropAcceptance.Rejected"/> if this instance cannot insert the given children.
+        /// </returns>
+        /// <remarks>
+        /// The default implementation uses <see cref="CanInsertChildren"/>. Therefore it never gives
+        /// <see cref="DropAcceptance.NoOp"/>. Override this method to tell a no-op from an error.
+        /// </remarks>
+        DropAcceptance GetInsertChildrenAcceptance([NotNull] IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, [NotNull] out string message)
+        {
+            return CanInsertChildren(children, position, modifiers, out message) ? DropAcceptance.Accepted : DropAcceptance.Rejected;
+        }
+
+        /// <summary>
         /// Inserts the given children before or after itself in the collection it is contained in. Should be invoked only if <see cref="CanInsertChildren"/> returned <c>true</c>.
         /// </summary>
         /// <param name="children">The children to add.</param>

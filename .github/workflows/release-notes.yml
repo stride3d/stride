@@ -1,8 +1,9 @@
 name: "Release Notes: Generate"
 
 # Generate release notes for any commit range with Claude, on demand, independent of a
-# release. Output goes to the run Step Summary and a downloadable artifact for review. It
-# overwrites a release body only if you tick "apply-to-release" (off by default).
+# release. Output goes to the run Step Summary and downloadable artifacts for review. It
+# overwrites a release body only if you tick "apply-to-release" (off by default). The
+# generation itself lives in the shared release-notes-apply.yml reusable workflow.
 
 on:
   workflow_dispatch:
@@ -17,14 +18,6 @@ on:
         required: false
         default: ''
         type: string
-      format:
-        description: Output form.
-        required: false
-        default: highlights
-        type: choice
-        options:
-          - highlights
-          - bullets
       apply-to-release:
         description: Replace the notes on the existing release named by 'to'. Unticked, or if no such release exists, only generates a preview.
         required: false
@@ -37,24 +30,23 @@ on:
         type: boolean
 
 jobs:
-  Generate:
-    name: Generate release notes
+  # Detect the product from the 'to' tag prefix (releases/ cli/ vspackage/ launcher/); a
+  # SHA/branch/HEAD (no product prefix) is treated as the engine. Also validate the apply
+  # target: applying needs 'to' to be an EXISTING release tag (releases are keyed by tag, so a
+  # SHA can't be applied to); otherwise generate without applying.
+  Config:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # gh release view, and edit when apply-to-release is on
+    outputs:
+      product: ${{ steps.cfg.outputs.product }}
+      tag-match: ${{ steps.cfg.outputs.tag-match }}
+      scope: ${{ steps.cfg.outputs.scope }}
+      apply-tag: ${{ steps.cfg.outputs.apply-tag }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      # Detect the product from the 'to' tag prefix (releases/ cli/ vspackage/ launcher/);
-      # a SHA/branch/HEAD (no product prefix) is treated as the engine. Also validate the
-      # apply target: applying needs 'to' to be an EXISTING release tag (releases are keyed
-      # by tag, so a SHA can't be applied to); otherwise generate without applying.
       - id: cfg
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout here, so gh cannot infer the repo and every `gh release view` fails.
+          GH_REPO: ${{ github.repository }}
           TO: ${{ inputs.to }}
           APPLY: ${{ inputs.apply-to-release }}
         run: |
@@ -74,28 +66,21 @@ jobs:
           fi
           { echo "product=$P"; echo "tag-match=$M"; echo "scope=$S"; echo "apply-tag=$APPLY_TAG"; } >> "$GITHUB_OUTPUT"
 
-      - id: notes
-        uses: ./.github/actions/ai-release-notes
-        with:
-          to: ${{ inputs.to }}
-          from: ${{ inputs.from }}
-          tag: ${{ steps.cfg.outputs.apply-tag }}
-          tag-match: ${{ steps.cfg.outputs.tag-match }}
-          product: ${{ steps.cfg.outputs.product }}
-          scope: ${{ steps.cfg.outputs.scope }}
-          format: ${{ inputs.format }}
-          apply: ${{ steps.cfg.outputs.apply-tag != '' }}
-          add-contributors: ${{ inputs.add-contributors }}
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to run summary
-        if: ${{ steps.notes.outputs.notes-file != '' }}
-        run: cat "${{ steps.notes.outputs.notes-file }}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload notes artifact
-        if: ${{ steps.notes.outputs.notes-file != '' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-notes
-          path: ${{ steps.notes.outputs.notes-file }}
+  Notes:
+    needs: Config
+    permissions:
+      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      pull-requests: read  # let the model trace commits to their PRs
+    uses: ./.github/workflows/release-notes-apply.yml
+    with:
+      to: ${{ inputs.to }}
+      from: ${{ inputs.from }}
+      tag: ${{ needs.Config.outputs.apply-tag }}
+      tag-match: ${{ needs.Config.outputs.tag-match }}
+      product: ${{ needs.Config.outputs.product }}
+      scope: ${{ needs.Config.outputs.scope }}
+      apply: ${{ needs.Config.outputs.apply-tag != '' }}
+      add-contributors: ${{ inputs.add-contributors }}
+    secrets:
+      gh-token: ${{ secrets.GH_PAT }}      # write-capable PAT: shell reads + apply (model uses the read-only GITHUB_TOKEN)
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
