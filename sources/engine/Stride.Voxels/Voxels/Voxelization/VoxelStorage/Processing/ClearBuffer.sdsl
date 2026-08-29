@@ -6,9 +6,20 @@ namespace Stride.Rendering.Voxels
     {
         stage RWBuffer<uint> buffer;
         int offset;
+
+        // Direct3D11 allows at most 65535 thread groups per dispatch dimension, so a purely
+        // one-dimensional dispatch cannot address more than 65535 * 1024 elements. A 256^3
+        // anisotropic clipmap needs three times that, so the groups are spread over X and Y and
+        // the linear index is recomposed here. rowLength is how many elements one row of groups
+        // covers, and count bounds the last row, which generally overshoots.
+        int rowLength;
+        int count;
+
         override void Compute()
         {
-            buffer[streams.DispatchThreadId.x + offset] = 0;
+            uint index = streams.DispatchThreadId.x + streams.DispatchThreadId.y * (uint)rowLength;
+            if (index < (uint)count)
+                buffer[index + offset] = 0;
         }
     };
 }

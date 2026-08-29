@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -246,6 +246,30 @@ namespace Stride.Rendering.Voxels
         Stride.Rendering.ComputeEffect.ComputeEffectShader BufferToTextureColumns;
         Stride.Rendering.ComputeEffect.ComputeEffectShader ClearBuffer;
 
+
+        /// <summary>
+        /// Thread group counts for clearing <paramref name="elementCount"/> buffer elements, spread
+        /// over two dimensions.
+        /// </summary>
+        /// <remarks>
+        /// Direct3D11 rejects a dispatch with more than 65535 groups in any one dimension, which
+        /// caps a one-dimensional clear at about 67 million elements. A 256^3 clipmap storing six
+        /// directions needs 201 million, so it failed outright. ClearBuffer recomposes the linear
+        /// index from X and Y, using <paramref name="rowLength"/> as the width of one row of groups.
+        /// </remarks>
+        static Int3 ClearDispatch(int elementCount, out int rowLength)
+        {
+            const int threadsPerGroup = 1024;
+            const int maxGroupsPerDimension = 65535;
+
+            var groups = (elementCount + threadsPerGroup - 1) / threadsPerGroup;
+            var groupsX = Math.Min(groups, maxGroupsPerDimension);
+            var groupsY = (groups + groupsX - 1) / groupsX;
+
+            rowLength = groupsX * threadsPerGroup;
+            return new Int3(groupsX, groupsY, 1);
+        }
+
         public void PostProcess(VoxelStorageContext storageContext, RenderDrawContext drawContext, ProcessedVoxelVolume data)
         {
             if (Math.Max(Math.Max(ClipMapResolution.X, ClipMapResolution.Y), ClipMapResolution.Z) < 32)
@@ -363,15 +387,20 @@ namespace Stride.Rendering.Voxels
             {
                 //Clear all
                 ClearBuffer.ThreadNumbers = new Int3(1024, 1, 1);
-                ClearBuffer.ThreadGroupCounts = new Int3(FragmentsBuffer.ElementCount / 1024, 1, 1);
+                ClearBuffer.ThreadGroupCounts = ClearDispatch(FragmentsBuffer.ElementCount, out var fragmentsRowLength);
                 ClearBuffer.Parameters.Set(ClearBufferKeys.offset, 0);
+                ClearBuffer.Parameters.Set(ClearBufferKeys.rowLength, fragmentsRowLength);
+                ClearBuffer.Parameters.Set(ClearBufferKeys.count, FragmentsBuffer.ElementCount);
             }
             else
             {
                 //Clear next clipmap buffer
+                var clipMapElements = (int)(ClipMapResolution.X * ClipMapResolution.Y * ClipMapResolution.Z * storageUints);
                 ClearBuffer.ThreadNumbers = new Int3(1024, 1, 1);
-                ClearBuffer.ThreadGroupCounts = new Int3((int)(ClipMapResolution.X * ClipMapResolution.Y * ClipMapResolution.Z * storageUints) / 1024, 1, 1);
+                ClearBuffer.ThreadGroupCounts = ClearDispatch(clipMapElements, out var clipMapRowLength);
                 ClearBuffer.Parameters.Set(ClearBufferKeys.offset, (int)(((ClipMapCurrent+1) % ClipMapCount) * ClipMapResolution.X * ClipMapResolution.Y * ClipMapResolution.Z * storageUints));
+                ClearBuffer.Parameters.Set(ClearBufferKeys.rowLength, clipMapRowLength);
+                ClearBuffer.Parameters.Set(ClearBufferKeys.count, clipMapElements);
             }
             ((RendererBase)ClearBuffer).Draw(drawContext);
         }
