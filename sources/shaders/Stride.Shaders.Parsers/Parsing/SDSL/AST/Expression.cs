@@ -1281,9 +1281,29 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
                     }
                     break;
-                // Array indexer for shader compositions
-                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
-                    throw new NotImplementedException();
+                // Array indexer for shader compositions.
+                // Nothing is resolved here: the composition array has no runtime existence, so this
+                // only has to leave an OpAccessChain whose base is the composition variable and whose
+                // index is a constant. ShaderMixer.ProcessMemberAccessAndForeach recognises exactly
+                // that shape, reads the constant, maps the result id to compositions[index] and NOPs
+                // the chain out. Hence the IntegerLiteral guard: a dynamic index has no composition
+                // to resolve to at mix time.
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol compositionType } } p, IndexerExpression { Index: IntegerLiteral } indexer):
+                    {
+                        if (compiler == null)
+                        {
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(compositionType, p.StorageClass);
+                            break;
+                        }
+
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
+                        break;
+                    }
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol } }, IndexerExpression indexer2):
+                    throw new NotImplementedException(
+                        $"Shader compositions can only be indexed with a constant: '{indexer2.Index}' is resolved at mix time, not at runtime.");
                 // Array indexer for arrays
                 case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
                     {
