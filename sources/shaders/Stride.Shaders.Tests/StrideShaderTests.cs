@@ -835,4 +835,35 @@ new ShaderMacro("class", "shader"),
         var keyNames = reflection.ResourceBindings.Select(b => b.KeyInfo.KeyName).ToList();
         Assert.Contains("StageComposePathImpl.Tex.Samplers[0].nested", keyNames);
     }
+    // Regression: `streams = input[i]` in a geometry shader assigns the members the stage input
+    // carries and must leave every other stream member as it was. It used to default them to zero,
+    // so anything the shader had computed into a stream before its emit loop was wiped on every
+    // vertex. Stride.Voxels' dominant-axis voxelization chooses a projection axis that way: the
+    // axis reset to 0 each iteration, the geometry shader constant-folded to `if (true)`, and only
+    // surfaces already facing that one axis were voxelized - floors and ceilings vanished and the
+    // rest came out striped.
+    //
+    // Checked after LegalizeForHlsl, which is what EffectCompiler hands to SPIRV-Cross: the branch
+    // on the carried value has to still be a branch there, not a folded constant.
+    [Fact]
+    public void GeometryStreamsAssignKeepsMembersTheInputDoesNotCarry()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsAssignKeepsOthers", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsAssignKeepsOthers"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        Assert.DoesNotContain("if (true)", hlsl);
+        Assert.DoesNotContain("if (false)", hlsl);
+    }
 }
