@@ -347,9 +347,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         var localKey = variable.Key;
                         if (isCompositionArray)
                             localKey += $"[{i}]";
+                        // A `stage compose` supplied by a nested effect was hoisted here with its declaring
+                        // shader, so currentCompositionPath is null even though the caller addresses it by
+                        // the path it was supplied at. Put that path back, or the resources underneath get
+                        // root-relative link names that no parameter key ever matches.
+                        var basePath = currentCompositionPath;
+                        if (basePath == null)
+                            mixinSource.StageCompositionPaths?.TryGetValue(variable.Key, out basePath);
                         // TODO: Review: it seems like Stride compose variable the opposite way that we expect
                         //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
-                        var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
+                        var compositionPath = basePath != null ? $"{localKey}.{basePath}" : localKey;
                         compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
                     }
 

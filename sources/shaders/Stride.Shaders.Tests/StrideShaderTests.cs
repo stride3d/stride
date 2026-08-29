@@ -801,4 +801,38 @@ new ShaderMacro("class", "shader"),
         Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
         Assert.Contains("OpImageWrite", disassembly);
     }
+    // Regression: a `stage compose` slot is hoisted to the root with the shader that declares it,
+    // and CompositionArrayStageFromNested covers its value being hoisted along. But the value was
+    // then merged as if it had been supplied at the root, so resources underneath got root-relative
+    // link names - here "Samplers[0]" instead of "Samplers[0].nested". The engine composes its
+    // parameter keys with the path it supplied the value at, so nothing matched and the resource was
+    // left unbound: Stride.Voxels' clipmaps sampled a null texture and voxel GI lit nothing.
+    [Fact]
+    public void StageCompositionSuppliedFromNestedKeepsItsSupplyPath()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "StageComposePathBase", "StageComposePathImpl", "StageComposePathDeclarer", "StageComposePathSupplier", "StageComposePathRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("StageComposePathRoot") },
+            Compositions =
+            {
+                ["nested"] = new ShaderMixinSource
+                {
+                    Mixins = { new ShaderClassSource("StageComposePathSupplier") },
+                    Compositions = { ["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") } },
+                },
+            },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var keyNames = reflection.ResourceBindings.Select(b => b.KeyInfo.KeyName).ToList();
+        Assert.Contains("StageComposePathImpl.Tex.Samplers[0].nested", keyNames);
+    }
 }
