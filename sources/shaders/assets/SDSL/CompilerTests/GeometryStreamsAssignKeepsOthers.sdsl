@@ -1,0 +1,51 @@
+// A geometry shader that computes a value into a stream before its emit loop, assigns the stage
+// input over `streams` inside that loop, and then branches on the value it computed.
+//
+// `streams = input[i]` overwrites the members the input carries; the rest have to survive it.
+// Stride.Voxels' dominant-axis voxelization is built on exactly this: VoxelizationMethodDominantAxis
+// picks a projection axis in InitializeFromTriangle, and VoxelStorageClipmapShader's emit loop does
+// `streams = input[i]` before calling Append, which reads the axis back.
+
+namespace Stride.Shaders.Tests;
+
+shader GeometryStreamsAssignKeepsOthers
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Tint;
+
+    // Not carried by the geometry stage input, so `streams = input[i]` must leave it alone.
+    stream int carried;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> outStream)
+    {
+        // Derived from the input so it cannot be folded to a constant on its own.
+        streams.carried = input[0].ShadingPosition.w > 0.5f ? 2 : 1;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            streams = input[i];
+
+            if (streams.carried == 2)
+                streams.Tint = float4(1, 0, 0, 1);
+            else
+                streams.Tint = float4(0, 1, 0, 1);
+
+            outStream.Append(streams);
+        }
+
+        outStream.RestartStrip();
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.Tint;
+    }
+}
