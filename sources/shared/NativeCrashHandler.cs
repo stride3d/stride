@@ -45,10 +45,23 @@ namespace Stride
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern uint GetModuleFileNameW(IntPtr module, [Out] char[] filename, uint size);
 
+        [DllImport("kernel32.dll")]
+        private static extern uint GetCurrentThreadId();
+
         // PVECTORED_EXCEPTION_HANDLER: LONG (*)(PEXCEPTION_POINTERS). Kept in a static field so the reverse
         // P/Invoke thunk isn't collected while registered.
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate int VectoredHandler(IntPtr exceptionPointers);
+
+        // Pack=4 required: dbghelp.h structs are 4-byte packed; natural x64 layout makes dbghelp read a
+        // garbage pointer and fail with ERROR_NOACCESS.
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        private struct MinidumpExceptionInformation
+        {
+            public uint ThreadId;
+            public IntPtr ExceptionPointers;
+            public int ClientPointers; // BOOL
+        }
 
         private const uint StatusAccessViolation = 0xC0000005;
         private const int ExceptionContinueSearch = 0; // let the runtime terminate the process as it would
@@ -111,8 +124,7 @@ namespace Stride
             // derefs) it misses. CI covers those with createdump (DOTNET_DbgEnableMiniDump) + WER LocalDumps, but a
             // local run has neither unless the developer sets up the WER registry. So when createdump is NOT enabled,
             // add the vectored handler to capture pure-native AVs in-process — zero-setup local repro. When it IS
-            // enabled (CI), skip it: createdump already covers these, and skipping avoids a duplicate multi-GB dump
-            // and keeps the CI capture path exactly as before.
+            // enabled (CI), skip it: createdump already covers these and a second in-process dump would duplicate it.
             if (OperatingSystem.IsWindows() && Environment.GetEnvironmentVariable("DOTNET_DbgEnableMiniDump") != "1")
                 RegisterVectoredHandler();
         }
@@ -195,7 +207,7 @@ namespace Stride
 
             try
             {
-                var path = WriteMiniDump(crashDumpTag);
+                var path = WriteMiniDump(crashDumpTag, exceptionPointers);
                 if (path != null)
                 {
                     try { onCrashDump?.Invoke(path); } catch { /* dying process; do not throw */ }
@@ -273,7 +285,7 @@ namespace Stride
             if (Interlocked.Exchange(ref crashHandled, 1) != 0)
                 return;
 
-            var path = WriteMiniDump(crashDumpTag);
+            var path = WriteMiniDump(crashDumpTag, IntPtr.Zero);
             if (path != null)
             {
                 // Minimal, best-effort: the caller decides what to do (typically spawn a reporter). Any failure
@@ -282,11 +294,10 @@ namespace Stride
             }
         }
 
-        // Writes a triage dump of every thread's stack plus the module list. The faulting native thread is captured
-        // among them; we deliberately do NOT pass a MINIDUMP_EXCEPTION_INFORMATION to tag it — dbghelp rejects the
-        // in-process fault context from a VEH (ERROR_NOACCESS), and the robust way to record the faulting thread is
-        // an out-of-process dumper (a follow-up). All thread stacks are enough to locate the crash for now.
-        private static string WriteMiniDump(string tag)
+        // Writes a dump of every thread's stack plus the module list. When exceptionPointers is non-null (the
+        // VEH path), the dump also carries the exception record, so a debugger auto-selects the faulting thread;
+        // zero (the FirstChance path, where only the managed exception exists) writes a plain dump.
+        private static string WriteMiniDump(string tag, IntPtr exceptionPointers)
         {
             if (!OperatingSystem.IsWindows() || crashDumpDir is null)
                 return null;
@@ -296,8 +307,30 @@ namespace Stride
                 var path = Path.Combine(crashDumpDir, $"{tag}_{Environment.ProcessId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.dmp");
                 using var fs = File.Create(path);
                 using var process = Process.GetCurrentProcess();
-                bool ok = MiniDumpWriteDump(process.Handle, (uint)process.Id, fs.SafeFileHandle.DangerousGetHandle(),
-                    crashDumpType, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
+                var exceptionParam = IntPtr.Zero;
+                if (exceptionPointers != IntPtr.Zero)
+                {
+                    exceptionParam = Marshal.AllocHGlobal(Marshal.SizeOf<MinidumpExceptionInformation>());
+                    Marshal.StructureToPtr(new MinidumpExceptionInformation
+                    {
+                        ThreadId = GetCurrentThreadId(),
+                        ExceptionPointers = exceptionPointers,
+                        ClientPointers = 0,
+                    }, exceptionParam, false);
+                }
+
+                bool ok;
+                try
+                {
+                    ok = MiniDumpWriteDump(process.Handle, (uint)process.Id, fs.SafeFileHandle.DangerousGetHandle(),
+                        crashDumpType, exceptionParam, IntPtr.Zero, IntPtr.Zero);
+                }
+                finally
+                {
+                    if (exceptionParam != IntPtr.Zero)
+                        Marshal.FreeHGlobal(exceptionParam);
+                }
                 if (logToConsole)
                     Console.Error.WriteLine(ok
                         ? $"[CrashDiag] Dump written: {path}"

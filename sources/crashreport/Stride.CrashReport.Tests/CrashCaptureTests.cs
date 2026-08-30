@@ -14,26 +14,26 @@ namespace Stride.CrashReport.Tests;
 /// </summary>
 public class CrashCaptureTests
 {
-    public static TheoryData<string, bool, bool, bool> Cases()
+    public static TheoryData<string, bool, bool, bool, bool> Cases()
     {
         var windows = OperatingSystem.IsWindows();
-        var data = new TheoryData<string, bool, bool, bool>
+        var data = new TheoryData<string, bool, bool, bool, bool>
         {
-            // mode, expectExitZero, expectDump, expectMarker
-            { "managedthrow", true, false, false },   // ordinary throw/catch must be untouched
-            { "managednull", true, false, false },    // managed hardware null-check must stay a catchable NRE
-            { "av", false, windows, windows },        // wild-pointer native AV: the core capture
-            { "nullnative", false, windows, windows },// native null deref: needs the instruction-based filter
-            { "stackoverflow", false, false, false }, // known in-process gap: no dump, but must terminate
+            // mode, expectExitZero, expectDump, expectMarker, expectExceptionStream
+            { "managedthrow", true, false, false, false },    // ordinary throw/catch must be untouched
+            { "managednull", true, false, false, false },     // managed hardware null-check must stay a catchable NRE
+            { "av", false, windows, windows, true },          // wild-pointer native AV: the core capture, tagged
+            { "nullnative", false, windows, windows, true },  // native null deref: needs the instruction-based filter
+            { "stackoverflow", false, false, false, false },  // known in-process gap: no dump, but must terminate
         };
         if (windows)
-            data.Add("raise", false, true, true);     // native SEH surfacing as managed: the FirstChance leg
+            data.Add("raise", false, true, true, false);      // FirstChance leg: dump, but no raw fault context to tag
         return data;
     }
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void HandlerCapturesExpectedCrashClasses(string mode, bool expectExitZero, bool expectDump, bool expectMarker)
+    public void HandlerCapturesExpectedCrashClasses(string mode, bool expectExitZero, bool expectDump, bool expectMarker, bool expectExceptionStream)
     {
         var dir = CreateWorkDirectory(mode);
         try
@@ -42,13 +42,30 @@ public class CrashCaptureTests
 
             Assert.False(timedOut, $"probe must terminate, not hang (mode={mode}, output: {output})");
             Assert.Equal(expectExitZero, exitCode == 0);
-            Assert.Equal(expectDump, Directory.GetFiles(dir, "*.dmp").Length > 0);
+            var dumps = Directory.GetFiles(dir, "*.dmp");
+            Assert.Equal(expectDump, dumps.Length > 0);
             Assert.Equal(expectMarker, File.Exists(Path.Combine(dir, "callback-marker.txt")));
+            if (dumps.Length > 0)
+                Assert.Equal(expectExceptionStream, HasExceptionStream(dumps[0]));
         }
         finally
         {
             TryDelete(dir);
         }
+    }
+
+    // Minidump stream directory scan: stream type 6 = ExceptionStream, the record that makes a debugger
+    // auto-select the faulting thread.
+    private static bool HasExceptionStream(string dumpPath)
+    {
+        var bytes = File.ReadAllBytes(dumpPath);
+        Assert.Equal("MDMP"u8.ToArray(), bytes[..4]);
+        var streamCount = BitConverter.ToInt32(bytes, 8);
+        var directoryRva = BitConverter.ToInt32(bytes, 12);
+        for (int i = 0; i < streamCount; i++)
+            if (BitConverter.ToUInt32(bytes, directoryRva + i * 12) == 6)
+                return true;
+        return false;
     }
 
     [Fact]
