@@ -19,6 +19,7 @@ public partial class CrashReportWindow : Window
     private const string GithubIssuesUrl = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md";
     private readonly CrashReportData currentData;
     private readonly Exception currentException;
+    private readonly string crashTimestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
     public string ApplicationName { get; }
 
     public CrashReportWindow(CrashReportData crashReport, string applicationName, Exception exception = null)
@@ -156,6 +157,83 @@ public partial class CrashReportWindow : Window
         radioCustomDsn.IsChecked = true;
     }
 
+    private void ButtonSaveDump_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = buttonSaveDump.ContextMenu;
+        menu.PlacementTarget = buttonSaveDump;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private void MenuSaveMinidump_Click(object sender, RoutedEventArgs e)
+    {
+        var fileDialog = new SaveFileDialog
+        {
+            FileName = $"StrideCrashMinidump-{crashTimestamp}.dmp",
+            DefaultExt = "dmp",
+            Filter = "Minidump (*.dmp)|*.dmp|All files (*.*)|*.*"
+        };
+        if (fileDialog.ShowDialog() != true)
+            return;
+
+        System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+        try
+        {
+            var dump = MinidumpWriter.TryWrite();
+            if (dump != null)
+            {
+                File.WriteAllBytes(fileDialog.FileName, dump);
+                SaveReportNextToDump(fileDialog.FileName);
+            }
+            else
+            {
+                MessageBox.Show(this, "The minidump could not be written.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        finally
+        {
+            System.Windows.Input.Mouse.OverrideCursor = null;
+        }
+    }
+
+    /// <summary>The dump is only interpretable with the report's context, so they are saved as a pair.</summary>
+    private void SaveReportNextToDump(string dumpFileName)
+    {
+        RefreshReport();
+        File.WriteAllText(Path.ChangeExtension(dumpFileName, ".report.txt"), currentData.ToString());
+    }
+
+    private void MenuSaveFullDump_Click(object sender, RoutedEventArgs e)
+    {
+        var warning = "A full memory dump contains everything in the process memory, including your project data "
+            + "and any personal data currently in memory. It is not anonymized and can be several GB. "
+            + "Only share it with people you trust." + Environment.NewLine + Environment.NewLine + "Continue?";
+        if (MessageBox.Show(this, warning, "Stride", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        var fileDialog = new SaveFileDialog
+        {
+            FileName = $"StrideCrashFullDump-{crashTimestamp}.dmp",
+            DefaultExt = "dmp",
+            Filter = "Minidump (*.dmp)|*.dmp|All files (*.*)|*.*"
+        };
+        if (fileDialog.ShowDialog() != true)
+            return;
+
+        System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+        try
+        {
+            if (MinidumpWriter.TryWriteFile(fileDialog.FileName, fullMemory: true))
+                SaveReportNextToDump(fileDialog.FileName);
+            else
+                MessageBox.Show(this, "The memory dump could not be written.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            System.Windows.Input.Mouse.OverrideCursor = null;
+        }
+    }
+
     private void ButtonCopyReport_Click(object sender, EventArgs e)
     {
         RefreshReport();
@@ -168,7 +246,7 @@ public partial class CrashReportWindow : Window
 
         var fileDialog = new SaveFileDialog()
         {
-            FileName = "Report.txt",
+            FileName = $"StrideCrashReport-{crashTimestamp}.txt",
             DefaultExt = "txt",
             Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
         };
