@@ -29,25 +29,58 @@ public static class CrashReportSender
     /// <summary>True when the build opted out of crash sending entirely (StrideSentryDsn=false).</summary>
     public static bool IsDisabled { get; } = GetMetadata("SentryDisabled") == "true";
 
-    public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
+    public static Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
         string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
     {
-        var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
-        // The Sentry release drops the +g<sha> build metadata so it matches the NuGet version and git tag; the
-        // commit rides along as a tag instead of giving every build its own release entry.
+        // In-process hosts (GameStudio, launcher) crash as themselves: identity comes from the running
+        // assembly, and, if asked, we dump the still-live faulting process on the spot.
+        var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var (version, commit) = SplitVersion(informational);
+        var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
+        return SendCoreAsync(report, applicationName, version, commit, GetMetadata("SentryEnvironment") ?? "local",
+            exception, dsn, minidump, feedbackName, feedbackEmail, feedbackMessage);
+    }
+
+    /// <summary>
+    /// Sends a crash a headless tool captured earlier and wrote to disk. The originating process is gone,
+    /// so identity (app / version / environment) and the dump come from the <paramref name="crash"/> file,
+    /// never from this reporter's own assembly — otherwise every compiler crash would be tagged as the
+    /// reporter (crashreporter@x instead of assetcompiler@y).
+    /// </summary>
+    public static Task SendAsync(StoredCrash crash, byte[] dump, string dsn,
+        string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
+    {
+        var (version, commit) = SplitVersion(crash.Version);
+        var environment = string.IsNullOrEmpty(crash.Environment) ? "local" : crash.Environment;
+        // No live Exception object survives the handoff; the event is rebuilt from the stored report text.
+        return SendCoreAsync(crash.ToReportData(), crash.Application, version, commit, environment,
+            exception: null, dsn, dump, feedbackName, feedbackEmail, feedbackMessage);
+    }
+
+    // The Sentry release drops the +g<sha> build metadata so it matches the NuGet version and git tag; the
+    // commit rides along as a tag instead of giving every build its own release entry.
+    private static (string version, string commit) SplitVersion(string informational)
+    {
+        informational ??= "unknown";
         var plus = informational.IndexOf('+');
         var version = plus >= 0 ? informational[..plus] : informational;
         var commit = plus >= 0 ? informational[(plus + 1)..].TrimStart('g') : null;
+        return (version, commit);
+    }
+
+    private static async Task SendCoreAsync(CrashReportData report, string applicationName, string version, string commit, string environment,
+        Exception exception, string dsn, byte[] minidump,
+        string feedbackName, string feedbackEmail, string feedbackMessage)
+    {
         // Application name doubles as the "application" tag and, lowercased, the release package id (e.g.
         // "GameStudio" -> gamestudio@version). No "Stride" prefix: every report already lands in a Stride project.
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
-        var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
 
         using var sdk = SentrySdk.Init(options =>
         {
             options.Dsn = dsn;
             options.Release = $"{package}@{version}";
-            options.Environment = GetMetadata("SentryEnvironment") ?? "local";
+            options.Environment = environment;
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = false;
             // No user identity beyond the SDK's random installation id; a contact email only travels
@@ -71,7 +104,7 @@ public static class CrashReportSender
 
         var sentryEvent = exception != null
             ? new SentryEvent(exception)
-            : new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] } };
+            : new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] ?? "Unknown crash" } };
         sentryEvent.Level = SentryLevel.Fatal;
 
         var eventId = SentrySdk.CaptureEvent(sentryEvent);
