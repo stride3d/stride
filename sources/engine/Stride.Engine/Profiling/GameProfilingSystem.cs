@@ -149,7 +149,7 @@ namespace Stride.Profiling
             var availableDisplayHeight = viewportHeight - 2 * TextRowHeight - 3 * TopRowHeight;
             var elementsPerPage = (int)Math.Floor(availableDisplayHeight / TextRowHeight);
             numberOfPages = (uint)Math.Ceiling(profilingResults.Count / (float)elementsPerPage);
-            CurrentResultPage = Math.Min(CurrentResultPage, numberOfPages);
+            CurrentResultPage = Math.Max(1, Math.Min(CurrentResultPage, numberOfPages));
 
             char sortByTimeIndicator = SortingMode == GameProfilingSorting.ByTime ? 'v' : ' ';
             char sortByAvgTimeIndicator = SortingMode == GameProfilingSorting.ByAverageTime ? 'v' : ' ';
