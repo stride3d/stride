@@ -47,6 +47,7 @@ root.Subcommands.Add(NewCommand.Create(manager));
 root.Subcommands.Add(UpgradeCommand.Create(manager));
 root.Subcommands.Add(ToolCommands.CreateStudio(manager));
 root.Subcommands.Add(ToolCommands.CreateAsset(manager));
+root.Subcommands.Add(CrashCommand.Create());
 var legacyCommands = new List<Command> { Stride.Cli.Legacy.LegacyCommands.CreateGenerateLegacyShaderCode(manager) };
 foreach (var legacyCommand in legacyCommands)
     root.Subcommands.Add(legacyCommand);

@@ -39,6 +39,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+    <!-- crash send/list: read the on-disk crash store written by headless tools and submit via the shared sender. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
   </ItemGroup>
   <!-- Engine-dependency-free template-engine glue, shared by source with Stride.Assets rather than
        referencing the engine assembly. -->

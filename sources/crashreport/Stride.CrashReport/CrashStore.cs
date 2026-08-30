@@ -34,10 +34,26 @@ public sealed class CrashStore
 
     public CrashStore(string application, string baseDirectory = null)
     {
-        BaseDirectory = baseDirectory
+        BaseDirectory = ResolveBaseDirectory(baseDirectory);
+        AppDirectory = Path.Combine(BaseDirectory, application.ToLowerInvariant());
+    }
+
+    /// <summary>Resolves the base directory: explicit override, else <c>STRIDE_CRASH_DIR</c>, else the per-user default.</summary>
+    public static string ResolveBaseDirectory(string baseDirectory = null)
+        => baseDirectory
             ?? Environment.GetEnvironmentVariable(EnvBaseDir)
             ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "crash-reports");
-        AppDirectory = Path.Combine(BaseDirectory, application.ToLowerInvariant());
+
+    /// <summary>The app ids (subdir names) that currently have a store, for a tool that lists every pending crash.</summary>
+    public static IReadOnlyList<string> EnumerateApps(string baseDirectory = null)
+    {
+        var baseDir = ResolveBaseDirectory(baseDirectory);
+        if (!Directory.Exists(baseDir))
+            return Array.Empty<string>();
+        return Directory.EnumerateDirectories(baseDir)
+            .Select(Path.GetFileName)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
     }
 
     /// <summary>Creates a fresh per-run directory (<c>run-&lt;UTC&gt;-&lt;pid&gt;</c>) for this invocation's crashes.</summary>
