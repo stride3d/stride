@@ -19,9 +19,9 @@ public static class CrashReportSender
 {
     /// <summary>
     /// Sentry project collecting reports from source builds. Offered as an explicit choice in the crash
-    /// window, never used silently. Empty until the Sentry project exists.
+    /// window, never used silently.
     /// </summary>
-    public const string DevChannelDsn = "";
+    public const string DevChannelDsn = "https://91a43cb8256376131ba96ff24a749567@crash.stride3d.net/4511870298357840";
 
     /// <summary>DSN baked in at build time, if any.</summary>
     public static string BuildDsn { get; } = GetMetadata("SentryDsn");
@@ -43,14 +43,19 @@ public static class CrashReportSender
             options.Environment = GetMetadata("SentryEnvironment") ?? "local";
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = false;
+            // No user identity beyond the SDK's random installation id; a contact email only travels
+            // through the feedback when the user typed one
+            options.SendDefaultPii = false;
             options.SetBeforeSend((sentryEvent, _) => Anonymize(sentryEvent));
         });
 
         SentrySdk.ConfigureScope(scope =>
         {
             scope.AddAttachment(Encoding.UTF8.GetBytes(report.ToString()), "report.txt");
+            // Deliberately not AttachmentType.Minidump: that would make Sentry synthesize a second event
+            // from the dump; this is a plain file for maintainers to download into a debugger
             if (minidump != null)
-                scope.AddAttachment(minidump, "minidump.dmp", AttachmentType.Minidump);
+                scope.AddAttachment(minidump, "minidump.dmp");
             scope.SetTag("application", applicationName);
             MapReport(scope, report);
         });
@@ -196,6 +201,10 @@ public static class CrashReportSender
     /// </summary>
     private static SentryEvent Anonymize(SentryEvent sentryEvent)
     {
+        // Keep only the install id, no location. A concrete non-routable IP is used rather than null so
+        // Sentry does not fall back to the forwarded client IP for geolocation; 0.0.0.0 geolocates to nothing.
+        sentryEvent.User.IpAddress = "0.0.0.0";
+
         if (sentryEvent.Message != null)
         {
             sentryEvent.Message.Formatted = CrashReportAnonymizer.Scrub(sentryEvent.Message.Formatted);
