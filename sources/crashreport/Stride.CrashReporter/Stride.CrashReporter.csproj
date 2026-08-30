@@ -1,12 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- Cross-platform Avalonia reporter; runs on the shared .NET runtime its hosts already use. -->
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <DebugType>embedded</DebugType>
-    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -14,23 +13,64 @@
     <AssemblyName>Stride.CrashReporter</AssemblyName>
     <StartupObject>Stride.CrashReporter.Program</StartupObject>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- No Stride serialization here, and the processor needs a Stride.Core reference this app doesn't carry. -->
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <!-- This package is launched, never compiled against: ship the runnable closure under tools/, keep no
+         lib/ ref assembly, and declare no dependencies (everything it needs is bundled in tools/, so nothing
+         it loads can be the thing that just crashed). -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackReporterClosureInTools</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
+  <!-- Avalonia and its native deps are private: the reporter bundles them in tools/, so a host that takes a
+       package dependency on the reporter must not inherit them into its own closure. -->
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Fonts.Inter" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Desktop" PrivateAssets="all" />
+    <PackageReference Include="Avalonia.Fonts.Inter" PrivateAssets="all" />
+    <PackageReference Include="Avalonia.Themes.Fluent" PrivateAssets="all" />
     <!-- Condition removes AvaloniaUI.DiagnosticsSupport from Release output. -->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Self-contained on purpose: a crash reporter should carry no more than the shared sender/store core
        and Avalonia, so nothing it depends on can be the thing that just crashed. -->
   <ItemGroup>
-    <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+
+  <!-- Pack the framework-dependent build output (reporter dll + Avalonia + runtimes/<rid>/native + deps.json
+       + the apphost) as the tools/ payload, preserving the runtimes/ layout so the shared runtime resolves the
+       right native libs per OS. The build output of a framework-dependent app is already a runnable closure, so
+       no separate publish step is needed.
+
+       SkiaSharp ships native libs for ~17 RIDs (musl, bionic, loongarch, riscv, arm32, x86, arm64...), ~100 MB
+       a desktop crash dialog never uses. Keep only the mainstream desktop targets — win-x64, linux-x64, and the
+       universal osx build — and drop the rest. (Add win-arm64 / linux-arm64 here if ARM desktop support is
+       wanted; the alternative to a single fat package is per-RID packages, ~25 MB each.) -->
+  <Target Name="_PackReporterClosureInTools">
+    <ItemGroup>
+      <_ReporterClosureFile Include="$(OutputPath)**\*"
+          Exclude="$(OutputPath)ref\**;
+                   $(OutputPath)**\*.pdb;
+                   $(OutputPath)runtimes\*musl*\**;
+                   $(OutputPath)runtimes\*bionic*\**;
+                   $(OutputPath)runtimes\*loongarch*\**;
+                   $(OutputPath)runtimes\*riscv*\**;
+                   $(OutputPath)runtimes\linux-arm\**;
+                   $(OutputPath)runtimes\linux-arm64\**;
+                   $(OutputPath)runtimes\linux-x86\**;
+                   $(OutputPath)runtimes\win-x86\**;
+                   $(OutputPath)runtimes\win-arm64\**" />
+      <TfmSpecificPackageFile Include="@(_ReporterClosureFile)">
+        <PackagePath>tools/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Stride.CrashReport
@@ -15,9 +16,8 @@ namespace Stride.CrashReport
     /// attended, spawns the out-of-process reporter for consent. Windows/CoreCLR only; a no-op elsewhere.
     /// </summary>
     /// <remarks>
-    /// This is the shared entry point for the GUI/CLI hosts (GameStudio, the launcher, the CLI). The asset
-    /// compiler wires the same underlying handler itself because it folds native crashes into its per-build
-    /// aggregation, but it reuses <see cref="ResolveCrashReporter"/> and <see cref="TrySpawnReporter"/> here.
+    /// Shared entry point for the GUI/CLI hosts; the asset compiler wires the handler itself but reuses
+    /// <see cref="ResolveCrashReporter"/> and <see cref="TrySpawnReporter"/>.
     /// </remarks>
     public static class NativeCrashReporting
     {
@@ -103,7 +103,7 @@ namespace Stride.CrashReport
         }
 
         /// <summary>
-        /// Launches the out-of-process reporter for a crash run, returning false when the reporter exe can't be
+        /// Launches the out-of-process reporter for a crash run, returning false when the reporter can't be
         /// found (the caller then leaves the crash on disk for <c>stride crash send</c>). Fire-and-forget: the
         /// reporter is a separate GUI process that outlives the crashing one.
         /// </summary>
@@ -113,27 +113,167 @@ namespace Stride.CrashReport
             if (reporter == null)
                 return false;
 
-            var arguments = $"\"{runDirectory}\"";
-            if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
-                arguments += $" --dsn \"{CrashReportSender.BuildDsn}\"";
-            // Detach fully on Windows: CreateProcess-based spawning (UseShellExecute=false) makes the reporter
-            // inherit our std handles, and when the host runs under MSBuild's <Exec> the inherited output pipe
-            // keeps the build waiting until the reporter window closes (verified; redirecting doesn't help, the
-            // old handles leak regardless). ShellExecuteEx inherits nothing. On Unix there is no such leak
-            // (.NET pipes are O_CLOEXEC) and shell-execute would route through xdg-open, so keep plain spawning.
-            Process.Start(new ProcessStartInfo(reporter, arguments) { UseShellExecute = OperatingSystem.IsWindows() });
+            if (reporter.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            {
+                // No apphost for this OS (the publish output ships one only for the OS it was built on): run the
+                // dll through the shared dotnet host. This is the Unix path, where spawning doesn't leak handles.
+                var viaHost = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+                viaHost.ArgumentList.Add(reporter);
+                AddReporterArguments(viaHost, runDirectory);
+                Process.Start(viaHost);
+                return true;
+            }
+
+            // Detach fully on Windows: with UseShellExecute=false the reporter inherits our std handles and, under
+            // MSBuild's <Exec>, the inherited pipe blocks the build until the reporter closes; ShellExecuteEx inherits
+            // nothing. Unix has no such leak (pipes are O_CLOEXEC) and shell-execute there would route through xdg-open.
+            var viaApphost = new ProcessStartInfo(reporter) { UseShellExecute = OperatingSystem.IsWindows() };
+            AddReporterArguments(viaApphost, runDirectory);
+            Process.Start(viaApphost);
             return true;
         }
 
-        /// <summary>The reporter exe: an explicit override wins (dev/testing, odd deploy layouts), else the sibling exe.</summary>
+        private static void AddReporterArguments(ProcessStartInfo startInfo, string runDirectory)
+        {
+            startInfo.ArgumentList.Add(runDirectory);
+            if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
+            {
+                startInfo.ArgumentList.Add("--dsn");
+                startInfo.ArgumentList.Add(CrashReportSender.BuildDsn);
+            }
+        }
+
+        /// <summary>
+        /// Locates the reporter to launch. An explicit override wins (dev/testing, odd deploy layouts), then a
+        /// sibling copy (the reporter's own publish output, or a host that carries it), then — in a source
+        /// checkout — the reporter's dev build output, and finally the newest <c>Stride.CrashReporter</c> package
+        /// installed in the NuGet global store. Returns the apphost exe on Windows and the managed dll elsewhere;
+        /// null when nothing is found.
+        /// </summary>
         public static string ResolveCrashReporter()
         {
             var overridePath = Environment.GetEnvironmentVariable("STRIDE_CRASH_REPORTER");
             if (!string.IsNullOrEmpty(overridePath) && File.Exists(overridePath))
                 return overridePath;
-            var name = OperatingSystem.IsWindows() ? "Stride.CrashReporter.exe" : "Stride.CrashReporter";
-            var beside = Path.Combine(AppContext.BaseDirectory, name);
-            return File.Exists(beside) ? beside : null;
+
+            return FindReporterIn(AppContext.BaseDirectory) ?? FindReporterInDevTree() ?? FindReporterInStore();
+        }
+
+        // Source-checkout layout: the reporter isn't in the NuGet store (a source-built host doesn't restore its
+        // own package), it's built under the checkout. Detect the root the same way the NuGet resolver does — walk
+        // up for build/Stride.slnx — then resolve the reporter from its build output, preferring the configuration
+        // the caller is running under. Its TFM (the xplat-editor net10.0) differs from the host's, so probe each.
+        private static string FindReporterInDevTree()
+        {
+            try
+            {
+                var root = FindSourceRoot(AppContext.BaseDirectory);
+                if (root == null)
+                    return null;
+
+                var reporterBin = Path.Combine(root, "sources", "crashreport", "Stride.CrashReporter", "bin");
+                if (!Directory.Exists(reporterBin))
+                    return null;
+
+                foreach (var configuration in new[] { ConfigurationFromBinPath(AppContext.BaseDirectory), "Debug", "Release" })
+                {
+                    if (string.IsNullOrEmpty(configuration))
+                        continue;
+                    var configurationDirectory = Path.Combine(reporterBin, configuration);
+                    if (!Directory.Exists(configurationDirectory))
+                        continue;
+                    foreach (var tfmDirectory in Directory.GetDirectories(configurationDirectory))
+                    {
+                        var reporter = FindReporterIn(tfmDirectory);
+                        if (reporter != null)
+                            return reporter;
+                    }
+                }
+            }
+            catch
+            {
+                // Best effort: a dev-tree probe failure just falls through to the store lookup.
+            }
+            return null;
+        }
+
+        // Walks up looking for build/Stride.slnx, the source-checkout marker the NuGet resolver keys on.
+        private static string FindSourceRoot(string startDirectory)
+        {
+            var directory = startDirectory;
+            while (!string.IsNullOrEmpty(directory))
+            {
+                if (File.Exists(Path.Combine(directory, "build", "Stride.slnx")))
+                    return directory;
+                directory = Path.GetDirectoryName(directory);
+            }
+            return null;
+        }
+
+        // The <Config> segment of a .../bin/<Config>/<tfm>/ path, or null when the path isn't such a layout.
+        private static string ConfigurationFromBinPath(string path)
+        {
+            var parts = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            for (var i = 0; i < parts.Length - 1; i++)
+                if (string.Equals(parts[i], "bin", StringComparison.OrdinalIgnoreCase))
+                    return parts[i + 1];
+            return null;
+        }
+
+        // The reporter ships as a self-contained publish tree: prefer the native apphost on Windows (a GUI-subsystem
+        // exe, so no console flashes on launch), else the managed dll run through dotnet.
+        private static string FindReporterIn(string directory)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var exe = Path.Combine(directory, "Stride.CrashReporter.exe");
+                if (File.Exists(exe))
+                    return exe;
+            }
+            var dll = Path.Combine(directory, "Stride.CrashReporter.dll");
+            return File.Exists(dll) ? dll : null;
+        }
+
+        // In a real install the reporter is delivered as the Stride.CrashReporter package, its publish tree under
+        // tools/. Probe the NuGet global store directly (no NuGet assemblies pulled into this minimal library) and
+        // take the newest installed version. Best-effort: any failure just means "no reporter", handled by callers.
+        private static string FindReporterInStore()
+        {
+            try
+            {
+                var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+                if (string.IsNullOrEmpty(globalPackages))
+                {
+                    var home = Environment.GetEnvironmentVariable("USERPROFILE") ?? Environment.GetEnvironmentVariable("HOME");
+                    if (string.IsNullOrEmpty(home))
+                        return null;
+                    globalPackages = Path.Combine(home, ".nuget", "packages");
+                }
+
+                var packageRoot = Path.Combine(globalPackages, "stride.crashreporter");
+                if (!Directory.Exists(packageRoot))
+                    return null;
+
+                foreach (var versionDirectory in Directory.GetDirectories(packageRoot).OrderByDescending(ParseVersion))
+                {
+                    var tools = Path.Combine(versionDirectory, "tools");
+                    var reporter = Directory.Exists(tools) ? FindReporterIn(tools) : null;
+                    if (reporter != null)
+                        return reporter;
+                }
+            }
+            catch
+            {
+                // Best effort: an unreadable store just means the reporter isn't auto-launched.
+            }
+            return null;
+        }
+
+        private static Version ParseVersion(string versionDirectory)
+        {
+            var name = Path.GetFileName(versionDirectory);
+            var release = name.Split('-', '+')[0]; // drop the prerelease/build suffix; a coarse ordering is enough
+            return Version.TryParse(release, out var version) ? version : new Version(0, 0);
         }
     }
 }

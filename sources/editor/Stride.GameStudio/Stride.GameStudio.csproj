@@ -81,6 +81,12 @@
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport.Wpf\Stride.CrashReport.Wpf.csproj" />
+    <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
+         <dependency> (so a Stride install pulls the reporter in) without copying its self-contained closure
+         into our bin. ReferenceOutputAssembly=false would suppress the dependency. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReporter\Stride.CrashReporter.csproj">
+      <Private>false</Private>
+    </ProjectReference>
     <!-- NuGet dependencies (and build-ordering triggers) on the three template packages, so a Stride
          install pulls them in. Private=false alone emits a content-only nuspec <dependency> (the templates
          produce no assembly to reference) — same idiom as the Stride.Core marker dep in
