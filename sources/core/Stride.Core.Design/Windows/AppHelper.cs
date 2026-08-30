@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Management;
 using System.Text;
 using Stride.Core.Extensions;
@@ -100,6 +101,22 @@ public static class AppHelper
                 using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
                 return (key?.GetValue("ProcessorNameString") as string)?.Trim();
             }
+            if (OperatingSystem.IsLinux())
+            {
+                foreach (var line in File.ReadLines("/proc/cpuinfo"))
+                {
+                    if (line.StartsWith("model name", StringComparison.Ordinal))
+                    {
+                        var separator = line.IndexOf(':');
+                        if (separator >= 0)
+                            return line[(separator + 1)..].Trim();
+                    }
+                }
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                return RunCommand("sysctl", "-n machdep.cpu.brand_string");
+            }
         }
         catch (Exception)
         {
@@ -107,6 +124,25 @@ public static class AppHelper
         }
 
         return null;
+    }
+
+    private static string RunCommand(string fileName, string arguments)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            }
+        };
+        process.Start();
+        var output = process.StandardOutput.ReadToEnd().Trim();
+        process.WaitForExit(2000);
+        return string.IsNullOrEmpty(output) ? null : output;
     }
 
     public static Dictionary<string, string> GetMemoryInfo()

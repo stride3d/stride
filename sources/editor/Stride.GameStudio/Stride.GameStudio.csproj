@@ -79,7 +79,8 @@
     </ProjectReference>
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
-    <ProjectReference Include="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport.Wpf\Stride.CrashReport.Wpf.csproj" />
     <!-- NuGet dependencies (and build-ordering triggers) on the three template packages, so a Stride
          install pulls them in. Private=false alone emits a content-only nuspec <dependency> (the templates
          produce no assembly to reference) — same idiom as the Stride.Core marker dep in

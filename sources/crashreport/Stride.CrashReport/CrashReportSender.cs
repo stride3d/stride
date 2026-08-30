@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Sentry;
 
-namespace Stride.Editor.CrashReport;
+namespace Stride.CrashReport;
 
 /// <summary>
 /// Sends crash reports to Sentry. Official builds bake their destination in through the StrideSentryDsn
@@ -34,7 +34,7 @@ public static class CrashReportSender
     {
         var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
-        var minidump = includeMinidump ? MinidumpWriter.TryWrite() : null;
+        var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
 
         using var sdk = SentrySdk.Init(options =>
         {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stride.Editor.CrashReport;
+namespace Stride.CrashReport;
 
 public class CrashReportData
 {
@@ -19,26 +19,13 @@ public class CrashReportData
         }
         set
         {
-            int num = -1;
-
-            foreach(var current in Data)
-            {
-                if (current.Item1 == key)
-                {
-                    num = Data.IndexOf(current);
-                    break;
-                }
-            }
-            if(value == null)
+            if (value == null)
                 return;
-            if (num != -1)
-            {
-                Data[num] = (key, value);
-            }
+            var index = Data.FindIndex(p => p.Item1 == key);
+            if (index != -1)
+                Data[index] = (key, value);
             else
-            {
                 Data.Add((key, value));
-            }
         }
     }
 

@@ -6,12 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Stride.Editor.CrashReport;
+namespace Stride.CrashReport;
 
-/// <summary>
-/// Strips the user name and profile path from crash report text before it leaves the machine.
-/// It also makes paths easier to copy and paste between machines.
-/// </summary>
+/// <summary>Strips the user name and profile path from crash report text before it leaves the machine.</summary>
 public static class CrashReportAnonymizer
 {
     public static void Scrub(CrashReportData report)

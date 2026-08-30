@@ -8,11 +8,12 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Stride.CrashReport;
 using Clipboard = System.Windows.Clipboard;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
-namespace Stride.Editor.CrashReport;
+namespace Stride.CrashReport.Wpf;
 
 public partial class CrashReportWindow : Window
 {

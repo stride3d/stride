@@ -5,13 +5,15 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Win32.SafeHandles;
 
-namespace Stride.Editor.CrashReport;
+namespace Stride.CrashReport;
 
 /// <summary>
-/// Writes a minidump of the current process: thread stacks and module list, not full memory.
+/// Writes a minidump of the current process: thread stacks and module list, not full memory. Windows-only (dbghelp).
 /// </summary>
+[SupportedOSPlatform("windows")]
 public static class MinidumpWriter
 {
     private const int MiniDumpNormal = 0x0;
@@ -20,6 +22,9 @@ public static class MinidumpWriter
     private const int MiniDumpWithUnloadedModules = 0x20;
     private const int MiniDumpWithFullMemoryInfo = 0x800;
     private const int MiniDumpWithThreadInfo = 0x1000;
+
+    // Thread stacks + module list, no process memory.
+    private const int TriageFlags = MiniDumpNormal | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo;
 
     public static byte[] TryWrite()
     {
@@ -32,8 +37,7 @@ public static class MinidumpWriter
                 using (var process = Process.GetCurrentProcess())
                 {
                     if (!MiniDumpWriteDump(process.Handle, (uint)Environment.ProcessId, file.SafeFileHandle,
-                            MiniDumpNormal | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo,
-                            IntPtr.Zero, IntPtr.Zero, IntPtr.Zero))
+                            TriageFlags, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero))
                         return null;
                 }
                 var bytes = File.ReadAllBytes(path);
@@ -152,7 +156,7 @@ public static class MinidumpWriter
             using var process = Process.GetCurrentProcess();
             var flags = fullMemory
                 ? MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo
-                : MiniDumpNormal | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo;
+                : TriageFlags;
             return MiniDumpWriteDump(process.Handle, (uint)Environment.ProcessId, file.SafeFileHandle, flags,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
         }
