@@ -79,6 +79,13 @@ public class Builder : IDisposable
     public CommandBuildStep.TryExecuteRemoteDelegate TryExecuteRemote { get; set; }
 
     /// <summary>
+    /// Optional hook invoked when a command throws an exception that escapes to the top-level catch — a bug,
+    /// not a handled build error. The asset compiler sets it to capture a crash report; the build engine
+    /// itself stays crash-reporting-agnostic.
+    /// </summary>
+    public Action<CommandBuildStep, Exception>? CommandFailed { get; set; }
+
+    /// <summary>
     /// Indicate which mode to use with this builder
     /// </summary>
     public enum Mode
@@ -225,7 +232,7 @@ public class Builder : IDisposable
         // Reseting result map
         var inputHashes = FileVersionTracker.GetDefault();
         {
-            var builderContext = new BuilderContext(inputHashes, TryExecuteRemote);
+            var builderContext = new BuilderContext(inputHashes, TryExecuteRemote, CommandFailed);
 
             resultMap = ObjectDatabase;
 
