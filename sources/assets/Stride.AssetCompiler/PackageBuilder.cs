@@ -264,7 +264,7 @@ namespace Stride.AssetCompiler
         // — the reporter is a separate GUI process that outlives this build.
         private void SpawnCrashReporter(CrashRun crashRun)
         {
-            var reporter = CompilerCrashCapture.ResolveCrashReporter();
+            var reporter = NativeCrashReporting.ResolveCrashReporter();
             if (reporter == null)
             {
                 builderOptions.Logger.Info($"Crash reporter not found; {crashRun.Read().Count} crash(es) saved to {crashRun.Directory} (submit with 'stride crash send').");

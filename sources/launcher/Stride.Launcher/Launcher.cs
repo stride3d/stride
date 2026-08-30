@@ -30,6 +30,9 @@ internal static class Launcher
     public static LauncherErrorCode Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        // The managed handler above can't see a native access violation — it kills the process first. Arm the
+        // native handler so such a crash is captured and offered to the reporter too.
+        Stride.CrashReport.NativeCrashReporting.Install("Launcher");
         try
         {
             var arguments = ProcessArguments(args);

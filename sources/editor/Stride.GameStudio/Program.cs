@@ -103,6 +103,9 @@ public static class Program
     {
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        // The managed handlers above can't see a native access violation (native interop, GPU drivers) — it kills
+        // the process first. Arm the native handler so such a crash is captured and offered to the reporter too.
+        Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
         EditorPath.EditorTitle = StrideGameStudio.EditorName;
 
         if (IntPtr.Size == 4)

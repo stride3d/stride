@@ -31,14 +31,12 @@ namespace Stride.AssetCompiler
         private readonly string platform;
         private readonly string graphicsApi;
         private readonly string configuration;
-        private readonly bool attended;
         private readonly object gate = new object();
         private CrashRun run; // created on the first capture (or eagerly when the native handler is armed)
 
         public CompilerCrashCapture(PackageBuilderOptions options)
         {
             mode = CrashPolicy.ResolveMode();
-            attended = !CrashPolicy.IsUnattended();
             store = new CrashStore(ApplicationName);
 
             var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
@@ -89,13 +87,7 @@ namespace Stride.AssetCompiler
                     ["GraphicsApi"] = graphicsApi,
                     ["Configuration"] = configuration,
                 };
-                CrashReportAnonymizer.Scrub(data);
-
-                var crash = StoredCrash.FromReportData(data);
-                crash.Application = ApplicationName;
-                crash.Version = version;
-                crash.Environment = environment;
-                crash.TimestampUtc = DateTime.UtcNow.ToString("o");
+                var crash = NewStoredCrash(data);
                 // No faulting frame is available in-handler, so the signature can't be precise yet (a follow-up can
                 // derive it from the dump). Native crashes kill the process, so there is at most one per build.
                 crash.Signature = "NativeCrash|" + Path.GetFileNameWithoutExtension(dumpPath);
@@ -107,33 +99,13 @@ namespace Stride.AssetCompiler
                 // Dying process: never throw from the fault handler.
             }
 
-            if (attended)
+            // Only the interactive-attended case pops the reporter; save/send modes leave the files for
+            // 'stride crash send' / CI artifact collection (sending from a dying process is too heavy).
+            if (CrashPolicy.ResolveAction() == CrashAction.Report)
             {
-                try { TrySpawnReporter(run.Directory); }
+                try { NativeCrashReporting.TrySpawnReporter(run.Directory); }
                 catch { /* dying process */ }
             }
-        }
-
-        private static void TrySpawnReporter(string runDirectory)
-        {
-            var reporter = ResolveCrashReporter();
-            if (reporter == null)
-                return;
-            var arguments = $"\"{runDirectory}\"";
-            if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
-                arguments += $" --dsn \"{CrashReportSender.BuildDsn}\"";
-            Process.Start(new ProcessStartInfo(reporter, arguments) { UseShellExecute = false });
-        }
-
-        /// <summary>The reporter exe: an explicit override wins (dev/testing, odd deploy layouts), else the sibling exe.</summary>
-        internal static string ResolveCrashReporter()
-        {
-            var overridePath = Environment.GetEnvironmentVariable("STRIDE_CRASH_REPORTER");
-            if (!string.IsNullOrEmpty(overridePath) && File.Exists(overridePath))
-                return overridePath;
-            var name = OperatingSystem.IsWindows() ? "Stride.CrashReporter.exe" : "Stride.CrashReporter";
-            var beside = Path.Combine(AppContext.BaseDirectory, name);
-            return File.Exists(beside) ? beside : null;
         }
 
         /// <summary>
@@ -178,19 +150,24 @@ namespace Stride.AssetCompiler
                 ["Configuration"] = configuration,
                 ["NativeModules"] = DescribeNativeModules(),
             };
-            // Mask user name and profile path in the report text before it is stored.
-            CrashReportAnonymizer.Scrub(data);
-
-            var crash = StoredCrash.FromReportData(data);
-            crash.Application = ApplicationName;
-            crash.Version = version;
-            crash.Environment = environment;
-            crash.TimestampUtc = DateTime.UtcNow.ToString("o");
+            var crash = NewStoredCrash(data);
             crash.Signature = signature;
             if (assetLabel != null)
                 crash.AffectedAssets.Add(assetLabel);
             // Local-only real paths, so the reporter can offer to attach the asset later. Never sent as text.
             crash.AssetSourcePaths.AddRange(CollectSourcePaths(step, asset));
+            return crash;
+        }
+
+        // Scrub the report and stamp the shared metadata; callers set Signature and any dump/asset fields.
+        private StoredCrash NewStoredCrash(CrashReportData data)
+        {
+            CrashReportAnonymizer.Scrub(data);
+            var crash = StoredCrash.FromReportData(data);
+            crash.Application = ApplicationName;
+            crash.Version = version;
+            crash.Environment = environment;
+            crash.TimestampUtc = DateTime.UtcNow.ToString("o");
             return crash;
         }
 

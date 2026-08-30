@@ -6,6 +6,10 @@ using System.Diagnostics;
 using System.Reflection;
 using Stride.Cli.Core;
 
+// Arm native access-violation capture before anything runs (native crashes kill the process before any managed
+// handler can react). A no-op off Windows, under NativeAOT, or when STRIDE_CRASH_MODE=off.
+Stride.CrashReport.NativeCrashReporting.Install("Cli");
+
 var manager = new StrideVersionManager();
 
 // Version resolution restores the project first (so a stale project.assets.json can't report an out-of-date

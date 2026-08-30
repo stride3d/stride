@@ -7,6 +7,11 @@
   <ItemGroup>
     <PackageReference Include="Sentry" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Native access-violation handler (vectored exception handler + minidump). Shared with the test
+         harness and the asset compiler; here it backs NativeCrashReporting for the in-process apps. -->
+    <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
+  </ItemGroup>
   <!-- StrideSentryDsn: a DSN sends crash reports there (official CI sets it, with StrideSentryEnvironment
        release/nightly); 'false' removes crash sending entirely; unset lets the user pick a destination per crash -->
   <ItemGroup Condition="'$(StrideSentryDsn)' != '' and '$(StrideSentryDsn)' != 'false'">
