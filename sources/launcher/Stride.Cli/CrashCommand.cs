@@ -39,7 +39,7 @@ internal static class CrashCommand
                     foreach (var crash in crashes)
                     {
                         var assets = crash.AffectedAssets.Count > 0 ? $"   [{string.Join(", ", crash.AffectedAssets)}]" : "";
-                        Console.WriteLine($"      {Title(crash)}  x{crash.Count}{assets}");
+                        Console.WriteLine($"      {crash.Title()}  x{crash.Count}{assets}");
                     }
                 }
             }
@@ -63,8 +63,7 @@ internal static class CrashCommand
                 return 1;
             }
 
-            var destination = parseResult.GetValue(dsn)
-                ?? (string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn);
+            var destination = CrashReportSender.ResolveDsn(parseResult.GetValue(dsn));
             var path = parseResult.GetValue(target)!;
 
             try
@@ -109,7 +108,7 @@ internal static class CrashCommand
         foreach (var crash in crashes)
         {
             await CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn);
-            Console.WriteLine($"Sent: {Title(crash)}");
+            Console.WriteLine($"Sent: {crash.Title()}");
         }
 
         run.Delete();
@@ -132,16 +131,7 @@ internal static class CrashCommand
             if (File.Exists(dumpPath))
                 File.Delete(dumpPath);
         }
-        Console.WriteLine($"Sent: {Title(crash)}");
+        Console.WriteLine($"Sent: {crash.Title()}");
         return 0;
-    }
-
-    // One-line label for a stored crash: the exception's first line, else its signature.
-    private static string Title(StoredCrash crash)
-    {
-        var exception = crash.Report.FirstOrDefault(entry => entry.Key == "Exception")?.Value;
-        if (!string.IsNullOrWhiteSpace(exception))
-            return exception.Split('\n', 2)[0].Trim();
-        return string.IsNullOrEmpty(crash.Signature) ? "Unknown crash" : crash.Signature;
     }
 }

@@ -159,7 +159,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
                 data[key] = value?.ToString();
             CrashCore.CrashReportAnonymizer.Scrub(data);
 
-            var dsn = CrashCore.CrashReportSender.BuildDsn ?? CrashCore.CrashReportSender.DevChannelDsn;
+            var dsn = CrashCore.CrashReportSender.ResolveDsn();
             await CrashCore.CrashReportSender.SendAsync(data, SentryApplication, exception, dsn,
                 feedbackName: FeedbackName, feedbackEmail: FeedbackEmail, feedbackMessage: FeedbackMessage);
 

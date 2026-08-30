@@ -32,6 +32,11 @@ public static class CrashReportSender
     /// <summary>Environment tag baked in at build time (release/nightly), if any; headless captures fall back to this.</summary>
     public static string BuildEnvironment { get; } = GetMetadata("SentryEnvironment");
 
+    /// <summary>The DSN to send to: an explicit override wins, else the build DSN, else the dev channel.</summary>
+    public static string ResolveDsn(string overrideDsn = null)
+        => !string.IsNullOrEmpty(overrideDsn) ? overrideDsn
+            : string.IsNullOrEmpty(BuildDsn) ? DevChannelDsn : BuildDsn;
+
     public static Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
         string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
     {
@@ -40,15 +45,14 @@ public static class CrashReportSender
         var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         var (version, commit) = SplitVersion(informational);
         var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
-        return SendCoreAsync(report, applicationName, version, commit, GetMetadata("SentryEnvironment") ?? "local",
+        return SendCoreAsync(report, applicationName, version, commit, BuildEnvironment ?? "local",
             exception, dsn, minidump, feedbackName, feedbackEmail, feedbackMessage);
     }
 
     /// <summary>
-    /// Sends a crash a headless tool captured earlier and wrote to disk. The originating process is gone,
-    /// so identity (app / version / environment) and the dump come from the <paramref name="crash"/> file,
-    /// never from this reporter's own assembly — otherwise every compiler crash would be tagged as the
-    /// reporter (crashreporter@x instead of assetcompiler@y).
+    /// Sends a crash a headless tool captured earlier and wrote to disk. The originating process is gone, so
+    /// identity (app / version / environment) and the dump come from the <paramref name="crash"/> file, not
+    /// from this reporter's own assembly.
     /// </summary>
     public static Task SendAsync(StoredCrash crash, byte[] dump, string dsn,
         string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
@@ -60,8 +64,7 @@ public static class CrashReportSender
             exception: null, dsn, dump, feedbackName, feedbackEmail, feedbackMessage);
     }
 
-    // The Sentry release drops the +g<sha> build metadata so it matches the NuGet version and git tag; the
-    // commit rides along as a tag instead of giving every build its own release entry.
+    // Drop the +g<sha> metadata so the release matches the NuGet version and git tag; the commit travels as a tag.
     private static (string version, string commit) SplitVersion(string informational)
     {
         informational ??= "unknown";

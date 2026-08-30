@@ -179,8 +179,7 @@ namespace Stride.GameStudio.Helpers
                     {
                         if (CrashReportSender.IsDisabled)
                             throw new InvalidOperationException("Crash sending is disabled in this build.");
-                        var dsn = string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn;
-                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, dsn).GetAwaiter().GetResult();
+                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, CrashReportSender.ResolveDsn()).GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {

@@ -34,9 +34,8 @@ internal sealed class CrashSession
     public bool IsDisabled => CrashReportSender.IsDisabled;
 
     /// <summary>
-    /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and
-    /// base are the run's parent and grandparent; that is all the reporter needs to also reach the app's
-    /// suppression list. The DSN is an explicit override, else this reporter's baked DSN, else the dev channel.
+    /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and base
+    /// are the run's parent and grandparent — enough to also reach the app's suppression list.
     /// </summary>
     public static CrashSession Load(string runDirectory, string? dsnOverride)
     {
@@ -46,8 +45,7 @@ internal sealed class CrashSession
 
         var store = new CrashStore(appDir.Name, baseDir.FullName);
         var run = CrashStore.OpenRun(full);
-        var dsn = dsnOverride
-            ?? (string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn);
+        var dsn = CrashReportSender.ResolveDsn(dsnOverride);
 
         // Defensive: capture already skips suppressed signatures, but never re-surface one that slipped through.
         var groups = run.Read().Where(crash => !store.IsSuppressed(crash.Signature, crash.Version)).ToList();

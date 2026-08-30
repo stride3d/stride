@@ -74,7 +74,7 @@ internal static class CliCrashHandler
     {
         try
         {
-            var dsn = string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn;
+            var dsn = CrashReportSender.ResolveDsn();
             await CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn);
             if (deleteAfterSend)
                 run.Delete();
