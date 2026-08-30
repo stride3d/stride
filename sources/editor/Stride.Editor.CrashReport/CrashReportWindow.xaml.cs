@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -47,11 +48,36 @@ public partial class CrashReportWindow : Window
             buttonSendReport.Visibility = Visibility.Collapsed;
             panelSend.Visibility = Visibility.Collapsed;
         }
-        else if (string.IsNullOrEmpty(CrashReportSender.BuildDsn) && CrashReportSender.DevChannelDsn.Length == 0)
+        else if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
+        {
+            // Source builds pick their destination in the chooser instead
+            textPrivacyNote.Text = "This report is sent to the Stride team through Sentry. " + textPrivacyNote.Text;
+        }
+        else if (CrashReportSender.DevChannelDsn.Length == 0)
         {
             radioDevChannel.Visibility = Visibility.Collapsed;
             radioCustomDsn.IsChecked = true;
         }
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+            Close();
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        // Closing exits the application, so a typed but unsent description would be lost for good
+        if (DialogResult != true && !string.IsNullOrWhiteSpace(textBoxDescription.Text))
+        {
+            var result = MessageBox.Show(this, "Your description was not sent. Close anyway?", "Stride",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result != MessageBoxResult.Yes)
+                e.Cancel = true;
+        }
+        base.OnClosing(e);
     }
 
     private bool Expanded { get; set { field = value; RefreshSize(); } } = false;
@@ -155,6 +181,16 @@ public partial class CrashReportWindow : Window
     private void TextBoxCustomDsn_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
         radioCustomDsn.IsChecked = true;
+    }
+
+    private void TextBoxCustomDsn_KeyDown(object sender, KeyEventArgs e)
+    {
+        // The window default button would toggle the chooser away instead of sending
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            ButtonSendNow_Click(sender, e);
+        }
     }
 
     private void ButtonSaveDump_Click(object sender, RoutedEventArgs e)

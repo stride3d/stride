@@ -18,7 +18,7 @@
             <DrawingGroup Transform="0.24517827,0.0,0.0,0.24517827,0.92585455,1.5050045">
                 <DrawingGroup>
                     <DrawingGroup>
-                        <GeometryDrawing Brush="#fc000000">
+                        <GeometryDrawing Brush="#fcbbbbbb">
                             <GeometryDrawing.Geometry>
                                 <PathGeometry Figures="m 43.365 321.985 c -4.271 -4.496 -5.347 -6.285 -5.5 -18.485 c -0.079 -6.314 0.052 -34.04 0.066 -37 c 0.263 -55.672 -0.905 -56.1 3.354 -65.809 c 10.49 -23.915 26.24 -25.707 27.572 -26.176 c 1.809 -0.638 1.396 -1.157 1.12 -3.033 c -1.139 -7.745 3.646 -13.085 -4.08 -11.709 c -26.624 4.742 -24.197 24.377 -33.273 30.379 c -3.244 2.147 -8.554 -3.08 -9.447 -4.806 c -2.101 -4.062 3.789 -16.576 8.928 -23.673 c 6.996 -9.66 14.478 -11.752 17.806 -14.105 c 2.989 -2.114 -2.82 -2.262 -3.883 -13.086 c -0.523 -5.319 4.084 -12.357 10.9 -14.739 c 10.16 -3.551 16.556 3.972 17.653 5.038 c 3.615 3.514 4.27 2.004 9.275 1.963 c 14.194 -0.117 15.196 0.94 16.19 2.631 c 3.947 6.717 -0.697 14.018 5.829 13.355 c 4 -0.407 3.976 -0.245 7.973 -0.108 c 4.525 0.156 5.078 -2.701 10.167 -4.637 c 3.298 -1.255 34.503 -9.511 34.807 -9.589 c 10.063 -2.574 13.308 -3.163 15.112 7.091 c 0.439 2.499 0.575 20.807 0.221 29.028 c -0.295 6.835 -4.344 9.658 -6.312 9.937 c -2.048 0.291 -34.964 -8.471 -43.926 -11.193 c -5.535 -1.681 -5.032 -4.438 -10.072 -4.491 c -9.193 -0.095 -9.473 -1.04 -10.662 0.095 c -1.217 1.16 -0.957 12.126 -0.928 12.606 c 0.221 3.662 1.393 3.1 4.543 4.195 c 11.465 3.985 18.603 13.041 23.49 23.644 c 4.482 9.724 3.862 11.44 3.826 65.192 c -0.034 50.65 1.095 52.391 -6.516 58.69 c -4.112 3.402 -4.58 3.755 -54.748 3.706 c -23.159 -0.022 -23.77 0.142 -29.485 -4.911 z"/>
                             </GeometryDrawing.Geometry>
@@ -117,7 +117,7 @@
         <Image Source="{StaticResource CrashReportImage}"/>
 
         <TextBlock Grid.Column="1" TextWrapping="WrapWithOverflow" Margin="10,0,0,0">
-          Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}"/> has crashed.
+          Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}"/> has crashed.<LineBreak/>
           Please help us improve Stride by sending this report, or by reporting the crash through Github Issues.
         </TextBlock>
 
@@ -139,7 +139,8 @@
             <TextBlock Text="Include a minidump: every thread's callstack and the list of loaded modules (not a full memory dump)"
                        TextWrapping="Wrap" />
           </CheckBox>
-          <TextBlock Text="Before sending, your Windows user name and profile path are masked in both the report and the minidump."
+          <TextBlock x:Name="textPrivacyNote"
+                     Text="Before sending, your Windows user name and profile path are masked in both the report and the minidump."
                      TextWrapping="Wrap" Opacity="0.7" Margin="0,6,0,0" />
         </StackPanel>
 
@@ -151,6 +152,7 @@
 
           <Button x:Name="buttonSendReport" Content="Send report"
                   Padding="12,2" Margin="0,0,8,0"
+                  IsDefault="True" FontWeight="SemiBold"
                   Click="ButtonSendReport_Click" />
 
           <Button x:Name="buttonViewLog" Content="View report"
@@ -189,7 +191,8 @@
           <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
             <RadioButton x:Name="radioCustomDsn" Content="Send to a custom Sentry DSN:" VerticalAlignment="Center" />
             <TextBox x:Name="textBoxCustomDsn" Width="280" Margin="5,0,0,0"
-                     GotKeyboardFocus="TextBoxCustomDsn_GotKeyboardFocus" />
+                     GotKeyboardFocus="TextBoxCustomDsn_GotKeyboardFocus"
+                     KeyDown="TextBoxCustomDsn_KeyDown" />
           </StackPanel>
           <Button x:Name="buttonSendNow" Content="Send now"
                   Padding="12,2" Margin="0,8,0,0" HorizontalAlignment="Left"
