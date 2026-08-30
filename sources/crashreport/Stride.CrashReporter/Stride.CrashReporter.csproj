@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <DebugType>embedded</DebugType>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Stride.CrashReporter</RootNamespace>
+    <AssemblyName>Stride.CrashReporter</AssemblyName>
+    <StartupObject>Stride.CrashReporter.Program</StartupObject>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <!-- Condition removes AvaloniaUI.DiagnosticsSupport from Release output. -->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
+  </ItemGroup>
+
+  <!-- Self-contained on purpose: a crash reporter should carry no more than the shared sender/store core
+       and Avalonia, so nothing it depends on can be the thing that just crashed. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+</Project>

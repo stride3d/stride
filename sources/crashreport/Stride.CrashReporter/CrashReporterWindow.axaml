@@ -1,0 +1,110 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Stride.CrashReporter"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="520"
+        x:Class="Stride.CrashReporter.CrashReporterWindow"
+        x:DataType="vm:CrashReporterViewModel"
+        Icon="/Assets/CrashReportImage.png"
+        Title="Report your crash"
+        MinWidth="640" MinHeight="480" Width="760" Height="560"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource ReporterWindowBackground}">
+  <Window.Styles>
+    <FluentTheme />
+  </Window.Styles>
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <!-- Fluent's default window ground is near-black; soften it to a neutral dark gray (and a light
+             off-white for light theme) so the report reads less starkly. -->
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="ReporterWindowBackground" Color="#1E1E20" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="ReporterWindowBackground" Color="#F3F3F3" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <DockPanel Margin="16">
+    <StackPanel DockPanel.Dock="Top">
+      <DockPanel>
+        <Image DockPanel.Dock="Left"
+               Width="64" Margin="0,0,8,8" VerticalAlignment="Top"
+               Source="/Assets/CrashReportImage.png"/>
+        <TextBlock TextWrapping="WrapWithOverflow"
+                   Text="{Binding Header, Mode=OneWay}" />
+      </DockPanel>
+      <TextBlock Margin="4,0,4,4" TextWrapping="WrapWithOverflow"
+                 Opacity="0.7" FontSize="12"
+                 IsVisible="{Binding CanSend}"
+                 Text="The report goes to Stride's crash reporting service and contains the crash details below — the error and stack, the names of the failing assets, and your system info, plus any crash dump you leave checked. Your Windows user name and home-folder path are stripped; you can review the full report before sending. Sending a crash silences its future popups." />
+      <TextBlock Margin="4,0,4,8" TextWrapping="WrapWithOverflow"
+                 FontWeight="SemiBold"
+                 IsVisible="{Binding SendStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 Text="{Binding SendStatus, Mode=OneWay}" />
+    </StackPanel>
+
+    <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="4,8,4,0">
+      <Button DockPanel.Dock="Left" Margin="0,0,8,0"
+              Content="View Report"
+              Command="{Binding ViewReportCommand}"/>
+      <Button DockPanel.Dock="Left" Margin="0,0,8,0"
+              Content="Open Folder"
+              Command="{Binding OpenFolderCommand}"/>
+      <SplitButton DockPanel.Dock="Right" Margin="8,0,0,0"
+                   Content="Close"
+                   Command="{Binding CloseAndDeleteCommand}">
+        <SplitButton.Flyout>
+          <MenuFlyout>
+            <MenuItem Header="Delete and close" Command="{Binding CloseAndDeleteCommand}" />
+            <MenuItem Header="Keep files and close" Command="{Binding CloseAndKeepCommand}" />
+          </MenuFlyout>
+        </SplitButton.Flyout>
+      </SplitButton>
+      <Button DockPanel.Dock="Right"
+              Content="Send Selected" IsDefault="True"
+              IsVisible="{Binding CanSend}"
+              IsEnabled="{Binding !IsSending}"
+              Command="{Binding SendCommand}" />
+    </DockPanel>
+
+    <!-- Raw report, shown on demand under the list. -->
+    <TextBox DockPanel.Dock="Bottom" Height="160" Margin="0,8,0,0"
+             IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+             VerticalContentAlignment="Top"
+             IsVisible="{Binding IsReportVisible, Mode=OneWay}"
+             Text="{Binding FullReport, Mode=OneWay}" />
+
+    <!-- One row per distinct crash: send it, its summary, and whether to stop asking. -->
+    <Border BorderThickness="1" BorderBrush="#33888888" CornerRadius="4">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Groups}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:CrashGroupViewModel">
+              <Border Padding="8" Margin="2" BorderThickness="0,0,0,1" BorderBrush="#22888888">
+                <DockPanel>
+                  <CheckBox DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center"
+                            IsChecked="{Binding Send}" />
+                  <CheckBox DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Center"
+                            Content="Don't show again"
+                            IsChecked="{Binding DontShowAgain}" />
+                  <StackPanel>
+                    <TextBlock Text="{Binding Title}" TextWrapping="WrapWithOverflow" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Detail}" TextWrapping="WrapWithOverflow" Opacity="0.7" FontSize="12" />
+                    <CheckBox Margin="0,4,0,0" FontSize="12"
+                              IsVisible="{Binding HasDump}"
+                              IsChecked="{Binding IncludeDump}"
+                              Content="{Binding DumpLabel}" />
+                  </StackPanel>
+                </DockPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+  </DockPanel>
+</Window>

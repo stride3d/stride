@@ -169,6 +169,7 @@
     <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport.Wpf/Stride.CrashReport.Wpf.csproj" />
+    <Project Path="../sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />
     <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
     <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj" />

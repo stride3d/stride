@@ -202,7 +202,19 @@ public sealed class CrashRun
         return File.Exists(path) ? File.ReadAllBytes(path) : null;
     }
 
-    /// <summary>True when the run holds no crash files (e.g. after everything was pruned).</summary>
+    /// <summary>
+    /// Deletes a single group's files (its json and dump), leaving the rest of the run. Used when a reporter
+    /// sends some groups and keeps others (e.g. a failed send held back for a later <c>stride crash send</c>).
+    /// </summary>
+    public void Remove(StoredCrash crash)
+    {
+        var stem = "crash-" + Hash(crash.Signature ?? string.Empty);
+        TryDeleteFile(Path.Combine(Directory, stem + ".json"));
+        if (!string.IsNullOrEmpty(crash.DumpFileName))
+            TryDeleteFile(Path.Combine(Directory, crash.DumpFileName));
+    }
+
+    /// <summary>True when the run holds no crash files (e.g. after everything was pruned or removed).</summary>
     public bool IsEmpty => Read().Count == 0;
 
     /// <summary>Removes the whole run directory once it has been sent or dismissed.</summary>
@@ -216,6 +228,19 @@ public sealed class CrashRun
         catch (Exception)
         {
             // Best effort: a locked run is left for the age-based prune.
+        }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception)
+        {
+            // Best effort: a locked file is left for the age-based prune.
         }
     }
 
