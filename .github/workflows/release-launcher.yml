@@ -86,6 +86,8 @@ jobs:
           msbuild build\Stride.build `
             /t:FullBuildLauncher `
             ${{ inputs.upload-binlog && !inputs.sign && '/bl' || '' }} /m /nr:false `
+            /p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
+            /p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
             /p:StrideSign=${{ inputs.sign }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
