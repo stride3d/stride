@@ -84,9 +84,15 @@ internal static class CrashCommand
             }
         });
 
+        // test: deliberately throw, so the whole crash pipeline (store, consent prompt, send) can be
+        // exercised end to end without a real bug.
+        var testCommand = new Command("test", "Throw a test exception to exercise the crash-report pipeline.") { Hidden = true };
+        testCommand.SetAction(int (ParseResult _) => throw new InvalidOperationException("Test crash from 'stride crash test'."));
+
         var crash = new Command("crash", "List and send crash reports saved by Stride's headless tools.");
         crash.Subcommands.Add(listCommand);
         crash.Subcommands.Add(sendCommand);
+        crash.Subcommands.Add(testCommand);
         return crash;
     }
 

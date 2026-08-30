@@ -294,7 +294,9 @@ namespace Stride.AssetCompiler
                     builderOptions.Logger.Warning($"Could not send crash report: {e.Message}");
                 }
             }
-            crashRun.Delete();
+            // Keep the files: send mode is CI, where the runner is ephemeral and an artifact step may still
+            // collect them (and a failed send must not lose the report). Prune bounds growth elsewhere.
+            builderOptions.Logger.Info($"Crash report files kept at {crashRun.Directory}.");
         }
 
         /// <summary>

@@ -165,8 +165,53 @@ namespace Stride.GameStudio.Helpers
 
             CrashReportAnonymizer.Scrub(crashReport);
 
+            // Unattended sessions (CI editor tests, remote/service sessions) must not block on a dialog;
+            // STRIDE_CRASH_MODE=save/send/off are explicit overrides. Only the interactive case shows the window.
+            switch (CrashPolicy.ResolveAction())
+            {
+                case CrashAction.Ignore:
+                    return;
+                case CrashAction.Save:
+                    SaveToStore(crashReport, exception);
+                    return;
+                case CrashAction.Send:
+                    try
+                    {
+                        if (CrashReportSender.IsDisabled)
+                            throw new InvalidOperationException("Crash sending is disabled in this build.");
+                        var dsn = string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn;
+                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, dsn).GetAwaiter().GetResult();
+                    }
+                    catch (Exception e)
+                    {
+                        e.Ignore();
+                        SaveToStore(crashReport, exception); // a failed send must not lose the report
+                    }
+                    return;
+            }
+
             var reporter = new CrashReportWindow(crashReport, "GameStudio", exception);
             var result = reporter.ShowDialog();
+        }
+
+        // Headless fallback: persist the report to the crash store, where CI artifact collection or
+        // 'stride crash send' picks it up.
+        private static void SaveToStore(CrashReportData report, Exception exception)
+        {
+            try
+            {
+                var crash = StoredCrash.FromReportData(report);
+                crash.Application = "GameStudio";
+                crash.Version = StrideVersion.NuGetVersion;
+                crash.Environment = CrashReportSender.BuildEnvironment ?? "local";
+                crash.TimestampUtc = DateTime.UtcNow.ToString("o");
+                crash.Signature = CrashSignature.Compute(exception, "GameStudio");
+                new CrashStore("GameStudio").CreateRun().Add(crash);
+            }
+            catch (Exception e)
+            {
+                e.Ignore(); // saving the report must never mask the crash handling itself
+            }
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

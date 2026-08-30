@@ -54,7 +54,15 @@ public static class AutoTestingBootstrap
 internal static class CrashDiagnostics
 {
     [ModuleInitializer]
-    internal static void Initialize() => NativeCrashHandler.Install();
+    internal static void Initialize()
+    {
+        NativeCrashHandler.Install();
+
+        // Crash-report popups must never interrupt a test run: unless the caller chose a mode, tools
+        // spawned by tests (asset compiler etc.) capture silently. Inherited by child processes.
+        if (Environment.GetEnvironmentVariable("STRIDE_CRASH_MODE") == null)
+            Environment.SetEnvironmentVariable("STRIDE_CRASH_MODE", "save");
+    }
 }
 
 internal sealed class ScreenshotTestRunner

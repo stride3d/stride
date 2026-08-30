@@ -46,6 +46,8 @@ jobs:
       DOTNET_DbgEnableMiniDump: "1"
       DOTNET_DbgMiniDumpType: "1"
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
+      # Crash-report store (asset compiler, GameStudio) lands in the uploaded crash-dumps artifact.
+      STRIDE_CRASH_DIR: "${{ github.workspace }}\\crash-dumps\\crash-reports"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7

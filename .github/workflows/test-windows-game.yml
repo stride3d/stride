@@ -96,6 +96,7 @@ jobs:
       # alongside the .trx logs and the blame-hang dumps from `dotnet test`.
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
       STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}\\TestResults"            # Shared dump directory for all crash types
+      STRIDE_CRASH_DIR: "${{ github.workspace }}\\TestResults\\crash-reports"        # Crash-report store (asset compiler etc.) lands in the uploaded artifacts
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
       DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path

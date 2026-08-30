@@ -80,6 +80,8 @@ jobs:
       DOTNET_DbgEnableMiniDump: "1"
       DOTNET_DbgMiniDumpType: "4"                                                # MiniDumpWithFullMemory
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}/TestResults/dotnet_%p.dmp"
+      # Crash-report store (asset compiler etc.) lands in the uploaded artifacts.
+      STRIDE_CRASH_DIR: "${{ github.workspace }}/TestResults/crash-reports"
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7

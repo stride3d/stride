@@ -64,4 +64,17 @@ foreach (var option in root.Options)
     if (option is HelpOption helpOption)
         helpOption.Action = new RevealHiddenHelpAction();
 
-return await root.Parse(args).InvokeAsync();
+// Unexpected exceptions become crash reports (with consent on a TTY). System.CommandLine's default
+// exception handler would swallow them before our catch sees them, so it is disabled.
+try
+{
+    return await root.Parse(args).InvokeAsync(new InvocationConfiguration { EnableDefaultExceptionHandler = false });
+}
+catch (OperationCanceledException)
+{
+    return 130; // interrupted (Ctrl+C): not a crash
+}
+catch (Exception exception)
+{
+    return await CliCrashHandler.ReportAsync(exception);
+}
