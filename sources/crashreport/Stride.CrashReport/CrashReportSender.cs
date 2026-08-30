@@ -32,7 +32,14 @@ public static class CrashReportSender
     public static async Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
         string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
     {
-        var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+        var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+        // The Sentry release drops the +g<sha> build metadata so it matches the NuGet version and git tag; the
+        // commit rides along as a tag instead of giving every build its own release entry.
+        var plus = informational.IndexOf('+');
+        var version = plus >= 0 ? informational[..plus] : informational;
+        var commit = plus >= 0 ? informational[(plus + 1)..].TrimStart('g') : null;
+        // Application name doubles as the "application" tag and, lowercased, the release package id (e.g.
+        // "GameStudio" -> gamestudio@version). No "Stride" prefix: every report already lands in a Stride project.
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
         var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
 
@@ -57,6 +64,8 @@ public static class CrashReportSender
             if (minidump != null)
                 scope.AddAttachment(minidump, "minidump.dmp");
             scope.SetTag("application", applicationName);
+            if (commit != null)
+                scope.SetTag("commit", commit);
             MapReport(scope, report);
         });
 

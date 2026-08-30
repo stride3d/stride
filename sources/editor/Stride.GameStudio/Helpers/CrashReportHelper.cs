@@ -165,7 +165,7 @@ namespace Stride.GameStudio.Helpers
 
             CrashReportAnonymizer.Scrub(crashReport);
 
-            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio", exception);
+            var reporter = new CrashReportWindow(crashReport, "GameStudio", exception);
             var result = reporter.ShowDialog();
         }
 
