@@ -760,4 +760,24 @@ new ShaderMacro("class", "shader"),
             }
         }
     }
+
+    // A stage method whose only cross-shader reference is a call to a `static` method used to be
+    // flagged as referencing non-stage members - the flag that forces the whole shader to be
+    // imported at root level when used in a composition. A static method reads no instance state,
+    // so the qualifier is not an instance access. LuminanceUtils.Luma is the engine's canonical
+    // case: every post effect calling it from a stage Shading() logged the info.
+    [Fact]
+    public void StaticCallFromStageMethodDoesNotForceFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("StaticCallRoot", [], out var buffer, out _, out _));
+
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL && (Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i is { } metadata)
+                Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
+                    "A static call is not an instance access: the stage method must stay stage-only importable.");
+        }
+    }
 }
