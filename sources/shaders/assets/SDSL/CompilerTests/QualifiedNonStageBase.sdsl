@@ -1,0 +1,7 @@
+// A non-stage variable read by a child through the shader name.
+namespace Stride.Shaders.Tests;
+
+shader QualifiedNonStageBase
+{
+    float Value;
+};

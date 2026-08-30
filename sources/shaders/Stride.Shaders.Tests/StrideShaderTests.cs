@@ -1139,4 +1139,44 @@ new ShaderMacro("class", "shader"),
 
         Assert.Contains("Append", hlsl);
     }
+
+    // A stage method whose only cross-shader reference is a call to a `static` method used to be
+    // flagged as referencing non-stage members - the flag that forces the whole shader to be
+    // imported at root level when used in a composition. A static method reads no instance state,
+    // so the qualifier is not an instance access. LuminanceUtils.Luma is the engine's canonical
+    // case: every post effect calling it from a stage Shading() logged the info.
+    [Fact]
+    public void StaticCallFromStageMethodDoesNotForceFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("StaticCallRoot", [], out var buffer, out _, out _));
+
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL && (Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i is { } metadata)
+                Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
+                    "A static call is not an instance access: the stage method must stay stage-only importable.");
+        }
+    }
+
+    // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.
+    [Fact]
+    public void QualifiedNonStageReadFromStageMethodForcesFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("QualifiedNonStageRoot", [], out var buffer, out _, out _));
+
+        var needsFullImport = false;
+        foreach (var i in buffer.Context)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpMixinInheritSDSL && (Stride.Shaders.Spirv.Core.OpMixinInheritSDSL)i is { } inherit
+                && inherit.Flags.HasFlag(Stride.Shaders.Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport)
+                && buffer.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is Stride.Shaders.Core.ShaderSymbol { Name: "QualifiedNonStageBase" })
+                needsFullImport = true;
+        }
+
+        Assert.True(needsFullImport, "QualifiedNonStageBase.Value is read from a stage method: the base must be fully imported.");
+    }
 }

@@ -1,0 +1,17 @@
+// A stage method whose only outside reference is a static call on another shader. A static
+// method reads no instance state, so this must not mark the method as referencing non-stage
+// members - that flag forces the whole shader to be imported at root level in compositions.
+namespace Stride.Shaders.Tests;
+
+shader StaticCallRoot
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture3D<float4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    stage void CSMain()
+    {
+        WriteTex[streams.DispatchThreadId] = float4(StaticCallUtils.Weight(float3(1, 2, 3)), 0, 0, 1);
+    }
+};
