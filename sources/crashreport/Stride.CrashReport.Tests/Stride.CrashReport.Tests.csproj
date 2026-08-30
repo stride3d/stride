@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <!-- No Stride serialization here: the crash-report core is deliberately standalone (no Stride.Core),
+         and the processor requires it. -->
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <!-- The probe exe the tests spawn and crash; referenced so it builds and lands beside the tests. -->
+    <ProjectReference Include="..\Stride.CrashReport.TestProbe\Stride.CrashReport.TestProbe.csproj" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+</Project>

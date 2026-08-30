@@ -170,11 +170,13 @@
     <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport.Wpf/Stride.CrashReport.Wpf.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
+    <Project Path="../sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
     <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />
     <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
     <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
   </Folder>
   <Folder Name="/61-Editor.Tests/">
+    <Project Path="../sources/crashreport/Stride.CrashReport.Tests/Stride.CrashReport.Tests.csproj" />
     <Project Path="../sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="../sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="../sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
