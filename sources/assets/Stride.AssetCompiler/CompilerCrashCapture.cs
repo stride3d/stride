@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets;
@@ -30,12 +31,14 @@ namespace Stride.AssetCompiler
         private readonly string platform;
         private readonly string graphicsApi;
         private readonly string configuration;
+        private readonly bool attended;
         private readonly object gate = new object();
-        private CrashRun run; // created on the first capture, so a clean build leaves no empty run directory
+        private CrashRun run; // created on the first capture (or eagerly when the native handler is armed)
 
         public CompilerCrashCapture(PackageBuilderOptions options)
         {
             mode = CrashPolicy.ResolveMode();
+            attended = !CrashPolicy.IsUnattended();
             store = new CrashStore(ApplicationName);
 
             var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
@@ -56,6 +59,82 @@ namespace Stride.AssetCompiler
 
         /// <summary>Removes crash runs older than the retention window, so the store never grows unbounded.</summary>
         public void PruneOld() => store.Prune(TimeSpan.FromDays(30));
+
+        /// <summary>
+        /// Arms the native-crash handler. A native access violation (native importers, shader compilers) kills the
+        /// process, so the managed <see cref="Capture"/> hook never sees it; this writes a triage minidump at fault
+        /// time and, when attended, spawns the reporter right there. Windows only for now (that is where the native
+        /// importers run); the run directory is created eagerly so the dump has a home before anything can crash.
+        /// </summary>
+        public void InstallNativeHandler()
+        {
+            if (mode == CrashMode.Off || !OperatingSystem.IsWindows())
+                return;
+            lock (gate)
+                run ??= store.CreateRun();
+            NativeCrashHandler.InstallForReporting(run.Directory, NativeCrashHandler.TriageDump, OnNativeCrashDump);
+        }
+
+        // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
+        // then (attended) spawn the reporter. Never throws. The dump itself carries the faulting thread and modules.
+        private void OnNativeCrashDump(string dumpPath)
+        {
+            try
+            {
+                var data = new CrashReportData
+                {
+                    ["Application"] = ApplicationName,
+                    ["Exception"] = "Native crash (access violation). See the attached minidump for the faulting thread and loaded modules.",
+                    ["Platform"] = platform,
+                    ["GraphicsApi"] = graphicsApi,
+                    ["Configuration"] = configuration,
+                };
+                CrashReportAnonymizer.Scrub(data);
+
+                var crash = StoredCrash.FromReportData(data);
+                crash.Application = ApplicationName;
+                crash.Version = version;
+                crash.Environment = environment;
+                crash.TimestampUtc = DateTime.UtcNow.ToString("o");
+                // No faulting frame is available in-handler, so the signature can't be precise yet (a follow-up can
+                // derive it from the dump). Native crashes kill the process, so there is at most one per build.
+                crash.Signature = "NativeCrash|" + Path.GetFileNameWithoutExtension(dumpPath);
+                crash.DumpFileName = Path.GetFileName(dumpPath);
+                File.WriteAllText(Path.Combine(run.Directory, $"crash-native-{Environment.ProcessId}.json"), crash.ToJson());
+            }
+            catch
+            {
+                // Dying process: never throw from the fault handler.
+            }
+
+            if (attended)
+            {
+                try { TrySpawnReporter(run.Directory); }
+                catch { /* dying process */ }
+            }
+        }
+
+        private static void TrySpawnReporter(string runDirectory)
+        {
+            var reporter = ResolveCrashReporter();
+            if (reporter == null)
+                return;
+            var arguments = $"\"{runDirectory}\"";
+            if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
+                arguments += $" --dsn \"{CrashReportSender.BuildDsn}\"";
+            Process.Start(new ProcessStartInfo(reporter, arguments) { UseShellExecute = false });
+        }
+
+        /// <summary>The reporter exe: an explicit override wins (dev/testing, odd deploy layouts), else the sibling exe.</summary>
+        internal static string ResolveCrashReporter()
+        {
+            var overridePath = Environment.GetEnvironmentVariable("STRIDE_CRASH_REPORTER");
+            if (!string.IsNullOrEmpty(overridePath) && File.Exists(overridePath))
+                return overridePath;
+            var name = OperatingSystem.IsWindows() ? "Stride.CrashReporter.exe" : "Stride.CrashReporter";
+            var beside = Path.Combine(AppContext.BaseDirectory, name);
+            return File.Exists(beside) ? beside : null;
+        }
 
         /// <summary>
         /// Records a command failure. Called from build worker threads, possibly concurrently, so the

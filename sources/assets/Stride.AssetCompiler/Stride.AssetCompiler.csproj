@@ -24,6 +24,8 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
+    <!-- Native fault handler for capturing access violations in native importers/shader compilers. -->
+    <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
