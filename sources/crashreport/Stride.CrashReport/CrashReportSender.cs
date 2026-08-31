@@ -46,7 +46,7 @@ public static class CrashReportSender
         var (version, commit) = SplitVersion(informational);
         var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
         return SendCoreAsync(report, applicationName, version, commit, BuildEnvironment ?? "local",
-            exception, dsn, minidump, feedbackName, feedbackEmail, feedbackMessage);
+            exception, dsn, minidump, attachments: null, feedbackName, feedbackEmail, feedbackMessage);
     }
 
     /// <summary>
@@ -55,13 +55,14 @@ public static class CrashReportSender
     /// from this reporter's own assembly.
     /// </summary>
     public static Task SendAsync(StoredCrash crash, byte[] dump, string dsn,
+        IReadOnlyList<(string Name, byte[] Bytes)> attachments = null,
         string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
     {
         var (version, commit) = SplitVersion(crash.Version);
         var environment = string.IsNullOrEmpty(crash.Environment) ? "local" : crash.Environment;
         // No live Exception object survives the handoff; the event is rebuilt from the stored report text.
         return SendCoreAsync(crash.ToReportData(), crash.Application, version, commit, environment,
-            exception: null, dsn, dump, feedbackName, feedbackEmail, feedbackMessage);
+            exception: null, dsn, dump, attachments, feedbackName, feedbackEmail, feedbackMessage);
     }
 
     // Drop the +g<sha> metadata so the release matches the NuGet version and git tag; the commit travels as a tag.
@@ -75,7 +76,7 @@ public static class CrashReportSender
     }
 
     private static async Task SendCoreAsync(CrashReportData report, string applicationName, string version, string commit, string environment,
-        Exception exception, string dsn, byte[] minidump,
+        Exception exception, string dsn, byte[] minidump, IReadOnlyList<(string Name, byte[] Bytes)> attachments,
         string feedbackName, string feedbackEmail, string feedbackMessage)
     {
         // Application name doubles as the "application" tag and, lowercased, the release package id (e.g.
@@ -102,6 +103,10 @@ public static class CrashReportSender
             // from the dump; this is a plain file for maintainers to download into a debugger
             if (minidump != null)
                 scope.AddAttachment(minidump, "minidump.dmp");
+            // Opt-in files the user checked in the reporter (e.g. the failing asset's definition), already scrubbed.
+            if (attachments != null)
+                foreach (var (name, bytes) in attachments)
+                    scope.AddAttachment(bytes, name);
             scope.SetTag("application", applicationName);
             if (commit != null)
                 scope.SetTag("commit", commit);

@@ -154,8 +154,9 @@ namespace Stride.AssetCompiler
             crash.Signature = signature;
             if (assetLabel != null)
                 crash.AffectedAssets.Add(assetLabel);
-            // Local-only real paths, so the reporter can offer to attach the asset later. Never sent as text.
-            crash.AssetSourcePaths.AddRange(CollectSourcePaths(step, asset));
+            // Local-only real paths, so the reporter can offer to attach them if the user opts in. Never sent as text.
+            crash.AssetDefinitionPath = asset?.FullPath?.ToOSPath();
+            crash.AssetSourcePaths.AddRange(CollectSourceInputs(step));
             return crash;
         }
 
@@ -171,13 +172,9 @@ namespace Stride.AssetCompiler
             return crash;
         }
 
-        private static IEnumerable<string> CollectSourcePaths(CommandBuildStep step, AssetItem asset)
+        private static IEnumerable<string> CollectSourceInputs(CommandBuildStep step)
         {
             var paths = new List<string>();
-            var assetPath = asset?.FullPath;
-            if (assetPath != null)
-                paths.Add(assetPath.ToOSPath());
-
             try
             {
                 foreach (var input in step.Command?.GetInputFiles() ?? Enumerable.Empty<ObjectUrl>())

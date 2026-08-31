@@ -12,6 +12,7 @@ internal sealed class CrashGroupViewModel : ObservableObject
     private bool send = true;
     private bool dontShowAgain;
     private bool includeDump = true;
+    private bool includeAssetDefinition; // default off: the definition is the user's project content
 
     public CrashGroupViewModel(StoredCrash crash, long dumpSize)
     {
@@ -21,6 +22,14 @@ internal sealed class CrashGroupViewModel : ObservableObject
         ReportText = crash.ToReportData().ToString();
         HasDump = dumpSize > 0;
         DumpLabel = HasDump ? $"Include crash dump — call stacks and module list only, no memory ({FormatSize(dumpSize)})" : null;
+
+        var definition = crash.AssetDefinitionPath;
+        if (!string.IsNullOrEmpty(definition) && File.Exists(definition)
+            && new FileInfo(definition).Length is var size && size <= CrashSession.MaxAssetAttachmentBytes)
+        {
+            HasAssetDefinition = true;
+            AssetDefinitionLabel = $"Attach the asset definition — {Path.GetFileName(definition)} ({FormatSize(size)})";
+        }
     }
 
     public StoredCrash Crash { get; }
@@ -59,6 +68,19 @@ internal sealed class CrashGroupViewModel : ObservableObject
     {
         get => includeDump;
         set => SetProperty(ref includeDump, value);
+    }
+
+    /// <summary>Whether the failing asset's definition file exists and is small enough to attach.</summary>
+    public bool HasAssetDefinition { get; }
+
+    /// <summary>Checkbox label naming the definition file and its size; null when there is none.</summary>
+    public string? AssetDefinitionLabel { get; }
+
+    /// <summary>Attach the asset definition when sending. Default off: it is the user's project content.</summary>
+    public bool IncludeAssetDefinition
+    {
+        get => includeAssetDefinition;
+        set => SetProperty(ref includeAssetDefinition, value);
     }
 
     private static string ComputeDetail(StoredCrash crash)

@@ -90,7 +90,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         {
             try
             {
-                await session.SendAsync(group.Crash, group.IncludeDump);
+                await session.SendAsync(group.Crash, group.IncludeDump, group.IncludeAssetDefinition);
                 session.Suppress(group.Crash);
                 session.Remove(group.Crash);
             }

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Text;
 using Stride.CrashReport;
 
 namespace Stride.CrashReporter;
@@ -52,8 +53,35 @@ internal sealed class CrashSession
         return new CrashSession(store, run, dsn, groups);
     }
 
-    public Task SendAsync(StoredCrash crash, bool includeDump)
-        => CrashReportSender.SendAsync(crash, includeDump ? run.ReadDump(crash) : null, dsn);
+    // Cap on an opt-in asset attachment: a definition is small YAML, so a low cap keeps a stray large file out.
+    internal const long MaxAssetAttachmentBytes = 1_000_000;
+
+    public Task SendAsync(StoredCrash crash, bool includeDump, bool includeAssetDefinition)
+    {
+        var dump = includeDump ? run.ReadDump(crash) : null;
+        var attachments = includeAssetDefinition ? BuildAssetDefinitionAttachment(crash) : null;
+        return CrashReportSender.SendAsync(crash, dump, dsn, attachments);
+    }
+
+    // The failing asset's definition file, read from disk and scrubbed of the user name/path (its YAML can
+    // reference a source path under the home folder). Null if missing or over the size cap.
+    private static IReadOnlyList<(string Name, byte[] Bytes)> BuildAssetDefinitionAttachment(StoredCrash crash)
+    {
+        var path = crash.AssetDefinitionPath;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            return null;
+        try
+        {
+            if (new FileInfo(path).Length > MaxAssetAttachmentBytes)
+                return null;
+            var scrubbed = CrashReportAnonymizer.Scrub(File.ReadAllText(path));
+            return new[] { (Path.GetFileName(path), Encoding.UTF8.GetBytes(scrubbed)) };
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     /// <summary>Size in bytes of a crash's dump, or 0 if it has none, so the window can show it before sending.</summary>
     public long DumpSize(StoredCrash crash)

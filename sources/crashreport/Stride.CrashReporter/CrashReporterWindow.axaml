@@ -40,7 +40,7 @@
       <TextBlock Margin="4,0,4,4" TextWrapping="WrapWithOverflow"
                  Opacity="0.7" FontSize="12"
                  IsVisible="{Binding CanSend}"
-                 Text="The report goes to Stride's crash reporting service and contains the crash details below — the error and stack, the names of the failing assets, and your system info, plus any crash dump you leave checked. Your Windows user name and home-folder path are stripped; you can review the full report before sending. Sending a crash silences its future popups." />
+                 Text="The report goes to Stride's crash reporting service and contains the crash details below — the error and stack, the names of the failing assets, and your system info, plus any crash dump or asset file you leave checked. Your Windows user name and home-folder path are stripped; you can review the full report before sending. Sending a crash silences its future popups." />
       <TextBlock Margin="4,0,4,8" TextWrapping="WrapWithOverflow"
                  FontWeight="SemiBold"
                  IsVisible="{Binding SendStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -98,6 +98,10 @@
                               IsVisible="{Binding HasDump}"
                               IsChecked="{Binding IncludeDump}"
                               Content="{Binding DumpLabel}" />
+                    <CheckBox Margin="0,4,0,0" FontSize="12"
+                              IsVisible="{Binding HasAssetDefinition}"
+                              IsChecked="{Binding IncludeAssetDefinition}"
+                              Content="{Binding AssetDefinitionLabel}" />
                   </StackPanel>
                 </DockPanel>
               </Border>

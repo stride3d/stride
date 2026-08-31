@@ -45,10 +45,10 @@ public sealed class StoredCrash
     /// <summary>Scrubbed leaf names of the assets that hit this signature, for the "x N assets" display.</summary>
     public List<string> AffectedAssets { get; set; } = new();
 
-    /// <summary>
-    /// Local-only real paths of the failing asset and its direct source files (FBX, textures), so the
-    /// reporter can attach them if the user opts in. Never transmitted as text; scrubbed from the event.
-    /// </summary>
+    /// <summary>Local-only path of the failing asset's definition file, offered as an opt-in attachment.</summary>
+    public string AssetDefinitionPath { get; set; }
+
+    /// <summary>Local-only paths of the failing asset's direct source files (FBX, textures), for a future opt-in attachment.</summary>
     public List<string> AssetSourcePaths { get; set; } = new();
 
     /// <summary>One-line label: the exception's first line, else the signature.</summary>
