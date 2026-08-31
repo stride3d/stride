@@ -128,7 +128,7 @@
   <PropertyGroup>
     <AvaloniaVersion>12.1.1</AvaloniaVersion>
     <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
-    <AvaloniaMarkViewVersion>12.1.0</AvaloniaMarkViewVersion>
+    <AvaloniaMarkViewVersion>12.2.1</AvaloniaMarkViewVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
