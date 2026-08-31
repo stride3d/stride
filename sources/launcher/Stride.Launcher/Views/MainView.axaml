@@ -205,21 +205,21 @@
                   <Grid Height="48">
                     <!-- Launch game studio -->
                     <Button Command="{Binding StartStudioCommand}"
-                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                            Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{DynamicResource BackgroundEmphasis}"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
-                            IsVisible="{Binding ActiveVersion.CanStart}" />
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
+                            IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                     <!-- Install specific version -->
-                    <Button Command="{Binding ActiveVersion.DownloadCommand}"
-                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
+                    <Button Command="{Binding ActiveVersion?.DownloadCommand}"
+                            Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{DynamicResource BackgroundEmphasis}"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
-                            IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled},
-                                                        {Binding !ActiveVersion.CanStart},
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
+                            IsVisible="{sd:MultiBinding {Binding ActiveVersion?.DownloadCommand.IsEnabled},
+                                                        {Binding !ActiveVersion?.CanStart},
                                                         Converter={sd:AndMulti}}" />
                     <!-- Install latest version (nothing installed) -->
                     <Button Command="{Binding InstallLatestVersionCommand}"
@@ -232,11 +232,11 @@
                   </Grid>
                   <ComboBox x:Name="FrameworkSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding ActiveVersion.Frameworks}"
-                            SelectedItem="{Binding ActiveVersion.SelectedFramework}"
+                            ItemsSource="{Binding ActiveVersion?.Frameworks}"
+                            SelectedItem="{Binding ActiveVersion?.SelectedFramework}"
                             SelectionChanged="FrameworkChanged"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
-                            IsVisible="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding ActiveVersion?.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
@@ -245,11 +245,11 @@
                   </ComboBox>
                   <ComboBox x:Name="EditorSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding ActiveVersion.AvailableEditors}"
-                            SelectedItem="{Binding ActiveVersion.SelectedEditor}"
+                            ItemsSource="{Binding ActiveVersion?.AvailableEditors}"
+                            SelectedItem="{Binding ActiveVersion?.SelectedEditor}"
                             SelectionChanged="EditorChanged"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
-                            IsVisible="{Binding ActiveVersion.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding ActiveVersion?.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:EditorNameConverter}}" />
@@ -510,10 +510,10 @@
 
           <Grid Grid.Column="1"
                 Classes="rn-slide"
-                Classes.visible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
-                IsHitTestVisible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
+                Classes.visible="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}, TargetNullValue={x:True}}"
+                IsHitTestVisible="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}, TargetNullValue={x:True}}"
                 ColumnDefinitions="*, *"
-                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+                IsEnabled="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}}">
             <Grid.Styles>
               <Style Selector="Grid.rn-slide.visible">
                 <Setter Property="Opacity" Value="1.0"/>
@@ -657,7 +657,7 @@
                 <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
                   <ScrollViewer>
                     <StackPanel>
-                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}}">
+                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                    FontSize="16" Margin="20"
                                    TextAlignment="Center" VerticalAlignment="Center" />
@@ -688,7 +688,7 @@
                   <ScrollViewer>
                     <StackPanel>
                       <Border Background="{DynamicResource BackgroundTileAlpha}"
-                              IsVisible="{Binding !NewsPages.Count, FallbackValue={x:False}}">
+                              IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoNews}"
                                    FontSize="16" Margin="20"
                                    TextAlignment="Center" VerticalAlignment="Center" />
@@ -723,9 +723,9 @@
           <!-- Release notes -->
           <Grid Grid.Column="1"
                 Classes="rn-slide"
-                Classes.visible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsHitTestVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
+                Classes.visible="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                IsHitTestVisible="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                IsEnabled="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}">
             <Grid.Styles>
               <Style Selector="Grid.rn-slide.visible">
                 <Setter Property="RenderTransform" Value="translateX(0)"/>
@@ -749,7 +749,7 @@
                 <Button DockPanel.Dock="Right"
                         Classes="TransparentButton"
                         Margin="8"
-                        Command="{Binding ActiveReleaseNotes.ToggleCommand}"
+                        Command="{Binding ActiveReleaseNotes?.ToggleCommand}"
                         Content="×" FontSize="20" />
                 <ToggleButton DockPanel.Dock="Left" x:Name="OutlineToggle"
                               Margin="12 0 0 0">
@@ -780,21 +780,21 @@
                   </Border>
                 </Popup>
                 <TextBlock Margin="15,8"
-                           Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
+                           Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
                            FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
               <Grid Margin="8">
                 <mv:MarkdownViewer x:Name="ReleaseNotesView"
-                                   Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
-                                   BaseUri="{Binding ActiveReleaseNotes.BaseUrl}"
-                                   IsVisible="{Binding ActiveReleaseNotes.IsLoaded}"
+                                   Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
+                                   BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
+                                   IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
                                    ScrollViewer.AllowAutoHide="False" Padding="4" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes.IsUnavailable}" />
+                           IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
                 <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes.IsLoading}" />
+                           IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
               </Grid>
             </DockPanel>
           </Grid>
@@ -804,7 +804,7 @@
     <!-- Announcements -->
     <Border Classes="ann-slide"
             Classes.visible="{Binding Announcement, Converter={sd:ObjectToBool}}"
-            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}}">
       <Border.Styles>
         <Style Selector="Border.ann-slide.visible">
           <Setter Property="RenderTransform" Value="translateX(0)"/>
