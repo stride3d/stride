@@ -669,8 +669,8 @@
                               <Button Command="{Binding OpenUrlCommand}"
                                       HorizontalAlignment="Stretch"
                                       HorizontalContentAlignment="Stretch">
-                                <DockPanel>
-                                  <TextBlock DockPanel.Dock="Top"
+                                <DockPanel Margin="4">
+                                  <TextBlock Classes="Subtitle" DockPanel.Dock="Top"
                                              HorizontalAlignment="Left"
                                              Text="{Binding Title}" />
                                   <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
