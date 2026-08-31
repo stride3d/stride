@@ -24,11 +24,11 @@
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="{DynamicResource SystemBaseLowColor}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0BCBCBC" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="{DynamicResource SystemBaseLowColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
