@@ -116,7 +116,7 @@
                 <!-- Community links -->
                 <UniformGrid Columns="2">
                   <Button Classes="TransparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Stretch"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.Issues}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -132,7 +132,7 @@
                     </StackPanel>
                   </Button>
                   <Button Classes="TransparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Stretch"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.Forums}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -148,7 +148,7 @@
                     </StackPanel>
                   </Button>
                   <Button Classes="TransparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Stretch"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.Discord}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -164,7 +164,7 @@
                     </StackPanel>
                   </Button>
                   <Button Classes="TransparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Stretch"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.GitHub}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -180,7 +180,7 @@
                     </StackPanel>
                   </Button>
                   <Button Classes="TransparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Stretch"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.Roadmap}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
