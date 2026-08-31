@@ -44,6 +44,12 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="18" />
+    </Style>
+    <Style Selector="AccessText">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
     <Style Selector="TextBlock.Subtitle">
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="FontSize" Value="16" />

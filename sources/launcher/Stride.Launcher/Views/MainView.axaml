@@ -648,11 +648,6 @@
                     <UniformGrid Rows="1" Height="32" Margin="0,12,0,32"/>
                   </ItemsPanelTemplate>
                 </TabControl.ItemsPanel>
-                <TabControl.Styles>
-                  <Style Selector="TabItem">
-                    <Setter Property="FontSize" Value="18" />
-                  </Style>
-                </TabControl.Styles>
                 <!-- Getting started -->
                 <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
                   <ScrollViewer>
