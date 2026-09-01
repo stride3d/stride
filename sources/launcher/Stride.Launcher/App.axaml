@@ -45,10 +45,13 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
     <Style Selector="TabItem">
-      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontSize" Value="14" />
     </Style>
-    <Style Selector="AccessText">
-      <Setter Property="HorizontalAlignment" Value="Center" />
+    <Style Selector="Path.tab-icon">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Fill" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
     </Style>
     <Style Selector="TextBlock.Subtitle">
       <Setter Property="FontWeight" Value="SemiBold" />
