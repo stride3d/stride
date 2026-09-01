@@ -66,6 +66,7 @@
           <DockPanel Grid.Column="0" Width="400" Margin="0 0 12 0">
             <Border DockPanel.Dock="Bottom"
                     BorderBrush="{StaticResource BorderBrushTile}"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
                     Background="{DynamicResource BackgroundTileAlpha}">
               <DockPanel Margin="10">
                 <!-- Media buttons -->
@@ -543,6 +544,7 @@
                 </Border>
                 <Grid>
                   <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                          CornerRadius="{StaticResource ControlCornerRadius}"
                           Background="{DynamicResource BackgroundTileAlpha}"
                           IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                           VerticalAlignment="Top">
@@ -555,7 +557,7 @@
                       <ItemsControl ItemsSource="{Binding RecentProjects}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
-                            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                            <Border BorderBrush="{StaticResource BorderBrushTile}" CornerRadius="{StaticResource ControlCornerRadius}" BorderThickness="{StaticResource BorderThicknessTileList}">
                               <Button Command="{Binding OpenCommand}"
                                       IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                       HorizontalAlignment="Stretch"
@@ -652,7 +654,8 @@
                 <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
                   <ScrollViewer>
                     <StackPanel>
-                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
+                      <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
+                              IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                    FontSize="16" Margin="20"
                                    TextAlignment="Center" VerticalAlignment="Center" />
@@ -682,7 +685,7 @@
                 <TabItem Header="{x:Static l:Strings.TabNews}">
                   <ScrollViewer>
                     <StackPanel>
-                      <Border Background="{DynamicResource BackgroundTileAlpha}"
+                      <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
                               IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoNews}"
                                    FontSize="16" Margin="20"
@@ -739,59 +742,62 @@
                 <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
               </Transitions>
             </Grid.Transitions>
-            <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
-              <DockPanel DockPanel.Dock="Top">
-                <Button DockPanel.Dock="Right"
-                        Classes="TransparentButton"
-                        Margin="8"
-                        Command="{Binding ActiveReleaseNotes?.ToggleCommand}"
-                        Content="×" FontSize="20" />
-                <ToggleButton DockPanel.Dock="Left" x:Name="OutlineToggle"
-                              Margin="12 0 0 0">
-                  <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
-                </ToggleButton>
-                <Popup x:Name="OutlinePopup"
-                       IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
-                       PlacementTarget="{Binding #OutlineToggle}"
-                       Placement="BottomEdgeAlignedLeft">
-                  <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
-                          BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
-                          BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
-                          CornerRadius="{DynamicResource OverlayCornerRadius}"
-                          Padding="8" Width="360" MaxHeight="420">
-                    <ScrollViewer>
-                      <ListBox x:Name="OutlineList"
-                              Background="Transparent"
-                              SelectionChanged="OnOutlineSelectionChanged"
-                              ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
-                        <ListBox.ItemTemplate>
-                          <DataTemplate DataType="cvt:OutlineRow">
-                            <TextBlock Text="{Binding Entry.Text}" Margin="{Binding Indent}"
-                                       TextTrimming="CharacterEllipsis" />
-                          </DataTemplate>
-                        </ListBox.ItemTemplate>
-                      </ListBox>
-                    </ScrollViewer>
-                  </Border>
-                </Popup>
-                <TextBlock Margin="15,8"
-                           Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
-                           FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+            <Border CornerRadius="{StaticResource ControlCornerRadius}"
+                    Background="{DynamicResource BackgroundTileAlpha}">
+              <DockPanel>
+                    <DockPanel DockPanel.Dock="Top">
+                      <Button DockPanel.Dock="Right"
+                              Classes="TransparentButton"
+                              Margin="8"
+                              Command="{Binding ActiveReleaseNotes?.ToggleCommand}"
+                              Content="×" FontSize="20" />
+                      <ToggleButton DockPanel.Dock="Left" x:Name="OutlineToggle"
+                                    Margin="12 0 0 0">
+                        <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
+                      </ToggleButton>
+                      <Popup x:Name="OutlinePopup"
+                             IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                             PlacementTarget="{Binding #OutlineToggle}"
+                             Placement="BottomEdgeAlignedLeft">
+                        <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
+                                BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
+                                BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
+                                CornerRadius="{DynamicResource OverlayCornerRadius}"
+                                Padding="8" Width="360" MaxHeight="420">
+                          <ScrollViewer>
+                            <ListBox x:Name="OutlineList"
+                                    Background="Transparent"
+                                    SelectionChanged="OnOutlineSelectionChanged"
+                                    ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
+                              <ListBox.ItemTemplate>
+                                <DataTemplate DataType="cvt:OutlineRow">
+                                  <TextBlock Text="{Binding Entry.Text}" Margin="{Binding Indent}"
+                                             TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                              </ListBox.ItemTemplate>
+                            </ListBox>
+                          </ScrollViewer>
+                        </Border>
+                      </Popup>
+                      <TextBlock Margin="15,8"
+                                 Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
+                                 FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Grid Margin="8">
+                      <mv:MarkdownViewer x:Name="ReleaseNotesView"
+                                         Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
+                                         BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
+                                         IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                                         ScrollViewer.AllowAutoHide="False" Padding="4" />
+                      <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
+                                 TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
+                      <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
+                                 TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
+                    </Grid>
               </DockPanel>
-              <Grid Margin="8">
-                <mv:MarkdownViewer x:Name="ReleaseNotesView"
-                                   Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
-                                   BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
-                                   IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                                   ScrollViewer.AllowAutoHide="False" Padding="4" />
-                <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
-                           TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
-                <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
-                           TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
-              </Grid>
-            </DockPanel>
+            </Border>
           </Grid>
         </Grid>
       </Border>
