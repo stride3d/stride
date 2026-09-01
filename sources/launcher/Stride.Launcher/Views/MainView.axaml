@@ -656,7 +656,14 @@
                   </ItemsPanelTemplate>
                 </TabControl.ItemsPanel>
                 <!-- Getting started -->
-                <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
+                <TabItem>
+                    <TabItem.Header>
+                      <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                          <Path Classes="tab-icon"
+                                Data="M 57,25L 57,51L 45.5,51C 42.8572,51 41,54 41,54L 35,54C 35,54 33.1428,51 30.5,51L 19,51L 19,25L 34.5,25C 34.5,25 35.9205,25.7102 37.4765,27.3448C 39.3408,25 41.25,25 41.25,25L 57,25 Z M 35,29.652C 34.3526,28.8549 33.5338,28 33,28L 22,28L 22,48L 31,48C 31,48 33,47.75 35,50.75L 35,29.652 Z M 41,50.75C 43,47.75 45,48 45,48L 54,48L 54,28L 43,28C 42.4662,28 41.6474,28.8549 41,29.652L 41,50.75 Z" />
+                          <TextBlock Margin="10 0 0 0" Text="{x:Static l:Strings.TabGettingStarted}" />
+                      </StackPanel>
+                    </TabItem.Header>
                   <ScrollViewer>
                     <StackPanel>
                       <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
@@ -687,7 +694,14 @@
                   </ScrollViewer>
                 </TabItem>
                 <!-- News -->
-                <TabItem Header="{x:Static l:Strings.TabNews}">
+                <TabItem>
+                  <TabItem.Header>
+                      <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                          <Path Classes="tab-icon"
+                                Data="M 27,48C 27,50 26.5,53 25.5,53L 52,53C 54.5,53 55,50.5 55,48L 55,25L 27,25L 27,48 Z M 59,48C 59,52.3723 56,57 52.5,57L 21,57C 18.3766,57 16,52.8723 16,48.5L 16,27L 23,27L 23,21L 59,21L 59,48 Z M 20,31L 20,49C 20,51.6234 20.6255,53.25 21.5,53.25C 22.3744,53.25 23,51.6234 23,49L 23,31L 20,31 Z M 41,34L 53,34L 53,48L 41,48L 41,34 Z M 29,28L 53,28L 53,31L 29,31L 29,28 Z M 29,34L 39,34L 39,36L 29,36L 29,34 Z M 29,38L 39,38L 39,40L 29,40L 29,38 Z M 29,42L 39,42L 39,44L 29,44L 29,42 Z M 29,46L 39,46L 39,48L 29,48L 29,46 Z " />
+                          <TextBlock Margin="10 0 0 0" Text="{x:Static l:Strings.TabNews}" />
+                      </StackPanel>
+                    </TabItem.Header>
                   <ScrollViewer>
                     <StackPanel>
                       <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
