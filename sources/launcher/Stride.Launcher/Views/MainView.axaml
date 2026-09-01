@@ -40,7 +40,7 @@
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
               Background="{DynamicResource BackgroundEmphasis}"
-              Padding="8,4">
+              Padding="10,2">
         <Grid ColumnDefinitions="3*, *, Auto">
           <TextBlock Grid.Column="0"
                      HorizontalAlignment="Left" VerticalAlignment="Center"
