@@ -68,52 +68,7 @@
                     BorderBrush="{StaticResource BorderBrushTile}"
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Background="{DynamicResource BackgroundTileAlpha}">
-              <DockPanel Margin="10">
-                <!-- Media buttons -->
-                <StackPanel DockPanel.Dock="Bottom" Margin="10"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Center">
-                  <Button Classes="TransparentButton MediaButton"
-                          Command="{Binding OpenUrlCommand}"
-                          CommandParameter="{x:Static l:Urls.XTwitter}"
-                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
-                          Content="{StaticResource ImageTwitter}">
-                    <Interaction.Behaviors>
-                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                    </Interaction.Behaviors>
-                  </Button>
-                  <Button Classes="TransparentButton MediaButton"
-                          Command="{Binding OpenUrlCommand}"
-                          CommandParameter="{x:Static l:Urls.Facebook}"
-                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
-                          Content="{StaticResource ImageFacebook}">
-                    <Interaction.Behaviors>
-                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                    </Interaction.Behaviors>
-                  </Button>
-                  <Button Classes="TransparentButton MediaButton"
-                          Command="{Binding OpenUrlCommand}"
-                          CommandParameter="{x:Static l:Urls.Reddit}"
-                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
-                          Content="{StaticResource ImageReddit}">
-                    <Interaction.Behaviors>
-                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                    </Interaction.Behaviors>
-                  </Button>
-                  <Button Classes="TransparentButton MediaButton"
-                          Command="{Binding OpenUrlCommand}"
-                          CommandParameter="{x:Static l:Urls.OpenCollective}"
-                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
-                          Content="{StaticResource ImageOpenCollective}">
-                    <Interaction.Behaviors>
-                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                    </Interaction.Behaviors>
-                  </Button>
-                </StackPanel>
+              <StackPanel Margin="10">
                 <!-- Community links -->
                 <UniformGrid Columns="2">
                   <Button Classes="TransparentButton"
@@ -197,7 +152,53 @@
                     </StackPanel>
                   </Button>
                 </UniformGrid>
-              </DockPanel>
+
+                <!-- Media buttons -->
+                <StackPanel Margin="6"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.XTwitter}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageTwitter}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Facebook}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageFacebook}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Reddit}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageReddit}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.OpenCollective}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageOpenCollective}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                </StackPanel>
+              </StackPanel>
             </Border>
             <DockPanel>
               <Border DockPanel.Dock="Top"
