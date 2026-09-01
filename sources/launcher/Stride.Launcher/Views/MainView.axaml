@@ -499,10 +499,15 @@
                         </DataTemplate>
                       </ItemsControl.DataTemplates>
                     </ItemsControl>
-                    <ProgressBar IsIndeterminate="True"
-                                 Height="24" Margin="0,2"
-                                 Opacity="0.5"
+                    <Grid>
+                      <ProgressBar IsIndeterminate="True"
+                                   Height="24" Margin="0,2"
+                                   Opacity="0.5"
+                                   IsVisible="{Binding IsSynchronizing}" />
+                      <TextBlock Text="{x:Static l:Strings.Synchronizing}"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                  IsVisible="{Binding IsSynchronizing}" />
+                    </Grid>
                   </StackPanel>
                 </ScrollViewer>
               </Border>
