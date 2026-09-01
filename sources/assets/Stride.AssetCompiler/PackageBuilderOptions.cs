@@ -36,6 +36,8 @@ namespace Stride.AssetCompiler
         public string SlavePipe;
         // Slave only: the master's crash run directory this slave writes its crashes into for the master to collect.
         public string CrashRunDirectory;
+        // crash-adopt only: directory of createdump minidumps (Linux/macOS) to adopt into the crash store.
+        public string NativeDumpDirectory;
         public Dictionary<string, string> Properties = new Dictionary<string, string>();
         public Dictionary<string, string> ExtraCompileProperties;
 

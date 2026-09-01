@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core.BuildEngine;
+using Stride.Core.Diagnostics;
 using Stride.Core.Serialization.Contents;
 using Stride.CrashReport;
 
@@ -135,6 +136,105 @@ namespace Stride.AssetCompiler
         /// </summary>
         public void CaptureCommand(Command command, Exception exception)
             => Capture(command, asset: null, exception);
+
+        /// <summary>
+        /// Adopts the minidumps the runtime's <c>createdump</c> left behind into the crash store, then does what
+        /// the build would with them (send on CI, or point the user at <c>stride crash send</c>). This is the
+        /// Linux/macOS native path: there is no in-process vectored handler there, so a native crash kills the
+        /// process and the runtime writes a raw dump; a fresh <c>crash-adopt</c> invocation after the build turns
+        /// each dump into a signed, deduped <see cref="StoredCrash"/>. Returns a process exit code (always success:
+        /// the crash already failed the build).
+        /// </summary>
+        public static int AdoptNativeDumps(PackageBuilderOptions options)
+            => new CompilerCrashCapture(options).AdoptDumps(options.NativeDumpDirectory, options.Logger);
+
+        private int AdoptDumps(string dumpDirectory, ILogger logger)
+        {
+            if (mode == CrashMode.Off || string.IsNullOrEmpty(dumpDirectory) || !Directory.Exists(dumpDirectory))
+                return 0;
+
+            string[] dumps;
+            try { dumps = Directory.GetFiles(dumpDirectory, "*.dmp"); }
+            catch { return 0; }
+
+            foreach (var dumpPath in dumps)
+            {
+                try
+                {
+                    // Recover the faulting frame the Windows handler would have computed live, so Linux/macOS
+                    // signatures match Windows ones and identical native crashes dedup across platforms.
+                    var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
+                    var signature = NativeCrashReporting.NativeSignature(faultingFrame, dumpPath);
+                    if (store.IsSuppressed(signature, version))
+                    {
+                        TryDelete(dumpPath);
+                        continue;
+                    }
+
+                    var data = new CrashReportData
+                    {
+                        ["Application"] = ApplicationName,
+                        ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame),
+                        ["Platform"] = platform,
+                        ["GraphicsApi"] = graphicsApi,
+                        ["Configuration"] = configuration,
+                    };
+                    if (!string.IsNullOrEmpty(faultingFrame))
+                        data["FaultingFrame"] = faultingFrame;
+
+                    var crash = NewStoredCrash(data);
+                    crash.Signature = signature;
+                    EnsureRun().Add(crash, File.ReadAllBytes(dumpPath));
+                    TryDelete(dumpPath);
+                }
+                catch (Exception e)
+                {
+                    logger.Warning($"Could not adopt native crash dump {Path.GetFileName(dumpPath)}: {e.Message}");
+                }
+            }
+
+            if (run != null && !run.IsEmpty)
+            {
+                switch (CrashPolicy.ResolveAction())
+                {
+                    case CrashAction.Send:
+                        SendRun(run, logger);
+                        break;
+                    case CrashAction.Report:
+                        logger.Warning($"{run.Read().Count} native crash(es) captured during asset build; saved to {run.Directory}. Submit them with 'stride crash send'.");
+                        break;
+                    // Save / Ignore: leave the run on disk for a later 'stride crash send'.
+                }
+                PruneOld();
+            }
+            return 0;
+        }
+
+        // CI: send every group headlessly, keeping the files (the CI runner is ephemeral and an artifact step may
+        // still collect them, and a failed send must not lose the report). Mirrors the master's end-of-build send.
+        private static void SendRun(CrashRun run, ILogger logger)
+        {
+            if (CrashReportSender.IsDisabled)
+                return;
+            var dsn = CrashReportSender.ResolveDsn();
+            foreach (var crash in run.Read())
+            {
+                try
+                {
+                    CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn).GetAwaiter().GetResult();
+                }
+                catch (Exception e)
+                {
+                    logger.Warning($"Could not send crash report: {e.Message}");
+                }
+            }
+        }
+
+        private static void TryDelete(string path)
+        {
+            try { if (File.Exists(path)) File.Delete(path); }
+            catch { /* best effort: a locked dump is left in the staging dir, retried next build */ }
+        }
 
         private void Capture(Command command, AssetItem asset, Exception exception)
         {

@@ -54,6 +54,11 @@ public class CrashCaptureTests
             {
                 var markerFrame = File.ReadAllLines(markerPath).ElementAtOrDefault(1) ?? "";
                 Assert.Equal(expectExceptionStream, markerFrame.Contains("+0x"));
+                // Post-mortem parse of the dump must recover the same faulting frame the live handler wrote. This is
+                // the Linux/macOS signature path (there createdump leaves only the dump, with no live computation),
+                // validated here on Windows against the vectored handler's live value.
+                if (expectExceptionStream && dumps.Length > 0)
+                    Assert.Equal(markerFrame, NativeCrashReporting.FaultingFrameFromDump(dumps[0]));
             }
         }
         finally

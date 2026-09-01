@@ -37,6 +37,7 @@ namespace Stride.AssetCompiler
             Pack,
             UpdateGeneratedFiles,
             UpgradeAssets,
+            AdoptCrashes,
         }
 
         private static Stopwatch clock;
@@ -114,6 +115,7 @@ namespace Stride.AssetCompiler
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "crash-dir=", "Slave only: shared crash run directory the master collects crashes from", v => options.CrashRunDirectory = v },
+                { "dump-dir=", "crash-adopt only: directory of createdump minidumps to adopt into the crash store", v => options.NativeDumpDirectory = v },
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
@@ -179,6 +181,8 @@ namespace Stride.AssetCompiler
                         case "pack": mode = BuilderMode.Pack; break;
                         case "upgrade": mode = BuilderMode.UpgradeAssets; break;
                         case "generate-code": mode = BuilderMode.UpdateGeneratedFiles; break;
+                        // Internal: the MSBuild targets run this after a build to adopt any createdump minidumps.
+                        case "crash-adopt": mode = BuilderMode.AdoptCrashes; break;
                         case "help": showHelp = true; break;
                         default:
                             Console.Error.WriteLine($"Unknown command '{args[0]}'. Expected: build, pack, upgrade, generate-code.");
@@ -231,6 +235,13 @@ namespace Stride.AssetCompiler
                     globalLoggerOnGlobalMessageLogged = new ConsoleLogListener { LogMode = ConsoleLogMode.Always };
                     globalLoggerOnGlobalMessageLogged.TextFormatter = FormatLog;
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
+                }
+
+                if (mode == BuilderMode.AdoptCrashes)
+                {
+                    // Post-build native-crash adoption (Linux/macOS): read createdump's minidumps, sign and store
+                    // them, then send on CI or leave for 'stride crash send'. No session/builder needed.
+                    return CompilerCrashCapture.AdoptNativeDumps(options);
                 }
 
                 if (mode == BuilderMode.UpdateGeneratedFiles)

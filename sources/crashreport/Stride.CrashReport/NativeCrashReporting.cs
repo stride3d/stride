@@ -112,6 +112,14 @@ namespace Stride.CrashReport
             => "NativeCrash|" + (string.IsNullOrEmpty(faultingFrame) ? Path.GetFileNameWithoutExtension(dumpPath) : faultingFrame);
 
         /// <summary>
+        /// Recovers the faulting frame (<c>module+0x&lt;rva&gt;</c>) from a minidump, post-mortem. On Windows the
+        /// vectored handler computes this live at fault time; on Linux/macOS the runtime's <c>createdump</c> writes
+        /// only the dump, so the frame is parsed back out of it here (same value, so the signature matches). Returns
+        /// null when the dump carries no exception record or the address is outside every module.
+        /// </summary>
+        public static string FaultingFrameFromDump(string dumpPath) => MinidumpReader.FaultingFrame(dumpPath);
+
+        /// <summary>
         /// The crash-report exception line for a native access violation, naming the faulting frame when known. The
         /// frame travels in the message so Sentry — which has no stack trace for these — groups them by fault location
         /// instead of collapsing every native crash into one issue.
