@@ -33,6 +33,7 @@
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
       <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+      <Color x:Key="SystemBaseLowColor">#0FFFFFFF</Color>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -44,6 +45,9 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource SystemBaseLowColor}" />
+    </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
     </Style>
