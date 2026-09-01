@@ -32,7 +32,10 @@ namespace Stride.AssetCompiler
         private readonly string graphicsApi;
         private readonly string configuration;
         private readonly object gate = new object();
-        private CrashRun run; // created on the first capture (or eagerly when the native handler is armed)
+        // The master owns the reporter (pops it / sends at end of build); a slave only writes crash files into
+        // the master's shared run for the master to collect, so it never spawns the reporter itself.
+        private bool ownsReporting = true;
+        private CrashRun run; // created on the first capture (or eagerly when the native handler is armed / shared with slaves)
 
         public CompilerCrashCapture(PackageBuilderOptions options)
         {
@@ -48,6 +51,18 @@ namespace Stride.AssetCompiler
             configuration = options.ProjectConfiguration ?? string.Empty;
             graphicsApi = options.ExtraCompileProperties != null && options.ExtraCompileProperties.TryGetValue("StrideGraphicsApi", out var api) ? api : string.Empty;
         }
+
+        // Slave: capture into the master's shared run directory. The master decided capture is on (it only passes
+        // --crash-dir then) and owns reporting; the slave just writes managed and native crashes for it to collect.
+        private CompilerCrashCapture(PackageBuilderOptions options, CrashRun sharedRun) : this(options)
+        {
+            run = sharedRun;
+            ownsReporting = false;
+        }
+
+        /// <summary>Creates the capture an isolated slave process uses, bound to the master's shared run directory.</summary>
+        public static CompilerCrashCapture ForSlave(PackageBuilderOptions options)
+            => new CompilerCrashCapture(options, CrashStore.OpenRun(options.CrashRunDirectory));
 
         /// <summary>False when crash handling is turned off entirely; the build wires the hook only when true.</summary>
         public bool Enabled => mode != CrashMode.Off;
@@ -68,9 +83,14 @@ namespace Stride.AssetCompiler
         {
             if (mode == CrashMode.Off || !OperatingSystem.IsWindows())
                 return;
+            NativeCrashHandler.InstallForReporting(EnsureRun().Directory, NativeCrashHandler.TriageDump, OnNativeCrashDump);
+        }
+
+        /// <summary>The run captured crashes are written to, created on first use. Shared with the build's slaves.</summary>
+        public CrashRun EnsureRun()
+        {
             lock (gate)
-                run ??= store.CreateRun();
-            NativeCrashHandler.InstallForReporting(run.Directory, NativeCrashHandler.TriageDump, OnNativeCrashDump);
+                return run ??= store.CreateRun();
         }
 
         // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
@@ -99,9 +119,10 @@ namespace Stride.AssetCompiler
                 // Dying process: never throw from the fault handler.
             }
 
-            // Only the interactive-attended case pops the reporter; save/send modes leave the files for
-            // 'stride crash send' / CI artifact collection (sending from a dying process is too heavy).
-            if (CrashPolicy.ResolveAction() == CrashAction.Report)
+            // Only the interactive-attended master pops the reporter; a slave leaves the file for the master, and
+            // save/send modes leave them for 'stride crash send' / CI artifact collection (sending from a dying
+            // process is too heavy).
+            if (ownsReporting && CrashPolicy.ResolveAction() == CrashAction.Report)
             {
                 try { NativeCrashReporting.TrySpawnReporter(run.Directory); }
                 catch { /* dying process */ }
@@ -113,6 +134,16 @@ namespace Stride.AssetCompiler
         /// read-modify-write of the store is serialized.
         /// </summary>
         public void Capture(CommandBuildStep step, Exception exception)
+            => Capture(step.Command, step.Tag as AssetItem, exception);
+
+        /// <summary>
+        /// Records a crash from an isolated slave process (its one command threw or died). The failing asset is
+        /// known on the master's side of the command, not here, so slave crashes carry the command and exception only.
+        /// </summary>
+        public void CaptureCommand(Command command, Exception exception)
+            => Capture(command, asset: null, exception);
+
+        private void Capture(Command command, AssetItem asset, Exception exception)
         {
             if (mode == CrashMode.Off)
                 return;
@@ -120,21 +151,22 @@ namespace Stride.AssetCompiler
             if (exception is OperationCanceledException)
                 return;
 
-            var stepKind = step.Command?.GetType().Name ?? "UnknownCommand";
+            var stepKind = command?.GetType().Name ?? "UnknownCommand";
             var signature = CrashSignature.Compute(exception, stepKind);
 
             lock (gate)
             {
-                if (store.IsSuppressed(signature, version))
+                // Suppression is a master concept (the user chose it at the reporter); a slave writes unconditionally
+                // and the master's own suppression already skips its local occurrences of the same signature.
+                if (ownsReporting && store.IsSuppressed(signature, version))
                     return;
                 run ??= store.CreateRun();
-                run.Add(BuildCrash(step, exception, stepKind, signature));
+                run.Add(BuildCrash(command, asset, exception, stepKind, signature));
             }
         }
 
-        private StoredCrash BuildCrash(CommandBuildStep step, Exception exception, string stepKind, string signature)
+        private StoredCrash BuildCrash(Command command, AssetItem asset, Exception exception, string stepKind, string signature)
         {
-            var asset = step.Tag as AssetItem;
             var assetType = asset?.Asset?.GetType().Name;
             var assetLabel = asset != null ? $"{asset.Location.GetFileName()} ({assetType})" : null;
 
@@ -156,7 +188,7 @@ namespace Stride.AssetCompiler
                 crash.AffectedAssets.Add(assetLabel);
             // Local-only real paths, so the reporter can offer to attach them if the user opts in. Never sent as text.
             crash.AssetDefinitionPath = asset?.FullPath?.ToOSPath();
-            crash.AssetSourcePaths.AddRange(CollectSourceInputs(step));
+            crash.AssetSourcePaths.AddRange(CollectSourceInputs(command));
             return crash;
         }
 
@@ -172,12 +204,12 @@ namespace Stride.AssetCompiler
             return crash;
         }
 
-        private static IEnumerable<string> CollectSourceInputs(CommandBuildStep step)
+        private static IEnumerable<string> CollectSourceInputs(Command command)
         {
             var paths = new List<string>();
             try
             {
-                foreach (var input in step.Command?.GetInputFiles() ?? Enumerable.Empty<ObjectUrl>())
+                foreach (var input in command?.GetInputFiles() ?? Enumerable.Empty<ObjectUrl>())
                     if (input.Type == UrlType.File && !string.IsNullOrEmpty(input.Path))
                         paths.Add(input.Path);
             }

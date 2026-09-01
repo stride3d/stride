@@ -156,8 +156,15 @@ namespace Stride.AssetCompiler
                 if (assetBuildResult.HasErrors)
                     return BuildResultCode.BuildError;
 
+                // Capture crashes to the on-disk store, unless disabled: managed exceptions escaping a command,
+                // plus native access violations (which kill the process) via the native fault handler. Slaves
+                // isolate some commands into their own process, so hand the capture to the remote helper too:
+                // it shares this run directory with each slave, which writes its crashes there for us to collect.
+                crashCapture = new CompilerCrashCapture(builderOptions);
+
                 // Setup the remote process build
-                var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
+                var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions,
+                    crashCapture.Enabled ? () => crashCapture.EnsureRun().Directory : null);
 
                 var indexName = $"index.{package.Meta.Name}.{builderOptions.Platform}";
                 // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
@@ -171,9 +178,6 @@ namespace Stride.AssetCompiler
 
                 builder.MonitorPipeNames.AddRange(builderOptions.MonitorPipeNames);
 
-                // Capture crashes to the on-disk store, unless disabled: managed exceptions escaping a command,
-                // plus native access violations (which kill the process) via the native fault handler.
-                crashCapture = new CompilerCrashCapture(builderOptions);
                 if (crashCapture.Enabled)
                     builder.CommandFailed = crashCapture.Capture;
                 crashCapture.InstallNativeHandler();
@@ -551,10 +555,17 @@ namespace Stride.AssetCompiler
                 Builder.OpenObjectDatabase(buildPath, VirtualFileSystem.ApplicationDatabaseIndexName);
 
                 var logger = builderOptions.Logger;
+
+                // Capture this slave's crashes (managed exceptions and native access violations) into the master's
+                // shared run directory when the master asked for it; the master collects and reports them at the end.
+                var crashCapture = string.IsNullOrEmpty(builderOptions.CrashRunDirectory) ? null : CompilerCrashCapture.ForSlave(builderOptions);
+                crashCapture?.InstallNativeHandler();
+
+                Command command = null;
                 MicroThread microthread = scheduler.Add(async () =>
                 {
                     // Deserialize command and parameters
-                    Command command = client.Proxy.GetCommandToExecute();
+                    command = client.Proxy.GetCommandToExecute();
 
                     // Run command
                     var inputHashes = FileVersionTracker.GetDefault();
@@ -587,6 +598,7 @@ namespace Stride.AssetCompiler
                 // Rethrow any exception that happened in microthread
                 if (microthread.Exception != null)
                 {
+                    crashCapture?.CaptureCommand(command, microthread.Exception);
                     builderOptions.Logger.Fatal(microthread.Exception.ToString());
                     return BuildResultCode.BuildError;
                 }
@@ -617,12 +629,16 @@ namespace Stride.AssetCompiler
     {
         private readonly AssemblyContainer assemblyContainer;
         private readonly PackageBuilderOptions builderOptions;
+        // Ensures and returns the master's shared crash run directory (null when crash capture is off), so each
+        // spawned slave can be pointed at it to write its own crashes there.
+        private readonly Func<string> ensureCrashDirectory;
         private int spawnedProcessCount;
 
-        public PackageBuilderRemoteHelper(AssemblyContainer assemblyContainer, PackageBuilderOptions builderOptions)
+        public PackageBuilderRemoteHelper(AssemblyContainer assemblyContainer, PackageBuilderOptions builderOptions, Func<string> ensureCrashDirectory = null)
         {
             this.assemblyContainer = assemblyContainer;
             this.builderOptions = builderOptions;
+            this.ensureCrashDirectory = ensureCrashDirectory;
         }
 
         public async Task<ResultStatus> TryExecuteRemote(Command command, BuilderContext builderContext, IExecuteContext executeContext, LocalCommandContext commandContext)
@@ -634,6 +650,12 @@ namespace Stride.AssetCompiler
 
             var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
             var arguments = $"build --slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
+
+            // Let the slave capture its own crashes (managed exceptions and native access violations) into our
+            // shared run directory, so a crash in an isolated command isn't lost when the slave process dies.
+            var crashDir = ensureCrashDirectory?.Invoke();
+            if (!string.IsNullOrEmpty(crashDir))
+                arguments += $" --crash-dir=\"{crashDir}\"";
 
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);

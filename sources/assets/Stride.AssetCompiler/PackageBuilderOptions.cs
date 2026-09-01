@@ -34,6 +34,8 @@ namespace Stride.AssetCompiler
         public bool EnableFileLogging;
         public string CustomLogFileName;
         public string SlavePipe;
+        // Slave only: the master's crash run directory this slave writes its crashes into for the master to collect.
+        public string CrashRunDirectory;
         public Dictionary<string, string> Properties = new Dictionary<string, string>();
         public Dictionary<string, string> ExtraCompileProperties;
 

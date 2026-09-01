@@ -113,6 +113,7 @@ namespace Stride.AssetCompiler
                         options.MonitorPipeNames.Add(v);
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
+                { "crash-dir=", "Slave only: shared crash run directory the master collects crashes from", v => options.CrashRunDirectory = v },
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
