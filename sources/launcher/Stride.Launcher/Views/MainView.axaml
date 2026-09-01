@@ -39,7 +39,7 @@
     <DockPanel>
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
-              Background="{DynamicResource BackgroundEmphasis}"
+              Background="{DynamicResource AccentColor}"
               Padding="10,2">
         <Grid ColumnDefinitions="3*, *, Auto">
           <TextBlock Grid.Column="0"
@@ -66,7 +66,7 @@
           <Border DockPanel.Dock="Bottom"
                   BorderBrush="{StaticResource BorderBrushTile}"
                   CornerRadius="{StaticResource ControlCornerRadius}"
-                  Background="{DynamicResource BackgroundTileAlpha}">
+                  Background="{DynamicResource NeutralBackgroundColor}">
             <StackPanel Margin="10">
               <StackPanel Margin="10 5 0 0">
                 <TextBlock Classes="Subtitle" Text="{x:Static l:Strings.Community}"/>
@@ -202,7 +202,7 @@
               </StackPanel>
             </StackPanel>
           </Border>
-          <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
+          <DockPanel Background="{DynamicResource NeutralBackgroundColor}">
             <Border DockPanel.Dock="Top"
                     BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
               <StackPanel>
@@ -212,7 +212,7 @@
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                          Background="{DynamicResource BackgroundEmphasis}"
+                          Background="{DynamicResource AccentColor}"
                             IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
                             IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                   <!-- Install specific version -->
@@ -220,7 +220,7 @@
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                          Background="{DynamicResource BackgroundEmphasis}"
+                          Background="{DynamicResource AccentColor}"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
                           IsVisible="{sd:MultiBinding {Binding ActiveVersion?.DownloadCommand.IsEnabled},
                                                       {Binding !ActiveVersion?.CanStart},
@@ -230,7 +230,7 @@
                           Content="{x:Static l:Strings.InstallLatestVersion}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                          Background="{DynamicResource BackgroundEmphasis}"
+                          Background="{DynamicResource AccentColor}"
                           IsEnabled="{Binding !IsSynchronizing}"
                           IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                 </Grid>
@@ -344,7 +344,7 @@
                     <ItemsControl.DataTemplates>
                       <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                    Background="{DynamicResource BackgroundTileAlpha}"
+                                    Background="{DynamicResource NeutralBackgroundColor}"
                                     IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
@@ -377,7 +377,7 @@
                       </DataTemplate>
                       <DataTemplate DataType="{x:Type vm:StrideStoreVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                    Background="{DynamicResource BackgroundTileAlpha}"
+                                    Background="{DynamicResource NeutralBackgroundColor}"
                                     IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
@@ -553,7 +553,7 @@
               <Grid>
                 <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
                         CornerRadius="{StaticResource ControlCornerRadius}"
-                        Background="{DynamicResource BackgroundTileAlpha}"
+                        Background="{DynamicResource NeutralBackgroundColor}"
                         IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                         VerticalAlignment="Top">
                   <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
@@ -669,7 +669,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
+                    <Border Background="{DynamicResource NeutralBackgroundColor}" CornerRadius="{StaticResource ControlCornerRadius}"
                             IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                   FontSize="16" Margin="20"
@@ -707,7 +707,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Background="{DynamicResource BackgroundTileAlpha}" CornerRadius="{StaticResource ControlCornerRadius}"
+                    <Border Background="{DynamicResource NeutralBackgroundColor}" CornerRadius="{StaticResource ControlCornerRadius}"
                             IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoNews}"
                                   FontSize="16" Margin="20"
@@ -765,7 +765,7 @@
             </Transitions>
           </Grid.Transitions>
           <Border CornerRadius="{StaticResource ControlCornerRadius}"
-                  Background="{DynamicResource BackgroundTileAlpha}">
+                  Background="{DynamicResource NeutralBackgroundColor}">
             <DockPanel>
                   <DockPanel DockPanel.Dock="Top">
                     <Button DockPanel.Dock="Right"
