@@ -60,10 +60,23 @@ namespace Stride.Graphics
 
             var useWarp = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
 
+            // The fastest GPU first, unless STRIDE_GPU_PREFERENCE says otherwise: "minimum-power"
+            // puts the battery-friendly one first (on a hybrid laptop, the integrated GPU),
+            // "unspecified" keeps the system's own order. The first adapter of the list is what
+            // the engine picks by default, so this is the machine-wide way to choose a GPU
+            // without touching the game; per-game, GraphicsDeviceManager.RequiredAdapterUid
+            // picks one exactly.
+            var gpuPreference = Environment.GetEnvironmentVariable("STRIDE_GPU_PREFERENCE")?.ToLowerInvariant() switch
+            {
+                "minimum-power" or "minimumpower" => GpuPreference.MinimumPower,
+                "unspecified" or "none" => GpuPreference.Unspecified,
+                _ => GpuPreference.HighPerformance,
+            };
+
             var adapterList = useWarp && dxgiFactoryVersion >= 4
                 ? EnumerateWarpAdapter()
-                : dxgiFactoryVersion >= 6
-                    ? EnumerateAdaptersPrefer(GpuPreference.HighPerformance)  // TODO: Make GPU preference configurable?
+                : dxgiFactoryVersion >= 6 && gpuPreference != GpuPreference.Unspecified
+                    ? EnumerateAdaptersPrefer(gpuPreference)
                     : EnumerateAdapters();
 
             adapters = adapterList.ToArray();
