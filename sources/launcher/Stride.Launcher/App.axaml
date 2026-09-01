@@ -18,22 +18,21 @@
              Source="/Assets/Images/xtwitter.png" />
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="AccentColor" Color="#900520" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#C0434343" />
           <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="{DynamicResource SystemBaseLowColor}" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="{DynamicResource SystemBaseLowColor}" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#ffffff" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
       <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
-      <Color x:Key="SystemBaseLowColor">#0FFFFFFF</Color>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -46,7 +45,7 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
     <Style Selector="Button">
-      <Setter Property="Background" Value="{DynamicResource SystemBaseLowColor}" />
+      <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
     </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
