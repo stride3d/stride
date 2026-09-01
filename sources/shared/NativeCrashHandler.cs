@@ -85,7 +85,7 @@ namespace Stride
         private static string crashDumpDir;
         private static uint crashDumpType;
         private static string crashDumpTag;
-        private static Action<string> onCrashDump;
+        private static Action<string, string> onCrashDump; // (dumpPath, faultingFrame-or-null)
         private static bool logToConsole;
         private static VectoredHandler vectoredHandler; // rooted so the thunk survives while registered
         private static IntPtr vectoredHandlerHandle;    // for the unregistration at process exit
@@ -141,7 +141,7 @@ namespace Stride
         /// FirstChanceException handler only for the SEH exceptions that do surface as managed. Because the VEH
         /// writes the dump at fault time, suppressing the dialog (which also blocks WER/createdump) costs no coverage.
         /// </remarks>
-        public static void InstallForReporting(string dumpDir, uint dumpType, Action<string> onDump)
+        public static void InstallForReporting(string dumpDir, uint dumpType, Action<string, string> onDump)
         {
             RegisterHandler(dumpDir, dumpType, tag: "native", onDump: onDump, log: false);
 
@@ -207,10 +207,11 @@ namespace Stride
 
             try
             {
+                var signature = ComputeNativeSignature(record);
                 var path = WriteMiniDump(crashDumpTag, exceptionPointers);
                 if (path != null)
                 {
-                    try { onCrashDump?.Invoke(path); } catch { /* dying process; do not throw */ }
+                    try { onCrashDump?.Invoke(path, signature); } catch { /* dying process; do not throw */ }
                 }
             }
             catch { /* dying process; do not throw */ }
@@ -244,19 +245,48 @@ namespace Stride
 
         private static bool IsRuntimeModule(IntPtr module)
         {
-            var buffer = new char[512];
-            uint length = GetModuleFileNameW(module, buffer, (uint)buffer.Length);
-            if (length == 0)
+            var path = ModuleFileName(module);
+            if (path == null)
                 return false;
 
-            var name = Path.GetFileName(new string(buffer, 0, (int)length));
+            var name = Path.GetFileName(path);
             return name.Equals("coreclr.dll", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("clrjit.dll", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("clrgc.dll", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("clrgcexp.dll", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void RegisterHandler(string dir, uint dumpType, string tag, Action<string> onDump, bool log)
+        // "<module>+0x<rva>" for the faulting instruction: the module backing it and the offset from its load base.
+        // ASLR randomizes the base each run, but the module-relative offset is stable for a given build, so the same
+        // native bug yields the same key — enough to dedup and suppress it, unlike a per-dump name. Null for JIT'd
+        // managed code (no backing module, and its address isn't stable anyway).
+        private static string ComputeNativeSignature(IntPtr record)
+        {
+            try
+            {
+                var instructionAddress = Marshal.ReadIntPtr(record, 0x10); // EXCEPTION_RECORD.ExceptionAddress
+                if (!GetModuleHandleExW(GetModuleByAddressUnchanged, instructionAddress, out var module) || module == IntPtr.Zero)
+                    return null;
+                var path = ModuleFileName(module);
+                if (path == null)
+                    return null;
+                var rva = (ulong)(instructionAddress - module); // HMODULE is the module's base address
+                return $"{Path.GetFileName(path)}+0x{rva:x}";
+            }
+            catch
+            {
+                return null; // corrupt fault context: fall back to the per-dump signature
+            }
+        }
+
+        private static string ModuleFileName(IntPtr module)
+        {
+            var buffer = new char[512];
+            uint length = GetModuleFileNameW(module, buffer, (uint)buffer.Length);
+            return length == 0 ? null : new string(buffer, 0, (int)length);
+        }
+
+        private static void RegisterHandler(string dir, uint dumpType, string tag, Action<string, string> onDump, bool log)
         {
             crashDumpDir = dir;
             crashDumpType = dumpType;
@@ -289,8 +319,8 @@ namespace Stride
             if (path != null)
             {
                 // Minimal, best-effort: the caller decides what to do (typically spawn a reporter). Any failure
-                // here must not mask the crash.
-                try { onCrashDump?.Invoke(path); } catch { /* dying process; do not throw */ }
+                // here must not mask the crash. No native fault record on this path (a managed SEH), so no frame.
+                try { onCrashDump?.Invoke(path, null); } catch { /* dying process; do not throw */ }
             }
         }
 

@@ -67,15 +67,18 @@ namespace Stride.CrashReport
 
         // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
         // then (attended) spawn the reporter. Never throws. The dump carries the faulting thread and modules.
-        private static void OnNativeCrash(string dumpPath)
+        // faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
+        private static void OnNativeCrash(string dumpPath, string faultingFrame)
         {
             try
             {
                 var data = new CrashReportData
                 {
                     ["Application"] = application,
-                    ["Exception"] = "Native crash (access violation). See the attached minidump for the faulting thread and loaded modules.",
+                    ["Exception"] = NativeCrashMessage(faultingFrame),
                 };
+                if (!string.IsNullOrEmpty(faultingFrame))
+                    data["FaultingFrame"] = faultingFrame;
                 CrashReportAnonymizer.Scrub(data);
 
                 var crash = StoredCrash.FromReportData(data);
@@ -83,9 +86,7 @@ namespace Stride.CrashReport
                 crash.Version = version;
                 crash.Environment = environment;
                 crash.TimestampUtc = DateTime.UtcNow.ToString("o");
-                // No faulting frame is available in-handler, so the signature can't be precise yet (a follow-up can
-                // derive it from the dump). Native crashes kill the process, so there is at most one per run.
-                crash.Signature = "NativeCrash|" + Path.GetFileNameWithoutExtension(dumpPath);
+                crash.Signature = NativeSignature(faultingFrame, dumpPath);
                 crash.DumpFileName = Path.GetFileName(dumpPath);
                 File.WriteAllText(Path.Combine(run.Directory, $"crash-native-{Environment.ProcessId}.json"), crash.ToJson());
             }
@@ -101,6 +102,24 @@ namespace Stride.CrashReport
                 try { TrySpawnReporter(run.Directory); } catch { /* dying process */ }
             }
         }
+
+        /// <summary>
+        /// The dedup signature for a native crash: the faulting frame (<c>module+0x&lt;rva&gt;</c>) when the handler
+        /// resolved one, else a per-dump fallback that does not group. Prefixed so native crashes stay distinct from
+        /// managed signatures. Shared with the asset compiler's own native handler.
+        /// </summary>
+        public static string NativeSignature(string faultingFrame, string dumpPath)
+            => "NativeCrash|" + (string.IsNullOrEmpty(faultingFrame) ? Path.GetFileNameWithoutExtension(dumpPath) : faultingFrame);
+
+        /// <summary>
+        /// The crash-report exception line for a native access violation, naming the faulting frame when known. The
+        /// frame travels in the message so Sentry — which has no stack trace for these — groups them by fault location
+        /// instead of collapsing every native crash into one issue.
+        /// </summary>
+        public static string NativeCrashMessage(string faultingFrame)
+            => string.IsNullOrEmpty(faultingFrame)
+                ? "Native crash (access violation). See the attached minidump for the faulting thread and loaded modules."
+                : $"Native crash (access violation) in {faultingFrame}. See the attached minidump for the faulting thread and loaded modules.";
 
         /// <summary>
         /// Launches the out-of-process reporter for a crash run, returning false when the reporter can't be

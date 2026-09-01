@@ -95,22 +95,23 @@ namespace Stride.AssetCompiler
 
         // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
         // then (attended) spawn the reporter. Never throws. The dump itself carries the faulting thread and modules.
-        private void OnNativeCrashDump(string dumpPath)
+        // faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
+        private void OnNativeCrashDump(string dumpPath, string faultingFrame)
         {
             try
             {
                 var data = new CrashReportData
                 {
                     ["Application"] = ApplicationName,
-                    ["Exception"] = "Native crash (access violation). See the attached minidump for the faulting thread and loaded modules.",
+                    ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame),
                     ["Platform"] = platform,
                     ["GraphicsApi"] = graphicsApi,
                     ["Configuration"] = configuration,
                 };
+                if (!string.IsNullOrEmpty(faultingFrame))
+                    data["FaultingFrame"] = faultingFrame;
                 var crash = NewStoredCrash(data);
-                // No faulting frame is available in-handler, so the signature can't be precise yet (a follow-up can
-                // derive it from the dump). Native crashes kill the process, so there is at most one per build.
-                crash.Signature = "NativeCrash|" + Path.GetFileNameWithoutExtension(dumpPath);
+                crash.Signature = NativeCrashReporting.NativeSignature(faultingFrame, dumpPath);
                 crash.DumpFileName = Path.GetFileName(dumpPath);
                 File.WriteAllText(Path.Combine(run.Directory, $"crash-native-{Environment.ProcessId}.json"), crash.ToJson());
             }

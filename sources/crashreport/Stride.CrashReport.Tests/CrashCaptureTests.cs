@@ -44,9 +44,17 @@ public class CrashCaptureTests
             Assert.Equal(expectExitZero, exitCode == 0);
             var dumps = Directory.GetFiles(dir, "*.dmp");
             Assert.Equal(expectDump, dumps.Length > 0);
-            Assert.Equal(expectMarker, File.Exists(Path.Combine(dir, "callback-marker.txt")));
+            var markerPath = Path.Combine(dir, "callback-marker.txt");
+            Assert.Equal(expectMarker, File.Exists(markerPath));
             if (dumps.Length > 0)
                 Assert.Equal(expectExceptionStream, HasExceptionStream(dumps[0]));
+            // The vectored-handler path resolves the faulting frame (module+0x<rva>) from the exception record;
+            // the FirstChance/SEH path (raise) has no record, so no frame — the same split as the exception stream.
+            if (File.Exists(markerPath))
+            {
+                var markerFrame = File.ReadAllLines(markerPath).ElementAtOrDefault(1) ?? "";
+                Assert.Equal(expectExceptionStream, markerFrame.Contains("+0x"));
+            }
         }
         finally
         {
@@ -92,6 +100,9 @@ public class CrashCaptureTests
             var crash = StoredCrash.FromJson(File.ReadAllText(json));
             Assert.Equal("TestProbe", crash.Application);
             Assert.StartsWith("NativeCrash|", crash.Signature);
+            // #3: the signature now carries the faulting frame (module+0x<rva>) so identical native crashes dedup,
+            // instead of a per-dump name that never groups. The probe's AV faults inside a native module.
+            Assert.Contains("+0x", crash.Signature);
             Assert.False(string.IsNullOrEmpty(crash.DumpFileName));
             Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(json)!, crash.DumpFileName)), "the dump referenced by the crash must exist");
         }

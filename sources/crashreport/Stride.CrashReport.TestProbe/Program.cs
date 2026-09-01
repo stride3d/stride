@@ -31,8 +31,10 @@ if (mode == "store")
 
 // Handler-level paths: arm the same shared handler the products use, with a marker callback standing in
 // for "spawn the reporter".
+// Marker records the dump path and, on the second line, the faulting frame the handler resolved
+// ("module+0x<rva>" for a real native fault via the vectored handler; empty for the FirstChance/SEH path).
 Stride.NativeCrashHandler.InstallForReporting(dir, Stride.NativeCrashHandler.TriageDump,
-    dumpPath => File.WriteAllText(marker, dumpPath));
+    (dumpPath, faultingFrame) => File.WriteAllText(marker, dumpPath + "\n" + (faultingFrame ?? "")));
 
 switch (mode)
 {
