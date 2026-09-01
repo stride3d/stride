@@ -32,9 +32,9 @@ namespace Stride.AssetCompiler
         private readonly string graphicsApi;
         private readonly string configuration;
         private readonly object gate = new object();
-        // The master owns the reporter (pops it / sends at end of build); a slave only writes crash files into
-        // the master's shared run for the master to collect, so it never spawns the reporter itself.
-        private bool ownsReporting = true;
+        // The master handles the run at end of build (applies suppression, sends on CI); a slave only writes
+        // crash files into the master's shared run for the master to collect.
+        private bool isMaster = true;
         private CrashRun run; // created on the first capture (or eagerly when the native handler is armed / shared with slaves)
 
         public CompilerCrashCapture(PackageBuilderOptions options)
@@ -57,7 +57,7 @@ namespace Stride.AssetCompiler
         private CompilerCrashCapture(PackageBuilderOptions options, CrashRun sharedRun) : this(options)
         {
             run = sharedRun;
-            ownsReporting = false;
+            isMaster = false;
         }
 
         /// <summary>Creates the capture an isolated slave process uses, bound to the master's shared run directory.</summary>
@@ -75,9 +75,9 @@ namespace Stride.AssetCompiler
 
         /// <summary>
         /// Arms the native-crash handler. A native access violation (native importers, shader compilers) kills the
-        /// process, so the managed <see cref="Capture"/> hook never sees it; this writes a triage minidump at fault
-        /// time and, when attended, spawns the reporter right there. Windows only for now (that is where the native
-        /// importers run); the run directory is created eagerly so the dump has a home before anything can crash.
+        /// process, so the managed <see cref="Capture"/> hook never sees it; this writes a triage minidump plus a
+        /// crash record at fault time. Windows only for now (that is where the native importers run); the run
+        /// directory is created eagerly so the dump has a home before anything can crash.
         /// </summary>
         public void InstallNativeHandler()
         {
@@ -94,8 +94,9 @@ namespace Stride.AssetCompiler
         }
 
         // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
-        // then (attended) spawn the reporter. Never throws. The dump itself carries the faulting thread and modules.
-        // faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
+        // then let it die. The compiler is headless, so it never pops a reporter here; a healthy surface
+        // (GameStudio, 'stride crash send') submits the saved report. Never throws. The dump itself carries the
+        // faulting thread and modules. faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
         private void OnNativeCrashDump(string dumpPath, string faultingFrame)
         {
             try
@@ -118,15 +119,6 @@ namespace Stride.AssetCompiler
             catch
             {
                 // Dying process: never throw from the fault handler.
-            }
-
-            // Only the interactive-attended master pops the reporter; a slave leaves the file for the master, and
-            // save/send modes leave them for 'stride crash send' / CI artifact collection (sending from a dying
-            // process is too heavy).
-            if (ownsReporting && CrashPolicy.ResolveAction() == CrashAction.Report)
-            {
-                try { NativeCrashReporting.TrySpawnReporter(run.Directory); }
-                catch { /* dying process */ }
             }
         }
 
@@ -159,7 +151,7 @@ namespace Stride.AssetCompiler
             {
                 // Suppression is a master concept (the user chose it at the reporter); a slave writes unconditionally
                 // and the master's own suppression already skips its local occurrences of the same signature.
-                if (ownsReporting && store.IsSuppressed(signature, version))
+                if (isMaster && store.IsSuppressed(signature, version))
                     return;
                 run ??= store.CreateRun();
                 run.Add(BuildCrash(command, asset, exception, stepKind, signature));

@@ -242,15 +242,16 @@ namespace Stride.AssetCompiler
                     }
                     else
                     {
-                        // A native crash would already have spawned the reporter from the (now dead) faulting
-                        // process; this handles the managed crashes captured while the master stayed alive.
+                        // The compiler is headless — it never pops a reporter GUI. On CI (send mode) it submits the
+                        // crashes itself; otherwise it leaves the run on disk and points the user at it, and a healthy
+                        // surface (GameStudio, or 'stride crash send') reviews and submits it.
                         switch (CrashPolicy.ResolveAction())
                         {
-                            case CrashAction.Report:
-                                SpawnCrashReporter(crashRun);
-                                break;
                             case CrashAction.Send:
                                 SendCrashes(crashRun);
+                                break;
+                            case CrashAction.Report:
+                                builderOptions.Logger.Warning($"{crashRun.Read().Count} asset-build crash(es) saved to {crashRun.Directory}. Review and submit them with 'stride crash send'.");
                                 break;
                             // Save / Ignore: leave the run on disk for a later 'stride crash send'.
                         }
@@ -262,23 +263,6 @@ namespace Stride.AssetCompiler
             {
                 builderOptions.Logger.Warning($"Crash reporting failed: {e.Message}");
             }
-        }
-
-        // Attended: hand the run to the out-of-process reporter so the user can review and send. Fire-and-forget
-        // — the reporter is a separate GUI process that outlives this build.
-        private void SpawnCrashReporter(CrashRun crashRun)
-        {
-            var reporter = NativeCrashReporting.ResolveCrashReporter();
-            if (reporter == null)
-            {
-                builderOptions.Logger.Info($"Crash reporter not found; {crashRun.Read().Count} crash(es) saved to {crashRun.Directory} (submit with 'stride crash send').");
-                return;
-            }
-
-            var arguments = $"\"{crashRun.Directory}\"";
-            if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
-                arguments += $" --dsn \"{CrashReportSender.BuildDsn}\"";
-            Process.Start(new ProcessStartInfo(reporter, arguments) { UseShellExecute = false });
         }
 
         // CI: send every group headlessly, then drop the run. Only Stride's own CI sets STRIDE_CRASH_MODE=send.

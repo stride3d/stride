@@ -205,8 +205,18 @@
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
 
-    <!-- Compile assets -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" />
+    <!-- Compile assets. ContinueOnError so a crash can be surfaced with a hint before the build is failed: the
+         asset compiler is headless and never pops a crash-reporter GUI, so a plain build (VS / CLI) learns here
+         that a crash report was saved. A crash (native access violation or an unhandled exception) exits with an
+         abnormal code, unlike a clean asset error (BuildResultCode: 1 build error, 2 command-line error, 100
+         cancelled). The compiler's own error lines are already echoed by Exec, so the build still shows them; the
+         <Error> below just re-fails it. -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
+    </Exec>
+    <Warning Condition="'$(_StrideCompileAssetExitCode)' != '0' And '$(_StrideCompileAssetExitCode)' != '1' And '$(_StrideCompileAssetExitCode)' != '2' And '$(_StrideCompileAssetExitCode)' != '100'"
+             Text="The asset compiler crashed (exit code $(_StrideCompileAssetExitCode)). A crash report was saved; review and submit it with 'stride crash send'." />
+    <Error Condition="'$(_StrideCompileAssetExitCode)' != '0'" Text="Asset compilation failed (exit code $(_StrideCompileAssetExitCode))." />
   </Target>
 
   <!-- Clean assets -->
