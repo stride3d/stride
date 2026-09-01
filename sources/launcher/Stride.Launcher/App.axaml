@@ -25,10 +25,12 @@
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorDark1}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor2" Color="#242424" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#ffffff" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor2" Color="#d6d6d6" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
