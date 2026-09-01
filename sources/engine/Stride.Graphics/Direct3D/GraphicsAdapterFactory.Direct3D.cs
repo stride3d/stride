@@ -60,23 +60,23 @@ namespace Stride.Graphics
 
             var useWarp = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
 
-            // The fastest GPU first, unless STRIDE_GPU_PREFERENCE says otherwise: "minimum-power"
-            // puts the battery-friendly one first (on a hybrid laptop, the integrated GPU),
-            // "unspecified" keeps the system's own order. The first adapter of the list is what
-            // the engine picks by default, so this is the machine-wide way to choose a GPU
-            // without touching the game; per-game, GraphicsDeviceManager.RequiredAdapterUid
-            // picks one exactly.
-            var gpuPreference = Environment.GetEnvironmentVariable("STRIDE_GPU_PREFERENCE")?.ToLowerInvariant() switch
+            // Which GPU comes first on multi-GPU machines: GraphicsAdapterFactory.GpuPreference,
+            // unless the STRIDE_GPU_PREFERENCE environment variable overrides it - the machine's
+            // word over the game's, for steering a title that never exposes the choice. The first
+            // adapter of the list is what the engine picks by default; per-game,
+            // GameGraphicsParameters.RequiredAdapterUid picks one exactly.
+            var preference = Environment.GetEnvironmentVariable("STRIDE_GPU_PREFERENCE")?.ToLowerInvariant() switch
             {
-                "minimum-power" or "minimumpower" => GpuPreference.MinimumPower,
-                "unspecified" or "none" => GpuPreference.Unspecified,
-                _ => GpuPreference.HighPerformance,
+                "high-performance" or "highperformance" => Graphics.GpuPreference.HighPerformance,
+                "minimum-power" or "minimumpower" => Graphics.GpuPreference.MinimumPower,
+                "unspecified" => Graphics.GpuPreference.Unspecified,
+                _ => gpuPreference,
             };
 
             var adapterList = useWarp && dxgiFactoryVersion >= 4
                 ? EnumerateWarpAdapter()
-                : dxgiFactoryVersion >= 6 && gpuPreference != GpuPreference.Unspecified
-                    ? EnumerateAdaptersPrefer(gpuPreference)
+                : dxgiFactoryVersion >= 6 && preference != Graphics.GpuPreference.Unspecified
+                    ? EnumerateAdaptersPrefer(preference)
                     : EnumerateAdapters();
 
             adapters = adapterList.ToArray();
@@ -191,17 +191,21 @@ namespace Stride.Graphics
             //
             // Enumerates all the Graphics Adapters in the system, using GPU preference (DXGI 1.6+).
             //
-            static List<GraphicsAdapter> EnumerateAdaptersPrefer(GpuPreference gpuPreference)
+            static List<GraphicsAdapter> EnumerateAdaptersPrefer(GpuPreference preference)
             {
                 Debug.Assert(dxgiFactoryVersion >= 6);
                 var dxgiFactory6 = (IDXGIFactory6*) dxgiFactory;
+
+                var dxgiPreference = preference == GpuPreference.MinimumPower
+                    ? Silk.NET.DXGI.GpuPreference.MinimumPower
+                    : Silk.NET.DXGI.GpuPreference.HighPerformance;
 
                 uint adapterIndex = 0;
                 var adapterList = new List<GraphicsAdapter>();
 
                 do
                 {
-                    HResult result = dxgiFactory6->EnumAdapterByGpuPreference(adapterIndex, gpuPreference, out ComPtr<IDXGIAdapter1> dxgiAdapter);
+                    HResult result = dxgiFactory6->EnumAdapterByGpuPreference(adapterIndex, dxgiPreference, out ComPtr<IDXGIAdapter1> dxgiAdapter);
 
                     bool foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
                     if (!foundValidAdapter)
