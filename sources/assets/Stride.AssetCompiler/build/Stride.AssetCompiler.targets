@@ -206,7 +206,15 @@
            is shell-agnostic and cross-platform); %p is createdump's own pid placeholder, left literal. -->
       <_StrideCompileAssetNativeCrash Condition="'$(STRIDE_CRASH_MODE)' != 'off' And !$([MSBuild]::IsOSPlatform('Windows'))">true</_StrideCompileAssetNativeCrash>
       <_StrideCompileAssetNativeDumpDir Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">$([MSBuild]::NormalizeDirectory('$(StrideCompileAssetBuildPath)', 'crash-native'))</_StrideCompileAssetNativeDumpDir>
-      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp</_StrideCompileAssetCrashEnvVars>
+
+      <!-- Route this build's compiler crashes to the caller's crash dir (e.g. the GameStudio instance that
+           triggered the build) so it can surface them, scoped to the compiler process only. The caller passes
+           StrideCrashDir as a global property; here it becomes STRIDE_CRASH_DIR on the compiler's environment. -->
+      <_StrideCompileAssetCrashEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetCrashEnvVars>
+      <!-- Append the createdump vars (Linux/macOS), joining without a leading/empty entry whether or not
+           STRIDE_CRASH_DIR is already present (an empty entry would make Exec reject the list). -->
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp</_StrideCompileAssetCrashEnvVars>
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp</_StrideCompileAssetCrashEnvVars>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
