@@ -207,6 +207,15 @@ namespace Stride.Launcher.Assets.Localization {
                 return ResourceManager.GetString("ConfirmUninstall", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar Community
+        /// </summary>
+        public static string Community {
+            get {
+                return ResourceManager.GetString("Community", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Details:.

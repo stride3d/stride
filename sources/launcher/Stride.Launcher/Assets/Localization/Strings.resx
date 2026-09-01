@@ -157,6 +157,10 @@
     <value>Are you sure you wish to uninstall version {0}?</value>
     <comment>Displayed when the user attempt to delete a version</comment>
   </data>
+  <data name="Community" xml:space="preserve">
+    <value>Community</value>
+    <comment>/!\ Text must be short</comment>
+  </data>
   <data name="Details" xml:space="preserve">
     <value>Details:</value>
     <comment>The word to display the detail of an error, plus a colon (:)</comment>
