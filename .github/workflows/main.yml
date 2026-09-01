@@ -126,6 +126,16 @@ jobs:
       build-type: Release
       graphics-api: Vulkan
 
+  # Null ships no renderer, so nothing else builds it and its stubs drift out of step with the shared
+  # signatures they implement. Compiling it here is what keeps that API honest.
+  Windows-Runtime-Null:
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
+    uses: ./.github/workflows/build-windows-runtime.yml
+    with:
+      build-type: Release
+      graphics-api: "Null"
+
   ### Full Windows build (engine + editor + assets + samples) ###
   Windows-Full:
     needs: changes

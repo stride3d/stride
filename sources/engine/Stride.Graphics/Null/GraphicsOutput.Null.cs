@@ -3,6 +3,8 @@
 
 #if STRIDE_GRAPHICS_API_NULL
 
+using System;
+
 namespace Stride.Graphics
 {
     /// <summary>

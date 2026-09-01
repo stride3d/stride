@@ -18,6 +18,7 @@ on:
           - Direct3D11
           - Direct3D12
           - Vulkan
+          - Null
   workflow_call:
     inputs:
       build-type:

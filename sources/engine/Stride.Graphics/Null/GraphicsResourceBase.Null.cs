@@ -31,6 +31,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+        /// </summary>
+        /// <param name="other">The other Graphics Resource.</param>
+        internal virtual void SwapInternal(GraphicsResourceBase other)
+        {
+            NullHelper.ToImplement();
+        }
+
+        /// <summary>
         /// Called when graphics device has been recreated.
         /// </summary>
         /// <returns>True if item transitioned to a <see cref="GraphicsResourceLifetimeState.Active"/> state.</returns>
