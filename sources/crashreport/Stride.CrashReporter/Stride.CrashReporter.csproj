@@ -38,6 +38,10 @@
        and Avalonia, so nothing it depends on can be the thing that just crashed. -->
   <ItemGroup>
     <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" PrivateAssets="all" />
+    <!-- The core's Sentry sender runs at send time, but Sentry is PrivateAssets=all in the core (to keep its
+         Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so Sentry.dll is
+         bundled in the reporter's tools/ closure; PrivateAssets=all keeps it from flowing onward. -->
+    <PackageReference Include="Sentry" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

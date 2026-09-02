@@ -8,7 +8,10 @@
     <StrideNativeOutputName>libstridecrash</StrideNativeOutputName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Sentry" />
+    <!-- Sentry is an implementation detail. PrivateAssets=all keeps it entirely private to this project so it
+         never flows to consumers: notably its Roslyn source generator, which otherwise reaches games (via the
+         asset-compiler dependency) and fails there emitting code against a Sentry assembly they don't reference. -->
+    <PackageReference Include="Sentry" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <!-- Native access-violation handler (vectored exception handler + minidump). Shared with the test

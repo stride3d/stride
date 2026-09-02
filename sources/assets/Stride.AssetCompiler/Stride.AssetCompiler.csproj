@@ -7,6 +7,8 @@
          (a duplicate of the managed assembly) or the resolver bootstrap dlls. -->
     <StridePackRunnableInTools>true</StridePackRunnableInTools>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <!-- See the Sentry PackageReference below. -->
+    <SentryDisableSourceGenerator>true</SentryDisableSourceGenerator>
     <!-- Lay graphics-API DLLs into per-API subfolders so the API is chosen at launch. -->
     <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
     <!-- Desktop-only tool: drop non-desktop runtimes/<rid>/ (mobile, ~250 MB) from the no-RID output. -->
@@ -37,6 +39,15 @@
     <!-- Headless crash capture: write crashes to the store and (in CI) send them. UI-agnostic core only —
          the reporter window is spawned out-of-process, never referenced here. -->
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <!-- Sentry is used by the core's crash sender at send time (CI send mode), but it's PrivateAssets=all in the
+         core (to keep its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so
+         Sentry.dll is deployed for the send. PrivateAssets=all is load-bearing: the asset compiler flows to games
+         via buildTransitive, and it keeps Sentry (and its generator) from propagating there.
+         SentryDisableSourceGenerator: Sentry's generator injects a module initializer into an exe that loads
+         Sentry.dll at startup, and the packaged compiler (tools/, dependencies resolved from the store, where a
+         private package isn't) would then fail to start at all. Sentry is only needed when a send happens.
+         (ExcludeAssets="analyzers" is not enough: the SDK still resolves the generator.) -->
+    <PackageReference Include="Sentry" PrivateAssets="all" ExcludeAssets="build" />
     <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
          <dependency> (so a standalone compiler install pulls the reporter in) without copying its
          self-contained closure into our bin. ReferenceOutputAssembly=false would suppress the dependency. -->
