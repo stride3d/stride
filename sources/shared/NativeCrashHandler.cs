@@ -159,6 +159,12 @@ namespace Stride
         // fault time, so nothing is JIT-compiled in the corrupt context.
         private static void RegisterVectoredHandler()
         {
+            // Skip under a managed debugger: on .NET 10, invoking a managed vectored handler during the debugger's
+            // exception dispatch faults coreclr and turns any caught exception into a process kill. Regression:
+            // https://github.com/dotnet/runtime/issues/133066. Attach-to-running isn't covered; STRIDE_CRASH_MODE=off skips it.
+            if (Debugger.IsAttached)
+                return;
+
             // The filter tells managed faults from native ones by "JIT'd managed code has no backing module." That
             // holds under CoreCLR but not NativeAOT, where managed code lives in the app module and would be misread
             // as native. Skip under AOT; WER/createdump stay the native-crash path there.
