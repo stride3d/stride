@@ -100,15 +100,15 @@ internal static class NativeCapture
     }
 
     private static string Read(JsonElement element, string name, string fallback)
-        => element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : fallback;
+        => element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString()! : fallback;
 
-    private static string GetOption(string[] args, string name)
+    private static string? GetOption(string[] args, string name)
     {
         var index = Array.IndexOf(args, name);
         return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
     }
 
-    private static void SignalEvent(string name)
+    private static void SignalEvent(string? name)
     {
         if (string.IsNullOrEmpty(name))
             return;

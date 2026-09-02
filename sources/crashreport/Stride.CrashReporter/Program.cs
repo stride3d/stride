@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Avalonia;
+using Stride.CrashReport;
 
 namespace Stride.CrashReporter;
 
@@ -25,7 +26,7 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        string runDirectory;
+        string? runDirectory;
         if (Array.IndexOf(args, "--capture") >= 0)
         {
             // The crashing host is frozen waiting on the event; capture its dump before doing anything slower.
@@ -36,6 +37,10 @@ internal static class Program
                 return 1;
             }
             NativeCapture.Capture(args, runDirectory);
+
+            // Unattended (save/send/CI): the dump and report are saved to the run; don't pop a window.
+            if (CrashPolicy.ResolveAction() != CrashAction.Report)
+                return 0;
         }
         else
         {

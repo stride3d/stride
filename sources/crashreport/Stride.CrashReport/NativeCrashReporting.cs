@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Stride.CrashReport
 {
@@ -55,7 +56,18 @@ namespace Stride.CrashReport
                 return; // Can't create the store (e.g. permissions); nothing to arm.
             }
 
-            NativeCrashHandler.InstallForReporting(run.Directory, NativeCrashHandler.TriageDump, OnNativeCrash);
+            // Capture is out-of-process: resolve the reporter now, in healthy code, record this host's identity
+            // for it to read (it runs in a different process), and arm the native trigger to spawn it on a fault.
+            // A managed vectored handler is unsupported (dotnet/runtime#119142) and can turn a caught exception
+            // fatal on a runtime update; the native trigger runs no managed code in the fault context. When the
+            // reporter can't be resolved, native capture is simply unavailable this run.
+            var reporter = ResolveCrashReporter();
+            if (reporter == null || !reporter.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            WriteNativeContext(run.Directory);
+            try { NativeInvoke.stride_crash_install(reporter, run.Directory, CaptureTimeoutMilliseconds); }
+            catch { return; }
 
             // A run directory is created eagerly so the dump has a home; delete it on a clean exit so normal
             // launches don't litter the store.
@@ -65,41 +77,22 @@ namespace Stride.CrashReport
             };
         }
 
-        // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
-        // then (attended) spawn the reporter. Never throws. The dump carries the faulting thread and modules.
-        // faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
-        private static void OnNativeCrash(string dumpPath, string faultingFrame)
+        // The crashing thread stays frozen while the reporter captures the dump; this bounds that wait so a
+        // missing or wedged reporter can't hang the (already dying) process indefinitely.
+        private const uint CaptureTimeoutMilliseconds = 30000;
+
+        // The reporter runs in a different process and can't read this assembly's version, so record the host's
+        // identity for it (see NativeCapture.ReadContext). Best effort; the reporter falls back to placeholders.
+        private static void WriteNativeContext(string runDirectory)
         {
             try
             {
-                var data = new CrashReportData
-                {
-                    ["Application"] = application,
-                    ["Exception"] = NativeCrashMessage(faultingFrame),
-                };
-                if (!string.IsNullOrEmpty(faultingFrame))
-                    data["FaultingFrame"] = faultingFrame;
-                CrashReportAnonymizer.Scrub(data);
-
-                var crash = StoredCrash.FromReportData(data);
-                crash.Application = application;
-                crash.Version = version;
-                crash.Environment = environment;
-                crash.TimestampUtc = DateTime.UtcNow.ToString("o");
-                crash.Signature = NativeSignature(faultingFrame, dumpPath);
-                crash.DumpFileName = Path.GetFileName(dumpPath);
-                File.WriteAllText(Path.Combine(run.Directory, $"crash-native-{Environment.ProcessId}.json"), crash.ToJson());
+                var context = new { Application = application, Version = version, Environment = environment };
+                File.WriteAllText(Path.Combine(runDirectory, "native-context.json"), JsonSerializer.Serialize(context));
             }
             catch
             {
-                // Dying process: never throw from the fault handler.
-            }
-
-            // Only the interactive-attended case pops the reporter; save/send modes leave the files for
-            // 'stride crash send' / CI artifact collection (sending from a dying process is too heavy).
-            if (CrashPolicy.ResolveAction() == CrashAction.Report)
-            {
-                try { TrySpawnReporter(run.Directory); } catch { /* dying process */ }
+                // The reporter falls back to placeholders when this is missing.
             }
         }
 
