@@ -701,14 +701,21 @@
                             <Button Command="{Binding OpenUrlCommand}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">
-                              <DockPanel Margin="4">
-                                <TextBlock DockPanel.Dock="Top"
-                                            Margin="0,4" HorizontalAlignment="Left"
+                              <StackPanel Spacing="4">
+                                <TextBlock  Margin="0,4" HorizontalAlignment="Left"
                                             FontSize="16"
                                             Text="{Binding Title}" TextWrapping="Wrap" />
-                                <TextBlock Margin="0,8,0,4" HorizontalAlignment="Right"
-                                            Text="{Binding Date, StringFormat={x:Static l:Strings.NewsDate}}" />
-                              </DockPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <Path Width="13"
+                                        Height="13"
+                                        Fill="White"
+                                        Stretch="Uniform"
+                                        Data="M 38,23.75C 46.7445,23.75 53.8333,30.8388 53.8333,39.5833C 53.8333,48.3278 46.7445,55.4167 38,55.4167C 29.2555,55.4167 22.1667,48.3278 22.1667,39.5833C 22.1667,30.8388 29.2555,23.75 38,23.75 Z M 38,27.7083C 31.4416,27.7083 26.125,33.025 26.125,39.5833C 26.125,46.1417 31.4416,51.4583 38,51.4583C 44.5584,51.4583 49.875,46.1417 49.875,39.5833C 49.875,33.025 44.5584,27.7083 38,27.7083 Z M 37.6042,30.875C 38.4786,30.875 39.1875,31.5839 39.1875,32.4583L 39.1875,38.3959L 45.125,38.3959C 45.9994,38.3959 46.7083,39.1047 46.7083,39.9792L 46.7083,40.7708C 46.7083,41.6453 45.9994,42.3542 45.125,42.3542L 38,42.3542C 37.2083,42.2222 36.4167,42.0903 35.9548,41.6285C 35.493,41.1667 35.3611,40.375 35.2292,39.5833L 35.2292,32.4583C 35.2292,31.5839 35.938,30.875 36.8125,30.875L 37.6042,30.875 Z M 49.0833,20.5833C 52.5811,20.5833 55.4167,23.4189 55.4167,26.9167C 55.4167,28.4256 54.889,29.8113 54.008,30.8993C 51.9429,27.1006 48.5651,24.1189 44.4835,22.5632C 45.6379,21.3439 47.2718,20.5833 49.0833,20.5833 Z M 26.9167,20.5834C 28.7282,20.5834 30.3621,21.3439 31.5165,22.5632C 27.4349,24.1189 24.0571,27.1006 21.992,30.8993C 21.111,29.8113 20.5833,28.4256 20.5833,26.9167C 20.5833,23.4189 23.4189,20.5834 26.9167,20.5834 Z "
+                                        VerticalAlignment="Center"/>
+                                  <TextBlock Margin="0,8,0,4" VerticalAlignment="Center"
+                                              Text="{Binding Date, StringFormat={x:Static l:Strings.NewsDate}}" />
+                                </StackPanel>
+                              </StackPanel>
                             </Button>
                           </Border>
                         </DataTemplate>
