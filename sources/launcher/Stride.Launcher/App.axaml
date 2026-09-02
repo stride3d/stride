@@ -35,6 +35,7 @@
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
       <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+      <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>
 
