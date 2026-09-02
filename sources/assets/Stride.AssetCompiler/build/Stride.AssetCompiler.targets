@@ -213,10 +213,14 @@
            triggered the build) so it can surface them, scoped to the compiler process only. The caller passes
            StrideCrashDir as a global property; here it becomes STRIDE_CRASH_DIR on the compiler's environment. -->
       <_StrideCompileAssetCrashEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetCrashEnvVars>
-      <!-- Append the createdump vars (Linux/macOS), joining without a leading/empty entry whether or not
-           STRIDE_CRASH_DIR is already present (an empty entry would make Exec reject the list). -->
-      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp</_StrideCompileAssetCrashEnvVars>
-      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp</_StrideCompileAssetCrashEnvVars>
+      <!-- Append the createdump vars, joined without an empty entry (which Exec would reject). -->
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+
+      <!-- The adopt step below writes the recovered StoredCrash to the store; route it to the caller's crash dir
+           too (only STRIDE_CRASH_DIR is needed, not the createdump vars) so a GameStudio-triggered build's native
+           crash surfaces in that GameStudio like a managed one, instead of only the default store. -->
+      <_StrideCompileAssetAdoptEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetAdoptEnvVars>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
@@ -230,10 +234,10 @@
          asset compiler is headless and never pops a crash-reporter GUI, so a plain build (VS / CLI) learns here
          that a crash report was saved. A crash (native access violation or an unhandled exception) exits with an
          abnormal code, unlike a clean asset error (BuildResultCode: 1 build error, 2 command-line error, 100
-         cancelled). The compiler's own error lines are already echoed by Exec, so the build still shows them; the
-         <Error> below just re-fails it. EnvironmentVariables carries the crash-capture env (createdump + crash-dir
-         routing), empty only when both are unset. -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="true">
+         cancelled). ErrorAndContinue (not true=WarnAndContinue) keeps the compiler's echoed error lines as errors,
+         not warnings; the <Error> below re-fails the build. EnvironmentVariables carries the crash-capture env
+         (createdump + crash-dir routing), empty only when both are unset. -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue">
       <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
     </Exec>
 
@@ -243,9 +247,12 @@
     <ItemGroup Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">
       <_StrideNativeCrashDump Include="$(_StrideCompileAssetNativeDumpDir)*.dmp" />
     </ItemGroup>
+    <!-- TrimEndingDirectorySeparator on the dump dir: a trailing '\' before the closing quote is an escaped
+         quote to Windows' parser, so the path would swallow the rest of the args and adopt would bail. -->
     <Exec Condition="'@(_StrideNativeCrashDump)' != ''"
           WorkingDirectory="$(TargetDir)"
-          Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$(_StrideCompileAssetNativeDumpDir)&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
+          EnvironmentVariables="$(_StrideCompileAssetAdoptEnvVars)"
+          Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$([System.IO.Path]::TrimEndingDirectorySeparator('$(_StrideCompileAssetNativeDumpDir)'))&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
           ContinueOnError="true" />
 
     <!-- A native crash that produced a dump is already reported by crash-adopt above; otherwise (a crash with no
