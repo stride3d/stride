@@ -248,17 +248,22 @@ namespace Stride.CrashReport
         }
 
         // The reporter ships as a self-contained publish tree: prefer the native apphost on Windows (a GUI-subsystem
-        // exe, so no console flashes on launch), else the managed dll run through dotnet.
+        // exe, so no console flashes on launch), else the managed dll run through dotnet. Require the managed dll: an
+        // apphost can't run without it, and a Private=false project reference leaks a bare apphost stub (exe + config,
+        // no dll or natives) into a consumer's bin — accepting that stub would "spawn" a reporter that instantly dies.
         private static string FindReporterIn(string directory)
         {
+            var dll = Path.Combine(directory, "Stride.CrashReporter.dll");
+            if (!File.Exists(dll))
+                return null;
+
             if (OperatingSystem.IsWindows())
             {
                 var exe = Path.Combine(directory, "Stride.CrashReporter.exe");
                 if (File.Exists(exe))
                     return exe;
             }
-            var dll = Path.Combine(directory, "Stride.CrashReporter.dll");
-            return File.Exists(dll) ? dll : null;
+            return dll;
         }
 
         // In a real install the reporter is delivered as the Stride.CrashReporter package, its publish tree under
