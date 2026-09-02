@@ -1,8 +1,9 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
+    <!-- GUI subsystem in every config so the spawned reporter never flashes a console; for console output while
+         developing it, run it through the host: dotnet Stride.CrashReporter.dll <args>. -->
     <OutputType>WinExe</OutputType>
-    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
     <!-- Cross-platform Avalonia reporter; runs on the shared .NET runtime its hosts already use. -->
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <DebugType>embedded</DebugType>

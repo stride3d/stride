@@ -31,6 +31,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         this.requestClose = requestClose;
 
         Groups = new ObservableCollection<CrashGroupViewModel>(session.Groups.Select(crash => new CrashGroupViewModel(crash, session.DumpSize(crash))));
+        Title = $"{ApplicationName(session.Groups)} crash report";
         Header = ComputeHeader(session.Groups);
         FullReport = string.Join("\n\n----------------------------------------\n\n", Groups.Select(group => group.ReportText));
         canSend = !session.IsDisabled;
@@ -43,6 +44,8 @@ internal sealed class CrashReporterViewModel : ObservableObject
     }
 
     public ObservableCollection<CrashGroupViewModel> Groups { get; }
+
+    public string Title { get; }
 
     public string Header { get; }
 
@@ -84,6 +87,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         SendStatus = "Sending crash reports…";
 
         var failed = 0;
+        string? lastError = null;
         // Send only checked groups; a sent crash is suppressed and its files dropped, a failed send is left on
         // disk for 'stride crash send'. Unchecked groups wait for the Keep/Delete choice at window close.
         foreach (var group in Groups.Where(group => group.Send))
@@ -94,9 +98,10 @@ internal sealed class CrashReporterViewModel : ObservableObject
                 session.Suppress(group.Crash);
                 session.Remove(group.Crash);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
                 failed++;
+                lastError = exception.Message;
             }
         }
 
@@ -104,7 +109,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         CanSend = false; // consent is per crash; don't offer a second send
         SendStatus = failed == 0
             ? "Thank you. The crash report has been sent."
-            : $"{failed} report(s) could not be sent; they were kept for a later 'stride crash send'.";
+            : $"{failed} report(s) could not be sent ({lastError}); they were kept for a later 'stride crash send'.";
     }
 
     private void Close(bool keep)
@@ -155,11 +160,15 @@ internal sealed class CrashReporterViewModel : ObservableObject
         }
     }
 
+    // The crashing tool's name, so the window makes clear which app crashed (e.g. the asset compiler, not the
+    // GameStudio that spawned this reporter).
+    private static string ApplicationName(IReadOnlyList<Stride.CrashReport.StoredCrash> groups)
+        => groups.Select(crash => crash.Application).FirstOrDefault(name => !string.IsNullOrEmpty(name)) ?? "A Stride tool";
+
     private static string ComputeHeader(IReadOnlyList<Stride.CrashReport.StoredCrash> groups)
     {
-        var application = groups.Select(crash => crash.Application).FirstOrDefault(name => !string.IsNullOrEmpty(name)) ?? "A Stride tool";
         var count = groups.Count;
         var crashes = count == 1 ? "a crash" : $"{count} distinct crashes";
-        return $"{application} hit {crashes} during the last build. Sending the report helps us fix them.";
+        return $"{ApplicationName(groups)} hit {crashes} during the last build. Sending the report helps us fix them.";
     }
 }

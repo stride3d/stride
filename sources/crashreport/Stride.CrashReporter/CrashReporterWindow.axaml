@@ -7,7 +7,7 @@
         x:Class="Stride.CrashReporter.CrashReporterWindow"
         x:DataType="vm:CrashReporterViewModel"
         Icon="/Assets/CrashReportImage.png"
-        Title="Report your crash"
+        Title="{Binding Title, FallbackValue='Crash report'}"
         MinWidth="640" MinHeight="480" Width="760" Height="560"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource ReporterWindowBackground}">
