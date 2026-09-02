@@ -532,8 +532,7 @@
                 </DockPanel>
               </Border>
               <Grid>
-                <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
-                        CornerRadius="{StaticResource ControlCornerRadius}"
+                <Border Classes="card"
                         Background="{DynamicResource NeutralBackgroundColor}"
                         IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                         VerticalAlignment="Top">
@@ -546,7 +545,7 @@
                     <ItemsControl ItemsSource="{Binding RecentProjects}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
-                          <Border BorderBrush="{StaticResource BorderBrushTile}" CornerRadius="{StaticResource ControlCornerRadius}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                          <Border Classes="card" Margin="0 0 0 20">
                             <Button Command="{Binding OpenCommand}"
                                     IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                     HorizontalAlignment="Stretch"
@@ -650,7 +649,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Background="{DynamicResource NeutralBackgroundColor}" CornerRadius="{StaticResource ControlCornerRadius}"
+                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
                             IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                   FontSize="16" Margin="20"
@@ -659,7 +658,7 @@
                     <ItemsControl ItemsSource="{Binding ActiveDocumentationPages}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:DocumentationPageViewModel}">
-                          <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                          <Border Classes="card" Margin="0 0 0 20">
                             <Button Command="{Binding OpenUrlCommand}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">
@@ -688,7 +687,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Background="{DynamicResource NeutralBackgroundColor}" CornerRadius="{StaticResource ControlCornerRadius}"
+                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
                             IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoNews}"
                                   FontSize="16" Margin="20"
@@ -697,7 +696,7 @@
                     <ItemsControl ItemsSource="{Binding NewsPages}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:NewsPageViewModel}">
-                          <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                          <Border Classes="card" Margin="0 0 0 20">
                             <Button Command="{Binding OpenUrlCommand}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">

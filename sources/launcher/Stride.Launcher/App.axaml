@@ -50,6 +50,12 @@
     <Style Selector="Button">
       <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
     </Style>
+    <Style Selector="Border.card">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#17FFFFFF" />
+      <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+      <Setter Property="BoxShadow" Value="0 1 2 #17FFFFFF" />
+    </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
     </Style>
