@@ -166,6 +166,68 @@ public static class MinidumpWriter
         }
     }
 
+    /// <summary>
+    /// Writes a triage dump of <em>another</em> process from this (healthy) one, carrying that process's crash
+    /// exception record so the dump has an exception stream (the faulting thread and fault are recorded). The
+    /// out-of-process reporter uses this to capture a dying host: the host's native trigger freezes the crashing
+    /// thread and hands us its pid, thread id, and the address of its <c>EXCEPTION_POINTERS</c>, which dbghelp
+    /// reads across the process boundary (<c>ClientPointers</c>). Returns false if the target can't be opened or
+    /// the dump can't be written.
+    /// </summary>
+    public static bool TryWriteTargetProcess(int processId, uint threadId, IntPtr exceptionPointers, string path)
+    {
+        const uint ProcessQueryInformation = 0x0400;
+        const uint ProcessVmRead = 0x0010;
+
+        var target = OpenProcess(ProcessQueryInformation | ProcessVmRead, false, (uint)processId);
+        if (target == IntPtr.Zero)
+            return false;
+        try
+        {
+            using var file = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            var information = new MinidumpExceptionInformation
+            {
+                ThreadId = threadId,
+                ExceptionPointers = exceptionPointers, // an address in the target; ClientPointers reads it there
+                ClientPointers = 1,
+            };
+            var pinned = GCHandle.Alloc(information, GCHandleType.Pinned);
+            try
+            {
+                return MiniDumpWriteDump(target, (uint)processId, file.SafeFileHandle, TriageFlags,
+                    pinned.AddrOfPinnedObject(), IntPtr.Zero, IntPtr.Zero);
+            }
+            finally
+            {
+                pinned.Free();
+            }
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            CloseHandle(target);
+        }
+    }
+
+    // Pack=4 required: dbghelp.h structs are 4-byte packed; natural x64 layout makes dbghelp read a garbage
+    // pointer and fail with ERROR_NOACCESS.
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    private struct MinidumpExceptionInformation
+    {
+        public uint ThreadId;
+        public IntPtr ExceptionPointers;
+        public int ClientPointers; // BOOL
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr OpenProcess(uint desiredAccess, bool inheritHandle, uint processId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr handle);
+
     [DllImport("dbghelp.dll", SetLastError = true)]
     private static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, SafeFileHandle hFile, int dumpType,
         IntPtr exceptionParam, IntPtr userStreamParam, IntPtr callbackParam);
