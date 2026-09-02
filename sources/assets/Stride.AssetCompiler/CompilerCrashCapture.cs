@@ -74,53 +74,11 @@ namespace Stride.AssetCompiler
         /// <summary>Removes crash runs older than the retention window, so the store never grows unbounded.</summary>
         public void PruneOld() => store.Prune(TimeSpan.FromDays(30));
 
-        /// <summary>
-        /// Arms the native-crash handler. A native access violation (native importers, shader compilers) kills the
-        /// process, so the managed <see cref="Capture"/> hook never sees it; this writes a triage minidump plus a
-        /// crash record at fault time. Windows only for now (that is where the native importers run); the run
-        /// directory is created eagerly so the dump has a home before anything can crash.
-        /// </summary>
-        public void InstallNativeHandler()
-        {
-            if (mode == CrashMode.Off || !OperatingSystem.IsWindows())
-                return;
-            NativeCrashHandler.InstallForReporting(EnsureRun().Directory, NativeCrashHandler.TriageDump, OnNativeCrashDump);
-        }
-
         /// <summary>The run captured crashes are written to, created on first use. Shared with the build's slaves.</summary>
         public CrashRun EnsureRun()
         {
             lock (gate)
                 return run ??= store.CreateRun();
-        }
-
-        // Runs inside the faulting, possibly-corrupt process: do the minimum — record a crash referencing the dump,
-        // then let it die. The compiler is headless, so it never pops a reporter here; a healthy surface
-        // (GameStudio, 'stride crash send') submits the saved report. Never throws. The dump itself carries the
-        // faulting thread and modules. faultingFrame is "<module>+0x<rva>" when the handler resolved it, else null.
-        private void OnNativeCrashDump(string dumpPath, string faultingFrame)
-        {
-            try
-            {
-                var data = new CrashReportData
-                {
-                    ["Application"] = ApplicationName,
-                    ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame),
-                    ["Platform"] = platform,
-                    ["GraphicsApi"] = graphicsApi,
-                    ["Configuration"] = configuration,
-                };
-                if (!string.IsNullOrEmpty(faultingFrame))
-                    data["FaultingFrame"] = faultingFrame;
-                var crash = NewStoredCrash(data);
-                crash.Signature = NativeCrashReporting.NativeSignature(faultingFrame, dumpPath);
-                crash.DumpFileName = Path.GetFileName(dumpPath);
-                File.WriteAllText(Path.Combine(run.Directory, $"crash-native-{Environment.ProcessId}.json"), crash.ToJson());
-            }
-            catch
-            {
-                // Dying process: never throw from the fault handler.
-            }
         }
 
         /// <summary>

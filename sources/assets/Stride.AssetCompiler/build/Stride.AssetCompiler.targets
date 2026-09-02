@@ -198,13 +198,15 @@
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
 
-      <!-- Linux/macOS native-crash capture: there is no in-process vectored handler there (that is Windows-only),
-           so arm the runtime's own createdump on the compiler and, by process inheritance, its slaves. Scoped to
-           this Exec's environment, so a game — a separate Exec/run — never inherits it. Off on Windows (the
-           vectored handler covers it) and when crash reporting is disabled. The dumps are adopted into the crash
-           store after the build. Passed via Exec's EnvironmentVariables (set on the child process directly, so it
-           is shell-agnostic and cross-platform); %p is createdump's own pid placeholder, left literal. -->
-      <_StrideCompileAssetNativeCrash Condition="'$(STRIDE_CRASH_MODE)' != 'off' And !$([MSBuild]::IsOSPlatform('Windows'))">true</_StrideCompileAssetNativeCrash>
+      <!-- Native-crash capture via the runtime's own createdump, armed on the compiler and, by process
+           inheritance, its slaves. All platforms: the compiler no longer registers an in-process vectored handler
+           (a managed one is unsupported, dotnet/runtime#119142). Scoped to this Exec's environment, so a game (a
+           separate Exec/run) never inherits it. Off only when crash reporting is disabled. The dumps are adopted
+           into the crash store after the build. Passed via Exec's EnvironmentVariables (set on the child process
+           directly, so it is shell-agnostic and cross-platform); %p is createdump's own pid placeholder, left
+           literal. On Windows the dump has no exception stream until dotnet/runtime#133065 ships, so its
+           faulting-frame signature is a per-dump fallback there for now. -->
+      <_StrideCompileAssetNativeCrash Condition="'$(STRIDE_CRASH_MODE)' != 'off'">true</_StrideCompileAssetNativeCrash>
       <_StrideCompileAssetNativeDumpDir Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">$([MSBuild]::NormalizeDirectory('$(StrideCompileAssetBuildPath)', 'crash-native'))</_StrideCompileAssetNativeDumpDir>
 
       <!-- Route this build's compiler crashes to the caller's crash dir (e.g. the GameStudio instance that
@@ -229,14 +231,15 @@
          that a crash report was saved. A crash (native access violation or an unhandled exception) exits with an
          abnormal code, unlike a clean asset error (BuildResultCode: 1 build error, 2 command-line error, 100
          cancelled). The compiler's own error lines are already echoed by Exec, so the build still shows them; the
-         <Error> below just re-fails it. EnvironmentVariables is empty on Windows (no extra env). -->
+         <Error> below just re-fails it. EnvironmentVariables carries the crash-capture env (createdump + crash-dir
+         routing), empty only when both are unset. -->
     <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
     </Exec>
 
-    <!-- Linux/macOS: adopt any minidump createdump wrote (the master's or an inherited slave's) into the crash
-         store, signing and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of
-         the exit code — a slave can crash while the master exits cleanly — but only when a dump actually exists. -->
+    <!-- Adopt any minidump createdump wrote (the master's or an inherited slave's) into the crash store, signing
+         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code —
+         a slave can crash while the master exits cleanly — but only when a dump actually exists. -->
     <ItemGroup Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">
       <_StrideNativeCrashDump Include="$(_StrideCompileAssetNativeDumpDir)*.dmp" />
     </ItemGroup>
@@ -245,8 +248,8 @@
           Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$(_StrideCompileAssetNativeDumpDir)&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
           ContinueOnError="true" />
 
-    <!-- A native crash that produced a dump is already reported by crash-adopt above; otherwise (Windows, or a
-         crash with no dump) surface the hint here. -->
+    <!-- A native crash that produced a dump is already reported by crash-adopt above; otherwise (a crash with no
+         dump, e.g. a stack overflow) surface the hint here. -->
     <Warning Condition="'$(_StrideCompileAssetExitCode)' != '0' And '$(_StrideCompileAssetExitCode)' != '1' And '$(_StrideCompileAssetExitCode)' != '2' And '$(_StrideCompileAssetExitCode)' != '100' And '@(_StrideNativeCrashDump)' == ''"
              Text="The asset compiler crashed (exit code $(_StrideCompileAssetExitCode)). A crash report was saved; review and submit it with 'stride crash send'." />
     <Error Condition="'$(_StrideCompileAssetExitCode)' != '0'" Text="Asset compilation failed (exit code $(_StrideCompileAssetExitCode))." />
