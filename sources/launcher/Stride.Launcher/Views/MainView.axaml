@@ -320,7 +320,7 @@
             <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
                     Background="Transparent">
               <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" AllowAutoHide="False">
-                <StackPanel Margin="0,0,16,0">
+                <StackPanel>
                   <ItemsControl ItemsSource="{Binding StrideVersions}">
                     <ItemsControl.DataTemplates>
                       <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
