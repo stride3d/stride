@@ -39,16 +39,17 @@ internal static class NativeCapture
             Directory.CreateDirectory(runDirectory);
             var dumpPath = Path.Combine(runDirectory, $"native-{processId}.dmp");
             var captured = MinidumpWriter.TryWriteTargetProcess(processId, threadId, exceptionPointers, dumpPath);
+            if (captured)
+            {
+                var frame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
+                var context = ReadContext(runDirectory);
+                WriteStoredCrash(runDirectory, processId, dumpPath, frame, context);
+            }
 
-            // Release the frozen host as soon as the dump is written; everything below reads the dump file.
+            // Release the frozen host only once the dump AND the report are on disk, so a consumer that inspects
+            // the run the moment the host exits sees a complete capture. The host is already dying, so the extra
+            // freeze — a dump parse and a small write — is harmless. Signal even on failure, so it isn't left frozen.
             SignalEvent(eventName);
-
-            if (!captured)
-                return;
-
-            var frame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
-            var context = ReadContext(runDirectory);
-            WriteStoredCrash(runDirectory, processId, dumpPath, frame, context);
         }
         catch (Exception)
         {

@@ -17,6 +17,10 @@
     <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- The probe exe the tests spawn and crash; referenced so it builds and lands beside the tests. -->
     <ProjectReference Include="..\Stride.CrashReport.TestProbe\Stride.CrashReport.TestProbe.csproj" />
+    <!-- The out-of-process reporter the store test's probe spawns via the native trigger. Referenced for build
+         order only (the probe resolves it from its dev build output at run time; its Avalonia closure is not
+         copied beside the tests). -->
+    <ProjectReference Include="..\Stride.CrashReporter\Stride.CrashReporter.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>
