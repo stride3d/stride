@@ -41,14 +41,6 @@ public partial class App : Application
                 DataContext = InitializeMainViewModel()
             };
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            // don't remove; also used by visual designer.
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = InitializeMainViewModel()
-            };
-        }
     }
 
     private static MainViewModel InitializeMainViewModel()
