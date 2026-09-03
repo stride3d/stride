@@ -23,6 +23,7 @@
     <Compile Include="Build\TestBuilder.cs" />
     <Compile Include="EngineTestBase.cs" />
     <Compile Include="ForwardRendererTransparentTargetsTest.cs" />
+    <Compile Include="ParameterCollectionAttachedReferenceTest.cs" />
     <Compile Include="ParameterCollectionUpdateEngineTest.cs" />
     <Compile Include="EntityUpdateEngineTest.cs" />
     <Compile Include="AnimatedModelTests.cs" />

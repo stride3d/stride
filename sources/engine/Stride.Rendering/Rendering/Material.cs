@@ -3,6 +3,7 @@
 
 using System;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
@@ -18,6 +19,8 @@ namespace Stride.Rendering
     [DataContract]
     public class Material
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(Material));
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Material"/> class.
         /// </summary>
@@ -43,10 +46,15 @@ namespace Stride.Rendering
         /// </summary>
         /// <param name="device"></param>
         /// <param name="descriptor">The material descriptor.</param>
+        /// <param name="content">
+        /// The content manager that loads the assets the material's features reference, such as
+        /// <c>Game.Content</c>. Without one, those references stay empty objects and the material reports
+        /// each one it could not load.
+        /// </param>
         /// <returns>An instance of a <see cref="Material"/>.</returns>
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         /// <exception cref="System.InvalidOperationException">If an error occurs with the material description</exception>
-        public static Material New(GraphicsDevice device, MaterialDescriptor descriptor)
+        public static Material New(GraphicsDevice device, MaterialDescriptor descriptor, ContentManager content = null)
         {
             if (descriptor == null) throw new ArgumentNullException("descriptor");
 
@@ -64,7 +72,17 @@ namespace Stride.Rendering
                 throw new InvalidOperationException(string.Format("Error when creating the material [{0}]", result.ToText()));
             }
 
-            return result.Material;
+            var material = result.Material;
+
+            // A material feature can attach references to content instead of loaded objects (such as the
+            // lookup table of the default specular model), and only a content load resolves those.
+            // The generator runs outside of one, so the references are loaded here.
+            foreach (var pass in material.Passes)
+            {
+                pass.Parameters.ResolveAttachedReferences(content, Log);
+            }
+
+            return material;
         }
     }
 }

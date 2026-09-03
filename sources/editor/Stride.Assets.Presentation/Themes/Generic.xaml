@@ -145,7 +145,7 @@
                   <Slider Grid.Column="1" Value="{Binding Metalness}" Height="16" Minimum="0" Maximum="1" HorizontalAlignment="Stretch"
                           TickFrequency="0.0333" TickPlacement="BottomRight" IsMoveToPointEnabled="True"/>
                 </Grid>
-                <Grid HorizontalAlignment="Stretch">
+                <Grid HorizontalAlignment="Stretch" Margin="0,3,0,0">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="70" />
                     <ColumnDefinition Width="*" />

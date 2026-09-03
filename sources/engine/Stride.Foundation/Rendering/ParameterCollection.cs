@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
 
@@ -704,7 +705,54 @@ namespace Stride.Rendering
 
             DataValues = newDataValues;
             ObjectValues = newResourceValues;
+
+            // An unresolved reference exists from the moment its object was created, so the first
+            // binding sees it too; later layout updates (effect permutation changes, per-draw layout
+            // switches) skip the scan.
+            if (oldLayout == null)
+                ReportUnresolvedReferences();
         }
+
+        /// <summary>
+        /// Reports object values that still reference unloaded content, because such a value binds as
+        /// an empty resource and renders silently wrong.
+        /// </summary>
+        /// <remarks>
+        /// A layout update is how a collection gets prepared for an effect, so this is the last moment
+        /// where every render path still passes by; running only on the first one keeps the cost at one
+        /// scan per collection.
+        /// Unresolved references only ever come from code that attaches them outside of a content load
+        /// (see <see cref="ParameterCollectionExtensions.ResolveAttachedReferences"/>); a reference
+        /// deliberately skipped during a content load becomes null instead, so it is not reported here.
+        /// </remarks>
+        private void ReportUnresolvedReferences()
+        {
+            foreach (var keyInfo in parameterKeyInfos)
+            {
+                if (!keyInfo.IsResourceParameter || keyInfo.BindingSlot >= ObjectValues.Length)
+                    continue;
+
+                var reference = AttachedReferenceManager.GetAttachedReference(ObjectValues[keyInfo.BindingSlot]);
+                if (reference is not { IsProxy: true })
+                    continue;
+
+                bool firstTime;
+                lock (reportedUnresolvedUrls)
+                {
+                    firstTime = reportedUnresolvedUrls.Add(reference.Url);
+                }
+
+                if (firstTime)
+                {
+                    GlobalLogger.GetLogger(nameof(ParameterCollection)).Warning(
+                        $"Parameter '{keyInfo.Key}' still references unloaded content '{reference.Url}' while its " +
+                        $"collection is prepared for rendering; an empty object will be bound. Resolve attached " +
+                        $"references first, for example by passing a content manager to Material.New.");
+                }
+            }
+        }
+
+        private static readonly HashSet<string> reportedUnresolvedUrls = [];
 
         protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
         {
