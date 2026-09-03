@@ -227,63 +227,14 @@ namespace Stride.AssetCompiler
         // Decides what to do with the build's captured crashes: spawn the reporter, send them, or leave them.
         private void HandleCapturedCrashes(CompilerCrashCapture crashCapture)
         {
-            if (crashCapture == null)
-                return;
             try
             {
-                var crashRun = crashCapture.Run;
-                if (crashRun != null)
-                {
-                    if (crashRun.IsEmpty)
-                    {
-                        // The native handler creates the run eagerly; if nothing crashed, don't leave it behind.
-                        crashRun.Delete();
-                    }
-                    else
-                    {
-                        // The compiler is headless — it never pops a reporter GUI. On CI (send mode) it submits the
-                        // crashes itself; otherwise it leaves the run on disk and points the user at it, and a healthy
-                        // surface (GameStudio, or 'stride crash send') reviews and submits it.
-                        switch (CrashPolicy.ResolveAction())
-                        {
-                            case CrashAction.Send:
-                                SendCrashes(crashRun);
-                                break;
-                            case CrashAction.Report:
-                                builderOptions.Logger.Warning($"{crashRun.Read().Count} asset-build crash(es) saved to {crashRun.Directory}. Review and submit them with 'stride crash send'.");
-                                break;
-                            // Save / Ignore: leave the run on disk for a later 'stride crash send'.
-                        }
-                    }
-                }
-                crashCapture.PruneOld();
+                crashCapture?.HandleRun(builderOptions.Logger);
             }
             catch (Exception e)
             {
                 builderOptions.Logger.Warning($"Crash reporting failed: {e.Message}");
             }
-        }
-
-        // CI: send every group headlessly, then drop the run. Only Stride's own CI sets STRIDE_CRASH_MODE=send.
-        private void SendCrashes(CrashRun crashRun)
-        {
-            if (CrashReportSender.IsDisabled)
-                return;
-            var dsn = string.IsNullOrEmpty(CrashReportSender.BuildDsn) ? CrashReportSender.DevChannelDsn : CrashReportSender.BuildDsn;
-            foreach (var crash in crashRun.Read())
-            {
-                try
-                {
-                    CrashReportSender.SendAsync(crash, crashRun.ReadDump(crash), dsn).GetAwaiter().GetResult();
-                }
-                catch (Exception e)
-                {
-                    builderOptions.Logger.Warning($"Could not send crash report: {e.Message}");
-                }
-            }
-            // Keep the files: send mode is CI, where the runner is ephemeral and an artifact step may still
-            // collect them (and a failed send must not lose the report). Prune bounds growth elsewhere.
-            builderOptions.Logger.Info($"Crash report files kept at {crashRun.Directory}.");
         }
 
         /// <summary>

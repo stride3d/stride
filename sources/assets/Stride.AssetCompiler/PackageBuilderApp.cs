@@ -473,6 +473,9 @@ namespace Stride.AssetCompiler
             catch (Exception e)
             {
                 options.Logger.Error($"Unhandled exception", e);
+                // The per-command hook only sees crashes inside a command; this catches one that escaped the whole
+                // build (setup, orchestration) so it is reported too, headlessly.
+                CompilerCrashCapture.CaptureTopLevel(options, e);
                 exitCode = BuildResultCode.BuildError;
             }
             finally

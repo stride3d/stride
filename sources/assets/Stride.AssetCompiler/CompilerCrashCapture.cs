@@ -194,7 +194,52 @@ namespace Stride.AssetCompiler
             catch { /* best effort: a locked dump is left in the staging dir, retried next build */ }
         }
 
-        private void Capture(Command command, AssetItem asset, Exception exception)
+        /// <summary>
+        /// Records and handles an exception that escaped the whole build rather than a single command (the compiler's
+        /// top-level catch), so a non-command crash is reported like a per-command one. Headless: sends on CI, else
+        /// leaves the run for routing / <c>stride crash send</c>. Best-effort — never masks the original crash.
+        /// </summary>
+        public static void CaptureTopLevel(PackageBuilderOptions options, Exception exception)
+        {
+            try
+            {
+                var capture = new CompilerCrashCapture(options);
+                if (!capture.Enabled)
+                    return;
+                capture.Capture(command: null, asset: null, exception, stepKindOverride: "TopLevel");
+                capture.HandleRun(options.Logger);
+            }
+            catch
+            {
+                // A failure while reporting the crash must not mask it.
+            }
+        }
+
+        /// <summary>Headless end-of-run handling shared by the end-of-build and top-level paths: send on CI, else
+        /// leave the run for a healthy surface (GameStudio / <c>stride crash send</c>) to submit.</summary>
+        public void HandleRun(ILogger logger)
+        {
+            if (run == null)
+                return;
+            if (run.IsEmpty)
+            {
+                run.Delete();
+                return;
+            }
+            switch (CrashPolicy.ResolveAction())
+            {
+                case CrashAction.Send:
+                    SendRun(run, logger);
+                    break;
+                case CrashAction.Report:
+                    logger.Warning($"{run.Read().Count} asset-build crash(es) saved to {run.Directory}. Review and submit them with 'stride crash send'.");
+                    break;
+                // Save / Ignore: leave the run on disk for a later 'stride crash send'.
+            }
+            PruneOld();
+        }
+
+        private void Capture(Command command, AssetItem asset, Exception exception, string stepKindOverride = null)
         {
             if (mode == CrashMode.Off)
                 return;
@@ -202,7 +247,7 @@ namespace Stride.AssetCompiler
             if (exception is OperationCanceledException)
                 return;
 
-            var stepKind = command?.GetType().Name ?? "UnknownCommand";
+            var stepKind = stepKindOverride ?? command?.GetType().Name ?? "UnknownCommand";
             var signature = CrashSignature.Compute(exception, stepKind);
 
             lock (gate)
