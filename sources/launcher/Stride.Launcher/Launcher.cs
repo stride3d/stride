@@ -230,11 +230,15 @@ internal static class Launcher
 
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
+        // On the faulting thread: snapshot the other threads (the crashing thread's stack comes from the exception).
+        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
         var reportArgs = new CrashReportArgs
         {
             Exception = exception,
             Location = location,
-            ThreadName = Thread.CurrentThread.Name
+            ThreadName = crashedThreadName,
+            ThreadId = crashedThreadId,
+            Threads = threads
         };
         CrashReport(reportArgs);
     }

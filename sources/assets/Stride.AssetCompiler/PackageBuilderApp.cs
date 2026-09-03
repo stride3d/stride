@@ -26,6 +26,7 @@ using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
 using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
+using Stride.CrashReport;
 
 namespace Stride.AssetCompiler
 {
@@ -74,6 +75,16 @@ namespace Stride.AssetCompiler
             var mode = BuilderMode.Build;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
+
+            // The top-level catch only sees the main thread; capture other-thread crashes (which never reach it) here.
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                if (e.ExceptionObject is Exception unhandled)
+                {
+                    var snapshot = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+                    CompilerCrashCapture.CaptureTopLevel(options, unhandled, snapshot, id, name);
+                }
+            };
 
             var p = new OptionSet
             {
@@ -470,12 +481,11 @@ namespace Stride.AssetCompiler
                 options.Logger.Error($"Command option '{e.OptionName}': {e.Message}");
                 exitCode = BuildResultCode.CommandLineError;
             }
-            catch (Exception e)
+            catch (Exception e) when (CaptureCrashThreads(out var crashThreads, out var crashedThreadId, out var crashedThreadName))
             {
                 options.Logger.Error($"Unhandled exception", e);
-                // The per-command hook only sees crashes inside a command; this catches one that escaped the whole
-                // build (setup, orchestration) so it is reported too, headlessly.
-                CompilerCrashCapture.CaptureTopLevel(options, e);
+                // A crash that escaped the whole build (not a single command); the filter snapshotted the other threads.
+                CompilerCrashCapture.CaptureTopLevel(options, e, crashThreads, crashedThreadId, crashedThreadName);
                 exitCode = BuildResultCode.BuildError;
             }
             finally
@@ -500,6 +510,15 @@ namespace Stride.AssetCompiler
                 YamlSerializer.Default.ResetCache();
             }
             return (int)exitCode;
+        }
+
+        // Exception filter: runs pre-unwind, so it snapshots the other threads at the crash moment. Returns true to take the catch.
+        private static bool CaptureCrashThreads(out List<StoredThread> threads, out int? crashedThreadId, out string crashedThreadName)
+        {
+            threads = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+            crashedThreadId = id;
+            crashedThreadName = name;
+            return true;
         }
 
         private void OnConsoleOnCancelKeyPress(object _, ConsoleCancelEventArgs e)

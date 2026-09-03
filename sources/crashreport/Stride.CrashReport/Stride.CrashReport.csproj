@@ -14,6 +14,12 @@
     <PackageReference Include="Sentry" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <!-- ClrMD: at a fatal crash, snapshot the process and walk the other threads' managed stacks (the crashing
+         thread's stack comes from the exception). Flows to consumers, which do the capture. No analyzer, so
+         nothing leaks into game compiles; as the asset compiler's runtime dep it stays in its bin, not games' output. -->
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Native access-violation handler (vectored exception handler + minidump). Shared with the test
          harness and the asset compiler; here it backs NativeCrashReporting for the in-process apps. -->
     <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />

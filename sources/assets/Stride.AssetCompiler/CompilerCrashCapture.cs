@@ -199,14 +199,16 @@ namespace Stride.AssetCompiler
         /// top-level catch), so a non-command crash is reported like a per-command one. Headless: sends on CI, else
         /// leaves the run for routing / <c>stride crash send</c>. Best-effort — never masks the original crash.
         /// </summary>
-        public static void CaptureTopLevel(PackageBuilderOptions options, Exception exception)
+        public static void CaptureTopLevel(PackageBuilderOptions options, Exception exception,
+            IReadOnlyList<StoredThread> threads = null, int? crashedThreadId = null, string crashedThreadName = null)
         {
             try
             {
                 var capture = new CompilerCrashCapture(options);
                 if (!capture.Enabled)
                     return;
-                capture.Capture(command: null, asset: null, exception, stepKindOverride: "TopLevel");
+                capture.Capture(command: null, asset: null, exception, stepKindOverride: "TopLevel",
+                    threads, crashedThreadId, crashedThreadName);
                 capture.HandleRun(options.Logger);
             }
             catch
@@ -239,7 +241,8 @@ namespace Stride.AssetCompiler
             PruneOld();
         }
 
-        private void Capture(Command command, AssetItem asset, Exception exception, string stepKindOverride = null)
+        private void Capture(Command command, AssetItem asset, Exception exception, string stepKindOverride = null,
+            IReadOnlyList<StoredThread> threads = null, int? crashedThreadId = null, string crashedThreadName = null)
         {
             if (mode == CrashMode.Off)
                 return;
@@ -257,7 +260,12 @@ namespace Stride.AssetCompiler
                 if (isMaster && store.IsSuppressed(signature, version))
                     return;
                 run ??= store.CreateRun();
-                run.Add(BuildCrash(command, asset, exception, stepKind, signature));
+                var crash = BuildCrash(command, asset, exception, stepKind, signature);
+                if (threads != null)
+                    crash.Threads = threads.ToList();
+                crash.CrashedThreadId = crashedThreadId;
+                crash.CrashedThreadName = crashedThreadName;
+                run.Add(crash);
             }
         }
 

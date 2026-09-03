@@ -25,7 +25,8 @@ namespace Stride.GameStudio.Helpers
     {
         private const int DebugVersion = 4;
 
-        public static void SendReport(Exception exception, int crashLocation, string[] logs, string threadName)
+        public static void SendReport(Exception exception, int crashLocation, string[] logs, string threadName,
+            int threadId, System.Collections.Generic.IReadOnlyList<StoredThread> threads)
         {
             var crashReport = new CrashReportData
             {
@@ -179,7 +180,8 @@ namespace Stride.GameStudio.Helpers
                     {
                         if (CrashReportSender.IsDisabled)
                             throw new InvalidOperationException("Crash sending is disabled in this build.");
-                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, CrashReportSender.ResolveDsn()).GetAwaiter().GetResult();
+                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, CrashReportSender.ResolveDsn(),
+                            threads: threads, crashedThreadId: threadId, crashedThreadName: threadName).GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {
@@ -189,7 +191,7 @@ namespace Stride.GameStudio.Helpers
                     return;
             }
 
-            var reporter = new CrashReportWindow(crashReport, "GameStudio", exception);
+            var reporter = new CrashReportWindow(crashReport, "GameStudio", exception, threads, threadId, threadName);
             var result = reporter.ShowDialog();
         }
 

@@ -21,14 +21,21 @@ public partial class CrashReportWindow : Window
     private const string GithubIssuesUrl = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md";
     private readonly CrashReportData currentData;
     private readonly Exception currentException;
+    private readonly System.Collections.Generic.IReadOnlyList<StoredThread> threads;
+    private readonly int? crashedThreadId;
+    private readonly string crashedThreadName;
     private readonly string crashTimestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
     public string ApplicationName { get; }
 
-    public CrashReportWindow(CrashReportData crashReport, string applicationName, Exception exception = null)
+    public CrashReportWindow(CrashReportData crashReport, string applicationName, Exception exception = null,
+        System.Collections.Generic.IReadOnlyList<StoredThread> threads = null, int? crashedThreadId = null, string crashedThreadName = null)
     {
         InitializeComponent();
         currentData = crashReport;
         currentException = exception;
+        this.threads = threads;
+        this.crashedThreadId = crashedThreadId;
+        this.crashedThreadName = crashedThreadName;
         textBoxLog.Text = crashReport.ToString();
         ApplicationName = applicationName;
         DataContext = this;
@@ -163,7 +170,7 @@ public partial class CrashReportWindow : Window
         try
         {
             await CrashReportSender.SendAsync(currentData, ApplicationName, currentException, dsn, checkBoxMinidump.IsChecked == true,
-                textBoxName.Text, textBoxEmail.Text, textBoxDescription.Text);
+                textBoxName.Text, textBoxEmail.Text, textBoxDescription.Text, threads, crashedThreadId, crashedThreadName);
             MessageBox.Show(this, "Crash report sent. Thank you for helping improve Stride.", "Stride",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;

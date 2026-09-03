@@ -17,6 +17,9 @@ internal static class CliCrashHandler
         if (CrashPolicy.ResolveMode() == CrashMode.Off)
             return 1;
 
+        // Snapshot the other threads (the crashing thread's stack comes from the exception).
+        var threads = ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
+
         CrashRun run;
         StoredCrash crash;
         try
@@ -35,6 +38,10 @@ internal static class CliCrashHandler
             crash.Environment = CrashReportSender.BuildEnvironment ?? "local";
             crash.TimestampUtc = DateTime.UtcNow.ToString("o");
             crash.Signature = CrashSignature.Compute(exception, ApplicationName);
+            crash.Exceptions = StoredException.Capture(exception);
+            crash.Threads = threads;
+            crash.CrashedThreadId = crashedThreadId;
+            crash.CrashedThreadName = crashedThreadName;
 
             run = new CrashStore(ApplicationName).CreateRun();
             run.Add(crash);

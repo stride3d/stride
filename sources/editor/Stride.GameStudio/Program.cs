@@ -242,7 +242,8 @@ public static class Program
         }
     }
 
-    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName);
+    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName,
+        int ThreadId, System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread> Threads);
     private static void CrashReport(object data)
     {
         var args = (CrashReportArgs)data;
@@ -250,7 +251,7 @@ public static class Program
         //Stop the game studio rendering thread
         mainDispatcher?.InvokeAsync(() => Thread.CurrentThread.Join());
 
-        CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName);
+        CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName, args.ThreadId, args.Threads);
 
         //Make sure we stop now.. more exceptions might come but we just grab the first one
         Environment.Exit(0);
@@ -267,10 +268,14 @@ public static class Program
         // In case assembly resolve was not done yet, disable it altogether
         NuGetAssemblyResolver.DisableAssemblyResolve();
 
+        // Snapshot the other threads on the faulting thread, before it blocks below (the crashing thread's stack is in the exception).
+        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
+
         var englishCulture = new CultureInfo("en-US");
         var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
         crashLogThread.SetApartmentState(ApartmentState.STA);
-        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), Thread.CurrentThread.Name));
+        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), crashedThreadName,
+            crashedThreadId, threads));
         crashLogThread.Join();
     }
 

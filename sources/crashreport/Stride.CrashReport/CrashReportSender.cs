@@ -38,7 +38,8 @@ public static class CrashReportSender
             : string.IsNullOrEmpty(BuildDsn) ? DevChannelDsn : BuildDsn;
 
     public static Task SendAsync(CrashReportData report, string applicationName, Exception exception, string dsn, bool includeMinidump = false,
-        string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null)
+        string feedbackName = null, string feedbackEmail = null, string feedbackMessage = null,
+        IReadOnlyList<StoredThread> threads = null, int? crashedThreadId = null, string crashedThreadName = null)
     {
         // In-process hosts (GameStudio, launcher) crash as themselves: identity comes from the running
         // assembly, and, if asked, we dump the still-live faulting process on the spot.
@@ -47,7 +48,8 @@ public static class CrashReportSender
         var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
         return SendCoreAsync(report, applicationName, version, commit, BuildEnvironment ?? "local",
             exception, dsn, minidump, attachments: null, feedbackName, feedbackEmail, feedbackMessage,
-            fingerprint: null, structuredExceptions: null); // a live exception groups by, and renders, its own stack
+            fingerprint: null, structuredExceptions: null, // a live exception groups by, and renders, its own stack
+            threads, crashedThreadId, crashedThreadName);
     }
 
     /// <summary>
@@ -64,7 +66,8 @@ public static class CrashReportSender
         // No live Exception object survives the handoff; the event is rebuilt from the stored report text.
         return SendCoreAsync(crash.ToReportData(), crash.Application, version, commit, environment,
             exception: null, dsn, dump, attachments, feedbackName, feedbackEmail, feedbackMessage,
-            fingerprint: crash.Signature, structuredExceptions: crash.Exceptions);
+            fingerprint: crash.Signature, structuredExceptions: crash.Exceptions,
+            crash.Threads, crash.CrashedThreadId, crash.CrashedThreadName);
     }
 
     // Drop the +g<sha> metadata so the release matches the NuGet version and git tag; the commit travels as a tag.
@@ -80,7 +83,8 @@ public static class CrashReportSender
     private static async Task SendCoreAsync(CrashReportData report, string applicationName, string version, string commit, string environment,
         Exception exception, string dsn, byte[] minidump, IReadOnlyList<(string Name, byte[] Bytes)> attachments,
         string feedbackName, string feedbackEmail, string feedbackMessage, string fingerprint,
-        IReadOnlyList<StoredException> structuredExceptions)
+        IReadOnlyList<StoredException> structuredExceptions,
+        IReadOnlyList<StoredThread> threads, int? crashedThreadId, string crashedThreadName)
     {
         // Application name doubles as the "application" tag and, lowercased, the release package id (e.g.
         // "GameStudio" -> gamestudio@version). No "Stride" prefix: every report already lands in a Stride project.
@@ -93,12 +97,9 @@ public static class CrashReportSender
             options.Environment = environment;
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = false;
-            // Never attach the current stack: these events aren't raised at the fault site, so it would be the
-            // reporter's (or the after-the-fact host's) stack, not the crash — misleading, and it would group every
-            // handoff crash by the reporter's own stack. Grouping is set via the fingerprint instead.
+            // Not raised at the fault site, so the current stack/assemblies are the reporter's, not the crash. Keep
+            // them only for an in-process crash; group via the fingerprint below.
             options.AttachStacktrace = false;
-            // The "Assemblies" list comes from THIS process: for a handoff crash that's the reporter, not the crash,
-            // so drop it; for an in-process crash it's the crashing host's, so keep it.
             options.ReportAssembliesMode = exception != null ? ReportAssembliesMode.Version : ReportAssembliesMode.None;
             // No user identity beyond the SDK's random installation id; a contact email only travels
             // through the feedback when the user typed one
@@ -131,9 +132,17 @@ public static class CrashReportSender
         else
             sentryEvent = new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] ?? "Unknown crash" } }; // native / no frames
         sentryEvent.Level = SentryLevel.Fatal;
-        // Group by the crash's own signature (fault frame / exception+step), not the reporter's stack or message.
+        // Group by the crash's signature, not the reporter's stack or message.
         if (!string.IsNullOrEmpty(fingerprint))
             sentryEvent.SetFingerprint(new[] { fingerprint });
+
+        // Link the crashing thread to the exception so Sentry shows its stack there and the snapshot stacks for the rest.
+        if (crashedThreadId is int crashedId && sentryEvent.SentryExceptions != null)
+            foreach (var sentryException in sentryEvent.SentryExceptions)
+                sentryException.ThreadId = crashedId;
+        var threadList = BuildThreads(threads, crashedThreadId, crashedThreadName);
+        if (threadList.Count > 0)
+            sentryEvent.SentryThreads = threadList;
 
         var eventId = SentrySdk.CaptureEvent(sentryEvent);
 
@@ -265,30 +274,41 @@ public static class CrashReportSender
         Flush();
     }
 
-    // Rebuilds a Sentry event with real exceptions + stacktraces from the frames captured at the crash site, so a
-    // handoff managed crash renders as a proper stacktrace (in-app frames, source links) instead of message text.
+    // A real Sentry exception event from the stored frames, so a handoff managed crash renders as a proper stacktrace.
     private static SentryEvent BuildEventFromStored(IReadOnlyList<StoredException> stored)
     {
         var exceptions = new List<Sentry.Protocol.SentryException>();
         // Sentry lists the chain innermost-first; ours is outermost-first, so reverse.
         foreach (var ex in stored.AsEnumerable().Reverse())
-        {
-            var stacktrace = new SentryStackTrace();
-            // .NET frames are newest-first; Sentry wants oldest-first, so reverse.
-            foreach (var frame in ((IEnumerable<StoredFrame>)ex.Frames).Reverse())
-            {
-                stacktrace.Frames.Add(new SentryStackFrame
-                {
-                    Function = frame.Function,
-                    Module = frame.Module,
-                    FileName = frame.File,
-                    LineNumber = frame.Line > 0 ? frame.Line : (int?)null,
-                    InApp = frame.Module?.StartsWith("Stride", StringComparison.Ordinal) == true,
-                });
-            }
-            exceptions.Add(new Sentry.Protocol.SentryException { Type = ex.Type, Value = ex.Message, Stacktrace = stacktrace });
-        }
+            exceptions.Add(new Sentry.Protocol.SentryException { Type = ex.Type, Value = ex.Message, Stacktrace = ToStacktrace(ex.Frames) });
         return new SentryEvent { SentryExceptions = exceptions };
+    }
+
+    // A Sentry stacktrace from stored frames. .NET frames are newest-first; Sentry wants oldest-first, so reverse.
+    private static SentryStackTrace ToStacktrace(IReadOnlyList<StoredFrame> frames)
+    {
+        var stacktrace = new SentryStackTrace();
+        foreach (var frame in ((IEnumerable<StoredFrame>)frames).Reverse())
+            stacktrace.Frames.Add(new SentryStackFrame
+            {
+                Function = frame.Function,
+                Module = frame.Module,
+                FileName = frame.File,
+                LineNumber = frame.Line > 0 ? frame.Line : (int?)null,
+                InApp = frame.Module?.StartsWith("Stride", StringComparison.Ordinal) == true,
+            });
+        return stacktrace;
+    }
+
+    // A Sentry thread list from the snapshot, plus the crashing thread flagged (its stack comes from the exception).
+    private static IReadOnlyList<SentryThread> BuildThreads(IReadOnlyList<StoredThread> threads, int? crashedThreadId, string crashedThreadName)
+    {
+        var list = new List<SentryThread>();
+        if (crashedThreadId is int id)
+            list.Add(new SentryThread { Id = id, Name = crashedThreadName, Crashed = true, Current = true });
+        foreach (var t in threads ?? (IReadOnlyList<StoredThread>)Array.Empty<StoredThread>())
+            list.Add(new SentryThread { Id = t.Id, Name = t.Name, Crashed = false, Stacktrace = ToStacktrace(t.Frames) });
+        return list;
     }
 
     /// <summary>

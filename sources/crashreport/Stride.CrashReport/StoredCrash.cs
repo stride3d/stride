@@ -53,9 +53,17 @@ public sealed class StoredCrash
     /// <summary>Local-only paths of the failing asset's direct source files (FBX, textures), for a future opt-in attachment.</summary>
     public List<string> AssetSourcePaths { get; set; } = new();
 
-    /// <summary>Structured exception chain (type, message, frames) for a managed crash, so the reporter can rebuild a
-    /// real Sentry stacktrace instead of sending the exception as message text. Empty for a native crash.</summary>
+    /// <summary>Structured exception chain for a managed crash, so the reporter rebuilds a real Sentry stacktrace. Empty for native.</summary>
     public List<StoredException> Exceptions { get; set; } = new();
+
+    /// <summary>Managed id of the crashing thread, when known; lets the reporter flag it in the thread list.</summary>
+    public int? CrashedThreadId { get; set; }
+
+    /// <summary>Name of the crashing thread, when known (often empty — threads are frequently unnamed).</summary>
+    public string CrashedThreadName { get; set; }
+
+    /// <summary>Other (non-crashing) threads' callstacks captured at a fatal crash. Empty otherwise.</summary>
+    public List<StoredThread> Threads { get; set; } = new();
 
     /// <summary>One-line label: the exception's first line, else the signature.</summary>
     public string Title()
@@ -105,8 +113,7 @@ public sealed class StoredException
     public string Message { get; set; }
     public List<StoredFrame> Frames { get; set; } = new();
 
-    /// <summary>Captures a live exception and its inner chain into a serializable model, at the crash site where the
-    /// frames (with file/line from the PDBs) are still available. Sent later by a reporter in another process.</summary>
+    /// <summary>Captures a live exception + inner chain (with file/line from PDBs) into a serializable model at the crash site.</summary>
     public static List<StoredException> Capture(Exception exception)
     {
         var list = new List<StoredException>();
@@ -138,4 +145,12 @@ public sealed class StoredFrame
     public string Module { get; set; }
     public string File { get; set; }
     public int Line { get; set; }
+}
+
+/// <summary>One non-crashing thread in a crash-time snapshot: its managed id/name and its callstack frames.</summary>
+public sealed class StoredThread
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public List<StoredFrame> Frames { get; set; } = new();
 }

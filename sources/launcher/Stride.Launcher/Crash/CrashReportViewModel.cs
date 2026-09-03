@@ -22,6 +22,9 @@ internal sealed class CrashReportViewModel : ViewModelBase
 
     private readonly string applicationName;
     private readonly Exception exception;
+    private readonly int crashedThreadId;
+    private readonly string? crashedThreadName;
+    private readonly IReadOnlyList<CrashCore.StoredThread>? threads;
     private readonly CancellationTokenSource exitToken;
     private readonly Func<string?, Task> setClipboard;
 
@@ -38,6 +41,9 @@ internal sealed class CrashReportViewModel : ViewModelBase
     {
         this.applicationName = applicationName;
         this.exception = args.Exception;
+        this.crashedThreadId = args.ThreadId;
+        this.crashedThreadName = args.ThreadName;
+        this.threads = args.Threads;
         this.exitToken = exitToken;
         this.setClipboard = setClipboard;
 
@@ -161,7 +167,8 @@ internal sealed class CrashReportViewModel : ViewModelBase
 
             var dsn = CrashCore.CrashReportSender.ResolveDsn();
             await CrashCore.CrashReportSender.SendAsync(data, SentryApplication, exception, dsn,
-                feedbackName: FeedbackName, feedbackEmail: FeedbackEmail, feedbackMessage: FeedbackMessage);
+                feedbackName: FeedbackName, feedbackEmail: FeedbackEmail, feedbackMessage: FeedbackMessage,
+                threads: threads, crashedThreadId: crashedThreadId, crashedThreadName: crashedThreadName);
 
             SendStatus = "Thank you. The crash report has been sent.";
             CanSendReport = false; // consent is per crash; don't offer a second send
