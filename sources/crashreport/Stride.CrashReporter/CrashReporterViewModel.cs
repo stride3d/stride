@@ -24,6 +24,9 @@ internal sealed class CrashReporterViewModel : ObservableObject
     private bool keepFiles;
     private bool isReportVisible;
     private string? sendStatus;
+    private string feedbackName = "";
+    private string feedbackEmail = "";
+    private string feedbackMessage = "";
 
     public CrashReporterViewModel(CrashSession session, Action requestClose)
     {
@@ -35,12 +38,13 @@ internal sealed class CrashReporterViewModel : ObservableObject
         Header = ComputeHeader(session.Groups);
         FullReport = string.Join("\n\n----------------------------------------\n\n", Groups.Select(group => group.ReportText));
         canSend = !session.IsDisabled;
+        ShowSendControls = canSend; // keep the disclosure + feedback fields laid out after a send (they just grey out)
 
         SendCommand = new RelayCommand(OnSend, () => canSend && !isSending && !finalized);
         CloseAndDeleteCommand = new RelayCommand(() => Close(keep: false));
-        CloseAndKeepCommand = new RelayCommand(() => Close(keep: true));
+        CloseAndKeepCommand = new RelayCommand(() => Close(keep: true), () => HasRemainingFiles);
         ViewReportCommand = new RelayCommand(() => IsReportVisible = !IsReportVisible);
-        OpenFolderCommand = new RelayCommand(OnOpenFolder);
+        OpenFolderCommand = new RelayCommand(OnOpenFolder, () => HasRemainingFiles);
     }
 
     public ObservableCollection<CrashGroupViewModel> Groups { get; }
@@ -56,6 +60,10 @@ internal sealed class CrashReporterViewModel : ObservableObject
         get => canSend;
         private set { if (SetProperty(ref canSend, value)) ((RelayCommand)SendCommand).RaiseCanExecuteChanged(); }
     }
+
+    /// <summary>Whether the send UI is shown at all (false only when sending is disabled from the start). Stays true
+    /// after a send so the disclosure and feedback fields keep their place and simply disable.</summary>
+    public bool ShowSendControls { get; }
 
     public bool IsSending
     {
@@ -75,11 +83,23 @@ internal sealed class CrashReporterViewModel : ObservableObject
         private set => SetProperty(ref sendStatus, value);
     }
 
+    /// <summary>Optional contact name, sent verbatim with the report (typing it is the consent).</summary>
+    public string FeedbackName { get => feedbackName; set => SetProperty(ref feedbackName, value); }
+
+    /// <summary>Optional contact email for follow-up, sent verbatim with the report.</summary>
+    public string FeedbackEmail { get => feedbackEmail; set => SetProperty(ref feedbackEmail, value); }
+
+    /// <summary>Optional "what were you doing" note, sent verbatim with the report.</summary>
+    public string FeedbackMessage { get => feedbackMessage; set => SetProperty(ref feedbackMessage, value); }
+
     public ICommand SendCommand { get; }
     public ICommand CloseAndDeleteCommand { get; }
     public ICommand CloseAndKeepCommand { get; }
     public ICommand ViewReportCommand { get; }
     public ICommand OpenFolderCommand { get; }
+
+    // A sent group's files are dropped; Open Folder and Keep only make sense while some group is still unsent.
+    private bool HasRemainingFiles => Groups.Any(group => !group.IsSent);
 
     private async Task OnSend()
     {
@@ -88,17 +108,17 @@ internal sealed class CrashReporterViewModel : ObservableObject
 
         var failed = 0;
         string? lastError = null;
-        // Send only checked groups. A successful send quietens that crash for the rest of a GameStudio session (so
-        // repeated builds don't re-pop it) but does not persistently suppress it; "Don't show again" is the separate,
-        // durable opt-out applied at window close. A sent crash's files are dropped; a failed send is left on disk
-        // for 'stride crash send'. Unchecked groups wait for the Keep/Delete choice at window close.
+        // A send quietens that crash for this GameStudio session (not persistently — that's "Don't show again") and
+        // drops its files; a failed send is left for 'stride crash send'. Unchecked groups wait for Keep/Delete on close.
         foreach (var group in Groups.Where(group => group.Send))
         {
             try
             {
-                await session.SendAsync(group.Crash, group.IncludeDump, group.IncludeAssetDefinition);
+                await session.SendAsync(group.Crash, group.IncludeDump, group.IncludeAssetDefinition,
+                    FeedbackName, FeedbackEmail, FeedbackMessage);
                 session.SuppressForSession(group.Crash);
                 session.Remove(group.Crash);
+                group.IsSent = true; // locks this group's options; its files are gone
             }
             catch (Exception exception)
             {
@@ -109,6 +129,9 @@ internal sealed class CrashReporterViewModel : ObservableObject
 
         IsSending = false;
         CanSend = false; // consent is per crash; don't offer a second send
+        // Files were dropped for the sent groups; refresh the folder/keep buttons that depend on them.
+        ((RelayCommand)OpenFolderCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)CloseAndKeepCommand).RaiseCanExecuteChanged();
         SendStatus = failed == 0
             ? (session.IsSessionScoped
                 ? "Thank you. The crash report has been sent; you won't be asked about it again this session."
@@ -122,10 +145,8 @@ internal sealed class CrashReporterViewModel : ObservableObject
         requestClose();
     }
 
-    /// <summary>
-    /// Called once when the window closes. Applies each group's "don't show again", then either drops the
-    /// leftover files or keeps them, per the Keep/Delete choice (a plain X or Escape takes the delete default).
-    /// </summary>
+    /// <summary>Called once on close: applies "don't show again", then drops or keeps the leftover files per the
+    /// Keep/Delete choice (a plain X or Escape deletes).</summary>
     public void OnClosed()
     {
         if (finalized)
@@ -139,6 +160,8 @@ internal sealed class CrashReporterViewModel : ObservableObject
             if (!keepFiles)
                 session.Remove(group.Crash);
         }
+        if (keepFiles)
+            session.KeepRun(); // move a kept transient run into the durable store
         session.CleanupIfEmpty();
     }
 

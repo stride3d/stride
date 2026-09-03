@@ -39,8 +39,19 @@
       </DockPanel>
       <TextBlock Margin="4,0,4,4" TextWrapping="WrapWithOverflow"
                  Opacity="0.7" FontSize="12"
-                 IsVisible="{Binding CanSend}"
-                 Text="The report goes to Stride's crash reporting service and contains the crash details below — the error and stack, the names of the failing assets, and your system info, plus any crash dump or asset file you leave checked. Your Windows user name and home-folder path are stripped; you can review the full report before sending. Sending a crash silences its future popups." />
+                 IsVisible="{Binding ShowSendControls}"
+                 Text="The report goes to Stride's crash reporting service and contains the crash details below — the error and stack, the names of the failing assets, and your system info, plus any crash dump or asset file you leave checked, and any name, email, or note you enter. Your Windows user name and home-folder path are stripped; you can review the full report before sending. Sending a crash silences its future popups." />
+      <StackPanel Margin="4,0,4,8" IsVisible="{Binding ShowSendControls}" IsEnabled="{Binding CanSend}">
+        <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
+          <TextBox Grid.Column="0" Margin="0,0,4,0" Watermark="Your name (optional)"
+                   Text="{Binding FeedbackName}" />
+          <TextBox Grid.Column="1" Margin="4,0,0,0" Watermark="Your email (optional, for follow-up)"
+                   Text="{Binding FeedbackEmail}" />
+        </Grid>
+        <TextBox Height="52" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                 Watermark="What were you doing when it crashed? (optional)"
+                 Text="{Binding FeedbackMessage}" />
+      </StackPanel>
       <TextBlock Margin="4,0,4,8" TextWrapping="WrapWithOverflow"
                  FontWeight="SemiBold"
                  IsVisible="{Binding SendStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -87,6 +98,7 @@
               <Border Padding="8" Margin="2" BorderThickness="0,0,0,1" BorderBrush="#22888888">
                 <DockPanel>
                   <CheckBox DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center"
+                            IsEnabled="{Binding !IsSent}"
                             IsChecked="{Binding Send}" />
                   <CheckBox DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Center"
                             Content="Don't show again"
@@ -96,10 +108,12 @@
                     <TextBlock Text="{Binding Detail}" TextWrapping="WrapWithOverflow" Opacity="0.7" FontSize="12" />
                     <CheckBox Margin="0,4,0,0" FontSize="12"
                               IsVisible="{Binding HasDump}"
+                              IsEnabled="{Binding !IsSent}"
                               IsChecked="{Binding IncludeDump}"
                               Content="{Binding DumpLabel}" />
                     <CheckBox Margin="0,4,0,0" FontSize="12"
                               IsVisible="{Binding HasAssetDefinition}"
+                              IsEnabled="{Binding !IsSent}"
                               IsChecked="{Binding IncludeAssetDefinition}"
                               Content="{Binding AssetDefinitionLabel}" />
                   </StackPanel>

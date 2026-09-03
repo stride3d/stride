@@ -14,7 +14,7 @@ namespace Stride.CrashReporter;
 internal sealed class CrashSession
 {
     private readonly CrashStore store;
-    private readonly CrashRun run;
+    private CrashRun run;
     private readonly string dsn;
     private readonly bool sessionScoped;
 
@@ -58,11 +58,12 @@ internal sealed class CrashSession
     // Cap on an opt-in asset attachment: a definition is small YAML, so a low cap keeps a stray large file out.
     internal const long MaxAssetAttachmentBytes = 1_000_000;
 
-    public Task SendAsync(StoredCrash crash, bool includeDump, bool includeAssetDefinition)
+    public Task SendAsync(StoredCrash crash, bool includeDump, bool includeAssetDefinition,
+        string feedbackName, string feedbackEmail, string feedbackMessage)
     {
         var dump = includeDump ? run.ReadDump(crash) : null;
         var attachments = includeAssetDefinition ? BuildAssetDefinitionAttachment(crash) : null;
-        return CrashReportSender.SendAsync(crash, dump, dsn, attachments);
+        return CrashReportSender.SendAsync(crash, dump, dsn, attachments, feedbackName, feedbackEmail, feedbackMessage);
     }
 
     // The failing asset's definition file, read from disk and scrubbed of the user name/path (its YAML can
@@ -111,6 +112,16 @@ internal sealed class CrashSession
 
     /// <summary>Drop a group's files once it has been sent or dismissed.</summary>
     public void Remove(StoredCrash crash) => run.Remove(crash);
+
+    /// <summary>On "Keep": if the run lives in a transient (session) store, move it to the durable store so it
+    /// survives the session and <c>stride crash send</c> can find it. A durable or empty run is left as-is.</summary>
+    public void KeepRun()
+    {
+        if (!sessionScoped || run.IsEmpty)
+            return;
+        try { run = store.MoveRunToDurable(run); }
+        catch { /* best effort: on failure the crash simply stays in the temp store */ }
+    }
 
     /// <summary>Remove the run directory once nothing is left in it.</summary>
     public void CleanupIfEmpty()

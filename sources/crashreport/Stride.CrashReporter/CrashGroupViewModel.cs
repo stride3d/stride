@@ -13,6 +13,7 @@ internal sealed class CrashGroupViewModel : ObservableObject
     private bool dontShowAgain;
     private bool includeDump = true;
     private bool includeAssetDefinition; // default off: the definition is the user's project content
+    private bool isSent;
 
     public CrashGroupViewModel(StoredCrash crash, long dumpSize)
     {
@@ -64,7 +65,8 @@ internal sealed class CrashGroupViewModel : ObservableObject
     /// <summary>Checkbox label describing the dump and its size; null when there is no dump.</summary>
     public string? DumpLabel { get; }
 
-    /// <summary>Attach the dump when sending. Default on: for a native crash it is the main diagnostic.</summary>
+    /// <summary>Attach the dump when sending. Default on: a dump is only present for a native crash, where it is
+    /// the main diagnostic.</summary>
     public bool IncludeDump
     {
         get => includeDump;
@@ -82,6 +84,13 @@ internal sealed class CrashGroupViewModel : ObservableObject
     {
         get => includeAssetDefinition;
         set => SetProperty(ref includeAssetDefinition, value);
+    }
+
+    /// <summary>Set once sent: the files are gone, so the send options lock (only "Don't show again" stays live).</summary>
+    public bool IsSent
+    {
+        get => isSent;
+        set => SetProperty(ref isSent, value);
     }
 
     private static string ComputeDetail(StoredCrash crash)
