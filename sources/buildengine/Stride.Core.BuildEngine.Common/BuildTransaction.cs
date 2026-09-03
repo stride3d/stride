@@ -31,6 +31,41 @@ internal class BuildTransaction
         }
     }
 
+    public IEnumerable<KeyValuePair<string, ObjectId>> GetMergedIdMap()
+    {
+        var result = new Dictionary<string, ObjectId>();
+
+        lock (transactionOutputObjects)
+        {
+            foreach (var outputObject in transactionOutputObjects)
+            {
+                if (outputObject.Key.Type == UrlType.Content)
+                    result[outputObject.Key.Path] = outputObject.Value;
+            }
+
+            foreach (var outputObjects in outputObjectsGroups)
+            {
+                // Lock underlying EnumerableBuildStep.OutputObjects
+                lock (outputObjects)
+                {
+                    foreach (var outputObject in outputObjects)
+                    {
+                        if (outputObject.Key.Type == UrlType.Content)
+                            result.TryAdd(outputObject.Key.Path, outputObject.Value.ObjectId);
+                    }
+                }
+            }
+
+            if (contentIndexMap != null)
+            {
+                foreach (var entry in contentIndexMap.GetMergedIdMap())
+                    result.TryAdd(entry.Key, entry.Value);
+            }
+        }
+
+        return result;
+    }
+
     public bool TryGetValue(string url, out ObjectId objectId)
     {
         var objUrl = new ObjectUrl(UrlType.Content, url);
@@ -114,8 +149,7 @@ internal class BuildTransaction
 
         public IEnumerable<KeyValuePair<string, ObjectId>> GetMergedIdMap()
         {
-            // Shouldn't be used
-            throw new NotImplementedException();
+            return buildTransaction.GetMergedIdMap();
         }
 
         public void Dispose()
