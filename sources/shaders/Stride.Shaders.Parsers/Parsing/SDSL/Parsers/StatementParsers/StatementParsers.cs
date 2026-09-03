@@ -221,7 +221,7 @@ public record struct ExpressionStatementParser : IParser<Statement>
         var position = scanner.Position;
         if (
             ExpressionParser.Expression(ref scanner, result, out var expression)
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), advance: true)
+            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);

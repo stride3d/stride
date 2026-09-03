@@ -1,0 +1,18 @@
+shader MacroExpandedMethodTrailingSemicolon
+{
+	#define DEFINE_DUMMY_FUNCTION(FUNCTIONNAME)                                   \
+	float3 FUNCTIONNAME##3(float3 p)                                              \
+	{return float3(FUNCTIONNAME(p), FUNCTIONNAME(p), FUNCTIONNAME(p));};
+
+	float dummy(float3 p)
+	{
+		return p.x + p.y + p.z;
+	}
+
+	DEFINE_DUMMY_FUNCTION(dummy)
+
+	float3 CallSite(float3 p)
+	{
+		return dummy3(p);
+	}
+};

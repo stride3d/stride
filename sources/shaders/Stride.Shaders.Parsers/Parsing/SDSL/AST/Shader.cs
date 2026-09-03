@@ -66,6 +66,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public ShaderParameterDeclarations? Generics { get; set; }
     public List<IdentifierBase> Mixins { get; set; } = [];
     public bool Internal { get; set; }
+    public ShaderAttributeList? Attributes { get; set; }
 
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
