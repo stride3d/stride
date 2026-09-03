@@ -128,7 +128,7 @@ namespace Stride.GameStudio.View
         {
             lastError = CredentialError.None;
 
-            var sshClient = new SshClient(RemoteFacilities.NewConnectionInfo(Host.Text, (int) Port.Value, Username.Text, Password.Password));
+            using var sshClient = new SshClient(RemoteFacilities.NewConnectionInfo(Host.Text, (int) Port.Value, Username.Text, Password.Password));
             try
             {
                 sshClient.Connect();
@@ -143,13 +143,13 @@ namespace Stride.GameStudio.View
                     }
                 }
             }
-            catch (Exception e) when (e is SshException || e is SocketException)
-            {
-                lastError = CredentialError.InvalidHost;
-            }
             catch (SshAuthenticationException)
             {
                 lastError = CredentialError.InvalidUserOrPassword;
+            }
+            catch (Exception e) when (e is SshException || e is SocketException)
+            {
+                lastError = CredentialError.InvalidHost;
             }
         }
 

@@ -120,6 +120,7 @@ namespace Stride.GameStudio.Remote
                     var message = Tr._p("Message", "Unable to launch {0} on host {1}");
                     logger.Error(string.Format(message, exePath, host));
                 }
+                sshClient.Dispose();
             }
 
             return false;
