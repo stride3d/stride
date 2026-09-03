@@ -123,7 +123,7 @@ namespace Stride.Assets.Presentation.Preview
                     },
                     SpecularModel = new MaterialSpecularMicrofacetModelFeature()
                 }
-            });
+            }, Game.Content);
         }
     }
 }
