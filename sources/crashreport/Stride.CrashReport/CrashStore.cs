@@ -32,17 +32,25 @@ public sealed class CrashStore
     /// <summary>This app's directory under <see cref="BaseDirectory"/>.</summary>
     public string AppDirectory { get; }
 
+    private readonly string application;
+
     public CrashStore(string application, string baseDirectory = null)
     {
+        this.application = application.ToLowerInvariant();
         BaseDirectory = ResolveBaseDirectory(baseDirectory);
-        AppDirectory = Path.Combine(BaseDirectory, application.ToLowerInvariant());
+        AppDirectory = Path.Combine(BaseDirectory, this.application);
     }
+
+    /// <summary>The per-user default base, independent of <c>STRIDE_CRASH_DIR</c>. Persistent suppression lives
+    /// here so it survives restarts and separate runs even when a routed build points the store at a temp dir.</summary>
+    private static string DefaultBaseDirectory
+        => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "crash-reports");
 
     /// <summary>Resolves the base directory: explicit override, else <c>STRIDE_CRASH_DIR</c>, else the per-user default.</summary>
     public static string ResolveBaseDirectory(string baseDirectory = null)
         => baseDirectory
             ?? Environment.GetEnvironmentVariable(EnvBaseDir)
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "crash-reports");
+            ?? DefaultBaseDirectory;
 
     /// <summary>The app ids (subdir names) that currently have a store, for a tool that lists every pending crash.</summary>
     public static IReadOnlyList<string> EnumerateApps(string baseDirectory = null)
@@ -99,34 +107,51 @@ public sealed class CrashStore
         }
     }
 
-    // Suppression: signatures the user chose not to be asked about again, keyed by signature + app
-    // version so an upgrade re-surfaces a still-present crash once. Persisted at the app dir, so it
-    // outlives individual runs.
+    // Suppression comes in two flavours, both keyed by signature + app version so an upgrade re-surfaces a
+    // still-present crash once:
+    //  - Session: the user sent the report and should not be re-asked for now. It lives in this store's own app
+    //    dir, which for a GameStudio-routed build is a per-process temp dir, so it clears when that GameStudio
+    //    exits. Every other tool exits right after reporting, so session suppression is moot for them.
+    //  - Persistent: the user ticked "Don't show again". It lives in the per-user default dir (never the routed
+    //    temp dir), so it survives restarts and separate runs until the version changes.
 
-    private string SuppressedPath => Path.Combine(AppDirectory, "suppressed.json");
+    private string SessionSuppressedPath => Path.Combine(AppDirectory, "suppressed.json");
+    private string PersistentAppDirectory => Path.Combine(DefaultBaseDirectory, application);
+    private string PersistentSuppressedPath => Path.Combine(PersistentAppDirectory, "suppressed-persistent.json");
 
     public bool IsSuppressed(string signature, string version)
-        => LoadSuppressed().Contains(SuppressKey(signature, version));
-
-    public void Suppress(string signature, string version)
     {
-        var set = LoadSuppressed();
-        if (!set.Add(SuppressKey(signature, version)))
-            return;
-        Directory.CreateDirectory(AppDirectory);
-        File.WriteAllText(SuppressedPath, JsonSerializer.Serialize(set));
+        var key = SuppressKey(signature, version);
+        return Load(SessionSuppressedPath).Contains(key) || Load(PersistentSuppressedPath).Contains(key);
     }
 
-    private HashSet<string> LoadSuppressed()
+    /// <summary>Silence a signature for the life of this store's base dir (a GameStudio session); cleared on its restart.</summary>
+    public void SuppressSession(string signature, string version)
+        => Add(SessionSuppressedPath, AppDirectory, SuppressKey(signature, version));
+
+    /// <summary>Silence a signature in the per-user store until the app version changes, across sessions and runs.</summary>
+    public void SuppressPersistent(string signature, string version)
+        => Add(PersistentSuppressedPath, PersistentAppDirectory, SuppressKey(signature, version));
+
+    private static void Add(string path, string directory, string key)
+    {
+        var set = Load(path);
+        if (!set.Add(key))
+            return;
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(path, JsonSerializer.Serialize(set));
+    }
+
+    private static HashSet<string> Load(string path)
     {
         try
         {
-            if (File.Exists(SuppressedPath))
-                return JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(SuppressedPath)) ?? new();
+            if (File.Exists(path))
+                return JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(path)) ?? new();
         }
         catch (Exception)
         {
-            // A corrupt suppression file just means nothing is suppressed; it is rewritten on the next Suppress.
+            // A corrupt suppression file just means nothing is suppressed; it is rewritten on the next opt-out.
         }
         return new HashSet<string>();
     }

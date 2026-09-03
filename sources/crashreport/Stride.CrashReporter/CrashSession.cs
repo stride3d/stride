@@ -16,12 +16,14 @@ internal sealed class CrashSession
     private readonly CrashStore store;
     private readonly CrashRun run;
     private readonly string dsn;
+    private readonly bool sessionScoped;
 
-    private CrashSession(CrashStore store, CrashRun run, string dsn, IReadOnlyList<StoredCrash> groups)
+    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, IReadOnlyList<StoredCrash> groups)
     {
         this.store = store;
         this.run = run;
         this.dsn = dsn;
+        this.sessionScoped = sessionScoped;
         Groups = groups;
     }
 
@@ -38,7 +40,7 @@ internal sealed class CrashSession
     /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and base
     /// are the run's parent and grandparent — enough to also reach the app's suppression list.
     /// </summary>
-    public static CrashSession Load(string runDirectory, string? dsnOverride)
+    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped)
     {
         var full = Path.GetFullPath(runDirectory);
         var appDir = Directory.GetParent(full) ?? throw new ArgumentException($"'{runDirectory}' has no parent app directory.");
@@ -50,7 +52,7 @@ internal sealed class CrashSession
 
         // Defensive: capture already skips suppressed signatures, but never re-surface one that slipped through.
         var groups = run.Read().Where(crash => !store.IsSuppressed(crash.Signature, crash.Version)).ToList();
-        return new CrashSession(store, run, dsn, groups);
+        return new CrashSession(store, run, dsn, sessionScoped, groups);
     }
 
     // Cap on an opt-in asset attachment: a definition is small YAML, so a low cap keeps a stray large file out.
@@ -92,8 +94,20 @@ internal sealed class CrashSession
         return File.Exists(path) ? new FileInfo(path).Length : 0;
     }
 
-    /// <summary>Silence this signature for the current version, so it never pops up again until an upgrade.</summary>
-    public void Suppress(StoredCrash crash) => store.Suppress(crash.Signature, crash.Version);
+    /// <summary>True when this run belongs to a live host session (a GameStudio-routed build), so a sent crash can
+    /// be quietened just for that session; false for a crashed or one-shot host, where only "Don't show again" lasts.</summary>
+    public bool IsSessionScoped => sessionScoped;
+
+    /// <summary>On send: quieten this signature for the rest of the current GameStudio session only. A no-op when the
+    /// report is not session-scoped (the host crashed or exits now), where sending durably suppresses nothing.</summary>
+    public void SuppressForSession(StoredCrash crash)
+    {
+        if (sessionScoped)
+            store.SuppressSession(crash.Signature, crash.Version);
+    }
+
+    /// <summary>On "Don't show again": silence this signature in the per-user store until the next version.</summary>
+    public void SuppressPersistent(StoredCrash crash) => store.SuppressPersistent(crash.Signature, crash.Version);
 
     /// <summary>Drop a group's files once it has been sent or dismissed.</summary>
     public void Remove(StoredCrash crash) => run.Remove(crash);

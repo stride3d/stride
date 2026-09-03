@@ -88,14 +88,16 @@ internal sealed class CrashReporterViewModel : ObservableObject
 
         var failed = 0;
         string? lastError = null;
-        // Send only checked groups; a sent crash is suppressed and its files dropped, a failed send is left on
-        // disk for 'stride crash send'. Unchecked groups wait for the Keep/Delete choice at window close.
+        // Send only checked groups. A successful send quietens that crash for the rest of a GameStudio session (so
+        // repeated builds don't re-pop it) but does not persistently suppress it; "Don't show again" is the separate,
+        // durable opt-out applied at window close. A sent crash's files are dropped; a failed send is left on disk
+        // for 'stride crash send'. Unchecked groups wait for the Keep/Delete choice at window close.
         foreach (var group in Groups.Where(group => group.Send))
         {
             try
             {
                 await session.SendAsync(group.Crash, group.IncludeDump, group.IncludeAssetDefinition);
-                session.Suppress(group.Crash);
+                session.SuppressForSession(group.Crash);
                 session.Remove(group.Crash);
             }
             catch (Exception exception)
@@ -108,7 +110,9 @@ internal sealed class CrashReporterViewModel : ObservableObject
         IsSending = false;
         CanSend = false; // consent is per crash; don't offer a second send
         SendStatus = failed == 0
-            ? "Thank you. The crash report has been sent."
+            ? (session.IsSessionScoped
+                ? "Thank you. The crash report has been sent; you won't be asked about it again this session."
+                : "Thank you. The crash report has been sent.")
             : $"{failed} report(s) could not be sent ({lastError}); they were kept for a later 'stride crash send'.";
     }
 
@@ -131,7 +135,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         foreach (var group in Groups)
         {
             if (group.DontShowAgain)
-                session.Suppress(group.Crash);
+                session.SuppressPersistent(group.Crash);
             if (!keepFiles)
                 session.Remove(group.Crash);
         }

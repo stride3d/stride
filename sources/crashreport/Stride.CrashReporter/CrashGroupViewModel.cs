@@ -50,7 +50,8 @@ internal sealed class CrashGroupViewModel : ObservableObject
         set => SetProperty(ref send, value);
     }
 
-    /// <summary>Suppress this signature's future popups even without sending it.</summary>
+    /// <summary>Persistently silence this signature (until the next version), across sessions and separate runs,
+    /// whether or not it is sent. Sending alone only quietens it for the current GameStudio session.</summary>
     public bool DontShowAgain
     {
         get => dontShowAgain;

@@ -52,7 +52,10 @@ internal static class Program
             }
         }
 
-        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"));
+        // Only a plain run-directory launch is a live GameStudio session (the compiler-routing path); a --capture
+        // launch is a host that just crashed and is exiting, so a send there suppresses nothing session-scoped.
+        var sessionScoped = Array.IndexOf(args, "--capture") < 0;
+        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"), sessionScoped);
         // Nothing to ask about (empty run, or every signature already suppressed): exit quietly, no window.
         if (session.Groups.Count == 0)
             return 0;
