@@ -96,6 +96,10 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             {
                 cross.CompilerOptionsSetUint(compilerOptions, CompilerOption.HlslShaderModel, 50);
                 cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.HlslPreserveStructuredBuffers, 1);
+                // FXC rejects uninitialized loop-carried variables (from OpUndef phi inputs) with a
+                // bogus "error X4555: cannot use casts on l-values" when they end up assigned in a
+                // for-loop continue expression.
+                cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.ForceZeroInitializedVariables, 1);
             }
             cross.CompilerInstallCompilerOptions(compiler, compilerOptions);
         }
