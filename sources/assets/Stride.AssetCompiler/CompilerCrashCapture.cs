@@ -37,6 +37,10 @@ namespace Stride.AssetCompiler
         // crash files into the master's shared run for the master to collect.
         private bool isMaster = true;
         private CrashRun run; // created on the first capture (or eagerly when the native handler is armed / shared with slaves)
+        // One run per process, shared by all master captures (per-command hook + top-level handler) so a process's
+        // crashes surface as a single reporter. Slaves use the master's run (CrashRunDirectory), not this.
+        private static CrashRun processRun;
+        private static readonly object processRunGate = new();
 
         public CompilerCrashCapture(PackageBuilderOptions options)
         {
@@ -77,8 +81,10 @@ namespace Stride.AssetCompiler
         /// <summary>The run captured crashes are written to, created on first use. Shared with the build's slaves.</summary>
         public CrashRun EnsureRun()
         {
-            lock (gate)
-                return run ??= store.CreateRun();
+            if (run != null)
+                return run; // a slave's shared run, or a master run already resolved
+            lock (processRunGate)
+                return run = processRun ??= store.CreateRun();
         }
 
         /// <summary>
@@ -194,11 +200,8 @@ namespace Stride.AssetCompiler
             catch { /* best effort: a locked dump is left in the staging dir, retried next build */ }
         }
 
-        /// <summary>
-        /// Records and handles an exception that escaped the whole build rather than a single command (the compiler's
-        /// top-level catch), so a non-command crash is reported like a per-command one. Headless: sends on CI, else
-        /// leaves the run for routing / <c>stride crash send</c>. Best-effort — never masks the original crash.
-        /// </summary>
+        /// <summary>Records and handles a crash that escaped the whole build (not a single command), so it is reported
+        /// like a per-command one. Best-effort.</summary>
         public static void CaptureTopLevel(PackageBuilderOptions options, Exception exception,
             IReadOnlyList<StoredThread> threads = null, int? crashedThreadId = null, string crashedThreadName = null)
         {
@@ -217,8 +220,7 @@ namespace Stride.AssetCompiler
             }
         }
 
-        /// <summary>Headless end-of-run handling shared by the end-of-build and top-level paths: send on CI, else
-        /// leave the run for a healthy surface (GameStudio / <c>stride crash send</c>) to submit.</summary>
+        /// <summary>Headless end-of-run handling: send on CI, else leave the run for GameStudio / <c>stride crash send</c>.</summary>
         public void HandleRun(ILogger logger)
         {
             if (run == null)
@@ -259,7 +261,7 @@ namespace Stride.AssetCompiler
                 // and the master's own suppression already skips its local occurrences of the same signature.
                 if (isMaster && store.IsSuppressed(signature, version))
                     return;
-                run ??= store.CreateRun();
+                EnsureRun();
                 var crash = BuildCrash(command, asset, exception, stepKind, signature);
                 if (threads != null)
                     crash.Threads = threads.ToList();
