@@ -41,8 +41,7 @@ public sealed class CrashStore
         AppDirectory = Path.Combine(BaseDirectory, this.application);
     }
 
-    /// <summary>The per-user default base, independent of <c>STRIDE_CRASH_DIR</c>. Persistent suppression lives
-    /// here so it survives restarts and separate runs even when a routed build points the store at a temp dir.</summary>
+    /// <summary>The per-user default base, independent of <c>STRIDE_CRASH_DIR</c> — where persistent suppression lives.</summary>
     private static string DefaultBaseDirectory
         => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "crash-reports");
 
@@ -67,11 +66,15 @@ public sealed class CrashStore
     /// <summary>Creates a fresh per-run directory (<c>run-&lt;UTC&gt;-&lt;pid&gt;</c>) for this invocation's crashes.</summary>
     public CrashRun CreateRun()
     {
-        var name = $"run-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}-{Environment.ProcessId}";
-        var dir = Path.Combine(AppDirectory, name);
+        var dir = ReserveRunPath();
         Directory.CreateDirectory(dir);
         return new CrashRun(dir);
     }
+
+    /// <summary>A fresh run directory path (<c>run-&lt;UTC&gt;-&lt;pid&gt;</c>) not created on disk, for a producer that
+    /// creates it only if it actually has a crash to write (e.g. the out-of-process native reporter).</summary>
+    public string ReserveRunPath()
+        => Path.Combine(AppDirectory, $"run-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}-{Environment.ProcessId}");
 
     /// <summary>All pending runs (unsent), newest first.</summary>
     public IReadOnlyList<CrashRun> ListRuns()
@@ -86,6 +89,38 @@ public sealed class CrashStore
 
     /// <summary>Opens a run by its directory path (for <c>stride crash send &lt;dir&gt;</c>).</summary>
     public static CrashRun OpenRun(string directory) => new(directory);
+
+    /// <summary>Moves a run into the per-user durable store so a kept crash survives the session (for
+    /// <c>stride crash send</c>). Returns it unchanged if already durable.</summary>
+    public CrashRun MoveRunToDurable(CrashRun sourceRun)
+    {
+        var appDir = Path.Combine(DefaultBaseDirectory, application);
+        var target = Path.Combine(appDir, Path.GetFileName(sourceRun.Directory));
+        if (PathsEqual(sourceRun.Directory, target))
+            return sourceRun;
+
+        Directory.CreateDirectory(appDir);
+        if (Directory.Exists(target))
+            Directory.Delete(target, recursive: true);
+        try
+        {
+            Directory.Move(sourceRun.Directory, target);
+        }
+        catch (IOException)
+        {
+            // Move fails across volumes (temp on another drive); the run dir is flat, so copy its files + delete.
+            Directory.CreateDirectory(target);
+            foreach (var file in Directory.GetFiles(sourceRun.Directory))
+                File.Copy(file, Path.Combine(target, Path.GetFileName(file)), overwrite: true);
+            try { Directory.Delete(sourceRun.Directory, recursive: true); } catch { /* best effort */ }
+        }
+        return OpenRun(target);
+    }
+
+    private static bool PathsEqual(string a, string b)
+        => string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                         Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                         StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Deletes runs older than <paramref name="maxAge"/> so the store never grows unbounded.</summary>
     public void Prune(TimeSpan maxAge)
@@ -107,13 +142,9 @@ public sealed class CrashStore
         }
     }
 
-    // Suppression comes in two flavours, both keyed by signature + app version so an upgrade re-surfaces a
-    // still-present crash once:
-    //  - Session: the user sent the report and should not be re-asked for now. It lives in this store's own app
-    //    dir, which for a GameStudio-routed build is a per-process temp dir, so it clears when that GameStudio
-    //    exits. Every other tool exits right after reporting, so session suppression is moot for them.
-    //  - Persistent: the user ticked "Don't show again". It lives in the per-user default dir (never the routed
-    //    temp dir), so it survives restarts and separate runs until the version changes.
+    // Two suppression stores, both keyed by signature + version (an upgrade re-surfaces a still-present crash):
+    //  - Session (this store's app dir — a per-process temp dir under GameStudio): the user sent it; clears on exit.
+    //  - Persistent (the per-user default dir): the user ticked "Don't show again"; survives restarts, until a version bump.
 
     private string SessionSuppressedPath => Path.Combine(AppDirectory, "suppressed.json");
     private string PersistentAppDirectory => Path.Combine(DefaultBaseDirectory, application);
