@@ -102,7 +102,9 @@ namespace Stride.Rendering
 
                 foreach (var keyInfo in parameters.ParameterKeyInfos)
                 {
-                    if (!keyInfo.IsResourceParameter || keyInfo.BindingSlot >= objectValues.Length)
+                    // Permutation keys share ObjectValues with resource parameters; replacing one here
+                    // would not bump the permutation counter, so only object (resource) keys are handled.
+                    if (keyInfo.Key.Type != ParameterKeyType.Object || !keyInfo.IsResourceParameter || keyInfo.BindingSlot >= objectValues.Length)
                         continue;
 
                     var reference = AttachedReferenceManager.GetAttachedReference(objectValues[keyInfo.BindingSlot]);
