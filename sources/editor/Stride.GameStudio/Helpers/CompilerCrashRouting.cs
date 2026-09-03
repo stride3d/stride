@@ -25,7 +25,7 @@ namespace Stride.GameStudio.Helpers
     /// </remarks>
     public static class CompilerCrashRouting
     {
-        private const string RootFolder = "stride-gamestudio-crash";
+        private static readonly string RootFolder = Path.Combine("stride", "crash-reports");
         private static readonly object gate = new();
         private static readonly HashSet<string> surfaced = new(StringComparer.OrdinalIgnoreCase);
         private static string directory;
@@ -64,9 +64,15 @@ namespace Stride.GameStudio.Helpers
             }
         }
 
-        // Best effort at startup: drop dirs left by previous sessions. The reporter deletes each run it handles,
-        // but a dir can linger if GameStudio closed with a report still open, so prune by age rather than on exit
-        // (deleting on exit would pull the run out from under a reporter that is still open).
+        /// <summary>Drop crash-routing dirs left by previous sessions. Called at startup so cleanup doesn't wait for a build.</summary>
+        public static void PruneStaleSessions()
+        {
+            lock (gate)
+                PruneOldSessions();
+        }
+
+        // Drop a finished session's dir (no run-* left) once its GameStudio is gone; otherwise prune by age — a dir
+        // still holding a run-* may have a reporter open on it, and reporters can outlive their GameStudio.
         private static void PruneOldSessions()
         {
             if (pruned)
@@ -78,11 +84,12 @@ namespace Stride.GameStudio.Helpers
                 if (!Directory.Exists(root))
                     return;
                 var cutoff = DateTime.UtcNow - TimeSpan.FromDays(3);
+                var alivePids = GetAlivePids();
                 foreach (var dir in Directory.GetDirectories(root))
                 {
                     try
                     {
-                        if (Directory.GetLastWriteTimeUtc(dir) < cutoff)
+                        if (Directory.GetLastWriteTimeUtc(dir) < cutoff || (IsFinished(dir) && !IsOwnerAlive(dir, alivePids)))
                             Directory.Delete(dir, recursive: true);
                     }
                     catch
@@ -95,6 +102,43 @@ namespace Stride.GameStudio.Helpers
             {
                 // Best effort.
             }
+        }
+
+        // No run-* dirs left: every crash was handled, so no reporter is open on it — safe to drop.
+        private static bool IsFinished(string sessionDir)
+        {
+            try { return !Directory.EnumerateDirectories(sessionDir, "run-*", SearchOption.AllDirectories).Any(); }
+            catch { return false; }
+        }
+
+        // Running process ids, taken once so the owner check is a set lookup rather than a per-dir
+        // Process.GetProcessById that throws for every dead session (first-chance noise under a debugger). Null on failure.
+        private static HashSet<int> GetAlivePids()
+        {
+            System.Diagnostics.Process[] processes = null;
+            try
+            {
+                processes = System.Diagnostics.Process.GetProcesses();
+                return processes.Select(p => p.Id).ToHashSet();
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (processes != null)
+                    foreach (var p in processes)
+                        p.Dispose();
+            }
+        }
+
+        // Is the owning GameStudio (dir named by its pid) still running? Unknown name or no snapshot counts as alive.
+        private static bool IsOwnerAlive(string sessionDir, HashSet<int> alivePids)
+        {
+            if (!int.TryParse(Path.GetFileName(sessionDir), out var pid))
+                return true;
+            return pid == Environment.ProcessId || alivePids == null || alivePids.Contains(pid);
         }
 
         /// <summary>

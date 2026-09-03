@@ -106,8 +106,9 @@ public static class Program
         // The managed handlers above can't see a native access violation (native interop, GPU drivers) — it kills
         // the process first. Arm the native handler so such a crash is captured and offered to the reporter too.
         Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
+        // Sweep crash-routing dirs left by previous sessions.
+        CompilerCrashRouting.PruneStaleSessions();
         EditorPath.EditorTitle = StrideGameStudio.EditorName;
-
         if (IntPtr.Size == 4)
         {
             MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
