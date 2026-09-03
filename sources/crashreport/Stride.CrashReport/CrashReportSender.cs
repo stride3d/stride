@@ -46,7 +46,8 @@ public static class CrashReportSender
         var (version, commit) = SplitVersion(informational);
         var minidump = includeMinidump && OperatingSystem.IsWindows() ? MinidumpWriter.TryWrite() : null;
         return SendCoreAsync(report, applicationName, version, commit, BuildEnvironment ?? "local",
-            exception, dsn, minidump, attachments: null, feedbackName, feedbackEmail, feedbackMessage);
+            exception, dsn, minidump, attachments: null, feedbackName, feedbackEmail, feedbackMessage,
+            fingerprint: null, structuredExceptions: null); // a live exception groups by, and renders, its own stack
     }
 
     /// <summary>
@@ -62,7 +63,8 @@ public static class CrashReportSender
         var environment = string.IsNullOrEmpty(crash.Environment) ? "local" : crash.Environment;
         // No live Exception object survives the handoff; the event is rebuilt from the stored report text.
         return SendCoreAsync(crash.ToReportData(), crash.Application, version, commit, environment,
-            exception: null, dsn, dump, attachments, feedbackName, feedbackEmail, feedbackMessage);
+            exception: null, dsn, dump, attachments, feedbackName, feedbackEmail, feedbackMessage,
+            fingerprint: crash.Signature, structuredExceptions: crash.Exceptions);
     }
 
     // Drop the +g<sha> metadata so the release matches the NuGet version and git tag; the commit travels as a tag.
@@ -77,7 +79,8 @@ public static class CrashReportSender
 
     private static async Task SendCoreAsync(CrashReportData report, string applicationName, string version, string commit, string environment,
         Exception exception, string dsn, byte[] minidump, IReadOnlyList<(string Name, byte[] Bytes)> attachments,
-        string feedbackName, string feedbackEmail, string feedbackMessage)
+        string feedbackName, string feedbackEmail, string feedbackMessage, string fingerprint,
+        IReadOnlyList<StoredException> structuredExceptions)
     {
         // Application name doubles as the "application" tag and, lowercased, the release package id (e.g.
         // "GameStudio" -> gamestudio@version). No "Stride" prefix: every report already lands in a Stride project.
@@ -90,6 +93,13 @@ public static class CrashReportSender
             options.Environment = environment;
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = false;
+            // Never attach the current stack: these events aren't raised at the fault site, so it would be the
+            // reporter's (or the after-the-fact host's) stack, not the crash — misleading, and it would group every
+            // handoff crash by the reporter's own stack. Grouping is set via the fingerprint instead.
+            options.AttachStacktrace = false;
+            // The "Assemblies" list comes from THIS process: for a handoff crash that's the reporter, not the crash,
+            // so drop it; for an in-process crash it's the crashing host's, so keep it.
+            options.ReportAssembliesMode = exception != null ? ReportAssembliesMode.Version : ReportAssembliesMode.None;
             // No user identity beyond the SDK's random installation id; a contact email only travels
             // through the feedback when the user typed one
             options.SendDefaultPii = false;
@@ -113,10 +123,17 @@ public static class CrashReportSender
             MapReport(scope, report);
         });
 
-        var sentryEvent = exception != null
-            ? new SentryEvent(exception)
-            : new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] ?? "Unknown crash" } };
+        SentryEvent sentryEvent;
+        if (exception != null)
+            sentryEvent = new SentryEvent(exception);                       // live crash: the SDK builds the frames
+        else if (structuredExceptions is { Count: > 0 })
+            sentryEvent = BuildEventFromStored(structuredExceptions);       // handoff managed crash: rebuild the frames
+        else
+            sentryEvent = new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] ?? "Unknown crash" } }; // native / no frames
         sentryEvent.Level = SentryLevel.Fatal;
+        // Group by the crash's own signature (fault frame / exception+step), not the reporter's stack or message.
+        if (!string.IsNullOrEmpty(fingerprint))
+            sentryEvent.SetFingerprint(new[] { fingerprint });
 
         var eventId = SentrySdk.CaptureEvent(sentryEvent);
 
@@ -246,6 +263,32 @@ public static class CrashReportSender
             }
         }
         Flush();
+    }
+
+    // Rebuilds a Sentry event with real exceptions + stacktraces from the frames captured at the crash site, so a
+    // handoff managed crash renders as a proper stacktrace (in-app frames, source links) instead of message text.
+    private static SentryEvent BuildEventFromStored(IReadOnlyList<StoredException> stored)
+    {
+        var exceptions = new List<Sentry.Protocol.SentryException>();
+        // Sentry lists the chain innermost-first; ours is outermost-first, so reverse.
+        foreach (var ex in stored.AsEnumerable().Reverse())
+        {
+            var stacktrace = new SentryStackTrace();
+            // .NET frames are newest-first; Sentry wants oldest-first, so reverse.
+            foreach (var frame in ((IEnumerable<StoredFrame>)ex.Frames).Reverse())
+            {
+                stacktrace.Frames.Add(new SentryStackFrame
+                {
+                    Function = frame.Function,
+                    Module = frame.Module,
+                    FileName = frame.File,
+                    LineNumber = frame.Line > 0 ? frame.Line : (int?)null,
+                    InApp = frame.Module?.StartsWith("Stride", StringComparison.Ordinal) == true,
+                });
+            }
+            exceptions.Add(new Sentry.Protocol.SentryException { Type = ex.Type, Value = ex.Message, Stacktrace = stacktrace });
+        }
+        return new SentryEvent { SentryExceptions = exceptions };
     }
 
     /// <summary>

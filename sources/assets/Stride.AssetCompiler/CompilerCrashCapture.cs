@@ -235,6 +235,7 @@ namespace Stride.AssetCompiler
             };
             var crash = NewStoredCrash(data);
             crash.Signature = signature;
+            crash.Exceptions = StoredException.Capture(exception);
             if (assetLabel != null)
                 crash.AffectedAssets.Add(assetLabel);
             // Local-only real paths, so the reporter can offer to attach them if the user opts in. Never sent as text.

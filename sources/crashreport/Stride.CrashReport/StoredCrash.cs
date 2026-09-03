@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 
@@ -51,6 +53,10 @@ public sealed class StoredCrash
     /// <summary>Local-only paths of the failing asset's direct source files (FBX, textures), for a future opt-in attachment.</summary>
     public List<string> AssetSourcePaths { get; set; } = new();
 
+    /// <summary>Structured exception chain (type, message, frames) for a managed crash, so the reporter can rebuild a
+    /// real Sentry stacktrace instead of sending the exception as message text. Empty for a native crash.</summary>
+    public List<StoredException> Exceptions { get; set; } = new();
+
     /// <summary>One-line label: the exception's first line, else the signature.</summary>
     public string Title()
     {
@@ -90,4 +96,46 @@ public sealed class CrashEntry
 {
     public string Key { get; set; }
     public string Value { get; set; }
+}
+
+/// <summary>One exception in a captured chain: its type, message, and frames (newest-first, as .NET reports them).</summary>
+public sealed class StoredException
+{
+    public string Type { get; set; }
+    public string Message { get; set; }
+    public List<StoredFrame> Frames { get; set; } = new();
+
+    /// <summary>Captures a live exception and its inner chain into a serializable model, at the crash site where the
+    /// frames (with file/line from the PDBs) are still available. Sent later by a reporter in another process.</summary>
+    public static List<StoredException> Capture(Exception exception)
+    {
+        var list = new List<StoredException>();
+        for (var current = exception; current != null && list.Count < 10; current = current.InnerException)
+        {
+            var stored = new StoredException { Type = current.GetType().FullName, Message = current.Message };
+            foreach (var frame in new StackTrace(current, fNeedFileInfo: true).GetFrames() ?? Array.Empty<StackFrame>())
+            {
+                var method = frame.GetMethod();
+                stored.Frames.Add(new StoredFrame
+                {
+                    Function = method is null ? null
+                        : method.DeclaringType is null ? method.Name : method.DeclaringType.FullName + "." + method.Name,
+                    Module = method?.DeclaringType?.Assembly.GetName().Name,
+                    File = frame.GetFileName(),
+                    Line = frame.GetFileLineNumber(),
+                });
+            }
+            list.Add(stored);
+        }
+        return list;
+    }
+}
+
+/// <summary>One stack frame: fully-qualified function, declaring assembly, and file/line when the PDB had them.</summary>
+public sealed class StoredFrame
+{
+    public string Function { get; set; }
+    public string Module { get; set; }
+    public string File { get; set; }
+    public int Line { get; set; }
 }
