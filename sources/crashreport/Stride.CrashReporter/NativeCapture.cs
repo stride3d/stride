@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using Stride.CrashReport;
 
 namespace Stride.CrashReporter;
@@ -36,13 +35,18 @@ internal static class NativeCapture
             var exceptionPointers = (IntPtr)(long)ulong.Parse(args[captureIndex + 3], CultureInfo.InvariantCulture);
             var eventName = GetOption(args, "--event");
 
+            // The crashing host's identity travels on our command line (it runs in a different process). Placeholders if absent.
+            var context = (
+                Application: GetOption(args, "--app") ?? "Unknown",
+                Version: GetOption(args, "--version") ?? "unknown",
+                Environment: GetOption(args, "--env") ?? "local");
+
             Directory.CreateDirectory(runDirectory);
             var dumpPath = Path.Combine(runDirectory, $"native-{processId}.dmp");
             var captured = MinidumpWriter.TryWriteTargetProcess(processId, threadId, exceptionPointers, dumpPath);
             if (captured)
             {
                 var frame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
-                var context = ReadContext(runDirectory);
                 WriteStoredCrash(runDirectory, processId, dumpPath, frame, context);
             }
 
@@ -78,30 +82,6 @@ internal static class NativeCapture
         crash.DumpFileName = Path.GetFileName(dumpPath);
         File.WriteAllText(Path.Combine(runDirectory, $"crash-native-{processId}.json"), crash.ToJson());
     }
-
-    // The crashing host writes its identity here at startup (healthy code); we run in a different process and
-    // can't read its assembly metadata. Falls back to placeholders when absent.
-    private static (string Application, string Version, string Environment) ReadContext(string runDirectory)
-    {
-        try
-        {
-            var path = Path.Combine(runDirectory, "native-context.json");
-            if (File.Exists(path))
-            {
-                using var document = JsonDocument.Parse(File.ReadAllText(path));
-                var root = document.RootElement;
-                return (Read(root, "Application", "Unknown"), Read(root, "Version", "unknown"), Read(root, "Environment", "local"));
-            }
-        }
-        catch (Exception)
-        {
-            // fall through to defaults
-        }
-        return ("Unknown", "unknown", "local");
-    }
-
-    private static string Read(JsonElement element, string name, string fallback)
-        => element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString()! : fallback;
 
     private static string? GetOption(string[] args, string name)
     {

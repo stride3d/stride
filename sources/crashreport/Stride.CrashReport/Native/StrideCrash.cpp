@@ -105,6 +105,9 @@ static bool w_ieq_ascii(const wchar_t* a, const wchar_t* b) {
 
 static wchar_t g_reporterPath[1024];
 static wchar_t g_dumpDir[1024];
+static wchar_t g_app[256];
+static wchar_t g_version[256];
+static wchar_t g_env[64];
 static uint32_t g_timeoutMs = 0;
 static long g_handled = 0; // dump at most once
 
@@ -155,6 +158,7 @@ static long on_vectored(EXCEPTION_POINTERS* info) {
     void* ev = CreateEventW(nullptr, 1 /* manual reset */, 0, eventName);
 
     // "<reporter>" --capture <pid> <tid> <exception-pointers-addr> --event <name> --dump-dir "<dir>"
+    //   --app "<app>" --version "<ver>" --env "<env>"
     wchar_t cmd[2400]; uint32_t cp = 0;
     w_put(cmd, 2400, &cp, L'"'); w_puts(cmd, 2400, &cp, g_reporterPath); w_put(cmd, 2400, &cp, L'"');
     w_puts(cmd, 2400, &cp, L" --capture "); w_putu(cmd, 2400, &cp, pid);
@@ -162,6 +166,9 @@ static long on_vectored(EXCEPTION_POINTERS* info) {
     w_put(cmd, 2400, &cp, L' '); w_putu(cmd, 2400, &cp, (unsigned long long)(uintptr_t)info);
     w_puts(cmd, 2400, &cp, L" --event "); w_puts(cmd, 2400, &cp, eventName);
     w_puts(cmd, 2400, &cp, L" --dump-dir \""); w_puts(cmd, 2400, &cp, g_dumpDir); w_put(cmd, 2400, &cp, L'"');
+    w_puts(cmd, 2400, &cp, L" --app \""); w_puts(cmd, 2400, &cp, g_app); w_put(cmd, 2400, &cp, L'"');
+    w_puts(cmd, 2400, &cp, L" --version \""); w_puts(cmd, 2400, &cp, g_version); w_put(cmd, 2400, &cp, L'"');
+    w_puts(cmd, 2400, &cp, L" --env \""); w_puts(cmd, 2400, &cp, g_env); w_put(cmd, 2400, &cp, L'"');
     cmd[cp] = 0;
 
     STARTUPINFOW si; for (uint32_t i = 0; i < sizeof(si); i++) ((char*)&si)[i] = 0; si.cb = sizeof(si);
@@ -179,20 +186,26 @@ static long on_vectored(EXCEPTION_POINTERS* info) {
 
 extern "C" {
 
-// Registers the native vectored exception handler. Called once from healthy managed code with the reporter
-// path already resolved (so nothing is resolved in the fault context). reporterPath/dumpDir are UTF-16;
-// timeoutMs bounds the wait for the reporter to finish capturing before the process dies.
-STRIDE_CRASH_API void stride_crash_install(const wchar_t* reporterPath, const wchar_t* dumpDir, uint32_t timeoutMs)
+// Registers the native vectored exception handler, resolved from healthy managed code (nothing resolves in the
+// fault context). The identity strings ride the reporter's command line; timeoutMs bounds the wait for it.
+STRIDE_CRASH_API void stride_crash_install(const wchar_t* reporterPath, const wchar_t* dumpDir, uint32_t timeoutMs,
+                                           const wchar_t* application, const wchar_t* version, const wchar_t* environment)
 {
 #if defined(_WIN32)
     w_copy(g_reporterPath, 1024, reporterPath);
     w_copy(g_dumpDir, 1024, dumpDir);
+    w_copy(g_app, 256, application);
+    w_copy(g_version, 256, version);
+    w_copy(g_env, 64, environment);
     g_timeoutMs = timeoutMs;
     AddVectoredExceptionHandler(0 /* first=0: after the runtime's own handler */, (void*)&on_vectored);
 #else
     (void)reporterPath;
     (void)dumpDir;
     (void)timeoutMs;
+    (void)application;
+    (void)version;
+    (void)environment;
 #endif
 }
 

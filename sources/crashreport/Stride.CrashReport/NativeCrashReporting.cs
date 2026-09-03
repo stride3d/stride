@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 
 namespace Stride.CrashReport
 {
@@ -23,10 +22,6 @@ namespace Stride.CrashReport
     public static class NativeCrashReporting
     {
         private static bool installed;
-        private static CrashRun run;
-        private static string application;
-        private static string version;
-        private static string environment;
 
         /// <summary>
         /// Arms native-crash capture for <paramref name="applicationName"/> (e.g. "GameStudio", "Launcher", "Cli").
@@ -41,60 +36,35 @@ namespace Stride.CrashReport
                 return;
 
             installed = true;
-            application = applicationName;
 
             var informational = version ?? Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            NativeCrashReporting.version = string.IsNullOrEmpty(informational) ? "unknown" : informational;
-            NativeCrashReporting.environment = environment ?? CrashReportSender.BuildEnvironment ?? "local";
+            var resolvedVersion = string.IsNullOrEmpty(informational) ? "unknown" : informational;
+            var resolvedEnvironment = environment ?? CrashReportSender.BuildEnvironment ?? "local";
 
+            string dumpDir;
             try
             {
-                run = new CrashStore(applicationName).CreateRun();
+                // The reporter creates this run only if a crash fires, so a normal launch leaves nothing on disk.
+                dumpDir = new CrashStore(applicationName).ReserveRunPath();
             }
             catch
             {
-                return; // Can't create the store (e.g. permissions); nothing to arm.
+                return; // Can't resolve the store (e.g. permissions); nothing to arm.
             }
 
-            // Capture is out-of-process: resolve the reporter now, in healthy code, record this host's identity
-            // for it to read (it runs in a different process), and arm the native trigger to spawn it on a fault.
-            // A managed vectored handler is unsupported (dotnet/runtime#119142) and can turn a caught exception
-            // fatal on a runtime update; the native trigger runs no managed code in the fault context. When the
-            // reporter can't be resolved, native capture is simply unavailable this run.
+            // Out-of-process capture: resolve the reporter and arm the native trigger, passing the host's identity on
+            // its command line. A managed VEH is unsupported (dotnet/runtime#119142) and can turn a caught exception fatal.
             var reporter = ResolveCrashReporter();
             if (reporter == null || !reporter.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 return;
 
-            WriteNativeContext(run.Directory);
-            try { NativeInvoke.stride_crash_install(reporter, run.Directory, CaptureTimeoutMilliseconds); }
+            try { NativeInvoke.stride_crash_install(reporter, dumpDir, CaptureTimeoutMilliseconds, applicationName, resolvedVersion, resolvedEnvironment); }
             catch { return; }
-
-            // A run directory is created eagerly so the dump has a home; delete it on a clean exit so normal
-            // launches don't litter the store.
-            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-            {
-                try { if (run.IsEmpty) run.Delete(); } catch { /* best effort */ }
-            };
         }
 
         // The crashing thread stays frozen while the reporter captures the dump; this bounds that wait so a
         // missing or wedged reporter can't hang the (already dying) process indefinitely.
         private const uint CaptureTimeoutMilliseconds = 30000;
-
-        // The reporter runs in a different process and can't read this assembly's version, so record the host's
-        // identity for it (see NativeCapture.ReadContext). Best effort; the reporter falls back to placeholders.
-        private static void WriteNativeContext(string runDirectory)
-        {
-            try
-            {
-                var context = new { Application = application, Version = version, Environment = environment };
-                File.WriteAllText(Path.Combine(runDirectory, "native-context.json"), JsonSerializer.Serialize(context));
-            }
-            catch
-            {
-                // The reporter falls back to placeholders when this is missing.
-            }
-        }
 
         /// <summary>
         /// The dedup signature for a native crash: the faulting frame (<c>module+0x&lt;rva&gt;</c>) when the handler

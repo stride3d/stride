@@ -27,13 +27,11 @@ namespace Stride.CrashReport
                 NativeLibrary.SetDllImportResolver(typeof(NativeInvoke).Assembly, Resolve);
         }
 
-        /// <summary>
-        /// Registers the native vectored exception handler. <paramref name="reporterPath"/> and
-        /// <paramref name="dumpDir"/> must be absolute; <paramref name="timeoutMs"/> bounds the wait for the
-        /// reporter to capture the dump before the process dies.
-        /// </summary>
+        /// <summary>Registers the native vectored exception handler. Paths must be absolute; the identity strings
+        /// (application/version/environment) ride the reporter's command line; timeoutMs bounds the capture wait.</summary>
         [DllImport(Library, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        internal static extern void stride_crash_install(string reporterPath, string dumpDir, uint timeoutMs);
+        internal static extern void stride_crash_install(string reporterPath, string dumpDir, uint timeoutMs,
+            string application, string version, string environment);
 
         private static IntPtr Resolve(string name, Assembly assembly, DllImportSearchPath? paths)
         {
