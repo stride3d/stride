@@ -8,6 +8,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Yaml;
+using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -927,7 +928,9 @@ Compositions:
         [Fact]
         public void TestGeneratorLeavesTextureReferencesAsProxies()
         {
-            var context = new MaterialGeneratorContextExtended();
+            // The graphics profile decides between the LUT16 and LUT8 lookup tables; pin it
+            // so the URL asserted below does not depend on the context's default.
+            var context = new MaterialGeneratorContextExtended { GraphicsProfile = GraphicsProfile.Level_10_0 };
             var materialDesc = new MaterialDescriptor
             {
                 Attributes =
