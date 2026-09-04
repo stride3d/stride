@@ -177,6 +177,10 @@ namespace Stride.AssetCompiler
                 builder.WriteIndexFile(false);
                 builder.WriteClosureFile();
 
+                // An asset failed: stop before bundling (a partial build only throws a cryptic missing-asset error).
+                if (result != BuildResultCode.Successful)
+                    return result;
+
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
                 var bundleFiles = new List<string>();
