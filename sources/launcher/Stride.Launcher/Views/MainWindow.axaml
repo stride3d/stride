@@ -10,5 +10,26 @@
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"
         Title="{x:Static l:Strings.LauncherTitle}">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <ImageBrush x:Key="ImageBackground"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <!-- FIXME xplat-editor find a background image working better with the light variant -->
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill" Opacity="0.4"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Window.Background>
+    <DynamicResource ResourceKey="ImageBackground"/>
+  </Window.Background>        
   <vw:MainView />
 </Window>

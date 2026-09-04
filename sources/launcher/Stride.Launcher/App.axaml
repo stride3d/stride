@@ -1,9 +1,15 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:Stride.Launcher.Assets.Localization"
              x:Class="Stride.Launcher.App"
              RequestedThemeVariant="Dark">
   <Application.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- END TODO -->
       <Image x:Key="ImageFacebook"
              Height="24" Width="24"
              Source="/Assets/Images/facebook.png" />
@@ -45,6 +51,8 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml"/>
+
     <Style Selector="Button">
       <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
     </Style>
