@@ -7,8 +7,10 @@ namespace Stride.Graphics;
 ///   The kinds of capability a renderer can declare it needs.
 /// </summary>
 /// <remarks>
-///   A backend implements a kind or it does not. The device answers per capability instance, because
-///   multisampling support depends on the pixel format and the sample count.
+///   A backend declares the kinds it implements, and that declaration holds for every device it runs on.
+///   Whether the user's device provides one of them is a separate question, and it is asked of a
+///   <see cref="GraphicsCapability"/> rather than of a kind, because an instance can carry the detail
+///   the device needs to answer.
 /// </remarks>
 public enum GraphicsCapabilityKind
 {
@@ -43,7 +45,8 @@ public enum GraphicsCapabilityKind
     SRgb,
 
     /// <summary>
-    ///   Multisampled rendering.
+    ///   Multisampled rendering. The device answers per pixel format and sample count, so this is the
+    ///   one kind whose instances differ from one another.
     /// </summary>
     Multisampling,
 
