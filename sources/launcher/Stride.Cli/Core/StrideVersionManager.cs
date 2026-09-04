@@ -301,12 +301,19 @@ public sealed class StrideVersionManager
     // template package from an unrelated local source (e.g. the VS offline packages folder) is not picked up.
     private const string TemplateTag = "stride-template";
 
+    // The asset packs are the one template package nothing depends on: Stride.GameStudio deliberately declares no
+    // dependency on it, since the packs are optional content nobody should pay for at install time. Installing a
+    // Stride version therefore never puts it in the store, which is why discovery alone never finds it.
+    private const string AssetPacksPackageId = "Stride.Templates.AssetPacks";
+
     /// <summary>
     ///   Opens a template registry over the installed template packages compatible with the given version,
     ///   plus any explicitly requested <paramref name="extraPackages"/> (a package id or a local .nupkg path).
+    ///   The asset packs are fetched first when the store has no compatible copy, since nothing installs them.
     ///   Returns null if none could be installed. The caller owns the returned registry and must dispose it.
     /// </summary>
-    public async Task<DotNetNewTemplateRegistry?> OpenTemplateRegistry(PackageVersion version, IEnumerable<string>? extraPackages = null)
+    public async Task<DotNetNewTemplateRegistry?> OpenTemplateRegistry(
+        PackageVersion version, IEnumerable<string>? extraPackages = null, CancellationToken cancellationToken = default)
     {
         // Keep template-engine state under a CLI-owned, per-version directory so it stays isolated
         // from the user's global `dotnet new` installation and is deterministic regardless of whether
@@ -314,6 +321,8 @@ public sealed class StrideVersionManager
         var profileDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "stride", "cli", "templates", version.ToString());
+
+        await EnsureAssetPacksInstalled(version, cancellationToken);
 
         var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);
         var installedAny = false;
@@ -332,6 +341,50 @@ public sealed class StrideVersionManager
         return registry;
     }
 
+    /// <summary>
+    ///   Downloads the asset packs when the store holds no copy compatible with <paramref name="version"/>, so
+    ///   that discovery can find them. Game Studio fetches the same package the same way when its New Game dialog
+    ///   first offers the packs. Best effort: without a reachable source the packs are simply left out.
+    /// </summary>
+    private async Task EnsureAssetPacksInstalled(PackageVersion version, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Ask the local store with the same accessor discovery uses, so an installed copy it would accept is
+            // never downloaded again.
+            if (store.GetLocalPackages(AssetPacksPackageId)
+                .Any(package => IsCompatible(package.GetDependencyFloor(TemplateMarkerDependencyId), version)))
+                return;
+
+            // Filter by the rule discovery applies, so a download is never spent on a package that would then be
+            // skipped for targeting a newer engine.
+            var candidate = (await store.FindSourcePackagesById(AssetPacksPackageId, cancellationToken))
+                .Where(package => IsCompatible(MarkerFloor(package), version))
+                .OrderByDescending(package => package.Version)
+                .FirstOrDefault();
+            if (candidate is not null)
+                await store.InstallPackage(candidate.Id, candidate.Version, candidate.TargetFrameworks, progress: null);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            // An unreadable package folder, an unreachable source or a failed download. The packs are optional, so
+            // none of it should stop `new` from working with the templates that are installed; the editor swallows
+            // the same failures for the same reason. Nothing is printed because the caller owns the status line.
+        }
+    }
+
+    // A template package suits the requested engine when its marker names an engine no newer. An unmarked package
+    // has unknown compatibility, so it never qualifies here; discovery keeps its own last-resort fallback.
+    private static bool IsCompatible(PackageVersion? markerFloor, PackageVersion version)
+        => markerFloor is { } floor && floor.CompareTo(version) <= 0;
+
+    // The engine version a package from a source was built against. The installed counterpart is
+    // NugetLocalPackage.GetDependencyFloor, which reads the same marker from the extracted nuspec.
+    private static PackageVersion? MarkerFloor(NugetServerPackage package)
+        => package.Dependencies
+            .FirstOrDefault(dependency => string.Equals(dependency.Item1, TemplateMarkerDependencyId, StringComparison.OrdinalIgnoreCase))
+            ?.Item2.MinVersion;
+
     // The directories to install into the registry: one per discovered template package, plus any explicit
     // extra packages.
     private IEnumerable<string> ResolveTemplatePackages(PackageVersion version, IEnumerable<string>? extraPackages)
@@ -344,7 +397,7 @@ public sealed class StrideVersionManager
             .Where(package => package.IsTemplatePackage && package.HasTag(TemplateTag))
             .GroupBy(package => package.Id, StringComparer.OrdinalIgnoreCase)
             .Select(group =>
-                group.Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is { } floor && floor.CompareTo(version) <= 0)
+                group.Where(package => IsCompatible(package.GetDependencyFloor(TemplateMarkerDependencyId), version))
                     .OrderByDescending(package => package.Version)
                     .FirstOrDefault()
                 ?? group.Where(package => package.GetDependencyFloor(TemplateMarkerDependencyId) is null)
