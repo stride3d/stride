@@ -12,10 +12,11 @@ using System.Threading;
 namespace Stride
 {
     /// <summary>
-    /// Native-crash diagnostics. Two entry points: <see cref="Install"/> for test/sample runs (suppresses the
+    /// Native-crash diagnostics. Three entry points: <see cref="Install"/> for test/sample runs (suppresses the
     /// Windows crash dialog so a crash can't hang CI, and — when STRIDE_TESTS_CRASH_DUMPS=1 — logs the SEH stack
-    /// and writes a minidump), and <see cref="InstallForReporting"/> for crash reporting (writes a triage dump on
-    /// a native access violation and calls back so a reporter can be spawned).
+    /// and writes a minidump), <see cref="InstallForReporting"/> for in-process crash capture (writes a triage dump
+    /// on a native access violation and calls back so a reporter can be spawned; the test probe exercises it), and
+    /// <see cref="InstallFaultingFrameRecorder"/> for the asset compiler (record-only, beside createdump's dump).
     /// </summary>
     /// <remarks>
     /// GPU drivers (incl. software renderers like WARP/Lavapipe), native audio (XAudio2), and native asset
@@ -23,7 +24,7 @@ namespace Stride
     /// pure-native AV is a corrupted-state exception the runtime fast-fails without raising
     /// <see cref="AppDomain.FirstChanceException"/>, so it needs a Vectored Exception Handler to observe at all.
     /// Shared by Stride.Graphics.Regression and Stride.Games.AutoTesting (via <see cref="Install"/> from a
-    /// ModuleInitializer) and by the asset compiler (via <see cref="InstallForReporting"/>).
+    /// ModuleInitializer) and by the asset compiler (via <see cref="InstallFaultingFrameRecorder"/>).
     /// </remarks>
     internal static class NativeCrashHandler
     {
@@ -90,6 +91,7 @@ namespace Stride
         private static VectoredHandler vectoredHandler; // rooted so the thunk survives while registered
         private static IntPtr vectoredHandlerHandle;    // for the unregistration at process exit
         private static int crashHandled;               // 0/1 guard: dump at most once across VEH + FirstChance
+        private static string faultingFrameFile;        // record-only mode: write the faulting frame here, write no dump
 
         /// <summary>
         /// Installs the crash-dialog suppression and (when STRIDE_TESTS_CRASH_DUMPS=1) the SEH minidump
@@ -150,6 +152,23 @@ namespace Stride
                 SetErrorMode(0x0001 /* SEM_FAILCRITICALERRORS */ | 0x0002 /* SEM_NOGPFAULTERRORBOX */ | 0x8000 /* SEM_NOOPENFILEERRORBOX */);
                 RegisterVectoredHandler();
             }
+        }
+
+        /// <summary>
+        /// Installs a record-only native-fault handler: on a native access violation it writes the faulting frame
+        /// (<c>module+0x&lt;rva&gt;</c>) to <paramref name="faultingFramePath"/> and lets the fault propagate to the
+        /// runtime's <c>createdump</c>, which writes the dump. Windows-only: elsewhere <c>createdump</c> records the
+        /// fault in the dump's exception stream, so nothing extra is needed. This complements <c>createdump</c>,
+        /// which on Windows omits that stream (dotnet/runtime#133065), so the post-build adopt step can still name
+        /// the crashing thread's fault location. Unlike <see cref="InstallForReporting"/> it writes no dump of its
+        /// own and does not suppress the crash dialog (createdump handles termination).
+        /// </summary>
+        public static void InstallFaultingFrameRecorder(string faultingFramePath)
+        {
+            if (!OperatingSystem.IsWindows())
+                return;
+            faultingFrameFile = faultingFramePath;
+            RegisterVectoredHandler();
         }
 
         // Registers the native-AV handler LAST (first=0) so the runtime's own vectored handler runs before us: it
@@ -214,10 +233,19 @@ namespace Stride
             try
             {
                 var signature = ComputeNativeSignature(record);
-                var path = WriteMiniDump(crashDumpTag, exceptionPointers);
-                if (path != null)
+                if (faultingFrameFile != null)
                 {
-                    try { onCrashDump?.Invoke(path, signature); } catch { /* dying process; do not throw */ }
+                    // Record-only mode (compiler): the runtime's createdump writes the dump; we add just the
+                    // faulting frame it omits on Windows, for the post-build adopt step. Then let the fault run on.
+                    try { File.WriteAllText(faultingFrameFile, signature ?? string.Empty); } catch { /* dying process */ }
+                }
+                else
+                {
+                    var path = WriteMiniDump(crashDumpTag, exceptionPointers);
+                    if (path != null)
+                    {
+                        try { onCrashDump?.Invoke(path, signature); } catch { /* dying process; do not throw */ }
+                    }
                 }
             }
             catch { /* dying process; do not throw */ }

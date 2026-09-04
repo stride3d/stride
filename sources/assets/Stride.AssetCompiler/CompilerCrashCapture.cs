@@ -78,6 +78,22 @@ namespace Stride.AssetCompiler
         /// <summary>Removes crash runs older than the retention window, so the store never grows unbounded.</summary>
         public void PruneOld() => store.Prune(TimeSpan.FromDays(30));
 
+        /// <summary>
+        /// On Windows, arms a record-only vectored handler that writes each native crash's faulting frame beside the
+        /// dump <c>createdump</c> will write, so the post-build adopt step can name the fault location -- Windows
+        /// <c>createdump</c> omits the exception stream (dotnet/runtime#133065). No-op when crash reporting is off,
+        /// off Windows (the exception stream is present there), or when <c>createdump</c> isn't armed for this process.
+        /// Call once per process (master and each slave) before commands run.
+        /// </summary>
+        public void InstallNativeFaultRecorder()
+        {
+            if (mode == CrashMode.Off || !OperatingSystem.IsWindows())
+                return;
+            var framePath = FaultingFramePathForThisProcess();
+            if (framePath != null)
+                Stride.NativeCrashHandler.InstallFaultingFrameRecorder(framePath);
+        }
+
         /// <summary>The run captured crashes are written to, created on first use. Shared with the build's slaves.</summary>
         public CrashRun EnsureRun()
         {
@@ -125,15 +141,10 @@ namespace Stride.AssetCompiler
             {
                 try
                 {
-                    // Recover the faulting frame the Windows handler would have computed live, so Linux/macOS
-                    // signatures match Windows ones and identical native crashes dedup across platforms.
-                    var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
-                    var signature = NativeCrashReporting.NativeSignature(faultingFrame, dumpPath);
-                    if (store.IsSuppressed(signature, version))
-                    {
-                        TryDelete(dumpPath);
-                        continue;
-                    }
+                    // The native fault frame (module+rva): from the dump's exception stream on Linux/macOS, or
+                    // recorded live by the vectored handler on Windows (createdump writes no exception stream there).
+                    var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath)
+                                        ?? ReadRecordedFaultingFrame(dumpPath);
 
                     var data = new CrashReportData
                     {
@@ -147,9 +158,26 @@ namespace Stride.AssetCompiler
                         data["FaultingFrame"] = faultingFrame;
 
                     var crash = NewStoredCrash(data);
-                    crash.Signature = signature;
+                    // Walk the dump for the crashing thread's managed stack (and the others'), so a native asset
+                    // crash reports like a managed one instead of a bare message. createdump dumps carry the CLR
+                    // memory this needs; best-effort, so a dump that can't be walked still sends the message.
+                    DumpStackWalk.EnrichFromDump(crash, dumpPath, faultingFrame);
+
+                    // Dedup key: prefer the crashing thread's managed fault site (stable and readable, and the only
+                    // key available on Windows where the dump has no faulting frame), else the native fault frame,
+                    // else a per-dump fallback that never groups. Set before the suppression check so both agree.
+                    var faultSite = crash.Exceptions.FirstOrDefault()?.Frames.FirstOrDefault(f => !string.IsNullOrEmpty(f.Module))?.Function;
+                    crash.Signature = NativeCrashReporting.NativeSignature(faultSite ?? faultingFrame, dumpPath);
+                    if (store.IsSuppressed(crash.Signature, version))
+                    {
+                        TryDelete(dumpPath);
+                        TryDelete(dumpPath + ".frame");
+                        continue;
+                    }
+
                     EnsureRun().Add(crash, File.ReadAllBytes(dumpPath));
                     TryDelete(dumpPath);
+                    TryDelete(dumpPath + ".frame");
                 }
                 catch (Exception e)
                 {
@@ -198,6 +226,34 @@ namespace Stride.AssetCompiler
         {
             try { if (File.Exists(path)) File.Delete(path); }
             catch { /* best effort: a locked dump is left in the staging dir, retried next build */ }
+        }
+
+        // The faulting frame the vectored handler recorded beside a Windows createdump dump ("<dump>.frame"),
+        // or null when there is none (a clean build, off Windows, or the handler didn't run). See InstallNativeFaultRecorder.
+        private static string ReadRecordedFaultingFrame(string dumpPath)
+        {
+            try
+            {
+                var framePath = dumpPath + ".frame";
+                if (File.Exists(framePath))
+                {
+                    var frame = File.ReadAllText(framePath).Trim();
+                    return string.IsNullOrEmpty(frame) ? null : frame;
+                }
+            }
+            catch { /* best effort */ }
+            return null;
+        }
+
+        // The ".frame" sidecar the vectored handler writes for this process: DOTNET_DbgMiniDumpName with createdump's
+        // %p (pid) substituted (and the quotes it carries for spaced paths trimmed), so it sits next to the dump.
+        // Null when createdump isn't armed for this process.
+        private static string FaultingFramePathForThisProcess()
+        {
+            var pattern = Environment.GetEnvironmentVariable("DOTNET_DbgMiniDumpName");
+            if (string.IsNullOrEmpty(pattern))
+                return null;
+            return pattern.Trim('"').Replace("%p", Environment.ProcessId.ToString()) + ".frame";
         }
 
         /// <summary>Records and handles a crash that escaped the whole build (not a single command), so it is reported

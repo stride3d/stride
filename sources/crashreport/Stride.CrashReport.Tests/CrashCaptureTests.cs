@@ -105,11 +105,22 @@ public class CrashCaptureTests
             var crash = StoredCrash.FromJson(File.ReadAllText(json));
             Assert.Equal("TestProbe", crash.Application);
             Assert.StartsWith("NativeCrash|", crash.Signature);
-            // #3: the signature now carries the faulting frame (module+0x<rva>) so identical native crashes dedup,
-            // instead of a per-dump name that never groups. The probe's AV faults inside a native module.
-            Assert.Contains("+0x", crash.Signature);
             Assert.False(string.IsNullOrEmpty(crash.DumpFileName));
             Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(json)!, crash.DumpFileName)), "the dump referenced by the crash must exist");
+
+            // The reporter walks the dump (ClrMD) so a native crash reports the crashing thread's managed stack,
+            // not just a message: a synthetic exception with frames, and the crashed thread flagged.
+            var exception = Assert.Single(crash.Exceptions);
+            Assert.Equal("NativeCrash", exception.Type);
+            Assert.NotNull(crash.CrashedThreadId);
+            // At least one frame carries a module — a managed frame the walk symbolicated locally (the synthetic
+            // native fault frame has none), proving the stack came from the walk and not just the bare message.
+            Assert.Contains(exception.Frames, frame => !string.IsNullOrEmpty(frame.Module));
+            // #3: identical native crashes must dedup. The signature is the managed fault site the walk resolved
+            // (stable across builds, unlike a native module+0x<rva> that shifts with every rebuild); the native frame
+            // is only the fallback when no managed frame could be symbolicated.
+            var faultSite = exception.Frames.First(frame => !string.IsNullOrEmpty(frame.Module)).Function;
+            Assert.Equal("NativeCrash|" + faultSite, crash.Signature);
         }
         finally
         {

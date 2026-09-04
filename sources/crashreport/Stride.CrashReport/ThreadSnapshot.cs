@@ -40,19 +40,7 @@ public static class ThreadSnapshot
                 if (!thread.IsAlive || thread.ManagedThreadId == 0 || thread.ManagedThreadId == crashingThreadManagedId)
                     continue;
 
-                var frames = new List<StoredFrame>();
-                foreach (var frame in thread.EnumerateStackTrace())
-                {
-                    if (frame.Kind != ClrStackFrameKind.ManagedMethod || frame.Method is null)
-                        continue;
-                    var method = frame.Method;
-                    frames.Add(new StoredFrame
-                    {
-                        Function = method.Type is not null ? method.Type.Name + "." + method.Name : method.Name,
-                        Module = method.Type?.Module?.Name,
-                    });
-                }
-
+                var frames = DumpStackWalk.ManagedFrames(thread);
                 if (frames.Count == 0)
                     continue; // pure-native thread
                 threads.Add(new StoredThread { Id = thread.ManagedThreadId, Frames = frames });

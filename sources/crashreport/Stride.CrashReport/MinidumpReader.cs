@@ -82,6 +82,44 @@ namespace Stride.CrashReport
             return null;
         }
 
+        /// <summary>
+        /// The OS id of the faulting thread, from the dump's exception stream, or null when the dump has none.
+        /// Present in <c>createdump</c> dumps on Linux/macOS (and Windows once dotnet/runtime#133065 ships), so the
+        /// dump walk can pick the crashing thread exactly there; absent on Windows <c>createdump</c> today.
+        /// </summary>
+        public static uint? FaultingThreadId(string dumpPath)
+        {
+            try
+            {
+                return FaultingThreadId(File.ReadAllBytes(dumpPath));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static uint? FaultingThreadId(byte[] dump)
+        {
+            if (dump.Length < 16 || ReadU32(dump, 0) != MinidumpSignature)
+                return null;
+
+            var streamCount = ReadU32(dump, 8);
+            var directoryRva = ReadU32(dump, 12);
+            for (uint i = 0; i < streamCount; i++)
+            {
+                long entry = directoryRva + (long)i * DirectoryEntrySize;
+                if (entry + DirectoryEntrySize > dump.Length)
+                    break;
+                if (ReadU32(dump, entry) != ExceptionStream)
+                    continue;
+                var dataRva = ReadU32(dump, entry + 8);
+                if (dataRva + 4 <= dump.Length)
+                    return ReadU32(dump, dataRva); // MINIDUMP_EXCEPTION_STREAM.ThreadId
+            }
+            return null;
+        }
+
         // MINIDUMP_STRING: a uint byte-length (not char count) followed by UTF-16LE text.
         private static string ReadMinidumpString(byte[] dump, uint rva)
         {

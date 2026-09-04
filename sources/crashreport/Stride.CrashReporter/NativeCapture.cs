@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Stride.CrashReport;
 
@@ -44,15 +45,26 @@ internal static class NativeCapture
             Directory.CreateDirectory(runDirectory);
             var dumpPath = Path.Combine(runDirectory, $"native-{processId}.dmp");
             var captured = MinidumpWriter.TryWriteTargetProcess(processId, threadId, exceptionPointers, dumpPath);
+
             if (captured)
             {
                 var frame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
-                WriteStoredCrash(runDirectory, processId, dumpPath, frame, context);
+                var crash = BuildStoredCrash(dumpPath, frame, context);
+                // Symbolicate while the host is still frozen: walk its managed threads (ClrMD, reading the live
+                // process) so a native crash reports the crashing thread's managed stack, not just a message. The
+                // triage dump carries no process memory, so this must read the process, not the dump — hence now.
+                DumpStackWalk.Enrich(crash, processId, threadId, frame);
+                // Dedup on the managed fault site (stable, meaningful) when symbolication found one, else the native
+                // fault frame -- mirrors the compiler's native adopt path so both hosts group the same crash alike.
+                var faultSite = crash.Exceptions.FirstOrDefault()?.Frames.FirstOrDefault(f => !string.IsNullOrEmpty(f.Module))?.Function;
+                crash.Signature = NativeCrashReporting.NativeSignature(faultSite ?? frame, dumpPath);
+                File.WriteAllText(Path.Combine(runDirectory, $"crash-native-{processId}.json"), crash.ToJson());
             }
 
             // Release the frozen host only once the dump AND the report are on disk, so a consumer that inspects
             // the run the moment the host exits sees a complete capture. The host is already dying, so the extra
-            // freeze — a dump parse and a small write — is harmless. Signal even on failure, so it isn't left frozen.
+            // freeze — a dump parse, a stack walk, and a small write — is harmless. Signal even on failure, so it
+            // isn't left frozen.
             SignalEvent(eventName);
         }
         catch (Exception)
@@ -61,7 +73,7 @@ internal static class NativeCapture
         }
     }
 
-    private static void WriteStoredCrash(string runDirectory, int processId, string dumpPath, string frame,
+    private static StoredCrash BuildStoredCrash(string dumpPath, string frame,
         (string Application, string Version, string Environment) context)
     {
         var data = new CrashReportData
@@ -78,9 +90,9 @@ internal static class NativeCapture
         crash.Version = context.Version;
         crash.Environment = context.Environment;
         crash.TimestampUtc = DateTime.UtcNow.ToString("o");
-        crash.Signature = NativeCrashReporting.NativeSignature(frame, dumpPath);
+        // Signature is set by the caller after symbolication, to prefer the managed fault site over the native frame.
         crash.DumpFileName = Path.GetFileName(dumpPath);
-        File.WriteAllText(Path.Combine(runDirectory, $"crash-native-{processId}.json"), crash.ToJson());
+        return crash;
     }
 
     private static string? GetOption(string[] args, string name)
