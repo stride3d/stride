@@ -231,12 +231,18 @@ foreach (var tplPath in Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupk
 // --- Step 4: Write stamp + inputs manifests.
 // Stamp: newline list of deployed nupkg filenames (stubs + as-is templates); the cleanup
 // target reads it to delete only what we deployed.
-// Inputs: absolute paths of the csprojs we scanned; the staleness target reads it so the
-// check tracks exactly the projects that contributed (no glob false-positives from WPF tmp
-// projects, preprocessor-staged template csprojs, etc.). ---
+// Inputs: the scanned csprojs plus each project's build/ & buildTransitive/ *.targets|props (packed into
+// the nupkg, so editing one needs a re-run); the staleness target mtime-checks every path listed here. ---
 var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
 File.WriteAllLines(stampPath, generatedStubs);
-File.WriteAllLines(stampPath + ".inputs", projectMap.Values.Select(p => p.CsprojPath).Distinct());
+var buildAssets = projectMap.Values
+    .Select(p => Path.GetDirectoryName(p.CsprojPath)!).Distinct()
+    .SelectMany(dir => new[] { "build", "buildTransitive", "buildMultiTargeting" }.Select(sub => Path.Combine(dir, sub)))
+    .Where(Directory.Exists)
+    .SelectMany(bd => Directory.EnumerateFiles(bd, "*.targets", SearchOption.AllDirectories)
+        .Concat(Directory.EnumerateFiles(bd, "*.props", SearchOption.AllDirectories)));
+File.WriteAllLines(stampPath + ".inputs",
+    projectMap.Values.Select(p => p.CsprojPath).Concat(buildAssets).Distinct());
 
 // Also mirror the stubs into bin/packages (not refreshed while auto-pack is skipped) so the
 // repo nuget.config's stride-local mapping keeps resolving; the flag-off cleanup removes them.

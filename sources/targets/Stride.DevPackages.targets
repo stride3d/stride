@@ -35,10 +35,9 @@
       <_StrideStampTicks>$([System.IO.File]::GetLastWriteTime('$(_StrideDevPackagesStamp)').Ticks)</_StrideStampTicks>
     </PropertyGroup>
 
-    <!-- Read the script's inputs manifest (absolute csproj paths it scanned) so we track
-         exactly the projects that contributed to stub generation — no glob heuristics.
-         Solution-file mtime catches new/removed projects (which only show up in the manifest
-         after the script re-scans). -->
+    <!-- Read the script's inputs manifest (csproj paths + each project's build/ & buildTransitive/ *.targets|props)
+         so we track exactly what contributed to the stubs — no glob heuristics. Solution-file mtime
+         catches new/removed projects (which only show up in the manifest after the script re-scans). -->
     <ReadLinesFromFile File="$(_StrideDevPackagesStamp).inputs" Condition="Exists('$(_StrideDevPackagesStamp).inputs')">
       <Output TaskParameter="Lines" ItemName="_StrideStubManifestCsprojs" />
     </ReadLinesFromFile>
