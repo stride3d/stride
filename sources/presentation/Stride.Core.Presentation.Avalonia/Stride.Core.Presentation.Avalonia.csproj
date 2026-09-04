@@ -19,6 +19,7 @@
     <!--Condition below is needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
     <PackageReference Include="MarkView.Avalonia" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Xaml.Behaviors.Interactions" />
   </ItemGroup>
 

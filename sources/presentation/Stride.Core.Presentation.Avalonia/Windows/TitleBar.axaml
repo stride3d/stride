@@ -1,0 +1,74 @@
+<Style xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:cmd="using:Stride.Core.Presentation.Avalonia.Commands">
+
+    <Style Selector="Window">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="Window">
+          <Border Background="{TemplateBinding Background}" IsHitTestVisible="True">
+            <DockPanel>
+              <DockPanel x:Name="TitleBar" Background="Transparent" DockPanel.Dock="Top" VerticalAlignment="Top" Height="32" PointerPressed="{x:Static cmd:WindowingCommands.DragWindowEvent}" >
+                <Button Classes="MainWindowButton" DockPanel.Dock="Right" Content="{DynamicResource VectorCloseWindow}" x:Name="CloseButton" 
+                        Command="{x:Static cmd:WindowingCommands.CloseWindowCommand}" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                <Button Classes="MainWindowButton" DockPanel.Dock="Right" Content="{DynamicResource VectorMaximizeWindow}" x:Name="MaximizeButton" 
+                        Command="{x:Static cmd:WindowingCommands.MaximizeWindowCommand}"
+                        IsVisible="False" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                <Button Classes="MainWindowButton" DockPanel.Dock="Right" Content="{DynamicResource VectorRestoreWindow}" x:Name="RestoreButton" 
+                        IsVisible="False" 
+                        Command="{x:Static cmd:WindowingCommands.RestoreWindowCommand}" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                <Button Classes="MainWindowButton" DockPanel.Dock="Right" Content="{DynamicResource VectorMinimizeWindow}" x:Name="MinimizeButton" 
+                        Command="{x:Static cmd:WindowingCommands.MinimizeWindowCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="16 0 0 0">
+                  <Image Height="20" Source="{DynamicResource VectorEditorIcon}"/>
+                  <TextBlock Margin="10 0 0 0" Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                </StackPanel>
+              </DockPanel>
+              <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+              </Border>
+            </DockPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="WindowDecorations" Value="BorderOnly" />
+    </Style>
+
+    <Style Selector="WindowDrawnDecorations">
+      <Setter Property="DefaultFrameThickness" Value="0" />
+    </Style>
+    <Style Selector="Window[IsActive=False] /template/ DockPanel#TitleBar">
+      <Setter Property="Opacity" Value="0.66" />
+    </Style>
+    <Style Selector="Window[WindowState=Maximized] /template/ Button#RestoreButton">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Window[WindowState=Normal][CanMaximize=True] /template/ Button#MaximizeButton">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Window[WindowState=Normal] /template/ Button#RestoreButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Window[WindowState=Maximized] /template/ Button#MaximizeButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="Button.MainWindowButton PathIcon">
+      <Setter Property="Height" Value="12"/>
+      <Setter Property="Width" Value="12"/>
+    </Style>
+    <Style Selector="Button.MainWindowButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Height" Value="32"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Width" Value="46"/>
+      <Setter Property="IsHitTestVisible" Value="True"/>
+    </Style>
+
+</Style>
