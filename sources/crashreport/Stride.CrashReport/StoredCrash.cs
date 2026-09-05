@@ -44,6 +44,11 @@ public sealed class StoredCrash
     /// <summary>Sibling minidump file name in the same run directory, if one was written.</summary>
     public string DumpFileName { get; set; }
 
+    /// <summary>True when <see cref="DumpFileName"/> is a full-memory dump (opt-in, <c>STRIDE_CRASH_DUMP=full</c>).
+    /// Such a dump is large and UNSCRUBBED, so it is never sent — the sender refuses to attach it and the reporter
+    /// offers no send option for it; it is kept locally only if the user chooses. Triage dumps have this false.</summary>
+    public bool DumpIsFullMemory { get; set; }
+
     /// <summary>Scrubbed leaf names of the assets that hit this signature, for the "x N assets" display.</summary>
     public List<string> AffectedAssets { get; set; } = new();
 

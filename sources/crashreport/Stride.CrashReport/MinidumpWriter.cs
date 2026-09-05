@@ -167,14 +167,15 @@ public static class MinidumpWriter
     }
 
     /// <summary>
-    /// Writes a triage dump of <em>another</em> process from this (healthy) one, carrying that process's crash
+    /// Writes a dump of <em>another</em> process from this (healthy) one, carrying that process's crash
     /// exception record so the dump has an exception stream (the faulting thread and fault are recorded). The
     /// out-of-process reporter uses this to capture a dying host: the host's native trigger freezes the crashing
     /// thread and hands us its pid, thread id, and the address of its <c>EXCEPTION_POINTERS</c>, which dbghelp
-    /// reads across the process boundary (<c>ClientPointers</c>). Returns false if the target can't be opened or
-    /// the dump can't be written.
+    /// reads across the process boundary (<c>ClientPointers</c>). A full-memory dump can be several GB and is not
+    /// scrubbed; it never leaves the machine unless the user shares it themselves. Returns false if the target
+    /// can't be opened or the dump can't be written.
     /// </summary>
-    public static bool TryWriteTargetProcess(int processId, uint threadId, IntPtr exceptionPointers, string path)
+    public static bool TryWriteTargetProcess(int processId, uint threadId, IntPtr exceptionPointers, string path, bool fullMemory)
     {
         const uint ProcessQueryInformation = 0x0400;
         const uint ProcessVmRead = 0x0010;
@@ -191,10 +192,13 @@ public static class MinidumpWriter
                 ExceptionPointers = exceptionPointers, // an address in the target; ClientPointers reads it there
                 ClientPointers = 1,
             };
+            var flags = fullMemory
+                ? MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo
+                : TriageFlags;
             var pinned = GCHandle.Alloc(information, GCHandleType.Pinned);
             try
             {
-                return MiniDumpWriteDump(target, (uint)processId, file.SafeFileHandle, TriageFlags,
+                return MiniDumpWriteDump(target, (uint)processId, file.SafeFileHandle, flags,
                     pinned.AddrOfPinnedObject(), IntPtr.Zero, IntPtr.Zero);
             }
             finally

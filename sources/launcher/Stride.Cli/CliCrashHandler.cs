@@ -82,7 +82,7 @@ internal static class CliCrashHandler
         try
         {
             var dsn = CrashReportSender.ResolveDsn();
-            await CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn);
+            await CrashReportSender.SendAsync(crash, run.ReadSendableDump(crash), dsn);
             if (deleteAfterSend)
                 run.Delete();
             Console.Error.WriteLine("Crash report sent. Thank you!");

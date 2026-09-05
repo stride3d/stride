@@ -185,7 +185,7 @@ internal static class CrashCommand
 
         foreach (var crash in crashes)
         {
-            await CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn);
+            await CrashReportSender.SendAsync(crash, run.ReadSendableDump(crash), dsn);
             Console.WriteLine($"Sent: {crash.Title()}");
         }
 

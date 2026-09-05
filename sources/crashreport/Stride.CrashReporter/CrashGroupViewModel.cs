@@ -22,7 +22,13 @@ internal sealed class CrashGroupViewModel : ObservableObject
         Detail = ComputeDetail(crash);
         ReportText = crash.ToReportData().ToString();
         HasDump = dumpSize > 0;
-        DumpLabel = HasDump ? $"Include crash dump — call stacks and module list only, no memory ({FormatSize(dumpSize)})" : null;
+        // A full-memory dump is large and unscrubbed: never offered for sending — shown as a local-only note.
+        // A triage dump (stacks + modules, scrubbed) gets the opt-in send checkbox.
+        IsFullMemoryDump = crash.DumpIsFullMemory;
+        includeDump = !crash.DumpIsFullMemory;
+        HasSendableDump = HasDump && !IsFullMemoryDump;
+        DumpLabel = HasSendableDump ? $"Include crash dump — call stacks and module list only, no memory ({FormatSize(dumpSize)})" : null;
+        FullDumpNote = HasDump && IsFullMemoryDump ? $"Full memory dump kept locally, not sent ({FormatSize(dumpSize)})" : null;
 
         var definition = crash.AssetDefinitionPath;
         if (!string.IsNullOrEmpty(definition) && File.Exists(definition)
@@ -62,8 +68,17 @@ internal sealed class CrashGroupViewModel : ObservableObject
     /// <summary>Whether this crash has a memory dump on disk (native crashes do; managed ones don't).</summary>
     public bool HasDump { get; }
 
-    /// <summary>Checkbox label describing the dump and its size; null when there is no dump.</summary>
+    /// <summary>True when the dump is a full-memory one (unscrubbed, local-only): never sent, so no send checkbox.</summary>
+    public bool IsFullMemoryDump { get; }
+
+    /// <summary>Whether there is a dump that may be sent (a triage dump); false for a full-memory dump. Gates the checkbox.</summary>
+    public bool HasSendableDump { get; }
+
+    /// <summary>Checkbox label describing the sendable (triage) dump and its size; null when there is none.</summary>
     public string? DumpLabel { get; }
+
+    /// <summary>Note shown for a full-memory dump ("kept locally, not sent"); null otherwise.</summary>
+    public string? FullDumpNote { get; }
 
     /// <summary>Attach the dump when sending. Default on: a dump is only present for a native crash, where it is
     /// the main diagnostic.</summary>

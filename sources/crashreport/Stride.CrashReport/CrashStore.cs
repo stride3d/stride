@@ -204,6 +204,15 @@ public sealed class CrashRun
     /// first occurrence of a signature.
     /// </summary>
     public void Add(StoredCrash crash, byte[] dump = null)
+        => Add(crash, dump is null ? null : new Func<string, bool>(path => { File.WriteAllBytes(path, dump); return true; }));
+
+    /// <summary>
+    /// Adds a crash, writing its dump via <paramref name="writeDump"/> (given the destination path) — called only
+    /// when the crash is new, so a large full-memory dump is never written for a duplicate. Sets DumpFileName on
+    /// success. On a duplicate, merges count/assets and keeps the first occurrence's dump. The callback lets the
+    /// caller move or write the dump straight to the store path, so a multi-GB dump never passes through a byte[].
+    /// </summary>
+    public void Add(StoredCrash crash, Func<string, bool> writeDump)
     {
         System.IO.Directory.CreateDirectory(Directory);
         var stem = "crash-" + Hash(crash.Signature ?? string.Empty);
@@ -220,12 +229,8 @@ public sealed class CrashRun
             return; // keep the first occurrence's dump and metadata
         }
 
-        if (dump != null)
-        {
-            var dumpName = stem + ".dmp";
-            File.WriteAllBytes(Path.Combine(Directory, dumpName), dump);
-            crash.DumpFileName = dumpName;
-        }
+        if (writeDump != null && writeDump(Path.Combine(Directory, stem + ".dmp")))
+            crash.DumpFileName = stem + ".dmp";
         File.WriteAllText(jsonPath, crash.ToJson());
     }
 
@@ -257,6 +262,12 @@ public sealed class CrashRun
         var path = Path.Combine(Directory, crash.DumpFileName);
         return File.Exists(path) ? File.ReadAllBytes(path) : null;
     }
+
+    /// <summary>The dump bytes to <em>send</em>, or null for a full-memory dump. A full dump is unscrubbed and
+    /// local-only (<see cref="StoredCrash.DumpIsFullMemory"/>), so it must never be uploaded — use this, not
+    /// <see cref="ReadDump"/>, on every send path (reporter, CI, <c>stride crash send</c>).</summary>
+    public byte[] ReadSendableDump(StoredCrash crash)
+        => crash.DumpIsFullMemory ? null : ReadDump(crash);
 
     /// <summary>
     /// Deletes a single group's files (its json and dump), leaving the rest of the run. Used when a reporter

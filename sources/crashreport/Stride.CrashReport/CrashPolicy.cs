@@ -44,6 +44,16 @@ public enum CrashAction
 public static class CrashPolicy
 {
     public const string EnvMode = "STRIDE_CRASH_MODE";
+    public const string EnvDump = "STRIDE_CRASH_DUMP";
+
+    /// <summary>
+    /// True when <c>STRIDE_CRASH_DUMP=full</c>: capture a full-memory dump (heap and all) instead of the
+    /// triage dump, for a dev deliberately chasing a hard crash. A full dump is large and UNSCRUBBED, so it is
+    /// never sent — only saved locally and kept if the user chooses (the sender refuses a full-flagged dump).
+    /// Off by default.
+    /// </summary>
+    public static bool FullMemoryDump()
+        => string.Equals(Environment.GetEnvironmentVariable(EnvDump)?.Trim(), "full", StringComparison.OrdinalIgnoreCase);
 
     public static CrashMode ResolveMode()
         => Environment.GetEnvironmentVariable(EnvMode)?.Trim().ToLowerInvariant() switch

@@ -176,8 +176,12 @@ namespace Stride.AssetCompiler
                         continue;
                     }
 
-                    EnsureRun().Add(crash, File.ReadAllBytes(dumpPath));
-                    TryDelete(dumpPath);
+                    // createdump writes a full-memory dump when STRIDE_CRASH_DUMP=full (the targets set its dump
+                    // type); flag it so it's never sent. Move it into the store rather than reading it into a byte[]
+                    // (a full dump can exceed the 2 GB array cap).
+                    crash.DumpIsFullMemory = CrashPolicy.FullMemoryDump();
+                    EnsureRun().Add(crash, destination => TryMoveDump(dumpPath, destination));
+                    TryDelete(dumpPath); // no-op if the move succeeded; drops a duplicate's dump otherwise
                     TryDelete(dumpPath + ".frame");
                 }
                 catch (Exception e)
@@ -214,7 +218,7 @@ namespace Stride.AssetCompiler
             {
                 try
                 {
-                    CrashReportSender.SendAsync(crash, run.ReadDump(crash), dsn).GetAwaiter().GetResult();
+                    CrashReportSender.SendAsync(crash, run.ReadSendableDump(crash), dsn).GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
@@ -227,6 +231,20 @@ namespace Stride.AssetCompiler
         {
             try { if (File.Exists(path)) File.Delete(path); }
             catch { /* best effort: a locked dump is left in the staging dir, retried next build */ }
+        }
+
+        // Moves a dump into the store, streaming file-to-file (never through a byte[], so a multi-GB full-memory
+        // dump can't blow the 2 GB array cap). Falls back to copy+delete when source and store are on different
+        // volumes (createdump's build dir vs a STRIDE_CRASH_DIR override), where a rename can't cross.
+        private static bool TryMoveDump(string source, string destination)
+        {
+            try { File.Move(source, destination, overwrite: true); return true; }
+            catch (IOException)
+            {
+                try { File.Copy(source, destination, overwrite: true); File.Delete(source); return true; }
+                catch { return false; }
+            }
+            catch { return false; }
         }
 
         // The faulting frame the vectored handler recorded beside a Windows createdump dump ("<dump>.frame"),
@@ -324,7 +342,19 @@ namespace Stride.AssetCompiler
                     crash.Threads = threads.ToList();
                 crash.CrashedThreadId = crashedThreadId;
                 crash.CrashedThreadName = crashedThreadName;
-                run.Add(crash);
+
+                // Opt-in full-memory dump (STRIDE_CRASH_DUMP=full) of the fatal top-level managed crash — the heap
+                // the stack alone can't show, for local debugging. Never sent (DumpIsFullMemory); Windows only, and
+                // written only for a new signature (Add's callback runs only when not a duplicate).
+                if (stepKind == "TopLevel" && CrashPolicy.FullMemoryDump() && OperatingSystem.IsWindows())
+                {
+                    crash.DumpIsFullMemory = true;
+                    run.Add(crash, path => MinidumpWriter.TryWriteFile(path, fullMemory: true));
+                }
+                else
+                {
+                    run.Add(crash);
+                }
             }
         }
 

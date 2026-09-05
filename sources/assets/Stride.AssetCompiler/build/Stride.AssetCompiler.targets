@@ -208,14 +208,19 @@
            faulting-frame signature is a per-dump fallback there for now. -->
       <_StrideCompileAssetNativeCrash Condition="'$(STRIDE_CRASH_MODE)' != 'off'">true</_StrideCompileAssetNativeCrash>
       <_StrideCompileAssetNativeDumpDir Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">$([MSBuild]::NormalizeDirectory('$(StrideCompileAssetBuildPath)', 'crash-native'))</_StrideCompileAssetNativeDumpDir>
+      <!-- createdump dump type: 1 = Mini (thread stacks plus the managed memory needed to walk them, the default);
+           4 = Full (the whole address space) for deep local debugging, opt-in via STRIDE_CRASH_DUMP=full. A full dump
+           is large and unscrubbed, so it is never sent (adopt flags it) - kept locally only if the user keeps it. -->
+      <_StrideCompileAssetNativeDumpType>1</_StrideCompileAssetNativeDumpType>
+      <_StrideCompileAssetNativeDumpType Condition="'$(STRIDE_CRASH_DUMP)' == 'full'">4</_StrideCompileAssetNativeDumpType>
 
       <!-- Route this build's compiler crashes to the caller's crash dir (e.g. the GameStudio instance that
            triggered the build) so it can surface them, scoped to the compiler process only. The caller passes
            StrideCrashDir as a global property; here it becomes STRIDE_CRASH_DIR on the compiler's environment. -->
       <_StrideCompileAssetCrashEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetCrashEnvVars>
       <!-- Append the createdump vars, joined without an empty entry (which Exec would reject). -->
-      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
-      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=1;DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
 
       <!-- The adopt step below writes the recovered StoredCrash to the store; route it to the caller's crash dir
            too (only STRIDE_CRASH_DIR is needed, not the createdump vars) so a GameStudio-triggered build's native

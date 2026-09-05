@@ -61,7 +61,7 @@ internal sealed class CrashSession
     public Task SendAsync(StoredCrash crash, bool includeDump, bool includeAssetDefinition,
         string feedbackName, string feedbackEmail, string feedbackMessage)
     {
-        var dump = includeDump ? run.ReadDump(crash) : null;
+        var dump = includeDump ? run.ReadSendableDump(crash) : null;
         var attachments = includeAssetDefinition ? BuildAssetDefinitionAttachment(crash) : null;
         return CrashReportSender.SendAsync(crash, dump, dsn, attachments, feedbackName, feedbackEmail, feedbackMessage);
     }

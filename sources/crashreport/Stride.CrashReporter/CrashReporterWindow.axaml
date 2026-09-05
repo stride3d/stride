@@ -107,10 +107,13 @@
                     <TextBlock Text="{Binding Title}" TextWrapping="WrapWithOverflow" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding Detail}" TextWrapping="WrapWithOverflow" Opacity="0.7" FontSize="12" />
                     <CheckBox Margin="0,4,0,0" FontSize="12"
-                              IsVisible="{Binding HasDump}"
+                              IsVisible="{Binding HasSendableDump}"
                               IsEnabled="{Binding !IsSent}"
                               IsChecked="{Binding IncludeDump}"
                               Content="{Binding DumpLabel}" />
+                    <TextBlock Margin="0,4,0,0" FontSize="12" Opacity="0.7" TextWrapping="WrapWithOverflow"
+                               IsVisible="{Binding FullDumpNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               Text="{Binding FullDumpNote}" />
                     <CheckBox Margin="0,4,0,0" FontSize="12"
                               IsVisible="{Binding HasAssetDefinition}"
                               IsEnabled="{Binding !IsSent}"

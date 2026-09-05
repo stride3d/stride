@@ -44,12 +44,15 @@ internal static class NativeCapture
 
             Directory.CreateDirectory(runDirectory);
             var dumpPath = Path.Combine(runDirectory, $"native-{processId}.dmp");
-            var captured = MinidumpWriter.TryWriteTargetProcess(processId, threadId, exceptionPointers, dumpPath);
+            // Opt-in full-memory dump (STRIDE_CRASH_DUMP=full): unscrubbed, multi-GB, never sent — kept locally only.
+            var fullMemory = CrashPolicy.FullMemoryDump();
+            var captured = MinidumpWriter.TryWriteTargetProcess(processId, threadId, exceptionPointers, dumpPath, fullMemory);
 
             if (captured)
             {
                 var frame = NativeCrashReporting.FaultingFrameFromDump(dumpPath);
                 var crash = BuildStoredCrash(dumpPath, frame, context);
+                crash.DumpIsFullMemory = fullMemory;
                 // Symbolicate while the host is still frozen: walk its managed threads (ClrMD, reading the live
                 // process) so a native crash reports the crashing thread's managed stack, not just a message. The
                 // triage dump carries no process memory, so this must read the process, not the dump — hence now.
