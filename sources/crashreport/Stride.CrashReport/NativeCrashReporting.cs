@@ -97,9 +97,12 @@ namespace Stride.CrashReport
         /// <summary>
         /// Launches the out-of-process reporter for a crash run, returning false when the reporter can't be
         /// found (the caller then leaves the crash on disk for <c>stride crash send</c>). Fire-and-forget: the
-        /// reporter is a separate GUI process that outlives the crashing one.
+        /// reporter is a separate GUI process that outlives the crashing one. <paramref name="ownerWindow"/>, a
+        /// Win32 HWND of the live host's main window, makes the reporter an owned window of it: above the host but
+        /// not above other apps, minimized with it, never modal. Ignored when zero or off Windows.
         /// </summary>
-        public static bool TrySpawnReporter(string runDirectory) => StartReporter(runDirectory, hostCrash: false) != null;
+        public static bool TrySpawnReporter(string runDirectory, IntPtr ownerWindow = default)
+            => StartReporter(runDirectory, hostCrash: false, ownerWindow) != null;
 
         /// <summary>
         /// Launches the reporter for a managed crash of the calling process itself. The caller must stay alive,
@@ -108,9 +111,9 @@ namespace Stride.CrashReport
         /// write a full-memory dump of this still-live process on demand. Null when the reporter can't be found; the
         /// crash then stays on disk for <c>stride crash send</c>.
         /// </summary>
-        public static Process TrySpawnHostCrashReporter(string runDirectory) => StartReporter(runDirectory, hostCrash: true);
+        public static Process TrySpawnHostCrashReporter(string runDirectory) => StartReporter(runDirectory, hostCrash: true, ownerWindow: IntPtr.Zero);
 
-        private static Process StartReporter(string runDirectory, bool hostCrash)
+        private static Process StartReporter(string runDirectory, bool hostCrash, IntPtr ownerWindow)
         {
             var reporter = ResolveCrashReporter();
             if (reporter == null)
@@ -131,13 +134,18 @@ namespace Stride.CrashReport
                 // nothing. Unix has no such leak (pipes are O_CLOEXEC) and shell-execute there would route through xdg-open.
                 startInfo = new ProcessStartInfo(reporter) { UseShellExecute = OperatingSystem.IsWindows() };
             }
-            AddReporterArguments(startInfo, runDirectory, hostCrash);
+            AddReporterArguments(startInfo, runDirectory, hostCrash, ownerWindow);
             return Process.Start(startInfo);
         }
 
-        private static void AddReporterArguments(ProcessStartInfo startInfo, string runDirectory, bool hostCrash)
+        private static void AddReporterArguments(ProcessStartInfo startInfo, string runDirectory, bool hostCrash, IntPtr ownerWindow)
         {
             startInfo.ArgumentList.Add(runDirectory);
+            if (ownerWindow != IntPtr.Zero && OperatingSystem.IsWindows())
+            {
+                startInfo.ArgumentList.Add("--owner-hwnd");
+                startInfo.ArgumentList.Add(ownerWindow.ToInt64().ToString(CultureInfo.InvariantCulture));
+            }
             if (hostCrash)
             {
                 // The host itself crashed and waits on us: its pid enables the on-demand full dump, and marks the run

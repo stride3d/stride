@@ -30,6 +30,17 @@ namespace Stride.GameStudio.Helpers
         private static readonly HashSet<string> surfaced = new(StringComparer.OrdinalIgnoreCase);
         private static string directory;
         private static bool pruned;
+        private static IntPtr ownerWindow;
+
+        /// <summary>
+        /// Records the main window so a surfaced compiler crash opens as a window owned by it: above GameStudio,
+        /// never above other apps, minimized with it, and not modal. Call once the window is shown (UI thread).
+        /// </summary>
+        public static void SetOwnerWindow(System.Windows.Window window)
+        {
+            try { ownerWindow = new System.Windows.Interop.WindowInteropHelper(window).Handle; }
+            catch { /* no owner: the reporter opens as a plain top-level window */ }
+        }
 
         /// <summary>
         /// The per-instance directory the compiler routes this GameStudio's build crashes into, or null when
@@ -169,7 +180,7 @@ namespace Stride.GameStudio.Helpers
                         if (!surfaced.Add(run))
                             continue; // already handed to a reporter by an earlier build in this session
                     }
-                    if (!NativeCrashReporting.TrySpawnReporter(run))
+                    if (!NativeCrashReporting.TrySpawnReporter(run, ownerWindow))
                         logger.Warning($"The asset build crashed; the report was saved to {run} (submit it with 'stride crash send').");
                 }
             }

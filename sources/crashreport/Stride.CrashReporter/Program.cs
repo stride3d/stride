@@ -13,7 +13,9 @@ namespace Stride.CrashReporter;
 /// pointing it at the run directory the crashes were written to; it shows the report window and sends what the
 /// user approves. Two forms:
 /// <list type="bullet">
-/// <item><c>Stride.CrashReporter &lt;run-directory&gt; [--dsn &lt;url&gt;]</c> — show a run written by the host.</item>
+/// <item><c>Stride.CrashReporter &lt;run-directory&gt; [--owner-hwnd &lt;hwnd&gt;] [--dsn &lt;url&gt;]</c> — show a run written
+/// by a live host (a GameStudio-routed build crash); with an owner HWND the window is owned by the host's main
+/// window (above it, not above other apps, minimized with it, not modal).</item>
 /// <item><c>Stride.CrashReporter &lt;run-directory&gt; --host-pid &lt;pid&gt; [--dsn &lt;url&gt;]</c> — a managed crash of the
 /// host itself, which stays alive, blocked, until this window closes; its pid lets the window write a full memory
 /// dump of it on demand.</item>
@@ -60,7 +62,8 @@ internal static class Program
         // --host-pid launch is a host that itself crashed and is exiting, so a send there suppresses nothing session-scoped.
         var hostProcessId = int.TryParse(GetOption(args, "--host-pid"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var pid) ? pid : (int?)null;
         var sessionScoped = Array.IndexOf(args, "--capture") < 0 && hostProcessId is null;
-        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"), sessionScoped, hostProcessId);
+        var ownerWindow = long.TryParse(GetOption(args, "--owner-hwnd"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var hwnd) ? (IntPtr)hwnd : IntPtr.Zero;
+        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"), sessionScoped, hostProcessId, ownerWindow);
         // Nothing to ask about (empty run, or every signature already suppressed): exit quietly, no window.
         if (session.Groups.Count == 0)
             return 0;

@@ -19,15 +19,20 @@ internal sealed class CrashSession
     private readonly bool sessionScoped;
     private readonly int? hostProcessId;
 
-    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, int? hostProcessId, IReadOnlyList<StoredCrash> groups)
+    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, int? hostProcessId, IntPtr ownerWindow, IReadOnlyList<StoredCrash> groups)
     {
         this.store = store;
         this.run = run;
         this.dsn = dsn;
         this.sessionScoped = sessionScoped;
         this.hostProcessId = hostProcessId;
+        OwnerWindow = ownerWindow;
         Groups = groups;
     }
+
+    /// <summary>Win32 HWND of the live host's main window to own the reporter window, or zero for a plain top-level
+    /// window (a host crash: the host is frozen or gone, so the reporter stays topmost on its own instead).</summary>
+    public IntPtr OwnerWindow { get; }
 
     /// <summary>The deduped crash groups in this run that are not already suppressed.</summary>
     public IReadOnlyList<StoredCrash> Groups { get; }
@@ -42,7 +47,7 @@ internal sealed class CrashSession
     /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and base
     /// are the run's parent and grandparent — enough to also reach the app's suppression list.
     /// </summary>
-    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped, int? hostProcessId = null)
+    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped, int? hostProcessId = null, IntPtr ownerWindow = default)
     {
         var full = Path.GetFullPath(runDirectory);
         var appDir = Directory.GetParent(full) ?? throw new ArgumentException($"'{runDirectory}' has no parent app directory.");
@@ -54,7 +59,7 @@ internal sealed class CrashSession
 
         // Defensive: capture already skips suppressed signatures, but never re-surface one that slipped through.
         var groups = run.Read().Where(crash => !store.IsSuppressed(crash.Signature, crash.Version)).ToList();
-        return new CrashSession(store, run, dsn, sessionScoped, hostProcessId, groups);
+        return new CrashSession(store, run, dsn, sessionScoped, hostProcessId, ownerWindow, groups);
     }
 
     /// <summary>True when a full-memory dump of the crashed host can be written on demand: the host itself crashed

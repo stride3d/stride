@@ -340,6 +340,7 @@ public static class Program
                     var mainWindow = new GameStudioWindow(editor);
                     Application.Current.MainWindow = mainWindow;
                     WindowManager.ShowMainWindow(mainWindow);
+                    CompilerCrashRouting.SetOwnerWindow(mainWindow);
                     return;
                 }
             }
@@ -405,6 +406,7 @@ public static class Program
                 var mainWindow = new GameStudioWindow(editor);
                 Application.Current.MainWindow = mainWindow;
                 WindowManager.ShowMainWindow(mainWindow);
+                CompilerCrashRouting.SetOwnerWindow(mainWindow);
             }
             else
             {
