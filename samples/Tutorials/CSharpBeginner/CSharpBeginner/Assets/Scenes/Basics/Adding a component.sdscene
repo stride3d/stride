@@ -39,7 +39,7 @@ Hierarchy:
                         Children: {}
                     845c1d233f86e0dff93f902a4654a795: !ModelComponent
                         Id: 418bb6a9-91fd-4a9c-95f1-0d4f5b8a29e9
-                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:/mannequinModel/Models/MachinegunModel
                         Materials: {}
                     9d5eb2e0cf20867aa4f4ea1c4f44cd3a: !CSharpBeginner.Code.AddingAComponentDemo,CSharpBeginner.Game
                         Id: 192d2435-4477-4a07-8354-91e07ac8e63f

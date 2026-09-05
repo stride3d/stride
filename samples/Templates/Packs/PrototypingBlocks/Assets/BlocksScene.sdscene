@@ -66,6 +66,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             0c11aab71bdaff448b0974b597a6f84f: !BoxColliderShapeDesc
                                 Is2D: false
@@ -111,6 +112,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -157,6 +159,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
                                 Height: 2.0
@@ -192,8 +195,8 @@ Hierarchy:
                 Components:
                     7bf1a28d49b0f741abd4d920da8f4ad3: !TransformComponent
                         Id: 8da2f17b-b049-41f7-abd4-d920da8f4ad3
-                        Position: {X: -8.999999, Y: 6.2, Z: 16.6999989}
-                        Rotation: {X: -0.08583164, Y: -0.1729874, Z: -0.0151344351, W: 0.981060266}
+                        Position: {X: -8.999999, Y: 6.2, Z: 16.699999}
+                        Rotation: {X: -0.08583164, Y: -0.1729874, Z: -0.015134435, W: 0.98106027}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     042f3eb1119c2b408aa3bf1e00af6d66: !CameraComponent
@@ -207,7 +210,7 @@ Hierarchy:
                 Components:
                     c444819e77a60441a6144bd7bd8a4a23: !TransformComponent
                         Id: 9e8144c4-a677-4104-a614-4bd7bd8a4a23
-                        Position: {X: 7.15255737E-07, Y: 2.0, Z: 5.0}
+                        Position: {X: 7.1525574E-07, Y: 2.0, Z: 5.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -225,6 +228,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             309e0b5643c5a94caa799a5ea1480617: !BoxColliderShapeDesc
                                 Is2D: false
@@ -284,6 +288,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6789a1372377624a80df8c1d66d47bd0: !BoxColliderShapeDesc
                                 Is2D: false
@@ -339,6 +344,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             d3bac6d7e45a544588ebd5170d5258b4: !ColliderShapeAssetDesc
                                 Shape: ae62d5af-0efc-40e2-af1d-02af859774a1:CollisionMeshes/Ramp1x1_2x2
@@ -370,6 +376,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8e44f1d38f347d44b8347a504a3f5a48: !ColliderShapeAssetDesc
                                 Shape: 0bbcc6fe-9120-44e5-b6e8-6976bfa64b2c:CollisionMeshes/Stairs1x1x1_50
@@ -412,6 +419,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             d2e120603d7fa5488247697dbd90f469: !BoxColliderShapeDesc
                                 Is2D: false
@@ -429,7 +437,7 @@ Hierarchy:
                     862459dd14840647bcf960148fe74a7d: !TransformComponent
                         Id: dd592486-8414-4706-bcf9-60148fe74a7d
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     697683e791e5614ca2873ef1c430f6fc: !LightComponent
@@ -444,8 +452,8 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
                         Intensity: 5.0
         -   Entity:
                 Id: 3880e6af-35c6-476c-8a44-356d8d97c690
@@ -464,7 +472,7 @@ Hierarchy:
                 Components:
                     4292b7de85fd48479bb9156dc6413501: !TransformComponent
                         Id: deb79242-fd85-4748-9bb9-156dc6413501
-                        Position: {X: 0.499999046, Y: 0.5, Z: 0.625}
+                        Position: {X: 0.49999905, Y: 0.5, Z: 0.625}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -482,6 +490,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             ac4e8831eab87b45ac8f9d9e46be95dd: !ColliderShapeAssetDesc
                                 Shape: 99e92203-3bfa-4947-a970-cf3c3b94fb84:CollisionMeshes/Stairs1x1x1_25
@@ -512,6 +521,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -568,6 +578,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             51d3ac8c128122459d4b17b727672d6d: !ColliderShapeAssetDesc
                                 Shape: f1034796-324c-4a40-a626-3d57b1d87fbf:CollisionMeshes/Stairs1x1x1
@@ -610,6 +621,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             a1c1b887166010479e2107a88b2b487b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -665,6 +677,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
                                 Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:CollisionMeshes/Ramp1x1_2x1
@@ -700,7 +713,7 @@ Hierarchy:
                 Components:
                     fe9ddf6d2178f247b3da191f5bed6657: !TransformComponent
                         Id: 6ddf9dfe-7821-47f2-b3da-191f5bed6657
-                        Position: {X: -5.0, Y: 0.0, Z: -4.99999952}
+                        Position: {X: -5.0, Y: 0.0, Z: -4.9999995}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -729,6 +742,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
                                 Shape: 60258ea8-0806-483e-a80d-4ad76595042d:CollisionMeshes/Stairs2x2x4
@@ -760,6 +774,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
                                 Shape: 934024bf-9a3a-4e33-8fb0-fa4e14832f2b:CollisionMeshes/Stairs1x1x2
@@ -773,7 +788,7 @@ Hierarchy:
                 Components:
                     60662553bdfa37429f6fafb13c6d383f: !TransformComponent
                         Id: 53256660-fabd-4237-9f6f-afb13c6d383f
-                        Position: {X: 1.49999988, Y: 0.0, Z: 0.49999997}
+                        Position: {X: 1.4999999, Y: 0.0, Z: 0.49999997}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -791,6 +806,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e19f717d1849dd4a9ae927b5bc1a7e17: !BoxColliderShapeDesc
                                 Is2D: false
@@ -807,7 +823,7 @@ Hierarchy:
                 Components:
                     9bd6c2826922c24ba23d41e3a7a958f6: !TransformComponent
                         Id: 82c2d69b-2269-4bc2-a23d-41e3a7a958f6
-                        Position: {X: 0.0, Y: 1.0, Z: 0.999999762}
+                        Position: {X: 0.0, Y: 1.0, Z: 0.99999976}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -825,6 +841,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             02c03fd947c2e1468d3e1fe2ca768387: !BoxColliderShapeDesc
                                 Is2D: false
@@ -896,6 +913,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -930,6 +948,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             c43a4bb1930ada42a1651c91b5317898: !BoxColliderShapeDesc
                                 Is2D: false
@@ -946,7 +965,7 @@ Hierarchy:
                 Components:
                     c444819e77a60441a6144bd7bd8a4a23: !TransformComponent
                         Id: 84d708ec-895a-4412-84a4-ba4e86dde44d
-                        Position: {X: 7.15255737E-07, Y: 2.0, Z: 5.0}
+                        Position: {X: 7.1525574E-07, Y: 2.0, Z: 5.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -964,6 +983,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             309e0b5643c5a94caa799a5ea1480617: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1023,6 +1043,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1068,6 +1089,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             69605f939a4042449ecc2179c0de2592: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1102,6 +1124,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e19f717d1849dd4a9ae927b5bc1a7e17: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1147,6 +1170,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
                                 Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:CollisionMeshes/Ramp1x1x1
@@ -1160,7 +1184,7 @@ Hierarchy:
                 Components:
                     a2d6ca1adcf6ec41a4c7d29eb46ea480: !TransformComponent
                         Id: 1acad6a2-f6dc-41ec-a4c7-d29eb46ea480
-                        Position: {X: 1.50000012, Y: 0.5, Z: 0.5}
+                        Position: {X: 1.5000001, Y: 0.5, Z: 0.5}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -1178,6 +1202,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e444ebaf79902340b6f52785555515ef: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1223,6 +1248,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             a285fe854591f5418a5ff9682aa641d8: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1257,6 +1283,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e067ab5c6239c9479111bac33509f19a: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1292,6 +1319,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             0b96f2ec03831f4bae00db0d42c184be: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1322,6 +1350,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             b15ccd53f6376742a9d8288270906bea: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1401,6 +1430,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             508db8d1813cc84eb816d5cb50e30987: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1431,6 +1461,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             afc542316dc4014cb5fab15314fb77c1: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1480,7 +1511,7 @@ Hierarchy:
                 Components:
                     8be7e50b8aa29c45a44a3243094d5502: !TransformComponent
                         Id: 0be5e78b-a28a-459c-a44a-3243094d5502
-                        Position: {X: -11.0, Y: 0.0, Z: 0.999999762}
+                        Position: {X: -11.0, Y: 0.0, Z: 0.99999976}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -1520,6 +1551,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             82978a0cef5fd84fba6e9e4734adb4c2: !ColliderShapeAssetDesc
                                 Shape: 815bd728-6629-4b0e-aa73-0dcf3435c715:CollisionMeshes/Ramp2x1_2x1
@@ -1544,7 +1576,7 @@ Hierarchy:
                 Components:
                     674fdd1fb2513d41ab88936773660929: !TransformComponent
                         Id: 1fdd4f67-51b2-413d-ab88-936773660929
-                        Position: {X: -2.38418579E-07, Y: 1.0, Z: 1.00000024}
+                        Position: {X: -2.3841858E-07, Y: 1.0, Z: 1.0000002}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -1562,6 +1594,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1600,7 +1633,7 @@ Hierarchy:
                 Components:
                     e51a2900617cec45a238e0c34b1ddefc: !TransformComponent
                         Id: 00291ae5-7c61-45ec-a238-e0c34b1ddefc
-                        Position: {X: -2.0, Y: 0.0, Z: 5.00000048}
+                        Position: {X: -2.0, Y: 0.0, Z: 5.0000005}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:

@@ -564,7 +564,7 @@ Hierarchy:
                     22dead331d904f459beaaf2bbbcb6a1f: !TransformComponent
                         Id: 33adde22-901d-454f-9bea-af2bbbcb6a1f
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     43ff73116abdc24c8f37dec2404c6774: !LightComponent
@@ -775,7 +775,7 @@ Hierarchy:
                                                         TangentType: Linear
                                                     3e69661c401ea74fbca9523849286cc3:
                                                         Key: 0.1
-                                                        Value: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                                                        Value: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                                                         TangentType: Linear
                                                     7184aa9c109aa042adc1099d61b04448:
                                                         Key: 0.2
@@ -783,7 +783,7 @@ Hierarchy:
                                                         TangentType: Linear
                                                     2f028adfa1c90c4e9104afb118960571:
                                                         Key: 0.3
-                                                        Value: {X: 0.0, Y: 0.707106769, Z: 0.0, W: 0.707106769}
+                                                        Value: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                                                         TangentType: Linear
                                                     7795e84965a81b4196e635cf55d50a66:
                                                         Key: 0.4
@@ -791,7 +791,7 @@ Hierarchy:
                                                         TangentType: Linear
                                                     8cd9bb57815c894aa510f301f7a83593:
                                                         Key: 0.5
-                                                        Value: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                                                        Value: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                                                         TangentType: Linear
                                                     f16c0ad930a63b4dbe41f9a06e25114c:
                                                         Key: 0.6
@@ -803,7 +803,7 @@ Hierarchy:
                                                         TangentType: Linear
                                                     2ace441948c5854b8b45f4728b8037e8:
                                                         Key: 0.8
-                                                        Value: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                                                        Value: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                                                         TangentType: Linear
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor

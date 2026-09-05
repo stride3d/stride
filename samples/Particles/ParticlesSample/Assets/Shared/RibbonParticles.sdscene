@@ -24,7 +24,7 @@ Hierarchy:
                     96f902b4b7189b46b42043a5b185d974: !TransformComponent
                         Id: b402f996-18b7-469b-b420-43a5b185d974
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.422324032, Y: -0.3348694, Z: -0.009680137, W: 0.8422654}
+                        Rotation: {X: 0.42232403, Y: -0.3348694, Z: -0.009680137, W: 0.8422654}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             6e0ccb3914376044b5f47d0b8f04ddf9: ref!! 39cb0c6e-3714-4460-b5f4-7d0b8f04ddf9
@@ -219,7 +219,7 @@ Hierarchy:
                 Components:
                     e5300fdb957d20449a0b7e990beafaf0: !TransformComponent
                         Id: 6474c1de-dc0f-4ee9-a6bd-90e45e1a408b
-                        Position: {X: 0.0, Y: -0.399930716, Z: 0.0}
+                        Position: {X: 0.0, Y: -0.39993072, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.5, Y: 1.5, Z: 1.5}
                         Children: {}
@@ -252,7 +252,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: d1cfd19e-0b9d-45cc-ad40-dadd8a9aff17
                         Position: {X: 0.0, Y: 0.0, Z: -1.0}
-                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     dd79eccfc535b342af29ced46f15dffd: !ParticlesSample.PrefabInstance,ParticlesSample.Game
@@ -269,7 +269,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 3bff8acb-5e3a-41c2-a6b8-f44cfc4a57bc
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.145376563, Z: 0.0, W: 0.989376366}
+                        Rotation: {X: 0.0, Y: 0.14537656, Z: 0.0, W: 0.98937637}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     481bebaf1d9016499051bc1a2dbe057c: !ParticleSystemComponent
@@ -277,7 +277,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 1.0, G: 0.9372549, B: 0.0, A: 0.768627465}
+                        Color: {R: 1.0, G: 0.9372549, B: 0.0, A: 0.76862746}
                         Speed: 0.3
                         ParticleSystem:
                             Settings: {}
@@ -423,7 +423,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 00a281d0-52e8-4514-acfc-811f0e72890b
                         Position: {X: 0.0, Y: 0.0, Z: -1.0}
-                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     dd79eccfc535b342af29ced46f15dffd: !ParticlesSample.PrefabInstance,ParticlesSample.Game
@@ -474,7 +474,7 @@ Hierarchy:
                 Components:
                     e5300fdb957d20449a0b7e990beafaf0: !TransformComponent
                         Id: db0f30e5-7d95-4420-9a0b-7e990beafaf0
-                        Position: {X: 0.0, Y: -0.399930716, Z: 0.0}
+                        Position: {X: 0.0, Y: -0.39993072, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.5, Y: 1.5, Z: 1.5}
                         Children: {}
@@ -489,7 +489,7 @@ Hierarchy:
                     96f902b4b7189b46b42043a5b185d974: !TransformComponent
                         Id: 6e6f2007-c9f6-4c9d-8552-145dd80239fd
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.440923125, Y: -0.344486952, Z: 0.0, W: 0.828803658}
+                        Rotation: {X: 0.44092312, Y: -0.34448695, Z: 0.0, W: 0.82880366}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             6e0ccb3914376044b5f47d0b8f04ddf9: ref!! 9d7fc38b-dc9e-4277-b2db-4df06be88f88
@@ -550,7 +550,7 @@ Hierarchy:
                     1a168643616f90449850833e230d3647: !TransformComponent
                         Id: 4386161a-6f61-4490-9850-833e230d3647
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.57357645, Y: 0.0, Z: 0.0, W: 0.819152057}
+                        Rotation: {X: -0.57357645, Y: 0.0, Z: 0.0, W: 0.81915206}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     e6978e7930b38e4e860c59ab39c3d56e: !LightComponent
@@ -570,7 +570,7 @@ Hierarchy:
                 Components:
                     e5300fdb957d20449a0b7e990beafaf0: !TransformComponent
                         Id: b05611f7-a59a-40b8-b5af-de4168f02821
-                        Position: {X: 0.0, Y: -0.399930716, Z: 0.0}
+                        Position: {X: 0.0, Y: -0.39993072, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.5, Y: 1.5, Z: 1.5}
                         Children: {}
@@ -585,7 +585,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: b2be78da-0c14-4f8e-85d7-51f7fe9250ca
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.766894, Y: 0.358265758, Z: -0.5310914, W: -0.0382278562}
+                        Rotation: {X: 0.766894, Y: 0.35826576, Z: -0.5310914, W: -0.038227856}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             96f902b4b7189b46b42043a5b185d974: ref!! 6e6f2007-c9f6-4c9d-8552-145dd80239fd
@@ -600,7 +600,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: d8d64d85-7560-4f92-8e0c-8e27d78d05c9
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.3356385, Z: 0.0, W: 0.941990852}
+                        Rotation: {X: 0.0, Y: 0.3356385, Z: 0.0, W: 0.94199085}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     481bebaf1d9016499051bc1a2dbe057c: !ParticleSystemComponent
@@ -608,7 +608,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0, G: 0.925490141, B: 1.0, A: 1.0}
+                        Color: {R: 0.0, G: 0.92549014, B: 1.0, A: 1.0}
                         Speed: 0.3
                         ParticleSystem:
                             Settings: {}
@@ -908,7 +908,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 12d4660d-5bf4-476b-9402-ea735aa78445
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.145376563, Z: 0.0, W: 0.989376366}
+                        Rotation: {X: 0.0, Y: 0.14537656, Z: 0.0, W: 0.98937637}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     481bebaf1d9016499051bc1a2dbe057c: !ParticleSystemComponent
@@ -916,7 +916,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 1.0, G: 0.9372549, B: 0.0, A: 0.768627465}
+                        Color: {R: 1.0, G: 0.9372549, B: 0.0, A: 0.76862746}
                         Speed: 0.3
                         ParticleSystem:
                             Settings: {}
@@ -1061,8 +1061,8 @@ Hierarchy:
                 Components:
                     a7eb5f438190bb449c7a7989c2ec0faf: !TransformComponent
                         Id: 435feba7-9081-44bb-9c7a-7989c2ec0faf
-                        Position: {X: 0.0, Y: 5.92093372, Z: 7.280458}
-                        Rotation: {X: -0.292624474, Y: 0.0, Z: 0.0, W: 0.9562275}
+                        Position: {X: 0.0, Y: 5.9209337, Z: 7.280458}
+                        Rotation: {X: -0.29262447, Y: 0.0, Z: 0.0, W: 0.9562275}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     189a4a79e3829448aeaa84772e97d29e: !CameraComponent
@@ -1156,8 +1156,8 @@ Hierarchy:
                 Components:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 8730393d-85a7-4c13-919d-b50300fa6cd7
-                        Position: {X: 3.525829E-07, Y: -1.27791191E-06, Z: -3.16789283E-07}
-                        Rotation: {X: -0.658349, Y: -0.5697676, Z: -0.265862018, W: 0.4138345}
+                        Position: {X: 3.525829E-07, Y: -1.2779119E-06, Z: -3.1678928E-07}
+                        Rotation: {X: -0.658349, Y: -0.5697676, Z: -0.26586202, W: 0.4138345}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             96f902b4b7189b46b42043a5b185d974: ref!! b402f996-18b7-469b-b420-43a5b185d974
@@ -1225,7 +1225,7 @@ Hierarchy:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 31de6a8d-f083-42f7-b38e-017580ded409
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.3356385, Z: 0.0, W: 0.941990852}
+                        Rotation: {X: 0.0, Y: 0.3356385, Z: 0.0, W: 0.94199085}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     481bebaf1d9016499051bc1a2dbe057c: !ParticleSystemComponent
@@ -1233,7 +1233,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0, G: 0.925490141, B: 1.0, A: 1.0}
+                        Color: {R: 0.0, G: 0.92549014, B: 1.0, A: 1.0}
                         Speed: 0.3
                         ParticleSystem:
                             Settings: {}
@@ -1378,8 +1378,8 @@ Hierarchy:
                 Components:
                     6e0ccb3914376044b5f47d0b8f04ddf9: !TransformComponent
                         Id: 35cff6b5-6095-424b-bb40-b5013b0fd825
-                        Position: {X: -1.44622632E-07, Y: 3.053148E-07, Z: -1.0}
-                        Rotation: {X: 0.707106769, Y: -3.48962878E-15, Z: 3.48962878E-15, W: 0.707106769}
+                        Position: {X: -1.4462263E-07, Y: 3.053148E-07, Z: -1.0}
+                        Rotation: {X: 0.70710677, Y: -3.4896288E-15, Z: 3.4896288E-15, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     dd79eccfc535b342af29ced46f15dffd: !ParticlesSample.PrefabInstance,ParticlesSample.Game

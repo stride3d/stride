@@ -53,5 +53,5 @@ Hierarchy:
                         Children: {}
                     c0f78c783916b503e26a87af61ccd80c: !ModelComponent
                         Id: 6588f397-4782-4b38-a8b0-6a933af146cf
-                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:/SamplesAssetPackage/Models/MaterialModel
                         Materials: {}
