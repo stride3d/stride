@@ -121,14 +121,18 @@ internal sealed class CrashSession
         }
     }
 
-    /// <summary>Size in bytes of a crash's dump, or 0 if it has none, so the window can show it before sending.</summary>
-    public long DumpSize(StoredCrash crash)
+    /// <summary>Full path of a crash's dump file, or null if it has none (or the file is gone).</summary>
+    public string? DumpPath(StoredCrash crash)
     {
         if (string.IsNullOrEmpty(crash.DumpFileName))
-            return 0;
+            return null;
         var path = Path.Combine(run.Directory, crash.DumpFileName);
-        return File.Exists(path) ? new FileInfo(path).Length : 0;
+        return File.Exists(path) ? path : null;
     }
+
+    /// <summary>Size in bytes of a crash's dump, or 0 if it has none, so the window can show it before sending.</summary>
+    public long DumpSize(StoredCrash crash)
+        => DumpPath(crash) is { } path ? new FileInfo(path).Length : 0;
 
     /// <summary>True when this run belongs to a live host session (a GameStudio-routed build), so a sent crash can
     /// be quietened just for that session; false for a crashed or one-shot host, where only "Don't show again" lasts.</summary>

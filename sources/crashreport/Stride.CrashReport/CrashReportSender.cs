@@ -74,7 +74,7 @@ public static class CrashReportSender
     }
 
     // Drop the +g<sha> metadata so the release matches the NuGet version and git tag; the commit travels as a tag.
-    private static (string version, string commit) SplitVersion(string informational)
+    internal static (string version, string commit) SplitVersion(string informational)
     {
         informational ??= "unknown";
         var plus = informational.IndexOf('+');

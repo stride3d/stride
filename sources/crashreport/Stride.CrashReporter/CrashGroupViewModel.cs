@@ -15,12 +15,11 @@ internal sealed class CrashGroupViewModel : ObservableObject
     private bool includeAssetDefinition; // default off: the definition is the user's project content
     private bool isSent;
 
-    public CrashGroupViewModel(StoredCrash crash, long dumpSize)
+    public CrashGroupViewModel(StoredCrash crash, string? dumpPath, long dumpSize)
     {
         Crash = crash;
         Title = crash.Title();
         Detail = ComputeDetail(crash);
-        ReportText = crash.ToReportData().ToString();
         HasDump = dumpSize > 0;
         // A full-memory dump is large and unscrubbed: never offered for sending — shown as a local-only note.
         // A triage dump (stacks + modules, scrubbed) gets the opt-in send checkbox.
@@ -37,6 +36,16 @@ internal sealed class CrashGroupViewModel : ObservableObject
             HasAssetDefinition = true;
             AssetDefinitionLabel = $"Attach the asset definition — {Path.GetFileName(definition)} ({FormatSize(size)})";
         }
+
+        // What "View Report" shows must be everything that leaves: the report, the stacks, and the files and
+        // feedback this window can add, each worded by the checkbox that governs it.
+        var alsoSent = new List<string>();
+        if (HasSendableDump)
+            alsoSent.Add($"AttachedFile: {dumpPath} (minidump, call stacks and module list only, no memory; sent if left checked)");
+        if (HasAssetDefinition)
+            alsoSent.Add($"AttachedFile: {definition} (asset definition, scrubbed; sent if checked)");
+        alsoSent.Add("Feedback: your name, email and note, only if you type them");
+        ReportText = CrashReportText.Format(crash, alsoSent);
     }
 
     public StoredCrash Crash { get; }
@@ -47,7 +56,7 @@ internal sealed class CrashGroupViewModel : ObservableObject
     /// <summary>Occurrence count and affected assets, e.g. "3 times · Hero (Model), Tree (Model)".</summary>
     public string Detail { get; }
 
-    /// <summary>The full report text, shown when the user expands the report.</summary>
+    /// <summary>The full reviewable text of what would be sent, shown when the user expands the report.</summary>
     public string ReportText { get; }
 
     /// <summary>Send this group. Defaults on; unchecking dismisses it instead.</summary>

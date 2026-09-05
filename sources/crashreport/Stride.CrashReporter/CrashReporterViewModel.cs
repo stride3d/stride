@@ -43,7 +43,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         this.requestClose = requestClose;
         this.pickSavePath = pickSavePath;
 
-        Groups = new ObservableCollection<CrashGroupViewModel>(session.Groups.Select(crash => new CrashGroupViewModel(crash, session.DumpSize(crash))));
+        Groups = new ObservableCollection<CrashGroupViewModel>(session.Groups.Select(crash => new CrashGroupViewModel(crash, session.DumpPath(crash), session.DumpSize(crash))));
         Title = $"{ApplicationName(session.Groups)} crash report";
         Header = ComputeHeader(session.Groups, duringBuild: session.IsSessionScoped);
         FullReport = string.Join("\n\n----------------------------------------\n\n", Groups.Select(group => group.ReportText));
