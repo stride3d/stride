@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
@@ -70,13 +71,31 @@ namespace Stride.Assets.Presentation.ViewModel
             // Repopulate the list of materials
             for (var i = 0; i < assetToMerge.Materials.Count; ++i)
             {
+                var materialName = assetToMerge.Materials[i].Name;
+                var modelMaterial = dictionary[materialName];
+
                 // Retrieve or create an id for the material
-                ItemId id;
-                if (!ids.TryGetValue(assetToMerge.Materials[i].Name, out id))
+                if (!ids.TryGetValue(materialName, out var id))
+                {
                     id = ItemId.New();
 
+                    // Update-from-source imports only the ModelAsset. A source material that
+                    // disappeared in the previous revision and now reappears therefore has a
+                    // null material reference in assetToMerge. Reconnect the MaterialAsset that
+                    // was created by the original import, when it still exists beside the model.
+                    if (modelMaterial.MaterialInstance?.Material == null)
+                    {
+                        var materialAsset = Directory.Assets.FirstOrDefault(x =>
+                            x.Asset is MaterialAsset &&
+                            string.Equals(x.Name, materialName, StringComparison.OrdinalIgnoreCase));
+
+                        if (materialAsset != null)
+                            modelMaterial.MaterialInstance.Material = ContentReferenceHelper.CreateReference<Material>(materialAsset);
+                    }
+                }
+
                 // Use Restore to allow to set manually the id.
-                materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
+                materialsNode.Restore(modelMaterial, new NodeIndex(i), id);
             }
         }
 

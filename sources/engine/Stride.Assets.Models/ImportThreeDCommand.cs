@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Stride.Core.BuildEngine;
+using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Importer.Common;
@@ -40,12 +41,59 @@ namespace Stride.Assets.Models
         protected override Model LoadModel(ICommandContext commandContext, ContentManager contentManager)
         {
             var converter = CreateMeshConverter(commandContext);
+            var sceneData = converter.Convert(SourcePath, Location, DeduplicateMaterials, out var sourceMaterialNames);
 
-            // Note: FBX exporter uses Materials for the mapping, but Assimp already uses indices so we can reuse them
-            // We should still unify the behavior to be more consistent at some point (i.e. if model was changed on the HDD but not in the asset).
-            // This should probably be better done during a large-scale FBX/Assimp refactoring.
-            var sceneData = converter.Convert(SourcePath, Location, DeduplicateMaterials);
+            // Assimp mesh material indices refer to the material order in the freshly imported source.
+            // ModelAsset.Materials can still reflect the previous source revision while an asset is being
+            // updated, so build a local material list in source order instead of reusing stale positions.
+            AlignMaterialsWithSource(sourceMaterialNames);
+
             return sceneData;
+        }
+
+        private void AlignMaterialsWithSource(IReadOnlyList<string> sourceMaterialNames)
+        {
+            // Keep the existing fallback behavior for formats/scenes where Assimp exposes no materials.
+            if (sourceMaterialNames.Count == 0)
+                return;
+
+            var materialsByName = new Dictionary<string, ModelMaterial>(StringComparer.Ordinal);
+            if (Materials != null)
+            {
+                foreach (var material in Materials)
+                {
+                    if (material?.Name != null && !materialsByName.ContainsKey(material.Name))
+                        materialsByName.Add(material.Name, material);
+                }
+            }
+
+            var alignedMaterials = new List<ModelMaterial>(sourceMaterialNames.Count);
+            foreach (var materialName in sourceMaterialNames)
+            {
+                if (materialsByName.TryGetValue(materialName, out var material))
+                {
+                    alignedMaterials.Add(material);
+                }
+                else
+                {
+                    // The source contains a new/reintroduced material that is not present in the
+                    // currently saved ModelAsset yet. Keep its source slot so later material indices
+                    // do not shift; UpdateAssetFromSource will reconnect its asset reference.
+                    alignedMaterials.Add(new ModelMaterial
+                    {
+                        Name = materialName,
+                        MaterialInstance = new MaterialInstance(),
+                    });
+                }
+            }
+
+            Materials = alignedMaterials;
+        }
+
+        protected override void ComputeParameterHash(BinarySerializationWriter writer)
+        {
+            base.ComputeParameterHash(writer);
+            writer.Write(1); // Increment when Assimp model compilation behavior changes.
         }
 
         protected override Dictionary<string, AnimationClip> LoadAnimation(ICommandContext commandContext, ContentManager contentManager, out TimeSpan duration)
