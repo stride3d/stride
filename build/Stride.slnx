@@ -95,6 +95,7 @@
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Bepu/">
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
+    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Assets/Stride.BepuPhysics.Assets.csproj" />
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj" />
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
   </Folder>
