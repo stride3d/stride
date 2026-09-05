@@ -473,6 +473,15 @@ partial class PackageSession
 
                         loadedPackage = loadedProject.Package;
                     }
+                    else if (projectDependency.Type == DependencyType.Package)
+                    {
+                        var declared = LoadDevRedirectDeclarations(projectDependency);
+                        if (declared != null)
+                        {
+                            Projects.Add(declared);
+                            loadedPackage = declared.Package;
+                        }
+                    }
                 }
 
                 if (loadedPackage != null)
