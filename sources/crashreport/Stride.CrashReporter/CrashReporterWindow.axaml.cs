@@ -11,8 +11,9 @@ public partial class CrashReporterWindow : Window
     public CrashReporterWindow()
     {
         InitializeComponent();
-        // Land keyboard focus on the primary action so the common path (send) is one keystroke away.
-        Opened += (_, _) => SendButton.Focus();
+        // Land keyboard focus on the primary action so the common path (send) is one keystroke away. Focus it as
+        // if tabbed to, so the focus ring is drawn: the user must be able to see what Enter will do.
+        Opened += (_, _) => SendButton.Focus(NavigationMethod.Tab);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
