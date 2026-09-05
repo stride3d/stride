@@ -22,11 +22,10 @@ public sealed partial class ThreadPool : IDisposable
     /// </summary>
     public static ThreadPool Instance = new();
 
-    private static readonly bool SingleCore;
     [ThreadStatic]
-    private static bool isWorkedThread;
+    private static bool isWorkerThread;
     /// <summary> Is the thread reading this property a worker thread </summary>
-    public static bool IsWorkedThread => isWorkedThread;
+    public static bool IsWorkedThread => isWorkerThread;
 
     private static readonly ProfilingKey ProcessWorkItemKey = new($"{nameof(ThreadPool)}.ProcessWorkItem");
 
@@ -62,13 +61,14 @@ public sealed partial class ThreadPool : IDisposable
         }
         try
         {
-            semaphore = new DotnetLifoSemaphore(spinCount);
+            if (Environment.Version.Major >= 11)
+                semaphore = new Dotnet11OrAboveLifoSemaphore();
+            else
+                semaphore = new Dotnet10OrUnderLifoSemaphore(spinCount);
         }
         catch (Exception e)
         {
-            // For net6+ this should not happen, logging instead of throwing as this is just a performance regression
-            if (Environment.Version.Major >= 6)
-                Logger.Warning($"Could not bind to dotnet's Lifo Semaphore, falling back to suboptimal semaphore:\n{e}");
+            Logger.Warning($"Could not bind to dotnet's Lifo Semaphore, falling back to suboptimal semaphore:\n{e}");
 
             semaphore = new SemaphoreW(spinCountParam: 70);
         }
@@ -81,39 +81,22 @@ public sealed partial class ThreadPool : IDisposable
         }
     }
 
-    static ThreadPool()
-    {
-        SingleCore = Environment.ProcessorCount < 2;
-    }
-
     /// <summary>
     /// Queue an action to run on one of the available threads,
     /// it is strongly recommended that the action takes less than a millisecond.
     /// </summary>
     public unsafe void QueueWorkItem([Pooled] Action workItem, int amount = 1)
     {
-        // Throw right here to help debugging
-        if (workItem == null)
-        {
-            throw new NullReferenceException(nameof(workItem));
-        }
-
-#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(workItem);
         ArgumentOutOfRangeException.ThrowIfLessThan(amount, 1);
         ObjectDisposedException.ThrowIf(disposing > 0, this);
-#else
-        if (amount < 1) throw new ArgumentOutOfRangeException(nameof(amount));
-        if (disposing > 0) throw new ObjectDisposedException(ToString());
-#endif // NET8_0_OR_GREATER
 
-        Interlocked.Add(ref workScheduled, amount);
         var work = new Work { WorkHandler = &ActionHandler, Data = workItem };
+
         for (int i = 0; i < amount; i++)
-        {
             PooledDelegateHelper.AddReference(workItem);
-            workItems.Enqueue(work);
-        }
-        semaphore.Release(amount);
+
+        QueueWorkItemInner(amount, work);
     }
 
     static void ActionHandler(object param)
@@ -136,21 +119,17 @@ public sealed partial class ThreadPool : IDisposable
     /// </summary>
     public unsafe void QueueUnsafeWorkItem(object parameter, delegate*<object, void> obj, int amount = 1)
     {
-        if (parameter == null)
-        {
-            throw new NullReferenceException(nameof(parameter));
-        }
-
-#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(parameter);
         ArgumentOutOfRangeException.ThrowIfLessThan(amount, 1);
         ObjectDisposedException.ThrowIf(disposing > 0, this);
-#else
-        if (amount < 1) throw new ArgumentOutOfRangeException(nameof(amount));
-        if (disposing > 0) throw new ObjectDisposedException(ToString());
-#endif // NET8_0_OR_GREATER
 
-        Interlocked.Add(ref workScheduled, amount);
         var work = new Work { WorkHandler = obj, Data = parameter };
+
+        QueueWorkItemInner(amount, work);
+    }
+
+    private void QueueWorkItemInner(int amount, in Work work)
+    {
         for (int i = 0; i < amount; i++)
         {
             workItems.Enqueue(work);
@@ -197,7 +176,7 @@ public sealed partial class ThreadPool : IDisposable
 
     private void WorkerThreadScope()
     {
-        isWorkedThread = true;
+        isWorkerThread = true;
         try
         {
             do
@@ -261,13 +240,13 @@ public sealed partial class ThreadPool : IDisposable
         public void Wait(int timeout = -1);
     }
 
-    private sealed class DotnetLifoSemaphore : ISemaphore
+    private sealed class Dotnet10OrUnderLifoSemaphore : ISemaphore
     {
         private readonly IDisposable semaphore;
         private readonly Func<int, bool, bool> wait;
         private readonly Action<int> release;
 
-        public DotnetLifoSemaphore(int spinCount)
+        public Dotnet10OrUnderLifoSemaphore(int spinCount)
         {
             // The semaphore Dotnet uses for its own threadpool is more efficient than what's publicly available,
             // but sadly it is internal - we'll hijack it through reflection
@@ -280,5 +259,32 @@ public sealed partial class ThreadPool : IDisposable
         public void Dispose() => semaphore.Dispose();
         public void Release(int count) => release(count);
         public void Wait(int timeout = -1) => wait(timeout, true);
+    }
+
+    private sealed class Dotnet11OrAboveLifoSemaphore : ISemaphore
+    {
+        private readonly object semaphore;
+        private readonly Func<int, bool> wait;
+        private readonly Action release;
+
+        public Dotnet11OrAboveLifoSemaphore()
+        {
+            // The semaphore Dotnet uses for its own threadpool is more efficient than what's publicly available,
+            // but sadly it is internal - we'll hijack it through reflection
+            Type lifoType = Type.GetType("System.Threading.LowLevelLifoSemaphore")!;
+            semaphore = Activator.CreateInstance(lifoType, new Action(() => { }))!;
+            wait = lifoType.GetMethod("Wait", BindingFlags.Instance | BindingFlags.Public)!.CreateDelegate<Func<int, bool>>(semaphore);
+            release = lifoType.GetMethod("Signal", BindingFlags.Instance | BindingFlags.Public)!.CreateDelegate<Action>(semaphore);
+        }
+
+        public void Dispose() { }
+
+        public void Release(int count)
+        {
+            for (int i = 0; i < count; i++)
+                release();
+        }
+
+        public void Wait(int timeout = -1) => wait(timeout);
     }
 }
