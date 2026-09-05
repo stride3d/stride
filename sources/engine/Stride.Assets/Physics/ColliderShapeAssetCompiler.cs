@@ -17,6 +17,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets.Textures;
+using Stride.Assets.VHACD;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Assets.Physics
@@ -24,11 +25,6 @@ namespace Stride.Assets.Physics
     [AssetCompiler(typeof(ColliderShapeAsset), typeof(AssetCompilationContext))]
     internal class ColliderShapeAssetCompiler : AssetCompilerBase
     {
-        static ColliderShapeAssetCompiler()
-        {
-            NativeLibraryHelper.PreloadLibrary("stride_vhacd", typeof(ColliderShapeAssetCompiler));
-        }
-
         public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
         {
             foreach (var type in AssetRegistry.GetAssetTypes(typeof(Model)))
@@ -298,7 +294,7 @@ namespace Stride.Assets.Physics
                             MaxRecursionDepth = (uint)convexHullDesc.Decomposition.MaxRecursionDepth,
                             MinimumVolumePercentErrorAllowed = convexHullDesc.Decomposition.MinimumVolumePercentErrorAllowed,
                             ShrinkWrap = convexHullDesc.Decomposition.ShrinkWrap,
-                            FillMode = convexHullDesc.Decomposition.FillMode,
+                            FillMode = (ConvexDecompositionFillMode)convexHullDesc.Decomposition.FillMode,
                             MaxNumVerticesPerCH = (uint)convexHullDesc.Decomposition.MaxNumVerticesPerConvexHull,
                         };
 
