@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 using Stride.Assets.Templates;
 using Stride.Core;
@@ -422,9 +423,6 @@ internal class TemplatePreprocessor
     }
 
     /// <summary>Matches a <c>Stride*</c> Include + Version attribute pair (PackageReference shape).</summary>
-    private static readonly Regex StridePackageReferenceRegex = new(
-        "(Include=\"(Stride[^\"]*)\"\\s+Version=\")([^\"]*)(\")", RegexOptions.Compiled);
-
     /// <summary>
     /// Community/third-party <c>Stride.*</c>-prefixed packages that version independently of the
     /// engine; their references pass through the engine-version stamp untouched.
@@ -446,20 +444,45 @@ internal class TemplatePreprocessor
         {
             var content = File.ReadAllText(csproj);
             var updated = content.Replace("$EngineVersion$", EngineVersion);
-            updated = StridePackageReferenceRegex.Replace(updated, match =>
+            var doc = XDocument.Parse(updated, LoadOptions.PreserveWhitespace);
+            var stamped = 0;
+            foreach (var reference in doc.Descendants().Where(e => e.Name.LocalName == "PackageReference"))
             {
-                var version = match.Groups[3].Value;
+                var include = (string?)reference.Attribute("Include");
+                // Version is an attribute or a child element
+                var version = (XObject?)reference.Attribute("Version") ?? reference.Elements().FirstOrDefault(e => e.Name.LocalName == "Version");
+                if (include is null || version is null || !include.StartsWith("Stride", StringComparison.Ordinal))
+                    continue;
+                var value = version is XAttribute attribute ? attribute.Value : ((XElement)version).Value;
                 // A remaining $placeholder$ is someone else's substitution point; community
                 // packages keep their committed version.
-                if (version.IndexOf('$') >= 0 || version == EngineVersion || IsNonEnginePackage(match.Groups[2].Value))
-                    return match.Value;
-                references++;
-                return match.Groups[1].Value + EngineVersion + match.Groups[4].Value;
-            });
-            if (updated == content)
-                continue;
-            File.WriteAllText(csproj, updated);
-            files++;
+                if (value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
+                    continue;
+                if (version is XAttribute versionAttribute)
+                    versionAttribute.Value = EngineVersion;
+                else
+                    ((XElement)version).Value = EngineVersion;
+                stamped++;
+            }
+
+            if (stamped > 0)
+            {
+                // Keep the file as authored: no added declaration, no reformatting, same newlines
+                var settings = new XmlWriterSettings { OmitXmlDeclaration = doc.Declaration is null, Indent = false, NewLineHandling = NewLineHandling.None };
+                var output = new StringBuilder();
+                using (var writer = XmlWriter.Create(output, settings))
+                    doc.Save(writer);
+                // The parser normalizes line ends to LF
+                var text = content.Contains("\r\n", StringComparison.Ordinal) ? output.ToString().Replace("\n", "\r\n") : output.ToString();
+                File.WriteAllText(csproj, text, new UTF8Encoding(false));
+                references += stamped;
+                files++;
+            }
+            else if (updated != content)
+            {
+                File.WriteAllText(csproj, updated);
+                files++;
+            }
         }
         if (files > 0)
             logger.Info($"Stamped engine version {EngineVersion} into {files} .csproj file(s) ({references} Stride.* reference(s) rewritten)");
