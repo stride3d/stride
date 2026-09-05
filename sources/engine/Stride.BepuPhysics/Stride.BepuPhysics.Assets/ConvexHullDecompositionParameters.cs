@@ -5,9 +5,22 @@ using System;
 using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
-using Stride.Physics;
 
 namespace Stride.BepuPhysics.Assets;
+
+/// <summary>
+/// How V-HACD fills the interior of the voxelized mesh during decomposition.
+/// </summary>
+[DataContract("BepuVhacdFillMode")]
+public enum VhacdFillMode
+{
+    /// <summary>Flood-fill from a known-outside cell to mark inside vs outside. Default; meshes with holes can fail.</summary>
+    FloodFill = 0,
+    /// <summary>Only the voxelized surface is kept; produces shell-only hulls with hollow interior.</summary>
+    SurfaceOnly = 1,
+    /// <summary>Uses raycasting to classify inside vs outside; more robust for meshes with holes.</summary>
+    RaycastFill = 2,
+}
 
 [ContentSerializer(typeof(DataContentSerializer<ConvexHullDecompositionParameters>))]
 [DataContract("BepuDecompositionParameters")]

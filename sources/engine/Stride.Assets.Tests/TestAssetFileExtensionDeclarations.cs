@@ -26,6 +26,7 @@ namespace Stride.Assets.Tests
                 typeof(Textures.TextureAsset).Assembly,
                 typeof(Models.ModelAsset).Assembly,
                 typeof(SpriteStudio.Offline.SpriteStudioModelAsset).Assembly,
+                typeof(BepuPhysics.Assets.HullAsset).Assembly,
             };
 
             var expected = new SortedSet<string>(StringComparer.Ordinal);

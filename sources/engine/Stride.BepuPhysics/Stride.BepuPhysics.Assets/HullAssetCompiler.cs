@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Assets.Textures;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -15,6 +14,7 @@ using Stride.Core.BuildEngine;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
 using Stride.Assets.VHACD;
@@ -43,7 +43,10 @@ internal class HullAssetCompiler : AssetCompilerBase
         {
             yield return type;
         }
-        yield return typeof(TextureAsset);
+        foreach (var type in AssetRegistry.GetAssetTypes(typeof(Texture)))
+        {
+            yield return type;
+        }
     }
 
     public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
