@@ -8,3 +8,8 @@ Group: Physics-Bepu
 Icon: ..\.sdtpl\ColliderHull.png
 DefaultOutputName: ColliderHull
 FactoryTypeName: HullAssetFactory
+Prompts:
+    - !AssetReferencePrompt
+      Member: Model
+      Message: Select the model to use to generate a convex hull - _cancel to leave the model empty_
+      AssetTypes: [IModelAsset]

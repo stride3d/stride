@@ -41,7 +41,7 @@ namespace Stride.BepuPhysics.Assets
         /// Model asset from where the engine will derive the convex hull.
         /// </userdoc>
         [DataMember(30)]
-        public Model Model; // Do note that this field is also assigned through reflection in HullAssetFactoryTemplateGenerator as a workaround
+        public Model Model;
 
         /// <userdoc>
         /// The offset with the real graphic mesh.
