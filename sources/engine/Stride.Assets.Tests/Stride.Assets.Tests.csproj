@@ -20,6 +20,7 @@
     </Compile>
     <Compile Include="TestAssetContentTypeMap.cs" />
     <Compile Include="TestFFmpegTool.cs" />
+    <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />
@@ -38,6 +39,10 @@
   <ItemGroup>
     <Content Include="..\..\data\tests\Fonts\NotoSans-Bold.ttf">
       <Link>Fonts\NotoSans-Bold.ttf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\video\clip.mp4">
+      <Link>video\clip.mp4</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\data\tests\knight\scenes\knight.fbx">
