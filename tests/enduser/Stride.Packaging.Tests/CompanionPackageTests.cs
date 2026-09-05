@@ -27,6 +27,20 @@ public class CompanionPackageTests
     private const string ExtAssetsPackageId = "AcmeSpinPlugin.Assets";
     private static readonly Guid SpinTemplateId = new("9C2B6F1E-4D3A-4E5B-8C7D-0A1B2C3D4E5F");
 
+    /// <summary>
+    /// The editor package loads at the version its runtime package declares, which is the runtime's own version
+    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares.
+    /// </summary>
+    private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage)
+    {
+        var runtime = session.Packages.Single(p => p.Meta.Name == runtimeName);
+        var declaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
+        Assert.Equal(editorPackage.Meta.Name, declaration.Name);
+        Assert.Equal(runtime.Meta.Version, declaration.Version);
+        Assert.Equal(runtime.Meta.Version, editorPackage.Meta.Version);
+        Assert.Equal(PackageKind.Editor, editorPackage.Kind);
+    }
+
     [Fact]
     public void AssetsPackageRestoredFromFeed()
     {
@@ -242,6 +256,41 @@ public class CompanionPackageTests
         Assert.Equal(CustomAssetsPackageId, declaration.Name);
         Assert.Equal(PackageKind.Assets, declaration.Kind);
         Assert.Equal(new[] { AssetsPackageId }, declaration.Replaces);
+    }
+
+    [Fact]
+    public void VideoCompilesThroughItsAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // The engine's own plugin with both companions: Stride.Video declares Stride.Video.Assets (asset,
+        // compiler, ffmpeg) and Stride.Video.Editor (editor extensions)
+        using var c = new Case(output, "assets-video");
+        c.PackPlugin();
+        c.ReferencePackage("Stride.Video");
+        c.AddVideoAsset();
+        // Typed from Stride.Video's [assembly: AssetFileExtension(".sdvid", ...)]
+        c.AddTypedConstantCheck("Clip", "Stride.Video.Video");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        Assert.Contains("Video Asset Compiler", result.Output);
+        c.AssertContentCompiled("/Consumer/Clip");
+
+        // A session without editor packages (the asset compiler's) has the Assets package only
+        var compilerSession = c.LoadConsumerProjectSession();
+        Assert.Contains(compilerSession.Packages, p => p.Meta.Name == "Stride.Video.Assets");
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.Video.Editor");
+
+        // The editor's session load asks for editor packages too. Stride.Video.Editor targets Windows only, as Game Studio does.
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        Assert.Contains(editorSession.Packages, p => p.Meta.Name == "Stride.Video.Assets");
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Video.Editor");
+        var editorContainer = (StandalonePackage)editorPackage.Container;
+        Assert.True(editorContainer.IsCompanionPackage);
+        var editorAssembly = Assert.Single(editorContainer.Assemblies);
+        Assert.True(File.Exists(editorAssembly), $"Editor assembly [{editorAssembly}] should exist.");
+        AssertDeclaredEditorPackage(editorSession, "Stride.Video", editorPackage);
     }
 
     [Fact]
@@ -499,6 +548,21 @@ public class CompanionPackageTests
                 uiReference + Indent + $"""<PackageReference Include="{id}" Version="$(StrideEngineVersion)" />"""));
         }
 
+        public void AddVideoAsset()
+        {
+            var resources = Path.Combine(consumerDir, "Consumer.Game", "Resources");
+            Directory.CreateDirectory(resources);
+            File.Copy(Path.Combine(TestEnvironment.WorktreeRoot(), "sources", "data", "tests", "video", "clip.mp4"), Path.Combine(resources, "clip.mp4"));
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "Assets", "Clip.sdvid"), """
+                !Video
+                Id: 9b2c3d4e-5f60-4a71-8b82-93a4b5c6d7e8
+                SerializedVersion: {Stride: 2.1.0.0}
+                Tags: []
+                Source: ../Resources/clip.mp4
+                """);
+            AddRootAsset("9b2c3d4e-5f60-4a71-8b82-93a4b5c6d7e8:Clip");
+        }
+
         public void AddHullAssets()
         {
             var assets = Path.Combine(consumerDir, "Consumer.Game", "Assets");
@@ -605,11 +669,11 @@ public class CompanionPackageTests
         /// Headless session over the consumer's project, the editor's path. Assemblies are not loaded: the
         /// manifest session already loaded this plugin's assemblies into the test process.
         /// </summary>
-        public PackageSession LoadConsumerProjectSession()
+        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false)
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
             var result = new PackageSessionResult();
-            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages });
             return CheckSession(result);
         }
 
