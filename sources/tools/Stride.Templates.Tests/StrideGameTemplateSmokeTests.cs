@@ -151,6 +151,12 @@ public class StrideGameTemplateSmokeTests
         var csprojText = File.ReadAllText(libraryCsproj);
         Assert.True(csprojText.Contains("<PackageReference Include=\"Stride.Engine\""),
             $"Generated {Path.GetFileName(libraryCsproj)} missing Stride.Engine PackageReference:\n{csprojText}");
+
+        // Build metadata (+g<sha> on release builds) must not leak into the stamped version.
+        var version = System.Text.RegularExpressions.Regex.Match(csprojText, "Stride\\.Engine\"\\s+Version=\"([^\"]+)\"");
+        Assert.True(version.Success && version.Groups[1].Value.Length > 0,
+            $"Generated {Path.GetFileName(libraryCsproj)} has no version on its Stride.Engine PackageReference:\n{csprojText}");
+        Assert.DoesNotContain("+", version.Groups[1].Value);
     }
 
     /// <summary>
