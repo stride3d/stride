@@ -38,8 +38,6 @@ namespace Stride.Assets.Presentation.Templates
             TemplateManager.Register(ModelFromFileTemplateGenerator.Default);
             TemplateManager.Register(SkeletonFromFileTemplateGenerator.Default);
             TemplateManager.Register(AnimationFromFileTemplateGenerator.Default);
-            TemplateManager.Register(VideoFromFileTemplateGenerator.Default);
-            TemplateManager.Register(SoundFromFileTemplateGenerator.Default);
         }
 
         /// <summary>

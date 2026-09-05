@@ -55,6 +55,21 @@ public static partial class FFmpegTool
     }
 
     /// <summary>
+    /// The streams and duration of <paramref name="mediaFile"/>, or <c>null</c> when ffmpeg is missing or cannot read the file.
+    /// </summary>
+    public static FFmpegMediaInfo? TryProbe(string mediaFile)
+    {
+        try
+        {
+            return Probe(mediaFile);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Parses the report printed by <c>ffmpeg -i</c>.
     /// </summary>
     public static FFmpegMediaInfo ParseReport(string report)
