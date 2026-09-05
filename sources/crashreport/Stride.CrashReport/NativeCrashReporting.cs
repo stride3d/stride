@@ -143,9 +143,12 @@ namespace Stride.CrashReport
         /// </summary>
         public static string ResolveCrashReporter()
         {
+            // An explicit override is authoritative: when set, use it, or nothing when it doesn't exist -- don't
+            // silently fall back to a different reporter than the dev named (and this lets a bad override force the
+            // reporter-missing path for testing).
             var overridePath = Environment.GetEnvironmentVariable("STRIDE_CRASH_REPORTER");
-            if (!string.IsNullOrEmpty(overridePath) && File.Exists(overridePath))
-                return overridePath;
+            if (!string.IsNullOrEmpty(overridePath))
+                return File.Exists(overridePath) ? overridePath : null;
 
             return FindReporterIn(AppContext.BaseDirectory) ?? FindReporterInDevTree() ?? FindReporterInStore();
         }
