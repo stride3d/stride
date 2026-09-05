@@ -194,6 +194,7 @@
   <Folder Name="/70-StrideAssets/">
     <Project Path="../sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
     <Project Path="../sources/engine/Stride.Assets/Stride.Assets.csproj" />
+    <Project Path="../sources/engine/Stride.Assets.FFmpeg/Stride.Assets.FFmpeg.csproj" />
     <Project Path="../sources/engine/Stride.SpriteStudio.Offline/Stride.SpriteStudio.Offline.csproj" />
   </Folder>
   <Folder Name="/71-StrideAssets.Tests/">

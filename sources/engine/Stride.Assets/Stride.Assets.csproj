@@ -42,6 +42,7 @@
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
+    <ProjectReference Include="..\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -74,12 +75,6 @@
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
-      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
-    </StrideNativeLib>
-    <!-- Asset compiler ffmpeg CLI — one native per RID under runtimes/<rid>/native/, deployed through the
-         Stride native-deps (.ssdeps) mechanism like the msdfgen natives above. ToolLocator resolves the
-         host RID at runtime, and the package ships every RID for portability. -->
-    <StrideNativeLib Include="..\..\..\deps\FFmpeg\**\ffmpeg*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>

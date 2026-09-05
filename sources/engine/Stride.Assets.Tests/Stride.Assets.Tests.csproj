@@ -19,6 +19,7 @@
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetContentTypeMap.cs" />
+    <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />

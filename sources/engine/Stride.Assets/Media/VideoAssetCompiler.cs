@@ -16,7 +16,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using System.Linq;
 using Stride.Core;
-
+using Stride.Assets.FFmpeg;
 using Stride.Video.FFmpeg;
 using FFmpeg.AutoGen;
 
@@ -83,7 +83,7 @@ namespace Stride.Assets.Media
                 try
                 {
                     // Get path to ffmpeg
-                    var ffmpeg = ToolLocator.LocateTool("ffmpeg", ensureExecutable: true)?.ToOSPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
+                    var ffmpeg = FFmpegTool.Locate() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
 
                     // Get absolute path of asset source on disk
                     var assetDirectory = videoAsset.Source.GetParent();

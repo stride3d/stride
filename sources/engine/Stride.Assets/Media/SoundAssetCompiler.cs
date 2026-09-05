@@ -11,6 +11,7 @@ using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Assets.FFmpeg;
 using Stride.Audio;
 
 namespace Stride.Assets.Media
@@ -41,7 +42,7 @@ namespace Stride.Assets.Media
             protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 // Get path to ffmpeg
-                var ffmpeg = ToolLocator.LocateTool("ffmpeg", ensureExecutable: true)?.ToOSPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
+                var ffmpeg = FFmpegTool.Locate() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
 
                 // Get absolute path of asset source on disk
                 var assetDirectory = Parameters.Source.GetParent();
