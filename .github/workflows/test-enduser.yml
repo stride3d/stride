@@ -276,7 +276,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y lld
+          # libva: the asset compiler's ffmpeg (sound and video assets)
+          sudo apt-get install -y lld libva2 libva-drm2 libva-x11-2
 
       # The consumer-template generation (NuGetConsumerTests → PackageStore) reads the *user* NuGet
       # config (Settings.LoadDefaultSettings(null) ignores the workspace config), so register the
