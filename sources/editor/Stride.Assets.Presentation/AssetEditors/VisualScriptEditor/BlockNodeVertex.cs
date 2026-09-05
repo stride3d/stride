@@ -45,13 +45,13 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
             viewModel.Block.Slots.CollectionChanged += Slots_CollectionChanged;
         }
 
-        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot> e)
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                 {
-                    var slot = (Slot)e.Item;
+                    var slot = e.Item;
                     var slots = slot.Direction == SlotDirection.Input ? InputSlots : OutputSlots;
                     var slotViewModel = new VisualScriptSlotViewModel(ViewModel, slot);
                     slots.Add(slotViewModel);
