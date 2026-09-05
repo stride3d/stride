@@ -17,7 +17,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics.Data;
 using Stride.Rendering;
-using Stride.Assets.Physics;
+using Stride.Assets.VHACD;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.Assets;
@@ -25,11 +25,6 @@ namespace Stride.BepuPhysics.Assets;
 [AssetCompiler(typeof(HullAsset), typeof(AssetCompilationContext))]
 internal class HullAssetCompiler : AssetCompilerBase
 {
-    static HullAssetCompiler()
-    {
-        NativeLibraryHelper.PreloadLibrary("stride_vhacd", typeof(HullAssetCompiler));
-    }
-
     public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
     {
         foreach (var type in AssetRegistry.GetAssetTypes(typeof(Model)))
@@ -234,7 +229,7 @@ internal class HullAssetCompiler : AssetCompilerBase
                         MaxRecursionDepth = (uint)Parameters.Decomposition.MaxRecursionDepth,
                         MinimumVolumePercentErrorAllowed = Parameters.Decomposition.MinimumVolumePercentErrorAllowed,
                         ShrinkWrap = Parameters.Decomposition.ShrinkWrap,
-                        FillMode = Parameters.Decomposition.FillMode,
+                        FillMode = (ConvexDecompositionFillMode)Parameters.Decomposition.FillMode,
                         MaxNumVerticesPerCH = (uint)Parameters.Decomposition.MaxNumVerticesPerConvexHull,
                     };
 
