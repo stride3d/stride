@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Synchronizing" xml:space="preserve">
+    <value>Fetching NuGet packages...</value>
+    <comment>/!\ Text must be short</comment>
+  </data>
   <data name="AskInstallVersion" xml:space="preserve">
     <value>It seems you do not have any version of Stride currently installed. Would you like to install the latest version?</value>
     <comment>Displayed when there is no installed version of Stride</comment>
@@ -152,6 +156,10 @@
   <data name="ConfirmUninstall" xml:space="preserve">
     <value>Are you sure you wish to uninstall version {0}?</value>
     <comment>Displayed when the user attempt to delete a version</comment>
+  </data>
+  <data name="Community" xml:space="preserve">
+    <value>Community</value>
+    <comment>/!\ Text must be short</comment>
   </data>
   <data name="Details" xml:space="preserve">
     <value>Details:</value>
