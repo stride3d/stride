@@ -115,6 +115,26 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestManifestReadsOldAssetAssembliesKey()
+        {
+            // A manifest written before HostAssemblies was named AssetAssemblies
+            var dirPath = Path.Combine(DirectoryTestBase, "TestManifestReadsOldAssetAssembliesKey");
+            Directory.CreateDirectory(dirPath);
+            var manifestFile = Path.Combine(dirPath, "Old.sdbuild");
+            File.WriteAllText(manifestFile,
+                """
+                !AssetBuildManifest
+                Version: 1
+                PackageName: "Old"
+                AssetAssemblies:
+                    - "../bin/Old.dll"
+                """);
+
+            var manifest = Stride.Core.Yaml.YamlSerializer.Load<AssetBuildManifest>(manifestFile);
+            Assert.Equal("../bin/Old.dll", Assert.Single(manifest.HostAssemblies).ToString());
+        }
+
+        [Fact]
         public void TestRedirectedPackageWithoutOwningProject()
         {
             // A project redirected to a sdpkg no project sits next to owns that package: it is the

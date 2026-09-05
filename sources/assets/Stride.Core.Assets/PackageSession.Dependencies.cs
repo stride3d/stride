@@ -189,6 +189,21 @@ partial class PackageSession
                 package.AuthoredName ??= authoredName;
                 package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
+                // Build-property declarations (the package kind, the companions with their replacements) are
+                // resolved by the build into the manifest; a project never built declares none yet
+                var manifestFile = FindDevRedirectManifest(projectPath);
+                if (manifestFile is not null)
+                {
+                    try
+                    {
+                        package.SetCompanionDeclarations(YamlSerializer.Load<AssetBuildManifest>(manifestFile), Path.GetDirectoryName(manifestFile)!);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warning($"Could not read the build manifest [{manifestFile}] of [{project.Name}]", ex);
+                    }
+                }
+
                 project.Type = VSProjectHelper.GetProjectTypeFromProject(msProject);
 
                 // Explicit StrideContainsAssetTypes opt-in/opt-out for editor/compiler assembly loading (null = default).
@@ -425,6 +440,8 @@ partial class PackageSession
                             devPackage.Meta.Name = projectDependency.Name;
                             devPackage.Meta.Version = projectDependency.Version;
                             var devManifest = LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
+                            if (devManifest is not null)
+                                devPackage.SetCompanionDeclarations(devManifest, Path.GetDirectoryName(manifestFile)!);
 
                             var devContainer = new StandalonePackage(devPackage);
                             // Same namespace surface as a real nupkg (whose packed sdpkg stores the

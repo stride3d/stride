@@ -21,7 +21,7 @@ partial class PackageSession
     /// <summary>
     /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its project's
     /// package (see <see cref="ContributeManifest"/>), the exact assemblies to load
-    /// (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets.
+    /// (<see cref="AssetBuildManifest.HostAssemblies"/>) and its project assets.
     /// </summary>
     /// <returns>The root manifest's package, the one being built.</returns>
     public static Package LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
@@ -261,8 +261,10 @@ partial class PackageSession
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
         if (isOwner || container.AssetNamespace is null)
             container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.AuthoredName ?? container.Package.Meta.Name);
+        if (isOwner)
+            container.Package.SetCompanionDeclarations(manifest, Path.GetDirectoryName(manifestFile)!);
 
-        foreach (var assembly in manifest.AssetAssemblies)
+        foreach (var assembly in manifest.HostAssemblies)
             container.Assemblies.Add(Resolve(assembly));
 
         // Project assets resolved at build time
@@ -345,21 +347,23 @@ partial class PackageSession
             // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
             // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
-            var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies)
+            var hostAssetAssemblies = SelectHostAssetAssemblies(package.HostAssemblies)
                 .Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))).ToList();
 
             // A dev-redirect stub (source checkout, StrideDevPackages) ships the packed sdpkg but none of its
             // assets: those, and the shader sources, are read live from the checkout project, through the
             // project's own sdpkg, so an edited engine asset or shader reaches a game's build with no
-            // regeneration. The packed sdpkg still names the asset assemblies (resolved above) and the asset
-            // namespace (a build property, absent from the source sdpkg).
+            // regeneration. The packed sdpkg still names the asset assemblies (resolved above), the asset
+            // namespace and the design package (build properties, absent from the source sdpkg).
             var devProjectDirectory = NugetStore.TryGetDevRedirectProjectDirectory(libraryPath, library.Name);
             var sourceSdpkgPath = devProjectDirectory is null ? null : Path.Combine(devProjectDirectory, library.Name + Package.PackageFileExtension);
             if (sourceSdpkgPath is not null && File.Exists(sourceSdpkgPath))
             {
-                var packedAssetNamespace = package.AssetNamespace;
+                var packedPackage = package;
                 package = Package.LoadRaw(log, sourceSdpkgPath);
-                package.AssetNamespace ??= packedAssetNamespace;
+                package.AssetNamespace ??= packedPackage.AssetNamespace;
+                if (package.CompanionPackages.Count == 0)
+                    package.CompanionPackages.AddRange(packedPackage.CompanionPackages);
             }
 
             package.Meta.Name = library.Name;
