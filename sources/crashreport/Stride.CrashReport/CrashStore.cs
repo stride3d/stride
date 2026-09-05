@@ -32,6 +32,10 @@ public sealed class CrashStore
     /// <summary>This app's directory under <see cref="BaseDirectory"/>.</summary>
     public string AppDirectory { get; }
 
+    /// <summary>This app's directory in the per-user durable store — where a kept run ends up, independent of
+    /// <c>STRIDE_CRASH_DIR</c>.</summary>
+    private string DurableAppDirectory => Path.Combine(DefaultBaseDirectory, application);
+
     private readonly string application;
 
     public CrashStore(string application, string baseDirectory = null)
@@ -94,7 +98,7 @@ public sealed class CrashStore
     /// <c>stride crash send</c>). Returns it unchanged if already durable.</summary>
     public CrashRun MoveRunToDurable(CrashRun sourceRun)
     {
-        var appDir = Path.Combine(DefaultBaseDirectory, application);
+        var appDir = DurableAppDirectory;
         var target = Path.Combine(appDir, Path.GetFileName(sourceRun.Directory));
         if (PathsEqual(sourceRun.Directory, target))
             return sourceRun;
@@ -147,7 +151,7 @@ public sealed class CrashStore
     //  - Persistent (the per-user default dir): the user ticked "Don't show again"; survives restarts, until a version bump.
 
     private string SessionSuppressedPath => Path.Combine(AppDirectory, "suppressed.json");
-    private string PersistentAppDirectory => Path.Combine(DefaultBaseDirectory, application);
+    private string PersistentAppDirectory => DurableAppDirectory;
     private string PersistentSuppressedPath => Path.Combine(PersistentAppDirectory, "suppressed-persistent.json");
 
     public bool IsSuppressed(string signature, string version)

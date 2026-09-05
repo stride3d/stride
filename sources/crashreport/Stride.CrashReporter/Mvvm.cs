@@ -20,6 +20,9 @@ internal abstract class ObservableObject : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         return true;
     }
+
+    /// <summary>Raise a change for a computed property that has no backing field of its own.</summary>
+    protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 /// <summary>An <see cref="ICommand"/> backed by a delegate; supports async handlers via async void execution.</summary>

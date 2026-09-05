@@ -59,23 +59,22 @@
     </StackPanel>
 
     <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="4,8,4,0">
-      <Button DockPanel.Dock="Left" Margin="0,0,8,0"
-              Content="View Report"
-              Command="{Binding ViewReportCommand}"/>
-      <Button DockPanel.Dock="Left" Margin="0,0,8,0"
-              Content="Open Folder"
-              Command="{Binding OpenFolderCommand}"/>
-      <SplitButton DockPanel.Dock="Right" Margin="8,0,0,0"
-                   Content="Close"
-                   Command="{Binding CloseAndDeleteCommand}">
-        <SplitButton.Flyout>
-          <MenuFlyout>
-            <MenuItem Header="Delete and close" Command="{Binding CloseAndDeleteCommand}" />
-            <MenuItem Header="Keep files and close" Command="{Binding CloseAndKeepCommand}" />
-          </MenuFlyout>
-        </SplitButton.Flyout>
-      </SplitButton>
-      <Button DockPanel.Dock="Right"
+      <!-- Left: quiet link-style utilities. Being links (not buttons) signals they act in place and don't close
+           the dialog; muted so they don't compete with the accent Send. -->
+      <HyperlinkButton DockPanel.Dock="Left" Margin="0,0,8,0" Opacity="0.8" VerticalAlignment="Center"
+                       Content="View Report"
+                       Command="{Binding ViewReportCommand}"/>
+      <!-- Save copies the crash files (including the local-only full dump) to persistent storage on demand; once
+           saved, the same link turns into "Open folder" and reveals where they were kept. -->
+      <HyperlinkButton DockPanel.Dock="Left" Opacity="0.8" VerticalAlignment="Center"
+                       Content="{Binding SaveButtonText}"
+                       Command="{Binding SaveCommand}"
+                       ToolTip.Tip="Copy the crash files (including the full memory dump) to persistent storage"/>
+      <!-- Right: terminal buttons. Send is the accent primary and is focused on open. -->
+      <Button DockPanel.Dock="Right" Margin="8,0,0,0"
+              Content="Close"
+              Command="{Binding CloseCommand}"/>
+      <Button x:Name="SendButton" DockPanel.Dock="Right" Classes="accent"
               Content="Send Selected" IsDefault="True"
               IsVisible="{Binding CanSend}"
               IsEnabled="{Binding !IsSending}"

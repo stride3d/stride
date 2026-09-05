@@ -9,19 +9,24 @@ using System.Windows.Input;
 namespace Stride.CrashReporter;
 
 /// <summary>
-/// The reporter window's model: the run's crash groups and one Send decision for the lot. Sending a group
-/// auto-suppresses its future popups and drops its files; whatever the user did not send is kept or deleted
-/// by the Keep/Delete choice taken when the window closes (a plain X or Escape deletes, the tidy default).
+/// The reporter window's model: the run's crash groups, a Send decision for the lot, and an explicit Save.
+/// Sending a group auto-suppresses its future popups and, unless the files were saved, drops them. Keeping is
+/// opt-in: Save copies the run (including the local-only full dump) to persistent storage on demand. Nothing is
+/// kept implicitly — closing without a Save discards the leftover files. Send closes the window on success.
 /// </summary>
 internal sealed class CrashReporterViewModel : ObservableObject
 {
+    private const string SaveButtonSaveText = "Save a copy";
+    private const string SaveButtonOpenText = "Open folder";
+
     private readonly CrashSession session;
     private readonly Action requestClose;
 
     private bool canSend;
     private bool isSending;
     private bool finalized;
-    private bool keepFiles;
+    private bool saved; // the user clicked Save: the run was copied to persistent storage and must not be dropped
+    private string saveButtonText = SaveButtonSaveText;
     private bool isReportVisible;
     private string? sendStatus;
     private string feedbackName = "";
@@ -41,10 +46,9 @@ internal sealed class CrashReporterViewModel : ObservableObject
         ShowSendControls = canSend; // keep the disclosure + feedback fields laid out after a send (they just grey out)
 
         SendCommand = new RelayCommand(OnSend, () => canSend && !isSending && !finalized);
-        CloseAndDeleteCommand = new RelayCommand(() => Close(keep: false));
-        CloseAndKeepCommand = new RelayCommand(() => Close(keep: true), () => HasRemainingFiles);
+        SaveCommand = new RelayCommand(OnSave, () => saved || HasRemainingFiles);
+        CloseCommand = new RelayCommand(requestClose);
         ViewReportCommand = new RelayCommand(() => IsReportVisible = !IsReportVisible);
-        OpenFolderCommand = new RelayCommand(OnOpenFolder, () => HasRemainingFiles);
     }
 
     public ObservableCollection<CrashGroupViewModel> Groups { get; }
@@ -92,14 +96,17 @@ internal sealed class CrashReporterViewModel : ObservableObject
     /// <summary>Optional "what were you doing" note, sent verbatim with the report.</summary>
     public string FeedbackMessage { get => feedbackMessage; set => SetProperty(ref feedbackMessage, value); }
 
-    public ICommand SendCommand { get; }
-    public ICommand CloseAndDeleteCommand { get; }
-    public ICommand CloseAndKeepCommand { get; }
-    public ICommand ViewReportCommand { get; }
-    public ICommand OpenFolderCommand { get; }
+    /// <summary>The Save button's caption: "Save a copy" until the run is saved, then "Open folder" to reveal it.</summary>
+    public string SaveButtonText { get => saveButtonText; private set => SetProperty(ref saveButtonText, value); }
 
-    // A sent group's files are dropped; Open Folder and Keep only make sense while some group is still unsent.
-    private bool HasRemainingFiles => Groups.Any(group => !group.IsSent);
+    public ICommand SendCommand { get; }
+    public ICommand SaveCommand { get; }
+    public ICommand CloseCommand { get; }
+    public ICommand ViewReportCommand { get; }
+
+    // Save is offered while some group still has files worth keeping: an unsent one, or a sent full-dump crash
+    // whose local-only dump the send deliberately did not drop. Once saved, the button stays enabled to reveal.
+    public bool HasRemainingFiles => Groups.Any(group => !group.IsSent || group.IsFullMemoryDump);
 
     private async Task OnSend()
     {
@@ -109,7 +116,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         var failed = 0;
         string? lastError = null;
         // A send quietens that crash for this GameStudio session (not persistently — that's "Don't show again") and
-        // drops its files; a failed send is left for 'stride crash send'. Unchecked groups wait for Keep/Delete on close.
+        // drops its files; a failed send is left for 'stride crash send'. If the run was saved, nothing is dropped.
         foreach (var group in Groups.Where(group => group.Send))
         {
             try
@@ -117,8 +124,11 @@ internal sealed class CrashReporterViewModel : ObservableObject
                 await session.SendAsync(group.Crash, group.IncludeDump, group.IncludeAssetDefinition,
                     FeedbackName, FeedbackEmail, FeedbackMessage);
                 session.SuppressForSession(group.Crash);
-                session.Remove(group.Crash);
-                group.IsSent = true; // locks this group's options; its files are gone
+                // Drop the sent group's files, unless the user saved the run (then keep everything) or this is a
+                // full memory dump (never uploaded, so its only copy is local — a Save is the way to keep it).
+                if (!saved && !group.IsFullMemoryDump)
+                    session.Remove(group.Crash);
+                group.IsSent = true; // locks this group's send options
             }
             catch (Exception exception)
             {
@@ -129,24 +139,22 @@ internal sealed class CrashReporterViewModel : ObservableObject
 
         IsSending = false;
         CanSend = false; // consent is per crash; don't offer a second send
-        // Files were dropped for the sent groups; refresh the folder/keep buttons that depend on them.
-        ((RelayCommand)OpenFolderCommand).RaiseCanExecuteChanged();
-        ((RelayCommand)CloseAndKeepCommand).RaiseCanExecuteChanged();
-        SendStatus = failed == 0
-            ? (session.IsSessionScoped
-                ? "Thank you. The crash report has been sent; you won't be asked about it again this session."
-                : "Thank you. The crash report has been sent.")
-            : $"{failed} report(s) could not be sent ({lastError}); they were kept for a later 'stride crash send'.";
+
+        if (failed == 0)
+        {
+            requestClose(); // Send always closes on success; keeping the dump is the separate, explicit Save step
+            return;
+        }
+
+        // A partial failure keeps the window open so the user can still Save or retry via 'stride crash send'.
+        ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
+        OnPropertyChanged(nameof(HasRemainingFiles));
+        SendStatus = $"{failed} report(s) could not be sent ({lastError}); they were kept for a later 'stride crash send'.";
     }
 
-    private void Close(bool keep)
-    {
-        keepFiles = keep;
-        requestClose();
-    }
-
-    /// <summary>Called once on close: applies "don't show again", then drops or keeps the leftover files per the
-    /// Keep/Delete choice (a plain X or Escape deletes).</summary>
+    /// <summary>Called once on close: applies "don't show again", then discards the leftover files unless the user
+    /// saved them. Keeping is opt-in via Save, so any close path (button, window X, Escape) that follows no Save
+    /// drops the transient files.</summary>
     public void OnClosed()
     {
         if (finalized)
@@ -157,19 +165,33 @@ internal sealed class CrashReporterViewModel : ObservableObject
         {
             if (group.DontShowAgain)
                 session.SuppressPersistent(group.Crash);
-            if (!keepFiles)
-                session.Remove(group.Crash);
+            if (!saved)
+                session.Remove(group.Crash); // nothing was saved; discard the leftover transient files
         }
-        if (keepFiles)
-            session.KeepRun(); // move a kept transient run into the durable store
         session.CleanupIfEmpty();
     }
 
-    // Reveal the run directory in the OS file manager so the user can inspect the report and dump. Pure
-    // reveal: whether the files survive is the Keep/Delete choice made at close, not a side effect of this.
-    private void OnOpenFolder()
+    // Save copies the run (report + the local-only full dump) into persistent storage on demand, then turns the
+    // button into a reveal for that folder. Keeping is opt-in: without a Save, close discards the transient files.
+    private void OnSave()
     {
-        var directory = session.RunDirectory;
+        if (!saved)
+        {
+            session.KeepRun(); // move the transient run into the durable store (a no-op if it is already durable)
+            saved = true;
+            SaveButtonText = SaveButtonOpenText;
+            ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
+            SendStatus = "Saved to persistent storage.";
+        }
+        else
+        {
+            RevealDirectory(session.RunDirectory); // second click: show where the saved files now live
+        }
+    }
+
+    // Open a directory in the OS file manager. Best effort.
+    private static void RevealDirectory(string directory)
+    {
         if (!Directory.Exists(directory))
             return;
 
