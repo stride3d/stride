@@ -84,6 +84,7 @@ namespace Stride.AssetCompiler
         /// <c>createdump</c> omits the exception stream (dotnet/runtime#133065). No-op when crash reporting is off,
         /// off Windows (the exception stream is present there), or when <c>createdump</c> isn't armed for this process.
         /// Call once per process (master and each slave) before commands run.
+        /// Remove when dotnet/runtime#133065 ships: the fault frame comes from the dump then.
         /// </summary>
         public void InstallNativeFaultRecorder()
         {

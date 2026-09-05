@@ -97,7 +97,8 @@ public static class DumpStackWalk
         // Pick the crashing thread: the exception stream / live trigger's tid when known; else the CLR fault
         // marker (managed hardware faults); else the thread the runtime left an in-flight exception on -- which,
         // for a fatal crash, is the faulting thread even for a native-code access violation (no marker, no
-        // exception stream), so this is what lets the dump alone name the crasher on Windows.
+        // exception stream), so this is what lets the dump alone name the crasher on Windows. The last two
+        // fallbacks are Windows-only workarounds until dotnet/runtime#133065 gives Windows an exception stream.
         var crashingThread =
             (crashingOsThreadId is uint id ? walked.FirstOrDefault(w => w.Thread.OSThreadId == id).Thread : null)
             ?? walked.FirstOrDefault(w => w.FaultIndex >= 0).Thread

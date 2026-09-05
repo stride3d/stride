@@ -53,7 +53,8 @@ namespace Stride.CrashReport
             }
 
             // Out-of-process capture: resolve the reporter and arm the native trigger, passing the host's identity on
-            // its command line. A managed VEH is unsupported (dotnet/runtime#119142) and can turn a caught exception fatal.
+            // its command line. A managed VEH is unsupported (dotnet/runtime#119142) and can turn a caught exception
+            // fatal; revisit this out-of-process design if a supported managed VEH lands.
             var reporter = ResolveCrashReporter();
             if (reporter == null || !reporter.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 return;

@@ -162,6 +162,7 @@ namespace Stride
         /// which on Windows omits that stream (dotnet/runtime#133065), so the post-build adopt step can still name
         /// the crashing thread's fault location. Unlike <see cref="InstallForReporting"/> it writes no dump of its
         /// own and does not suppress the crash dialog (createdump handles termination).
+        /// Remove when dotnet/runtime#133065 ships: createdump would then record the fault in the dump itself.
         /// </summary>
         public static void InstallFaultingFrameRecorder(string faultingFramePath)
         {
@@ -180,7 +181,8 @@ namespace Stride
         {
             // Skip under a managed debugger: on .NET 10, invoking a managed vectored handler during the debugger's
             // exception dispatch faults coreclr and turns any caught exception into a process kill. Regression:
-            // https://github.com/dotnet/runtime/issues/133066. Attach-to-running isn't covered; STRIDE_CRASH_MODE=off skips it.
+            // https://github.com/dotnet/runtime/issues/133066 (remove this guard when fixed). Attach-to-running
+            // isn't covered; STRIDE_CRASH_MODE=off skips it.
             if (Debugger.IsAttached)
                 return;
 
