@@ -10,6 +10,7 @@ namespace Stride.Editor.Preview
     /// <summary>
     /// This interface represents an object that can manage the preview of an asset.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IAssetPreview
     {
         /// <summary>

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,7 +18,9 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Reflection;
 using Stride.Assets;
+using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Engine;
 using Stride.Games;
@@ -71,6 +74,10 @@ namespace Stride.Editor.Preview
             previewGameSettings = GameSettingsFactory.Create();
             previewGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;
             UpdateGameSettings(gameSettingsProvider.CurrentGameSettings);
+
+            foreach (var assembly in AssemblyRegistry.Find(AssemblyCommonCategories.Assets))
+                RegisterAssetPreviews(assembly);
+            AssemblyRegistry.AssemblyRegistered += AssemblyRegistered;
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
 
@@ -110,6 +117,7 @@ namespace Stride.Editor.Preview
 
                 session.AssetPropertiesChanged -= OnAssetPropertyChanged;
                 gameSettingsProvider.GameSettingsChanged -= OnGameSettingsChanged;
+                AssemblyRegistry.AssemblyRegistered -= AssemblyRegistered;
 
                 if (PreviewGame.IsRunning)
                 {
@@ -314,7 +322,10 @@ namespace Stride.Editor.Preview
             while (assetType != null)
             {
                 AssetPreviewFactory factory;
-                if (assetPreviewFactories.TryGetValue(assetType, out factory))
+                bool found;
+                lock (assetPreviewFactories)
+                    found = assetPreviewFactories.TryGetValue(assetType, out factory);
+                if (found)
                 {
                     var assetPreview = factory(this, PreviewGame, asset.AssetItem);
                     return assetPreview;
@@ -331,7 +342,30 @@ namespace Stride.Editor.Preview
 
         public void RegisterAssetPreviewFactories(IReadOnlyDictionary<Type, AssetPreviewFactory> factories)
         {
-            factories.ForEach(x => assetPreviewFactories.Add(x.Key, x.Value));
+            lock (assetPreviewFactories)
+                factories.ForEach(x => assetPreviewFactories[x.Key] = x.Value);
+        }
+
+        private void AssemblyRegistered(object sender, AssemblyRegisteredEventArgs e)
+        {
+            if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                RegisterAssetPreviews(e.Assembly);
+        }
+
+        /// <summary>
+        /// Previews tagged <see cref="AssetPreviewAttribute"/> in <paramref name="assembly"/> (from the assembly processor's
+        /// scan index). An assembly can register on any thread (a package loaded by a background task).
+        /// </summary>
+        private void RegisterAssetPreviews(Assembly assembly)
+        {
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(IAssetPreview)))
+            {
+                if (!typeof(IAssetPreview).IsAssignableFrom(type) || type.GetCustomAttribute<AssetPreviewAttribute>() is not { } previewAttribute)
+                    continue;
+                var localType = type;
+                lock (assetPreviewFactories)
+                    assetPreviewFactories[previewAttribute.AssetType] = (builder, game, asset) => (IAssetPreview)Activator.CreateInstance(localType);
+            }
         }
 
         public void OnShowPreview()
