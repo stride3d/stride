@@ -96,6 +96,8 @@ public class PluginService : IAssetsPluginService
 
         if (plugin is AssetsEditorPlugin editorPlugin)
         {
+            editorPlugin.RegisterTypeImages(logger);
+
             // Asset editor view models types
             var registeredAssetEditorViewModelTypes = new Dictionary<Type, Type>();
             editorPlugin.RegisterAssetEditorViewModelTypes(registeredAssetEditorViewModelTypes);
