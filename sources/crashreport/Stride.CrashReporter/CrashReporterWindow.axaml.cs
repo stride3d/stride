@@ -17,7 +17,8 @@ public partial class CrashReporterWindow : Window
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        // Escape closes, unless a full memory dump is mid-write: closing would cut it short and end the waiting host.
+        if (e.Key == Key.Escape && DataContext is not CrashReporterViewModel { IsSavingDump: true })
             Close();
         base.OnKeyDown(e);
     }

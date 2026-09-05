@@ -13,9 +13,9 @@ using System.Text.Json;
 namespace Stride.CrashReport;
 
 /// <summary>
-/// Reads and writes crash files under a per-app directory. Headless tools (the asset compiler, the CLI)
-/// write here on a crash and a reporter or <c>stride crash send</c> reads here to submit. In-process
-/// reporters (GameStudio, launcher) send directly and do not use this.
+/// Reads and writes crash files under a per-app directory. A crashing tool (the asset compiler, the CLI,
+/// GameStudio) writes here and a reporter or <c>stride crash send</c> reads here to submit. Only the
+/// launcher's minimal in-process window sends directly without the store.
 /// </summary>
 /// <remarks>
 /// Layout: <c>&lt;base&gt;/&lt;app&gt;/run-&lt;UTC&gt;-&lt;pid&gt;/crash-&lt;sig&gt;.json</c> (+ sibling

@@ -70,9 +70,17 @@
                        Content="{Binding SaveButtonText}"
                        Command="{Binding SaveCommand}"
                        ToolTip.Tip="Copy the crash files (including the full memory dump) to persistent storage"/>
+      <!-- Only when the host that crashed is still alive, waiting on this window: write a full memory dump of it,
+           from here, to a file the user picks. Multi-GB and unscrubbed, so strictly on demand and never sent. -->
+      <HyperlinkButton DockPanel.Dock="Left" Margin="8,0,0,0" Opacity="0.8" VerticalAlignment="Center"
+                       Content="Save full memory dump…"
+                       IsVisible="{Binding CanSaveFullDump}"
+                       Command="{Binding SaveFullDumpCommand}"
+                       ToolTip.Tip="Write a full memory dump of the crashed process to a file of your choice. It contains everything in memory (your project and any personal data), is not anonymized, can be several GB, and is never sent. Share it only with people you trust."/>
       <!-- Right: terminal buttons. Send is the accent primary and is focused on open. -->
       <Button DockPanel.Dock="Right" Margin="8,0,0,0"
               Content="Close"
+              IsEnabled="{Binding !IsSavingDump}"
               Command="{Binding CloseCommand}"/>
       <Button x:Name="SendButton" DockPanel.Dock="Right" Classes="accent"
               Content="Send Selected" IsDefault="True"

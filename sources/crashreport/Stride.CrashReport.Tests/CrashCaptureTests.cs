@@ -128,6 +128,29 @@ public class CrashCaptureTests
         }
     }
 
+    [Fact]
+    public void TargetProcessDumpWithoutExceptionRecordIsPlainSnapshot()
+    {
+        // The reporter dumps a still-live host on demand after a *managed* crash: there is no native exception
+        // record to carry, so the writer must accept a zero exception pointer and produce a dump with no exception
+        // stream (a plain snapshot) instead of asking dbghelp to read address 0 in the target.
+        if (!OperatingSystem.IsWindows())
+            return; // MiniDumpWriteDump is Windows-only
+
+        var dir = CreateWorkDirectory("selfdump");
+        try
+        {
+            var path = Path.Combine(dir, "self.dmp");
+            Assert.True(MinidumpWriter.TryWriteTargetProcess(Environment.ProcessId, 0, IntPtr.Zero, path, fullMemory: false));
+            Assert.True(new FileInfo(path).Length > 0);
+            Assert.False(HasExceptionStream(path));
+        }
+        finally
+        {
+            TryDelete(dir);
+        }
+    }
+
     private static string CreateWorkDirectory(string mode)
     {
         var dir = Path.Combine(Path.GetTempPath(), $"stride-crash-tests-{mode}-{Guid.NewGuid():N}");

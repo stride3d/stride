@@ -17,13 +17,15 @@ internal sealed class CrashSession
     private CrashRun run;
     private readonly string dsn;
     private readonly bool sessionScoped;
+    private readonly int? hostProcessId;
 
-    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, IReadOnlyList<StoredCrash> groups)
+    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, int? hostProcessId, IReadOnlyList<StoredCrash> groups)
     {
         this.store = store;
         this.run = run;
         this.dsn = dsn;
         this.sessionScoped = sessionScoped;
+        this.hostProcessId = hostProcessId;
         Groups = groups;
     }
 
@@ -40,7 +42,7 @@ internal sealed class CrashSession
     /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and base
     /// are the run's parent and grandparent — enough to also reach the app's suppression list.
     /// </summary>
-    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped)
+    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped, int? hostProcessId = null)
     {
         var full = Path.GetFullPath(runDirectory);
         var appDir = Directory.GetParent(full) ?? throw new ArgumentException($"'{runDirectory}' has no parent app directory.");
@@ -52,7 +54,35 @@ internal sealed class CrashSession
 
         // Defensive: capture already skips suppressed signatures, but never re-surface one that slipped through.
         var groups = run.Read().Where(crash => !store.IsSuppressed(crash.Signature, crash.Version)).ToList();
-        return new CrashSession(store, run, dsn, sessionScoped, groups);
+        return new CrashSession(store, run, dsn, sessionScoped, hostProcessId, groups);
+    }
+
+    /// <summary>True when a full-memory dump of the crashed host can be written on demand: the host itself crashed
+    /// (<c>--host-pid</c>) and is still alive, blocked until this window closes. Windows only (dbghelp).</summary>
+    public bool CanDumpHost => hostProcessId is not null && OperatingSystem.IsWindows();
+
+    /// <summary>
+    /// Writes a full-memory dump of the waiting host to <paramref name="path"/>, with the report text beside it (a
+    /// dump only makes sense with its context). Strictly on demand: it can be several GB and is unscrubbed, so it
+    /// is never written unasked and never sent. False when there is no live host or the dump failed.
+    /// </summary>
+    public bool TryWriteHostFullDump(string path)
+    {
+        if (hostProcessId is not int pid || !OperatingSystem.IsWindows())
+            return false;
+        // A managed crash has no native exception record: no thread id or exception pointers, a plain snapshot.
+        if (!MinidumpWriter.TryWriteTargetProcess(pid, 0, IntPtr.Zero, path, fullMemory: true))
+            return false;
+        try
+        {
+            var report = string.Join("\n\n----------------------------------------\n\n", Groups.Select(crash => crash.ToReportData().ToString()));
+            File.WriteAllText(Path.ChangeExtension(path, ".report.txt"), report);
+        }
+        catch
+        {
+            // The dump is the deliverable; a missing side report is not worth failing it.
+        }
+        return true;
     }
 
     // Cap on an opt-in asset attachment: a definition is small YAML, so a low cap keeps a stray large file out.

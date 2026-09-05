@@ -171,9 +171,11 @@ public static class MinidumpWriter
     /// exception record so the dump has an exception stream (the faulting thread and fault are recorded). The
     /// out-of-process reporter uses this to capture a dying host: the host's native trigger freezes the crashing
     /// thread and hands us its pid, thread id, and the address of its <c>EXCEPTION_POINTERS</c>, which dbghelp
-    /// reads across the process boundary (<c>ClientPointers</c>). A full-memory dump can be several GB and is not
-    /// scrubbed; it never leaves the machine unless the user shares it themselves. Returns false if the target
-    /// can't be opened or the dump can't be written.
+    /// reads across the process boundary (<c>ClientPointers</c>). With <paramref name="exceptionPointers"/> zero
+    /// (a managed crash dumped on demand: the host is alive and waiting, not faulting) no exception stream is
+    /// written, just the process snapshot. A full-memory dump can be several GB and is not scrubbed; it never
+    /// leaves the machine unless the user shares it themselves. Returns false if the target can't be opened or
+    /// the dump can't be written.
     /// </summary>
     public static bool TryWriteTargetProcess(int processId, uint threadId, IntPtr exceptionPointers, string path, bool fullMemory)
     {
@@ -186,15 +188,18 @@ public static class MinidumpWriter
         try
         {
             using var file = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            var flags = fullMemory
+                ? MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo
+                : TriageFlags;
+            if (exceptionPointers == IntPtr.Zero)
+                return MiniDumpWriteDump(target, (uint)processId, file.SafeFileHandle, flags, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
             var information = new MinidumpExceptionInformation
             {
                 ThreadId = threadId,
                 ExceptionPointers = exceptionPointers, // an address in the target; ClientPointers reads it there
                 ClientPointers = 1,
             };
-            var flags = fullMemory
-                ? MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo
-                : TriageFlags;
             var pinned = GCHandle.Alloc(information, GCHandleType.Pinned);
             try
             {

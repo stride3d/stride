@@ -257,6 +257,11 @@ public static class Program
         Environment.Exit(0);
     }
 
+    // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the
+    // process. Off for the crash freeze only (see HandleException); process-wide and irreversible, so never earlier.
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern void DisableProcessWindowsGhosting();
+
     private static void HandleException(Exception exception, int location)
     {
         if (exception == null) return;
@@ -265,6 +270,13 @@ public static class Program
         //prevent multiple crash reports
         if (terminating) return;
         terminating = true;
+
+        // The UI thread stops pumping for as long as the crash reporter is up. Without this, the frozen window would
+        // turn into a "(Not responding)" ghost that lets the user kill the process mid-report (and mid-dump).
+        if (OperatingSystem.IsWindows())
+        {
+            try { DisableProcessWindowsGhosting(); } catch { /* cosmetic */ }
+        }
 
         // In case assembly resolve was not done yet, disable it altogether
         NuGetAssemblyResolver.DisableAssemblyResolve();

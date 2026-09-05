@@ -168,7 +168,6 @@
     <Project Path="../sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
     <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
-    <Project Path="../sources/crashreport/Stride.CrashReport.Wpf/Stride.CrashReport.Wpf.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
     <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />

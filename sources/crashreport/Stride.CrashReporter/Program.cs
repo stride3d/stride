@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Stride.CrashReport;
@@ -13,6 +14,9 @@ namespace Stride.CrashReporter;
 /// user approves. Two forms:
 /// <list type="bullet">
 /// <item><c>Stride.CrashReporter &lt;run-directory&gt; [--dsn &lt;url&gt;]</c> — show a run written by the host.</item>
+/// <item><c>Stride.CrashReporter &lt;run-directory&gt; --host-pid &lt;pid&gt; [--dsn &lt;url&gt;]</c> — a managed crash of the
+/// host itself, which stays alive, blocked, until this window closes; its pid lets the window write a full memory
+/// dump of it on demand.</item>
 /// <item><c>Stride.CrashReporter --capture &lt;pid&gt; &lt;tid&gt; &lt;exception-pointers&gt; --event &lt;name&gt; --dump-dir &lt;dir&gt; [--dsn &lt;url&gt;]</c>
 /// — capture a crashing host's dump from the outside (its native trigger is frozen waiting on the event), then
 /// show it. See <see cref="NativeCapture"/>.</item>
@@ -52,10 +56,11 @@ internal static class Program
             }
         }
 
-        // Only a plain run-directory launch is a live GameStudio session (the compiler-routing path); a --capture
-        // launch is a host that just crashed and is exiting, so a send there suppresses nothing session-scoped.
-        var sessionScoped = Array.IndexOf(args, "--capture") < 0;
-        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"), sessionScoped);
+        // Only a plain run-directory launch is a live GameStudio session (the compiler-routing path); a --capture or
+        // --host-pid launch is a host that itself crashed and is exiting, so a send there suppresses nothing session-scoped.
+        var hostProcessId = int.TryParse(GetOption(args, "--host-pid"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var pid) ? pid : (int?)null;
+        var sessionScoped = Array.IndexOf(args, "--capture") < 0 && hostProcessId is null;
+        var session = CrashSession.Load(runDirectory, GetOption(args, "--dsn"), sessionScoped, hostProcessId);
         // Nothing to ask about (empty run, or every signature already suppressed): exit quietly, no window.
         if (session.Groups.Count == 0)
             return 0;

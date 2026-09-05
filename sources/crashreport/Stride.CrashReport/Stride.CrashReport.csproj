@@ -25,7 +25,7 @@
     <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
   </ItemGroup>
   <!-- StrideSentryDsn: a DSN sends crash reports there (official CI sets it, with StrideSentryEnvironment
-       release/nightly); 'false' removes crash sending entirely; unset lets the user pick a destination per crash -->
+       release/nightly; a fork sets its own); 'false' removes crash sending entirely; unset sends to the dev channel -->
   <ItemGroup Condition="'$(StrideSentryDsn)' != '' and '$(StrideSentryDsn)' != 'false'">
     <AssemblyMetadata Include="SentryDsn" Value="$(StrideSentryDsn)" />
   </ItemGroup>

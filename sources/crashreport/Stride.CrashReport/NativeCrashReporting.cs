@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -98,35 +99,52 @@ namespace Stride.CrashReport
         /// found (the caller then leaves the crash on disk for <c>stride crash send</c>). Fire-and-forget: the
         /// reporter is a separate GUI process that outlives the crashing one.
         /// </summary>
-        public static bool TrySpawnReporter(string runDirectory)
+        public static bool TrySpawnReporter(string runDirectory) => StartReporter(runDirectory, hostCrash: false) != null;
+
+        /// <summary>
+        /// Launches the reporter for a managed crash of the calling process itself. The caller must stay alive,
+        /// blocked on the returned process, until the reporter closes (the runtime waits for an unhandled-exception
+        /// handler, so this is the same freeze an in-process modal dialog gave): the reporter gets our pid and can
+        /// write a full-memory dump of this still-live process on demand. Null when the reporter can't be found; the
+        /// crash then stays on disk for <c>stride crash send</c>.
+        /// </summary>
+        public static Process TrySpawnHostCrashReporter(string runDirectory) => StartReporter(runDirectory, hostCrash: true);
+
+        private static Process StartReporter(string runDirectory, bool hostCrash)
         {
             var reporter = ResolveCrashReporter();
             if (reporter == null)
-                return false;
+                return null;
 
+            ProcessStartInfo startInfo;
             if (reporter.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             {
                 // No apphost for this OS (the publish output ships one only for the OS it was built on): run the
                 // dll through the shared dotnet host. This is the Unix path, where spawning doesn't leak handles.
-                var viaHost = new ProcessStartInfo("dotnet") { UseShellExecute = false };
-                viaHost.ArgumentList.Add(reporter);
-                AddReporterArguments(viaHost, runDirectory);
-                Process.Start(viaHost);
-                return true;
+                startInfo = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+                startInfo.ArgumentList.Add(reporter);
             }
-
-            // Detach fully on Windows: with UseShellExecute=false the reporter inherits our std handles and, under
-            // MSBuild's <Exec>, the inherited pipe blocks the build until the reporter closes; ShellExecuteEx inherits
-            // nothing. Unix has no such leak (pipes are O_CLOEXEC) and shell-execute there would route through xdg-open.
-            var viaApphost = new ProcessStartInfo(reporter) { UseShellExecute = OperatingSystem.IsWindows() };
-            AddReporterArguments(viaApphost, runDirectory);
-            Process.Start(viaApphost);
-            return true;
+            else
+            {
+                // Detach fully on Windows: with UseShellExecute=false the reporter inherits our std handles and, under
+                // MSBuild's <Exec>, the inherited pipe blocks the build until the reporter closes; ShellExecuteEx inherits
+                // nothing. Unix has no such leak (pipes are O_CLOEXEC) and shell-execute there would route through xdg-open.
+                startInfo = new ProcessStartInfo(reporter) { UseShellExecute = OperatingSystem.IsWindows() };
+            }
+            AddReporterArguments(startInfo, runDirectory, hostCrash);
+            return Process.Start(startInfo);
         }
 
-        private static void AddReporterArguments(ProcessStartInfo startInfo, string runDirectory)
+        private static void AddReporterArguments(ProcessStartInfo startInfo, string runDirectory, bool hostCrash)
         {
             startInfo.ArgumentList.Add(runDirectory);
+            if (hostCrash)
+            {
+                // The host itself crashed and waits on us: its pid enables the on-demand full dump, and marks the run
+                // as a host crash rather than a live session's build (so no session-scoped suppression applies).
+                startInfo.ArgumentList.Add("--host-pid");
+                startInfo.ArgumentList.Add(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+            }
             if (!string.IsNullOrEmpty(CrashReportSender.BuildDsn))
             {
                 startInfo.ArgumentList.Add("--dsn");

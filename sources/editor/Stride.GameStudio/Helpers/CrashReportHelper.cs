@@ -13,9 +13,7 @@ using Stride.Core.Windows;
 using Stride.Assets;
 using Stride.Core.Presentation.Services;
 using Stride.CrashReport;
-using Stride.CrashReport.Wpf;
 using Stride.Graphics;
-using DialogResult = System.Windows.Forms.DialogResult;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Services;
 
@@ -167,13 +165,13 @@ namespace Stride.GameStudio.Helpers
             CrashReportAnonymizer.Scrub(crashReport);
 
             // Unattended sessions (CI editor tests, remote/service sessions) must not block on a dialog;
-            // STRIDE_CRASH_MODE=save/send/off are explicit overrides. Only the interactive case shows the window.
+            // STRIDE_CRASH_MODE=save/send/off are explicit overrides. Only the interactive case shows a window.
             switch (CrashPolicy.ResolveAction())
             {
                 case CrashAction.Ignore:
                     return;
                 case CrashAction.Save:
-                    SaveToStore(crashReport, exception);
+                    SaveToStore(crashReport, exception, threads, threadId, threadName);
                     return;
                 case CrashAction.Send:
                     try
@@ -186,18 +184,36 @@ namespace Stride.GameStudio.Helpers
                     catch (Exception e)
                     {
                         e.Ignore();
-                        SaveToStore(crashReport, exception); // a failed send must not lose the report
+                        SaveToStore(crashReport, exception, threads, threadId, threadName); // a failed send must not lose the report
                     }
                     return;
             }
 
-            var reporter = new CrashReportWindow(crashReport, "GameStudio", exception, threads, threadId, threadName);
-            var result = reporter.ShowDialog();
+            // Attended: the same out-of-process reporter the headless tools use. We are still alive here (the runtime
+            // waits for this handler), so the report and a dump go to the store, the reporter is spawned with our pid,
+            // and we block until it closes -- the freeze an in-process modal dialog gave, and what lets the reporter
+            // write a full memory dump of this live process on demand. No reporter: the run stays for 'stride crash send'.
+            var run = SaveToStore(crashReport, exception, threads, threadId, threadName);
+            if (run == null)
+                return;
+            try
+            {
+                using var reporter = NativeCrashReporting.TrySpawnHostCrashReporter(run.Directory);
+                reporter?.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                e.Ignore();
+            }
         }
 
-        // Headless fallback: persist the report to the crash store, where CI artifact collection or
-        // 'stride crash send' picks it up.
-        private static void SaveToStore(CrashReportData report, Exception exception)
+        /// <summary>
+        /// Persists the report to the crash store with the structured exception, the thread snapshot and a dump of
+        /// this process: a scrubbed triage dump (stacks and modules, sendable) or, under STRIDE_CRASH_DUMP=full, a
+        /// full-memory one (unscrubbed, kept local). Returns the run, or null when the store could not be written.
+        /// </summary>
+        private static CrashRun SaveToStore(CrashReportData report, Exception exception,
+            IReadOnlyList<StoredThread> threads, int threadId, string threadName)
         {
             try
             {
@@ -207,11 +223,27 @@ namespace Stride.GameStudio.Helpers
                 crash.Environment = CrashReportSender.BuildEnvironment ?? "local";
                 crash.TimestampUtc = DateTime.UtcNow.ToString("o");
                 crash.Signature = CrashSignature.Compute(exception, "GameStudio");
-                new CrashStore("GameStudio").CreateRun().Add(crash);
+                crash.Exceptions = StoredException.Capture(exception);
+                crash.Threads = threads?.ToList() ?? new List<StoredThread>();
+                crash.CrashedThreadId = threadId;
+                crash.CrashedThreadName = threadName;
+
+                var run = new CrashStore("GameStudio").CreateRun();
+                if (CrashPolicy.FullMemoryDump())
+                {
+                    crash.DumpIsFullMemory = true;
+                    run.Add(crash, path => MinidumpWriter.TryWriteFile(path, fullMemory: true));
+                }
+                else
+                {
+                    run.Add(crash, MinidumpWriter.TryWrite());
+                }
+                return run;
             }
             catch (Exception e)
             {
                 e.Ignore(); // saving the report must never mask the crash handling itself
+                return null;
             }
         }
 

@@ -13,6 +13,8 @@ namespace Stride.CrashReporter;
 /// Sending a group auto-suppresses its future popups and, unless the files were saved, drops them. Keeping is
 /// opt-in: Save copies the run (including the local-only full dump) to persistent storage on demand. Nothing is
 /// kept implicitly — closing without a Save discards the leftover files. Send closes the window on success.
+/// When the crashed host is still alive and waiting on this window (a GameStudio managed crash), a full memory
+/// dump of it can be written on demand to a file the user picks.
 /// </summary>
 internal sealed class CrashReporterViewModel : ObservableObject
 {
@@ -21,9 +23,11 @@ internal sealed class CrashReporterViewModel : ObservableObject
 
     private readonly CrashSession session;
     private readonly Action requestClose;
+    private readonly Func<string, Task<string?>>? pickSavePath;
 
     private bool canSend;
     private bool isSending;
+    private bool isSavingDump;
     private bool finalized;
     private bool saved; // the user clicked Save: the run was copied to persistent storage and must not be dropped
     private string saveButtonText = SaveButtonSaveText;
@@ -33,14 +37,15 @@ internal sealed class CrashReporterViewModel : ObservableObject
     private string feedbackEmail = "";
     private string feedbackMessage = "";
 
-    public CrashReporterViewModel(CrashSession session, Action requestClose)
+    public CrashReporterViewModel(CrashSession session, Action requestClose, Func<string, Task<string?>>? pickSavePath = null)
     {
         this.session = session;
         this.requestClose = requestClose;
+        this.pickSavePath = pickSavePath;
 
         Groups = new ObservableCollection<CrashGroupViewModel>(session.Groups.Select(crash => new CrashGroupViewModel(crash, session.DumpSize(crash))));
         Title = $"{ApplicationName(session.Groups)} crash report";
-        Header = ComputeHeader(session.Groups);
+        Header = ComputeHeader(session.Groups, duringBuild: session.IsSessionScoped);
         FullReport = string.Join("\n\n----------------------------------------\n\n", Groups.Select(group => group.ReportText));
         canSend = !session.IsDisabled;
         ShowSendControls = canSend; // keep the disclosure + feedback fields laid out after a send (they just grey out)
@@ -49,6 +54,7 @@ internal sealed class CrashReporterViewModel : ObservableObject
         SaveCommand = new RelayCommand(OnSave, () => saved || HasRemainingFiles);
         CloseCommand = new RelayCommand(requestClose);
         ViewReportCommand = new RelayCommand(() => IsReportVisible = !IsReportVisible);
+        SaveFullDumpCommand = new RelayCommand(OnSaveFullDump, () => CanSaveFullDump && !isSavingDump);
     }
 
     public ObservableCollection<CrashGroupViewModel> Groups { get; }
@@ -103,6 +109,17 @@ internal sealed class CrashReporterViewModel : ObservableObject
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ViewReportCommand { get; }
+    public ICommand SaveFullDumpCommand { get; }
+
+    /// <summary>Whether the on-demand full memory dump is offered: the crashed host is alive and waiting on this window.</summary>
+    public bool CanSaveFullDump => session.CanDumpHost && pickSavePath != null;
+
+    /// <summary>True while the full dump is being written; Close is held off so the write is not cut short.</summary>
+    public bool IsSavingDump
+    {
+        get => isSavingDump;
+        private set { if (SetProperty(ref isSavingDump, value)) ((RelayCommand)SaveFullDumpCommand).RaiseCanExecuteChanged(); }
+    }
 
     // Save is offered while some group still has files worth keeping: an unsent one, or a sent full-dump crash
     // whose local-only dump the send deliberately did not drop. Once saved, the button stays enabled to reveal.
@@ -189,6 +206,24 @@ internal sealed class CrashReporterViewModel : ObservableObject
         }
     }
 
+    // On-demand full memory dump of the host that crashed and waits on this window, written from here (a healthy
+    // process) straight to a path the user picks: never into the run, never sent. Unscrubbed and possibly several
+    // GB, hence one explicit click per dump.
+    private async Task OnSaveFullDump()
+    {
+        var path = await pickSavePath!($"StrideCrashFullDump-{DateTime.UtcNow:yyyyMMdd-HHmmss}.dmp");
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        IsSavingDump = true;
+        SendStatus = "Writing the full memory dump… this can take a while.";
+        var written = await Task.Run(() => session.TryWriteHostFullDump(path));
+        IsSavingDump = false;
+        SendStatus = written
+            ? $"Full memory dump saved to {path}. It is not anonymized: share it only with people you trust."
+            : "The full memory dump could not be written.";
+    }
+
     // Open a directory in the OS file manager. Best effort.
     private static void RevealDirectory(string directory)
     {
@@ -214,10 +249,13 @@ internal sealed class CrashReporterViewModel : ObservableObject
     private static string ApplicationName(IReadOnlyList<Stride.CrashReport.StoredCrash> groups)
         => groups.Select(crash => crash.Application).FirstOrDefault(name => !string.IsNullOrEmpty(name)) ?? "A Stride tool";
 
-    private static string ComputeHeader(IReadOnlyList<Stride.CrashReport.StoredCrash> groups)
+    // A crash routed from a build reads "during the last build"; a host's own crash (--capture, --host-pid) reads as such.
+    private static string ComputeHeader(IReadOnlyList<Stride.CrashReport.StoredCrash> groups, bool duringBuild)
     {
         var count = groups.Count;
         var crashes = count == 1 ? "a crash" : $"{count} distinct crashes";
-        return $"{ApplicationName(groups)} hit {crashes} during the last build. Sending the report helps us fix them.";
+        return duringBuild
+            ? $"{ApplicationName(groups)} hit {crashes} during the last build. Sending the report helps us fix them."
+            : $"{ApplicationName(groups)} has crashed. Sending the report helps us fix it.";
     }
 }

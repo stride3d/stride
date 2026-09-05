@@ -12,14 +12,14 @@ using Sentry;
 namespace Stride.CrashReport;
 
 /// <summary>
-/// Sends crash reports to Sentry. Official builds bake their destination in through the StrideSentryDsn
-/// property; source builds have no destination and let the user pick one per crash.
+/// Sends crash reports to Sentry. Official builds (and forks) bake their destination in through the
+/// StrideSentryDsn property; source builds without one send to the dev channel.
 /// </summary>
 public static class CrashReportSender
 {
     /// <summary>
-    /// Sentry project collecting reports from source builds. Offered as an explicit choice in the crash
-    /// window, never used silently.
+    /// Sentry project collecting reports from source builds, kept apart from the release project so local
+    /// stacks don't pollute its grouping. Only ever used after the user chose to send.
     /// </summary>
     public const string DevChannelDsn = "https://91a43cb8256376131ba96ff24a749567@crash.stride3d.net/4511870298357840";
 
@@ -31,6 +31,9 @@ public static class CrashReportSender
 
     /// <summary>Environment tag baked in at build time (release/nightly), if any; headless captures fall back to this.</summary>
     public static string BuildEnvironment { get; } = GetMetadata("SentryEnvironment");
+
+    /// <summary>The crash-reporting privacy policy, linked from the hosts' About pages.</summary>
+    public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
 
     /// <summary>The DSN to send to: an explicit override wins, else the build DSN, else the dev channel.</summary>
     public static string ResolveDsn(string overrideDsn = null)
