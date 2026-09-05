@@ -61,7 +61,10 @@ internal static class NativeCapture
                 // fault frame -- mirrors the compiler's native adopt path so both hosts group the same crash alike.
                 var faultSite = crash.Exceptions.FirstOrDefault()?.Frames.FirstOrDefault(f => !string.IsNullOrEmpty(f.Module))?.Function;
                 crash.Signature = NativeCrashReporting.NativeSignature(faultSite ?? frame, dumpPath);
-                File.WriteAllText(Path.Combine(runDirectory, $"crash-native-{processId}.json"), crash.ToJson());
+                // Store through the run so the files follow the store's naming (crash-<sig>.json + .dmp): that is
+                // what lets Remove and dedup find them later. The dump already exists (the walk needed it), so the
+                // callback moves it into place -- a rename, even for a multi-GB full dump.
+                CrashStore.OpenRun(runDirectory).Add(crash, destination => TryMoveDump(dumpPath, destination));
             }
 
             // Release the frozen host only once the dump AND the report are on disk, so a consumer that inspects
@@ -73,6 +76,21 @@ internal static class NativeCapture
         catch (Exception)
         {
             // Best effort: a capture failure must not stop the window from opening.
+        }
+    }
+
+    // Move the pre-written dump to the store's path for it. On failure the crash keeps pointing at the original
+    // file (set in BuildStoredCrash) rather than failing the capture.
+    private static bool TryMoveDump(string source, string destination)
+    {
+        try
+        {
+            File.Move(source, destination, overwrite: true);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
         }
     }
 

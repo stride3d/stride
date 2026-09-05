@@ -101,7 +101,7 @@ public class CrashCaptureTests
                 return;
             }
 
-            var json = Assert.Single(Directory.GetFiles(appDir, "crash-native-*.json", SearchOption.AllDirectories));
+            var json = Assert.Single(Directory.GetFiles(appDir, "crash-*.json", SearchOption.AllDirectories));
             var crash = StoredCrash.FromJson(File.ReadAllText(json));
             Assert.Equal("TestProbe", crash.Application);
             Assert.StartsWith("NativeCrash|", crash.Signature);
