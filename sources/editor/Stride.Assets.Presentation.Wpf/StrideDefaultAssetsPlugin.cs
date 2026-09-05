@@ -16,6 +16,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
@@ -74,10 +75,18 @@ namespace Stride.Assets.Presentation
         private static ResourceDictionary visualScriptingGraphTemplatesDictionary;
         private static readonly Dictionary<Type, Type> GizmoTypes = new Dictionary<Type, Type>();
         private static readonly Dictionary<Type, Type> AssetHighlighterTypes = new Dictionary<Type, Type>();
+        // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
+        private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
+        private static readonly object AddAssetPolicyTypesLock = new object();
 
         public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => GizmoTypes;
 
         public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => AssetHighlighterTypes;
+
+        /// <summary>
+        /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
+        /// </summary>
+        public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
         public static List<EntityFactoryCategory> EntityFactoryCategories { get; private set; }
 
@@ -365,6 +374,9 @@ namespace Stride.Assets.Presentation
                     }
                 }
             }
+            var policyTypes = types.Where(IsAddAssetPolicy).ToList();
+            lock (AddAssetPolicyTypesLock)
+                addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
         }
 
         private void OnUnregisteredAssetAssembly(Type[] types)
@@ -384,6 +396,14 @@ namespace Stride.Assets.Presentation
                     }
                 }
             }
+            var policyTypes = types.Where(IsAddAssetPolicy).ToHashSet();
+            lock (AddAssetPolicyTypesLock)
+                addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+        }
+
+        private static bool IsAddAssetPolicy(Type type)
+        {
+            return type.IsAssignableTo(typeof(IAddAssetPolicy)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
         }
 
         private static void RegisterComponentOrders(ILogger logger)
