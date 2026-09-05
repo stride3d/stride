@@ -24,7 +24,6 @@
 // THE SOFTWARE.
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -32,8 +31,6 @@ using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
-
-using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Graphics;
 
@@ -95,9 +92,7 @@ public unsafe partial class GraphicsOutput
 
         var d3d12 = D3D12.GetApi();
 
-        // NOTE: Assume the same underlying integer type
-        Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
-        var featureLevels = targetProfiles.As<GraphicsProfile, D3DFeatureLevel>();
+        var featureLevels = targetProfiles.ToFeatureLevels();
 
         HResult result = default;
 
