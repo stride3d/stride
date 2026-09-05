@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -745,5 +745,125 @@ new ShaderMacro("class", "shader"),
                 Console.WriteLine(hlsl);
             }
         }
+    }
+
+    // Regression: a composition whose shader derives from the same base as the shader it is
+    // composed into used to contribute that base's empty virtual method, overriding the root's
+    // own override. Stride.Voxels' Voxel2x2x2Mipmap composes a Voxel2x2x2Mipmapper and both
+    // derive from ComputeShaderBase, so Compute() resolved to the empty base: the shader
+    // compiled to a bare `ret`, its textures were dead-code-removed along with the body, and
+    // voxel GI contributed exactly nothing.
+    [Fact]
+    public void CompositionSharingABaseDoesNotOverrideTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposeSharedHelper", "ComposeSharedRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposeSharedRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposeSharedHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        // The body survived, so its texture is still live and reflected.
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
+    }
+
+    // Control for the above: the very same shader, composing a helper that does not derive from
+    // ComposeSharedBase. This one has always worked, and pins the difference to the shared base.
+    [Fact]
+    public void CompositionWithoutASharedBaseKeepsTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposePlainHelper", "ComposePlainRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposePlainRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposePlainHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
+    }
+    // Regression: a `stage compose` slot is hoisted to the root with the shader that declares it,
+    // and CompositionArrayStageFromNested covers its value being hoisted along. But the value was
+    // then merged as if it had been supplied at the root, so resources underneath got root-relative
+    // link names - here "Samplers[0]" instead of "Samplers[0].nested". The engine composes its
+    // parameter keys with the path it supplied the value at, so nothing matched and the resource was
+    // left unbound: Stride.Voxels' clipmaps sampled a null texture and voxel GI lit nothing.
+    [Fact]
+    public void StageCompositionSuppliedFromNestedKeepsItsSupplyPath()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "StageComposePathBase", "StageComposePathImpl", "StageComposePathDeclarer", "StageComposePathSupplier", "StageComposePathRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("StageComposePathRoot") },
+            Compositions =
+            {
+                ["nested"] = new ShaderMixinSource
+                {
+                    Mixins = { new ShaderClassSource("StageComposePathSupplier") },
+                    Compositions = { ["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") } },
+                },
+            },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var keyNames = reflection.ResourceBindings.Select(b => b.KeyInfo.KeyName).ToList();
+        Assert.Contains("StageComposePathImpl.Tex.Samplers[0].nested", keyNames);
+    }
+    // Regression: `streams = input[i]` in a geometry shader assigns the members the stage input
+    // carries and must leave every other stream member as it was. It used to default them to zero,
+    // so anything the shader had computed into a stream before its emit loop was wiped on every
+    // vertex. Stride.Voxels' dominant-axis voxelization chooses a projection axis that way: the
+    // axis reset to 0 each iteration, the geometry shader constant-folded to `if (true)`, and only
+    // surfaces already facing that one axis were voxelized - floors and ceilings vanished and the
+    // rest came out striped.
+    //
+    // Checked after LegalizeForHlsl, which is what EffectCompiler hands to SPIRV-Cross: the branch
+    // on the carried value has to still be a branch there, not a folded constant.
+    [Fact]
+    public void GeometryStreamsAssignKeepsMembersTheInputDoesNotCarry()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsAssignKeepsOthers", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsAssignKeepsOthers"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        Assert.DoesNotContain("if (true)", hlsl);
+        Assert.DoesNotContain("if (false)", hlsl);
     }
 }

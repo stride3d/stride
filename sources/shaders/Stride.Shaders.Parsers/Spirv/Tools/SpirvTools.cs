@@ -355,7 +355,7 @@ public static unsafe class SpirvTools
         try
         {
             OptimizerRegisterPerformancePasses(opt);
-            return RunAndCopy(opt, words);
+            return RunAndCopy(opt, words, env);
         }
         finally
         {
@@ -378,7 +378,7 @@ public static unsafe class SpirvTools
         {
             foreach (var flag in flags)
                 RegisterFlag(opt, flag, preserveInterface);
-            return RunAndCopy(opt, words);
+            return RunAndCopy(opt, words, env);
         }
         finally
         {
@@ -386,7 +386,7 @@ public static unsafe class SpirvTools
         }
     }
 
-    static uint[] RunAndCopy(IntPtr opt, ReadOnlySpan<uint> words)
+    static uint[] RunAndCopy(IntPtr opt, ReadOnlySpan<uint> words, TargetEnv env)
     {
         uint* outPtr = null;
         nuint outCount = 0;
@@ -394,7 +394,15 @@ public static unsafe class SpirvTools
         {
             var r = OptimizerRun(opt, inPtr, (nuint)words.Length, &outPtr, &outCount);
             if (r != Result.Success)
-                throw new InvalidOperationException($"spvOptimizerRun failed: {r}");
+            {
+                // spirv-opt refuses to load a module that does not validate, and says only
+                // "InternalError" about it. The validator knows exactly what is wrong and where,
+                // so ask it rather than leaving the caller with a bare error code.
+                var validation = Validate(words, env);
+                throw new InvalidOperationException(validation is null
+                    ? $"spvOptimizerRun failed: {r} (the module validates, so this is an optimizer failure)"
+                    : $"spvOptimizerRun failed: {r}, because the module does not validate:{Environment.NewLine}{validation}");
+            }
         }
         try
         {

@@ -1,0 +1,54 @@
+// GSMain(ExpectedPrimitiveCount=3, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
+
+// A method whose *only* parameter is the geometry stream, so removing it leaves a function with
+// no parameters at all. Unlike StreamGSMethodCall, its signature is not shared with the entry
+// point, so nothing else rewrites its OpTypeFunction on its behalf.
+//
+// Stride.Voxels has exactly this shape in VoxelizationMethod: `void RestartStrip(inout
+// TriangleStream<Output> triangleStream)`.
+
+namespace Stride.Shaders.Tests;
+
+shader StreamGSStreamOnlyParam
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+    stream float4 ExtraColor2;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.ExtraColor2 = streams.ExtraColor;
+    }
+
+    void EmitOne(inout PointStream<Output> outStream)
+    {
+        outStream.Append(streams);
+    }
+
+    void Restart(inout PointStream<Output> outStream)
+    {
+        outStream.RestartStrip();
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout PointStream<Output> outStream)
+    {
+        streams = input[0];
+
+        streams.ShadingPosition = 0.5f * streams.ShadingPosition;
+
+        EmitOne(outStream);
+        EmitOne(outStream);
+        EmitOne(outStream);
+
+        Restart(outStream);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.ExtraColor2;
+    }
+}

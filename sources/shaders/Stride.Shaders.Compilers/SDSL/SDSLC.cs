@@ -122,6 +122,13 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
             {
                 // Ignore (using C# codegen for now)
             }
+            else if (declaration is UsingShaderNamespace)
+            {
+                // Ignore: shader classes are resolved by name across every loaded namespace, so a
+                // `using` at the top of an .sdsl file carries no information the compiler needs.
+                // Erroring on it took down every shader that has one — Stride.Voxels'
+                // LightVoxelShader among them, which made voxel GI unusable.
+            }
             else
             {
                 log.Error($"Compiling declaration [{declaration.GetType()}] is not implemented");

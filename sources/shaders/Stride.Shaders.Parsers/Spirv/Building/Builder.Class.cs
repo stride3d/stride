@@ -24,7 +24,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Shaders.Spirv.Building;
 
-public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions);
+public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions)
+{
+    /// <summary>
+    /// For a <c>stage compose</c> whose value was supplied by a nested effect, the composition path
+    /// it was supplied at, keyed by composition variable name.
+    /// </summary>
+    /// <remarks>
+    /// The declaring shader and its value are both hoisted to the root, since a stage slot belongs to
+    /// the whole stage. Merging them there would name their resources as if they had been supplied at
+    /// the root, dropping the path the caller actually addresses them by - so the path travels with the
+    /// value and is put back when the root merges it.
+    /// </remarks>
+    public Dictionary<string, string>? StageCompositionPaths { get; set; }
+}
 
 public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer)
 {

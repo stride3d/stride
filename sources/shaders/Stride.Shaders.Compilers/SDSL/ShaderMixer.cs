@@ -326,7 +326,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                 {
-                    var compositionMixins = mixinSource.Compositions[variable.Key];
+                    // Every piece of context needed to act on this is in scope, and the dictionary
+                    // indexer would throw a bare "The given key was not present" instead.
+                    if (!mixinSource.Compositions.TryGetValue(variable.Key, out var compositionMixins))
+                        throw new InvalidOperationException(
+                            $"No composition was supplied for '{variable.Key}', declared as '{variable.Value.Type}' by shader '{shader.ShaderName}', "
+                            + $"while merging the mixin node '{currentCompositionPath ?? "<root>"}' (root: {mixinNode.IsRoot}). "
+                            + $"That node only has [{string.Join(", ", mixinSource.Compositions.Keys)}]. "
+                            + $"A `stage compose` is the usual cause: the shader declaring it was promoted to this node, "
+                            + $"but its value was supplied at a nested composition path and nothing carried it up.");
+
                     var isCompositionArray = pointer.BaseType is ArrayType { BaseType: ShaderSymbol };
 
                     if (!isCompositionArray && compositionMixins.Length != 1)
@@ -338,9 +347,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         var localKey = variable.Key;
                         if (isCompositionArray)
                             localKey += $"[{i}]";
+                        // A `stage compose` supplied by a nested effect was hoisted here with its declaring
+                        // shader, so currentCompositionPath is null even though the caller addresses it by
+                        // the path it was supplied at. Put that path back, or the resources underneath get
+                        // root-relative link names that no parameter key ever matches.
+                        var basePath = currentCompositionPath;
+                        if (basePath == null)
+                            mixinSource.StageCompositionPaths?.TryGetValue(variable.Key, out basePath);
                         // TODO: Review: it seems like Stride compose variable the opposite way that we expect
                         //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
-                        var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
+                        var compositionPath = basePath != null ? $"{localKey}.{basePath}" : localKey;
                         compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
                     }
 
