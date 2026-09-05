@@ -10,6 +10,8 @@
     <!-- Project-source asset extensions captured into the manifest. Declared by the asset-owning
          layer next to where it globs the files (shaders in Stride.targets / Sdk.targets); a plugin
          appends its own in its buildTransitive .targets. -->
+    <!-- A companion package (StridePackageKind: Assets or Editor) is loaded by a host by definition. -->
+    <StrideContainsAssetTypes Condition="'$(StrideContainsAssetTypes)' == '' And '$(StridePackageKind)' != ''">true</StrideContainsAssetTypes>
     <!-- Game/code projects' scripts are asset types, so the asset compiler must load their assembly;
          default it on for consumers (StrideRoot empty, or dev-redirect where the stub also sets
          StrideDevRoot). The engine source tree and test SDK set it explicitly; opt out =false. -->
@@ -38,6 +40,138 @@
        extensions don't otherwise reach the consumer). -->
   <Target Name="GetStrideProjectAssetExtensions" Returns="$(StrideProjectAssetExtensions)" />
 
+  <!-- Companion packages: a package lists the projects (StrideCompanionProject items) and packages
+       (StrideCompanionPackage items, with Version and Kind) a host loads on its behalf; a companion project
+       states what it carries (StridePackageKind: Assets or Editor). A project's package id, version and kind
+       are read from the project itself, so the packed sdpkg and the build manifest declare the real ids; the
+       manifest keeps the project paths too. A Replaces list (';'-separated ids) on either item names companion
+       packages declared elsewhere that this one stands in for.
+       GetPackageVersionDependsOn is NuGet's hook for targets that change PackageVersion before it is read
+       (the Stride worktree suffix is appended there), so the version matches the packed nupkg. -->
+  <Target Name="GetStridePackageIdentity" DependsOnTargets="$(GetPackageVersionDependsOn)" Returns="@(_StridePackageIdentity)">
+    <PropertyGroup>
+      <_StridePackageIdentityId>$(PackageId)</_StridePackageIdentityId>
+      <_StridePackageIdentityId Condition="'$(_StridePackageIdentityId)' == ''">$(AssemblyName)</_StridePackageIdentityId>
+      <_StridePackageIdentityId Condition="'$(_StridePackageIdentityId)' == ''">$(MSBuildProjectName)</_StridePackageIdentityId>
+      <_StridePackageIdentityVersion>$(PackageVersion)</_StridePackageIdentityVersion>
+      <_StridePackageIdentityVersion Condition="'$(_StridePackageIdentityVersion)' == ''">$(Version)</_StridePackageIdentityVersion>
+      <_StridePackageIdentityVersion Condition="'$(_StridePackageIdentityVersion)' == ''">1.0.0</_StridePackageIdentityVersion>
+      <_StridePackageIdentityKind>$(StridePackageKind)</_StridePackageIdentityKind>
+      <_StridePackageIdentityKind Condition="'$(_StridePackageIdentityKind)' == ''">Runtime</_StridePackageIdentityKind>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StridePackageIdentity Include="$(_StridePackageIdentityId)" Version="$(_StridePackageIdentityVersion)" Kind="$(_StridePackageIdentityKind)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <_StrideCompanionProject Include="@(StrideCompanionProject->'%(FullPath)')" />
+  </ItemGroup>
+
+  <Target Name="_StrideCheckCompanionDeclarations" Condition="'@(_StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+    <!-- A batched task over an empty list runs once with empty metadata, hence the list guards -->
+    <Error Condition="'@(_StrideCompanionProject)' != '' And !Exists('%(_StrideCompanionProject.Identity)')" Text="StrideCompanionProject '%(_StrideCompanionProject.Identity)' does not exist." />
+    <Error Condition="'@(StrideCompanionPackage)' != '' And '%(StrideCompanionPackage.Kind)' != 'Assets' And '%(StrideCompanionPackage.Kind)' != 'Editor'" Text="StrideCompanionPackage '%(StrideCompanionPackage.Identity)' must have a Kind of Assets or Editor." />
+    <Error Condition="'@(StrideCompanionPackage)' != '' And '%(StrideCompanionPackage.Version)' == ''" Text="StrideCompanionPackage '%(StrideCompanionPackage.Identity)' must have a Version." />
+  </Target>
+
+  <!-- Joins the companion projects with the identities they answered (by MSBuildSourceProjectFile) and appends the
+       companions declared by package: one _StrideCompanion item each, with Project (empty for a package), PackageId,
+       PackageVersion, Kind and Replaces. -->
+  <UsingTask TaskName="StrideJoinCompanionPackages"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <CompanionProjects ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <CompanionPackages ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <Identities ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <Companions ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var result = new List<Microsoft.Build.Framework.ITaskItem>();
+        var identities = Identities ?? new Microsoft.Build.Framework.ITaskItem[0];
+        foreach (var project in CompanionProjects ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var path = Path.GetFullPath(project.GetMetadata("FullPath"));
+            var identity = identities.FirstOrDefault(i => string.Equals(Path.GetFullPath(i.GetMetadata("MSBuildSourceProjectFile")), path, StringComparison.OrdinalIgnoreCase));
+            var item = new Microsoft.Build.Utilities.TaskItem(path);
+            item.SetMetadata("Project", path);
+            item.SetMetadata("PackageId", identity != null ? identity.ItemSpec : "");
+            item.SetMetadata("PackageVersion", identity != null ? identity.GetMetadata("Version") : "");
+            item.SetMetadata("Kind", identity != null ? identity.GetMetadata("Kind") : "");
+            item.SetMetadata("Replaces", project.GetMetadata("Replaces"));
+            result.Add(item);
+        }
+        foreach (var package in CompanionPackages ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var item = new Microsoft.Build.Utilities.TaskItem(package.ItemSpec);
+            item.SetMetadata("Project", "");
+            item.SetMetadata("PackageId", package.ItemSpec);
+            item.SetMetadata("PackageVersion", package.GetMetadata("Version"));
+            item.SetMetadata("Kind", package.GetMetadata("Kind"));
+            item.SetMetadata("Replaces", package.GetMetadata("Replaces"));
+            result.Add(item);
+        }
+        Companions = result.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- The companion list (_StrideCompanion) for the manifest, at build time. A companion project that is not
+       restored yet has no Stride targets and answers nothing: the manifest then records the project path alone. -->
+  <Target Name="_StrideResolveCompanionProjects" DependsOnTargets="_StrideCheckCompanionDeclarations" Condition="'@(_StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+    <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
+             Targets="GetStridePackageIdentity"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
+             SkipNonexistentTargets="true"
+             Condition="'@(_StrideCompanionProject)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideCompanionIdentity" />
+    </MSBuild>
+    <ItemGroup>
+      <_StrideCompanion Remove="@(_StrideCompanion)" />
+    </ItemGroup>
+    <StrideJoinCompanionPackages CompanionProjects="@(_StrideCompanionProject)" CompanionPackages="@(StrideCompanionPackage)" Identities="@(_StrideCompanionIdentity)">
+      <Output TaskParameter="Companions" ItemName="_StrideCompanion" />
+    </StrideJoinCompanionPackages>
+    <Error Condition="'%(_StrideCompanion.PackageId)' != '' And '%(_StrideCompanion.Kind)' != 'Assets' And '%(_StrideCompanion.Kind)' != 'Editor'"
+           Text="Companion project '%(_StrideCompanion.Project)' must declare StridePackageKind as Assets or Editor." />
+  </Target>
+
+  <!-- Pack time: the packed sdpkg must carry the ids, versions and kinds, so the companion projects are restored
+       first (a restore inside a build needs its own evaluation, MSBuildRestoreSessionId) and must answer. -->
+  <Target Name="_StrideResolveCompanionProjectsForPack" DependsOnTargets="_StrideCheckCompanionDeclarations" Condition="'@(_StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+    <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
+             Targets="Restore"
+             Properties="MSBuildRestoreSessionId=$([System.Guid]::NewGuid())"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
+             Condition="'@(_StrideCompanionProject)' != ''" />
+    <!-- A unique property forces a fresh evaluation: the build's own identity call may have cached the
+         project before the restore, without the Stride targets -->
+    <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
+             Targets="GetStridePackageIdentity"
+             Properties="_StrideCompanionEvaluation=$([System.Guid]::NewGuid())"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
+             SkipNonexistentTargets="true"
+             Condition="'@(_StrideCompanionProject)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideCompanionPackIdentity" />
+    </MSBuild>
+    <ItemGroup>
+      <_StrideCompanion Remove="@(_StrideCompanion)" />
+    </ItemGroup>
+    <StrideJoinCompanionPackages CompanionProjects="@(_StrideCompanionProject)" CompanionPackages="@(StrideCompanionPackage)" Identities="@(_StrideCompanionPackIdentity)">
+      <Output TaskParameter="Companions" ItemName="_StrideCompanion" />
+    </StrideJoinCompanionPackages>
+    <Error Condition="'%(_StrideCompanion.Project)' != '' And '%(_StrideCompanion.PackageId)' == ''"
+           Text="The package id and version of companion project '%(_StrideCompanion.Project)' could not be read; the project must reference Stride packages." />
+    <Error Condition="'%(_StrideCompanion.Kind)' != 'Assets' And '%(_StrideCompanion.Kind)' != 'Editor'"
+           Text="Companion project '%(_StrideCompanion.Project)' must declare StridePackageKind as Assets or Editor." />
+  </Target>
+
   <UsingTask TaskName="StrideWriteAssetBuildManifest"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -52,10 +186,12 @@
       <RootNamespace />
       <AssetNamespace />
       <AssetNamespaceUsings />
+      <PackageKind />
+      <CompanionPackages ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <ProjectDirectory Required="true" />
       <ExcludeDirectory />
       <Extensions />
-      <AssetAssemblies ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <HostAssemblies ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <ReferencedManifests ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <CandidateItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
     </ParameterGroup>
@@ -103,9 +239,52 @@
             foreach (var entry in usings)
                 sb.AppendLine("    - " + q(entry));
         }
+        if (!string.IsNullOrWhiteSpace(PackageKind))
+            sb.AppendLine("PackageKind: " + PackageKind.Trim());
+
+        // Companions: the project path always for a project, the id, version and kind when known
+        var companions = new List<string[]>();
+        foreach (var item in CompanionPackages ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var project = item.GetMetadata("Project");
+            companions.Add(new[]
+            {
+                item.GetMetadata("Kind").Trim(),
+                string.IsNullOrWhiteSpace(project) ? "" : rel(project),
+                item.GetMetadata("PackageId").Trim(),
+                item.GetMetadata("PackageVersion").Trim(),
+                item.GetMetadata("Replaces"),
+            });
+        }
+        companions.Sort((a, b) => string.CompareOrdinal(a[0] + "|" + a[1] + "|" + a[2], b[0] + "|" + b[1] + "|" + b[2]));
+        if (companions.Count > 0)
+        {
+            sb.AppendLine("CompanionPackages:");
+            foreach (var companion in companions)
+            {
+                var lines = new List<string>();
+                if (companion[0].Length > 0)
+                    lines.Add("Kind: " + companion[0]);
+                if (companion[1].Length > 0)
+                    lines.Add("Project: " + q(companion[1]));
+                if (companion[2].Length > 0)
+                    lines.Add("Package: " + q(companion[2]));
+                if (companion[3].Length > 0)
+                    lines.Add("Version: " + q(companion[3]));
+                var replaces = companion[4].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()).Where(r => r.Length > 0).ToList();
+                if (replaces.Count > 0)
+                {
+                    lines.Add("Replaces:");
+                    foreach (var replaced in replaces)
+                        lines.Add("  - " + q(replaced));
+                }
+                for (var i = 0; i < lines.Count; i++)
+                    sb.AppendLine((i == 0 ? "    - " : "      ") + lines[i]);
+            }
+        }
 
         var assemblies = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var item in AssetAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
+        foreach (var item in HostAssemblies ?? new Microsoft.Build.Framework.ITaskItem[0])
         {
             var path = item.GetMetadata("FullPath");
             if (!string.IsNullOrEmpty(path))
@@ -113,7 +292,7 @@
         }
         if (assemblies.Count > 0)
         {
-            sb.AppendLine("AssetAssemblies:");
+            sb.AppendLine("HostAssemblies:");
             foreach (var assembly in assemblies)
                 sb.AppendLine("    - " + q(assembly));
         }
@@ -180,6 +359,7 @@
 
   <Target Name="StrideWriteAssetBuildManifest"
           AfterTargets="ResolveProjectReferences"
+          DependsOnTargets="_StrideResolveCompanionProjects"
           Condition="'$(StrideAssetBuildManifest)' == 'true' And '$(DesignTimeBuild)' != 'true' And '$(StrideAssetBuildManifestPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
     <ItemGroup>
       <_StrideManifestProjectReference Include="@(_MSBuildProjectReferenceExistent)"
@@ -230,7 +410,7 @@
     </PropertyGroup>
 
     <!-- The asset compiler loads host builds: non-host manifests reference their host-TFM
-         sibling (which carries the AssetAssemblies entry) instead of naming assemblies -->
+         sibling (which carries the HostAssemblies entry) instead of naming assemblies -->
     <MSBuild Condition="'$(StrideContainsAssetTypes)' == 'true' And '$(_StrideManifestIsHostFramework)' != 'true'"
              Projects="$(MSBuildProjectFullPath)"
              Targets="GetStrideAssetBuildManifestPath"
@@ -255,10 +435,12 @@
         RootNamespace="$(RootNamespace)"
         AssetNamespace="$(StrideAssetNamespace)"
         AssetNamespaceUsings="@(StrideAssetNamespaceUsing)"
+        PackageKind="$(StridePackageKind)"
+        CompanionPackages="@(_StrideCompanion)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
         ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"
         Extensions="$(_StrideManifestExtensions)"
-        AssetAssemblies="@(_StrideAssetBuildManifestAssembly)"
+        HostAssemblies="@(_StrideAssetBuildManifestAssembly)"
         ReferencedManifests="@(_StrideReferencedManifest)"
         CandidateItems="@(_StrideAssetBuildManifestCandidate)" />
   </Target>

@@ -172,10 +172,20 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public RootAssetCollection RootAssets { get; private set; } = [];
 
     /// <summary>
-    /// Assemblies (relative to this package) whose types appear in assets; the asset compiler loads exactly these.
+    /// What this package carries (StridePackageKind): a companion package states it, so a host can check it took
+    /// what the declaring package announced. Packed sdpkgs and build manifests carry it; an authored sdpkg does not.
+    /// </summary>
+    [DataMember(104)]
+    [DefaultValue(PackageKind.Runtime)]
+    public PackageKind Kind { get; set; }
+
+    /// <summary>
+    /// Assemblies (relative to this package) whose types appear in assets: the asset compiler and the editor load
+    /// exactly these.
     /// </summary>
     [DataMember(105)]
-    public List<AssetAssembly> AssetAssemblies { get; } = [];
+    [DataAlias("AssetAssemblies")]
+    public List<AssetAssembly> HostAssemblies { get; } = [];
 
     /// <summary>
     /// Asset URL namespace: unset = the package name (the default), any other value = that custom
@@ -185,6 +195,45 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     [DefaultValue(null)]
     public string? AssetNamespace { get; set; }
 
+    /// <summary>
+    /// Packages a host loads on this package's behalf (StrideCompanionProject and StrideCompanionPackage items).
+    /// </summary>
+    [DataMember(107)]
+    public List<CompanionPackage> CompanionPackages { get; } = [];
+
+    /// <summary>
+    /// Takes the build-property declarations of a build manifest: this package's kind, and the companions, where
+    /// an entry of the same kind and name (or without a name on either side) is completed and any other is added.
+    /// Project paths are resolved against the manifest's directory.
+    /// </summary>
+    public void SetCompanionDeclarations(AssetBuildManifest manifest, string manifestDirectory)
+    {
+        if (manifest.PackageKind is { } kind)
+            Kind = kind;
+
+        foreach (var declared in manifest.CompanionPackages)
+        {
+            var companion = CompanionPackages.FirstOrDefault(c => c.Kind == declared.Kind
+                && (c.Name is null || declared.Package is null || string.Equals(c.Name, declared.Package, StringComparison.OrdinalIgnoreCase)));
+            if (companion is null)
+            {
+                companion = new CompanionPackage { Kind = declared.Kind };
+                CompanionPackages.Add(companion);
+            }
+            if (declared.Package is not null)
+                companion.Name = declared.Package;
+            if (declared.Version is not null)
+                companion.Version = new PackageVersion(declared.Version);
+            if (declared.Project is not null)
+                companion.Project = Path.GetFullPath(Path.Combine(manifestDirectory, declared.Project.ToOSPath()));
+            foreach (var replaced in declared.Replaces)
+            {
+                if (!companion.Replaces.Contains(replaced, StringComparer.OrdinalIgnoreCase))
+                    companion.Replaces.Add(replaced);
+            }
+        }
+    }
+
     // Keep saved .sdpkg files minimal: skip empty collections (ShouldSerialize* is discovered by ObjectDescriptor).
     private bool ShouldSerializeAssetFolders() => AssetFolders.Count > 0;
     private bool ShouldSerializeResourceFolders() => ResourceFolders.Count > 0;
@@ -193,7 +242,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     private bool ShouldSerializeBundles() => Bundles.Count > 0;
     private bool ShouldSerializeTemplateFolders() => TemplateFolders.Count > 0;
     private bool ShouldSerializeRootAssets() => RootAssets.Count > 0;
-    private bool ShouldSerializeAssetAssemblies() => AssetAssemblies.Count > 0;
+    // A project's kind and companions come from its build (SetCompanionDeclarations), not its sdpkg
+    private bool ShouldSerializeKind() => Kind != PackageKind.Runtime && Container is not SolutionProject;
+    private bool ShouldSerializeHostAssemblies() => HostAssemblies.Count > 0;
+    private bool ShouldSerializeCompanionPackages() => CompanionPackages.Count > 0 && Container is not SolutionProject;
     private bool ShouldSerializeAssetNamespace() => AssetNamespace is not null;
 
     /// <summary>

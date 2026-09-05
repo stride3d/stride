@@ -86,6 +86,8 @@ src.AnyEventRaised += (_, e) =>
         "_GetFrameworksWithSuppressedDependencies",
         // SourceLink source-root mapping; metadata only, no compilation.
         "InitializeSourceRootMappedPaths",
+        // A runtime reads its companion projects' package id, version and kind; metadata only, no compilation.
+        "GetStridePackageIdentity",
     ];
     if (!string.IsNullOrEmpty(ps.TargetNames))
     {

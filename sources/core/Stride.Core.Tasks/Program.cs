@@ -38,7 +38,9 @@ namespace Stride.Core.Tasks
         {
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
-            var packAssetAssemblies = new List<string>();
+            var packHostAssemblies = new List<string>();
+            var packCompanionPackages = new List<string>();
+            string packPackageKind = null;
 
             var p = new OptionSet
             {
@@ -59,7 +61,9 @@ namespace Stride.Core.Tasks
                 string.Empty,
                 "=== Options ===",
                 string.Empty,
-                { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => packAssetAssemblies.Add(v) },
+                { "pack-host-assembly=", "Host-loadable assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => packHostAssemblies.Add(v) },
+                { "pack-companion=", "Companion package to declare in the packed sdpkg, as Kind:Name:Version[:Replaces] (Kind = Assets or Editor; Replaces = ';'-separated package ids); repeat for each", v => packCompanionPackages.Add(v) },
+                { "pack-kind=", "What the packed package carries (Assets or Editor); a companion package states it", v => packPackageKind = v },
                 { "h|help", "Show this message and exit", v => showHelp = v != null },
             };
 
@@ -101,10 +105,9 @@ namespace Stride.Core.Tasks
 
                         var csprojFile = commandArgs[1];
                         var intermediatePackagePath = commandArgs[2];
-                        // Host-loadable asset assemblies are passed as repeated --pack-asset-assembly= options.
                         var generatedItems = new List<(string SourcePath, string PackagePath)>();
                         var logger = new LoggerResult();
-                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, packAssetAssemblies))
+                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, packHostAssemblies, companionPackages: packCompanionPackages, packageKind: packPackageKind))
                         {
                             foreach (var message in logger.Messages)
                             {
