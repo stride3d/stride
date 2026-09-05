@@ -532,141 +532,21 @@ public partial class NugetStore : INugetDownloadProgress
             Interlocked.Exchange(ref lastReportTicks, 0);
             try
             {
-                var identity = new PackageIdentity(packageId, version.ToNuGetVersion());
+                var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
-                var resolutionContext = new ResolutionContext(
-                    DependencyBehavior.Lowest,
-                    true,
-                    true,
-                    VersionConstraints.None);
-
-                var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
-
-                var projectContext = new EmptyNuGetProjectContext()
+                // Old version expects to be installed in GamePackages
+                if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
                 {
-                    ActionType = NuGetActionType.Install,
-                    PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, null, NativeLogger),
-                };
+                    installPath = oldRootDirectory;
+                }
 
-                ActivityCorrelationId.StartNew();
+                // Exactly this version: a bare version is ">=" to NuGet, which would silently take a higher one.
+                var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
+                await RestorePackageCore(packageId, exactVersion, targetFrameworks, settings, installPath, "StrideLauncher", Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"), OnPackageInstalled);
 
+                if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
                 {
-                    var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
-
-                    // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
-                    if (!targetFrameworks.Any())
-                        targetFrameworks = ["net10.0"];
-
-                    // Old version expects to be installed in GamePackages
-                    if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
-                    {
-                        installPath = oldRootDirectory;
-                    }
-
-                    var projectPath = Path.Combine("StrideLauncher.json");
-                    var spec = new PackageSpec()
-                    {
-                        Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
-                        FilePath = projectPath,
-                        RestoreMetadata = new ProjectRestoreMetadata
-                        {
-                            ProjectPath = projectPath,
-                            ProjectName = Path.GetFileNameWithoutExtension(projectPath),
-                            ProjectStyle = ProjectStyle.PackageReference,
-                            ProjectUniqueName = projectPath,
-                            OutputPath = Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"),
-                            OriginalTargetFrameworks = targetFrameworks.ToList(),
-                            ConfigFilePaths = settings.GetConfigFilePaths(),
-                            PackagesPath = installPath,
-                            Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
-                            FallbackFolders = [.. SettingsUtility.GetFallbackPackageFolders(settings)]
-                        },
-                    };
-                    foreach (var targetFramework in targetFrameworks)
-                    {
-                        spec.TargetFrameworks.Add(new TargetFrameworkInformation
-                        {
-                            FrameworkName = NuGetFramework.Parse(targetFramework),
-                            Dependencies =
-                                [
-                                    new()
-                                    {
-                                        // Exactly this version: a bare version is ">=" to NuGet, which would silently take a higher one.
-                                        LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion(), true, version.ToNuGetVersion(), true), LibraryDependencyTarget.Package),
-                                    }
-                                ],
-                        });
-                    }
-
-                    using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
-                    {
-                        context.IgnoreFailedSources = true;
-
-                        var dependencyGraphSpec = new DependencyGraphSpec();
-
-                        dependencyGraphSpec.AddProject(spec);
-
-                        dependencyGraphSpec.AddRestore(spec.RestoreMetadata.ProjectUniqueName);
-
-                        var requestProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dependencyGraphSpec);
-                        var restoreArgs = new RestoreArgs
-                        {
-                            AllowNoOp = true,
-                            CacheContext = context,
-                            CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(settings)),
-                            Log = NativeLogger,
-                        };
-
-                        // Create requests from the arguments
-                        var requests = requestProvider.CreateRequests(restoreArgs).Result;
-
-                        // Route restore downloads through repositories whose HTTP stack reports byte progress
-                        // (DownloadProgressHandlerProvider, wired in NugetSourceRepositoryProvider).
-                        var progressSources = spec.RestoreMetadata.Sources
-                            .Select(sourceRepositoryProvider.CreateRepository)
-                            .ToList();
-                        var providersCache = new RestoreCommandProvidersCache();
-
-                        foreach (var request in requests)
-                        {
-                            // Limit concurrency to avoid timeout
-                            request.Request.MaxDegreeOfConcurrency = 4;
-                            request.Request.DependencyProviders = providersCache.GetOrCreate(
-                                installPath,
-                                spec.RestoreMetadata.FallbackFolders.ToList(),
-                                progressSources,
-                                context,
-                                NativeLogger);
-
-                            var command = new RestoreCommand(request.Request);
-
-                            // Act
-                            var result = await command.ExecuteAsync();
-
-                            if (!result.Success)
-                            {
-                                throw new InvalidOperationException($"Could not restore package {packageId}");
-                            }
-                            var toInstall = result.RestoreGraphs.Last().Install;
-                            NugetRestoreInstalling?.Invoke(toInstall.Count);
-                            var installed = 0;
-                            foreach (var install in toInstall)
-                            {
-                                var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
-                                if (package != null)
-                                {
-                                    var packagePath = Path.Combine(installPath, package.Path);
-                                    OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
-                                }
-                                currentProgressReport?.ReportInstalled(++installed, toInstall.Count);
-                            }
-                        }
-                    }
-
-                    if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
-                    {
-                        UpdateTargetsHelper();
-                    }
+                    UpdateTargetsHelper();
                 }
 
                 // Load the recently installed package
@@ -689,6 +569,138 @@ public partial class NugetStore : INugetDownloadProgress
             }
 
             NugetPackageInstalled?.Invoke(sender, args);
+        }
+    }
+
+    /// <summary>
+    /// Restores exactly <paramref name="version"/> of a package and its dependencies into the global packages folder.
+    /// </summary>
+    /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
+    public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
+    {
+        var restoreSettings = settingsRoot != null ? NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot) : settings;
+        using (GetLocalRepositoryLock())
+        {
+            var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
+            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null);
+        }
+    }
+
+    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled)
+    {
+        ActivityCorrelationId.StartNew();
+
+        // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
+        if (!targetFrameworks.Any())
+            targetFrameworks = ["net10.0"];
+
+        // The synthetic project name must never collide with a dependency
+        var projectPath = projectName + ".json";
+        var spec = new PackageSpec()
+        {
+            Name = projectName,
+            FilePath = projectPath,
+            RestoreMetadata = new ProjectRestoreMetadata
+            {
+                ProjectPath = projectPath,
+                ProjectName = projectName,
+                ProjectStyle = ProjectStyle.PackageReference,
+                ProjectUniqueName = projectPath,
+                OutputPath = outputPath,
+                OriginalTargetFrameworks = targetFrameworks.ToList(),
+                ConfigFilePaths = restoreSettings.GetConfigFilePaths(),
+                PackagesPath = installPath,
+                Sources = SettingsUtility.GetEnabledSources(restoreSettings).ToList(),
+                FallbackFolders = [.. SettingsUtility.GetFallbackPackageFolders(restoreSettings)]
+            },
+        };
+        foreach (var targetFramework in targetFrameworks)
+        {
+            spec.TargetFrameworks.Add(new TargetFrameworkInformation
+            {
+                FrameworkName = NuGetFramework.Parse(targetFramework),
+                Dependencies =
+                    [
+                        new()
+                        {
+                            LibraryRange = new LibraryRange(packageId, version, LibraryDependencyTarget.Package),
+                        }
+                    ],
+            });
+        }
+
+        using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
+        {
+            context.IgnoreFailedSources = true;
+
+            var dependencyGraphSpec = new DependencyGraphSpec();
+
+            dependencyGraphSpec.AddProject(spec);
+
+            dependencyGraphSpec.AddRestore(spec.RestoreMetadata.ProjectUniqueName);
+
+            var requestProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dependencyGraphSpec);
+            var restoreArgs = new RestoreArgs
+            {
+                AllowNoOp = true,
+                CacheContext = context,
+                CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(restoreSettings)),
+                Log = NativeLogger,
+            };
+
+            // Create requests from the arguments
+            var requests = requestProvider.CreateRequests(restoreArgs).Result;
+
+            // Route restore downloads through repositories whose HTTP stack reports byte progress
+            // (DownloadProgressHandlerProvider, wired in NugetSourceRepositoryProvider).
+            var progressSources = spec.RestoreMetadata.Sources
+                .Select(sourceRepositoryProvider.CreateRepository)
+                .ToList();
+            var providersCache = new RestoreCommandProvidersCache();
+
+            LockFile? lockFile = null;
+            foreach (var request in requests)
+            {
+                // Limit concurrency to avoid timeout
+                request.Request.MaxDegreeOfConcurrency = 4;
+                request.Request.DependencyProviders = providersCache.GetOrCreate(
+                    installPath,
+                    spec.RestoreMetadata.FallbackFolders.ToList(),
+                    progressSources,
+                    context,
+                    NativeLogger);
+
+                var command = new RestoreCommand(request.Request);
+
+                // Act
+                var result = await command.ExecuteAsync();
+
+                if (!result.Success)
+                {
+                    var unresolved = result.RestoreGraphs.SelectMany(g => g.Unresolved).Select(u => u.ToString()).Distinct();
+                    var messages = (result.LockFile?.LogMessages ?? []).Where(m => m.Level >= LogLevel.Warning).Select(m => m.Message);
+                    throw new InvalidOperationException($"Could not restore package {packageId} {version}: unresolved [{string.Join(", ", unresolved)}]{string.Concat(messages.Select(m => Environment.NewLine + m))}");
+                }
+                lockFile = result.LockFile;
+                var toInstall = result.RestoreGraphs.Last().Install;
+                NugetRestoreInstalling?.Invoke(toInstall.Count);
+                if (packageInstalled != null)
+                {
+                    var installed = 0;
+                    foreach (var install in toInstall)
+                    {
+                        var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
+                        if (package != null)
+                        {
+                            var packagePath = Path.Combine(installPath, package.Path);
+                            packageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
+                        }
+                        currentProgressReport?.ReportInstalled(++installed, toInstall.Count);
+                    }
+                }
+            }
+
+            return lockFile ?? throw new InvalidOperationException($"Could not restore package {packageId}");
         }
     }
 

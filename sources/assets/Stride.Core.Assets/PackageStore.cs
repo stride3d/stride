@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using NuGet.ProjectModel;
 using Stride.Core.IO;
 using Stride.Core.Packages;
 
@@ -156,6 +157,15 @@ public class PackageStore
     /// the downloads have started, so only meaningful for an install of one package (and its small dependencies).
     /// </summary>
     public long StartedDownloadBytes => store.NugetStartedDownloadBytes;
+
+    /// <summary>
+    /// Restores a package and its dependencies from the NuGet sources configured for <paramref name="settingsRoot"/>.
+    /// </summary>
+    public Task<LockFile> RestorePackage(string packageName, PackageVersion version, string targetFramework, string? settingsRoot, string outputPath)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        return store.RestorePackage(packageName, version, [targetFramework], settingsRoot, outputPath);
+    }
 
     /// <summary>
     /// Gets the default package manager.

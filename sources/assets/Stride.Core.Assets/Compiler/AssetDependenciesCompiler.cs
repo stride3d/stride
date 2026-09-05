@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Yaml;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
@@ -78,7 +79,11 @@ public class AssetDependenciesCompiler
             {
                 var mainCompiler = BuildDependencyManager.AssetCompilerRegistry.GetCompiler(assetItem.Asset.GetType(), assetNode.CompilationContext);
                 if (mainCompiler is null)
+                {
+                    if (assetItem.Asset is IUnloadable unloadable)
+                        finalResult.Error($"Cannot compile asset [{assetItem.Location}]: its type [{unloadable.TypeName}] from [{unloadable.AssemblyName}] is not loaded ({unloadable.Error}). The package providing it is missing.");
                     return;
+                }
 
                 var compilerResult = mainCompiler.Prepare(context, assetItem);
 

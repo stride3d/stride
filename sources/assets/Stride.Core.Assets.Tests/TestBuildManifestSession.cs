@@ -115,6 +115,103 @@ namespace Stride.Core.Assets.Tests
         }
 
         [Fact]
+        public void TestDevRedirectDeclarationsComeFromTheProjectManifest()
+        {
+            // A dev-redirect stub generated from another state of the checkout still declares a companion; the
+            // project's own build manifest, written by its last build, declares none
+            var dirPath = Path.Combine(DirectoryTestBase, "TestDevRedirectDeclarationsComeFromTheProjectManifest");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            var projectDirectory = Path.Combine(dirPath, "DevLib");
+            var stubDirectory = Path.Combine(dirPath, "packages", "devlib", "1.0.0");
+            Directory.CreateDirectory(Path.Combine(projectDirectory, "obj", "Debug", "net10.0"));
+            Directory.CreateDirectory(Path.Combine(stubDirectory, "stride"));
+            Directory.CreateDirectory(Path.Combine(stubDirectory, "build"));
+            Directory.CreateDirectory(Path.Combine(dirPath, "MyGame", "obj"));
+
+            File.WriteAllText(Path.Combine(projectDirectory, "DevLib.csproj"), "<Project />");
+            File.WriteAllText(Path.Combine(projectDirectory, "DevLib.sdpkg"),
+                """
+                !Package
+                SerializedVersion: {Assets: 3.1.0.0}
+                Meta:
+                    Name: DevLib
+                    Version: 1.0.0
+                """);
+            File.WriteAllText(Path.Combine(projectDirectory, "obj", "Debug", "net10.0", "DevLib.sdbuild"),
+                """
+                !AssetBuildManifest
+                Version: 1
+                ProjectFile: "../../../DevLib.csproj"
+                PackageFile: "../../../DevLib.sdpkg"
+                PackageName: "DevLib"
+                """);
+
+            File.WriteAllText(Path.Combine(stubDirectory, "stride", "DevLib.sdpkg"),
+                """
+                !Package
+                SerializedVersion: {Assets: 3.1.0.0}
+                Meta:
+                    Name: DevLib
+                    Version: 1.0.0
+                AssetNamespace: DevLib
+                CompanionPackages:
+                    -   Name: DevLib.Assets
+                        Version: 1.0.0
+                        Kind: Assets
+                """);
+            File.WriteAllText(Path.Combine(stubDirectory, "build", "DevLib.props"),
+                $"""
+                <Project>
+                  <ItemGroup Condition="false">
+                    <Reference Include="DevLib">
+                      <StrideDevProjectDirectory>{projectDirectory}</StrideDevProjectDirectory>
+                    </Reference>
+                  </ItemGroup>
+                </Project>
+                """);
+
+            File.WriteAllText(Path.Combine(dirPath, "MyGame", "MyGame.sdpkg"),
+                """
+                !Package
+                SerializedVersion: {Assets: 3.1.0.0}
+                Meta:
+                    Name: MyGame
+                    Version: 1.0.0
+                """);
+            File.WriteAllText(Path.Combine(dirPath, "MyGame", "obj", "project.assets.json"),
+                $$"""
+                {
+                  "version": 3,
+                  "targets": { "net10.0": { "DevLib/1.0.0": { "type": "package" } } },
+                  "libraries": { "DevLib/1.0.0": { "type": "package", "path": "devlib/1.0.0", "files": [ "build/DevLib.props", "stride/DevLib.sdpkg" ] } },
+                  "projectFileDependencyGroups": { "net10.0": [ "DevLib >= 1.0.0" ] },
+                  "packageFolders": { "{{(Path.Combine(dirPath, "packages") + Path.DirectorySeparatorChar).Replace("\\", "\\\\")}}": {} },
+                  "project": { "version": "1.0.0", "frameworks": { "net10.0": {} } }
+                }
+                """);
+            File.WriteAllText(Path.Combine(dirPath, "MyGame", "obj", "MyGame.sdbuild"),
+                """
+                !AssetBuildManifest
+                Version: 1
+                ProjectFile: "../MyGame.csproj"
+                PackageFile: "../MyGame.sdpkg"
+                PackageName: "MyGame"
+                TargetFramework: "net10.0"
+                NuGetLockFile: "project.assets.json"
+                """);
+
+            var sessionResult = new PackageSessionResult();
+            PackageSession.LoadFromBuildManifest(Path.Combine(dirPath, "MyGame", "obj", "MyGame.sdbuild"), sessionResult);
+
+            // The stale stub's companion would be loaded and reported missing
+            Assert.False(sessionResult.HasErrors, string.Join(Environment.NewLine, sessionResult.Messages.Select(x => x.ToString())));
+            var devLib = sessionResult.Session.Packages.Single(x => x.Meta.Name == "DevLib");
+            Assert.Empty(devLib.CompanionPackages);
+            Assert.Equal("DevLib", devLib.AssetNamespace);
+        }
+
+        [Fact]
         public void TestManifestReadsOldAssetAssembliesKey()
         {
             // A manifest written before HostAssemblies was named AssetAssemblies
