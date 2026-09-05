@@ -260,6 +260,7 @@ public static class Program
     private static void HandleException(Exception exception, int location)
     {
         if (exception == null) return;
+        if (exception is OperationCanceledException) return; // a cancelled operation isn't a crash
 
         //prevent multiple crash reports
         if (terminating) return;
