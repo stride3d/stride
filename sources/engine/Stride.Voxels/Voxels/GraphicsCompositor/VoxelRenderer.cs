@@ -21,6 +21,21 @@ namespace Stride.Rendering.Voxels
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     public class VoxelRenderer : IVoxelRenderer
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(VoxelRenderer));
+
+        /// <summary>
+        /// Whether voxelization can run here. Collect sets this, and Draw reads it, so the two agree.
+        /// </summary>
+        [DataMemberIgnore]
+        private bool canVoxelize;
+
+        /// <summary>
+        /// Whether the reason voxelization is off has already been reported. Collect runs every frame.
+        /// </summary>
+        [DataMemberIgnore]
+        private bool reportedUnsupported;
+
+
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
         [DataMemberIgnore]
@@ -48,9 +63,23 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (Context.RenderSystem.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
+            var support = Context.RenderSystem.GraphicsDevice.Features.Supports(GraphicsCapability.ComputeShaders);
+            canVoxelize = support == GraphicsCapabilitySupport.Available;
+
+            if (!canVoxelize)
             {
-                throw new ArgumentOutOfRangeException("Graphics Profile Level 11 or higher required for Voxelization.");
+                // Collect runs every frame, so say it once. The user asked for voxelization by adding this
+                // renderer and a volume, and silence would leave them with no lighting and no reason.
+                if (!reportedUnsupported)
+                {
+                    reportedUnsupported = true;
+
+                    Log.Warning(support == GraphicsCapabilitySupport.NotImplementedByBackend
+                        ? $"Voxelization is disabled: the {GraphicsDevice.Platform} backend does not implement compute shaders."
+                        : "Voxelization is disabled: this device does not support compute shaders.");
+                }
+
+                return;
             }
 
             //Setup per volume passes and texture allocations
@@ -200,7 +229,7 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (drawContext.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
+            if (!canVoxelize)
                 return;
 
             var context = drawContext;

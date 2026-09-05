@@ -35,6 +35,31 @@ public partial struct GraphicsDeviceFeatures
     private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
 
     /// <summary>
+    ///   Whether the device provides a capability, ignoring whether this backend can drive it.
+    /// </summary>
+    /// <param name="capability">The capability to ask the device about.</param>
+    public readonly bool Provides(GraphicsCapability capability) => capability.IsProvidedByDevice(this);
+
+    /// <summary>
+    ///   Whether a renderer can use a capability here, and if not, why not.
+    /// </summary>
+    /// <param name="capability">The capability the renderer needs.</param>
+    /// <remarks>
+    ///   The backend is asked first. What the device provides does not matter when the backend cannot
+    ///   drive it, and the two answers have different remedies. Another device fixes one. Only a change
+    ///   to Stride fixes the other.
+    /// </remarks>
+    public readonly GraphicsCapabilitySupport Supports(GraphicsCapability capability)
+    {
+        if (!GraphicsBackend.Implements(capability.Kind))
+            return GraphicsCapabilitySupport.NotImplementedByBackend;
+
+        return Provides(capability)
+            ? GraphicsCapabilitySupport.Available
+            : GraphicsCapabilitySupport.NotProvidedByDevice;
+    }
+
+    /// <summary>
     ///   The requested profile when the <see cref="GraphicsDevice"/> was created.
     /// </summary>
     /// <seealso cref="GraphicsProfile"/>
@@ -154,6 +179,12 @@ public partial struct GraphicsDeviceFeatures
     /// </summary>
     public readonly bool HasResourceRenaming;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports index buffers of 32-bit indices.
+    /// </summary>
+    /// <seealso cref="Buffer.Index"/>
+    public readonly bool HasIndex32Bits;
+
 
     /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.
@@ -205,8 +236,19 @@ public partial struct GraphicsDeviceFeatures
         }
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    ///   Every flag that makes a renderer quietly do something else is named here. Leaving one out means
+    ///   the degrade it causes cannot be diagnosed from the log.
+    /// </remarks>
     public override readonly string ToString()
     {
-        return $"Level: {RequestedProfile}, HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, HasDriverCommandLists: {HasDriverCommandLists}";
+        return $"Requested: {RequestedProfile}, Current: {CurrentProfile}, " +
+               $"HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, " +
+               $"HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, " +
+               $"HasDriverCommandLists: {HasDriverCommandLists}, HasSRgb: {HasSRgb}, " +
+               $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
+               $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}, " +
+               $"HasIndex32Bits: {HasIndex32Bits}";
     }
 }

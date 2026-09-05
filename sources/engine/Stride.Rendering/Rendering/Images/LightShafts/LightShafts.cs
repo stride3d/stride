@@ -95,7 +95,12 @@ namespace Stride.Rendering.Images
             if (forwardLightingFeature == null)
                 throw new InvalidOperationException("Missing forward lighting render feature");
 
-            shadowMapRenderer = forwardLightingFeature.ShadowMapRenderer;
+            // ForwardLightingRenderFeature treats this as optional and null-checks it, and
+            // GraphicsCompositorHelper builds the feature without one below profile 10.0. Draw would
+            // dereference it, so say so here rather than throwing a NullReferenceException per frame.
+            shadowMapRenderer = forwardLightingFeature.ShadowMapRenderer
+                ?? throw new InvalidOperationException("Missing shadow map renderer. Light shafts are drawn from shadow maps, " +
+                                                       "so the forward lighting render feature needs one.");
 
             for (int i = 0; i < 2; ++i)
             {

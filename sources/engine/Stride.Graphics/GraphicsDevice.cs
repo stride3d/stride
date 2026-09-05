@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -24,6 +25,8 @@ namespace Stride.Graphics
         ///   It helps optimize performance by avoiding redundant creation of identical Sampler States.
         /// </summary>
         internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
+
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
         /// <summary>
         ///   Gets the features supported by the Graphics Device.
@@ -177,6 +180,10 @@ namespace Stride.Graphics
 
             // Checks the features supported by the new Graphics Device
             features = new GraphicsDeviceFeatures(this);
+
+            // The only point where features are built, on both the create and the reset path. Anything
+            // that reports them from elsewhere goes stale when a reset rebuilds them.
+            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {features}");
 
             // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);

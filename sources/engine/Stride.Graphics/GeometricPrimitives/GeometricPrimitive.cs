@@ -91,9 +91,9 @@ namespace Stride.Graphics.GeometricPrimitives
             }
             else
             {
-                if (graphicsDevice.Features.CurrentProfile <= GraphicsProfile.Level_9_3)
+                if (!graphicsDevice.Features.Provides(GraphicsCapability.Index32Bits))
                 {
-                    throw new InvalidOperationException("Cannot generate more than 65535 indices on feature level HW <= 9.3");
+                    throw new InvalidOperationException("Cannot generate more than 65535 indices: this device does not support 32-bit index buffers.");
                 }
 
                 IndexBuffer = Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices).DisposeBy(this);
