@@ -247,24 +247,6 @@ namespace Stride.Assets.Presentation
         }
 
         /// <inheritdoc />
-        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
-        {
-            var pluginAssembly = GetType().Assembly;
-            foreach (var type in pluginAssembly.GetTypes())
-            {
-                if (!typeof(IPreviewView).IsAssignableFrom(type))
-                {
-                    continue;
-                }
-
-                foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
-                {
-                    assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
-                }
-            }
-        }
-
-        /// <inheritdoc />
         public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)
         {
             copyProcessors.Add(new EntityComponentCopyProcessor());

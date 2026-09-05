@@ -166,6 +166,25 @@ public static class AssemblyRegistry
     }
 
     /// <summary>
+    /// The types of <paramref name="assembly"/> the assembly processor indexed under any of <paramref name="keys"/>
+    /// (<see cref="AssemblyScanAttribute"/> types; a generic attribute's generic definition).
+    /// </summary>
+    public static IEnumerable<Type> GetScanTypes(Assembly assembly, params Type[] keys)
+    {
+        if (GetScanTypes(assembly) is not { } scanTypes)
+            yield break;
+
+        foreach (var key in keys)
+        {
+            if (scanTypes.Types.TryGetValue(key, out var types))
+            {
+                foreach (var type in types)
+                    yield return type;
+            }
+        }
+    }
+
+    /// <summary>
     /// Registers an assembly with the specified categories.
     /// </summary>
     /// <param name="assembly">The assembly.</param>

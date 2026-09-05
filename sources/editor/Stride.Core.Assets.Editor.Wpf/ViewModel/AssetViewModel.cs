@@ -66,6 +66,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     /// <summary>
     /// A view model class that represents a single asset.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public abstract class AssetViewModel : SessionObjectViewModel, IChildViewModel, ISessionObjectViewModel, IAssetPropertyProviderViewModel, IDisposable
     {
         protected internal IAssetObjectNode AssetRootNode => PropertyGraph?.RootNode;

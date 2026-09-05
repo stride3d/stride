@@ -10,6 +10,7 @@ namespace Stride.Core.Assets.Editor.Services
     /// <summary>
     /// This interface represents the view of an asset editor.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IEditorView
     {
         /// <summary>
