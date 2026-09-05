@@ -46,7 +46,7 @@ namespace TopDownRPG.Gameplay
             if (!activated)
                 return;
 
-            var dt = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var dt = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             animationTime += dt * 8;
             var coinHeight = Math.Max(0, Math.Sin(animationTime));

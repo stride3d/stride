@@ -139,8 +139,7 @@ namespace ThirdPersonPlatformer.Player
                 animationClipWalkLerp2 = AnimationRun;
             }
 
-            // Use DrawTime rather than UpdateTime
-            var time = Game.DrawTime;
+            var time = Game.UpdateTime;
             // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
             long blendedMaxDuration = 0;
             blendedMaxDuration =
@@ -150,7 +149,7 @@ namespace ThirdPersonPlatformer.Player
 
             currentTicks = blendedMaxDuration == 0
                 ? TimeSpan.Zero
-                : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
+                : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.WarpElapsed.Ticks * TimeFactor)) %
                                      blendedMaxDuration);
 
             currentTime = ((double)currentTicks.Ticks / (double)blendedMaxDuration);
@@ -160,7 +159,7 @@ namespace ThirdPersonPlatformer.Player
         {
             var speedFactor = 1;
             var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpStart.Duration.Ticks));
-            var updatedTicks = currentTicks.Ticks + (long)(Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
+            var updatedTicks = currentTicks.Ticks + (long)(Game.UpdateTime.WarpElapsed.Ticks * TimeFactor * speedFactor);
 
             if (updatedTicks < AnimationJumpStart.Duration.Ticks)
             {
@@ -177,10 +176,9 @@ namespace ThirdPersonPlatformer.Player
 
         private void UpdateAirborne()
         {
-            // Use DrawTime rather than UpdateTime
-            var time = Game.DrawTime;
+            var time = Game.UpdateTime;
             var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpMid.Duration.Ticks));
-            currentTicks = TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
+            currentTicks = TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.WarpElapsed.Ticks * TimeFactor)) %
                                      AnimationJumpMid.Duration.Ticks);
             currentTime = ((double)currentTicks.Ticks / (double)AnimationJumpMid.Duration.Ticks);
         }
@@ -189,7 +187,7 @@ namespace ThirdPersonPlatformer.Player
         {
             var speedFactor = 1;
             var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpEnd.Duration.Ticks));
-            var updatedTicks = currentTicks.Ticks + (long) (Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
+            var updatedTicks = currentTicks.Ticks + (long) (Game.UpdateTime.WarpElapsed.Ticks * TimeFactor * speedFactor);
 
             if (updatedTicks < AnimationJumpEnd.Duration.Ticks)
             {
