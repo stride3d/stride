@@ -68,10 +68,10 @@ namespace Stride.Rendering.Skyboxes
                         Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitY, -Vector3.UnitZ);
                         break;
                     case CubeMapFace.PositiveZ:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitZ, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix.LookAtRH(position, position + Vector3.UnitZ, Vector3.UnitY);
                         break;
                     case CubeMapFace.NegativeZ:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position + Vector3.UnitZ, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitZ, Vector3.UnitY);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
