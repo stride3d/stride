@@ -1360,6 +1360,8 @@ public sealed partial record FunctionTypeWithIds(int ReturnType, int[] Parameter
 
 public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShaderLoader
 {
+    public bool IsCachedBufferCurrent(ShaderBuffers buffer) => inner.IsCachedBufferCurrent(buffer);
+
     /// <summary>
     /// Cache per file.
     /// </summary>

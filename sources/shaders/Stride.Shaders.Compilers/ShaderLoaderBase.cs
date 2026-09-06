@@ -119,6 +119,8 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         return true;
     }
 
+    public bool IsCachedBufferCurrent(ShaderBuffers buffer) => ValidateCachedHashes(buffer);
+
     /// <summary>
     /// Validates all OpSourceHashSDSL entries in a cached buffer against current file content.
     /// Returns false if any dependency has changed.
