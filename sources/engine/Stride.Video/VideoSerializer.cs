@@ -23,7 +23,8 @@ namespace Stride.Video
             }
             else
             {
-                stream.Write(video.CompressedDataUrl);
+                // A placeholder video (the editor game compiles one) has no data url
+                stream.Write(video.CompressedDataUrl ?? string.Empty);
             }
         }
     }
