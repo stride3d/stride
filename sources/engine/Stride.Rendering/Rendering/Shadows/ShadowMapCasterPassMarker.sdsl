@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Mixed into the shadow caster effects after the caster's own pixel shader, so that
+    /// <see cref="ShadowMapCasterPassInfo"/> reads 1 there and nowhere else.
+    /// </summary>
+    /// <remarks>
+    /// Only where the caster keeps a pixel shader: wrapping the empty PSMain of the depth-only
+    /// caster would give it a body, and with it a pixel shader it was better off without.
+    /// </remarks>
+    shader ShadowMapCasterPassMarker : ShadowMapCasterPassInfo, ShaderBase
+    {
+        override stage void PSMain()
+        {
+            streams.IsShadowMapCasterPass = ShadowMapViewFlag.x;
+            base.PSMain();
+        }
+    };
+}

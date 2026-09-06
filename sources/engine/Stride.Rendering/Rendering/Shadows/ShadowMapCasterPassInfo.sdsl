@@ -1,0 +1,38 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Lets a material shader ask whether it is being run to write a shadow map.
+    /// </summary>
+    /// <remarks>
+    /// A material's pixel stage is composed into every pass that keeps a pixel shader, and the
+    /// shadow caster passes are among them when the material asks for it. Most materials have no
+    /// reason to care; one that finds its surface at a cost - a ray walked through a volume, a
+    /// parallax search - can settle for a depth good enough for a shadow and skip what a shadow
+    /// never reads: the normal, the colour, the last bits of precision.
+    ///
+    /// The answer is a stream, so it crosses composition boundaries the way every stream does.
+    /// Whoever asks must also write it to 0 in the vertex stage, so that it is defined in every
+    /// pass; <see cref="ShadowMapCasterPassMarker"/>, mixed into the caster effects, writes the view's flag in
+    /// the pixel stage before the material chain runs. A float rather than a bool: a bool cannot
+    /// be carried from the vertex stage to the pixel stage.
+    ///
+    /// A flag per view rather than a constant 1: the caster effect is also what a compositor's
+    /// depth-only prepass runs for the camera, and a constant had a material write the depth
+    /// it keeps for shadows into the camera's own depth buffer, where the surface it draws
+    /// afterwards then failed the depth test wherever the two disagreed.
+    /// </remarks>
+    shader ShadowMapCasterPassInfo
+    {
+        cbuffer PerView.ShadowMapView
+        {
+            /// 1 in a shadow map view, 0 in every other view - the camera's own depth-only
+            /// prepass included, which runs the very same caster effect. Written for every
+            /// view by ShadowCasterRenderFeature, so it is never stale.
+            stage float4 ShadowMapViewFlag;
+        }
+
+        stage stream float IsShadowMapCasterPass;
+    };
+}
