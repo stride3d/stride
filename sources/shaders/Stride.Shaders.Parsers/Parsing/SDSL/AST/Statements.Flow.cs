@@ -8,7 +8,27 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class Flow(TextLocation info) : Statement(info);
 
-public abstract class Loop(TextLocation info) : Flow(info);
+public abstract class Loop(TextLocation info) : Flow(info)
+{
+    /// <summary>
+    /// The loop control the shader asked for, carried to SPIR-V so the HLSL emitted from it keeps the
+    /// attribute: <c>[unroll]</c> becomes <c>Unroll</c>, <c>[loop]</c> becomes <c>DontUnroll</c>. Without it
+    /// FXC decides alone, and unrolls every loop whose trip count it can see - a cone march of a few
+    /// hundred steps included, which is minutes of compile time and megabytes of bytecode.
+    /// </summary>
+    public static Specification.LoopControlMask LoopControlFromAttribute(ShaderAttribute? attribute)
+    {
+        if (attribute is not AnyShaderAttribute any)
+            return Specification.LoopControlMask.None;
+        return any.Name.Name.ToLowerInvariant() switch
+        {
+            "unroll" => Specification.LoopControlMask.Unroll,
+            "loop" => Specification.LoopControlMask.DontUnroll,
+            _ => Specification.LoopControlMask.None,
+        };
+    }
+}
+
 public partial class Break(TextLocation info) : Statement(info)
 {
     public override void ProcessSymbol(SymbolTable table)
@@ -148,7 +168,7 @@ public partial class While(Expression condition, Statement body, TextLocation in
         // Might need implicit conversion from float/int to bool
         conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
-        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Loop.LoopControlFromAttribute(Attribute), []));
         builder.Insert(new OpBranchConditional(conditionValue.Id, whileBodyBlock, currentEscapeBlocks.MergeBlock, []));
 
         // Body block
@@ -231,7 +251,7 @@ public partial class For(Statement initializer, Expression cond, List<Statement>
         // Might need implicit conversion from float/int to bool
         conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
-        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Loop.LoopControlFromAttribute(Attribute), []));
         builder.Insert(new OpBranchConditional(conditionValue.Id, forBodyBlock, currentEscapeBlocks.MergeBlock, []));
 
         // Body block
