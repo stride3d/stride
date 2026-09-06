@@ -212,21 +212,21 @@ public partial class ShaderMixer
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
     /// <summary>
-    /// The first unordered access register a Direct3D11 pixel shader may use.
-    /// <para>
-    /// D3D11 puts UAVs and render targets in one register space, so a pixel shader's UAVs have to
-    /// start past its render targets - FXC otherwise rejects the shader with X4509. The engine
-    /// already assumes this: CommandList.OMSetSingleUnorderedAccessView binds with
-    /// <c>UAVStartSlot: currentRenderTargetViewsActiveCount</c> and indexes
-    /// <c>slot - currentRenderTargetViewsActiveCount</c>, which is negative if a UAV took u0.
-    /// </para>
-    /// <para>
-    /// Counted as the highest output Location plus one, so multiple render targets are handled,
-    /// and left at 0 when the module has no pixel shader - a compute shader keeps u0.
-    /// </para>
+    /// Retrieves the first unordered access register a pixel shader may bind, past its render
+    /// targets.
     /// </summary>
-    private static int FirstUnorderedAccessSlot(SpirvContext context)
+    /// <remarks>
+    /// Counted as the highest output <c>Location</c> plus one, so several render targets are
+    /// handled; 0 when the module has no pixel shader, so a compute shader keeps <c>u0</c>.
+    /// </remarks>
+    /// <returns>The register index of the first UAV slot.</returns>
+    private static int GetFirstUnorderedAccessSlot(SpirvContext context)
     {
+        // Direct3D 11 puts UAVs and render targets in one register space, so a pixel shader's
+        // UAVs have to start past its render targets - FXC otherwise rejects the shader with
+        // X4509. The engine already assumes this: CommandList.OMSetSingleUnorderedAccessView
+        // binds with UAVStartSlot = currentRenderTargetViewsActiveCount and indexes
+        // slot - currentRenderTargetViewsActiveCount, which goes negative if a UAV took u0.
         var outputVariables = new HashSet<int>();
         var locations = new Dictionary<int, int>();
         var fragmentInterface = new HashSet<int>();
@@ -271,7 +271,7 @@ public partial class ShaderMixer
         // render targets. Vulkan and D3D12 share one counter and one descriptor set, where the
         // rule does not exist. See FirstUnorderedAccessSlot.
         if (options.ResourcesRegisterSeparate)
-            uavSlot = FirstUnorderedAccessSlot(context);
+            uavSlot = GetFirstUnorderedAccessSlot(context);
 
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();

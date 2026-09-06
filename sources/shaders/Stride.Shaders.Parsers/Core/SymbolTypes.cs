@@ -82,14 +82,17 @@ public abstract record SymbolType()
             };
         }
 
-        // An image - texture or typed buffer alike - cannot deliver 16-bit values: Vulkan requires
-        // its sampled type to be a 32-bit int, 64-bit int or 32-bit float
-        // (VUID-StandaloneSpirv-OpTypeImage-04656), and there is no extension that lifts it.
+        // An image - texture or typed buffer alike - is declared with a 32-bit sampled type. The
+        // SPIR-V the compiler emits is Stride's own dialect, cross-compiled to every backend, and
+        // OpTypeImage's sampled type must be a 32-bit int, 64-bit int or 32-bit float
+        // (VUID-StandaloneSpirv-OpTypeImage-04656) for the SPIR-V to be valid at all.
         //
-        // Nothing is lost. The 16 bits live in the resource's pixel format, not in the shader's
-        // declaration: the texture unit decodes the stored halfs and delivers 32-bit floats to the
-        // registers, for free. `half` is already an alias of `float` in shader model 5 anyway, and
-        // code that wants native 16-bit registers converts after the read.
+        // This is also what FXC did: from shader model 4 on, `half` is an alias of `float` in
+        // HLSL, kept for language compatibility only, so `Texture3D<half4>` declared a 32-bit
+        // register there too. The 16 bits live in the resource's pixel format, not in the shader's
+        // declaration - the texture unit decodes the stored halfs and delivers floats to the
+        // registers. Code that wants native 16-bit arithmetic uses min16float and converts after
+        // the read, as it had to before.
         static SymbolType WidenImageElementType(SymbolType elementType) => elementType switch
         {
             ScalarType { Type: Scalar.Half } => ScalarType.Float,

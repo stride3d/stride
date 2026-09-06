@@ -1,4 +1,4 @@
-﻿using Stride.Shaders.Core;
+using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -60,16 +60,16 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         /// through their composition variable and so can never be the shader's entry point.
         /// </summary>
         /// <remarks>
-        /// A composition that happens to inherit the same base as the shader it is composed into
-        /// inherits that base's entry point too, and lands in the same method group. Picking the
-        /// group's last member then picks the composition's copy: Stride.Voxels' Voxel2x2x2Mipmap
-        /// composes a Voxel2x2x2Mipmapper and both derive from ComputeShaderBase, so CSMain
-        /// resolved to the composition's, which calls the empty base Compute(). The real body -
-        /// and, once dead code was removed, the mipmap textures with it - disappeared, and voxel
-        /// GI silently contributed nothing.
+        /// A composition that inherits the same base as the shader it is composed into inherits
+        /// that base's entry point too, and lands in the same method group; picking the group's
+        /// last member would pick the composition's copy, whose body is the base's empty one.
         /// </remarks>
         static HashSet<int> CollectCompositionFunctions(SpirvBuffer buffer)
         {
+            // Found through Stride.Voxels: Voxel2x2x2Mipmap composes a Voxel2x2x2Mipmapper and
+            // both derive from ComputeShaderBase, so CSMain resolved to the composition's, which
+            // calls the empty base Compute(). The real body - and, once dead code was removed, the
+            // mipmap textures with it - disappeared, and voxel GI silently contributed nothing.
             var result = new HashSet<int>();
             var depth = 0;
 
@@ -347,22 +347,20 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         /// <summary>
         /// Drops geometry stream output parameters from every method that still has one, and the
         /// matching argument from every call to them.
-        /// <para>
+        /// </summary>
+        /// <remarks>
         /// A <c>TriangleStream&lt;Output&gt;</c> parameter carries no data - appending goes through
         /// OpEmitVertexSDSL and the stage's output variables - but it cannot be dropped earlier:
-        /// EntryPointWrapperGenerator reads the output topology off it to emit the OutputPoints /
-        /// OutputLineStrip / OutputTriangleStrip execution mode. So it survives until here, where
-        /// the entry point has already been stripped of it and everything else still has to be.
-        /// </para>
-        /// <para>
-        /// The function type is rewritten through GetOrRegister rather than in place: a method and
-        /// the entry point calling it share one OpTypeFunction when their signatures match, and
-        /// mutating it for one silently rewrites the other - which is how the entry point's own
-        /// removal left such a method with more parameters than its type declared.
-        /// </para>
-        /// </summary>
+        /// the entry point wrapper reads the output topology off it. So it survives until here,
+        /// where the entry point has already been stripped of it and everything else still has
+        /// to be.
+        /// </remarks>
         private static void RemoveGeometryStreamParameters(SpirvBuffer buffer, SpirvContext context)
         {
+            // The function type is rewritten through GetOrRegister rather than in place: a method
+            // and the entry point calling it share one OpTypeFunction when their signatures match,
+            // and mutating it for one silently rewrites the other - which is how the entry point's
+            // own removal left such a method with more parameters than its type declared.
             // Which parameter index each function loses.
             var removedParameters = new Dictionary<int, int>();
 

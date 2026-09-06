@@ -372,19 +372,22 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     /// <summary>
     /// Whether an argument is handed to the callee as the caller's own pointer instead of being
     /// copied into a function-local temporary.
+    /// </summary>
+    /// <remarks>
+    /// Three kinds of parameter are handed to the callee as the caller's own pointer rather than
+    /// as a copy in a Function variable:
     /// <list type="bullet">
-    /// <item>ref: atomic intrinsics (InterlockedAdd, etc.) need the actual memory pointer
+    /// <item><c>ref</c>: atomic intrinsics (InterlockedAdd, ...) need the actual memory pointer
     /// (Workgroup, StorageBuffer, ...).</item>
-    /// <item>Opaque resources (see <see cref="SymbolTypeExtensions.IsOpaqueResource"/>): Vulkan
+    /// <item>Opaque resources (see <see cref="SymbolTypeExtensions.IsOpaqueResource"/>): SPIR-V
     /// forbids OpStore to them, so they cannot live in a Function variable.</item>
     /// <item>Geometry streams: appending goes through OpEmitVertexSDSL and the stage's output
-    /// variables, so the object holds nothing to copy - and the copy outlived the parameter, which
-    /// the interface processor removes from the signature, leaving SPIR-V reading an id that no
-    /// longer exists.</item>
+    /// variables, so the object holds nothing to copy.</item>
     /// </list>
     /// The input and output sides both consult this: copying a result back out of something that
     /// was never copied in would write through a pointer the callee already holds.
-    /// </summary>
+    /// </remarks>
+    /// <returns>True when the argument is passed as a pointer, false when it is copied.</returns>
     private static bool IsPassedByPointer(FunctionParameter parameter)
         => parameter.Type is PointerType pointerType
             && (parameter.Modifiers == ParameterModifiers.Ref
@@ -698,17 +701,21 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     private SpirvValue[]? intermediateValues;
 
     /// <summary>
-    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c> - a pointer to that
-    /// one texel - rather than the image read indexing normally produces. Returns false when the
-    /// chain is not an atomic-capable buffer index, leaving the caller to compile it normally.
-    /// <para>
+    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c>, a pointer to that
+    /// one texel, for an atomic to operate on.
+    /// </summary>
+    /// <remarks>
     /// A typed buffer is not memory the shader can point into: it is a storage image, so SDSL
     /// compiles <c>buffer[i]</c> to an OpImageRead and <c>buffer[i] = x</c> to an OpImageWrite,
     /// both of which deal in values. An atomic needs the memory itself, and OpImageTexelPointer is
     /// the only instruction that hands it over. Its result may only be consumed by atomics, which
-    /// is why this is offered to the `ref` argument path instead of being how every index compiles.
-    /// </para>
-    /// </summary>
+    /// is why this is offered to the <c>ref</c> argument path instead of being how every index
+    /// compiles.
+    /// </remarks>
+    /// <returns>
+    /// True with the texel pointer when the chain is an atomic-capable buffer index; false
+    /// otherwise, leaving the caller to compile the chain as an ordinary read.
+    /// </returns>
     public bool TryCompileAsTexelPointer(SymbolTable table, CompilerUnit compiler, out SpirvValue texelPointer)
     {
         texelPointer = default;

@@ -248,17 +248,17 @@ namespace Stride.Rendering.Voxels
 
 
         /// <summary>
-        /// Thread group counts for clearing <paramref name="elementCount"/> buffer elements, spread
-        /// over two dimensions.
+        /// Computes the thread group counts for clearing <paramref name="elementCount"/> buffer
+        /// elements, spread over two dispatch dimensions.
         /// </summary>
-        /// <remarks>
-        /// Direct3D11 rejects a dispatch with more than 65535 groups in any one dimension, which
-        /// caps a one-dimensional clear at about 67 million elements. A 256^3 clipmap storing six
-        /// directions needs 201 million, so it failed outright. ClearBuffer recomposes the linear
-        /// index from X and Y, using <paramref name="rowLength"/> as the width of one row of groups.
-        /// </remarks>
+        /// <param name="elementCount">How many elements the clear covers.</param>
+        /// <param name="rowLength">How many elements one row of groups covers, for the shader to recompose a linear index.</param>
+        /// <returns>The group counts to dispatch <c>ClearBuffer</c> with.</returns>
         static Int3 ClearDispatch(int elementCount, out int rowLength)
         {
+            // Every API caps a dispatch at 65535 groups per dimension, which caps a one-dimensional
+            // clear at about 67 million elements. A 256^3 clipmap storing six directions needs 201
+            // million, so it failed outright; the shader recomposes the index from X and Y.
             const int threadsPerGroup = 1024;
             const int maxGroupsPerDimension = 65535;
 
