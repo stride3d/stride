@@ -837,15 +837,15 @@ public sealed partial record ExternalType(string Name, ShaderExpressionList? Gen
 public static class SymbolTypeExtensions
 {
     /// <summary>
-    /// Opaque resource types: images - which covers textures and typed buffers alike, both being
-    /// an OpTypeImage - and samplers.
-    /// <para>
-    /// Vulkan forbids OpStore to them (VUID-StandaloneSpirv-OpTypeImage-06924), so they live in
-    /// UniformConstant storage and are handed to a method as the caller's pointer rather than
-    /// copied into a Function-storage temporary. Both of those rules used to be spelled out as
-    /// their own `is TextureType or SamplerType` list, and both had forgotten typed buffers.
-    /// </para>
+    /// Determines whether a type is an opaque resource: an image, which covers textures and typed
+    /// buffers alike, or a sampler.
     /// </summary>
+    /// <remarks>
+    /// SPIR-V forbids an OpStore to an opaque resource (VUID-StandaloneSpirv-OpTypeImage-06924),
+    /// so it lives in UniformConstant storage and is handed to a method as the caller's pointer
+    /// rather than copied into a Function-storage temporary.
+    /// </remarks>
+    /// <returns>True for textures, typed buffers and samplers.</returns>
     public static bool IsOpaqueResource(this SymbolType type)
         => type is TextureType or SamplerType or BufferType;
 }
