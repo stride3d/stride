@@ -1,0 +1,35 @@
+// A [loop] and an [unroll] on for loops, and a [loop] on a while. The attribute must reach the
+// SPIR-V as the loop control on OpLoopMerge: that is what the HLSL emitted downstream keeps as
+// [loop] / [unroll], and without it FXC unrolls whatever it can see the trip count of.
+namespace Stride.Shaders.Tests;
+
+shader LoopControlRoot
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture3D<float4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    stage void CSMain()
+    {
+        float sum = 0;
+
+        [loop]
+        for (int i = 0; i < 12; i++)
+            sum += i;
+
+        [unroll]
+        for (int j = 0; j < 4; j++)
+            sum += j * 2;
+
+        int k = 0;
+        [loop]
+        while (k < 3)
+        {
+            sum += k;
+            k++;
+        }
+
+        WriteTex[streams.DispatchThreadId] = float4(sum, 0, 0, 1);
+    }
+};

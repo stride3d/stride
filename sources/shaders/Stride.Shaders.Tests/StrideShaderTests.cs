@@ -780,4 +780,27 @@ new ShaderMacro("class", "shader"),
                     "A static call is not an instance access: the stage method must stay stage-only importable.");
         }
     }
+
+    // [loop] and [unroll] on a loop must reach the SPIR-V as OpLoopMerge's loop control. SPIRV-Cross
+    // turns them back into the HLSL attributes; without them FXC unrolls every loop whose trip count
+    // it can see, and a march of a few hundred steps with texture fetches inside took it half a
+    // minute per effect.
+    [Fact]
+    public void LoopAttributesReachSpirvLoopControl()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("LoopControlRoot", [], out var buffer, out _, out _));
+
+        var controls = new List<Stride.Shaders.Spirv.Specification.LoopControlMask>();
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpLoopMerge)
+                controls.Add(((Stride.Shaders.Spirv.Core.OpLoopMerge)i).LoopControl);
+        }
+
+        Assert.Equal(
+            [Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll, Stride.Shaders.Spirv.Specification.LoopControlMask.Unroll, Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll],
+            controls);
+    }
 }
