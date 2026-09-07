@@ -369,6 +369,10 @@ public static class CrashReportSender
         // Keep only the install id, no location. A concrete non-routable IP is used rather than null so
         // Sentry does not fall back to the forwarded client IP for geolocation; 0.0.0.0 geolocates to nothing.
         sentryEvent.User.IpAddress = "0.0.0.0";
+        // The SDK's automatic device context carries the timezone: a coarse location, the very thing the zeroed
+        // IP avoids, and of no use for a crash.
+        if (sentryEvent.Contexts.Device is { } device)
+            device.Timezone = null;
 
         if (sentryEvent.Message != null)
         {
