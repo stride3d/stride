@@ -26,6 +26,7 @@ using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
 using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
+using Stride.CrashReport;
 
 namespace Stride.AssetCompiler
 {
@@ -37,6 +38,7 @@ namespace Stride.AssetCompiler
             Pack,
             UpdateGeneratedFiles,
             UpgradeAssets,
+            AdoptCrashes,
         }
 
         private static Stopwatch clock;
@@ -73,6 +75,16 @@ namespace Stride.AssetCompiler
             var mode = BuilderMode.Build;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
+
+            // The top-level catch only sees the main thread; capture other-thread crashes (which never reach it) here.
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                if (e.ExceptionObject is Exception unhandled)
+                {
+                    var snapshot = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+                    CompilerCrashCapture.CaptureTopLevel(options, unhandled, snapshot, id, name);
+                }
+            };
 
             var p = new OptionSet
             {
@@ -113,6 +125,8 @@ namespace Stride.AssetCompiler
                         options.MonitorPipeNames.Add(v);
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
+                { "crash-dir=", "Slave only: shared crash run directory the master collects crashes from", v => options.CrashRunDirectory = v },
+                { "dump-dir=", "crash-adopt only: directory of createdump minidumps to adopt into the crash store", v => options.NativeDumpDirectory = v },
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
@@ -178,6 +192,8 @@ namespace Stride.AssetCompiler
                         case "pack": mode = BuilderMode.Pack; break;
                         case "upgrade": mode = BuilderMode.UpgradeAssets; break;
                         case "generate-code": mode = BuilderMode.UpdateGeneratedFiles; break;
+                        // Internal: the MSBuild targets run this after a build to adopt any createdump minidumps.
+                        case "crash-adopt": mode = BuilderMode.AdoptCrashes; break;
                         case "help": showHelp = true; break;
                         default:
                             Console.Error.WriteLine($"Unknown command '{args[0]}'. Expected: build, pack, upgrade, generate-code.");
@@ -230,6 +246,13 @@ namespace Stride.AssetCompiler
                     globalLoggerOnGlobalMessageLogged = new ConsoleLogListener { LogMode = ConsoleLogMode.Always };
                     globalLoggerOnGlobalMessageLogged.TextFormatter = FormatLog;
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
+                }
+
+                if (mode == BuilderMode.AdoptCrashes)
+                {
+                    // Post-build native-crash adoption (Linux/macOS): read createdump's minidumps, sign and store
+                    // them, then send on CI or leave for 'stride crash send'. No session/builder needed.
+                    return CompilerCrashCapture.AdoptNativeDumps(options);
                 }
 
                 if (mode == BuilderMode.UpdateGeneratedFiles)
@@ -458,9 +481,11 @@ namespace Stride.AssetCompiler
                 options.Logger.Error($"Command option '{e.OptionName}': {e.Message}");
                 exitCode = BuildResultCode.CommandLineError;
             }
-            catch (Exception e)
+            catch (Exception e) when (CaptureCrashThreads(out var crashThreads, out var crashedThreadId, out var crashedThreadName))
             {
                 options.Logger.Error($"Unhandled exception", e);
+                // A crash that escaped the whole build (not a single command); the filter snapshotted the other threads.
+                CompilerCrashCapture.CaptureTopLevel(options, e, crashThreads, crashedThreadId, crashedThreadName);
                 exitCode = BuildResultCode.BuildError;
             }
             finally
@@ -485,6 +510,15 @@ namespace Stride.AssetCompiler
                 YamlSerializer.Default.ResetCache();
             }
             return (int)exitCode;
+        }
+
+        // Exception filter: runs pre-unwind, so it snapshots the other threads at the crash moment. Returns true to take the catch.
+        private static bool CaptureCrashThreads(out List<StoredThread> threads, out int? crashedThreadId, out string crashedThreadName)
+        {
+            threads = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+            crashedThreadId = id;
+            crashedThreadName = name;
+            return true;
         }
 
         private void OnConsoleOnCancelKeyPress(object _, ConsoleCancelEventArgs e)

@@ -15,4 +15,6 @@ internal record CrashReportArgs
     public required CrashLocation Location { get; set; }
     public string[] Logs { get; set; } = [];
     public string? ThreadName { get; set; }
+    public int ThreadId { get; set; }
+    public System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread>? Threads { get; set; }
 }

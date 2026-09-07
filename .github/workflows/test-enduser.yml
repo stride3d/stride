@@ -81,6 +81,8 @@ jobs:
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}/crash-dumps/dotnet_%p.dmp"
       STRIDE_TESTS_CRASH_DUMPS: "1"
       STRIDE_TESTS_CRASH_DUMP_DIR: "${{ github.workspace }}/crash-dumps"
+      # Crash-report store (asset compiler, CLI) lands in the uploaded crash-dumps artifact.
+      STRIDE_CRASH_DIR: "${{ github.workspace }}/crash-dumps/crash-reports"
     steps:
       - uses: actions/checkout@v7
         with:

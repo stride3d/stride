@@ -1,0 +1,171 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Text;
+using Stride.CrashReport;
+
+namespace Stride.CrashReporter;
+
+/// <summary>
+/// A run to report: the pending crash groups, the store they came from, and the destination to send to.
+/// The reporter is a separate process from the tool that crashed, so identity and the dump travel in the
+/// files; only the DSN (a public client key, not a secret) comes from this reporter's own build.
+/// </summary>
+internal sealed class CrashSession
+{
+    private readonly CrashStore store;
+    private CrashRun run;
+    private readonly string dsn;
+    private readonly bool sessionScoped;
+    private readonly int? hostProcessId;
+
+    private CrashSession(CrashStore store, CrashRun run, string dsn, bool sessionScoped, int? hostProcessId, IntPtr ownerWindow, IReadOnlyList<StoredCrash> groups)
+    {
+        this.store = store;
+        this.run = run;
+        this.dsn = dsn;
+        this.sessionScoped = sessionScoped;
+        this.hostProcessId = hostProcessId;
+        OwnerWindow = ownerWindow;
+        Groups = groups;
+    }
+
+    /// <summary>Win32 HWND of the live host's main window to own the reporter window, or zero for a plain top-level
+    /// window (a host crash: the host is frozen or gone, so the reporter stays topmost on its own instead).</summary>
+    public IntPtr OwnerWindow { get; }
+
+    /// <summary>The deduped crash groups in this run that are not already suppressed.</summary>
+    public IReadOnlyList<StoredCrash> Groups { get; }
+
+    /// <summary>The run directory on disk (for a "reveal in file manager" that also keeps the files).</summary>
+    public string RunDirectory => run.Directory;
+
+    /// <summary>Crash sending was turned off at build time (StrideSentryDsn=false); offer no Send.</summary>
+    public bool IsDisabled => CrashReportSender.IsDisabled;
+
+    /// <summary>
+    /// Loads a run directory. The store layout is <c>&lt;base&gt;/&lt;app&gt;/run-*</c>, so the app id and base
+    /// are the run's parent and grandparent — enough to also reach the app's suppression list.
+    /// </summary>
+    public static CrashSession Load(string runDirectory, string? dsnOverride, bool sessionScoped, int? hostProcessId = null, IntPtr ownerWindow = default)
+    {
+        var full = Path.GetFullPath(runDirectory);
+        var appDir = Directory.GetParent(full) ?? throw new ArgumentException($"'{runDirectory}' has no parent app directory.");
+        var baseDir = appDir.Parent ?? throw new ArgumentException($"'{runDirectory}' has no store base directory.");
+
+        var store = new CrashStore(appDir.Name, baseDir.FullName);
+        var run = CrashStore.OpenRun(full);
+        var dsn = CrashReportSender.ResolveDsn(dsnOverride);
+
+        // Defensive: capture already skips suppressed signatures, but never re-surface one that slipped through.
+        var groups = run.Read().Where(crash => !store.IsSuppressed(crash.Signature, crash.Version)).ToList();
+        return new CrashSession(store, run, dsn, sessionScoped, hostProcessId, ownerWindow, groups);
+    }
+
+    /// <summary>True when a full-memory dump of the crashed host can be written on demand: the host itself crashed
+    /// (<c>--host-pid</c>) and is still alive, blocked until this window closes. Windows only (dbghelp).</summary>
+    public bool CanDumpHost => hostProcessId is not null && OperatingSystem.IsWindows();
+
+    /// <summary>
+    /// Writes a full-memory dump of the waiting host to <paramref name="path"/>, with the report text beside it (a
+    /// dump only makes sense with its context). Strictly on demand: it can be several GB and is unscrubbed, so it
+    /// is never written unasked and never sent. False when there is no live host or the dump failed.
+    /// </summary>
+    public bool TryWriteHostFullDump(string path)
+    {
+        if (hostProcessId is not int pid || !OperatingSystem.IsWindows())
+            return false;
+        // A managed crash has no native exception record: no thread id or exception pointers, a plain snapshot.
+        if (!MinidumpWriter.TryWriteTargetProcess(pid, 0, IntPtr.Zero, path, fullMemory: true))
+            return false;
+        try
+        {
+            var report = string.Join("\n\n----------------------------------------\n\n", Groups.Select(crash => crash.ToReportData().ToString()));
+            File.WriteAllText(Path.ChangeExtension(path, ".report.txt"), report);
+        }
+        catch
+        {
+            // The dump is the deliverable; a missing side report is not worth failing it.
+        }
+        return true;
+    }
+
+    // Cap on an opt-in asset attachment: a definition is small YAML, so a low cap keeps a stray large file out.
+    internal const long MaxAssetAttachmentBytes = 1_000_000;
+
+    public Task SendAsync(StoredCrash crash, bool includeDump, bool includeAssetDefinition,
+        string feedbackName, string feedbackEmail, string feedbackMessage)
+    {
+        var dump = includeDump ? run.ReadSendableDump(crash) : null;
+        var attachments = includeAssetDefinition ? BuildAssetDefinitionAttachment(crash) : null;
+        return CrashReportSender.SendAsync(crash, dump, dsn, attachments, feedbackName, feedbackEmail, feedbackMessage);
+    }
+
+    // The failing asset's definition file, read from disk and scrubbed of the user name/path (its YAML can
+    // reference a source path under the home folder). Null if missing or over the size cap.
+    private static IReadOnlyList<(string Name, byte[] Bytes)> BuildAssetDefinitionAttachment(StoredCrash crash)
+    {
+        var path = crash.AssetDefinitionPath;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            return null;
+        try
+        {
+            if (new FileInfo(path).Length > MaxAssetAttachmentBytes)
+                return null;
+            var scrubbed = CrashReportAnonymizer.Scrub(File.ReadAllText(path));
+            return new[] { (Path.GetFileName(path), Encoding.UTF8.GetBytes(scrubbed)) };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Full path of a crash's dump file, or null if it has none (or the file is gone).</summary>
+    public string? DumpPath(StoredCrash crash)
+    {
+        if (string.IsNullOrEmpty(crash.DumpFileName))
+            return null;
+        var path = Path.Combine(run.Directory, crash.DumpFileName);
+        return File.Exists(path) ? path : null;
+    }
+
+    /// <summary>Size in bytes of a crash's dump, or 0 if it has none, so the window can show it before sending.</summary>
+    public long DumpSize(StoredCrash crash)
+        => DumpPath(crash) is { } path ? new FileInfo(path).Length : 0;
+
+    /// <summary>True when this run belongs to a live host session (a GameStudio-routed build), so a sent crash can
+    /// be quietened just for that session; false for a crashed or one-shot host, where only "Don't show again" lasts.</summary>
+    public bool IsSessionScoped => sessionScoped;
+
+    /// <summary>On send: quieten this signature for the rest of the current GameStudio session only. A no-op when the
+    /// report is not session-scoped (the host crashed or exits now), where sending durably suppresses nothing.</summary>
+    public void SuppressForSession(StoredCrash crash)
+    {
+        if (sessionScoped)
+            store.SuppressSession(crash.Signature, crash.Version);
+    }
+
+    /// <summary>On "Don't show again": silence this signature in the per-user store until the next version.</summary>
+    public void SuppressPersistent(StoredCrash crash) => store.SuppressPersistent(crash.Signature, crash.Version);
+
+    /// <summary>Drop a group's files once it has been sent or dismissed.</summary>
+    public void Remove(StoredCrash crash) => run.Remove(crash);
+
+    /// <summary>On "Keep": if the run lives in a transient (session) store, move it to the durable store so it
+    /// survives the session and <c>stride crash send</c> can find it. A durable or empty run is left as-is.</summary>
+    public void KeepRun()
+    {
+        if (!sessionScoped || run.IsEmpty)
+            return;
+        try { run = store.MoveRunToDurable(run); }
+        catch { /* best effort: on failure the crash simply stays in the temp store */ }
+    }
+
+    /// <summary>Remove the run directory once nothing is left in it.</summary>
+    public void CleanupIfEmpty()
+    {
+        if (run.IsEmpty)
+            run.Delete();
+    }
+}

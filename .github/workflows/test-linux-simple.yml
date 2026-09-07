@@ -48,8 +48,9 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
       - name: Install dependencies
-        # Vulkan loader for Stride.Shaders.Tests (renders through the bundled Lavapipe ICD)
-        run: sudo apt-get update && sudo apt-get install -y libvulkan1
+        # Vulkan loader for Stride.Shaders.Tests (renders through the bundled Lavapipe ICD); lld links the native
+        # crash trigger (Stride.CrashReport, pulled in by Stride.CrashReport.Tests)
+        run: sudo apt-get update && sudo apt-get install -y libvulkan1 lld
       - name: Build
         run: |
           dotnet build build/Stride.Tests.Simple.Linux.slnf \

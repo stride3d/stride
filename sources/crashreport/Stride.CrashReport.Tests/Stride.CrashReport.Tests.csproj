@@ -1,0 +1,31 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <!-- No Stride serialization here: the crash-report core is deliberately standalone (no Stride.Core),
+         and the processor requires it. -->
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The sender test runs the core's Sentry code; Sentry is PrivateAssets=all in the core, so bring its runtime here
+         like every sender does (no generator/build assets: nothing should inject a startup initializer). -->
+    <PackageReference Include="Sentry" ExcludeAssets="analyzers;build" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <!-- The probe exe the tests spawn and crash; referenced so it builds and lands beside the tests. -->
+    <ProjectReference Include="..\Stride.CrashReport.TestProbe\Stride.CrashReport.TestProbe.csproj" />
+    <!-- The out-of-process reporter the store test's probe spawns via the native trigger. Referenced for build
+         order only (the probe resolves it from its dev build output at run time; its Avalonia closure is not
+         copied beside the tests). -->
+    <ProjectReference Include="..\Stride.CrashReporter\Stride.CrashReporter.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+</Project>
