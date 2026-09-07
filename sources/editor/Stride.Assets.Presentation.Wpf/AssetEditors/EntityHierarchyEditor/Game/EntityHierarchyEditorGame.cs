@@ -19,7 +19,6 @@ using Stride.Editor.Extensions;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
-using Stride.Physics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
@@ -210,11 +209,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     }
                 };
             }
-
-            //init physics system
-            var physicsSystem = new Bullet2PhysicsSystem(Services);
-            Services.AddService<IPhysicsSystem>(physicsSystem);
-            GameSystems.Add(physicsSystem);
         }
 
         /// <inheritdoc />

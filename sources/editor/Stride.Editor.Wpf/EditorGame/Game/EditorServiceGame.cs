@@ -149,9 +149,6 @@ namespace Stride.Editor.EditorGame.Game
             MicrothreadLocalDatabases.MountCommonDatabase();
 
             base.Initialize();
-
-            // TODO: the physics system should not be registered by default here!
-            Physics.Simulation.DisableSimulation = true;
         }
 
         /// <inheritdoc />
