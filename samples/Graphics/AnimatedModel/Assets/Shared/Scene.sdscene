@@ -91,7 +91,7 @@ Hierarchy:
                     dc872dea8d54144cb67f9c278f089a32: !TransformComponent
                         Id: ea2d87dc-548d-4c14-b67f-9c278f089a32
                         Position: {X: 0.0, Y: 0.0, Z: 5.0}
-                        Rotation: {X: 0.267238379, Y: 0.0, Z: 0.0, W: 0.963630438}
+                        Rotation: {X: 0.26723838, Y: 0.0, Z: 0.0, W: 0.96363044}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     c8ad616c4c51e0489a8b4f26f679ddf9: !LightComponent
@@ -103,8 +103,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
                         Intensity: 0.6
         -   Entity:
                 Id: bb7065d2-498a-45d7-b4b1-0bb1a573cc69
@@ -127,7 +127,7 @@ Hierarchy:
                     d8db6c5da878184da0683a2cef4e0a19: !TransformComponent
                         Id: 41ca3886-2abb-4396-8ea5-49a22c6a12d8
                         Position: {X: -1.0, Y: 0.5, Z: -1.4}
-                        Rotation: {X: 0.0, Y: 0.382683456, Z: 0.0, W: 0.9238795}
+                        Rotation: {X: 0.0, Y: 0.38268346, Z: 0.0, W: 0.9238795}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     18d30692ec0eaa4bac05b1cd6e893efa: !SpriteComponent
@@ -144,8 +144,8 @@ Hierarchy:
                 Components:
                     cd6dd2efd029bb46bf0955c9bcb724c0: !TransformComponent
                         Id: efd26dcd-29d0-46bb-bf09-55c9bcb724c0
-                        Position: {X: -9.128517E-08, Y: 2.61782885, Z: 1.1260438}
-                        Rotation: {X: -0.891884446, Y: 0.258556783, Z: 0.0116489381, W: 0.370883852}
+                        Position: {X: -9.128517E-08, Y: 2.6178288, Z: 1.1260438}
+                        Rotation: {X: -0.89188445, Y: 0.25855678, Z: 0.011648938, W: 0.37088385}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     1f964e14bb965f45b983b29d708fe4ed: !LightComponent
@@ -158,8 +158,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
                         Intensity: 0.6
         -   Entity:
                 Id: df07ee24-de65-4561-8f4a-da086654e07b

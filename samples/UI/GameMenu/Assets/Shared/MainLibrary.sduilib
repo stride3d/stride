@@ -35,9 +35,6 @@ Hierarchy:
                     696af3b8f93a6ab92934f3aa98257a3e~Panel.ZIndexPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
-                HorizontalAlignment: Center
-                VerticalAlignment: Center
                 Margin: {}
                 Name: ShipSelectPopup
                 Padding: {}
@@ -52,13 +49,14 @@ Hierarchy:
                 Text: Validate
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !Button
                 Id: 14f2fc6b-320f-48e3-bfc6-121d8a6e3cfb
                 DependencyProperties:
                     d7d0d5432abcbf7e3a64f7b31109541d~GridBase.ColumnPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 Margin: {}
                 Name: cancelButton
                 Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
@@ -72,6 +70,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !EditText
                 Id: 17e65222-cb1c-4e25-9a7e-e8f8807d3d09
                 DependencyProperties:
@@ -199,13 +198,14 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 19.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !Button
                 Id: 54f5ff1d-4e87-4ba9-9fd5-e585f02f4ac1
                 DependencyProperties:
                     4bb09791328ed5b45cb57ed818b51dcb~GridBase.ColumnPropertyKey: 3
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 Margin: {}
                 Name: validateButton
                 Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
@@ -219,6 +219,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !Grid
                 Id: 56441c6b-3ffd-49d3-afa7-3e6d3498a682
                 DependencyProperties:
@@ -276,6 +277,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 42.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 TextAlignment: Center
                 WrapText: true
         -   UIElement: !ImageElement
@@ -337,6 +340,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 19.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !StackPanel
                 Id: 852fd9fa-efb3-454d-a8d9-b5e1288ecf3a
                 DependencyProperties: {}
@@ -344,6 +349,7 @@ Hierarchy:
                 Margin: {}
                 Name: contentStackPanel
                 Children: {}
+                Gap: 0.0
         -   UIElement: !UniformGrid
                 Id: 8af7f84b-6c1b-4ce3-b274-f264077682df
                 DependencyProperties:
@@ -378,6 +384,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 48.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 TextAlignment: Center
                 WrapText: true
         -   UIElement: !TextBlock
@@ -392,6 +400,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 19.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ContentDecorator
                 Id: a407797f-2bb7-4d43-be29-bd8682e09164
                 DependencyProperties: {}
@@ -413,12 +423,12 @@ Hierarchy:
                 Text: Cancel
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ScrollViewer
                 Id: b271da7f-5529-4149-90a0-6da7b8a8e2e6
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
-                ClipToBounds: true
-                CanBeHitByUser: true
                 Margin: {Left: 12.0, Top: 10.0, Right: 7.0, Bottom: 10.0}
                 MaximumHeight: 425.0
                 Name: contentScrollView
@@ -443,7 +453,6 @@ Hierarchy:
                     5b7f4429dada50f0f023d8dc7cc527ea~Panel.ZIndexPropertyKey: 0
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 Margin: {}
                 Name: shipButton
                 Padding: {Left: 60.0, Top: 20.0, Right: 20.0, Bottom: 20.0}
@@ -457,12 +466,12 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 21
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !Button
                 Id: dab3aa68-8d2a-4ca6-98d1-2d105b28679f
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -479,15 +488,13 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 10
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !ModalElement
                 Id: efdc3200-c774-4cea-a94d-e0e706bd7c4d
                 DependencyProperties:
                     54511eca2781b2e7769881b06427b539~Panel.ZIndexPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
-                HorizontalAlignment: Center
-                VerticalAlignment: Center
                 DepthAlignment: Stretch
                 Margin: {}
                 Name: WelcomePopup
@@ -518,3 +525,5 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 54.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0

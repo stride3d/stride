@@ -171,7 +171,7 @@ Hierarchy:
                 Components:
                     d0d374932891764eba286de55ae991e0: !TransformComponent
                         Id: 9374d3d0-9128-4e76-ba28-6de55ae991e0
-                        Position: {X: 3.0, Y: 2.38418579E-07, Z: -10.0}
+                        Position: {X: 3.0, Y: 2.3841858E-07, Z: -10.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -195,6 +195,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             bda1b92ed41167459987b331ff903c26: !ColliderShapeAssetDesc
                                 Shape: 1a7f15af-ac01-4464-adfe-7689bd50966e:ColliderShapes/ground_csR
@@ -236,7 +237,7 @@ Hierarchy:
                     5d4ba2e0a808c94882540907f9763dcd: !TransformComponent
                         Id: e0a24b5d-08a8-48c9-8254-0907f9763dcd
                         Position: {X: 1.0, Y: 3.53, Z: 1.14}
-                        Rotation: {X: -0.112758614, Y: 0.05297385, Z: 0.00723811332, W: 0.9921829}
+                        Rotation: {X: -0.112758614, Y: 0.05297385, Z: 0.0072381133, W: 0.9921829}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     9c1141838a18c144bf8c4361e2b0e4fb: !PhysicsSample.RaycastingScript,PhysicsSample.Game

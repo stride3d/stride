@@ -144,8 +144,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -167,8 +167,8 @@ Hierarchy:
                                             DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            RotationQuaternionMin: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
-                                            RotationQuaternionMax: {X: 3.090862E-08, Y: 0.707106769, Z: 0.707106769, W: -3.090862E-08}
+                                            RotationQuaternionMin: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                                            RotationQuaternionMax: {X: 3.090862E-08, Y: 0.70710677, Z: 0.70710677, W: -3.090862E-08}
                                     Updaters: {}
                                 20971b176060b347b8cf72f1dc24da98:
                                     ParticleLifetime: {X: 1.0, Y: 1.0}
@@ -211,16 +211,16 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 1.0, G: 0.5686275, B: 0.384313732, A: 0.266666681}
-                                            ColorMax: {R: 1.0, G: 0.9529412, B: 0.549019635, A: 0.266666681}
+                                            ColorMin: {R: 1.0, G: 0.5686275, B: 0.38431373, A: 0.26666668}
+                                            ColorMax: {R: 1.0, G: 0.9529412, B: 0.54901963, A: 0.26666668}
                                         4d0f14b7e403a947a005b685cb49f682: !InitialPositionSeed
                                             InheritPosition: true
                                             Position: {X: 0.0, Y: 0.0, Z: 0.0}
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -329,8 +329,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -360,13 +360,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: true
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: true
                                             FieldShape: !FieldShapeCylinder
                                                 HalfHeight: 1.0
                                                 Radius: 1.0
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: true
                                             DisplayParticleScaleUniform: false
                                             FieldFalloff:
@@ -386,13 +386,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: true
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: true
                                             FieldShape: !FieldShapeCylinder
                                                 HalfHeight: 1.0
                                                 Radius: 4.0
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: true
                                             DisplayParticleScaleUniform: false
                                             FieldFalloff:
@@ -433,7 +433,7 @@ Hierarchy:
                         Id: 93cbf39c-32ad-402a-9e00-4926cc8038a3
                         Type: !LightAmbient
                             Color: !ColorRgbProvider
-                                Value: {R: 0.768627465, G: 0.843137264, B: 1.0}
+                                Value: {R: 0.76862746, G: 0.84313726, B: 1.0}
                         Intensity: 0.05
         -   Entity:
                 Id: 79735979-e91a-4eae-b702-070a873dfa9c
@@ -442,7 +442,7 @@ Hierarchy:
                     779b75bea59bfe49818d2885cb29b306: !TransformComponent
                         Id: be759b77-9ba5-49fe-818d-2885cb29b306
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     8d9e6c9095ca4f439f621a07b0dc40fd: !LightComponent
@@ -540,7 +540,7 @@ Hierarchy:
                                                         Value: 0.0
                                                         TangentType: Linear
                                                     5a38851688661c4d9e977128c70fcf4c:
-                                                        Key: 0.208218634
+                                                        Key: 0.20821863
                                                         Value: 0.6572705
                                                         TangentType: Linear
                                                     0b519340d3d2e742ba63af81b0abe8eb:
@@ -623,8 +623,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -687,8 +687,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -763,8 +763,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -815,7 +815,7 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 0.112750009, G: 0.112750009, B: 0.112750009, A: 1.0}
+                                            ColorMin: {R: 0.11275001, G: 0.11275001, B: 0.11275001, A: 1.0}
                                             ColorMax: {R: 0.07525, G: 0.07525, B: 0.07525, A: 1.0}
                                         712f226d6287934ab8c6082e17c4a1e8: !InitialRotationSeed
                                             InheritPosition: true
@@ -838,8 +838,8 @@ Hierarchy:
                 Components:
                     df4667ca4899b14aa8233099b697ba41: !TransformComponent
                         Id: 61687b76-9d1d-41c4-975b-e9a3fd353137
-                        Position: {X: 3.70162416, Y: 0.208704561, Z: 5.687781}
-                        Rotation: {X: 0.0, Y: 0.611050248, Z: 0.0, W: 0.7915918}
+                        Position: {X: 3.7016242, Y: 0.20870456, Z: 5.687781}
+                        Rotation: {X: 0.0, Y: 0.61105025, Z: 0.0, W: 0.7915918}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     bf1fe4b13873014684062641dc83069a: !ParticleSystemComponent
@@ -917,8 +917,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -941,7 +941,7 @@ Hierarchy:
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
                                             ColorMin: {R: 1.0, G: 0.0, B: 0.8625002, A: 1.0}
-                                            ColorMax: {R: 0.0125000477, G: 1.0, B: 0.0, A: 1.0}
+                                            ColorMax: {R: 0.012500048, G: 1.0, B: 0.0, A: 1.0}
                                     Updaters:
                                         b8ea44d52c45854c806231396b41c13b: !UpdaterGravity
                                             InheritPosition: true
@@ -963,13 +963,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: true
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: true
                                             FieldShape: !FieldShapeCylinder
                                                 HalfHeight: 1.0
                                                 Radius: 1.6
+                                            DisplayParticleRotation: true
                                             DisplayParticleScale: true
                                             DisplayParticleScaleUniform: false
                                             IsHollow: true

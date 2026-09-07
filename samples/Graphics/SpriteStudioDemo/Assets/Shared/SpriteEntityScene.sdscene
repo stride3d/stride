@@ -94,7 +94,7 @@ Hierarchy:
                 Components:
                     18e43432306f7647b7f2af6f9e73d225: !TransformComponent
                         Id: 3234e418-6f30-4776-b7f2-af6f9e73d225
-                        Position: {X: -1.25711727, Y: -1.0, Z: 7.02876854}
+                        Position: {X: -1.2571173, Y: -1.0, Z: 7.0287685}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -108,6 +108,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             5f77f33e89e43749badb27f5ad3ef379: !StaticPlaneColliderShapeDesc
                                 Normal: {X: 0.0, Y: 1.0, Z: 0.0}
@@ -118,9 +119,9 @@ Hierarchy:
                 Components:
                     7143f704d65ad041be8a984db178ce5e: !TransformComponent
                         Id: 04f74371-5ad6-41d0-be8a-984db178ce5e
-                        Position: {X: -6.616724, Y: -1.06623185, Z: 0.0}
+                        Position: {X: -6.616724, Y: -1.0662318, Z: 0.0}
                         Rotation: {X: 0.0, Y: -1.0, Z: 0.0, W: -4.371139E-08}
-                        Scale: {X: 0.450682253, Y: 0.450682253, Z: 0.450682253}
+                        Scale: {X: 0.45068225, Y: 0.45068225, Z: 0.45068225}
                         Children: {}
                     144305e514d2c7409a08890d5ba014f9: !AnimationComponent
                         Id: e5054314-d214-40c7-9a08-890d5ba014f9
