@@ -129,6 +129,32 @@ public class CrashCaptureTests
     }
 
     [Fact]
+    public void RecorderNotesFaultFrameAndBreadcrumbBesideTheDump()
+    {
+        // The asset compiler's Windows path: createdump writes the dump, the record-only handler writes the fault
+        // frame (which createdump omits there) and what the faulting thread was building, for the adopt step.
+        if (!OperatingSystem.IsWindows())
+            return; // the recorder is a no-op elsewhere: the dump's exception stream carries the fault
+
+        var dir = CreateWorkDirectory("record");
+        try
+        {
+            var (exitCode, timedOut, output) = RunProbe(dir, "record", extraEnvironment: null);
+
+            Assert.False(timedOut, $"probe must terminate, not hang (output: {output})");
+            Assert.NotEqual(0, exitCode);
+            var lines = File.ReadAllLines(Path.Combine(dir, "probe.dmp.frame"));
+            Assert.Equal(2, lines.Length);
+            Assert.Contains("+0x", lines[0]);
+            Assert.Equal("probe.sdm3d (ModelAsset)\t" + Path.Combine(dir, "probe.sdm3d"), lines[1]);
+        }
+        finally
+        {
+            TryDelete(dir);
+        }
+    }
+
+    [Fact]
     public void TargetProcessDumpWithoutExceptionRecordIsPlainSnapshot()
     {
         // The reporter dumps a still-live host on demand after a *managed* crash: there is no native exception

@@ -20,6 +20,19 @@ var dir = args[0];
 var mode = args[1];
 var marker = Path.Combine(dir, "callback-marker.txt");
 
+if (mode == "record")
+{
+    // The asset compiler's record-only path: createdump (not armed here) would write the dump; the recorder
+    // writes the fault frame and what the faulting thread was building beside it, then lets the fault run on.
+    // The dialog is suppressed here so a dev box or CI runner can't hang on it.
+    Trigger.SuppressCrashDialog();
+    Stride.NativeCrashHandler.InstallFaultingFrameRecorder(Path.Combine(dir, "probe.dmp.frame"),
+        () => "probe.sdm3d (ModelAsset)\t" + Path.Combine(dir, "probe.sdm3d"));
+    Trigger.NativeAccessViolation();
+    Console.Error.WriteLine("probe: survived the AV (unexpected)");
+    return 3;
+}
+
 if (mode == "store")
 {
     // Integration path: the public API products call. STRIDE_CRASH_DIR points the store at the work dir.
@@ -101,6 +114,17 @@ internal static partial class Trigger
 
     [DllImport("kernel32.dll")]
     private static extern void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint SetErrorMode(uint uMode);
+
+    // SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX: no crash dialog for the record mode,
+    // whose handler (unlike InstallForReporting) leaves the dialog alone.
+    public static void SuppressCrashDialog()
+    {
+        if (OperatingSystem.IsWindows())
+            SetErrorMode(0x0001 | 0x0002 | 0x8000);
+    }
 
     private static IntPtr Memset(IntPtr dest, int c, IntPtr count)
         => OperatingSystem.IsWindows() ? MemsetWindows(dest, c, count) : MemsetUnix(dest, c, count);

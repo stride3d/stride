@@ -83,17 +83,38 @@ namespace Stride.AssetCompiler
         /// dump <c>createdump</c> will write, so the post-build adopt step can name the fault location -- Windows
         /// <c>createdump</c> omits the exception stream (dotnet/runtime#133065). No-op when crash reporting is off,
         /// off Windows (the exception stream is present there), or when <c>createdump</c> isn't armed for this process.
-        /// Call once per process (master and each slave) before commands run.
+        /// Call once per process (master and each slave) before commands run. <paramref name="breadcrumb"/> names
+        /// what the faulting thread was building (see <see cref="Breadcrumb(Command, AssetItem)"/>); it runs in the
+        /// fault path, so keep it cheap.
         /// Remove when dotnet/runtime#133065 ships: the fault frame comes from the dump then.
         /// </summary>
-        public void InstallNativeFaultRecorder()
+        public void InstallNativeFaultRecorder(Func<string> breadcrumb = null)
         {
             if (mode == CrashMode.Off || !OperatingSystem.IsWindows())
                 return;
             var framePath = FaultingFramePathForThisProcess();
             if (framePath != null)
-                Stride.NativeCrashHandler.InstallFaultingFrameRecorder(framePath);
+                Stride.NativeCrashHandler.InstallFaultingFrameRecorder(framePath, breadcrumb);
         }
+
+        /// <summary>
+        /// What the native-fault recorder notes beside the dump for the command a native crash happened in:
+        /// "&lt;asset label&gt;\t&lt;definition path&gt;" (the path is empty when unknown, the label falls back to
+        /// the command title). Null when nothing is running. The adopt step turns it back into the report's
+        /// affected asset and attachable definition, the same fields a managed command crash carries.
+        /// </summary>
+        public static string Breadcrumb(Command command, AssetItem asset)
+        {
+            var label = AssetLabel(asset) ?? command?.Title;
+            return label == null ? null : label + "\t" + (asset?.FullPath?.ToOSPath() ?? string.Empty);
+        }
+
+        /// <summary>The breadcrumb for the step running on the current async flow (the master's case).</summary>
+        public static string Breadcrumb(CommandBuildStep step)
+            => step == null ? null : Breadcrumb(step.Command, step.Tag as AssetItem);
+
+        private static string AssetLabel(AssetItem asset)
+            => asset != null ? $"{asset.Location.GetFileName()} ({asset.Asset?.GetType().Name})" : null;
 
         /// <summary>The run captured crashes are written to, created on first use. Shared with the build's slaves.</summary>
         public CrashRun EnsureRun()
@@ -144,13 +165,17 @@ namespace Stride.AssetCompiler
                 {
                     // The native fault frame (module+rva): from the dump's exception stream on Linux/macOS, or
                     // recorded live by the vectored handler on Windows (createdump writes no exception stream there).
-                    var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath)
-                                        ?? ReadRecordedFaultingFrame(dumpPath);
+                    // The recorder also notes what the faulting thread was building (Windows only, see Breadcrumb).
+                    var (recordedFrame, breadcrumb) = ReadRecordedFaultingFrame(dumpPath);
+                    var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath) ?? recordedFrame;
+                    var assetLabel = breadcrumb?.Split('\t', 2)[0];
+                    var assetDefinitionPath = breadcrumb?.Split('\t', 2).ElementAtOrDefault(1);
 
                     var data = new CrashReportData
                     {
                         ["Application"] = ApplicationName,
                         ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame),
+                        ["Asset"] = assetLabel,
                         ["Platform"] = platform,
                         ["GraphicsApi"] = graphicsApi,
                         ["Configuration"] = configuration,
@@ -159,6 +184,10 @@ namespace Stride.AssetCompiler
                         data["FaultingFrame"] = faultingFrame;
 
                     var crash = NewStoredCrash(data);
+                    if (!string.IsNullOrEmpty(assetLabel))
+                        crash.AffectedAssets.Add(assetLabel);
+                    if (!string.IsNullOrEmpty(assetDefinitionPath))
+                        crash.AssetDefinitionPath = assetDefinitionPath; // local-only, for the reporter's attach offer
                     // Walk the dump for the crashing thread's managed stack (and the others'), so a native asset
                     // crash reports like a managed one instead of a bare message. createdump dumps carry the CLR
                     // memory this needs; best-effort, so a dump that can't be walked still sends the message.
@@ -247,21 +276,24 @@ namespace Stride.AssetCompiler
             catch { return false; }
         }
 
-        // The faulting frame the vectored handler recorded beside a Windows createdump dump ("<dump>.frame"),
-        // or null when there is none (a clean build, off Windows, or the handler didn't run). See InstallNativeFaultRecorder.
-        private static string ReadRecordedFaultingFrame(string dumpPath)
+        // What the vectored handler recorded beside a Windows createdump dump ("<dump>.frame"): the faulting frame on
+        // the first line, the breadcrumb (see Breadcrumb) on the second. Nulls when there is none (a clean build,
+        // off Windows, or the handler didn't run). See InstallNativeFaultRecorder.
+        private static (string Frame, string Breadcrumb) ReadRecordedFaultingFrame(string dumpPath)
         {
             try
             {
                 var framePath = dumpPath + ".frame";
                 if (File.Exists(framePath))
                 {
-                    var frame = File.ReadAllText(framePath).Trim();
-                    return string.IsNullOrEmpty(frame) ? null : frame;
+                    var lines = File.ReadAllLines(framePath);
+                    var frame = lines.ElementAtOrDefault(0)?.Trim();
+                    var breadcrumb = lines.ElementAtOrDefault(1)?.Trim();
+                    return (string.IsNullOrEmpty(frame) ? null : frame, string.IsNullOrEmpty(breadcrumb) ? null : breadcrumb);
                 }
             }
             catch { /* best effort */ }
-            return null;
+            return (null, null);
         }
 
         // The ".frame" sidecar the vectored handler writes for this process: DOTNET_DbgMiniDumpName with createdump's
@@ -361,7 +393,7 @@ namespace Stride.AssetCompiler
         private StoredCrash BuildCrash(Command command, AssetItem asset, Exception exception, string stepKind, string signature)
         {
             var assetType = asset?.Asset?.GetType().Name;
-            var assetLabel = asset != null ? $"{asset.Location.GetFileName()} ({assetType})" : null;
+            var assetLabel = AssetLabel(asset);
 
             var data = new CrashReportData
             {

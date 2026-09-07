@@ -92,6 +92,7 @@ namespace Stride
         private static IntPtr vectoredHandlerHandle;    // for the unregistration at process exit
         private static int crashHandled;               // 0/1 guard: dump at most once across VEH + FirstChance
         private static string faultingFrameFile;        // record-only mode: write the faulting frame here, write no dump
+        private static Func<string> faultingFrameBreadcrumb; // record-only mode: what the faulting thread was working on
 
         /// <summary>
         /// Installs the crash-dialog suppression and (when STRIDE_TESTS_CRASH_DUMPS=1) the SEH minidump
@@ -162,13 +163,17 @@ namespace Stride
         /// which on Windows omits that stream (dotnet/runtime#133065), so the post-build adopt step can still name
         /// the crashing thread's fault location. Unlike <see cref="InstallForReporting"/> it writes no dump of its
         /// own and does not suppress the crash dialog (createdump handles termination).
+        /// <paramref name="breadcrumb"/>, when given, is called on the faulting thread and its text goes on a second
+        /// line: what that thread was working on (the compiler passes the asset its command was building), which
+        /// the dump alone can't tell. Must be cheap and must not throw.
         /// Remove when dotnet/runtime#133065 ships: createdump would then record the fault in the dump itself.
         /// </summary>
-        public static void InstallFaultingFrameRecorder(string faultingFramePath)
+        public static void InstallFaultingFrameRecorder(string faultingFramePath, Func<string> breadcrumb = null)
         {
             if (!OperatingSystem.IsWindows())
                 return;
             faultingFrameFile = faultingFramePath;
+            faultingFrameBreadcrumb = breadcrumb;
             RegisterVectoredHandler();
         }
 
@@ -238,8 +243,17 @@ namespace Stride
                 if (faultingFrameFile != null)
                 {
                     // Record-only mode (compiler): the runtime's createdump writes the dump; we add just the
-                    // faulting frame it omits on Windows, for the post-build adopt step. Then let the fault run on.
-                    try { File.WriteAllText(faultingFrameFile, signature ?? string.Empty); } catch { /* dying process */ }
+                    // faulting frame it omits on Windows, plus the breadcrumb, for the post-build adopt step.
+                    // Then let the fault run on.
+                    try
+                    {
+                        var text = signature ?? string.Empty;
+                        var crumb = faultingFrameBreadcrumb?.Invoke();
+                        if (!string.IsNullOrEmpty(crumb))
+                            text += "\n" + crumb;
+                        File.WriteAllText(faultingFrameFile, text);
+                    }
+                    catch { /* dying process */ }
                 }
                 else
                 {

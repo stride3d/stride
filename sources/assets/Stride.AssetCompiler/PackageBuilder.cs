@@ -161,8 +161,9 @@ namespace Stride.AssetCompiler
                 // isolate some commands into their own process, so hand the capture to the remote helper too:
                 // it shares this run directory with each slave, which writes its crashes there for us to collect.
                 crashCapture = new CompilerCrashCapture(builderOptions);
-                // Record each native crash's faulting frame beside createdump's dump (Windows only; see the method).
-                crashCapture.InstallNativeFaultRecorder();
+                // Record each native crash's faulting frame beside createdump's dump (Windows only; see the method),
+                // with the asset whose command was running on the faulting thread.
+                crashCapture.InstallNativeFaultRecorder(() => CompilerCrashCapture.Breadcrumb(CommandBuildStep.Current));
 
                 // Setup the remote process build
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions,
@@ -496,9 +497,11 @@ namespace Stride.AssetCompiler
                 // master asked for it; the master collects and reports them at the end. Native crashes are captured
                 // by the runtime's createdump, armed via the environment the slave inherits from the master.
                 var crashCapture = string.IsNullOrEmpty(builderOptions.CrashRunDirectory) ? null : CompilerCrashCapture.ForSlave(builderOptions);
-                crashCapture?.InstallNativeFaultRecorder(); // record native fault frames beside createdump's dumps (Windows)
-
+                // Record native fault frames beside createdump's dumps (Windows), named after this slave's one
+                // command (the asset itself is only known on the master's side, as for managed failures).
                 Command command = null;
+                crashCapture?.InstallNativeFaultRecorder(() => CompilerCrashCapture.Breadcrumb(command, asset: null));
+
                 MicroThread microthread = scheduler.Add(async () =>
                 {
                     // Deserialize command and parameters
