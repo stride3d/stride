@@ -7,12 +7,9 @@ namespace SpaceEscape.Background
 {
     public class BackgroundInfo : ScriptComponent
     {
-        public BackgroundInfo()
-        {
-            Holes = new List<Hole>();
-        }
-
         public int MaxNbObstacles { get; set; }
-        public List<Hole> Holes { get; private set; }
+
+        // Get-only: a private setter would keep this out of serialization.
+        public List<Hole> Holes { get; } = new List<Hole>();
     }
 }
