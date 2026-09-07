@@ -67,6 +67,24 @@ public static class Program
         catch { /* best-effort */ }
     }
 
+    // A crash before Run's own handler exists (the module initializers, the NuGet resolver's restore, the JIT of Main),
+    // typically an assembly missing from the install, would otherwise kill the process with nothing on screen.
+    // Ordered before the resolver's initializer; user32 because anything else would need the resolver that just failed.
+    [Stride.Core.ModuleInitializer(int.MinValue)]
+    internal static void ArmStartupFailureDialog()
+    {
+        if (Assembly.GetEntryAssembly() == typeof(Program).Assembly)
+            AppDomain.CurrentDomain.UnhandledException += StartupFailureDialog;
+    }
+
+    private static void StartupFailureDialog(object sender, UnhandledExceptionEventArgs e)
+    {
+        MessageBoxW(IntPtr.Zero, $"Stride Game Studio failed to start.\n\n{e.ExceptionObject}", "Stride", 0x10 /* MB_ICONERROR */);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
+
     [STAThread]
     public static void Main()
     {
@@ -103,6 +121,7 @@ public static class Program
     {
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
         // The managed handlers above can't see a native access violation (native interop, GPU drivers) — it kills
         // the process first. Arm the native handler so such a crash is captured and offered to the reporter too.
         Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
