@@ -69,7 +69,7 @@
         <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
           <MenuItem.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
-              <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+              <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
               <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
               <Setter Property="ItemContainerStyle">
                 <Setter.Value>
@@ -113,7 +113,7 @@
         <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
           <MenuItem.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
-              <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+              <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
               <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
               <Setter Property="ItemContainerStyle">
                 <Setter.Value>
@@ -208,7 +208,7 @@
                 <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
                   <MenuItem.ItemContainerStyle>
                     <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
-                      <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+                      <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
                       <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
                       <Setter Property="ItemContainerStyle">
                         <Setter.Value>
@@ -846,7 +846,7 @@
               <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True">
                 <MenuItem.ItemContainerStyle>
                   <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
-                    <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+                    <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
                     <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
                     <Setter Property="ItemContainerStyle">
                       <Setter.Value>

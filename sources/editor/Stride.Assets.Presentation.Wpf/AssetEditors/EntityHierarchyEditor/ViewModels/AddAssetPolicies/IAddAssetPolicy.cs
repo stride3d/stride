@@ -11,6 +11,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IAddAssetPolicy
     {
         /// <summary>
