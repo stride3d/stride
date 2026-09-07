@@ -1,3 +1,5 @@
+// Compiler regression: a shader field whose name matches an intrinsic method name must not
+// confuse method-call resolution with the field symbol (`float SampleLevel;` vs `Tex.SampleLevel(...)`).
 namespace Stride.Shaders.Tests;
 
 shader FieldNameShadowsIntrinsicMethod
