@@ -26,6 +26,10 @@ internal static class TypeHelpers
             if (typeMap.TryGetValue(currentType, out returnType))
                 break;
 
+            // A registration on an open generic base (PreviewFromSpriteBatch<>) covers every closed one
+            if (currentType.IsConstructedGenericType && typeMap.TryGetValue(currentType.GetGenericTypeDefinition(), out returnType))
+                break;
+
             currentType = currentType.BaseType;
         } while (currentType != null);
 

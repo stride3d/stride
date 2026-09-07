@@ -205,7 +205,8 @@ public class PluginService : IAssetsPluginService
 
     private static void AssertType(Type baseType, Type specificType)
     {
-        if (!baseType.IsAssignableFrom(specificType))
+        // IsAssignableFrom is false for an open generic type, so check its interfaces too
+        if (!baseType.IsAssignableFrom(specificType) && !specificType.GetInterfaces().Contains(baseType))
             throw new ArgumentException($"Type [{specificType.FullName}] must be assignable to {baseType.FullName}", nameof(specificType));
     }
 

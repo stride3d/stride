@@ -188,11 +188,17 @@ namespace Stride.Editor.Preview
             return Task.FromResult(true);
         }
 
+        /// <summary>
+        /// Raised once <see cref="LoadContent"/> ran, so a view model can read what the preview loaded.
+        /// </summary>
+        public event EventHandler ContentLoaded;
+
         private void LoadContentSafe()
         {
             try
             {
                 LoadContent();
+                ContentLoaded?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception e)
             {
