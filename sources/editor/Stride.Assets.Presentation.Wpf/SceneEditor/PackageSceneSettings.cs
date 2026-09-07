@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -11,6 +12,7 @@ using Stride.Core.Settings;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Engine.Processors;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 
@@ -73,16 +75,15 @@ namespace Stride.Assets.Presentation.SceneEditor
         [NotNull]
         public static SceneSettingsData CreateDefault()
         {
-            return new SceneSettingsData
+            // The transform gizmo is the fallback shown on entities without any other gizmo; the rest is what the gizmo classes declare
+            var hiddenGizmos = new List<string> { DisplayAttribute.GetDisplayName(typeof(TransformComponent)) };
+            foreach (var gizmo in StrideDefaultAssetsPlugin.GizmoTypeDictionary)
             {
-                HiddenGizmos = new List<string>
-                {
-                    DisplayAttribute.GetDisplayName(typeof(TransformComponent)),
-                    DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)),
-                    DisplayAttribute.GetDisplayName(typeof(Stride.Physics.PhysicsConstraintComponent)),
-                    DisplayAttribute.GetDisplayName(typeof(ModelComponent)),
-                }
-            };
+                if (gizmo.Value.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
+                    hiddenGizmos.Add(DisplayAttribute.GetDisplayName(gizmo.Key));
+            }
+
+            return new SceneSettingsData { HiddenGizmos = hiddenGizmos };
         }
     }
 
