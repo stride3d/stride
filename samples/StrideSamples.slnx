@@ -51,7 +51,7 @@
   <Folder Name="/Physics/" />
   <Folder Name="/Physics/BepuSample/">
     <Project Path="Physics/BepuSample/BepuSample.Game/BepuSample.Game.csproj" />
-    <Project Path="Physics/BepuSample/BepuSample.Windows/BepuSample.Windows.csproj" DefaultStartup="true" />
+    <Project Path="Physics/BepuSample/BepuSample.Windows/BepuSample.Windows.csproj" />
   </Folder>
   <Folder Name="/Physics/PhysicsSample/">
     <Project Path="Physics/PhysicsSample/PhysicsSample.Game/PhysicsSample.Game.csproj" />
