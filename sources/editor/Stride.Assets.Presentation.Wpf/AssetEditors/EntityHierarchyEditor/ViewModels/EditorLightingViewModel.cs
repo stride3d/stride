@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         private int lightProbeBounces = 1;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EditorNavigationViewModel"/> class.
+        /// Initializes a new instance of the <see cref="EditorLightingViewModel"/> class.
         /// </summary>
         /// <param name="serviceProvider">The service provider for this view model.</param>
         /// <param name="controller">The controller object for the related editor game.</param>

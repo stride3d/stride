@@ -60,7 +60,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Camera = new EditorCameraViewModel(ServiceProvider, Controller);
             Transform = new EntityTransformationViewModel(ServiceProvider, Controller);
             Grid = new EditorGridViewModel(ServiceProvider, Controller);
-            Navigation = new EditorNavigationViewModel(ServiceProvider, Controller, this);
+            Overlays = new EditorOverlaysViewModel(ServiceProvider, Controller);
             Lighting = new EditorLightingViewModel(ServiceProvider, Controller, this);
             Rendering = new EditorRenderingViewModel(ServiceProvider, Controller);
             EntityGizmos = new EntityGizmosViewModel(ServiceProvider, Controller);
@@ -110,7 +110,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         public EditorGridViewModel Grid { get; }
 
         [NotNull]
-        public EditorNavigationViewModel Navigation { get; }
+        public EditorOverlaysViewModel Overlays { get; }
 
         [NotNull]
         public EditorRenderingViewModel Rendering { get; }
@@ -175,7 +175,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Session.ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsChanged;
 
             // Unregister editor view models
-            Navigation.Destroy();
+            Overlays.Destroy();
 
             base.Destroy();
         }
@@ -317,7 +317,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Lighting.LightProbeWireframeVisible = settings.LightProbeWireframe;
             Lighting.LightProbeBounces = settings.LightProbeBounces;
             MaterialSelectionMode = false;
-            Navigation.LoadSettings(settings);
+            Overlays.LoadSettings(settings);
             Rendering.LoadSettings(settings);
         }
 
@@ -329,7 +329,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Grid.SaveSettings(settings);
             settings.LightProbeWireframe = Lighting.LightProbeWireframeVisible;
             settings.LightProbeBounces = Lighting.LightProbeBounces;
-            Navigation.SaveSettings(settings);
+            Overlays.SaveSettings(settings);
             Rendering.SaveSettings(settings);
             EntityGizmos.SaveSettings(settings);
         }

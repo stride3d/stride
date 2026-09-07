@@ -570,42 +570,47 @@
                   </StackPanel>
                 </Grid>
               </Popup>
-              <!-- Navigation -->
-              <ToggleButton x:Name="ToggleNavigation" Content="{sd:Image {StaticResource ImageNavigation}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Navigation visibility..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+              <!-- Overlays (navigation meshes, debug shapes, ... whatever the editor game services draw on request) -->
+              <ToggleButton x:Name="ToggleOverlays" Content="{sd:Image {StaticResource ImageNavigation}, 16, 16, NearestNeighbor}"
+                            ToolTip="{sd:Localize Overlays..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent" >
                 <i:Interaction.Behaviors>
                   <sd:ToggleButtonPopupBehavior/>
                 </i:Interaction.Behaviors>
               </ToggleButton>
-              <Popup IsOpen="{Binding ElementName=ToggleNavigation, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleNavigation}">
+              <Popup IsOpen="{Binding ElementName=ToggleOverlays, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleOverlays}">
                 <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MaxWidth="400" MaxHeight="400">
                   <DockPanel Margin="5,2">
-                    <StackPanel DockPanel.Dock="Top">
-                      <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Show navigation meshes:}" Margin="5"/>
-                      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                        <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding Navigation.ToggleAllGroupsCommand}" CommandParameter="{sd:True}" Width="40"/>
-                        <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding Navigation.ToggleAllGroupsCommand}" CommandParameter="{sd:False}" Width="40"/>
-                      </StackPanel>
-                      <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
-                        <StackPanel>
-                          <ItemsControl ItemsSource="{Binding Navigation.Visuals}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                <Grid HorizontalAlignment="Stretch">
-                                  <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="30" />
-                                    <ColumnDefinition Width="*" />
-                                  </Grid.ColumnDefinitions>
-                                  <Rectangle HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{Binding Color, Converter={sd:ColorConverter}}" Width="20" Height="20" Stroke="#FF211E1E" OpacityMask="Black" StrokeThickness="1" />
-                                  <CheckBox Grid.Column="1" Content="{Binding DisplayName, Mode=OneWay}" IsChecked="{Binding IsVisible}" Margin="2"/>
-                                </Grid>
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                        </StackPanel>
-                      </ScrollViewer>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                      <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding Overlays.ToggleAllCommand}" CommandParameter="{sd:True}" Width="40"/>
+                      <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding Overlays.ToggleAllCommand}" CommandParameter="{sd:False}" Width="40"/>
                     </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
+                      <ItemsControl ItemsSource="{Binding Overlays.Sections}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <StackPanel>
+                              <TextBlock Text="{Binding DisplayName, Mode=OneWay}" Margin="5"/>
+                              <ItemsControl ItemsSource="{Binding Overlays}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate>
+                                    <Grid HorizontalAlignment="Stretch">
+                                      <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30" />
+                                        <ColumnDefinition Width="*" />
+                                      </Grid.ColumnDefinitions>
+                                      <Rectangle HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{Binding Color, Converter={sd:ColorConverter}}" Width="20" Height="20" Stroke="#FF211E1E" OpacityMask="Black" StrokeThickness="1"
+                                                 Visibility="{Binding HasColor, Converter={sd:VisibleOrHidden}}"/>
+                                      <CheckBox Grid.Column="1" Content="{Binding DisplayName, Mode=OneWay}" IsChecked="{Binding IsVisible}" Margin="2"/>
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
                   </DockPanel>
                 </Grid>
               </Popup>
