@@ -82,7 +82,9 @@
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- Sentry is used by the core's crash sender at send time, but it's PrivateAssets=all in the core (to keep
          its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so Sentry.dll is
-         deployed for the in-process auto-send (STRIDE_CRASH_MODE=send); PrivateAssets=all keeps it from flowing onward. -->
+         deployed for the in-process auto-send (STRIDE_CRASH_MODE=send); PrivateAssets=all keeps it from flowing onward.
+         The installed GameStudio resolves from the store, where a private package isn't: there the send falls
+         back to saving the report. -->
     <PackageReference Include="Sentry" PrivateAssets="all" />
     <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
          <dependency> (so a Stride install pulls the reporter in) without copying its self-contained closure
