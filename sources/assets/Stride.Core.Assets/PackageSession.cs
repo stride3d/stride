@@ -587,21 +587,21 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         dependencies?.Dispose();
         sourceTracker?.Dispose();
 
-        var loadedAssemblies = Packages.SelectMany(x => x.LoadedAssemblies).ToList();
+        // Everything this session's container loaded: the packages' assemblies and the dependencies they pulled in
+        // (the host's own are shared, never in the container)
+        var loadedAssemblies = AssemblyContainer.LoadedAssemblies.Select(x => x.Assembly).ToList();
         for (int index = loadedAssemblies.Count - 1; index >= 0; index--)
         {
-            var loadedAssembly = loadedAssemblies[index];
-            if (loadedAssembly is null)
-                continue;
+            var assembly = loadedAssemblies[index];
 
             // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
-            AssemblyRegistry.Unregister(loadedAssembly.Assembly);
+            AssemblyRegistry.Unregister(assembly);
 
             // Unload binary serialization
-            DataSerializerFactory.UnregisterSerializationAssembly(loadedAssembly.Assembly);
+            DataSerializerFactory.UnregisterSerializationAssembly(assembly);
 
             // Unload assembly
-            AssemblyContainer.UnloadAssembly(loadedAssembly.Assembly);
+            AssemblyContainer.UnloadAssembly(assembly);
         }
     }
 

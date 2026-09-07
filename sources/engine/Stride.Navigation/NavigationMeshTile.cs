@@ -28,7 +28,7 @@ namespace Stride.Navigation
         /// <param name="vertices">Vertex output list</param>
         /// <param name="indices">Index output list</param>
         /// <returns><c>true</c> on success, <c>false</c> on failure</returns>
-        internal bool GetTileVertices(IList<Vector3> vertices, IList<int> indices)
+        public bool GetTileVertices(IList<Vector3> vertices, IList<int> indices)
         {
             if (Data == null)
                 return false;

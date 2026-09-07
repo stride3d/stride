@@ -420,8 +420,8 @@ public static class AssetRegistry
                 RegisteredImportersInternal.Remove(existingImporter);
             }
 
-            RegisteredImportersInternal.Add(importer);
-            RegisteredImportersInternal.Sort( (left, right) => left.Order.CompareTo(right.Order));
+            // By order; importers of the same order keep their registration order
+            RegisteredImportersInternal.Insert(RegisteredImportersInternal.FindLastIndex(x => x.Order <= importer.Order) + 1, importer);
         }
     }
 

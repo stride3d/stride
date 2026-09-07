@@ -16,23 +16,5 @@ Defaults:
         RenderingMode: HDR
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
         TextureQuality: Fast
-    - !Stride.Physics.PhysicsSettings,Stride.Physics
-        Flags: None
-        MaxSubSteps: 1
-        FixedTimeStep: 0.0166666675
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
         HrtfSupport: false
-    - !Stride.Navigation.NavigationSettings,Stride.Navigation
-        EnableDynamicNavigationMesh: false
-        IncludedCollisionGroups: AllFilter
-        BuildSettings:
-            CellHeight: 0.2
-            CellSize: 0.3
-            TileSize: 32
-            MinRegionArea: 2
-            RegionMergeArea: 20
-            MaxEdgeLen: 12.0
-            MaxEdgeError: 1.3
-            DetailSamplingDistance: 6.0
-            MaxDetailSamplingError: 1.0
-        Groups: []

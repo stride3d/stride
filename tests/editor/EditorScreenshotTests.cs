@@ -210,7 +210,8 @@ public class EditorScreenshotTests
         PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
         var logger = new LoggerResult();
-        var session = new PackageSession();
+        // Disposed when done: it unloads the plugin assemblies it loaded, which the next sample's session loads again
+        using var session = new PackageSession();
         var parameters = new SessionTemplateGeneratorParameters { Session = session, Unattended = true };
         DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
         {

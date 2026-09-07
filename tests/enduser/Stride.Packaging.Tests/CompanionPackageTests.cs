@@ -294,6 +294,36 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void ColliderShapeCompilesThroughThePhysicsAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // Bullet physics: Stride.Physics declares Stride.Physics.Assets (collider shape, heightmap and navigation mesh
+        // assets, compilers, templates) and Stride.Physics.Editor (gizmos, navigation overlay, ...)
+        using var c = new Case(output, "assets-physics");
+        c.PackPlugin();
+        c.ReferencePackage("Stride.Physics");
+        c.AddColliderShapeAsset();
+        // Typed from Stride.Physics's [assembly: AssetFileExtension(".sdphy", ...)]
+        c.AddTypedConstantCheck("BoxCollider", "Stride.Physics.PhysicsColliderShape");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        c.AssertContentCompiled("/Consumer/BoxCollider");
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        Assert.Contains(compilerSession.Packages, p => p.Meta.Name == "Stride.Physics.Assets");
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.Physics.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "Navigation mesh");
+
+        // Stride.Physics.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Physics.Editor");
+        Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
+        AssertDeclaredEditorPackage(editorSession, "Stride.Physics", editorPackage);
+    }
+
+    [Fact]
     public void BepuHullCompilesThroughItsAssetsPackage()
     {
         // The engine's own plugin: Stride.BepuPhysics declares Stride.BepuPhysics.Assets, which carries
@@ -561,6 +591,20 @@ public class CompanionPackageTests
                 Source: ../Resources/clip.mp4
                 """);
             AddRootAsset("9b2c3d4e-5f60-4a71-8b82-93a4b5c6d7e8:Clip");
+        }
+
+        public void AddColliderShapeAsset()
+        {
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "Assets", "BoxCollider.sdphy"), """
+                !ColliderShapeAsset
+                Id: 1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f
+                SerializedVersion: {Stride: 4.0.0.0}
+                Tags: []
+                ColliderShapes:
+                    e803604e1edf064bb9d035b760568ca5: !BoxColliderShapeDesc
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                """);
+            AddRootAsset("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f:BoxCollider");
         }
 
         public void AddHullAssets()

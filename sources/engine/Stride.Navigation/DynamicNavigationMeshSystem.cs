@@ -181,7 +181,11 @@ namespace Stride.Navigation
             return result.Result;
         }
 
-        internal void InitializeSettingsFromNavigationSettings(NavigationSettings navigationSettings)
+        /// <summary>
+        /// Copies the settings for building navigation from <paramref name="navigationSettings"/>, and rebuilds the navigation mesh
+        /// on the next update
+        /// </summary>
+        public void InitializeSettingsFromNavigationSettings(NavigationSettings navigationSettings)
         {
             BuildSettings = navigationSettings.BuildSettings;
             IncludedCollisionGroups = navigationSettings.IncludedCollisionGroups;
