@@ -215,6 +215,7 @@ jobs:
     needs: Package
     permissions:
       contents: write
+      pull-requests: read  # the nested ReleaseNotes job reads PRs
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}
