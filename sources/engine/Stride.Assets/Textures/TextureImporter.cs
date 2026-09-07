@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.Assets.Sprite;
-using Stride.Assets.Physics;
 
 namespace Stride.Assets.Textures
 {
@@ -29,7 +28,6 @@ namespace Stride.Assets.Textures
             {
                 yield return typeof(TextureAsset);
                 yield return typeof(SpriteSheetAsset); // TODO: this is temporary, until we can make the asset templates ask compilers instead of importer which type they support
-                yield return typeof(HeightmapAsset);
             }
         }
 

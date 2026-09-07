@@ -14,6 +14,7 @@
     <ProjectReference Include="..\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj" />
     <ProjectReference Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
+    <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +22,7 @@
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
+    <Compile Include="TestHeightmapAssetCompatibility.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />

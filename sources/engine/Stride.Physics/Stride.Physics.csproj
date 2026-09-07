@@ -8,7 +8,14 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StrideBulletPlatform></StrideBulletPlatform> <!--Empty by default, only iOS needs special care-->
     <StrideBulletPlatform Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">iOS</StrideBulletPlatform>
+    <!-- The physics components and settings are written in scene and game settings assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: asset types, compilers and templates (physics and navigation) in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>

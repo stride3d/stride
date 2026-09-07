@@ -83,27 +83,6 @@ namespace Stride.Assets
         }
     }
 
-    namespace Navigation
-    {
-        [Display((int)AssetDisplayPriority.Navigation, "Navigation mesh")]
-        partial class NavigationMeshAsset
-        {
-        }
-    }
-
-    namespace Physics
-    {
-        [Display((int)AssetDisplayPriority.Physics, "Collider shape")]
-        partial class ColliderShapeAsset
-        {
-        }
-
-        [Display((int)AssetDisplayPriority.Physics + 50, "Heightmap")]
-        partial class HeightmapAsset
-        {
-        }
-    }
-
     namespace Rendering
     {
         [Display((int)AssetDisplayPriority.GraphicsCompositor, "Graphics compositor")]

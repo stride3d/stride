@@ -14,7 +14,7 @@ using Stride.SpriteStudio.Runtime;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
-    internal sealed class ModelNodeLinkNodeUpdater : AssetNodePresenterUpdaterBase
+    public sealed class ModelNodeLinkNodeUpdater : AssetNodePresenterUpdaterBase
     {
         protected override void UpdateNode(IAssetNodePresenter node)
         {
@@ -34,11 +34,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 var parent = (IAssetNodePresenter)node.Parent;
                 parent.AttachedProperties.Set(ModelNodeLinkData.Key, GetAvailableNodesForLink(asset, (SpriteStudioNodeLinkComponent)parent?.Value));
             }
-            var physicsComponent = node.Value as PhysicsComponent;
-            if (physicsComponent != null)
-            {
-                node.AttachedProperties.Set(ModelNodeLinkData.Key, GetAvailableNodesForLink(asset, physicsComponent));
-            }
         }
 
         private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, ModelNodeLinkComponent modelNodeLinkComponent)
@@ -51,18 +46,11 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             return GetAvailableNodesForLink(viewModel, spriteStudioNodeLinkComponent?.Target?.Sheet ?? spriteStudioNodeLinkComponent?.Entity?.Transform.Parent?.Entity?.Get<SpriteStudioComponent>()?.Sheet);
         }
 
-        private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, PhysicsComponent physicsComponent)
-        {
-            return GetAvailableNodesForLink(viewModel, physicsComponent?.Entity?.Get<ModelComponent>()?.Model);
-            //todo physics is kinda independant from the rest so i don't wanna reference sprite studio stuff in it... for now physics can be achieved by sprite studio node link
-            //var spriteStudioSheet = physicsComponent?.Entity?.Get(SpriteStudioComponent.Key)?.Sheet;
-            //if (spriteStudioSheet != null)
-            //{
-            //    UpdateAvailableChoices(viewModel, spriteStudioSheet, availableChoices);
-            //}
-        }
-
-        private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, Model model)
+        /// <summary>
+        /// The skeleton nodes a component on <paramref name="viewModel"/>'s asset can link to through <paramref name="model"/>,
+        /// for a plugin's own node-name picker (set <see cref="ModelNodeLinkData.Key"/> with it).
+        /// </summary>
+        public static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, Model model)
         {
             var parentModelAsset = viewModel?.AssetItem.Package.Session.FindAssetFromProxyObject(model);
             var modelAsset = parentModelAsset?.Asset as ModelAsset;

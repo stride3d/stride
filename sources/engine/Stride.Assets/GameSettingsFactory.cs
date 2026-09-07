@@ -7,8 +7,6 @@ using Stride.Core.Serialization;
 using Stride.Assets.Textures;
 using Stride.Audio;
 using Stride.Graphics;
-using Stride.Navigation;
-using Stride.Physics;
 using Stride.Streaming;
 
 namespace Stride.Assets
