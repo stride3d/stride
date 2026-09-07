@@ -20,6 +20,7 @@ using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 {
+    [EditorGameService(typeof(UIEditorController), Order = 110)]
     internal sealed partial class UIEditorGameAdornerService : EditorGameServiceBase, IEditorGameViewModelService
     {
         /// <summary>

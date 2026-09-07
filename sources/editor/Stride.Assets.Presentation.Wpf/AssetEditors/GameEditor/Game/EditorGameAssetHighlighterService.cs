@@ -11,19 +11,23 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Editor.EditorGame.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 240)]
     public class EditorGameAssetHighlighterService : EditorGameServiceBase, IEditorGameAssetHighlighterViewModelService
     {
         private readonly IEditorGameController controller;
         private readonly Dictionary<Type, AssetHighlighter> assetHighlighters = new Dictionary<Type, AssetHighlighter>();
         private EditorServiceGame game;
 
-        public EditorGameAssetHighlighterService(IEditorGameController controller, [NotNull] IAssetDependencyManager dependencyManager)
+        public EditorGameAssetHighlighterService(IEditorGameController controller, [NotNull] GameEditorViewModel editor)
         {
             this.controller = controller;
+            var dependencyManager = editor.Session.DependencyManager;
             foreach (var assetHighlighterType in StrideDefaultAssetsPlugin.AssetHighlighterTypesDictionary)
             {
                 var instance = (AssetHighlighter)Activator.CreateInstance(assetHighlighterType.Value, dependencyManager);

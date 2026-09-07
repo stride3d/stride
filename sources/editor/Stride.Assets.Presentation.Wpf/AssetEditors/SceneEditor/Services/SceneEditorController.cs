@@ -236,14 +236,6 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Services
             }
         }
 
-        /// <inheritdoc/>
-        protected override void InitializeServices(EditorGameServiceRegistry serviceRegistry)
-        {
-            base.InitializeServices(serviceRegistry);
-            serviceRegistry.Add(new EditorGameCameraPreviewService(this));
-            serviceRegistry.Add(new EditorGameNavigationMeshService(Editor));
-        }
-
         [NotNull]
         private static SceneEditorGame CreateEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
         {

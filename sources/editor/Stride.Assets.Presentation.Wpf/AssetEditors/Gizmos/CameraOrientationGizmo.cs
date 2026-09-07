@@ -272,8 +272,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
 
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
-            editorCompositor.PostGizmoCompositors.Add(new ClearRenderer { ClearFlags = ClearRendererFlags.DepthOnly });
-            editorCompositor.PostGizmoCompositors.Add(gizmoViewportRenderer = new GizmoViewportRenderer
+            editorCompositor.AddOverlayGizmoCompositor(gizmoViewportRenderer = new GizmoViewportRenderer
             {
                 Name = "Render Camera Orientation",
                 ViewportSize = ViewportSize,

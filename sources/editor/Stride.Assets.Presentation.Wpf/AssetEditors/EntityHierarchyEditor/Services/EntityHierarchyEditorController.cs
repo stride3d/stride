@@ -48,28 +48,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
         public abstract AbsoluteId GetAbsoluteId([NotNull] Entity entity);
 
         /// <inheritdoc/>
-        protected override void InitializeServices(EditorGameServiceRegistry services)
-        {
-            base.InitializeServices(services);
-            services.Add(new EditorGameGraphicsCompositorService(this, Editor));
-            services.Add(new EditorGameEntityCameraService(Editor, this));
-            services.Add(new EditorGameRenderModeService());
-            services.Add(new EditorGameGridService<ViewportGridGizmo>());
-            services.Add(new PhysicsDebugShapeService());
-            services.Add(new EditorGameLightProbeGizmoService(Editor));
-            services.Add(new EditorGameCubemapService(Editor));
-            services.Add(new EditorGameSpaceMarkerService());
-            services.Add(new EditorGameCameraOrientationService());
-            services.Add(new EditorGameComponentGizmoService(this));
-            services.Add(new EditorGameEntitySelectionService(Editor));
-            services.Add(new EditorGameEntityTransformService(Editor, this));
-            services.Add(new EditorGameModelSelectionService(Editor));
-            services.Add(new EditorGameMaterialHighlightService(Editor));
-            services.Add(new EditorGameAssetHighlighterService(this, Editor.Session.DependencyManager));
-            services.Add(new EditorGameParticleComponentChangeWatcherService(this));
-        }
-
-        /// <inheritdoc/>
         protected override Dictionary<Guid, IIdentifiable> CollectIdentifiableObjects()
         {
             var allEntities = Game.ContentScene.Yield().BreadthFirst(x => x.Children).SelectMany(x => x.Entities).BreadthFirst(x => x.Transform.Children.Select(y => y.Entity));
