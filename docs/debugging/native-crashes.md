@@ -4,13 +4,17 @@ Native access violations — from GPU drivers (including software renderers like
 native audio (XAudio2), native interop, or NativeAOT-published apps — are crashes the .NET runtime
 **cannot catch via `try`/`catch`**. Left alone they exit silently (e.g. exit code `139`, no dump), which
 is especially painful for intermittent crashes and CI — so Stride installs a handler that captures them.
+This page is the local how-to: capture a dump and analyze it. How the shipped tools capture and report
+crashes (the out-of-process reporter, `createdump` adoption, Sentry) is in
+[crash-reporting.md](crash-reporting.md).
 
-## The shared crash handler
+## The test-harness crash handler
 
-`sources/shared/NativeCrashHandler.cs` is compile-linked into three projects: the test assemblies
-`Stride.Graphics.Regression` and `Stride.Games.AutoTesting` (which call `Install()` from a
-`[ModuleInitializer]`), and the asset compiler (which calls `InstallForReporting()` to turn a native
-crash into a report). It:
+`sources/shared/NativeCrashHandler.cs` is compile-linked into the test assemblies
+`Stride.Graphics.Regression` and `Stride.Games.AutoTesting`, which call `Install()` from a
+`[ModuleInitializer]`. (The asset compiler links the same file for a record-only handler that notes the
+native fault frame next to the dump `createdump` writes; the GUI hosts use the native trigger
+`libstridecrash` instead. See crash-reporting.md.) In the tests it:
 
 - Calls `SetErrorMode` to hide the Windows crash dialog so a crash can't hang CI.
 - Registers a **Vectored Exception Handler** that catches *pure*-native access violations in-process and
@@ -25,8 +29,7 @@ crash into a report). It:
   layer.
 - **Gotcha — `SEM_NOGPFAULTERRORBOX` defeats WER/createdump.** That flag suppresses WER LocalDumps *and*
   the runtime minidump (`DOTNET_DbgEnableMiniDump`) for pure-native crashes. In the test path it is
-  **omitted** in capture mode so those still fire as a backstop; the compiler path keeps it (the VEH
-  already wrote the dump, so a crash can't hang a headless build on a dialog).
+  **omitted** in capture mode so those still fire as a backstop.
 
 > [!IMPORTANT]
 > Test dumps are only produced when `STRIDE_TESTS_CRASH_DUMPS=1`. CI sets it (plus
