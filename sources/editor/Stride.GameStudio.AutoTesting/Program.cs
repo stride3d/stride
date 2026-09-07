@@ -72,6 +72,8 @@ internal static class Program
         // capture every exception (including the swallowed ones) to a diag log.
         var diagPath = Path.Combine(Path.GetTempPath(), "autotest-diag.log");
         try { File.Delete(diagPath); } catch { }
+        // GameStudio's own checkpoints (it appends): start this fixture's copy clean too.
+        try { File.Delete(Path.Combine(Path.GetTempPath(), "gs-diag.log")); } catch { }
         // Serialized and share-tolerant so concurrent writes don't throw inside the first-chance handler
         var diagLock = new object();
         void Diag(string msg)

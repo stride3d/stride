@@ -59,10 +59,12 @@ public static class Program
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
 
-    // Startup checkpoints; shared file with the AutoTesting runner.
+    // Startup checkpoints for the AutoTesting runner, which hosts us and collects the file; off otherwise.
+    private static bool diagLogEnabled;
     private static readonly string DiagLogPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gs-diag.log");
     private static void DiagLog(string message)
     {
+        if (!diagLogEnabled) return;
         try { System.IO.File.AppendAllText(DiagLogPath, $"{DateTime.UtcNow:HH:mm:ss.fff} [tid={Thread.CurrentThread.ManagedThreadId}] GS: {message}\n"); }
         catch { /* best-effort */ }
     }
@@ -119,6 +121,7 @@ public static class Program
     /// </summary>
     public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
     {
+        diagLogEnabled = appHosted != null;
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
