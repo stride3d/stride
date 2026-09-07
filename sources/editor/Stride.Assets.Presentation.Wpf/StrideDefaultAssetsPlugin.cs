@@ -14,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
@@ -88,7 +89,12 @@ namespace Stride.Assets.Presentation
         /// </summary>
         public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
-        public static List<EntityFactoryCategory> EntityFactoryCategories { get; private set; }
+        private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = new ObservableList<EntityFactoryCategory>();
+
+        /// <summary>
+        /// The entity factories ("Add entity" menu) of every asset assembly, grouped by category.
+        /// </summary>
+        public static IReadOnlyObservableList<EntityFactoryCategory> EntityFactoryCategories => EntityFactoryCategoryList;
 
         public static IReadOnlyList<(Type type, int order)> ComponentOrders { get; private set; } = new List<(Type, int)>();
 
@@ -132,53 +138,28 @@ namespace Stride.Assets.Presentation
                 Application.Current.Resources[bulbMenuType] = new Style(bulbMenuType, contextMenuStyle);
             }
 
-            var entityFactories = new Core.Collections.SortedList<EntityFactoryCategory, EntityFactoryCategory>();
-            foreach (var factoryType in Assembly.GetExecutingAssembly().GetTypes().Where(x => typeof(IEntityFactory).IsAssignableFrom(x) && x.GetConstructor(Type.EmptyTypes) != null))
-            {
-                var display = factoryType.GetCustomAttribute<DisplayAttribute>();
-                if (display == null)
-                    continue;
-
-                EntityFactoryCategory category;
-                var existing = entityFactories.FirstOrDefault(x => x.Key.Name == display.Category);
-                if (existing.Key == null)
-                {
-                    category = new EntityFactoryCategory(display.Category);
-                    entityFactories.Add(category, category);
-                }
-                else
-                    category = existing.Key;
-
-                var instance = (IEntityFactory)Activator.CreateInstance(factoryType);
-                // We use int.MaxValue / 2 to give enough space to all factories that do not have an Order value
-                category.AddFactory(instance, display.Name, display.Order ?? int.MaxValue / 2);
-            }
-
             AssemblyRegistry.AssemblyRegistered += (sender, e) =>
             {
-                var types = e.Assembly.GetTypes();
-                SetTypeExpandRuleFallback(types);
+                SetTypeExpandRuleFallback(e.Assembly.GetTypes());
 
                 if (e.Categories.Contains(AssemblyCommonCategories.Assets))
                 {
-                    OnRegisteredAssetAssembly(types);
+                    OnRegisteredAssetAssembly(e.Assembly);
                 }
             };
-            
+
             AssemblyRegistry.AssemblyUnregistered += (sender, e) =>
             {
                 if (e.Categories.Contains(AssemblyCommonCategories.Assets))
                 {
-                    OnUnregisteredAssetAssembly(e.Assembly.GetTypes());
+                    OnUnregisteredAssetAssembly(e.Assembly);
                 }
             };
 
             SetTypeExpandRuleFallback(typeof(EntityComponent).GetInheritedInstantiableTypes().ToArray());
 
             foreach (var assembly in AssetRegistry.AssetAssemblies)
-                OnRegisteredAssetAssembly(assembly.GetTypes());
-            
-            EntityFactoryCategories = entityFactories.Keys.ToList();
+                OnRegisteredAssetAssembly(assembly);
 
             RegisterResourceDictionary(imageDictionary);
             RegisterResourceDictionary(animationPropertyTemplateDictionary);
@@ -357,48 +338,110 @@ namespace Stride.Assets.Presentation
             }
         }
 
-        private void OnRegisteredAssetAssembly(Type[] types)
+        /// <summary>
+        /// Gizmos, asset highlighters, add-asset policies and entity factories of <paramref name="assembly"/>, from the
+        /// assembly processor's scan index.
+        /// </summary>
+        private void OnRegisteredAssetAssembly(Assembly assembly)
         {
-            foreach (var type in types)
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
             {
-                if (type.IsAssignableTo(typeof(IGizmo)))
+                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
+                    GizmoTypes.Add(attribute.ComponentType, type);
+            }
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetHighlighterAttribute)))
+            {
+                if (!type.IsAssignableTo(typeof(AssetHighlighter)))
+                    continue;
+                foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
                 {
-                    if (type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                        GizmoTypes.Add(attribute.ComponentType, type);
-                }
-                if (type.IsAssignableTo(typeof(AssetHighlighter)))
-                {
-                    foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
-                    {
-                        AssetHighlighterTypes.Add(attribute.AssetType, type);
-                    }
+                    AssetHighlighterTypes.Add(attribute.AssetType, type);
                 }
             }
-            var policyTypes = types.Where(IsAddAssetPolicy).ToList();
+            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
             lock (AddAssetPolicyTypesLock)
                 addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
+
+            var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
+            OnUiThread(() => RegisterEntityFactories(factoryTypes));
         }
 
-        private void OnUnregisteredAssetAssembly(Type[] types)
+        private void OnUnregisteredAssetAssembly(Assembly assembly)
         {
-            foreach (var type in types)
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
             {
-                if (type.IsAssignableTo(typeof(IGizmo)))
+                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
+                    GizmoTypes.Remove(attribute.ComponentType);
+            }
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetHighlighterAttribute)))
+            {
+                if (!type.IsAssignableTo(typeof(AssetHighlighter)))
+                    continue;
+                foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
                 {
-                    if (type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                        GizmoTypes.Remove(attribute.ComponentType);
-                }
-                if (type.IsAssignableTo(typeof(AssetHighlighter)))
-                {
-                    foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
-                    {
-                        AssetHighlighterTypes.Remove(attribute.AssetType);
-                    }
+                    AssetHighlighterTypes.Remove(attribute.AssetType);
                 }
             }
-            var policyTypes = types.Where(IsAddAssetPolicy).ToHashSet();
+            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
             lock (AddAssetPolicyTypesLock)
                 addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+
+            var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
+            OnUiThread(() => UnregisterEntityFactories(factoryTypes));
+        }
+
+        private static bool IsEntityFactory(Type type)
+        {
+            return type.IsAssignableTo(typeof(IEntityFactory)) && type.IsClass && !type.IsAbstract && type.GetConstructor(Type.EmptyTypes) != null;
+        }
+
+        /// <summary>
+        /// The entity factory lists are bound by the editor views, so they only change on the UI thread; an assembly
+        /// registered from another thread (a package loaded later) queues its update.
+        /// </summary>
+        private static void OnUiThread(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+                action();
+            else
+                dispatcher.InvokeAsync(action);
+        }
+
+        private static void RegisterEntityFactories(Type[] types)
+        {
+            foreach (var factoryType in types.Where(IsEntityFactory))
+            {
+                var display = factoryType.GetCustomAttribute<DisplayAttribute>();
+                if (display == null)
+                    continue;
+
+                var category = EntityFactoryCategoryList.FirstOrDefault(x => x.Name == display.Category);
+                if (category == null)
+                {
+                    category = new EntityFactoryCategory(display.Category);
+                    var index = 0;
+                    while (index < EntityFactoryCategoryList.Count && ((IComparable<EntityFactoryCategory>)EntityFactoryCategoryList[index]).CompareTo(category) < 0)
+                        ++index;
+                    EntityFactoryCategoryList.Insert(index, category);
+                }
+
+                var instance = (IEntityFactory)Activator.CreateInstance(factoryType);
+                // We use int.MaxValue / 2 to give enough space to all factories that do not have an Order value
+                category.AddFactory(instance, display.Name, display.Order ?? int.MaxValue / 2);
+            }
+        }
+
+        private static void UnregisterEntityFactories(Type[] types)
+        {
+            foreach (var category in EntityFactoryCategoryList.ToList())
+            {
+                foreach (var factory in category.Factories.Where(x => types.Contains(x.Factory.GetType())).ToList())
+                    category.Factories.Remove(factory);
+
+                if (category.Factories.Count == 0)
+                    EntityFactoryCategoryList.Remove(category);
+            }
         }
 
         private static bool IsAddAssetPolicy(Type type)

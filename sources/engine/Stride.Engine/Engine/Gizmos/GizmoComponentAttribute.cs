@@ -10,6 +10,7 @@ namespace Stride.Engine.Gizmos
     /// <summary>
     /// Specifies for which component the associated gizmo class is.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public class GizmoComponentAttribute : Attribute
     {
         /// <summary>

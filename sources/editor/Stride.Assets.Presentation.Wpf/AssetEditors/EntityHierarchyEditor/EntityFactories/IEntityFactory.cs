@@ -7,6 +7,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IEntityFactory
     {
         Task<Entity> CreateEntity([NotNull] EntityHierarchyItemViewModel parent);

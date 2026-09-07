@@ -9,6 +9,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
     /// Specifies for which class of asset the associated asset highlighter class is.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [Stride.Core.Reflection.AssemblyScan]
     public class AssetHighlighterAttribute : Attribute
     {
         /// <summary>
