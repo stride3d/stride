@@ -657,7 +657,7 @@ namespace Stride.Engine
             }
 
             //this is mostly required for the game studio gizmos
-            if (Simulation.DisableSimulation)
+            if (Simulation.IsDisabled)
             {
                 attachInProgress = false;
                 return;
@@ -728,7 +728,7 @@ namespace Stride.Engine
             Data = null;
 
             //this is mostly required for the game studio gizmos
-            if (Simulation.DisableSimulation)
+            if (Simulation.IsDisabled)
             {
                 return;
             }

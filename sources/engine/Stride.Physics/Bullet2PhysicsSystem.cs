@@ -78,13 +78,13 @@ namespace Stride.Physics
 
         public override void Update(GameTime gameTime)
         {
-            if (Simulation.DisableSimulation) return;
-
             lock (this)
             {
                 //read skinned meshes bone positions
                 foreach (var physicsScene in scenes)
                 {
+                    if (physicsScene.Simulation.IsDisabled) continue;
+
                     //first process any needed cleanup
                     physicsScene.Processor.UpdateRemovals();
 
