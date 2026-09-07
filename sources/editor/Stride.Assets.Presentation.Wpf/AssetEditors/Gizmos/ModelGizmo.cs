@@ -13,7 +13,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
     /// A gizmo to display the bounding boxes for meshes inside the editor as a gizmo. 
     /// this gizmo uses model component bounding box for data <see cref="ModelComponent.BoundingBox">
     /// </summary>
-    [GizmoComponent(typeof(ModelComponent), false)]
+    [GizmoComponent(typeof(ModelComponent), false, HiddenByDefault = true)]
     public class ModelGizmo : EntityGizmo<ModelComponent>
     {
         private BoxMesh box;

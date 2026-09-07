@@ -15,7 +15,7 @@ using Stride.Core.Assets;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
-    [GizmoComponent(typeof(PhysicsComponent), false)]
+    [GizmoComponent(typeof(PhysicsComponent), false, HiddenByDefault = true)]
     public class PhysicsGizmo : EntityGizmo<PhysicsComponent>
     {
         private readonly List<Entity> spawnedEntities = new List<Entity>();

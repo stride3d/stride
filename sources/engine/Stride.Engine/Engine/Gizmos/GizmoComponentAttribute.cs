@@ -39,5 +39,11 @@ namespace Stride.Engine.Gizmos
         /// Main gizmos will be entirely disposed instead of disabled if disabled in the gizmo settings
         /// </remarks>
         public bool IsMainGizmo { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the editor hides this gizmo until the user enables it in the gizmo settings (a collider
+        /// shape overlay, for instance).
+        /// </summary>
+        public bool HiddenByDefault { get; set; }
     }
 }
