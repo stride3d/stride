@@ -350,8 +350,8 @@ public sealed class StrideVersionManager
     {
         try
         {
-            // Ask the local store with the same accessor discovery uses, so an installed copy it would accept is
-            // never downloaded again.
+            // Check the installed store first, with the same compatibility rule discovery applies, so an
+            // installed copy discovery would accept is never downloaded again.
             if (store.GetLocalPackages(AssetPacksPackageId)
                 .Any(package => IsCompatible(package.GetDependencyFloor(TemplateMarkerDependencyId), version)))
                 return;
