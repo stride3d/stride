@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 170)]
     public class EditorGameSpaceMarkerService : EditorGameServiceBase
     {
         private EntityHierarchyEditorGame game;

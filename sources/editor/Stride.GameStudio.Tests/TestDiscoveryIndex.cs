@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
@@ -16,6 +17,7 @@ using Stride.Assets.Presentation.ViewModel.Preview;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Reflection;
+using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
@@ -25,8 +27,8 @@ using Xunit;
 namespace Stride.GameStudio.Tests
 {
     /// <summary>
-    /// The editor finds plugins, gizmos, previews and factories through the assembly processor's scan index instead
-    /// of scanning types; the index of the default plugin assembly must list the known ones.
+    /// The editor finds plugins, gizmos, previews, factories and services through the assembly processor's scan index;
+    /// the index of the default plugin assembly must list the known ones.
     /// </summary>
     public class TestDiscoveryIndex
     {
@@ -42,6 +44,7 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(IAssetPreviewViewModel), typeof(ModelPreviewViewModel))]
         [InlineData(typeof(IAssetEditorViewModel), typeof(SceneEditorViewModel))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
+        [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameEntityTransformService))]
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
             var assembly = typeof(StrideDefaultAssetsPlugin).Assembly;

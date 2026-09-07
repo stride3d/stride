@@ -8,10 +8,12 @@ using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
-    public class PhysicsDebugShapeService : EditorGameServiceBase
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 140)]
+    public class WireframeGizmoStageService : EditorGameServiceBase
     {
         private EntityHierarchyEditorGame game;
 
@@ -23,8 +25,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             game = (EntityHierarchyEditorGame)editorGame;
 
             // Create render stage
-            var physicsDebugShapeRenderStage = new RenderStage("PhysicsDebugShape", "Main");
-            game.EditorSceneSystem.GraphicsCompositor.RenderStages.Add(physicsDebugShapeRenderStage);
+            var wireframeRenderStage = new RenderStage("WireframeGizmo", "Main");
+            game.EditorSceneSystem.GraphicsCompositor.RenderStages.Add(wireframeRenderStage);
 
             // Setup stage selector
             var meshRenderFeature = game.EditorSceneSystem.GraphicsCompositor.RenderFeatures.OfType<MeshRenderFeature>().First();
@@ -32,18 +34,18 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             {
                 EffectName = EditorGraphicsCompositorHelper.EditorForwardShadingEffect,
                 RenderGroup = GizmoBase.PhysicsShapesGroupMask,
-                RenderStage = physicsDebugShapeRenderStage,
+                RenderStage = wireframeRenderStage,
             });
 
             // Apply wireframe
-            meshRenderFeature.PipelineProcessors.Add(new WireframePipelineProcessor { RenderStage = physicsDebugShapeRenderStage });
+            meshRenderFeature.PipelineProcessors.Add(new WireframePipelineProcessor { RenderStage = wireframeRenderStage });
 
             // Setup renderer
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
             editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer
             {
-                Name = "Render Physics Gizmo",
-                RenderStage = physicsDebugShapeRenderStage,
+                Name = "Render wireframe gizmos",
+                RenderStage = wireframeRenderStage,
             });
 
             return Task.FromResult(true);

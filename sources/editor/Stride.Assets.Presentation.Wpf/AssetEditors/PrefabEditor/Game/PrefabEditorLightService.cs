@@ -8,9 +8,11 @@ using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering.Lights;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game
 {
+    [EditorGameService(typeof(PrefabEditorController), Order = 300)]
     public class PrefabEditorLightService : EditorGameServiceBase
     {
         public override void RegisterScene(Scene scene)

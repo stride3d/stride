@@ -35,6 +35,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// <summary>
     /// Handles rendering of navigation meshes associated with the current scene
     /// </summary>
+    [EditorGameService(typeof(SceneEditorController), Order = 310)]
     public class EditorGameNavigationMeshService : EditorGameServiceBase, IEditorGameNavigationViewModelService
     {
         private const float LayerHeightMultiplier = 0.05f;

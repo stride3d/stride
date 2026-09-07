@@ -361,9 +361,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
         protected override void InitializeServices(EditorGameServiceRegistry services)
         {
             base.InitializeServices(services);
-
-            services.Add(new UIEditorGameCameraService(this));
-            services.Add(AdornerService = new UIEditorGameAdornerService(this));
+            AdornerService = services.Get<UIEditorGameAdornerService>();
         }
 
         /// <inheritdoc/>
