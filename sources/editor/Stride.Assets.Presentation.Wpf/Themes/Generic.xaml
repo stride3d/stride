@@ -397,11 +397,11 @@
     </Setter>
   </Style>
 
-  <Style TargetType="{x:Type views:HeightmapPreviewView}">
+  <Style TargetType="{x:Type views:SpritePreviewView}">
     <Setter Property="Template">
       <Setter.Value>
-        <ControlTemplate TargetType="{x:Type views:HeightmapPreviewView}">
-          <DockPanel d:DataContext="{d:DesignInstance viewModel:HeightmapPreviewViewModel}">
+        <ControlTemplate TargetType="{x:Type views:SpritePreviewView}">
+          <DockPanel d:DataContext="{d:DesignInstance viewModel:SpritePreviewViewModel}">
             <Grid Background="{StaticResource NormalBrush}" DockPanel.Dock="Top">
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -441,8 +441,8 @@
               <Separator Grid.Column="1"/>
               <StatusBarItem Grid.Column="2">
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapWidth, StringFormat={sd:Localize W: {0}}}"/>
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapLength, StringFormat={sd:Localize L: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewWidth, StringFormat={sd:Localize W: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeight, StringFormat={sd:Localize H: {0}}}"/>
                 </StackPanel>
               </StatusBarItem>
             </StatusBar>
