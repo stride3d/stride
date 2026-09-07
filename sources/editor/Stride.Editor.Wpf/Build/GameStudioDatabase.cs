@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
@@ -219,12 +220,21 @@ namespace Stride.Editor.Build
             UpdateGameSettings(e.GameSettings);
         }
 
+        /// <summary>
+        /// Copies the game's rendering mode, color space, graphics profile and <see cref="GameSettingsDependencyAttribute"/> sections into the settings the editor compiles with.
+        /// </summary>
         private void UpdateGameSettings(GameSettingsAsset currentGameSettings)
         {
             databaseGameSettings.GetOrCreate<EditorSettings>().RenderingMode = currentGameSettings.GetOrCreate<EditorSettings>().RenderingMode;
             databaseGameSettings.GetOrCreate<RenderingSettings>().ColorSpace = currentGameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
-            databaseGameSettings.GetOrCreate<Navigation.NavigationSettings>().Groups = currentGameSettings.GetOrDefault<Navigation.NavigationSettings>().Groups;
             databaseGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = currentGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
+            foreach (var sectionType in GameSettingsDependencyAttribute.GetDeclaredSections())
+            {
+                databaseGameSettings.Defaults.RemoveAll(sectionType.IsInstanceOfType);
+                var section = currentGameSettings.Defaults.FirstOrDefault(sectionType.IsInstanceOfType);
+                if (section != null)
+                    databaseGameSettings.Defaults.Add(AssetCloner.Clone(section));
+            }
         }
     }
 }
